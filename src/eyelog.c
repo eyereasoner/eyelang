@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -820,6 +821,42 @@ static long long term_i64(Term *term, Env *env, bool *ok) {
   return value;
 }
 
+static bool has_float_marker(const char *text) {
+  if (!text) return false;
+  for (const char *p = text; *p; p++) {
+    if (*p == '.' || *p == 'e' || *p == 'E') return true;
+  }
+  return false;
+}
+
+static bool parse_double_strict(const char *text, double *out) {
+  if (!text || !*text) return false;
+  char *end = NULL;
+  errno = 0;
+  double value = strtod(text, &end);
+  if (errno != 0 || !end || *end != '\0' || !isfinite(value)) return false;
+  *out = value;
+  return true;
+}
+
+static char *number_text_from_double(double value) {
+  if (!isfinite(value)) return NULL;
+  if (value == 0.0) value = 0.0;
+
+  char buffer[128];
+  snprintf(buffer, sizeof(buffer), "%.17g", value);
+
+  if (!has_float_marker(buffer)) {
+    StringBuilder sb;
+    sb_init(&sb);
+    sb_append(&sb, buffer);
+    sb_append(&sb, ".0");
+    return sb.data;
+  }
+
+  return xstrdup(buffer);
+}
+
 /* ------------------------------------------------------------------------- */
 /* Decimal integer helpers for generic BigInt addition                       */
 /* ------------------------------------------------------------------------- */
@@ -863,6 +900,23 @@ static int compare_abs_decimal(const char *a, const char *b) {
   if (la != lb) return la < lb ? -1 : 1;
   int cmp = strcmp(a, b);
   return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
+}
+
+static int compare_signed_decimal(const char *left, const char *right) {
+  bool left_neg = left[0] == '-';
+  bool right_neg = right[0] == '-';
+  const char *a = left + (left_neg ? 1 : 0);
+  const char *b = right + (right_neg ? 1 : 0);
+
+  while (*a == '0' && a[1]) a++;
+  while (*b == '0' && b[1]) b++;
+  if (strcmp(a, "0") == 0) left_neg = false;
+  if (strcmp(b, "0") == 0) right_neg = false;
+
+  if (left_neg != right_neg) return left_neg ? -1 : 1;
+
+  int cmp = compare_abs_decimal(a, b);
+  return left_neg ? -cmp : cmp;
 }
 
 static char *add_abs_decimal(const char *a, const char *b) {
@@ -1161,19 +1215,44 @@ static bool builtin_neq(Term *goal, Env *env, SolutionCallback callback, void *u
 
 static bool builtin_compare(const char *name, Term *goal, Env *env,
                             SolutionCallback callback, void *user_data) {
-  bool ok_left = false;
-  bool ok_right = false;
-  long long left = term_i64(goal->args[0], env, &ok_left);
-  long long right = term_i64(goal->args[1], env, &ok_right);
-  if (!ok_left || !ok_right) return true;
+  char *left_text = term_lexical_value(goal->args[0], env);
+  char *right_text = term_lexical_value(goal->args[1], env);
+  if (!left_text || !right_text) {
+    free(left_text);
+    free(right_text);
+    return true;
+  }
+
+  int cmp = 0;
+  bool comparable = false;
+
+  if (is_decimal_integer(left_text) && is_decimal_integer(right_text)) {
+    cmp = compare_signed_decimal(left_text, right_text);
+    comparable = true;
+  } else {
+    double left = 0.0;
+    double right = 0.0;
+    if (parse_double_strict(left_text, &left) && parse_double_strict(right_text, &right)) {
+      cmp = left < right ? -1 : left > right ? 1 : 0;
+      comparable = true;
+    }
+  }
+
+  if (!comparable) {
+    free(left_text);
+    free(right_text);
+    return true;
+  }
 
   bool pass = false;
-  if (strcmp(name, "lt") == 0) pass = left < right;
-  else if (strcmp(name, "gt") == 0) pass = left > right;
-  else if (strcmp(name, "le") == 0) pass = left <= right;
-  else if (strcmp(name, "ge") == 0) pass = left >= right;
+  if (strcmp(name, "lt") == 0) pass = cmp < 0;
+  else if (strcmp(name, "gt") == 0) pass = cmp > 0;
+  else if (strcmp(name, "le") == 0) pass = cmp <= 0;
+  else if (strcmp(name, "ge") == 0) pass = cmp >= 0;
 
   if (pass) call_once(env, callback, user_data);
+  free(left_text);
+  free(right_text);
   return true;
 }
 
@@ -1192,7 +1271,7 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
   if (is_decimal_integer(left_text) && is_decimal_integer(right_text) &&
       (strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
        strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
-       strcmp(name, "pow") == 0)) {
+       strcmp(name, "pow") == 0 || strcmp(name, "max") == 0)) {
     char *value = NULL;
     if (strcmp(name, "add") == 0) value = add_decimal(left_text, right_text);
     else if (strcmp(name, "sub") == 0) value = sub_decimal(left_text, right_text);
@@ -1204,6 +1283,8 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
         free(right_text);
         return true;
       }
+    } else if (strcmp(name, "max") == 0) {
+      value = xstrdup(compare_signed_decimal(left_text, right_text) >= 0 ? left_text : right_text);
     } else {
       bool ok_exp = false;
       long long exponent = term_i64(goal->args[1], env, &ok_exp);
@@ -1216,6 +1297,48 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
     }
     result = number_term_from_text(value);
     free(value);
+  } else if (strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
+             strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
+             strcmp(name, "pow") == 0 || strcmp(name, "max") == 0) {
+    double left = 0.0;
+    double right = 0.0;
+    if (!parse_double_strict(left_text, &left) || !parse_double_strict(right_text, &right)) {
+      free(left_text);
+      free(right_text);
+      return true;
+    }
+
+    double value = 0.0;
+    if (strcmp(name, "add") == 0) value = left + right;
+    else if (strcmp(name, "sub") == 0) value = left - right;
+    else if (strcmp(name, "mul") == 0) value = left * right;
+    else if (strcmp(name, "div") == 0) {
+      if (right == 0.0) {
+        free(left_text);
+        free(right_text);
+        return true;
+      }
+      value = left / right;
+    } else if (strcmp(name, "pow") == 0) {
+      errno = 0;
+      value = pow(left, right);
+      if (errno != 0 || !isfinite(value)) {
+        free(left_text);
+        free(right_text);
+        return true;
+      }
+    } else {
+      value = left > right ? left : right;
+    }
+
+    char *value_text = number_text_from_double(value);
+    if (!value_text) {
+      free(left_text);
+      free(right_text);
+      return true;
+    }
+    result = number_term_from_text(value_text);
+    free(value_text);
   } else {
     bool ok_left = false;
     bool ok_right = false;
@@ -1229,22 +1352,13 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
       return true;
     }
 
-    if (strcmp(name, "div") == 0) {
-      if (right == 0) {
-        free(left_text);
-        free(right_text);
-        return true;
-      }
-      value = left / right;
-    } else if (strcmp(name, "mod") == 0) {
+    if (strcmp(name, "mod") == 0) {
       if (right == 0) {
         free(left_text);
         free(right_text);
         return true;
       }
       value = left % right;
-    } else if (strcmp(name, "max") == 0) {
-      value = left > right ? left : right;
     } else {
       free(left_text);
       free(right_text);
@@ -1479,13 +1593,18 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_neq(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
-       strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
-       strcmp(name, "math:quotient") == 0 || strcmp(name, "mod") == 0 ||
-       strcmp(name, "max") == 0 || strcmp(name, "pow") == 0 ||
-       strcmp(name, "math:exponentiation") == 0) && arity == 3) {
-    const char *op = strcmp(name, "math:exponentiation") == 0 ? "pow" : name;
-    if (strcmp(name, "math:quotient") == 0) op = "div";
+  if ((strcmp(name, "add") == 0 || strcmp(name, "math:sum") == 0 ||
+       strcmp(name, "sub") == 0 || strcmp(name, "math:difference") == 0 ||
+       strcmp(name, "mul") == 0 || strcmp(name, "math:product") == 0 ||
+       strcmp(name, "div") == 0 || strcmp(name, "math:quotient") == 0 ||
+       strcmp(name, "mod") == 0 || strcmp(name, "max") == 0 ||
+       strcmp(name, "pow") == 0 || strcmp(name, "math:exponentiation") == 0) && arity == 3) {
+    const char *op = name;
+    if (strcmp(name, "math:sum") == 0) op = "add";
+    else if (strcmp(name, "math:difference") == 0) op = "sub";
+    else if (strcmp(name, "math:product") == 0) op = "mul";
+    else if (strcmp(name, "math:quotient") == 0) op = "div";
+    else if (strcmp(name, "math:exponentiation") == 0) op = "pow";
     return builtin_arithmetic(op, goal, env, callback, user_data);
   }
 

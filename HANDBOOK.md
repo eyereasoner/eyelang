@@ -98,7 +98,7 @@ pair(3, 7)         % compound term
 [Head|Tail]        % head/tail list pattern
 ```
 
-The anonymous variable `_` is allowed. Each occurrence is treated as a fresh variable. Decimal and scientific numeric literals are parsed as exact lexical terms; arithmetic built-ins operate on integer values unless stated otherwise.
+The anonymous variable `_` is allowed. Each occurrence is treated as a fresh variable. Decimal and scientific numeric literals are parsed as numeric terms. Integer-only arithmetic uses arbitrary-size decimal-integer helpers for `add/3`, `sub/3`, `mul/3`, `div/3`, `pow/3`, and `max/3`. When at least one arithmetic operand contains a decimal point or exponent, the arithmetic built-ins use the host C `double` type and print a decimal result.
 
 Lists are first-class terms. They can appear in facts, rule heads, rule bodies, queries, and `triple/3` output. Proper lists print with bracket syntax:
 
@@ -358,18 +358,24 @@ These forms succeed when their arguments are not unifiable in the current enviro
 
 ```prolog
 add(A, B, Sum)
+math:sum(A, B, Sum)
 sub(A, B, Difference)
+math:difference(A, B, Difference)
 mul(A, B, Product)
+math:product(A, B, Product)
 pow(Base, Exp, Power)
 math:exponentiation(Base, Exp, Power)
 div(A, B, Quotient)
+math:quotient(A, B, Quotient)
 mod(A, B, Remainder)
 max(A, B, Maximum)
 ```
 
-`add/3`, `sub/3`, `mul/3`, and `pow/3` support arbitrary-size decimal integers. This is why examples such as `fib(10000)` and the Ackermann-style hyperoperation example can be written without engine-specific Fibonacci or exponentiation code.
+When all operands are integers, `add/3`, `sub/3`, `mul/3`, `div/3`, `pow/3`, and `max/3` use arbitrary-size decimal-integer helpers. This is why examples such as `fib(10000)` and the Ackermann-style hyperoperation example can be written without engine-specific Fibonacci or exponentiation code. In that integer mode, `pow/3` requires a non-negative machine-integer exponent, and `div/3` is integer quotient.
 
-`pow/3` requires a non-negative machine-integer exponent. `math:exponentiation/3` is an alias for examples adapted from Eyeling. `div/3` supports arbitrary-size integer quotients; `math:quotient/3` is an alias. `mod/3` and `max/3` currently use machine integers.
+When either operand contains a decimal point or exponent, `add/3`, `sub/3`, `mul/3`, `div/3`, `pow/3`, and `max/3` use C double-precision floating-point arithmetic. The result is printed as a numeric term, with `.0` added when the floating result is mathematically integral. This is useful for Eyeling-style probability and measurement examples, but it is not exact decimal arithmetic.
+
+The `math:*` names shown above are aliases for examples adapted from Eyeling. `mod/3` remains integer-only.
 
 ### Comparisons
 
@@ -381,6 +387,8 @@ ge(A, B)
 math:lessThan(A, B)
 math:greaterThan(A, B)
 ```
+
+Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or scientific operands use double-precision floating-point ordering.
 
 ### Generators
 
@@ -471,6 +479,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/allen-interval-calculus.pl` adapts Allen's interval relations over integer endpoints.
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
+- `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
 
 For example, a graph reachability program:
 
@@ -536,8 +545,7 @@ The implementation is intentionally direct:
 - no cut,
 - no DCGs,
 - no module system,
-- no floating point arithmetic,
 - no general tabling,
 - no RDF parser yet.
 
-List support is intentionally finite: `append/3`, `member/2`, `not_member/2`, and `reverse/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.
+List support is intentionally finite: `append/3`, `member/2`, `not_member/2`, and `reverse/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Floating-point arithmetic uses the platform C `double` type. It is suitable for measurements, probabilities, and examples that need approximate real arithmetic, but it is not exact rational or exact decimal arithmetic. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.
