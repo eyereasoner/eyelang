@@ -5,15 +5,17 @@ This handbook describes the eyelog language and how to write examples that are s
 ## Contents
 
 - [1. Program shape](#1-program-shape)
-- [2. Terms](#2-terms)
-- [3. Default output: `triple/3`](#3-default-output-triple3)
-- [4. Query mode](#4-query-mode)
-- [5. Built-ins](#5-built-ins)
-- [6. Writing examples](#6-writing-examples)
-- [7. Golden outputs](#7-golden-outputs)
-- [8. Performance tips](#8-performance-tips)
-- [9. Current limits](#9-current-limits)
-- [10. Versioning](#10-versioning)
+- [2. Running eyelog](#2-running-eyelog)
+- [3. Terms](#3-terms)
+- [4. Rules as Horn clauses](#4-rules-as-horn-clauses)
+- [5. Herbrand semantics](#5-herbrand-semantics)
+- [6. Query mode](#6-query-mode)
+- [7. Built-ins](#7-built-ins)
+- [8. Writing examples](#8-writing-examples)
+- [9. Golden outputs and tests](#9-golden-outputs-and-tests)
+- [10. Performance tips](#10-performance-tips)
+- [11. Current limits](#11-current-limits)
+- [12. Versioning](#12-versioning)
 
 ## 1. Program shape
 
@@ -33,7 +35,53 @@ ancestor(X, Z) :-
 
 A fact has no body. A rule has a head, `:-`, a comma-separated body, and a final `.`.
 
-## 2. Terms
+Most examples follow this shape:
+
+1. input data as facts,
+2. reusable logic as predicates,
+3. final `triple/3` rules as the query/output layer.
+
+## 2. Running eyelog
+
+Build the executable with:
+
+```sh
+make
+```
+
+Then run an example:
+
+```sh
+bin/eyelog examples/ancestor.pl
+```
+
+When you run a file without `--query`, eyelog materializes all distinct solutions of:
+
+```prolog
+triple(S, P, O)
+```
+
+and prints them as Prolog facts:
+
+```prolog
+triple(:jos, :ancestor, :emma).
+```
+
+This keeps the engine generic. Each example should define the `triple/3` rules that represent its intended output.
+
+Example:
+
+```prolog
+parent(:jos, :jan).
+parent(:jan, :emma).
+
+ancestor(X, Y) :- parent(X, Y).
+ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
+
+triple(X, :ancestor, Y) :- ancestor(X, Y).
+```
+
+## 3. Terms
 
 Supported term forms are:
 
@@ -66,23 +114,141 @@ first(List, Head) :-
 
 Improper lists are accepted when you explicitly use a non-list tail, for example `[a, b|Tail]`. Most list built-ins below require proper lists for finite execution.
 
-## 3. Default output: `triple/3`
+Semantically, list syntax is just notation for ordinary terms. The empty list is a constant, and a non-empty list is a nested cons term. For example, `[a, b, c]` behaves like `.(a, .(b, .(c, [])))`, although eyelog prints the bracket form.
 
-When you run a file without `--query`, eyelog materializes all distinct solutions of:
+## 4. Rules as Horn clauses
+
+A fact is an atomic assertion:
+
+```prolog
+parent(:jos, :jan).
+```
+
+A rule is a definite Horn clause:
+
+```prolog
+ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
+```
+
+Read the rule as:
+
+> for all `X`, `Y`, and `Z`, if `parent(X, Y)` and `ancestor(Y, Z)` hold, then `ancestor(X, Z)` holds.
+
+All variables in a rule are universally quantified over the whole rule. A variable that appears only in the body is still universally quantified in the implication, but operationally it acts as an intermediate value that the engine must find.
+
+Facts are rules with an empty body. The fact:
+
+```prolog
+parent(:jos, :jan).
+```
+
+can be read as the clause:
+
+```prolog
+parent(:jos, :jan) :- true.
+```
+
+## 5. Herbrand semantics
+
+The pure core of eyelog has the standard Herbrand semantics of definite logic programs.
+
+This section describes the mathematical meaning of facts and rules. Built-ins are discussed afterward: arithmetic, comparisons, strings, and finite list predicates are interpreted predicates, and `not/1` is negation as failure rather than part of the monotone definite-clause semantics.
+
+### 5.1 Herbrand universe
+
+For a program `P`, the Herbrand universe `U_P` is the set of all ground terms that can be built from the constants and function symbols appearing in `P`.
+
+Examples of ground terms are:
+
+```prolog
+:jos
+123
+pair(:left, :right)
+[a, b, c]
+```
+
+A ground term contains no variables. Compound terms and lists can be nested, so the Herbrand universe may be infinite if the program has a compound term symbol.
+
+If a program has no constants, the usual convention is to add one fresh constant so the universe is non-empty.
+
+### 5.2 Herbrand base
+
+The Herbrand base `B_P` is the set of all ground atoms that can be formed by applying predicate symbols from `P` to ground terms from `U_P`.
+
+For a program containing `parent/2` and constants `:jos`, `:jan`, and `:emma`, the Herbrand base includes atoms such as:
+
+```prolog
+parent(:jos, :jan)
+parent(:jan, :emma)
+parent(:emma, :jos)
+```
+
+Only some of those atoms are true in a particular interpretation.
+
+### 5.3 Herbrand interpretations and models
+
+A Herbrand interpretation is a subset of the Herbrand base. It says which ground atoms are true.
+
+A ground fact is true in interpretation `I` when that atom is a member of `I`.
+
+A ground rule
+
+```prolog
+Head :- Body1, ..., Bodyn.
+```
+
+is true in `I` when either at least one body atom is not in `I`, or `Head` is in `I`. In other words, whenever all body atoms are true, the head must also be true.
+
+An interpretation is a model of program `P` when every ground instance of every clause in `P` is true in that interpretation.
+
+### 5.4 Least Herbrand model
+
+Definite Horn programs have a least Herbrand model. It contains exactly the ground atoms forced by the facts and rules, and nothing extra.
+
+One way to define it is with the immediate consequence operator `T_P`.
+
+Given an interpretation `I`, `T_P(I)` is the set of all ground heads that can be derived by one rule application whose ground body atoms are already in `I`:
+
+```text
+T_P(I) = { Head | Head :- Body1, ..., Bodyn is a ground instance of a clause in P
+                  and Body1, ..., Bodyn are all in I }
+```
+
+Starting from the empty interpretation, repeatedly apply `T_P`:
+
+```text
+I0 = ∅
+I1 = T_P(I0)
+I2 = T_P(I1)
+I3 = T_P(I2)
+...
+```
+
+The least Herbrand model is the union of this chain:
+
+```text
+M_P = I0 ∪ I1 ∪ I2 ∪ ...
+```
+
+For the pure definite subset of eyelog:
+
+```text
+P entails A  iff  A is in M_P
+```
+
+for every ground atom `A`.
+
+### 5.5 How this relates to eyelog output
+
+Default execution asks for all solutions of:
 
 ```prolog
 triple(S, P, O)
 ```
 
-and prints them as Prolog facts:
+In the pure core, the printed facts are the ground `triple/3` atoms that belong to the least Herbrand model of the loaded program.
 
-```prolog
-triple(:jos, :ancestor, :emma).
-```
-
-This keeps the engine generic. Each example should define the `triple/3` rules that represent its intended output.
-
-Example:
+For example:
 
 ```prolog
 parent(:jos, :jan).
@@ -94,13 +260,64 @@ ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 triple(X, :ancestor, Y) :- ancestor(X, Y).
 ```
 
-Run:
+has least-model consequences including:
 
-```sh
-bin/eyelog examples/ancestor.pl
+```prolog
+ancestor(:jos, :jan)
+ancestor(:jan, :emma)
+ancestor(:jos, :emma)
+triple(:jos, :ancestor, :jan)
+triple(:jan, :ancestor, :emma)
+triple(:jos, :ancestor, :emma)
 ```
 
-## 4. Query mode
+so the default output contains the three `triple/3` facts.
+
+### 5.6 Interpolation lemma
+
+The following lemma is often useful when reasoning about a derived answer.
+
+**Interpolation lemma.** Let `P` be a pure definite eyelog program, and let `A` be a ground atom. If `A` is in the least Herbrand model `M_P`, then there is a natural number `n` such that `A` is in `T_P^n(∅)`. Equivalently, every true ground atom has a finite derivation depth.
+
+A slightly more operational form is:
+
+**Answer interpolation.** If a query instance `Qθ` is a ground consequence of `P`, then there is a finite proof tree for `Qθ` whose internal nodes are ground instances of rules from `P` and whose leaves are ground facts from `P`.
+
+#### Proof
+
+Let:
+
+```text
+I0 = ∅
+I(k+1) = T_P(Ik)
+M_P = ⋃k Ik
+```
+
+By definition of union, if `A ∈ M_P`, then `A ∈ Ik` for some finite `k`. This proves the first statement.
+
+For the proof-tree statement, use induction on the least such `k`.
+
+Base case: `k = 1`. Then `A ∈ T_P(I0)`. Since `I0` is empty, the only way to derive `A` is from a ground instance of a fact, that is, a clause with an empty body. The proof tree is the single leaf `A`.
+
+Induction step: assume every atom first appearing at depth at most `k` has a finite proof tree. Suppose `A ∈ I(k+1)`. Then `A` is the head of some ground rule instance:
+
+```prolog
+A :- B1, ..., Bm.
+```
+
+where every `Bi ∈ Ik`. By the induction hypothesis, each `Bi` has a finite proof tree. Attach those proof trees under the rule instance whose head is `A`. The result is a finite proof tree for `A`.
+
+Therefore every atom in the least Herbrand model is supported by a finite derivation, and every ground query answer can be interpolated by the finite rule instances that justify it.
+
+### 5.7 Scope of the lemma in eyelog
+
+The lemma applies directly to pure facts and Horn rules.
+
+It extends cleanly to deterministic built-ins when they are treated as interpreted leaves, for example arithmetic comparisons or `length/2` on a ground proper list. In that reading, a proof tree may have built-in leaves that are checked by their intended interpretation rather than by user-defined facts.
+
+Use more care with `not/1`. Negation as failure depends on failure of search, not membership in the least Herbrand model of a positive program. Programs using `not/1` should be written so the negated goal is sufficiently ground and finite.
+
+## 6. Query mode
 
 Use `--query` to ask any goal directly:
 
@@ -115,7 +332,9 @@ ancestor(:jos, :jan).
 ancestor(:jos, :emma).
 ```
 
-## 5. Built-ins
+Query variables are instantiated by unification. In the pure core, each printed query instance is a consequence of the program's least Herbrand model. Operationally, eyelog finds those instances by depth-first rule search with unification and backtracking.
+
+## 7. Built-ins
 
 ### Unification
 
@@ -216,7 +435,7 @@ not(edge(X, Y))
 
 when `X` and `Y` are unbound.
 
-## 6. Writing examples
+## 8. Writing examples
 
 Each example should contain:
 
@@ -244,7 +463,7 @@ triple(X, :path, Y) :- path(X, Y).
 
 Do not paste expected output as facts. The program should derive it.
 
-## 7. Golden outputs
+## 9. Golden outputs and tests
 
 Example goldens live in:
 
@@ -264,12 +483,11 @@ Then run:
 make test
 ```
 
-## 8. Performance tips
+## 10. Performance tips
 
 Place the most selective goals early in a rule body.
 
 For large materializations, prefer rules that generate each result once. The engine keeps a hash-backed set of printed `triple/3` facts, so examples such as `deep-taxonomy-100000.pl` can produce hundreds of thousands of distinct triples without quadratic duplicate checks.
-
 
 Prefer this:
 
@@ -288,7 +506,7 @@ Avoid generating a large Cartesian product before filtering it.
 
 For bounded challenge examples, it is fine to include domain facts such as airport routes or prime numbers as input data. What should be avoided is pasting the final answers as `triple/3` facts.
 
-## 9. Current limits
+## 11. Current limits
 
 The implementation is intentionally direct:
 
@@ -301,11 +519,10 @@ The implementation is intentionally direct:
 
 List support is intentionally finite: `append/3` and `member/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.
 
-## 10. Versioning
+## 12. Versioning
 
 The project version is stored in `VERSION`. After `make`, run:
 
 ```sh
 bin/eyelog --version
 ```
-
