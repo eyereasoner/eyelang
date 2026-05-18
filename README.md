@@ -18,8 +18,8 @@ bin/eyelog --version
 ```sh
 bin/eyelog examples/path-discovery.pl
 bin/eyelog examples/fibonacci.pl
-bin/eyelog examples/gps-list.pl
-bin/eyelog --query 'triple(:jos, :ancestor, X)' examples/ancestor.pl
+bin/eyelog examples/gps.pl
+bin/eyelog --query 'triple(:pat, :ancestor, X)' examples/ancestor.pl
 bin/eyelog --query 'append([a, b], [c], X)' examples/list-collection.pl
 ```
 

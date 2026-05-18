@@ -1,5 +1,5 @@
 % Basic recursive RDF bridge example.
-triple(:jos, :parent, :jan).
+triple(:pat, :parent, :jan).
 triple(:jan, :parent, :lies).
 triple(:lies, :parent, :emma).
 

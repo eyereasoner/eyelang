@@ -15,14 +15,13 @@ This handbook describes the eyelog language and how to write examples that are s
 - [9. Golden outputs and tests](#9-golden-outputs-and-tests)
 - [10. Performance tips](#10-performance-tips)
 - [11. Current limits](#11-current-limits)
-- [12. Versioning](#12-versioning)
 
 ## 1. Program shape
 
 An eyelog program is a sequence of Prolog-style facts and Horn clauses.
 
 ```prolog
-parent(:jos, :jan).
+parent(:pat, :jan).
 parent(:jan, :emma).
 
 ancestor(X, Y) :-
@@ -64,7 +63,7 @@ triple(S, P, O)
 and prints them as Prolog facts:
 
 ```prolog
-triple(:jos, :ancestor, :emma).
+triple(:pat, :ancestor, :emma).
 ```
 
 This keeps the engine generic. Each example should define the `triple/3` rules that represent its intended output.
@@ -72,7 +71,7 @@ This keeps the engine generic. Each example should define the `triple/3` rules t
 Example:
 
 ```prolog
-parent(:jos, :jan).
+parent(:pat, :jan).
 parent(:jan, :emma).
 
 ancestor(X, Y) :- parent(X, Y).
@@ -87,7 +86,7 @@ Supported term forms are:
 
 ```prolog
 X                  % variable, starts with uppercase or _
-:jos               % atom
+:pat               % atom
 parent             % atom
 "hello world"      % string
 123                % integer
@@ -121,7 +120,7 @@ Semantically, list syntax is just notation for ordinary terms. The empty list is
 A fact is an atomic assertion:
 
 ```prolog
-parent(:jos, :jan).
+parent(:pat, :jan).
 ```
 
 A rule is a definite Horn clause:
@@ -139,13 +138,13 @@ All variables in a rule are universally quantified over the whole rule. A variab
 Facts are rules with an empty body. The fact:
 
 ```prolog
-parent(:jos, :jan).
+parent(:pat, :jan).
 ```
 
 can be read as the clause:
 
 ```prolog
-parent(:jos, :jan) :- true.
+parent(:pat, :jan) :- true.
 ```
 
 ## 5. Herbrand semantics
@@ -161,7 +160,7 @@ For a program `P`, the Herbrand universe `U_P` is the set of all ground terms th
 Examples of ground terms are:
 
 ```prolog
-:jos
+:pat
 123
 pair(:left, :right)
 [a, b, c]
@@ -175,12 +174,12 @@ If a program has no constants, the usual convention is to add one fresh constant
 
 The Herbrand base `B_P` is the set of all ground atoms that can be formed by applying predicate symbols from `P` to ground terms from `U_P`.
 
-For a program containing `parent/2` and constants `:jos`, `:jan`, and `:emma`, the Herbrand base includes atoms such as:
+For a program containing `parent/2` and constants `:pat`, `:jan`, and `:emma`, the Herbrand base includes atoms such as:
 
 ```prolog
-parent(:jos, :jan)
+parent(:pat, :jan)
 parent(:jan, :emma)
-parent(:emma, :jos)
+parent(:emma, :pat)
 ```
 
 Only some of those atoms are true in a particular interpretation.
@@ -251,7 +250,7 @@ In the pure core, the printed facts are the ground `triple/3` atoms that belong 
 For example:
 
 ```prolog
-parent(:jos, :jan).
+parent(:pat, :jan).
 parent(:jan, :emma).
 
 ancestor(X, Y) :- parent(X, Y).
@@ -263,12 +262,12 @@ triple(X, :ancestor, Y) :- ancestor(X, Y).
 has least-model consequences including:
 
 ```prolog
-ancestor(:jos, :jan)
+ancestor(:pat, :jan)
 ancestor(:jan, :emma)
-ancestor(:jos, :emma)
-triple(:jos, :ancestor, :jan)
+ancestor(:pat, :emma)
+triple(:pat, :ancestor, :jan)
 triple(:jan, :ancestor, :emma)
-triple(:jos, :ancestor, :emma)
+triple(:pat, :ancestor, :emma)
 ```
 
 so the default output contains the three `triple/3` facts.
@@ -322,14 +321,14 @@ Use more care with `not/1`. Negation as failure depends on failure of search, no
 Use `--query` to ask any goal directly:
 
 ```sh
-bin/eyelog --query 'ancestor(:jos, X)' examples/ancestor.pl
+bin/eyelog --query 'ancestor(:pat, X)' examples/ancestor.pl
 ```
 
 Output is the instantiated goal:
 
 ```prolog
-ancestor(:jos, :jan).
-ancestor(:jos, :emma).
+ancestor(:pat, :jan).
+ancestor(:pat, :emma).
 ```
 
 Query variables are instantiated by unification. In the pure core, each printed query instance is a consequence of the program's least Herbrand model. Operationally, eyelog finds those instances by depth-first rule search with unification and backtracking.
@@ -339,8 +338,8 @@ Query variables are instantiated by unification. In the pure core, each printed 
 ### Unification
 
 ```prolog
-=(X, :jos)
-eq(X, :jos)
+=(X, :pat)
+eq(X, :pat)
 ```
 
 Both forms unify their arguments.
@@ -446,7 +445,7 @@ Each example should contain:
 The repository includes small examples adapted from the Eyeling examples collection:
 
 - `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
-- `examples/gps-list.pl` adapts the GPS route-planning example and uses `list:append/3` for action sequences.
+- `examples/gps.pl` adapts the GPS route-planning example and uses `list:append/3` for action sequences.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 
 For example, a graph reachability program:
@@ -518,11 +517,3 @@ The implementation is intentionally direct:
 - no RDF parser yet.
 
 List support is intentionally finite: `append/3` and `member/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.
-
-## 12. Versioning
-
-The project version is stored in `VERSION`. After `make`, run:
-
-```sh
-bin/eyelog --version
-```

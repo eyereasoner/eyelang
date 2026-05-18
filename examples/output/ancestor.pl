@@ -1,9 +1,9 @@
 triple(:jan, :ancestor, :emma).
 triple(:jan, :ancestor, :lies).
 triple(:jan, :parent, :lies).
-triple(:jos, :ancestor, :emma).
-triple(:jos, :ancestor, :jan).
-triple(:jos, :ancestor, :lies).
-triple(:jos, :parent, :jan).
 triple(:lies, :ancestor, :emma).
 triple(:lies, :parent, :emma).
+triple(:pat, :ancestor, :emma).
+triple(:pat, :ancestor, :jan).
+triple(:pat, :ancestor, :lies).
+triple(:pat, :parent, :jan).
