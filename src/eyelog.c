@@ -1512,6 +1512,15 @@ static bool builtin_append(Term *goal, Env *env, SolutionCallback callback, void
   return true;
 }
 
+static bool builtin_rest(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term *list = deref(goal->args[0], env);
+  if (!is_cons_term(list)) return true;
+
+  Env next = clone_env(env);
+  if (unify(goal->args[1], list->args[1], &next)) call_once(&next, callback, user_data);
+  return true;
+}
+
 static bool builtin_member(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
   Term **items = NULL;
   int len = 0;
@@ -1608,7 +1617,7 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   }
 
   if ((strcmp(name, "neq") == 0 || strcmp(name, "not_eq") == 0 ||
-       strcmp(name, "math:notEqualTo") == 0) && arity == 2) {
+       strcmp(name, "math:notEqualTo") == 0 || strcmp(name, "log:notEqualTo") == 0) && arity == 2) {
     return builtin_neq(goal, env, callback, user_data);
   }
 
@@ -1654,6 +1663,10 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
 
   if ((strcmp(name, "append") == 0 || strcmp(name, "list:append") == 0) && arity == 3) {
     return builtin_append(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "rest") == 0 || strcmp(name, "list:rest") == 0) && arity == 2) {
+    return builtin_rest(goal, env, callback, user_data);
   }
 
   if ((strcmp(name, "member") == 0 || strcmp(name, "list:member") == 0 ||

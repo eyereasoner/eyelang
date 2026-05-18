@@ -390,7 +390,7 @@ math:notGreaterThan(A, B)
 math:notLessThan(A, B)
 ```
 
-Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or scientific operands use double-precision floating-point ordering. If both operands are nonnumeric scalar terms, comparison falls back to lexical string ordering, which is useful for canonical ISO-8601 timestamps. `math:notGreaterThan/2` is an alias for `le/2`, and `math:notLessThan/2` is an alias for `ge/2`.
+Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or scientific operands use double-precision floating-point ordering. If both operands are nonnumeric scalar terms, comparison falls back to lexical string ordering, which is useful for canonical ISO-8601 timestamps. `math:notGreaterThan/2` is an alias for `le/2`, and `math:notLessThan/2` is an alias for `ge/2`. `log:notEqualTo/2` is accepted as an alias for `neq/2` for Eyeling-style examples.
 
 ### Generators
 
@@ -405,6 +405,8 @@ between(Low, High, N)
 ```prolog
 append(ListA, ListB, Combined)
 list:append(ListA, ListB, Combined)
+rest(List, Tail)
+list:rest(List, Tail)
 member(Item, List)
 list:member(Item, List)
 list:in(Item, List)
@@ -427,7 +429,7 @@ append([a, b], [c], X).      % X = [a, b, c]
 append(A, B, [a, b]).        % enumerates [], [a], [a, b] prefixes
 ```
 
-`member/2` enumerates items in a proper list. `not_member/2` succeeds when an item is not present in a known proper list. `reverse/2` reverses a known proper list. `length/2` counts a proper list when the list is known. `is_list/1` succeeds for proper lists. The `list:*` names are aliases for examples adapted from Eyeling-style list predicates.
+`rest/2` exposes the tail of a non-empty list. `member/2` enumerates items in a proper list. `not_member/2` succeeds when an item is not present in a known proper list. `reverse/2` reverses a known proper list. `length/2` counts a proper list when the list is known. `is_list/1` succeeds for proper lists. The `list:*` names are aliases for examples adapted from Eyeling-style list predicates.
 
 ### String and atom construction
 
@@ -485,6 +487,9 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
 - `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation.
+- `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score.
+- `examples/drone-corridor-planner.pl` adapts the bounded corridor-planning example, using a fuel list to keep recursive planning finite while aggregating cost, duration, belief, and comfort.
+- `examples/dining-philosophers.pl` adapts the Chandy-Misra dining-philosophers trace, deriving requests, dirty-fork sends, and meals across nine rounds.
 
 For example, a graph reachability program:
 

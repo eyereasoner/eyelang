@@ -50,6 +50,11 @@ run 'string:notMatches alternation query' bash -c './bin/eyelog --query "string:
 run 'timestamp comparison alias query' bash -c './bin/eyelog --query "math:notGreaterThan(\"2025-10-05T20:35:48.907163+00:00\", \"2025-10-05T22:33:48.907185+00:00\")" examples/delfour.pl | grep -q "math:notGreaterThan"'
 run 'list reverse query' bash -c './bin/eyelog --query "reverse([a, b, c], X)" examples/list-collection.pl | grep -q "reverse(\[a, b, c\], \[c, b, a\])."'
 run 'list not member query' bash -c './bin/eyelog --query "list:notMember(d, [a, b, c])" examples/list-collection.pl | grep -q "list:notMember(d, \[a, b, c\])."'
+run 'list rest query' bash -c './bin/eyelog --query "list:rest([a, b, c], X)" examples/list-collection.pl | grep -q "list:rest(\[a, b, c\], \[b, c\])."'
+run 'log not equal query' bash -c './bin/eyelog --query "log:notEqualTo(dp:P1, dp:P2)" examples/dining-philosophers.pl | grep -q "log:notEqualTo(dp:P1, dp:P2)."'
+run 'risk path selects B' bash -c './bin/eyelog examples/dijkstra-risk-path.pl | grep -q "triple(:dijkstraRiskPath, :selects, :pathB)."'
+run 'drone planner emits 17 plans' bash -c '[ "$(./bin/eyelog examples/drone-corridor-planner.pl | wc -l)" -eq 17 ]'
+run 'dining philosophers derives 15 meals' bash -c '[ "$(./bin/eyelog examples/dining-philosophers.pl | grep -c "dp:type, dp:Meal")" -eq 15 ]'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
