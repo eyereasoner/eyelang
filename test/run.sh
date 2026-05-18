@@ -36,6 +36,13 @@ run 'fib(10000) has 2090 digits' bash -c './bin/eyelog examples/fibonacci.pl | s
 run 'path discovery derives three routes' bash -c '[ "$(./bin/eyelog examples/path-discovery.pl | wc -l)" -eq 3 ]'
 run 'list append query' bash -c './bin/eyelog --query "append([a, b], [c], X)" examples/list-collection.pl | grep -q "append(\[a, b\], \[c\], \[a, b, c\])."'
 run 'list split query' bash -c '[ "$(./bin/eyelog --query "append(A, B, [a, b])" examples/list-collection.pl | wc -l)" -eq 3 ]'
+run 'pow bigint query' bash -c './bin/eyelog --query "pow(2, 100, X)" examples/list-collection.pl | grep -q "1267650600228229401496703205376"'
+run 'ackermann [4,2] has 19729 digits' bash -c './bin/eyelog --query "ackermann(4, 2, A)" examples/ackermann.pl | sed -n "s/^ackermann(4, 2, \([0-9]*\)).$/\1/p" | awk "length(\$0)==19729 {ok=1} END{exit !ok}"'
+run 'big integer div query' bash -c './bin/eyelog --query "div(15470000000000000000, 1643630000000000, X)" examples/bayes-diagnosis.pl | grep -q "div(15470000000000000000, 1643630000000000, 9412)."'
+run 'decimal literal query' bash -c './bin/eyelog --query "posterior(:COVID19, X)" examples/bayes-diagnosis.pl | grep -q "posterior(:COVID19, 0.9412093962753174)."'
+run 'bayes emits COVID posterior' bash -c './bin/eyelog examples/bayes-diagnosis.pl | grep -q "triple(result(:COVID19), :posterior, 0.9412093962753174)."'
+run 'list reverse query' bash -c './bin/eyelog --query "reverse([a, b, c], X)" examples/list-collection.pl | grep -q "reverse(\[a, b, c\], \[c, b, a\])."'
+run 'list not member query' bash -c './bin/eyelog --query "list:notMember(d, [a, b, c])" examples/list-collection.pl | grep -q "list:notMember(d, \[a, b, c\])."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

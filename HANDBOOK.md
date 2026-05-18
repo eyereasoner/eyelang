@@ -90,13 +90,15 @@ X                  % variable, starts with uppercase or _
 parent             % atom
 "hello world"      % string
 123                % integer
+0.25               % decimal literal
+7.5e-7             % scientific decimal literal
 pair(3, 7)         % compound term
 []                 % empty list
 [a, b, c]          % proper list
 [Head|Tail]        % head/tail list pattern
 ```
 
-The anonymous variable `_` is allowed. Each occurrence is treated as a fresh variable.
+The anonymous variable `_` is allowed. Each occurrence is treated as a fresh variable. Decimal and scientific numeric literals are parsed as exact lexical terms; arithmetic built-ins operate on integer values unless stated otherwise.
 
 Lists are first-class terms. They can appear in facts, rule heads, rule bodies, queries, and `triple/3` output. Proper lists print with bracket syntax:
 
@@ -342,7 +344,15 @@ Query variables are instantiated by unification. In the pure core, each printed 
 eq(X, :pat)
 ```
 
-Both forms unify their arguments.
+Both forms unify their arguments. `math:equalTo/2` is also accepted as an alias.
+
+```prolog
+neq(X, Y)
+not_eq(X, Y)
+math:notEqualTo(X, Y)
+```
+
+These forms succeed when their arguments are not unifiable in the current environment. They are most predictable when the arguments are already bound.
 
 ### Arithmetic
 
@@ -350,14 +360,16 @@ Both forms unify their arguments.
 add(A, B, Sum)
 sub(A, B, Difference)
 mul(A, B, Product)
+pow(Base, Exp, Power)
+math:exponentiation(Base, Exp, Power)
 div(A, B, Quotient)
 mod(A, B, Remainder)
 max(A, B, Maximum)
 ```
 
-`add/3`, `sub/3`, and `mul/3` support arbitrary-size decimal integers. This is why examples such as `fib(10000)` can be written without engine-specific Fibonacci code.
+`add/3`, `sub/3`, `mul/3`, and `pow/3` support arbitrary-size decimal integers. This is why examples such as `fib(10000)` and the Ackermann-style hyperoperation example can be written without engine-specific Fibonacci or exponentiation code.
 
-`div/3`, `mod/3`, and `max/3` currently use machine integers.
+`pow/3` requires a non-negative machine-integer exponent. `math:exponentiation/3` is an alias for examples adapted from Eyeling. `div/3` supports arbitrary-size integer quotients; `math:quotient/3` is an alias. `mod/3` and `max/3` currently use machine integers.
 
 ### Comparisons
 
@@ -366,6 +378,8 @@ lt(A, B)
 gt(A, B)
 le(A, B)
 ge(A, B)
+math:lessThan(A, B)
+math:greaterThan(A, B)
 ```
 
 ### Generators
@@ -384,6 +398,10 @@ list:append(ListA, ListB, Combined)
 member(Item, List)
 list:member(Item, List)
 list:in(Item, List)
+not_member(Item, List)
+list:notMember(Item, List)
+reverse(List, Reversed)
+list:reverse(List, Reversed)
 length(List, N)
 list:length(List, N)
 is_list(List)
@@ -399,7 +417,7 @@ append([a, b], [c], X).      % X = [a, b, c]
 append(A, B, [a, b]).        % enumerates [], [a], [a, b] prefixes
 ```
 
-`member/2` enumerates items in a proper list. `length/2` counts a proper list when the list is known. `is_list/1` succeeds for proper lists. The `list:*` names are aliases for examples adapted from Eyeling-style list predicates.
+`member/2` enumerates items in a proper list. `not_member/2` succeeds when an item is not present in a known proper list. `reverse/2` reverses a known proper list. `length/2` counts a proper list when the list is known. `is_list/1` succeeds for proper lists. The `list:*` names are aliases for examples adapted from Eyeling-style list predicates.
 
 ### String and atom construction
 
@@ -447,6 +465,12 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
 - `examples/gps.pl` adapts the GPS route-planning example and uses `list:append/3` for action sequences.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
+- `examples/ackermann.pl` adapts Eyeling's Ackermann-style hyperoperation benchmark and uses `pow/3` with arbitrary-size integers, including the large `ackermann(4, 2)` value.
+- `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration using `list:notMember/2`.
+- `examples/family-cousins.pl` adapts the generation/branch cousin derivation.
+- `examples/allen-interval-calculus.pl` adapts Allen's interval relations over integer endpoints.
+- `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
+- `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 
 For example, a graph reachability program:
 
@@ -516,4 +540,4 @@ The implementation is intentionally direct:
 - no general tabling,
 - no RDF parser yet.
 
-List support is intentionally finite: `append/3` and `member/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.
+List support is intentionally finite: `append/3`, `member/2`, `not_member/2`, and `reverse/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.

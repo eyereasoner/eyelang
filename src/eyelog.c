@@ -262,6 +262,25 @@ static Token next_token(Parser *parser) {
     size_t start = parser->pos;
     if (peek(parser) == '-') take(parser);
     while (isdigit((unsigned char)peek(parser))) take(parser);
+
+    if (peek(parser) == '.' && parser->pos + 1 < parser->length &&
+        isdigit((unsigned char)parser->source[parser->pos + 1])) {
+      take(parser);
+      while (isdigit((unsigned char)peek(parser))) take(parser);
+    }
+
+    if ((peek(parser) == 'e' || peek(parser) == 'E') &&
+        parser->pos + 1 < parser->length) {
+      size_t exponent_pos = parser->pos;
+      size_t digit_pos = exponent_pos + 1;
+      if (parser->source[digit_pos] == '+' || parser->source[digit_pos] == '-') digit_pos++;
+      if (digit_pos < parser->length && isdigit((unsigned char)parser->source[digit_pos])) {
+        take(parser);
+        if (peek(parser) == '+' || peek(parser) == '-') take(parser);
+        while (isdigit((unsigned char)peek(parser))) take(parser);
+      }
+    }
+
     token.type = TOK_NUMBER;
     free(token.text);
     token.text = xstrndup(parser->source + start, parser->pos - start);
@@ -994,6 +1013,94 @@ static char *mul_decimal(const char *left, const char *right) {
   return product;
 }
 
+static char *div_abs_decimal(const char *a, const char *b) {
+  /* Integer division for positive decimal strings. Requires b != 0. */
+  while (*a == '0' && a[1]) a++;
+  while (*b == '0' && b[1]) b++;
+  if (strcmp(a, "0") == 0) return xstrdup("0");
+  if (compare_abs_decimal(a, b) < 0) return xstrdup("0");
+
+  size_t la = strlen(a);
+  char *quotient = xmalloc(la + 1);
+  size_t qi = 0;
+  char *remainder = xstrdup("0");
+
+  for (size_t i = 0; i < la; i++) {
+    size_t lr = strlen(remainder);
+    char *next = NULL;
+    if (strcmp(remainder, "0") == 0) {
+      next = xmalloc(2);
+      next[0] = a[i];
+      next[1] = '\0';
+    } else {
+      next = xmalloc(lr + 2);
+      memcpy(next, remainder, lr);
+      next[lr] = a[i];
+      next[lr + 1] = '\0';
+    }
+    free(remainder);
+    remainder = strip_leading_zeroes(next);
+
+    int digit = 0;
+    while (compare_abs_decimal(remainder, b) >= 0) {
+      char *smaller = sub_abs_decimal(remainder, b);
+      free(remainder);
+      remainder = smaller;
+      digit++;
+    }
+    quotient[qi++] = (char)('0' + digit);
+  }
+
+  quotient[qi] = '\0';
+  free(remainder);
+  return strip_leading_zeroes(quotient);
+}
+
+static char *div_decimal(const char *left, const char *right) {
+  bool left_neg = left[0] == '-';
+  bool right_neg = right[0] == '-';
+  const char *a = left + (left_neg ? 1 : 0);
+  const char *b = right + (right_neg ? 1 : 0);
+  while (*b == '0' && b[1]) b++;
+  if (strcmp(b, "0") == 0) return NULL;
+
+  char *quotient = div_abs_decimal(a, b);
+  if (left_neg != right_neg && strcmp(quotient, "0") != 0) {
+    StringBuilder sb;
+    sb_init(&sb);
+    sb_append_char(&sb, '-');
+    sb_append(&sb, quotient);
+    free(quotient);
+    return sb.data;
+  }
+  return quotient;
+}
+
+static char *pow_decimal(const char *base_text, long long exponent) {
+  if (exponent < 0) return NULL;
+
+  char *result = xstrdup("1");
+  char *base = xstrdup(base_text);
+
+  while (exponent > 0) {
+    if (exponent & 1LL) {
+      char *next = mul_decimal(result, base);
+      free(result);
+      result = next;
+    }
+
+    exponent >>= 1;
+    if (exponent > 0) {
+      char *next_base = mul_decimal(base, base);
+      free(base);
+      base = next_base;
+    }
+  }
+
+  free(base);
+  return result;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Solver                                                                    */
 /* ------------------------------------------------------------------------- */
@@ -1046,6 +1153,12 @@ static bool builtin_unify(Term *goal, Env *env, SolutionCallback callback, void 
   return true;
 }
 
+static bool builtin_neq(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Env attempt = clone_env(env);
+  if (!unify(goal->args[0], goal->args[1], &attempt)) call_once(env, callback, user_data);
+  return true;
+}
+
 static bool builtin_compare(const char *name, Term *goal, Env *env,
                             SolutionCallback callback, void *user_data) {
   bool ok_left = false;
@@ -1077,11 +1190,30 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
   Term *result = NULL;
 
   if (is_decimal_integer(left_text) && is_decimal_integer(right_text) &&
-      (strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 || strcmp(name, "mul") == 0)) {
+      (strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
+       strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
+       strcmp(name, "pow") == 0)) {
     char *value = NULL;
     if (strcmp(name, "add") == 0) value = add_decimal(left_text, right_text);
     else if (strcmp(name, "sub") == 0) value = sub_decimal(left_text, right_text);
-    else value = mul_decimal(left_text, right_text);
+    else if (strcmp(name, "mul") == 0) value = mul_decimal(left_text, right_text);
+    else if (strcmp(name, "div") == 0) {
+      value = div_decimal(left_text, right_text);
+      if (!value) {
+        free(left_text);
+        free(right_text);
+        return true;
+      }
+    } else {
+      bool ok_exp = false;
+      long long exponent = term_i64(goal->args[1], env, &ok_exp);
+      if (!ok_exp || exponent < 0) {
+        free(left_text);
+        free(right_text);
+        return true;
+      }
+      value = pow_decimal(left_text, exponent);
+    }
     result = number_term_from_text(value);
     free(value);
   } else {
@@ -1283,6 +1415,40 @@ static bool builtin_is_list(Term *goal, Env *env, SolutionCallback callback, voi
   return true;
 }
 
+static bool builtin_reverse(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[0], env, &items, &len)) return true;
+
+  Term *result = empty_list_term();
+  for (int i = 0; i < len; i++) result = cons_term(items[i], result);
+
+  Env next = clone_env(env);
+  if (unify(goal->args[1], result, &next)) call_once(&next, callback, user_data);
+
+  free(items);
+  return true;
+}
+
+static bool builtin_not_member(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[1], env, &items, &len)) return true;
+
+  bool found = false;
+  for (int i = 0; i < len; i++) {
+    Env attempt = clone_env(env);
+    if (unify(goal->args[0], items[i], &attempt)) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) call_once(env, callback, user_data);
+  free(items);
+  return true;
+}
+
 static bool builtin_not(Solver *solver, Term *goal, Env *env,
                         SolutionCallback callback, void *user_data) {
   CountSolutions counter = { 0 };
@@ -1303,19 +1469,33 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   const char *name = goal->name;
   int arity = goal->arity;
 
-  if ((strcmp(name, "eq") == 0 || strcmp(name, "=") == 0) && arity == 2) {
+  if ((strcmp(name, "eq") == 0 || strcmp(name, "=") == 0 ||
+       strcmp(name, "math:equalTo") == 0) && arity == 2) {
     return builtin_unify(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "neq") == 0 || strcmp(name, "not_eq") == 0 ||
+       strcmp(name, "math:notEqualTo") == 0) && arity == 2) {
+    return builtin_neq(goal, env, callback, user_data);
   }
 
   if ((strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
        strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
-       strcmp(name, "mod") == 0 || strcmp(name, "max") == 0) && arity == 3) {
-    return builtin_arithmetic(name, goal, env, callback, user_data);
+       strcmp(name, "math:quotient") == 0 || strcmp(name, "mod") == 0 ||
+       strcmp(name, "max") == 0 || strcmp(name, "pow") == 0 ||
+       strcmp(name, "math:exponentiation") == 0) && arity == 3) {
+    const char *op = strcmp(name, "math:exponentiation") == 0 ? "pow" : name;
+    if (strcmp(name, "math:quotient") == 0) op = "div";
+    return builtin_arithmetic(op, goal, env, callback, user_data);
   }
 
   if ((strcmp(name, "lt") == 0 || strcmp(name, "gt") == 0 ||
-       strcmp(name, "le") == 0 || strcmp(name, "ge") == 0) && arity == 2) {
-    return builtin_compare(name, goal, env, callback, user_data);
+       strcmp(name, "le") == 0 || strcmp(name, "ge") == 0 ||
+       strcmp(name, "math:lessThan") == 0 || strcmp(name, "math:greaterThan") == 0) && arity == 2) {
+    const char *op = name;
+    if (strcmp(name, "math:lessThan") == 0) op = "lt";
+    else if (strcmp(name, "math:greaterThan") == 0) op = "gt";
+    return builtin_compare(op, goal, env, callback, user_data);
   }
 
   if (strcmp(name, "between") == 0 && arity == 3) {
@@ -1337,6 +1517,14 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   if ((strcmp(name, "member") == 0 || strcmp(name, "list:member") == 0 ||
        strcmp(name, "list:in") == 0) && arity == 2) {
     return builtin_member(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "not_member") == 0 || strcmp(name, "list:notMember") == 0) && arity == 2) {
+    return builtin_not_member(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "reverse") == 0 || strcmp(name, "list:reverse") == 0) && arity == 2) {
+    return builtin_reverse(goal, env, callback, user_data);
   }
 
   if ((strcmp(name, "length") == 0 || strcmp(name, "list:length") == 0) && arity == 2) {
