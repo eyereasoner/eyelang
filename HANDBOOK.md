@@ -44,9 +44,27 @@ parent             % atom
 "hello world"      % string
 123                % integer
 pair(3, 7)         % compound term
+[]                 % empty list
+[a, b, c]          % proper list
+[Head|Tail]        % head/tail list pattern
 ```
 
 The anonymous variable `_` is allowed. Each occurrence is treated as a fresh variable.
+
+Lists are first-class terms. They can appear in facts, rule heads, rule bodies, queries, and `triple/3` output. Proper lists print with bracket syntax:
+
+```prolog
+triple(:example, :items, [a, b, c]).
+```
+
+Head/tail patterns work by unification:
+
+```prolog
+first(List, Head) :-
+  eq(List, [Head|_Tail]).
+```
+
+Improper lists are accepted when you explicitly use a non-list tail, for example `[a, b|Tail]`. Most list built-ins below require proper lists for finite execution.
 
 ## 3. Default output: `triple/3`
 
@@ -140,6 +158,31 @@ between(Low, High, N)
 
 `between/3` enumerates integers from `Low` through `High` inclusive.
 
+### Lists
+
+```prolog
+append(ListA, ListB, Combined)
+list:append(ListA, ListB, Combined)
+member(Item, List)
+list:member(Item, List)
+list:in(Item, List)
+length(List, N)
+list:length(List, N)
+is_list(List)
+list:isList(List)
+```
+
+`append/3` concatenates lists. It supports the common finite modes where the first list is known, or where the combined list is known and the predicate enumerates all prefix/suffix splits.
+
+Examples:
+
+```prolog
+append([a, b], [c], X).      % X = [a, b, c]
+append(A, B, [a, b]).        % enumerates [], [a], [a, b] prefixes
+```
+
+`member/2` enumerates items in a proper list. `length/2` counts a proper list when the list is known. `is_list/1` succeeds for proper lists. The `list:*` names are aliases for examples adapted from Eyeling-style list predicates.
+
 ### String and atom construction
 
 ```prolog
@@ -180,6 +223,12 @@ Each example should contain:
 1. input data as facts,
 2. reusable logic as predicates,
 3. final `triple/3` rules as the query/output layer.
+
+The repository includes small examples adapted from the Eyeling examples collection:
+
+- `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
+- `examples/gps-list.pl` adapts the GPS route-planning example and uses `list:append/3` for action sequences.
+- `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 
 For example, a graph reachability program:
 
@@ -243,7 +292,6 @@ For bounded challenge examples, it is fine to include domain facts such as airpo
 
 The implementation is intentionally direct:
 
-- no lists syntax yet,
 - no cut,
 - no DCGs,
 - no module system,
@@ -251,7 +299,7 @@ The implementation is intentionally direct:
 - no general tabling,
 - no RDF parser yet.
 
-Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.
+List support is intentionally finite: `append/3` and `member/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.
 
 ## 10. Versioning
 

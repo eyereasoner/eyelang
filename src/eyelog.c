@@ -114,6 +114,23 @@ static Term *string_term(const char *value) {
   return new_term(TERM_STRING, value);
 }
 
+static Term *empty_list_term(void) {
+  return new_term(TERM_ATOM, "[]");
+}
+
+static Term *cons_term(Term *head, Term *tail) {
+  Term *args[2] = { head, tail };
+  return new_compound(".", 2, args);
+}
+
+static bool is_empty_list_term(Term *term) {
+  return term->type == TERM_ATOM && strcmp(term->name, "[]") == 0;
+}
+
+static bool is_cons_term(Term *term) {
+  return term->type == TERM_COMPOUND && strcmp(term->name, ".") == 0 && term->arity == 2;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Scanner and parser                                                        */
 /* ------------------------------------------------------------------------- */
@@ -126,7 +143,10 @@ typedef enum {
   TOK_NUMBER,
   TOK_LPAREN,
   TOK_RPAREN,
+  TOK_LBRACKET,
+  TOK_RBRACKET,
   TOK_COMMA,
+  TOK_BAR,
   TOK_DOT,
   TOK_IF
 } TokenType;
@@ -167,7 +187,8 @@ static void free_token(Token *token) {
 static bool atom_char(char c) {
   return c &&
          !isspace((unsigned char)c) &&
-         c != '(' && c != ')' && c != ',' && c != '.' &&
+         c != '(' && c != ')' && c != '[' && c != ']' &&
+         c != ',' && c != '|' && c != '.' &&
          c != '"' && c != '\'';
 }
 
@@ -191,7 +212,10 @@ static Token next_token(Parser *parser) {
 
   if (c == '(') { take(parser); token.type = TOK_LPAREN; free(token.text); token.text = xstrdup("("); return token; }
   if (c == ')') { take(parser); token.type = TOK_RPAREN; free(token.text); token.text = xstrdup(")"); return token; }
+  if (c == '[') { take(parser); token.type = TOK_LBRACKET; free(token.text); token.text = xstrdup("["); return token; }
+  if (c == ']') { take(parser); token.type = TOK_RBRACKET; free(token.text); token.text = xstrdup("]"); return token; }
   if (c == ',') { take(parser); token.type = TOK_COMMA; free(token.text); token.text = xstrdup(","); return token; }
+  if (c == '|') { take(parser); token.type = TOK_BAR; free(token.text); token.text = xstrdup("|"); return token; }
   if (c == '.') { take(parser); token.type = TOK_DOT; free(token.text); token.text = xstrdup("."); return token; }
 
   if (c == ':' && parser->pos + 1 < parser->length && parser->source[parser->pos + 1] == '-') {
@@ -272,7 +296,58 @@ static void expect(Parser *parser, TokenType type, const char *description) {
   }
 }
 
+static Term *parse_term(Parser *parser);
+
+static Term *parse_list(Parser *parser) {
+  expect(parser, TOK_LBRACKET, "[");
+  advance(parser);
+
+  if (parser->token.type == TOK_RBRACKET) {
+    advance(parser);
+    return empty_list_term();
+  }
+
+  int len = 0;
+  int cap = 8;
+  Term **items = xmalloc(sizeof(Term *) * cap);
+  Term *tail = NULL;
+
+  for (;;) {
+    if (len == cap) {
+      cap *= 2;
+      items = xrealloc(items, sizeof(Term *) * cap);
+    }
+    items[len++] = parse_term(parser);
+
+    if (parser->token.type == TOK_COMMA) {
+      advance(parser);
+      continue;
+    }
+
+    if (parser->token.type == TOK_BAR) {
+      advance(parser);
+      tail = parse_term(parser);
+      expect(parser, TOK_RBRACKET, "]");
+      advance(parser);
+      break;
+    }
+
+    expect(parser, TOK_RBRACKET, "]");
+    advance(parser);
+    tail = empty_list_term();
+    break;
+  }
+
+  for (int i = len - 1; i >= 0; i--) tail = cons_term(items[i], tail);
+  free(items);
+  return tail;
+}
+
 static Term *parse_term(Parser *parser) {
+  if (parser->token.type == TOK_LBRACKET) {
+    return parse_list(parser);
+  }
+
   if (parser->token.type == TOK_VAR) {
     char *name = xstrdup(parser->token.text);
     advance(parser);
@@ -619,11 +694,44 @@ static void sb_append_char(StringBuilder *sb, char c) {
   sb_append(sb, buffer);
 }
 
+static void write_term(StringBuilder *sb, Term *term, Env *env, bool quote_strings);
+
+static void write_list(StringBuilder *sb, Term *term, Env *env) {
+  sb_append_char(sb, '[');
+  bool first = true;
+
+  for (;;) {
+    term = deref(term, env);
+
+    if (is_empty_list_term(term)) {
+      sb_append_char(sb, ']');
+      return;
+    }
+
+    if (!is_cons_term(term)) {
+      if (!first) sb_append(sb, " | ");
+      write_term(sb, term, env, true);
+      sb_append_char(sb, ']');
+      return;
+    }
+
+    if (!first) sb_append(sb, ", ");
+    write_term(sb, term->args[0], env, true);
+    term = term->args[1];
+    first = false;
+  }
+}
+
 static void write_term(StringBuilder *sb, Term *term, Env *env, bool quote_strings) {
   term = deref(term, env);
 
   if (term->type == TERM_VAR) {
     sb_append(sb, term->name);
+    return;
+  }
+
+  if (is_cons_term(term)) {
+    write_list(sb, term, env);
     return;
   }
 
@@ -1080,6 +1188,101 @@ static bool builtin_contains(const char *name, Term *goal, Env *env,
   return true;
 }
 
+static bool proper_list_items(Term *list, Env *env, Term ***items_out, int *len_out) {
+  int len = 0;
+  int cap = 8;
+  Term **items = xmalloc(sizeof(Term *) * cap);
+  Term *cursor = deref(list, env);
+
+  while (is_cons_term(cursor)) {
+    if (len == cap) {
+      cap *= 2;
+      items = xrealloc(items, sizeof(Term *) * cap);
+    }
+    items[len++] = cursor->args[0];
+    cursor = deref(cursor->args[1], env);
+  }
+
+  if (!is_empty_list_term(cursor)) {
+    free(items);
+    return false;
+  }
+
+  *items_out = items;
+  *len_out = len;
+  return true;
+}
+
+static Term *list_from_items(Term **items, int start, int end, Term *tail) {
+  Term *result = tail ? tail : empty_list_term();
+  for (int i = end - 1; i >= start; i--) result = cons_term(items[i], result);
+  return result;
+}
+
+static bool builtin_append(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+
+  if (proper_list_items(goal->args[0], env, &items, &len)) {
+    Term *tail = deref(goal->args[1], env);
+    Term *result = list_from_items(items, 0, len, tail);
+    Env next = clone_env(env);
+    if (unify(goal->args[2], result, &next)) call_once(&next, callback, user_data);
+    free(items);
+    return true;
+  }
+
+  if (proper_list_items(goal->args[2], env, &items, &len)) {
+    for (int split = 0; split <= len; split++) {
+      Term *prefix = list_from_items(items, 0, split, empty_list_term());
+      Term *suffix = list_from_items(items, split, len, empty_list_term());
+      Env next = clone_env(env);
+      if (unify(goal->args[0], prefix, &next) && unify(goal->args[1], suffix, &next)) {
+        call_once(&next, callback, user_data);
+      }
+    }
+    free(items);
+  }
+
+  return true;
+}
+
+static bool builtin_member(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[1], env, &items, &len)) return true;
+
+  for (int i = 0; i < len; i++) {
+    Env next = clone_env(env);
+    if (unify(goal->args[0], items[i], &next)) call_once(&next, callback, user_data);
+  }
+
+  free(items);
+  return true;
+}
+
+static bool builtin_length(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[0], env, &items, &len)) return true;
+
+  Env next = clone_env(env);
+  if (unify(goal->args[1], number_term_from_i64(len), &next)) call_once(&next, callback, user_data);
+
+  free(items);
+  return true;
+}
+
+static bool builtin_is_list(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (proper_list_items(goal->args[0], env, &items, &len)) {
+    call_once(env, callback, user_data);
+    free(items);
+  }
+  return true;
+}
+
 static bool builtin_not(Solver *solver, Term *goal, Env *env,
                         SolutionCallback callback, void *user_data) {
   CountSolutions counter = { 0 };
@@ -1125,6 +1328,23 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
 
   if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0) && arity == 2) {
     return builtin_contains(name, goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "append") == 0 || strcmp(name, "list:append") == 0) && arity == 3) {
+    return builtin_append(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "member") == 0 || strcmp(name, "list:member") == 0 ||
+       strcmp(name, "list:in") == 0) && arity == 2) {
+    return builtin_member(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "length") == 0 || strcmp(name, "list:length") == 0) && arity == 2) {
+    return builtin_length(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "is_list") == 0 || strcmp(name, "list:isList") == 0) && arity == 1) {
+    return builtin_is_list(goal, env, callback, user_data);
   }
 
   if (strcmp(name, "not") == 0 && arity == 1) {

@@ -34,6 +34,8 @@ run 'version flag' bash -c './bin/eyelog --version | grep -q "^eyelog $(cat VERS
 run 'query ancestor' bash -c './bin/eyelog --query "triple(:jos, :ancestor, X)" examples/ancestor.pl | grep -q "triple(:jos, :ancestor, :emma)."'
 run 'fib(10000) has 2090 digits' bash -c './bin/eyelog examples/fibonacci.pl | sed -n "s/^triple(:test, :fib10000, \([0-9]*\)).$/\1/p" | awk "length(\$0)==2090 {ok=1} END{exit !ok}"'
 run 'path discovery derives three routes' bash -c '[ "$(./bin/eyelog examples/path-discovery.pl | wc -l)" -eq 3 ]'
+run 'list append query' bash -c './bin/eyelog --query "append([a, b], [c], X)" examples/list-collection.pl | grep -q "append(\[a, b\], \[c\], \[a, b, c\])."'
+run 'list split query' bash -c '[ "$(./bin/eyelog --query "append(A, B, [a, b])" examples/list-collection.pl | wc -l)" -eq 3 ]'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
