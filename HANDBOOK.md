@@ -386,9 +386,11 @@ le(A, B)
 ge(A, B)
 math:lessThan(A, B)
 math:greaterThan(A, B)
+math:notGreaterThan(A, B)
+math:notLessThan(A, B)
 ```
 
-Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or scientific operands use double-precision floating-point ordering.
+Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or scientific operands use double-precision floating-point ordering. If both operands are nonnumeric scalar terms, comparison falls back to lexical string ordering, which is useful for canonical ISO-8601 timestamps. `math:notGreaterThan/2` is an alias for `le/2`, and `math:notLessThan/2` is an alias for `ge/2`.
 
 ### Generators
 
@@ -434,9 +436,11 @@ atom_concat(A, B, C)
 str_concat(A, B, C)
 contains(Text, Part)
 not_contains(Text, Part)
+string:matches(Text, Pattern)
+string:notMatches(Text, Pattern)
 ```
 
-`atom_concat/3` produces an atom. `str_concat/3` produces a string.
+`atom_concat/3` produces an atom. `str_concat/3` produces a string. `contains/2` and `not_contains/2` test literal substrings. `string:matches/2` and `string:notMatches/2` support the simple alternation form used in the translated Eyeling examples, for example `"diabetes|medical"`; they are not full regular-expression engines.
 
 ### Negation as failure
 
@@ -480,6 +484,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
+- `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation.
 
 For example, a graph reachability program:
 

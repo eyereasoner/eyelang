@@ -1239,9 +1239,10 @@ static bool builtin_compare(const char *name, Term *goal, Env *env,
   }
 
   if (!comparable) {
-    free(left_text);
-    free(right_text);
-    return true;
+    /* Useful for ISO-8601 timestamps and other canonical strings used by
+       Eyeling examples. */
+    cmp = strcmp(left_text, right_text);
+    comparable = true;
   }
 
   bool pass = false;
@@ -1414,6 +1415,22 @@ static bool builtin_concat(const char *name, Term *goal, Env *env,
   return true;
 }
 
+static bool simple_alternation_match(const char *haystack, const char *pattern) {
+  const char *start = pattern;
+  for (const char *cursor = pattern;; cursor++) {
+    if (*cursor == '|' || *cursor == '\0') {
+      size_t len = (size_t)(cursor - start);
+      char *needle = xstrndup(start, len);
+      bool matched = len == 0 || strstr(haystack, needle) != NULL;
+      free(needle);
+      if (matched) return true;
+      if (*cursor == '\0') break;
+      start = cursor + 1;
+    }
+  }
+  return false;
+}
+
 static bool builtin_contains(const char *name, Term *goal, Env *env,
                              SolutionCallback callback, void *user_data) {
   char *haystack = term_lexical_value(goal->args[0], env);
@@ -1426,7 +1443,9 @@ static bool builtin_contains(const char *name, Term *goal, Env *env,
 
   bool has = strstr(haystack, needle) != NULL;
   bool pass = (strcmp(name, "contains") == 0 && has) ||
-              (strcmp(name, "not_contains") == 0 && !has);
+              (strcmp(name, "not_contains") == 0 && !has) ||
+              (strcmp(name, "string:matches") == 0 && simple_alternation_match(haystack, needle)) ||
+              (strcmp(name, "string:notMatches") == 0 && !simple_alternation_match(haystack, needle));
   if (pass) call_once(env, callback, user_data);
 
   free(haystack);
@@ -1610,10 +1629,13 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
 
   if ((strcmp(name, "lt") == 0 || strcmp(name, "gt") == 0 ||
        strcmp(name, "le") == 0 || strcmp(name, "ge") == 0 ||
-       strcmp(name, "math:lessThan") == 0 || strcmp(name, "math:greaterThan") == 0) && arity == 2) {
+       strcmp(name, "math:lessThan") == 0 || strcmp(name, "math:greaterThan") == 0 ||
+       strcmp(name, "math:notGreaterThan") == 0 || strcmp(name, "math:notLessThan") == 0) && arity == 2) {
     const char *op = name;
     if (strcmp(name, "math:lessThan") == 0) op = "lt";
     else if (strcmp(name, "math:greaterThan") == 0) op = "gt";
+    else if (strcmp(name, "math:notGreaterThan") == 0) op = "le";
+    else if (strcmp(name, "math:notLessThan") == 0) op = "ge";
     return builtin_compare(op, goal, env, callback, user_data);
   }
 
@@ -1625,7 +1647,8 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_concat(name, goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0) && arity == 2) {
+  if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0 ||
+       strcmp(name, "string:matches") == 0 || strcmp(name, "string:notMatches") == 0) && arity == 2) {
     return builtin_contains(name, goal, env, callback, user_data);
   }
 

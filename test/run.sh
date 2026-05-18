@@ -44,6 +44,10 @@ run 'bayes emits COVID posterior' bash -c './bin/eyelog examples/bayes-diagnosis
 run 'floating add query' bash -c './bin/eyelog --query "add(1.5, 2.25, X)" examples/floating-point.pl | grep -q "add(1.5, 2.25, 3.75)."'
 run 'floating math:sum query' bash -c './bin/eyelog --query "math:sum(0.125, 0.875, X)" examples/floating-point.pl | grep -q "math:sum(0.125, 0.875, 1.0)."'
 run 'floating comparison query' bash -c './bin/eyelog --query "gt(2.5, 2)" examples/floating-point.pl | grep -q "gt(2.5, 2)."'
+run 'delfour all checks pass' bash -c './bin/eyelog examples/delfour.pl | grep -q "triple(:result, :allChecksPass, true)."'
+run 'delfour suggests low sugar biscuits' bash -c './bin/eyelog --query "suggested_alternative(:case, X)" examples/delfour.pl | grep -q "suggested_alternative(:case, :prod_BIS_101)."'
+run 'string:notMatches alternation query' bash -c './bin/eyelog --query "string:notMatches(\"scoped retail insight\", \"diabetes|medical\")" examples/delfour.pl | grep -q "string:notMatches"'
+run 'timestamp comparison alias query' bash -c './bin/eyelog --query "math:notGreaterThan(\"2025-10-05T20:35:48.907163+00:00\", \"2025-10-05T22:33:48.907185+00:00\")" examples/delfour.pl | grep -q "math:notGreaterThan"'
 run 'list reverse query' bash -c './bin/eyelog --query "reverse([a, b, c], X)" examples/list-collection.pl | grep -q "reverse(\[a, b, c\], \[c, b, a\])."'
 run 'list not member query' bash -c './bin/eyelog --query "list:notMember(d, [a, b, c])" examples/list-collection.pl | grep -q "list:notMember(d, \[a, b, c\])."'
 section Examples
