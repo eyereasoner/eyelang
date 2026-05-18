@@ -171,7 +171,10 @@ prime(997).
 
 even_between_4_1000(N) :- between(4, 1000, N), mod(N, 2, 0).
 
-triple(:goldbach, N, pair(P, Q)) :-
+triple(N, :isPrime, true) :-
+  prime(N).
+
+triple(N, :goldbachOk, true) :-
   even_between_4_1000(N),
   div(N, 2, Half),
   prime(P),

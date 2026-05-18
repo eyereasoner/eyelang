@@ -491,7 +491,7 @@ For large materializations, prefer rules that generate each result once. The eng
 Prefer this:
 
 ```prolog
-triple(:goldbach, N, pair(P, Q)) :-
+triple(N, :goldbachOk, true) :-
   between(4, 1000, N),
   mod(N, 2, 0),
   div(N, 2, Half),

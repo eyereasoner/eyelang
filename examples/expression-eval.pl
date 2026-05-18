@@ -31,6 +31,6 @@ value(Node, Value) :-
   value(Right, RightValue),
   mul(LeftValue, RightValue, Value).
 
-triple(:root, :result, Value) :-
+triple(:Root, :result, Value) :-
   root(Node),
   value(Node, Value).
