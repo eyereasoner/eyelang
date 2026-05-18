@@ -337,60 +337,91 @@ Query variables are instantiated by unification. In the pure core, each printed 
 
 ## 7. Built-ins
 
-### Unification
+Built-ins are ordinary predicate calls that the engine knows how to evaluate.
+There is only one mechanism: a call such as `add/3` and a call such as
+`math:sum/3` both enter the same arithmetic built-in.
+
+The colon is a vocabulary separator, not a module operator. In other words,
+`math:sum` is just the predicate name `math:sum`, much like an RDF or Eyeling
+prefixed name. The short names are the native eyelog spelling. The namespaced
+forms are aliases that make translated Eyeling/N3 examples read close to their
+source vocabulary.
+
+A useful rule of thumb:
+
+- write new eyelog programs with the short names, such as `sum/3`, `less_than/2`,
+  `rest/2`, and `matches/2`,
+- keep the namespaced aliases, such as `math:sum/3`, `list:rest/2`, and
+  `string:matches/2`, when translating or comparing with Eyeling examples.
+
+For example, these two goals are equivalent:
 
 ```prolog
-=(X, :pat)
-eq(X, :pat)
+sum(2, 3, X)
+math:sum(2, 3, X)
 ```
 
-Both forms unify their arguments. `math:equalTo/2` is also accepted as an alias.
+and these two are equivalent:
 
 ```prolog
-neq(X, Y)
-not_eq(X, Y)
-math:notEqualTo(X, Y)
+less_than(A, B)
+math:lessThan(A, B)
 ```
 
-These forms succeed when their arguments are not unifiable in the current environment. They are most predictable when the arguments are already bound.
+### Unification and equality
+
+| Native eyelog name | Namespaced alias | Meaning |
+| --- | --- | --- |
+| `=(X, Y)` |  | unify two terms |
+| `eq(X, Y)` | `math:equalTo(X, Y)` | unify two terms |
+| `equal_to(X, Y)` | `math:equalTo(X, Y)` | unify two terms |
+| `neq(X, Y)` | `math:notEqualTo(X, Y)` | succeeds when terms are not unifiable |
+| `not_eq(X, Y)` | `log:notEqualTo(X, Y)` | same as `neq/2` |
+| `not_equal_to(X, Y)` | `math:notEqualTo(X, Y)` | same as `neq/2` |
+
+Inequality is most predictable when both arguments are already bound.
 
 ### Arithmetic
 
-```prolog
-add(A, B, Sum)
-math:sum(A, B, Sum)
-sub(A, B, Difference)
-math:difference(A, B, Difference)
-mul(A, B, Product)
-math:product(A, B, Product)
-pow(Base, Exp, Power)
-math:exponentiation(Base, Exp, Power)
-div(A, B, Quotient)
-math:quotient(A, B, Quotient)
-mod(A, B, Remainder)
-max(A, B, Maximum)
-```
+| Native eyelog name | Namespaced alias | Meaning |
+| --- | --- | --- |
+| `add(A, B, X)` or `sum(A, B, X)` | `math:sum(A, B, X)` | `X = A + B` |
+| `sub(A, B, X)` or `difference(A, B, X)` | `math:difference(A, B, X)` | `X = A - B` |
+| `mul(A, B, X)` or `product(A, B, X)` | `math:product(A, B, X)` | `X = A * B` |
+| `div(A, B, X)` or `quotient(A, B, X)` | `math:quotient(A, B, X)` | `X = A / B` |
+| `pow(A, B, X)` or `exponentiation(A, B, X)` | `math:exponentiation(A, B, X)` | `X = A ** B` |
+| `mod(A, B, X)` |  | integer remainder |
+| `max(A, B, X)` |  | larger value |
 
-When all operands are integers, `add/3`, `sub/3`, `mul/3`, `div/3`, `pow/3`, and `max/3` use arbitrary-size decimal-integer helpers. This is why examples such as `fib(10000)` and the Ackermann-style hyperoperation example can be written without engine-specific Fibonacci or exponentiation code. In that integer mode, `pow/3` requires a non-negative machine-integer exponent, and `div/3` is integer quotient.
+When all operands are integers, `add/3`, `sum/3`, `sub/3`, `difference/3`,
+`mul/3`, `product/3`, `div/3`, `quotient/3`, `pow/3`, `exponentiation/3`, and
+`max/3` use arbitrary-size decimal-integer helpers. This is why examples such
+as `fib(10000)` and the Ackermann-style hyperoperation example can be written
+without engine-specific Fibonacci or exponentiation code. In integer mode,
+exponentiation requires a non-negative machine-integer exponent, and division is
+integer quotient.
 
-When either operand contains a decimal point or exponent, `add/3`, `sub/3`, `mul/3`, `div/3`, `pow/3`, and `max/3` use C double-precision floating-point arithmetic. The result is printed as a numeric term, with `.0` added when the floating result is mathematically integral. This is useful for Eyeling-style probability and measurement examples, but it is not exact decimal arithmetic.
+When either operand contains a decimal point or exponent, the same arithmetic
+predicates use C double-precision floating-point arithmetic. The result is
+printed as a numeric term, with `.0` added when the floating result is
+mathematically integral. This is useful for Eyeling-style probability and
+measurement examples, but it is not exact decimal arithmetic.
 
-The `math:*` names shown above are aliases for examples adapted from Eyeling. `mod/3` remains integer-only.
+`mod/3` remains integer-only.
 
 ### Comparisons
 
-```prolog
-lt(A, B)
-gt(A, B)
-le(A, B)
-ge(A, B)
-math:lessThan(A, B)
-math:greaterThan(A, B)
-math:notGreaterThan(A, B)
-math:notLessThan(A, B)
-```
+| Native eyelog name | Namespaced alias | Meaning |
+| --- | --- | --- |
+| `lt(A, B)` or `less_than(A, B)` | `math:lessThan(A, B)` | `A < B` |
+| `gt(A, B)` or `greater_than(A, B)` | `math:greaterThan(A, B)` | `A > B` |
+| `le(A, B)` or `not_greater_than(A, B)` | `math:notGreaterThan(A, B)` | `A <= B` |
+| `ge(A, B)` or `not_less_than(A, B)` | `math:notLessThan(A, B)` | `A >= B` |
 
-Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or scientific operands use double-precision floating-point ordering. If both operands are nonnumeric scalar terms, comparison falls back to lexical string ordering, which is useful for canonical ISO-8601 timestamps. `math:notGreaterThan/2` is an alias for `le/2`, and `math:notLessThan/2` is an alias for `ge/2`. `log:notEqualTo/2` is accepted as an alias for `neq/2` for Eyeling-style examples.
+Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or
+scientific operands use double-precision floating-point ordering. If both
+operands are nonnumeric scalar terms, comparison falls back to lexical string
+ordering, which is useful for canonical ISO-8601 timestamps.
 
 ### Generators
 
@@ -402,25 +433,19 @@ between(Low, High, N)
 
 ### Lists
 
-```prolog
-append(ListA, ListB, Combined)
-list:append(ListA, ListB, Combined)
-rest(List, Tail)
-list:rest(List, Tail)
-member(Item, List)
-list:member(Item, List)
-list:in(Item, List)
-not_member(Item, List)
-list:notMember(Item, List)
-reverse(List, Reversed)
-list:reverse(List, Reversed)
-length(List, N)
-list:length(List, N)
-is_list(List)
-list:isList(List)
-```
+| Native eyelog name | Namespaced alias | Meaning |
+| --- | --- | --- |
+| `append(A, B, C)` | `list:append(A, B, C)` | concatenate lists |
+| `rest(List, Tail)` | `list:rest(List, Tail)` | tail of a non-empty list |
+| `member(Item, List)` or `in(Item, List)` | `list:member(Item, List)` or `list:in(Item, List)` | item occurs in list |
+| `not_member(Item, List)` | `list:notMember(Item, List)` | item does not occur in a known list |
+| `reverse(List, Reversed)` | `list:reverse(List, Reversed)` | reverse a known list |
+| `length(List, N)` | `list:length(List, N)` | count a known proper list |
+| `is_list(List)` | `list:isList(List)` | proper-list check |
 
-`append/3` concatenates lists. It supports the common finite modes where the first list is known, or where the combined list is known and the predicate enumerates all prefix/suffix splits.
+`append/3` concatenates lists. It supports the common finite modes where the
+first list is known, or where the combined list is known and the predicate
+enumerates all prefix/suffix splits.
 
 Examples:
 
@@ -429,20 +454,25 @@ append([a, b], [c], X).      % X = [a, b, c]
 append(A, B, [a, b]).        % enumerates [], [a], [a, b] prefixes
 ```
 
-`rest/2` exposes the tail of a non-empty list. `member/2` enumerates items in a proper list. `not_member/2` succeeds when an item is not present in a known proper list. `reverse/2` reverses a known proper list. `length/2` counts a proper list when the list is known. `is_list/1` succeeds for proper lists. The `list:*` names are aliases for examples adapted from Eyeling-style list predicates.
+`rest/2` exposes the tail of a non-empty list. `member/2` enumerates items in a
+proper list. `not_member/2` succeeds when an item is not present in a known
+proper list. `reverse/2` reverses a known proper list. `length/2` counts a
+proper list when the list is known. `is_list/1` succeeds for proper lists.
 
 ### String and atom construction
 
-```prolog
-atom_concat(A, B, C)
-str_concat(A, B, C)
-contains(Text, Part)
-not_contains(Text, Part)
-string:matches(Text, Pattern)
-string:notMatches(Text, Pattern)
-```
+| Native eyelog name | Namespaced alias | Meaning |
+| --- | --- | --- |
+| `atom_concat(A, B, C)` |  | concatenate into an atom |
+| `str_concat(A, B, C)` |  | concatenate into a string |
+| `contains(Text, Part)` |  | literal substring test |
+| `not_contains(Text, Part)` |  | negated literal substring test |
+| `matches(Text, Pattern)` | `string:matches(Text, Pattern)` | simple alternation match |
+| `not_matches(Text, Pattern)` | `string:notMatches(Text, Pattern)` | negated simple alternation match |
 
-`atom_concat/3` produces an atom. `str_concat/3` produces a string. `contains/2` and `not_contains/2` test literal substrings. `string:matches/2` and `string:notMatches/2` support the simple alternation form used in the translated Eyeling examples, for example `"diabetes|medical"`; they are not full regular-expression engines.
+`matches/2` and `not_matches/2` support the simple alternation form used in the
+translated Eyeling examples, for example `"diabetes|medical"`; they are not full
+regular-expression engines.
 
 ### Negation as failure
 
@@ -450,7 +480,8 @@ string:notMatches(Text, Pattern)
 not(Goal)
 ```
 
-`not/1` succeeds when `Goal` has no solution. Use it only with goals whose variables are already bound enough to make the check finite.
+`not/1` succeeds when `Goal` has no solution. Use it only with goals whose
+variables are already bound enough to make the check finite.
 
 Good:
 
@@ -486,6 +517,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
+- `examples/aliases-and-namespaces.pl` demonstrates that short built-in names and namespaced aliases call the same implementation.
 - `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation.
 - `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score.
 - `examples/drone-corridor-planner.pl` adapts the bounded corridor-planning example, using a fuel list to keep recursive planning finite while aggregating cost, duration, belief, and comfort.
