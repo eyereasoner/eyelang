@@ -1272,7 +1272,8 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
   if (is_decimal_integer(left_text) && is_decimal_integer(right_text) &&
       (strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
        strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
-       strcmp(name, "pow") == 0 || strcmp(name, "max") == 0)) {
+       strcmp(name, "pow") == 0 || strcmp(name, "max") == 0 ||
+       strcmp(name, "min") == 0)) {
     char *value = NULL;
     if (strcmp(name, "add") == 0) value = add_decimal(left_text, right_text);
     else if (strcmp(name, "sub") == 0) value = sub_decimal(left_text, right_text);
@@ -1286,6 +1287,8 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
       }
     } else if (strcmp(name, "max") == 0) {
       value = xstrdup(compare_signed_decimal(left_text, right_text) >= 0 ? left_text : right_text);
+    } else if (strcmp(name, "min") == 0) {
+      value = xstrdup(compare_signed_decimal(left_text, right_text) <= 0 ? left_text : right_text);
     } else {
       bool ok_exp = false;
       long long exponent = term_i64(goal->args[1], env, &ok_exp);
@@ -1300,7 +1303,8 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
     free(value);
   } else if (strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
              strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
-             strcmp(name, "pow") == 0 || strcmp(name, "max") == 0) {
+             strcmp(name, "pow") == 0 || strcmp(name, "max") == 0 ||
+             strcmp(name, "min") == 0) {
     double left = 0.0;
     double right = 0.0;
     if (!parse_double_strict(left_text, &left) || !parse_double_strict(right_text, &right)) {
@@ -1328,8 +1332,10 @@ static bool builtin_arithmetic(const char *name, Term *goal, Env *env,
         free(right_text);
         return true;
       }
-    } else {
+    } else if (strcmp(name, "max") == 0) {
       value = left > right ? left : right;
+    } else {
+      value = left < right ? left : right;
     }
 
     char *value_text = number_text_from_double(value);
@@ -1387,6 +1393,27 @@ static bool builtin_between(Term *goal, Env *env, SolutionCallback callback, voi
     Env next = clone_env(env);
     if (unify(goal->args[2], number_term_from_i64(value), &next)) call_once(&next, callback, user_data);
   }
+  return true;
+}
+
+static bool builtin_smallest_divisor_from(Term *goal, Env *env,
+                                          SolutionCallback callback, void *user_data) {
+  bool ok_n = false;
+  bool ok_d = false;
+  long long n = term_i64(goal->args[0], env, &ok_n);
+  long long d = term_i64(goal->args[1], env, &ok_d);
+  if (!ok_n || !ok_d || n < 0 || d <= 0) return true;
+
+  long long result = n;
+  for (long long candidate = d; candidate > 0 && candidate <= n / candidate; candidate++) {
+    if (n % candidate == 0) {
+      result = candidate;
+      break;
+    }
+  }
+
+  Env next = clone_env(env);
+  if (unify(goal->args[2], number_term_from_i64(result), &next)) call_once(&next, callback, user_data);
   return true;
 }
 
@@ -1628,13 +1655,21 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
        strcmp(name, "sub") == 0 || strcmp(name, "difference") == 0 || strcmp(name, "math:difference") == 0 ||
        strcmp(name, "mul") == 0 || strcmp(name, "product") == 0 || strcmp(name, "math:product") == 0 ||
        strcmp(name, "div") == 0 || strcmp(name, "quotient") == 0 || strcmp(name, "math:quotient") == 0 ||
-       strcmp(name, "mod") == 0 || strcmp(name, "max") == 0 ||
+       strcmp(name, "integer_quotient") == 0 || strcmp(name, "integerQuotient") == 0 || strcmp(name, "math:integerQuotient") == 0 ||
+       strcmp(name, "mod") == 0 || strcmp(name, "remainder") == 0 || strcmp(name, "math:remainder") == 0 ||
+       strcmp(name, "max") == 0 || strcmp(name, "maximum") == 0 || strcmp(name, "math:max") == 0 || strcmp(name, "math:maximum") == 0 ||
+       strcmp(name, "min") == 0 || strcmp(name, "minimum") == 0 || strcmp(name, "math:min") == 0 || strcmp(name, "math:minimum") == 0 ||
        strcmp(name, "pow") == 0 || strcmp(name, "exponentiation") == 0 || strcmp(name, "math:exponentiation") == 0) && arity == 3) {
     const char *op = name;
     if (strcmp(name, "sum") == 0 || strcmp(name, "math:sum") == 0) op = "add";
     else if (strcmp(name, "difference") == 0 || strcmp(name, "math:difference") == 0) op = "sub";
     else if (strcmp(name, "product") == 0 || strcmp(name, "math:product") == 0) op = "mul";
-    else if (strcmp(name, "quotient") == 0 || strcmp(name, "math:quotient") == 0) op = "div";
+    else if (strcmp(name, "quotient") == 0 || strcmp(name, "math:quotient") == 0 ||
+             strcmp(name, "integer_quotient") == 0 || strcmp(name, "integerQuotient") == 0 ||
+             strcmp(name, "math:integerQuotient") == 0) op = "div";
+    else if (strcmp(name, "remainder") == 0 || strcmp(name, "math:remainder") == 0) op = "mod";
+    else if (strcmp(name, "maximum") == 0 || strcmp(name, "math:max") == 0 || strcmp(name, "math:maximum") == 0) op = "max";
+    else if (strcmp(name, "minimum") == 0 || strcmp(name, "math:min") == 0 || strcmp(name, "math:minimum") == 0) op = "min";
     else if (strcmp(name, "exponentiation") == 0 || strcmp(name, "math:exponentiation") == 0) op = "pow";
     return builtin_arithmetic(op, goal, env, callback, user_data);
   }
@@ -1655,6 +1690,10 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
 
   if (strcmp(name, "between") == 0 && arity == 3) {
     return builtin_between(goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "smallest_divisor_from") == 0 && arity == 3) {
+    return builtin_smallest_divisor_from(goal, env, callback, user_data);
   }
 
   if ((strcmp(name, "atom_concat") == 0 || strcmp(name, "str_concat") == 0) && arity == 3) {

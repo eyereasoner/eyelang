@@ -389,13 +389,16 @@ Inequality is most predictable when both arguments are already bound.
 | `sub(A, B, X)` or `difference(A, B, X)` | `math:difference(A, B, X)` | `X = A - B` |
 | `mul(A, B, X)` or `product(A, B, X)` | `math:product(A, B, X)` | `X = A * B` |
 | `div(A, B, X)` or `quotient(A, B, X)` | `math:quotient(A, B, X)` | `X = A / B` |
+| `integer_quotient(A, B, X)` | `math:integerQuotient(A, B, X)` | integer quotient alias for translated examples |
 | `pow(A, B, X)` or `exponentiation(A, B, X)` | `math:exponentiation(A, B, X)` | `X = A ** B` |
-| `mod(A, B, X)` |  | integer remainder |
-| `max(A, B, X)` |  | larger value |
+| `mod(A, B, X)` or `remainder(A, B, X)` | `math:remainder(A, B, X)` | integer remainder |
+| `max(A, B, X)` or `maximum(A, B, X)` | `math:max(A, B, X)` | larger value |
+| `min(A, B, X)` or `minimum(A, B, X)` | `math:min(A, B, X)` | smaller value |
 
 When all operands are integers, `add/3`, `sum/3`, `sub/3`, `difference/3`,
-`mul/3`, `product/3`, `div/3`, `quotient/3`, `pow/3`, `exponentiation/3`, and
-`max/3` use arbitrary-size decimal-integer helpers. This is why examples such
+`mul/3`, `product/3`, `div/3`, `quotient/3`, `integer_quotient/3`,
+`pow/3`, `exponentiation/3`, `max/3`, and `min/3` use arbitrary-size
+decimal-integer helpers. This is why examples such
 as `fib(10000)` and the Ackermann-style hyperoperation example can be written
 without engine-specific Fibonacci or exponentiation code. In integer mode,
 exponentiation requires a non-negative machine-integer exponent, and division is
@@ -407,7 +410,12 @@ printed as a numeric term, with `.0` added when the floating result is
 mathematically integral. This is useful for Eyeling-style probability and
 measurement examples, but it is not exact decimal arithmetic.
 
-`mod/3` remains integer-only.
+`mod/3`, `remainder/3`, and `math:remainder/3` remain integer-only.
+
+`smallest_divisor_from(N, D, S)` is a bounded integer helper used by the
+Fundamental Theorem of Arithmetic example. With `N` and starting divisor `D`
+bound, it unifies `S` with the first divisor of `N` at or above `D`, or with
+`N` itself when no smaller divisor exists.
 
 ### Comparisons
 
@@ -522,6 +530,14 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score.
 - `examples/drone-corridor-planner.pl` adapts the bounded corridor-planning example, using a fuel list to keep recursive planning finite while aggregating cost, duration, belief, and comfort.
 - `examples/dining-philosophers.pl` adapts the Chandy-Misra dining-philosophers trace, deriving requests, dirty-fork sends, and meals across nine rounds.
+- `examples/fundamental-theorem-arithmetic.pl` adapts the ARC-style Fundamental Theorem of Arithmetic scenario. It derives the factor list for `202692987`, reconstructs the product, and checks the distinct prime factors by trial division.
+- `examples/easter-computus.pl` adapts the Gregorian computus example. It derives Easter dates for 2026-2035 and emits independent range/window checks.
+- `examples/gd-step-certified.pl` adapts the certified gradient-descent interval example using decimal arithmetic, interval bounds, and objective bounds.
+- `examples/fft8-numeric.pl` adapts the numeric FFT example using explicit complex pairs and radix-2 decomposition.
+- `examples/odrl-dpv-risk-ranked.pl` adapts the ODRL + DPV ranked-risk assessment example. It derives missing-safeguard risks, DPV risk levels, mitigation measures, and inverse-score report keys from a graph-valued policy term, so policy edges are treated as scoped data rather than globally asserted facts.
+
+For policy-like inputs, prefer graph-valued data when the statements should stay scoped.
+For example, `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, [edge(S, P, O), ...])` and derives local helper predicates from graph membership.  That lets rules inspect a policy without asserting every permission, prohibition, or constraint as a global fact, which is useful when different policy graphs may contain incompatible clauses.
 
 For example, a graph reachability program:
 

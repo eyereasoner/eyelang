@@ -58,6 +58,16 @@ run 'log not equal query' bash -c './bin/eyelog --query "log:notEqualTo(dp:P1, d
 run 'risk path selects B' bash -c './bin/eyelog examples/dijkstra-risk-path.pl | grep -q "triple(:dijkstraRiskPath, :selects, :pathB)."'
 run 'drone planner emits 17 plans' bash -c '[ "$(./bin/eyelog examples/drone-corridor-planner.pl | wc -l)" -eq 17 ]'
 run 'dining philosophers derives 15 meals' bash -c '[ "$(./bin/eyelog examples/dining-philosophers.pl | grep -c "dp:type, dp:Meal")" -eq 15 ]'
+run 'math remainder alias query' bash -c './bin/eyelog --query "math:remainder(202692987, 3881, X)" examples/fundamental-theorem-arithmetic.pl | grep -q "math:remainder(202692987, 3881, 0)."'
+run 'integer quotient alias query' bash -c './bin/eyelog --query "math:integerQuotient(202692987, 3881, X)" examples/fundamental-theorem-arithmetic.pl | grep -q "math:integerQuotient(202692987, 3881, 52227)."'
+run 'fundamental theorem factors target' bash -c './bin/eyelog examples/fundamental-theorem-arithmetic.pl | grep -q "triple(:case, :factorsSmallest, \[3, 3, 7, 829, 3881\])."'
+run 'easter computus 2035' bash -c './bin/eyelog examples/easter-computus.pl | grep -q "triple(:y2035, :easterDate, date(2035, :March, 25))."'
+run 'gradient descent emits tenth bound' bash -c './bin/eyelog examples/gd-step-certified.pl | grep -q "triple(:result, :xBounds, bounds(10, -27.925465497600001, 29.925465497600001))."'
+run 'fft8 ramp dc component' bash -c './bin/eyelog examples/fft8-numeric.pl | grep -q "triple(:ramp8, :dcComponent, c(28, 0.0))."'
+run 'odrl dpv ranks account removal first' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:report, :firstRisk, :risk1)."'
+run 'odrl policy graph is materialized as graph data' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:PolicyGraph1, :contains, edge(:Policy1, odrl:permission, :PermDeleteAccount))."'
+run 'odrl dpv scores sharing risk 97' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:risk3, :score, 97)."'
+run 'odrl dpv classifies export as moderate' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:risk4, dpv:hasRiskLevel, risk:ModerateRisk)."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
