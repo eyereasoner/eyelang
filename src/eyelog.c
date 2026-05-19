@@ -318,6 +318,36 @@ static void expect(Parser *parser, TokenType type, const char *description) {
 
 static Term *parse_term(Parser *parser);
 
+static Term *comma_term(Term *left, Term *right) {
+  Term *args[2] = { left, right };
+  return new_compound(",", 2, args);
+}
+
+static Term *parse_parenthesized_term(Parser *parser) {
+  expect(parser, TOK_LPAREN, "(");
+  advance(parser);
+
+  Term *items[MAX_BODY];
+  int len = 0;
+
+  for (;;) {
+    if (len >= MAX_BODY) die("too many terms in conjunction");
+    items[len++] = parse_term(parser);
+    if (parser->token.type == TOK_COMMA) {
+      advance(parser);
+      continue;
+    }
+    break;
+  }
+
+  expect(parser, TOK_RPAREN, ")");
+  advance(parser);
+
+  Term *term = items[len - 1];
+  for (int i = len - 2; i >= 0; i--) term = comma_term(items[i], term);
+  return term;
+}
+
 static Term *parse_list(Parser *parser) {
   expect(parser, TOK_LBRACKET, "[");
   advance(parser);
@@ -364,6 +394,10 @@ static Term *parse_list(Parser *parser) {
 }
 
 static Term *parse_term(Parser *parser) {
+  if (parser->token.type == TOK_LPAREN) {
+    return parse_parenthesized_term(parser);
+  }
+
   if (parser->token.type == TOK_LBRACKET) {
     return parse_list(parser);
   }
@@ -836,6 +870,27 @@ static void write_term(StringBuilder *sb, Term *term, Env *env, bool quote_strin
 
   if (term->type == TERM_ATOM || term->type == TERM_NUMBER) {
     sb_append(sb, term->name);
+    return;
+  }
+
+  if (strcmp(term->name, ",") == 0 && term->arity == 2) {
+    sb_append_char(sb, '(');
+    Term *cursor = term;
+    bool first = true;
+    for (;;) {
+      cursor = deref(cursor, env);
+      if (cursor->type == TERM_COMPOUND && strcmp(cursor->name, ",") == 0 && cursor->arity == 2) {
+        if (!first) sb_append(sb, ", ");
+        write_term(sb, cursor->args[0], env, true);
+        cursor = cursor->args[1];
+        first = false;
+        continue;
+      }
+      if (!first) sb_append(sb, ", ");
+      write_term(sb, cursor, env, true);
+      break;
+    }
+    sb_append_char(sb, ')');
     return;
   }
 
@@ -1745,6 +1800,40 @@ static bool builtin_member(Term *goal, Env *env, SolutionCallback callback, void
   return true;
 }
 
+
+static bool is_formula_comma(Term *term) {
+  return term->type == TERM_COMPOUND && strcmp(term->name, ",") == 0 && term->arity == 2;
+}
+
+static bool is_formula_triple(Term *term) {
+  return term->type == TERM_COMPOUND && strcmp(term->name, "triple") == 0 && term->arity == 3;
+}
+
+static void emit_formula_triples(Term *formula, Term *subject, Term *predicate, Term *object,
+                                 Env *env, SolutionCallback callback, void *user_data) {
+  formula = deref(formula, env);
+
+  if (is_formula_comma(formula)) {
+    emit_formula_triples(formula->args[0], subject, predicate, object, env, callback, user_data);
+    emit_formula_triples(formula->args[1], subject, predicate, object, env, callback, user_data);
+    return;
+  }
+
+  if (!is_formula_triple(formula)) return;
+
+  Env next = clone_env(env);
+  if (unify(subject, formula->args[0], &next) &&
+      unify(predicate, formula->args[1], &next) &&
+      unify(object, formula->args[2], &next)) {
+    call_once(&next, callback, user_data);
+  }
+}
+
+static bool builtin_formula_triple(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  emit_formula_triples(goal->args[0], goal->args[1], goal->args[2], goal->args[3], env, callback, user_data);
+  return true;
+}
+
 static bool builtin_length(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
   Term **items = NULL;
   int len = 0;
@@ -1928,6 +2017,10 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_not_member(goal, env, callback, user_data);
   }
 
+  if ((strcmp(name, "formula_triple") == 0 || strcmp(name, "log:formulaTriple") == 0) && arity == 4) {
+    return builtin_formula_triple(goal, env, callback, user_data);
+  }
+
   if ((strcmp(name, "reverse") == 0 || strcmp(name, "list:reverse") == 0) && arity == 2) {
     return builtin_reverse(goal, env, callback, user_data);
   }
@@ -1947,10 +2040,30 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   return false;
 }
 
+static int append_conjunction_goals(Term *goal, Term **buffer, int count, int cap) {
+  if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
+    count = append_conjunction_goals(goal->args[0], buffer, count, cap);
+    return append_conjunction_goals(goal->args[1], buffer, count, cap);
+  }
+
+  if (count >= cap) die("too many goals in conjunction");
+  buffer[count++] = goal;
+  return count;
+}
+
 static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len,
                            Env *env, int depth, SolutionCallback callback, void *user_data) {
   if (depth > solver->max_depth) return;
   if (solver->solutions_seen >= solver->solution_limit) return;
+
+  if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
+    Term *expanded[MAX_BODY];
+    int expanded_len = append_conjunction_goals(goal, expanded, 0, MAX_BODY);
+    if (expanded_len + rest_len > MAX_BODY) die("too many goals after conjunction expansion");
+    for (int i = 0; i < rest_len; i++) expanded[expanded_len + i] = rest[i];
+    solve_goals(solver, expanded, expanded_len + rest_len, env, depth + 1, callback, user_data);
+    return;
+  }
 
   Continuation cont = { solver, rest, rest_len, depth + 1, callback, user_data };
   if (try_builtin(solver, goal, env, continue_after_builtin, &cont)) return;

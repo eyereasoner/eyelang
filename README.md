@@ -4,7 +4,7 @@
 
 Eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping.
 
-Current version: `0.3.29`
+Current version: `0.4.1`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 

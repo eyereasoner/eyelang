@@ -100,14 +100,14 @@ complex:dial(X, Y, T, Tp) :-
   math:product(Pi, 2, Z1),
   math:difference(Z1, T, Tp).
 
-triple(:test, :is, graph([
+triple(:test, :is, (
   triple(input(exponentiation, [-1, 0], [0.5, 0]), complex:exponentiation, C1),
   triple(input(exponentiation, [2.718281828459045, 0], [0, 3.141592653589793]), complex:exponentiation, C2),
   triple(input(exponentiation, [0, 1], [0, 1]), complex:exponentiation, C3),
   triple(input(exponentiation, [2.718281828459045, 0], [-1.57079632679, 0]), complex:exponentiation, C4),
   triple(input(asin, [2, 0]), complex:asin, C5),
   triple(input(acos, [2, 0]), complex:acos, C6)
-])) :-
+)) :-
   complex:exponentiation([-1, 0], [0.5, 0], C1),
   complex:exponentiation([2.718281828459045, 0], [0, 3.141592653589793], C2),
   complex:exponentiation([0, 1], [0, 1], C3),

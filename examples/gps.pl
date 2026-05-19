@@ -1,30 +1,30 @@
 % GPS — ARC-style goal-driven route planning, translated from Eyeling's gps.n3.
 %
-% The map is kept as quoted graph data.  Rules project gps:description
-% statements from that graph, chain them into paths, compare the two complete
+% The map is kept as quoted formula data.  Rules project gps:description
+% statements from that formula, chain them into paths, compare the two complete
 % routes from Gent to Oostende, and produce a compact explanation report.
 
-case_graph(:CaseGraph, graph([
+case_graph(:CaseGraph, (
   triple(:i1, :location, :Gent),
   triple(:question, :text, "Which route should we take from Gent to Oostende?"),
   triple(:routeDirect, :label, "Gent -> Brugge -> Oostende"),
   triple(:routeViaKortrijk, :label, "Gent -> Kortrijk -> Brugge -> Oostende")
-])).
+)).
 
-map_graph(:mapBE, graph([
-  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Gent)]), true, graph([triple(S, :location, :Brugge)]), :drive_gent_brugge, 1500.0, 0.006, 0.96, 0.99)),
-  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Gent)]), true, graph([triple(S, :location, :Kortrijk)]), :drive_gent_kortrijk, 1600.0, 0.007, 0.96, 0.99)),
-  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Kortrijk)]), true, graph([triple(S, :location, :Brugge)]), :drive_kortrijk_brugge, 1600.0, 0.007, 0.96, 0.99)),
-  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Brugge)]), true, graph([triple(S, :location, :Oostende)]), :drive_brugge_oostende, 900.0, 0.004, 0.98, 1.0))
-])).
+map_graph(:mapBE, (
+  triple(:mapBE, gps:description, description(triple(S, :location, :Gent), true, triple(S, :location, :Brugge), :drive_gent_brugge, 1500.0, 0.006, 0.96, 0.99)),
+  triple(:mapBE, gps:description, description(triple(S, :location, :Gent), true, triple(S, :location, :Kortrijk), :drive_gent_kortrijk, 1600.0, 0.007, 0.96, 0.99)),
+  triple(:mapBE, gps:description, description(triple(S, :location, :Kortrijk), true, triple(S, :location, :Brugge), :drive_kortrijk_brugge, 1600.0, 0.007, 0.96, 0.99)),
+  triple(:mapBE, gps:description, description(triple(S, :location, :Brugge), true, triple(S, :location, :Oostende), :drive_brugge_oostende, 900.0, 0.004, 0.98, 1.0))
+)).
 
 case_triple(S, P, O) :-
-  case_graph(:CaseGraph, graph(Triples)),
-  member(triple(S, P, O), Triples).
+  case_graph(:CaseGraph, Formula),
+  formula_triple(Formula, S, P, O).
 
 map_description(From, To, Action, Duration, Cost, Belief, Comfort) :-
-  map_graph(:mapBE, graph(Triples)),
-  member(triple(:mapBE, gps:description, description(From, true, To, Action, Duration, Cost, Belief, Comfort)), Triples).
+  map_graph(:mapBE, Formula),
+  formula_triple(Formula, :mapBE, gps:description, description(From, true, To, Action, Duration, Cost, Belief, Comfort)).
 
 path(From, To, [Action], Duration, Cost, Belief, Comfort) :-
   map_description(From, To, Action, Duration, Cost, Belief, Comfort).
@@ -38,8 +38,8 @@ path(From, To, Actions, Duration, Cost, Belief, Comfort) :-
   math:product(B1, B2, Belief),
   math:product(F1, F2, Comfort).
 
-traveller_start(:i1, graph([triple(:i1, :location, :Gent)])).
-traveller_goal(:i1, graph([triple(:i1, :location, :Oostende)])).
+traveller_start(:i1, triple(:i1, :location, :Gent)).
+traveller_goal(:i1, triple(:i1, :location, :Oostende)).
 
 traveller_path(Traveller, Actions, Duration, Cost, Belief, Comfort) :-
   traveller_start(Traveller, From),

@@ -5,24 +5,24 @@
 %   :Charly a :Dog.
 %   { ?x a :Cat. } => { { ?y a :Dog. } => { :test :is true. }. }.
 %
-% The inner implication is represented directly as quoted graph data.
+% The inner implication is represented directly as quoted formula data.
 % var(:y) is not an eyelog variable; it is a ground term that names
-% a variable placeholder inside the quoted graph.
+% a variable placeholder inside the quoted formula.
 
 triple(:Minka, rdf:type, :Cat).
 triple(:Charly, rdf:type, :Dog).
 
 triple(
-  graph([triple(var(:y), rdf:type, :Dog)]),
+  triple(var(:y), rdf:type, :Dog),
   log:implies,
-  graph([triple(:test, :is, true)])
+  triple(:test, :is, true)
 ) :-
   triple(_X, rdf:type, :Cat).
 
 triple(:test, :is, true) :-
   triple(
-    graph([triple(var(:y), rdf:type, :Dog)]),
+    triple(var(:y), rdf:type, :Dog),
     log:implies,
-    graph([triple(:test, :is, true)])
+    triple(:test, :is, true)
   ),
   triple(_Y, rdf:type, :Dog).

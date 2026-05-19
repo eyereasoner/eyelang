@@ -7,11 +7,11 @@
 %   :t :recorded "2021-07-07".
 %
 % Eyelog uses the same idea directly.  The inner triple is quoted as data
-% because it appears inside graph([...]); the top-level triples are ambient
+% because it appears as an object term; the top-level triples are ambient
 % facts and are printed by the default query.
 
 triple(:a, :name, "Alice").
-triple(:t, log:nameOf, graph([triple(:a, :name, "Alice")])).
+triple(:t, log:nameOf, triple(:a, :name, "Alice")).
 triple(:t, :statedBy, :bob).
 triple(:t, :recorded, "2021-07-07").
 

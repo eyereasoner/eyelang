@@ -1,6 +1,6 @@
 % ODRL + DPV healthcare risk ranking adapted from Eyeling
 % odrl-dpv-healthcare-risk-ranked.n3.
-% The agreement policy and mitigation suggestions are graph-valued terms.
+% The agreement policy and mitigation suggestions are formula-valued terms.
 
 party(:Hospital).
 party(:ResearchUnit).
@@ -35,7 +35,7 @@ clause_text(:ClauseH4, "Hospital retains patient health records for 10 years.").
 
 agreement_policy_graph(:AgreementHC1, :PolicyGraphHC1).
 
-policy_graph(:PolicyGraphHC1, graph([
+policy_graph(:PolicyGraphHC1, (
   triple(:PolicyHC1, rdf:type, odrl:Policy),
   triple(:PolicyHC1, odrl:permission, :PermResearchUse),
   triple(:PolicyHC1, odrl:permission, :PermShareWithPharma),
@@ -90,14 +90,11 @@ policy_graph(:PolicyGraphHC1, graph([
   triple(:CRetentionDays, odrl:leftOperand, :retentionDays),
   triple(:CRetentionDays, odrl:rightOperand, 3650),
   triple(:PermRetention10y, :clause, :ClauseH4)
-])).
-
-graph_triple(graph(Statements), Subject, Predicate, Object) :-
-  member(triple(Subject, Predicate, Object), Statements).
+)).
 
 policy_triple(GraphName, Subject, Predicate, Object) :-
-  policy_graph(GraphName, Graph),
-  graph_triple(Graph, Subject, Predicate, Object).
+  policy_graph(GraphName, Formula),
+  formula_triple(Formula, Subject, Predicate, Object).
 
 permission(Graph, Permission) :- policy_triple(Graph, :PolicyHC1, odrl:permission, Permission).
 clause(Graph, Permission, Clause) :- policy_triple(Graph, Permission, :clause, Clause).
@@ -186,27 +183,27 @@ description(:riskH2, "Risk: genomic data may be shared with external pharma part
 description(:riskH3, "Risk: automated triage may affect care pathways without a human review/override safeguard.").
 description(:riskH4, "Risk: retention (3650 days) exceeds patient preference (1095 days).").
 
-mitigation_graph(:riskH1, :MitigateConsent, graph([
+mitigation_graph(:riskH1, :MitigateConsent, (
   triple(:PermResearchUse, odrl:constraint, :CExplicitConsent),
   triple(:CExplicitConsent, odrl:leftOperand, :explicitConsent),
   triple(:CExplicitConsent, odrl:rightOperand, true)
-])).
-mitigation_graph(:riskH2, :MitigateDeId, graph([
+)).
+mitigation_graph(:riskH2, :MitigateDeId, (
   triple(:PermShareWithPharma, odrl:constraint, :CDeIdentified),
   triple(:CDeIdentified, odrl:leftOperand, :deIdentified),
   triple(:CDeIdentified, odrl:rightOperand, true),
   triple(:PermShareWithPharma, odrl:duty, :DutyDeIdentify),
   triple(:DutyDeIdentify, odrl:action, :deIdentify)
-])).
-mitigation_graph(:riskH3, :MitigateHumanReview, graph([
+)).
+mitigation_graph(:riskH3, :MitigateHumanReview, (
   triple(:PermAutomatedTriage, odrl:duty, :DutyHumanReview),
   triple(:DutyHumanReview, odrl:action, :humanReview)
-])).
-mitigation_graph(:riskH4, :MitigateRetention, graph([
+)).
+mitigation_graph(:riskH4, :MitigateRetention, (
   triple(:PermRetention10y, odrl:constraint, :CRetentionLimit),
   triple(:CRetentionLimit, odrl:leftOperand, :retentionDays),
   triple(:CRetentionLimit, odrl:rightOperand, 1095)
-])).
+)).
 
 score_raw(Risk, Raw) :-
   risk(Risk),

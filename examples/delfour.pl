@@ -4,11 +4,11 @@
 % checklist facts as triple/3 materialization.
 %
 % Static input is kept as scoped data: the case, insight, policy, envelope, and
-% signature are graph terms, while the product catalog is a list of records.
+% signature are formula terms, while the product catalog is a list of records.
 % Rules project only the fields they need, avoiding global permission/prohibition
-% facts that could contradict another policy graph in the same program.
+% facts that could contradict another policy formula in the same program.
 
-case_graph(:DelfourCaseGraph, graph([
+case_graph(:DelfourCaseGraph, (
   triple(:case, :caseName, "delfour"),
   triple(:case, :requestPurpose, "shopping_assist"),
   triple(:case, :requestAction, odrl:use),
@@ -20,7 +20,7 @@ case_graph(:DelfourCaseGraph, graph([
   triple(:case, :auditEntries, 1),
   triple(:householdProfile, :condition, "Diabetes"),
   triple(:scan, :scannedProduct, :prod_BIS_001)
-])).
+)).
 
 product_catalog(:DelfourCatalog, [
   product(:prod_BIS_001, "prod:BIS_001", "Classic Tea Biscuits", 120, 12.0),
@@ -29,7 +29,7 @@ product_catalog(:DelfourCatalog, [
   product(:prod_CHOC_150, "prod:CHOC_150", "85% Dark Chocolate", 60, 6.0)
 ]).
 
-insight_graph(:DelfourInsightGraph, graph([
+insight_graph(:DelfourInsightGraph, (
   triple(:insight, :metric, "sugar_g_per_serving"),
   triple(:insight, :thresholdTenths, 100),
   triple(:insight, :thresholdDisplay, "10.0"),
@@ -41,37 +41,36 @@ insight_graph(:DelfourInsightGraph, graph([
   triple(:insight, :createdAt, "2025-10-05T20:33:48.907163+00:00"),
   triple(:insight, :expiresAt, "2025-10-05T22:33:48.907185+00:00"),
   triple(:insight, :serializedLowercase, "createdat expiresat insight metric sugar_g_per_serving retailer delfour scopedevice self-scanner scopeevent pick_up_scanner")
-])).
+)).
 
-policy_graph(:DelfourPolicyGraph, graph([
+policy_graph(:DelfourPolicyGraph, (
   triple(:policy, odrl:permission, permission(odrl:use, :insight, "shopping_assist")),
   triple(:policy, odrl:prohibition, prohibition(odrl:distribute, :insight, "marketing")),
   triple(:policy, odrl:duty, duty(odrl:delete, "2025-10-05T22:33:48.907185+00:00"))
-])).
+)).
 
-envelope_graph(:DelfourEnvelopeGraph, graph([
+envelope_graph(:DelfourEnvelopeGraph, (
   triple(:envelope, :insight, :DelfourInsightGraph),
   triple(:envelope, :policy, :DelfourPolicyGraph),
   triple(:envelope, :hash, "34ad35638dfd7c67d031eeca8abb235ec24280740f863f3f31cd9d7b6517f098")
-])).
+)).
 
-signature_graph(:DelfourSignatureGraph, graph([
+signature_graph(:DelfourSignatureGraph, (
   triple(:signature, :alg, "HMAC-SHA256"),
   triple(:signature, :keyid, "demo-shared-secret"),
   triple(:signature, :created, "2025-10-05T20:33:48.907163+00:00"),
   triple(:signature, :payloadHashSha256, "34ad35638dfd7c67d031eeca8abb235ec24280740f863f3f31cd9d7b6517f098"),
   triple(:signature, :hmac, "b21d0072d90112a9f820aced0286889f4b6ef92b145e6fdef1011f3bfa4608c2"),
   triple(:signature, :hmacVerificationMode, :trustedPrecomputedInput)
-])).
+)).
 
 reason_text(:reasonText, "Household requires low-sugar guidance (diabetes in POD). A neutral Insight is scoped to device 'self-scanner', event 'pick_up_scanner', retailer 'Delfour', and expires soon; the policy confines use to shopping assistance.").
 
-graph_triple(graph(Statements), S, P, O) :- member(triple(S, P, O), Statements).
-case_triple(S, P, O) :- case_graph(:DelfourCaseGraph, Graph), graph_triple(Graph, S, P, O).
-insight_triple(S, P, O) :- insight_graph(:DelfourInsightGraph, Graph), graph_triple(Graph, S, P, O).
-policy_triple(S, P, O) :- policy_graph(:DelfourPolicyGraph, Graph), graph_triple(Graph, S, P, O).
-envelope_triple(S, P, O) :- envelope_graph(:DelfourEnvelopeGraph, Graph), graph_triple(Graph, S, P, O).
-signature_triple(S, P, O) :- signature_graph(:DelfourSignatureGraph, Graph), graph_triple(Graph, S, P, O).
+case_triple(S, P, O) :- case_graph(:DelfourCaseGraph, Formula), formula_triple(Formula, S, P, O).
+insight_triple(S, P, O) :- insight_graph(:DelfourInsightGraph, Formula), formula_triple(Formula, S, P, O).
+policy_triple(S, P, O) :- policy_graph(:DelfourPolicyGraph, Formula), formula_triple(Formula, S, P, O).
+envelope_triple(S, P, O) :- envelope_graph(:DelfourEnvelopeGraph, Formula), formula_triple(Formula, S, P, O).
+signature_triple(S, P, O) :- signature_graph(:DelfourSignatureGraph, Formula), formula_triple(Formula, S, P, O).
 
 case_name(:case, Name) :- case_triple(:case, :caseName, Name).
 request_purpose(:case, Purpose) :- case_triple(:case, :requestPurpose, Purpose).

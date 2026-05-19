@@ -1,8 +1,8 @@
 % Risk-adjusted route selection adapted from Eyeling dijkstra-risk-path.n3.
 % The score is raw delivery cost plus ten times the accumulated risk.
-% Segments live in a quoted graph term, while candidate paths remain lists.
+% Segments live in a quoted formula term, while candidate paths remain lists.
 
-route_network(:RiskNetwork, graph([
+route_network(:RiskNetwork, (
   triple(:DepotA, :segment, segment(:DepotB, 4.0, 0.2)),
   triple(:DepotB, :segment, segment(:LabD, 4.0, 0.3)),
   triple(:DepotA, :segment, segment(:DepotC, 3.0, 0.9)),
@@ -12,13 +12,11 @@ route_network(:RiskNetwork, graph([
   triple(:DepotA, :segment, segment(:Relay, 5.0, 0.2)),
   triple(:Relay, :segment, segment(:LabD, 5.0, 0.2)),
   triple(:DepotA, :segment, segment(:LabD, 14.0, 0.05))
-])).
-
-graph_triple(graph(Statements), S, P, O) :- member(triple(S, P, O), Statements).
+)).
 
 route_segment(From, To, Raw, Risk) :-
-  route_network(:RiskNetwork, Graph),
-  graph_triple(Graph, From, :segment, segment(To, Raw, Risk)).
+  route_network(:RiskNetwork, Formula),
+  formula_triple(Formula, From, :segment, segment(To, Raw, Risk)).
 
 candidate(:pathB, [:DepotA, :DepotB, :LabD]).
 candidate(:pathC, [:DepotA, :DepotC, :LabD]).

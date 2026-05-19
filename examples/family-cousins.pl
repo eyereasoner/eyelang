@@ -1,10 +1,10 @@
 % Family-cousins derivation adapted from Eyeling family-cousins.n3.
 % Generation numbers are derived from parent links; branch labels distinguish
 % descendants of Bob from descendants of Carol.
-% The family tree and seed branch labels are quoted as a small graph term, so
+% The family tree and seed branch labels are quoted as a small formula term, so
 % the rules derive from scoped family data rather than global relationship facts.
 
-family_graph(:FamilyGraph, graph([
+family_graph(:FamilyGraph, (
   triple(:Adam, :parent, :Bob),
   triple(:Adam, :parent, :Carol),
   triple(:Bob, :parent, :Dave),
@@ -18,10 +18,9 @@ family_graph(:FamilyGraph, graph([
   triple(:Eve, :seedBranch, :b),
   triple(:Frank, :seedBranch, :c),
   triple(:Grace, :seedBranch, :c)
-])).
+)).
 
-graph_triple(graph(Statements), S, P, O) :- member(triple(S, P, O), Statements).
-family_triple(S, P, O) :- family_graph(:FamilyGraph, Graph), graph_triple(Graph, S, P, O).
+family_triple(S, P, O) :- family_graph(:FamilyGraph, Formula), formula_triple(Formula, S, P, O).
 
 parent(Parent, Child) :- family_triple(Parent, :parent, Child).
 branch(Person, Branch) :- family_triple(Person, :seedBranch, Branch).

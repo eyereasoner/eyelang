@@ -205,12 +205,12 @@ pair(:left, :right)
 [a, b, c]
 var(:x)
 skolem:observation(:Alice, :glucose)
-graph([triple(var(:x), rdf:type, :Dog)])
+triple(var(:x), rdf:type, :Dog)
 ```
 
 A ground term contains no eyelog variables. Compound terms and lists can be nested, so the Herbrand universe may be infinite if the program has a compound term symbol.
 
-Notice the distinction between `X` and `var(:x)`. `X` is an eyelog variable: it can be bound by unification while a rule is being proved. `var(:x)` is an ordinary compound term with functor `var/1`; it is ground because `:x` is an atom. Eyelog uses this convention when a quoted graph needs to mention an object-language variable as data.
+Notice the distinction between `X` and `var(:x)`. `X` is an eyelog variable: it can be bound by unification while a rule is being proved. `var(:x)` is an ordinary compound term with functor `var/1`; it is ground because `:x` is an atom. Eyelog uses this convention when a quoted formula needs to mention an object-language variable as data.
 
 A functor may also use a vocabulary-style name such as `skolem:observation/2`. This is still an ordinary Herbrand function symbol. A term such as `skolem:observation(:Alice, :glucose)` denotes one generated resource. The same arguments denote the same resource; different arguments denote different Herbrand terms, so using the relevant inputs as arguments prevents accidental clashes.
 
@@ -318,9 +318,9 @@ triple(:pat, :ancestor, :emma)
 
 so the default output contains the three `triple/3` facts.
 
-### 5.6 Quoted graphs and variables-as-data
+### 5.6 Quoted formulae and variables-as-data
 
-Graph terms such as `graph([triple(:s, :p, :o)])` are ordinary Herbrand terms. A `triple/3` at top level is an atom that can belong to the least Herbrand model. A `triple/3` inside `graph([...])` is just a subterm of some larger atom until a rule projects it.
+Formula terms such as `triple(:s, :p, :o)` and `(triple(:s1, :p1, :o1), triple(:s2, :p2, :o2))` are ordinary Herbrand terms when they occur in argument position. A `triple/3` at top level is an atom that can belong to the least Herbrand model. A `triple/3` inside another term is quoted data until a rule projects it.
 
 For example:
 
@@ -331,26 +331,37 @@ triple(:Charly, rdf:type, :Dog).
 is a candidate member of the Herbrand base: it may be true or false in an interpretation. But in:
 
 ```prolog
-graph([triple(var(:y), rdf:type, :Dog)])
+triple(var(:y), rdf:type, :Dog)
 ```
 
-the inner `triple/3` is quoted data. The whole graph term can occur as an argument of another atom, for example:
+the inner `triple/3` is quoted data. The whole formula term can occur as an argument of another atom, for example:
 
 ```prolog
 triple(
-  graph([triple(var(:y), rdf:type, :Dog)]),
+  triple(var(:y), rdf:type, :Dog),
   log:implies,
-  graph([triple(:test, :is, true)])
+  triple(:test, :is, true)
 ).
 ```
 
-Here `var(:y)` does not bind like `Y`. It is the ground term that represents a variable named `y` inside the quoted rule. A rule that wants to interpret such a graph as a rule schema must do so explicitly. This keeps Herbrand semantics simple: quoted formulas are data, not automatically asserted facts and not automatically active rules.
+For multiple triples, use the same comma form that Prolog uses for conjunction, but in data position:
+
+```prolog
+triple(:G1, log:nameOf, (
+  triple(:s1, :p1, :o1),
+  triple(:s2, :p2, :o2)
+)).
+```
+
+Position determines the meaning. In a rule body, commas are executable conjunction. In an argument position, the comma term is quoted formula data. Parenthesized conjunction goals such as `(a(X), b(X))` are also accepted in rule bodies and are expanded as ordinary conjunction.
+
+Here `var(:y)` does not bind like `Y`. It is the ground term that represents a variable named `y` inside the quoted rule. A rule that wants to interpret such a formula as a rule schema must do so explicitly. This keeps Herbrand semantics simple: quoted formulae are data, not automatically asserted facts and not automatically active rules.
 
 Use this convention:
 
 - use `Y` for an eyelog variable in the current rule,
-- use `var(:y)` only when a quoted graph itself needs to contain a variable placeholder,
-- use helper predicates to project or interpret quoted graph terms when needed.
+- use `var(:y)` only when a quoted formula itself needs to contain a variable placeholder,
+- use helper predicates to project or interpret quoted formula terms when needed.
 
 ### 5.7 Skolem terms in rule heads
 
@@ -422,7 +433,7 @@ The lemma applies directly to pure facts and Horn rules.
 
 It extends cleanly to deterministic built-ins when they are treated as interpreted leaves, for example arithmetic comparisons or `length/2` on a ground proper list. In that reading, a proof tree may have built-in leaves that are checked by their intended interpretation rather than by user-defined facts.
 
-Quoted graph terms do not invalidate the lemma. They are just terms in the Herbrand universe. If a program derives a ground atom whose argument is a quoted graph, that atom still appears at some finite `T_P` stage. If another rule later interprets `var(:x)` placeholders inside that graph, the interpretation is an ordinary user-defined relation and its derived conclusions are again supported by finite rule instances.
+Quoted formula terms do not invalidate the lemma. They are just terms in the Herbrand universe. If a program derives a ground atom whose argument is a quoted formula, that atom still appears at some finite `T_P` stage. If another rule later interprets `var(:x)` placeholders inside that formula, the interpretation is an ordinary user-defined relation and its derived conclusions are again supported by finite rule instances.
 
 Use more care with `not/1`. Negation as failure depends on failure of search, not membership in the least Herbrand model of a positive program. Programs using `not/1` should be written so the negated goal is sufficiently ground and finite.
 
@@ -575,6 +586,7 @@ between(Low, High, N)
 | `reverse(List, Reversed)` | `list:reverse(List, Reversed)` | reverse a known list |
 | `length(List, N)` | `list:length(List, N)` | count a known proper list |
 | `is_list(List)` | `list:isList(List)` | proper-list check |
+| `formula_triple(Formula, S, P, O)` | `log:formulaTriple(Formula, S, P, O)` | enumerate `triple/3` terms inside a comma formula |
 
 `append/3` concatenates lists. It supports the common finite modes where the
 first list is known, or where the combined list is known and the predicate
@@ -641,13 +653,13 @@ Each example should contain:
 The repository includes small examples adapted from the Eyeling examples collection:
 
 - `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
-- `examples/gps.pl` adapts the GPS route-planning example more closely: map descriptions are quoted graph data, route actions are lists built with `list:append/3`, route metrics include duration/cost/belief/comfort, and the output layer emits the recommendation, checks, and report text.
+- `examples/gps.pl` adapts the GPS route-planning example more closely: map descriptions are quoted formula data, route actions are lists built with `list:append/3`, route metrics include duration/cost/belief/comfort, and the output layer emits the recommendation, checks, and report text.
 - `examples/cyclic-path.pl` demonstrates transitive closure over a directed cycle. The logical reachability result is finite, and eyelog's active-call variant guard prevents recursive proof search from looping forever.
 - `examples/service-impact.pl` applies the same cyclic-closure pattern to incident analysis: when `:payment_service` fails, services and business functions that depend on it transitively are marked at risk even though the payment/fraud/risk-rules dependency graph contains a cycle.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 - `examples/ackermann.pl` adapts Eyeling's Ackermann-style hyperoperation benchmark and uses `pow/3` with arbitrary-size integers, including the large `ackermann(4, 2)` value.
-- `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted `graph([...])` term, and path search uses `list:notMember/2` for visited-node checks.
-- `examples/family-cousins.pl` adapts the generation/branch cousin derivation. The family tree is a scoped graph term, so parent links and seed branch labels are read from quoted data.
+- `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted formula term, and path search uses `list:notMember/2` for visited-node checks.
+- `examples/family-cousins.pl` adapts the generation/branch cousin derivation. The family tree is a scoped formula term, so parent links and seed branch labels are read from quoted data.
 - `examples/allen-interval-calculus.pl` adapts Allen's interval relations over integer endpoints. The interval table is represented as a list of `interval(Id, Start, End)` records.
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
@@ -656,7 +668,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/complex.pl` adapts Eyeling's complex-number example. Complex values are two-item lists `[Real, Imaginary]`; the example derives complex exponentiation, polar form, `complex:asin/2`, and `complex:acos/2` using the floating-point `math:*` aliases.
 - `examples/skolem-functions.pl` demonstrates generated resources using `skolem:` functional terms in rule heads, such as `skolem:observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.
 - `examples/aliases-and-namespaces.pl` demonstrates that short built-in names and namespaced aliases call the same implementation.
-- `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation. Its case, insight, policy, envelope, and signature inputs are graph terms; the product catalog is a list of records.
+- `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation. Its case, insight, policy, envelope, and signature inputs are formula terms; the product catalog is a list of records.
 - `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score. It combines a quoted segment graph with list-valued candidate paths.
 - `examples/drone-corridor-planner.pl` adapts the bounded corridor-planning example, using a fuel list to keep recursive planning finite while aggregating cost, duration, belief, and comfort.
 - `examples/dining-philosophers.pl` adapts the Chandy-Misra dining-philosophers trace, deriving requests, dirty-fork sends, and meals across nine rounds.
@@ -664,16 +676,16 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/easter-computus.pl` adapts the Gregorian computus example. It derives Easter dates for 2026-2035 and emits independent range/window checks.
 - `examples/gd-step-certified.pl` adapts the certified gradient-descent interval example using decimal arithmetic, interval bounds, and objective bounds.
 - `examples/fft8-numeric.pl` adapts the numeric FFT example using explicit complex pairs and radix-2 decomposition.
-- `examples/odrl-dpv-risk-ranked.pl` adapts the ODRL + DPV ranked-risk assessment example. It derives missing-safeguard risks, DPV risk levels, mitigation measures, and inverse-score report keys from a graph-valued policy term, so policy triples are treated as scoped data rather than globally asserted facts.
-- `examples/annotation.pl` adapts the RDF annotation example closely: it asserts `:a :name "Alice"`, names the quoted graph containing that triple with `log:nameOf`, and attaches the provenance triples directly.
-- `examples/context-association.pl` adapts the context-association example more directly: the data, signature, and metadata contexts are top-level `log:nameOf` triples whose objects are quoted `graph([...])` terms. A tiny `context_triple/4` projection demonstrates scoped inspection without turning the whole context into ambient facts.
+- `examples/odrl-dpv-risk-ranked.pl` adapts the ODRL + DPV ranked-risk assessment example. It derives missing-safeguard risks, DPV risk levels, mitigation measures, and inverse-score report keys from a formula-valued policy term, so policy triples are treated as scoped data rather than globally asserted facts.
+- `examples/annotation.pl` adapts the RDF annotation example closely: it asserts `:a :name "Alice"`, names the quoted formula containing that triple with `log:nameOf`, and attaches the provenance triples directly.
+- `examples/context-association.pl` adapts the context-association example more directly: the data, signature, and metadata contexts are top-level `log:nameOf` triples whose objects are quoted formula terms. A tiny `context_triple/4` projection demonstrates scoped inspection without turning the whole context into ambient facts.
 - `examples/derived-rule.pl` adapts the derived-rule example closely: a top-level `triple/3` cat fact derives a quoted implication graph, and a top-level `triple/3` dog fact then fires that derived rule.
-- `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as graph-valued terms and derives only the risks supported by the scoped graph.
+- `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as formula-valued terms and derives only the risks supported by the scoped formula.
 
-For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer graph-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log:nameOf { ... }` usually translates well to a top-level `triple(G, log:nameOf, graph([...]))`, not to a separate `named_graph/2` table unless several rules need that indirection.
-For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log:nameOf, graph([...]))` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([triple(S, P, O), ...]))` because the policy graph is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different graphs may contain incompatible clauses.
+For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer formula-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log:nameOf { ... }` usually translates well to a top-level `triple(G, log:nameOf, ...)`, not to a separate `named_graph/2` table unless several rules need that indirection.
+For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log:nameOf, ...)` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, (triple(S, P, O), ...))` because the policy formula is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different formulae may contain incompatible clauses.
 
-Use lists when order or a closed collection matters: candidate routes, action sequences, interval tables, product catalogs, evidence vectors, and bounded fuel tokens are clearer as list terms than as many unrelated facts. Use graph terms when the data is RDF-shaped or intentionally scoped. It is fine to combine both: `dijkstra-risk-path.pl` keeps network segments in a quoted graph and candidate routes as lists.
+Use lists when order or a closed collection matters: candidate routes, action sequences, interval tables, product catalogs, evidence vectors, and bounded fuel tokens are clearer as list terms than as many unrelated facts. Use formula terms when the data is RDF-shaped or intentionally scoped. It is fine to combine both: `dijkstra-risk-path.pl` keeps network segments in a quoted formula and candidate routes as lists.
 
 For cyclic graph reachability, a simple transitive closure is usually fine:
 
@@ -684,36 +696,38 @@ path(X, Z) :- arc(X, Y), path(Y, Z).
 
 On a cyclic finite graph, eyelog's variant loop guard stops the proof search from re-entering the same active `path/2` subgoal. `examples/service-impact.pl` uses the same pattern for a practical service-dependency closure: if `Service` depends on `Dependency`, then a failure of `Dependency` affects `Service`, transitively, even when two services depend on each other. For path enumeration, shortest paths, or routes with costs, prefer an explicit visited-list argument so the program says which revisits are forbidden.
 
-Graph terms are ordinary Eyelog terms. Use one representation for RDF-shaped content inside a graph:
+Formula terms are ordinary Eyelog terms. Use one representation for RDF-shaped scoped content:
 
 ```prolog
-triple(:G1, log:nameOf, graph([
-  triple(:s, :p, :o)
-])).
+triple(:G1, log:nameOf, (
+  triple(:s1, :p1, :o1),
+  triple(:s2, :p2, :o2)
+)).
 
-graph_triple(GraphName, S, P, O) :-
-  triple(GraphName, log:nameOf, graph(Statements)),
-  member(triple(S, P, O), Statements).
+% formula_triple/4 is a native built-in over comma formula terms.
+context_triple(GraphName, S, P, O) :-
+  triple(GraphName, log:nameOf, Formula),
+  formula_triple(Formula, S, P, O).
 ```
 
-There is deliberately only one RDF-shaped constructor: `triple/3`.
+There is deliberately only one RDF-shaped constructor: `triple/3`. For several quoted triples, the formula itself is the standard comma term. For a single quoted triple, use the `triple/3` term directly.
 
-Quoted graph variables use `var(:name)` when the variable itself is part of the quoted data:
+Quoted formula variables use `var(:name)` when the variable itself is part of the quoted data:
 
 ```prolog
-graph([triple(var(:y), rdf:type, :Dog)])
+triple(var(:y), rdf:type, :Dog)
 ```
 
-This is different from `Y`. `Y` is an eyelog variable in the surrounding rule; `var(:y)` is a ground term that denotes a variable placeholder inside the quoted graph. The `derived-rule.pl` example uses this to represent an inner rule schema without letting the outer rule accidentally bind that inner variable.
+This is different from `Y`. `Y` is an eyelog variable in the surrounding rule; `var(:y)` is a ground term that denotes a variable placeholder inside the quoted formula. The `derived-rule.pl` example uses this to represent an inner rule schema without letting the outer rule accidentally bind that inner variable.
 
 The difference between an asserted/output triple and a quoted triple is positional, not syntactic:
 
 - `triple(S, P, O)` as a top-level derived fact is materialized by the default query.
-- `triple(S, P, O)` inside `graph([...])` is ordinary data. It becomes relevant only when a rule projects it with a helper such as `graph_triple/4`.
+- `triple(S, P, O)` inside `...` is ordinary data. It becomes relevant only when a rule projects it with a helper such as `formula_triple/4`.
 
 This avoids parallel names such as `statement/3` and `triple/3` for the same shape. Avoid using `edge/3` for RDF-shaped graph contents. Reserve domain names such as `arc/2`, `link/3`, or `route_segment/4` for ordinary graph algorithms where they are not RDF triples.
 
-For example, a graph reachability program can use domain arcs without involving graph terms:
+For example, a graph reachability program can use domain arcs without involving formula terms:
 
 ```prolog
 arc(:a, :b).

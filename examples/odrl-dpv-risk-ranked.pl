@@ -1,7 +1,7 @@
 % ODRL + DPV ranked-risk assessment adapted from Eyeling odrl-dpv-risk-ranked.n3.
-% Eyeling keeps the ODRL rules inside an N3 quoted policy graph and prints a
+% Eyeling keeps the ODRL rules inside an N3 quoted policy formula and prints a
 % Markdown report with log:outputString.  This Eyelog translation also keeps the
-% policy as a graph-valued term, projects local predicates from that graph for
+% policy as a formula-valued term, projects local predicates from that formula for
 % reasoning, and materializes the derived DPV risks as triple/3 output.
 
 % Consumer profile and needs.
@@ -31,9 +31,9 @@ title(:ProcessContext1, "Service operation under Agreement1").
 % The ODRL policy is kept as a graph value.  The clauses below are not asserted
 % globally as permission/2, prohibition/2, action/2, ... facts; they are
 % triple/3 terms inside :PolicyGraph1.  The local projection predicates below read from the
-% graph when evaluating this agreement.  This mirrors N3 quoted graphs and avoids
-% making policy triples true outside the graph that contains them.
-policy_graph(:PolicyGraph1, graph([
+% formula when evaluating this agreement.  This mirrors N3 quoted formulae and avoids
+% making policy triples true outside the formula that contains them.
+policy_graph(:PolicyGraph1, (
   triple(:Policy1, rdf:type, odrl:Policy),
   triple(:Policy1, odrl:appliesTo, :Agreement1),
   triple(:Policy1, odrl:permission, :PermDeleteAccount),
@@ -66,11 +66,11 @@ policy_graph(:PolicyGraph1, graph([
   triple(:ProhibitExportData, odrl:action, tosl:exportData),
   triple(:ProhibitExportData, odrl:target, :UserData),
   triple(:ProhibitExportData, :clause, :ClauseC4)
-])).
+)).
 
 policy_triple(Subject, Predicate, Object) :-
-  policy_graph(_Graph, graph(Statements)),
-  member(triple(Subject, Predicate, Object), Statements).
+  policy_graph(_Graph, Formula),
+  formula_triple(Formula, Subject, Predicate, Object).
 
 policy(Policy, Agreement) :- policy_triple(Policy, odrl:appliesTo, Agreement).
 permission(Policy, Rule) :- policy_triple(Policy, odrl:permission, Rule).
