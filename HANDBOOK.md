@@ -118,6 +118,42 @@ Improper lists are accepted when you explicitly use a non-list tail, for example
 
 Semantically, list syntax is just notation for ordinary terms. The empty list is a constant, and a non-empty list is a nested cons term. For example, `[a, b, c]` behaves like `.(a, .(b, .(c, [])))`, although eyelog prints the bracket form.
 
+### 3.1 Vocabulary-style names and Prolog portability
+
+Eyelog is **Prolog-like**, but it is not intended to be a portable SWI-Prolog
+source format. In particular, names such as `:pat`, `:payment_service`,
+`rdf:type`, `math:sum`, and `skolem:observation/2` are Eyelog atoms or
+functors with vocabulary-style names.
+
+The colon is part of the name syntax used to stay close to RDF, N3, and
+Eyeling examples:
+
+```prolog
+triple(:checkout_api, :impactedByFailureOf, :payment_service).
+triple(:a, rdf:type, :Person).
+```
+
+In Eyelog, `:payment_service` means a local IRI-style atom, and `rdf:type` means
+the atom whose spelling is `rdf:type`. The colon is not SWI-Prolog module
+qualification.
+
+Some Prolog systems, such as Trealla, may accept these files as a permissive
+extension. That is useful for experiments, but it is not part of Eyelog's
+compatibility promise. SWI-Prolog gives `:` a different syntactic role, so a
+plain Eyelog file with `:name` atoms is expected to be rejected by SWI.
+
+A SWI-oriented translation would quote such names, for example:
+
+```prolog
+triple(':checkout_api', ':impactedByFailureOf', ':payment_service').
+triple(':a', 'rdf:type', ':Person').
+```
+
+That translation is deliberately not used in the examples because it would make
+them less readable and less close to Eyeling/N3. The recommended rule is simple:
+write Eyelog examples in Eyelog syntax, and translate only when targeting a
+specific Prolog system.
+
 ## 4. Rules as Horn clauses
 
 A fact is an atomic assertion:
