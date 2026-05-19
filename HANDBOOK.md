@@ -537,7 +537,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/odrl-dpv-risk-ranked.pl` adapts the ODRL + DPV ranked-risk assessment example. It derives missing-safeguard risks, DPV risk levels, mitigation measures, and inverse-score report keys from a graph-valued policy term, so policy triples are treated as scoped data rather than globally asserted facts.
 - `examples/annotation-graph.pl` adapts the RDF annotation example. A triple is represented as a named graph term and then linked to provenance metadata.
 - `examples/context-association.pl` adapts the context-association example. It verifies a data graph, signature graph, and metadata graph chain without asserting their internal triples globally.
-- `examples/derived-rule-graph.pl` adapts the derived-rule example by representing a rule as a `rule(PremiseGraph, ConclusionGraph)` term and applying a small graph-pattern interpreter.
+- `examples/derived-rule.pl` adapts the derived-rule example closely: a top-level `triple/3` cat fact derives a quoted implication graph, and a top-level `triple/3` dog fact then fires that derived rule.
 - `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as graph-valued terms and derives only the risks supported by the scoped graph.
 
 For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer graph-valued data when triples should stay scoped.

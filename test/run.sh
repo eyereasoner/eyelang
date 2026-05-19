@@ -78,7 +78,7 @@ run 'odrl dpv scores sharing risk 97' bash -c './bin/eyelog examples/odrl-dpv-ri
 run 'odrl dpv classifies export as moderate' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:risk4, dpv:hasRiskLevel, risk:ModerateRisk)."'
 run 'annotation graph names Alice triple' bash -c './bin/eyelog examples/annotation-graph.pl | grep -q "triple(:t, log:nameOf, graph(\[triple(:a, :name, \"Alice\")\]))."'
 run 'context association verifies graph chain' bash -c './bin/eyelog examples/context-association.pl | grep -q "triple(:association, :status, :contextAssociationVerified)."'
-run 'derived rule graph fires' bash -c './bin/eyelog examples/derived-rule-graph.pl | grep -q "triple(:test, :is, true)."'
+run 'derived rule fires' bash -c './bin/eyelog examples/derived-rule.pl | grep -q "triple(:test, :is, true)."'
 run 'healthcare policy graph ranks consent risk first' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(:report, :firstRisk, :riskH1)."'
 run 'healthcare policy graph suppresses satisfied human review risk' bash -c '! ./bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "riskH3"'
 run 'healthcare mitigation is graph-valued' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(:MitigateDeId, :suggestAddGraph, graph(\[triple(:PermShareWithPharma"'
