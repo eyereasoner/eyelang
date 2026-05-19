@@ -1,18 +1,26 @@
 % Allen interval calculus adapted from Eyeling allen-interval-calculus.n3.
 % Eyeling demonstrates dateTime and duration built-ins; this eyelog version
 % uses integer hour offsets so the interval rules remain pure Horn clauses.
+% The input interval table is a list of records, showing how tabular data can
+% stay scoped as one term instead of many unrelated global start/end facts.
 
-interval(:A). start(:A, 10). end(:A, 12).
-interval(:B). start(:B, 13). end(:B, 15).
-interval(:C). start(:C, 12). end(:C, 14).
-interval(:D). start(:D, 11). end(:D, 13).
-interval(:E). start(:E, 10). end(:E, 12).
-interval(:F). start(:F, 10). end(:F, 11).
-interval(:G). start(:G, 11). end(:G, 12).
-interval(:H). start(:H, 9).  end(:H, 16).
-interval(:I). start(:I, 16). end(:I, 18).
-interval(:J). start(:J, 15). end(:J, 16).
-interval(:K). start(:K, 13). end(:K, 14).
+interval_table([
+  interval(:A, 10, 12),
+  interval(:B, 13, 15),
+  interval(:C, 12, 14),
+  interval(:D, 11, 13),
+  interval(:E, 10, 12),
+  interval(:F, 10, 11),
+  interval(:G, 11, 12),
+  interval(:H, 9, 16),
+  interval(:I, 16, 18),
+  interval(:J, 15, 16),
+  interval(:K, 13, 14)
+]).
+
+interval(I) :- interval_table(Table), member(interval(I, _Start, _End), Table).
+start(I, Start) :- interval_table(Table), member(interval(I, Start, _End), Table).
+end(I, End) :- interval_table(Table), member(interval(I, _Start, End), Table).
 
 relation(I, :before, J) :- end(I, EI), start(J, SJ), lt(EI, SJ).
 relation(I, :meets, J) :- end(I, E), start(J, E).

@@ -1,21 +1,30 @@
 % Family-cousins derivation adapted from Eyeling family-cousins.n3.
 % Generation numbers are derived from parent links; branch labels distinguish
 % descendants of Bob from descendants of Carol.
+% The family tree and seed branch labels are quoted as a small graph term, so
+% the rules derive from scoped family data rather than global relationship facts.
 
-parent(:Adam, :Bob).
-parent(:Adam, :Carol).
-parent(:Bob, :Dave).
-parent(:Bob, :Eve).
-parent(:Carol, :Frank).
-parent(:Carol, :Grace).
-parent(:Dave, :Heidi).
-parent(:Eve, :Ivan).
-parent(:Frank, :Judy).
+family_graph(:FamilyGraph, graph([
+  triple(:Adam, :parent, :Bob),
+  triple(:Adam, :parent, :Carol),
+  triple(:Bob, :parent, :Dave),
+  triple(:Bob, :parent, :Eve),
+  triple(:Carol, :parent, :Frank),
+  triple(:Carol, :parent, :Grace),
+  triple(:Dave, :parent, :Heidi),
+  triple(:Eve, :parent, :Ivan),
+  triple(:Frank, :parent, :Judy),
+  triple(:Dave, :seedBranch, :b),
+  triple(:Eve, :seedBranch, :b),
+  triple(:Frank, :seedBranch, :c),
+  triple(:Grace, :seedBranch, :c)
+])).
 
-branch(:Dave, :b).
-branch(:Eve, :b).
-branch(:Frank, :c).
-branch(:Grace, :c).
+graph_triple(graph(Statements), S, P, O) :- member(triple(S, P, O), Statements).
+family_triple(S, P, O) :- family_graph(:FamilyGraph, Graph), graph_triple(Graph, S, P, O).
+
+parent(Parent, Child) :- family_triple(Parent, :parent, Child).
+branch(Person, Branch) :- family_triple(Person, :seedBranch, Branch).
 
 different(:b, :c).
 different(:c, :b).

@@ -2,16 +2,26 @@
 % The Eyeling source uses collect/sort built-ins for Dijkstra's queue.
 % This eyelog variant enumerates simple paths and keeps the bounded frontier
 % that appears in the Eyeling output for :a -> :f.
+% The input weighted graph is quoted as graph([...]) data and projected locally,
+% so the route network is not asserted as ambient edge facts.
 
-base_link(:a, :b, 4).
-base_link(:a, :c, 2).
-base_link(:b, :c, 1).
-base_link(:b, :d, 5).
-base_link(:c, :d, 8).
-base_link(:c, :e, 10).
-base_link(:d, :e, 2).
-base_link(:d, :f, 6).
-base_link(:e, :f, 3).
+weighted_graph(:DijkstraGraph, graph([
+  triple(:a, :edge, arc(:b, 4)),
+  triple(:a, :edge, arc(:c, 2)),
+  triple(:b, :edge, arc(:c, 1)),
+  triple(:b, :edge, arc(:d, 5)),
+  triple(:c, :edge, arc(:d, 8)),
+  triple(:c, :edge, arc(:e, 10)),
+  triple(:d, :edge, arc(:e, 2)),
+  triple(:d, :edge, arc(:f, 6)),
+  triple(:e, :edge, arc(:f, 3))
+])).
+
+graph_triple(graph(Statements), S, P, O) :- member(triple(S, P, O), Statements).
+
+base_link(A, B, Cost) :-
+  weighted_graph(:DijkstraGraph, Graph),
+  graph_triple(Graph, A, :edge, arc(B, Cost)).
 
 link(A, B, Cost) :- base_link(A, B, Cost).
 link(B, A, Cost) :- base_link(A, B, Cost).

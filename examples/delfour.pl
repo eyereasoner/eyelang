@@ -2,73 +2,122 @@
 % The original N3 emits a Markdown answer with log:outputString.  This Eyelog
 % translation derives the same authorization, shopping banner, alternative, and
 % checklist facts as triple/3 materialization.
+%
+% Static input is kept as scoped data: the case, insight, policy, envelope, and
+% signature are graph terms, while the product catalog is a list of records.
+% Rules project only the fields they need, avoiding global permission/prohibition
+% facts that could contradict another policy graph in the same program.
 
-case_name(:case, "delfour").
-request_purpose(:case, "shopping_assist").
-request_action(:case, odrl:use).
-phone_created_at(:case, "2025-10-05T20:33:48.907163+00:00").
-phone_expires_at(:case, "2025-10-05T22:33:48.907185+00:00").
-scanner_auth_at(:case, "2025-10-05T20:35:48.907163+00:00").
-scanner_duty_at(:case, "2025-10-05T20:37:48.907163+00:00").
-files_written(:case, 6).
-audit_entries(:case, 1).
+case_graph(:DelfourCaseGraph, graph([
+  triple(:case, :caseName, "delfour"),
+  triple(:case, :requestPurpose, "shopping_assist"),
+  triple(:case, :requestAction, odrl:use),
+  triple(:case, :phoneCreatedAt, "2025-10-05T20:33:48.907163+00:00"),
+  triple(:case, :phoneExpiresAt, "2025-10-05T22:33:48.907185+00:00"),
+  triple(:case, :scannerAuthAt, "2025-10-05T20:35:48.907163+00:00"),
+  triple(:case, :scannerDutyAt, "2025-10-05T20:37:48.907163+00:00"),
+  triple(:case, :filesWritten, 6),
+  triple(:case, :auditEntries, 1),
+  triple(:householdProfile, :condition, "Diabetes"),
+  triple(:scan, :scannedProduct, :prod_BIS_001)
+])).
 
-product(:prod_BIS_001).
-product(:prod_BIS_101).
-product(:prod_CHOC_050).
-product(:prod_CHOC_150).
+product_catalog(:DelfourCatalog, [
+  product(:prod_BIS_001, "prod:BIS_001", "Classic Tea Biscuits", 120, 12.0),
+  product(:prod_BIS_101, "prod:BIS_101", "Low-Sugar Tea Biscuits", 30, 3.0),
+  product(:prod_CHOC_050, "prod:CHOC_050", "Milk Chocolate Bar", 150, 15.0),
+  product(:prod_CHOC_150, "prod:CHOC_150", "85% Dark Chocolate", 60, 6.0)
+]).
 
-product_id(:prod_BIS_001, "prod:BIS_001").
-product_name(:prod_BIS_001, "Classic Tea Biscuits").
-sugar_tenths(:prod_BIS_001, 120).
-sugar_per_serving(:prod_BIS_001, 12.0).
+insight_graph(:DelfourInsightGraph, graph([
+  triple(:insight, :metric, "sugar_g_per_serving"),
+  triple(:insight, :thresholdTenths, 100),
+  triple(:insight, :thresholdDisplay, "10.0"),
+  triple(:insight, :thresholdG, 10.0),
+  triple(:insight, :suggestionPolicy, "lower_metric_first_higher_price_ok"),
+  triple(:insight, :scopeDevice, "self-scanner"),
+  triple(:insight, :scopeEvent, "pick_up_scanner"),
+  triple(:insight, :retailer, "Delfour"),
+  triple(:insight, :createdAt, "2025-10-05T20:33:48.907163+00:00"),
+  triple(:insight, :expiresAt, "2025-10-05T22:33:48.907185+00:00"),
+  triple(:insight, :serializedLowercase, "createdat expiresat insight metric sugar_g_per_serving retailer delfour scopedevice self-scanner scopeevent pick_up_scanner")
+])).
 
-product_id(:prod_BIS_101, "prod:BIS_101").
-product_name(:prod_BIS_101, "Low-Sugar Tea Biscuits").
-sugar_tenths(:prod_BIS_101, 30).
-sugar_per_serving(:prod_BIS_101, 3.0).
+policy_graph(:DelfourPolicyGraph, graph([
+  triple(:policy, odrl:permission, permission(odrl:use, :insight, "shopping_assist")),
+  triple(:policy, odrl:prohibition, prohibition(odrl:distribute, :insight, "marketing")),
+  triple(:policy, odrl:duty, duty(odrl:delete, "2025-10-05T22:33:48.907185+00:00"))
+])).
 
-product_id(:prod_CHOC_050, "prod:CHOC_050").
-product_name(:prod_CHOC_050, "Milk Chocolate Bar").
-sugar_tenths(:prod_CHOC_050, 150).
-sugar_per_serving(:prod_CHOC_050, 15.0).
+envelope_graph(:DelfourEnvelopeGraph, graph([
+  triple(:envelope, :insight, :DelfourInsightGraph),
+  triple(:envelope, :policy, :DelfourPolicyGraph),
+  triple(:envelope, :hash, "34ad35638dfd7c67d031eeca8abb235ec24280740f863f3f31cd9d7b6517f098")
+])).
 
-product_id(:prod_CHOC_150, "prod:CHOC_150").
-product_name(:prod_CHOC_150, "85% Dark Chocolate").
-sugar_tenths(:prod_CHOC_150, 60).
-sugar_per_serving(:prod_CHOC_150, 6.0).
+signature_graph(:DelfourSignatureGraph, graph([
+  triple(:signature, :alg, "HMAC-SHA256"),
+  triple(:signature, :keyid, "demo-shared-secret"),
+  triple(:signature, :created, "2025-10-05T20:33:48.907163+00:00"),
+  triple(:signature, :payloadHashSha256, "34ad35638dfd7c67d031eeca8abb235ec24280740f863f3f31cd9d7b6517f098"),
+  triple(:signature, :hmac, "b21d0072d90112a9f820aced0286889f4b6ef92b145e6fdef1011f3bfa4608c2"),
+  triple(:signature, :hmacVerificationMode, :trustedPrecomputedInput)
+])).
 
-condition(:householdProfile, "Diabetes").
-scanned_product(:scan, :prod_BIS_001).
+reason_text(:reasonText, "Household requires low-sugar guidance (diabetes in POD). A neutral Insight is scoped to device 'self-scanner', event 'pick_up_scanner', retailer 'Delfour', and expires soon; the policy confines use to shopping assistance.").
+
+graph_triple(graph(Statements), S, P, O) :- member(triple(S, P, O), Statements).
+case_triple(S, P, O) :- case_graph(:DelfourCaseGraph, Graph), graph_triple(Graph, S, P, O).
+insight_triple(S, P, O) :- insight_graph(:DelfourInsightGraph, Graph), graph_triple(Graph, S, P, O).
+policy_triple(S, P, O) :- policy_graph(:DelfourPolicyGraph, Graph), graph_triple(Graph, S, P, O).
+envelope_triple(S, P, O) :- envelope_graph(:DelfourEnvelopeGraph, Graph), graph_triple(Graph, S, P, O).
+signature_triple(S, P, O) :- signature_graph(:DelfourSignatureGraph, Graph), graph_triple(Graph, S, P, O).
+
+case_name(:case, Name) :- case_triple(:case, :caseName, Name).
+request_purpose(:case, Purpose) :- case_triple(:case, :requestPurpose, Purpose).
+request_action(:case, Action) :- case_triple(:case, :requestAction, Action).
+phone_created_at(:case, Time) :- case_triple(:case, :phoneCreatedAt, Time).
+phone_expires_at(:case, Time) :- case_triple(:case, :phoneExpiresAt, Time).
+scanner_auth_at(:case, Time) :- case_triple(:case, :scannerAuthAt, Time).
+scanner_duty_at(:case, Time) :- case_triple(:case, :scannerDutyAt, Time).
+files_written(:case, Count) :- case_triple(:case, :filesWritten, Count).
+audit_entries(:case, Count) :- case_triple(:case, :auditEntries, Count).
+condition(:householdProfile, Condition) :- case_triple(:householdProfile, :condition, Condition).
+scanned_product(:scan, Product) :- case_triple(:scan, :scannedProduct, Product).
+
+product(Product) :- product_catalog(:DelfourCatalog, Products), member(product(Product, _Id, _Name, _SugarTenths, _SugarG), Products).
+product_id(Product, Id) :- product_catalog(:DelfourCatalog, Products), member(product(Product, Id, _Name, _SugarTenths, _SugarG), Products).
+product_name(Product, Name) :- product_catalog(:DelfourCatalog, Products), member(product(Product, _Id, Name, _SugarTenths, _SugarG), Products).
+sugar_tenths(Product, Sugar) :- product_catalog(:DelfourCatalog, Products), member(product(Product, _Id, _Name, Sugar, _SugarG), Products).
+sugar_per_serving(Product, Sugar) :- product_catalog(:DelfourCatalog, Products), member(product(Product, _Id, _Name, _SugarTenths, Sugar), Products).
 
 insight(:insight).
-metric(:insight, "sugar_g_per_serving").
-threshold_tenths(:insight, 100).
-threshold_display(:insight, "10.0").
-threshold_g(:insight, 10.0).
-suggestion_policy(:insight, "lower_metric_first_higher_price_ok").
-scope_device(:insight, "self-scanner").
-scope_event(:insight, "pick_up_scanner").
-retailer(:insight, "Delfour").
-created_at(:insight, "2025-10-05T20:33:48.907163+00:00").
-expires_at(:insight, "2025-10-05T22:33:48.907185+00:00").
-serialized_lowercase(:insight, "createdat expiresat insight metric sugar_g_per_serving retailer delfour scopedevice self-scanner scopeevent pick_up_scanner").
+metric(:insight, Metric) :- insight_triple(:insight, :metric, Metric).
+threshold_tenths(:insight, Threshold) :- insight_triple(:insight, :thresholdTenths, Threshold).
+threshold_display(:insight, Threshold) :- insight_triple(:insight, :thresholdDisplay, Threshold).
+threshold_g(:insight, Threshold) :- insight_triple(:insight, :thresholdG, Threshold).
+suggestion_policy(:insight, Policy) :- insight_triple(:insight, :suggestionPolicy, Policy).
+scope_device(:insight, Device) :- insight_triple(:insight, :scopeDevice, Device).
+scope_event(:insight, Event) :- insight_triple(:insight, :scopeEvent, Event).
+retailer(:insight, Retailer) :- insight_triple(:insight, :retailer, Retailer).
+created_at(:insight, Time) :- insight_triple(:insight, :createdAt, Time).
+expires_at(:insight, Time) :- insight_triple(:insight, :expiresAt, Time).
+serialized_lowercase(:insight, Text) :- insight_triple(:insight, :serializedLowercase, Text).
 
 policy(:policy).
-permission(:policy, odrl:use, :insight, "shopping_assist").
-prohibition(:policy, odrl:distribute, :insight, "marketing").
-duty(:policy, odrl:delete, "2025-10-05T22:33:48.907185+00:00").
+permission(:policy, Action, Target, Purpose) :- policy_triple(:policy, odrl:permission, permission(Action, Target, Purpose)).
+prohibition(:policy, Action, Target, Purpose) :- policy_triple(:policy, odrl:prohibition, prohibition(Action, Target, Purpose)).
+duty(:policy, Action, Time) :- policy_triple(:policy, odrl:duty, duty(Action, Time)).
 
-envelope_insight(:envelope, :insight).
-envelope_policy(:envelope, :policy).
-envelope_hash(:envelope, "34ad35638dfd7c67d031eeca8abb235ec24280740f863f3f31cd9d7b6517f098").
-signature_alg(:signature, "HMAC-SHA256").
-signature_keyid(:signature, "demo-shared-secret").
-signature_created(:signature, "2025-10-05T20:33:48.907163+00:00").
-payload_hash_sha256(:signature, "34ad35638dfd7c67d031eeca8abb235ec24280740f863f3f31cd9d7b6517f098").
-signature_hmac(:signature, "b21d0072d90112a9f820aced0286889f4b6ef92b145e6fdef1011f3bfa4608c2").
-hmac_verification_mode(:signature, :trustedPrecomputedInput).
-reason_text(:reasonText, "Household requires low-sugar guidance (diabetes in POD). A neutral Insight is scoped to device 'self-scanner', event 'pick_up_scanner', retailer 'Delfour', and expires soon; the policy confines use to shopping assistance.").
+envelope_insight(:envelope, Insight) :- envelope_triple(:envelope, :insight, Insight).
+envelope_policy(:envelope, Policy) :- envelope_triple(:envelope, :policy, Policy).
+envelope_hash(:envelope, Hash) :- envelope_triple(:envelope, :hash, Hash).
+signature_alg(:signature, Alg) :- signature_triple(:signature, :alg, Alg).
+signature_keyid(:signature, KeyId) :- signature_triple(:signature, :keyid, KeyId).
+signature_created(:signature, Time) :- signature_triple(:signature, :created, Time).
+payload_hash_sha256(:signature, Hash) :- signature_triple(:signature, :payloadHashSha256, Hash).
+signature_hmac(:signature, Hmac) :- signature_triple(:signature, :hmac, Hmac).
+hmac_verification_mode(:signature, Mode) :- signature_triple(:signature, :hmacVerificationMode, Mode).
 
 needs_low_sugar(:case) :-
   condition(:householdProfile, "Diabetes").

@@ -519,15 +519,15 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/gps.pl` adapts the GPS route-planning example and uses `list:append/3` for action sequences.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 - `examples/ackermann.pl` adapts Eyeling's Ackermann-style hyperoperation benchmark and uses `pow/3` with arbitrary-size integers, including the large `ackermann(4, 2)` value.
-- `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration using `list:notMember/2`.
-- `examples/family-cousins.pl` adapts the generation/branch cousin derivation.
-- `examples/allen-interval-calculus.pl` adapts Allen's interval relations over integer endpoints.
+- `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted `graph([...])` term, and path search uses `list:notMember/2` for visited-node checks.
+- `examples/family-cousins.pl` adapts the generation/branch cousin derivation. The family tree is a scoped graph term, so parent links and seed branch labels are read from quoted data.
+- `examples/allen-interval-calculus.pl` adapts Allen's interval relations over integer endpoints. The interval table is represented as a list of `interval(Id, Start, End)` records.
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
 - `examples/aliases-and-namespaces.pl` demonstrates that short built-in names and namespaced aliases call the same implementation.
-- `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation.
-- `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score.
+- `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation. Its case, insight, policy, envelope, and signature inputs are graph terms; the product catalog is a list of records.
+- `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score. It combines a quoted segment graph with list-valued candidate paths.
 - `examples/drone-corridor-planner.pl` adapts the bounded corridor-planning example, using a fuel list to keep recursive planning finite while aggregating cost, duration, belief, and comfort.
 - `examples/dining-philosophers.pl` adapts the Chandy-Misra dining-philosophers trace, deriving requests, dirty-fork sends, and meals across nine rounds.
 - `examples/fundamental-theorem-arithmetic.pl` adapts the ARC-style Fundamental Theorem of Arithmetic scenario. It derives the factor list for `202692987`, reconstructs the product, and checks the distinct prime factors by trial division.
@@ -540,8 +540,10 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/derived-rule-graph.pl` adapts the derived-rule example by representing a rule as a `rule(PremiseGraph, ConclusionGraph)` term and applying a small graph-pattern interpreter.
 - `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as graph-valued terms and derives only the risks supported by the scoped graph.
 
-For policy-like inputs, annotations, signatures, and quoted rules, prefer graph-valued data when triples should stay scoped.
-For example, `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([triple(S, P, O), ...]))` and derives local helper predicates from graph membership. That lets rules inspect a policy without asserting every permission, prohibition, or constraint as a global fact, which is useful when different policy graphs may contain incompatible clauses.
+For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer graph-valued data when triples should stay scoped.
+For example, `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([triple(S, P, O), ...]))` and derives local helper predicates from graph membership. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. That lets rules inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different graphs may contain incompatible clauses.
+
+Use lists when order or a closed collection matters: candidate routes, action sequences, interval tables, product catalogs, evidence vectors, and bounded fuel tokens are clearer as list terms than as many unrelated facts. Use graph terms when the data is RDF-shaped or intentionally scoped. It is fine to combine both: `dijkstra-risk-path.pl` keeps network segments in a quoted graph and candidate routes as lists.
 
 Graph terms are ordinary Eyelog terms. Use one representation for RDF-shaped content inside a graph:
 

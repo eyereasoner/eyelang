@@ -2,7 +2,7 @@
 
 `eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
 
-Current version: `0.3.10`
+Current version: `0.3.11`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 
@@ -33,6 +33,8 @@ make test
 ```
 
 Examples are self-contained `.pl` programs. Golden outputs live in `examples/output/`.
-Graph-term examples include `annotation-graph.pl`, `context-association.pl`,
-`derived-rule-graph.pl`, and `odrl-dpv-healthcare-risk-ranked.pl`.
+Graph-term examples include `delfour.pl`, `dijkstra.pl`, `family-cousins.pl`,
+`annotation-graph.pl`, `context-association.pl`, `derived-rule-graph.pl`,
+and the ODRL/DPV risk examples. List-heavy examples include `gps.pl`,
+`allen-interval-calculus.pl`, and `drone-corridor-planner.pl`.
 Inside `graph([...])`, RDF-shaped content uses `triple(S, P, O)` consistently; `triple/3` remains the output convention.
