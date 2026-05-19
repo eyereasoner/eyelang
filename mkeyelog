@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -lt 1 ] || [ -z "${1:-}" ]; then
+  echo "usage: $0 \"release message\"" >&2
+  exit 2
+fi
+
+message="$1"
+
+if [ ! -f VERSION ]; then
+  echo "VERSION file not found; run this from the eyelog repository root." >&2
+  exit 1
+fi
+
+version="$(tr -d '[:space:]' < VERSION)"
+if [ -z "$version" ]; then
+  echo "VERSION is empty." >&2
+  exit 1
+fi
+
+tag="v$version"
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" = "HEAD" ]; then
+  echo "Not on a branch; checkout main or another branch first." >&2
+  exit 1
+fi
+
+if git rev-parse "$tag" >/dev/null 2>&1; then
+  echo "Tag $tag already exists." >&2
+  exit 1
+fi
+
+if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+  echo "Tag $tag already exists on origin." >&2
+  exit 1
+fi
+
+git add -A
+git commit -m "$message"
+git tag -a "$tag" -m "$message"
+git push origin "$branch" "$tag"
+
+echo "Committed and pushed $tag."

@@ -2,7 +2,7 @@
 
 `eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
 
-Current version: `0.3.11`
+Current version: `0.3.12`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 
@@ -25,6 +25,18 @@ Swap in any file under `examples/` to run another self-contained program.
 Built-ins have short native names such as `sum/3`, `less_than/2`, and `rest/2`.
 Namespaced forms such as `math:sum/3` and `list:rest/2` are aliases for
 Eyeling/N3-style vocabularies, not a separate kind of built-in.
+
+## Release
+
+After updating `VERSION`, commit, tag, and push with:
+
+```sh
+./mkeyelog "release message"
+```
+
+The script commits all changes with the supplied message, creates an annotated
+`v$(cat VERSION)` tag, and pushes the current branch plus the tag. The release
+workflow then runs from the pushed tag.
 
 ## Test
 
