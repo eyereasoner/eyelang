@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #ifndef EYELOG_VERSION
@@ -1458,6 +1459,180 @@ static bool builtin_unary_math(const char *name, Term *goal, Env *env,
   return true;
 }
 
+
+static bool is_leap_year(int year) {
+  return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+static int days_in_month(int year, int month) {
+  static const int days[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+  if (month == 2 && is_leap_year(year)) return 29;
+  if (month < 1 || month > 12) return 0;
+  return days[month];
+}
+
+static bool parse_iso_date(const char *text, int *year, int *month, int *day) {
+  if (!text || strlen(text) < 10) return false;
+  for (int i = 0; i < 10; i++) {
+    if ((i == 4 || i == 7) ? text[i] != '-' : !isdigit((unsigned char)text[i])) return false;
+  }
+
+  char ybuf[5] = { text[0], text[1], text[2], text[3], '\0' };
+  char mbuf[3] = { text[5], text[6], '\0' };
+  char dbuf[3] = { text[8], text[9], '\0' };
+  int y = atoi(ybuf);
+  int m = atoi(mbuf);
+  int d = atoi(dbuf);
+  if (m < 1 || m > 12) return false;
+  if (d < 1 || d > days_in_month(y, m)) return false;
+  *year = y;
+  *month = m;
+  *day = d;
+  return true;
+}
+
+static int compare_iso_date_parts(int y1, int m1, int d1, int y2, int m2, int d2) {
+  if (y1 != y2) return y1 < y2 ? -1 : 1;
+  if (m1 != m2) return m1 < m2 ? -1 : 1;
+  if (d1 != d2) return d1 < d2 ? -1 : 1;
+  return 0;
+}
+
+static char *format_iso_duration(int years, int months, int days) {
+  char buffer[128];
+  if (years == 0 && months == 0 && days == 0) {
+    snprintf(buffer, sizeof(buffer), "P0D");
+  } else if (months == 0 && days == 0) {
+    snprintf(buffer, sizeof(buffer), "P%dY", years);
+  } else if (years == 0 && days == 0) {
+    snprintf(buffer, sizeof(buffer), "P%dM", months);
+  } else if (years == 0 && months == 0) {
+    snprintf(buffer, sizeof(buffer), "P%dD", days);
+  } else if (years == 0) {
+    snprintf(buffer, sizeof(buffer), "P%dM%dD", months, days);
+  } else if (months == 0) {
+    snprintf(buffer, sizeof(buffer), "P%dY%dD", years, days);
+  } else if (days == 0) {
+    snprintf(buffer, sizeof(buffer), "P%dY%dM", years, months);
+  } else {
+    snprintf(buffer, sizeof(buffer), "P%dY%dM%dD", years, months, days);
+  }
+  return xstrdup(buffer);
+}
+
+static bool parse_iso_duration(const char *text, int *years, int *months, int *days) {
+  if (!text || text[0] != 'P') return false;
+  const char *p = text + 1;
+  int y = 0, m = 0, d = 0;
+  bool saw = false;
+  while (*p) {
+    if (!isdigit((unsigned char)*p)) return false;
+    long value = 0;
+    while (isdigit((unsigned char)*p)) {
+      value = value * 10 + (*p - '0');
+      if (value > 1000000000L) return false;
+      p++;
+    }
+    if (*p == 'Y') y = (int)value;
+    else if (*p == 'M') m = (int)value;
+    else if (*p == 'D') d = (int)value;
+    else return false;
+    saw = true;
+    p++;
+  }
+  if (!saw) return false;
+  *years = y;
+  *months = m;
+  *days = d;
+  return true;
+}
+
+static bool compare_iso_duration_text(const char *left, const char *right, int *cmp) {
+  int ly = 0, lm = 0, ld = 0;
+  int ry = 0, rm = 0, rd = 0;
+  if (!parse_iso_duration(left, &ly, &lm, &ld) || !parse_iso_duration(right, &ry, &rm, &rd)) return false;
+  if (ly != ry) *cmp = ly < ry ? -1 : 1;
+  else if (lm != rm) *cmp = lm < rm ? -1 : 1;
+  else if (ld != rd) *cmp = ld < rd ? -1 : 1;
+  else *cmp = 0;
+  return true;
+}
+
+static bool builtin_local_time(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  time_t now = time(NULL);
+  if (now == (time_t)-1) return true;
+  struct tm *tm = localtime(&now);
+  if (!tm) return true;
+
+  char buffer[32];
+  snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+  Term *result = string_term(buffer);
+  Env next = clone_env(env);
+  if (unify(goal->args[0], result, &next)) call_once(&next, callback, user_data);
+  return true;
+}
+
+static bool builtin_difference(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  char *end_text = term_lexical_value(goal->args[0], env);
+  char *start_text = term_lexical_value(goal->args[1], env);
+  if (!end_text || !start_text) {
+    free(end_text);
+    free(start_text);
+    return true;
+  }
+
+  int ey = 0, em = 0, ed = 0;
+  int sy = 0, sm = 0, sd = 0;
+  if (!parse_iso_date(end_text, &ey, &em, &ed) ||
+      !parse_iso_date(start_text, &sy, &sm, &sd) ||
+      compare_iso_date_parts(ey, em, ed, sy, sm, sd) < 0) {
+    free(end_text);
+    free(start_text);
+    return true;
+  }
+
+  int ay = ey;
+  int am = em;
+  int ad = ed;
+  if (ad < sd) {
+    int borrow_month = am - 1;
+    int borrow_year = ay;
+    if (borrow_month == 0) {
+      borrow_month = 12;
+      borrow_year--;
+    }
+    ad += days_in_month(borrow_year, borrow_month);
+    am--;
+    if (am == 0) {
+      am = 12;
+      ay--;
+    }
+  }
+  if (am < sm) {
+    am += 12;
+    ay--;
+  }
+
+  int years = ay - sy;
+  int months = am - sm;
+  int days = ad - sd;
+  if (years < 0 || months < 0 || days < 0) {
+    free(end_text);
+    free(start_text);
+    return true;
+  }
+
+  char *duration = format_iso_duration(years, months, days);
+  Term *result = string_term(duration);
+  Env next = clone_env(env);
+  if (unify(goal->args[2], result, &next)) call_once(&next, callback, user_data);
+
+  free(duration);
+  free(end_text);
+  free(start_text);
+  return true;
+}
+
 static bool builtin_compare(const char *name, Term *goal, Env *env,
                             SolutionCallback callback, void *user_data) {
   char *left_text = term_lexical_value(goal->args[0], env);
@@ -1473,6 +1648,8 @@ static bool builtin_compare(const char *name, Term *goal, Env *env,
 
   if (is_decimal_integer(left_text) && is_decimal_integer(right_text)) {
     cmp = compare_signed_decimal(left_text, right_text);
+    comparable = true;
+  } else if (compare_iso_duration_text(left_text, right_text, &cmp)) {
     comparable = true;
   } else {
     double left = 0.0;
@@ -1948,6 +2125,14 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   if ((strcmp(name, "lt") == 0 || strcmp(name, "gt") == 0 ||
        strcmp(name, "le") == 0 || strcmp(name, "ge") == 0) && arity == 2) {
     return builtin_compare(name, goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "local_time") == 0 && arity == 1) {
+    return builtin_local_time(goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "difference") == 0 && arity == 3) {
+    return builtin_difference(goal, env, callback, user_data);
   }
 
   if (strcmp(name, "between") == 0 && arity == 3) {

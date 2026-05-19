@@ -521,9 +521,23 @@ bound, it unifies `S` with the first divisor of `N` at or above `D`, or with
 | `ge(A, B)` | `A >= B` |
 
 Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or
-scientific operands use double-precision floating-point ordering. If both
-operands are nonnumeric scalar terms, comparison falls back to lexical string
-ordering, which is useful for canonical ISO-8601 timestamps.
+scientific operands use double-precision floating-point ordering. ISO-8601
+duration strings such as `"P80Y"` and `"P81Y8M28D"` are compared by their
+`Y`, `M`, and `D` components. If both operands are otherwise nonnumeric scalar
+terms, comparison falls back to lexical string ordering, which is useful for
+canonical ISO-8601 timestamps.
+
+### Dates and durations
+
+| Built-in | Meaning |
+| --- | --- |
+| `local_time(D)` | current local date as an ISO `YYYY-MM-DD` string |
+| `difference(End, Start, Duration)` | calendar difference between two ISO dates as an ISO duration string |
+
+`difference/3` accepts ISO date strings whose first ten characters are
+`YYYY-MM-DD` and emits positive calendar durations such as `"P81Y8M28D"`.
+This is enough for translated Eyeling examples that ask whether an age exceeds
+a duration such as `"P80Y"`.
 
 ### Generators
 
@@ -623,6 +637,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/bayes-therapy.pl` adapts the Bayesian therapy decision-support example. It uses list-valued disease, evidence, posterior, and therapy vectors to combine Naive Bayes diagnosis with expected-utility therapy selection.
 - `examples/bmi.pl` adapts Eyeling's ARC-style BMI example, normalizing metric or US inputs, computing BMI, assigning a WHO adult category, deriving a healthy-weight band, and emitting checks plus a report.
+- `examples/age.pl` adapts Eyeling's age checker, using `local_time/1`, `difference/3`, and ISO duration comparison to test whether a person is older than a threshold.
 - `examples/floating-point.pl` demonstrates decimal arithmetic and floating-point comparisons using native built-ins.
 - `examples/complex.pl` adapts Eyeling's complex-number example. Complex values are two-item lists `[Real, Imaginary]`; the example derives complex exponentiation, polar form, `complex_asin/2`, and `complex_acos/2` using the native floating-point built-ins.
 - `examples/skolem-functions.pl` demonstrates generated resources using `skolem_` functional terms in rule heads, such as `skolem_observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.
