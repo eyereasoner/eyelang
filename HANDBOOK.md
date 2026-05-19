@@ -485,6 +485,7 @@ Inequality is most predictable when both arguments are already bound.
 | `cos(A, X)` | cosine, in radians |
 | `asin(A, X)` | inverse sine, in radians |
 | `acos(A, X)` | inverse cosine, in radians |
+| `rounded(A, X)` | nearest integer, returned as an integer term |
 | `log(A, X)` | natural logarithm |
 
 When all operands are integers, `add/3`, `sub/3`, `mul/3`, `div/3`,
@@ -500,7 +501,7 @@ printed as a numeric term, with `.0` added when the floating result is
 mathematically integral. This is useful for Eyeling-style probability and
 measurement examples, but it is not exact decimal arithmetic.
 
-`mod/3` remains integer-only. The unary transcendental functions are
+`mod/3` remains integer-only. `rounded/2` also uses double-precision input and returns the nearest integer term. The unary transcendental functions are
 double-precision operations and expect bound numeric input. They are intended
 for translated mathematical examples such as `complex.pl`, not exact symbolic
 mathematics.
@@ -621,6 +622,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/bayes-therapy.pl` adapts the Bayesian therapy decision-support example. It uses list-valued disease, evidence, posterior, and therapy vectors to combine Naive Bayes diagnosis with expected-utility therapy selection.
+- `examples/bmi.pl` adapts Eyeling's ARC-style BMI example, normalizing metric or US inputs, computing BMI, assigning a WHO adult category, deriving a healthy-weight band, and emitting checks plus a report.
 - `examples/floating-point.pl` demonstrates decimal arithmetic and floating-point comparisons using native built-ins.
 - `examples/complex.pl` adapts Eyeling's complex-number example. Complex values are two-item lists `[Real, Imaginary]`; the example derives complex exponentiation, polar form, `complex_asin/2`, and `complex_acos/2` using the native floating-point built-ins.
 - `examples/skolem-functions.pl` demonstrates generated resources using `skolem_` functional terms in rule heads, such as `skolem_observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.

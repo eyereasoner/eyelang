@@ -1419,6 +1419,7 @@ static bool builtin_unary_math(const char *name, Term *goal, Env *env,
     else if (strcmp(name, "cos") == 0) value = cos(input);
     else if (strcmp(name, "asin") == 0) value = asin(input);
     else if (strcmp(name, "acos") == 0) value = acos(input);
+    else if (strcmp(name, "rounded") == 0) value = round(input);
     else if (strcmp(name, "log") == 0) {
       if (input <= 0.0) {
         free(input_text);
@@ -1435,13 +1436,19 @@ static bool builtin_unary_math(const char *name, Term *goal, Env *env,
       return true;
     }
 
-    char *value_text = number_text_from_double(value);
-    if (!value_text) {
-      free(input_text);
-      return true;
+    if (strcmp(name, "rounded") == 0) {
+      char buffer[128];
+      snprintf(buffer, sizeof(buffer), "%.0f", value);
+      result = number_term_from_text(buffer);
+    } else {
+      char *value_text = number_text_from_double(value);
+      if (!value_text) {
+        free(input_text);
+        return true;
+      }
+      result = number_term_from_text(value_text);
+      free(value_text);
     }
-    result = number_term_from_text(value_text);
-    free(value_text);
   }
 
   Env next = clone_env(env);
@@ -1927,7 +1934,7 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   if ((strcmp(name, "neg") == 0 || strcmp(name, "abs") == 0 ||
        strcmp(name, "sin") == 0 || strcmp(name, "cos") == 0 ||
        strcmp(name, "asin") == 0 || strcmp(name, "acos") == 0 ||
-       strcmp(name, "log") == 0) && arity == 2) {
+       strcmp(name, "rounded") == 0 || strcmp(name, "log") == 0) && arity == 2) {
     return builtin_unary_math(name, goal, env, callback, user_data);
   }
 
