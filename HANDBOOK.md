@@ -747,6 +747,11 @@ Then run:
 make test
 ```
 
+`make test` cleans and rebuilds `bin/eyelog` before executing the suite. The
+binary is a generated local artifact and should not be committed. This avoids
+portable-release problems such as checking in an executable that was linked
+against a newer glibc than another user's system provides.
+
 The test runner creates a private temporary directory with `mktemp` and removes
 it on exit. It does not use fixed names such as `/tmp/eyelog-actual`, so several
 `make test` runs can execute at the same time without clobbering each other's

@@ -4,7 +4,7 @@
 
 Eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping.
 
-Current version: `0.3.28`
+Current version: `0.3.29`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 
@@ -36,11 +36,14 @@ After updating `VERSION`, commit, tag, and push with:
 ./mkeyelog "release message"
 ```
 
-The script must be run from `main`. It first runs `make test`. If any test fails,
-it stops before committing, tagging, or pushing. When tests pass, it commits all
-changes with the supplied message, creates an annotated `v$(cat VERSION)` tag,
-and pushes `main` plus the tag. The `main` push triggers the GitHub Pages
-workflow, and the tag push triggers the release workflow.
+The script must be run from `main`. It first runs `make test`, which rebuilds
+`bin/eyelog` locally before running the suite. If any test fails, it stops before
+committing, tagging, or pushing. When tests pass, it commits all source and
+documentation changes with the supplied message, creates an annotated
+`v$(cat VERSION)` tag, and pushes `main` plus the tag. Generated binaries under
+`bin/` are ignored and are not committed, so releases do not depend on the libc
+version of the machine that prepared them. The `main` push triggers the GitHub
+Pages workflow, and the tag push triggers the release workflow.
 
 ## GitHub Pages
 
@@ -53,6 +56,9 @@ for normal releases so tests, Pages, and the GitHub Release stay in sync.
 ```sh
 make test
 ```
+
+`make test` removes any existing `bin/eyelog` and rebuilds it from `src/eyelog.c`,
+so stale binaries from another machine are not reused.
 
 Examples are self-contained `.pl` programs. Golden outputs live in `examples/output/`.
 The test runner uses a private `mktemp` directory, so parallel test runs do not

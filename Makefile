@@ -8,8 +8,9 @@ all: $(BIN)
 $(BIN): src/eyelog.c VERSION
 	mkdir -p bin
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $(BIN) src/eyelog.c $(LDLIBS)
-check test: all
+rebuild: clean all
+check test: rebuild
 	./test/run.sh
 clean:
 	rm -f $(BIN)
-.PHONY: all check test clean
+.PHONY: all check test rebuild clean

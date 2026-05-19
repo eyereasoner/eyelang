@@ -46,6 +46,10 @@ fi
 echo "Running make test before release..."
 make test
 
+# bin/eyelog is generated locally. If an older clone still tracks it,
+# remove it from the index before adding the rest of the release files.
+git rm -f --cached --ignore-unmatch bin/eyelog >/dev/null 2>&1 || true
+
 git add -A
 git commit -m "$message"
 git tag -a "$tag" -m "$message"
