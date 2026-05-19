@@ -79,6 +79,8 @@ run 'odrl dpv classifies export as moderate' bash -c './bin/eyelog examples/odrl
 run 'annotation names Alice triple directly' bash -c './bin/eyelog examples/annotation.pl | grep -q "triple(:t, log:nameOf, graph(\[triple(:a, :name, \"Alice\")\]))."'
 run 'context association keeps source graph names' bash -c './bin/eyelog examples/context-association.pl | grep -q "triple(skolem:g0, log:nameOf, graph(\[triple(:Bob, foaf:name, \"Bob\")\]))."'
 run 'derived rule fires' bash -c './bin/eyelog examples/derived-rule.pl | grep -q "triple(:test, :is, true)."'
+run 'skolem function produces deterministic observation id' bash -c './bin/eyelog --query "observation_id(:Alice, :glucose, X)" examples/skolem-functions.pl | grep -q "observation_id(:Alice, :glucose, skolem:observation(:Alice, :glucose))."'
+run 'skolem function avoids clashes' bash -c './bin/eyelog examples/skolem-functions.pl | grep -q "triple(:skolemDemo, :noObservationClash, true)."'
 run 'healthcare policy graph ranks consent risk first' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(:report, :firstRisk, :riskH1)."'
 run 'healthcare policy graph suppresses satisfied human review risk' bash -c '! ./bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "riskH3"'
 run 'healthcare mitigation is graph-valued' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(:MitigateDeId, :suggestAddGraph, graph(\[triple(:PermShareWithPharma"'

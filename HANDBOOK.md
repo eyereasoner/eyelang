@@ -93,6 +93,7 @@ parent             % atom
 0.25               % decimal literal
 7.5e-7             % scientific decimal literal
 pair(3, 7)         % compound term
+skolem:id(:x)      % namespaced compound term
 []                 % empty list
 [a, b, c]          % proper list
 [Head|Tail]        % head/tail list pattern
@@ -167,12 +168,15 @@ Examples of ground terms are:
 pair(:left, :right)
 [a, b, c]
 var(:x)
+skolem:observation(:Alice, :glucose)
 graph([triple(var(:x), rdf:type, :Dog)])
 ```
 
 A ground term contains no eyelog variables. Compound terms and lists can be nested, so the Herbrand universe may be infinite if the program has a compound term symbol.
 
 Notice the distinction between `X` and `var(:x)`. `X` is an eyelog variable: it can be bound by unification while a rule is being proved. `var(:x)` is an ordinary compound term with functor `var/1`; it is ground because `:x` is an atom. Eyelog uses this convention when a quoted graph needs to mention an object-language variable as data.
+
+A functor may also use a vocabulary-style name such as `skolem:observation/2`. This is still an ordinary Herbrand function symbol. A term such as `skolem:observation(:Alice, :glucose)` denotes one generated resource. The same arguments denote the same resource; different arguments denote different Herbrand terms, so using the relevant inputs as arguments prevents accidental clashes.
 
 If a program has no constants, the usual convention is to add one fresh constant so the universe is non-empty.
 
@@ -312,7 +316,35 @@ Use this convention:
 - use `var(:y)` only when a quoted graph itself needs to contain a variable placeholder,
 - use helper predicates to project or interpret quoted graph terms when needed.
 
-### 5.7 Interpolation lemma
+### 5.7 Skolem terms in rule heads
+
+Use the `skolem:` vocabulary prefix when a rule needs to introduce a generated resource. In Eyelog this is not a special runtime feature. It is a naming convention for ordinary compound terms used as Skolem functions.
+
+For example:
+
+```prolog
+triple(skolem:observation(Patient, Test), rdf:type, :Observation) :-
+  test_result(Patient, Test, _Value).
+
+triple(skolem:observation(Patient, Test), :patient, Patient) :-
+  test_result(Patient, Test, _Value).
+```
+
+The head contains a functional term. For each ground proof of `test_result(Patient, Test, Value)`, the variables are substituted into the term. Thus `skolem:observation(:Alice, :glucose)` and `skolem:observation(:Bob, :glucose)` are distinct terms, while two derivations with the same `Patient` and `Test` produce the same term. This gives deterministic existential-style resources without relying on a global counter or blank-node allocation.
+
+Good Skolem functions include enough arguments to identify what makes the generated resource unique:
+
+```prolog
+skolem:observation(Patient, Test)
+skolem:alert(Patient, Condition)
+skolem:membership(Person, Group)
+```
+
+Avoid a constant such as `skolem:observation` when several observations may exist, because all rule instances would collapse onto the same resource.
+
+In Herbrand semantics, these Skolem terms are just terms in the universe. A rule head containing `skolem:observation(Patient, Test)` contributes ground atoms to the least Herbrand model for the corresponding ground substitutions. No extra semantics is needed.
+
+### 5.8 Interpolation lemma
 
 The following lemma is often useful when reasoning about a derived answer.
 
@@ -348,7 +380,7 @@ where every `Bi ∈ Ik`. By the induction hypothesis, each `Bi` has a finite pro
 
 Therefore every atom in the least Herbrand model is supported by a finite derivation, and every ground query answer can be interpolated by the finite rule instances that justify it.
 
-### 5.8 Scope of the lemma in eyelog
+### 5.9 Scope of the lemma in eyelog
 
 The lemma applies directly to pure facts and Horn rules.
 
@@ -565,6 +597,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
+- `examples/skolem-functions.pl` demonstrates generated resources using `skolem:` functional terms in rule heads, such as `skolem:observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.
 - `examples/aliases-and-namespaces.pl` demonstrates that short built-in names and namespaced aliases call the same implementation.
 - `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation. Its case, insight, policy, envelope, and signature inputs are graph terms; the product catalog is a list of records.
 - `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score. It combines a quoted segment graph with list-valued candidate paths.
