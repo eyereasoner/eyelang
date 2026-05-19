@@ -1998,6 +1998,11 @@ static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
 
 /* ------------------------------------------------------------------------- */
 /* Default triple/3 materialization output                                   */
+/*                                                                           */
+/* Eyelog materializes distinct triple/3 consequences by Prolog-like Horn-   */
+/* clause search, with duplicate suppression here and an active-call variant */
+/* guard in the solver to prevent common cyclic closures from looping.       */
+/* This is not a full bottom-up saturation engine.                           */
 /* ------------------------------------------------------------------------- */
 
 typedef struct {

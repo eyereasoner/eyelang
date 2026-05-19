@@ -2,7 +2,9 @@
 
 `eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
 
-Current version: `0.3.26`
+Eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping.
+
+Current version: `0.3.27`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 

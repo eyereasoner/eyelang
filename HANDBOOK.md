@@ -54,13 +54,13 @@ Then run an example:
 bin/eyelog examples/ancestor.pl
 ```
 
-When you run a file without `--query`, eyelog materializes all distinct solutions of:
+When you run a file without `--query`, eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping. Operationally, the default query is:
 
 ```prolog
 triple(S, P, O)
 ```
 
-and prints them as Prolog facts:
+and the distinct ground answers are printed as Prolog facts:
 
 ```prolog
 triple(:pat, :ancestor, :emma).
@@ -285,13 +285,13 @@ for every ground atom `A`.
 
 ### 5.5 How this relates to eyelog output
 
-Default execution asks for all solutions of:
+Default execution materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping. Operationally, it asks for all solutions of:
 
 ```prolog
 triple(S, P, O)
 ```
 
-In the pure core, the printed facts are the ground `triple/3` atoms that belong to the least Herbrand model of the loaded program.
+In the pure core, the printed facts are the ground `triple/3` atoms that belong to the least Herbrand model of the loaded program. The implementation is intentionally top-down and Prolog-like; it should not be described as a full bottom-up saturation engine.
 
 For example:
 
@@ -443,7 +443,12 @@ ancestor(:pat, :emma).
 
 Query variables are instantiated by unification. In the pure core, each printed query instance is a consequence of the program's least Herbrand model. Operationally, eyelog finds those instances by depth-first rule search with unification and backtracking.
 
-To avoid a common non-termination case, eyelog keeps an active-call stack and does not re-enter a user-defined goal that is a variant of an already active goal. A variant is the same goal up to variable renaming after current bindings are taken into account. This is not full tabling, but it prevents simple cyclic transitive closures from revisiting the same subgoal forever. For example, the recursive `path/2` program in `examples/cyclic-path.pl` terminates on a directed cycle and emits the finite reachability relation. If you need to enumerate paths rather than reachability pairs, use an explicit visited list as in the Dijkstra examples.
+Default output adds two practical execution rules to that search:
+
+- duplicate suppression: the same printed `triple/3` consequence is emitted once, even if several proof paths derive it;
+- guarded recursion: eyelog keeps an active-call stack and does not re-enter a user-defined goal that is a variant of an already active goal.
+
+A variant is the same goal up to variable renaming after current bindings are taken into account. This is not full tabling, but it prevents simple cyclic transitive closures from revisiting the same subgoal forever. For example, the recursive `path/2` program in `examples/cyclic-path.pl` terminates on a directed cycle and emits the finite reachability relation. If you need to enumerate paths rather than reachability pairs, use an explicit visited list as in the Dijkstra examples.
 
 ## 7. Built-ins
 
@@ -767,7 +772,9 @@ For bounded challenge examples, it is fine to include domain facts such as airpo
 
 ## 11. Current limits
 
-The implementation is intentionally direct:
+The implementation is intentionally direct. Eyelog materializes distinct `triple/3` consequences by guarded Horn-clause search; it is not a complete bottom-up saturation engine.
+
+Current limits:
 
 - no cut,
 - no DCGs,
