@@ -1,46 +1,47 @@
-% Named graph context association adapted from Eyeling context-association.n3.
-% Data, signature, and metadata contexts are graph-valued terms.
+% Context association adapted from Eyeling context-association.n3.
+%
+% This version keeps the original shape: each context is named with log:nameOf
+% and its contents remain quoted graph data.  Nothing inside the three graphs
+% is asserted globally unless a rule explicitly projects it.
 
-named_graph(:DataGraph, graph([
+triple(skolem:g0, log:nameOf, graph([
   triple(:Bob, foaf:name, "Bob")
 ])).
 
-named_graph(:SignatureGraph, graph([
-  triple(:DataGraph, sec:proof, :DataSignature),
-  triple(:Proof1, rdf:type, sec:DataIntegrityProof),
-  triple(:Proof1, sec:cryptosuite, "ecdsa-rdfc-2019"),
-  triple(:Proof1, sec:issuer, :University),
-  triple(:Proof1, sec:validUntil, "2025-04-03T00:00:00.000Z")
+triple(skolem:g1, log:nameOf, graph([
+  triple(skolem:g0, sec:proof, :dataSignature),
+  triple(:signature1, rdf:type, sec:DataIntegrityProof),
+  triple(:signature1, sec:cryptosuite, "ecdsa-rdfc-2019"),
+  triple(:signature1, sec:created, "2021-11-13T18:19:39Z"),
+  triple(:signature1, sec:verificationMethod, "https://university.example/issuers/14#key-1"),
+  triple(:signature1, sec:proofPurpose, "assertionMethod"),
+  triple(:signature1, sec:proofValue, "z58DAdFfa9SkqZMVPxAQp...jQCrfFPP2oumHKtz"),
+  triple(:signature1, sec:issuer, :University),
+  triple(:signature1, sec:validFrom, "2024-04-03T00:00:00.000Z"),
+  triple(:signature1, sec:validUntil, "2025-04-03T00:00:00.000Z")
 ])).
 
-named_graph(:MetadataGraph, graph([
-  triple(:SignatureGraph, sec:proof, :MetadataSignature),
-  triple(:MetadataProof, rdf:type, sec:DataIntegrityProof),
-  triple(:MetadataProof, sec:proofPurpose, "assertionMethod")
+triple(:g3, log:nameOf, graph([
+  triple(skolem:g1, sec:proof, :signature2),
+  triple(:signature2, rdf:type, sec:DataIntegrityProof),
+  triple(:signature2, sec:cryptosuite, "ecdsa-rdfc-2019"),
+  triple(:signature2, sec:created, "2021-11-13T18:19:39Z"),
+  triple(:signature2, sec:verificationMethod, "https://university.example/issuers/14#key-1"),
+  triple(:signature2, sec:proofPurpose, "assertionMethod"),
+  triple(:signature2, sec:proofValue, "adad123efv434r5200...dqed2t44v43das")
 ])).
 
-graph_triple(graph(Statements), Subject, Predicate, Object) :-
+% A tiny projection shows how a program can inspect a quoted context without
+% making the entire context globally true.
+context_triple(Context, Subject, Predicate, Object) :-
+  triple(Context, log:nameOf, graph(Statements)),
   member(triple(Subject, Predicate, Object), Statements).
 
-context_includes(GraphName, Subject, Predicate, Object) :-
-  named_graph(GraphName, Graph),
-  graph_triple(Graph, Subject, Predicate, Object).
+triple(:association, :dataGraph, skolem:g0) :-
+  context_triple(skolem:g0, :Bob, foaf:name, "Bob").
 
-context_association_verified(:association) :-
-  context_includes(:DataGraph, :Bob, foaf:name, "Bob"),
-  context_includes(:SignatureGraph, :DataGraph, sec:proof, :DataSignature),
-  context_includes(:SignatureGraph, :Proof1, rdf:type, sec:DataIntegrityProof),
-  context_includes(:SignatureGraph, :Proof1, sec:cryptosuite, "ecdsa-rdfc-2019"),
-  context_includes(:SignatureGraph, :Proof1, sec:issuer, :University),
-  context_includes(:MetadataGraph, :SignatureGraph, sec:proof, :MetadataSignature),
-  context_includes(:MetadataGraph, :MetadataProof, rdf:type, sec:DataIntegrityProof),
-  context_includes(:MetadataGraph, :MetadataProof, sec:proofPurpose, "assertionMethod").
+triple(:association, :signatureGraph, skolem:g1) :-
+  context_triple(skolem:g1, skolem:g0, sec:proof, :dataSignature).
 
-triple(GraphName, log:nameOf, Graph) :- named_graph(GraphName, Graph).
-triple(:association, :subject, :Bob) :- context_association_verified(:association).
-triple(:association, :dataGraph, :DataGraph) :- context_association_verified(:association).
-triple(:association, :signatureGraph, :SignatureGraph) :- context_association_verified(:association).
-triple(:association, :metadataGraph, :MetadataGraph) :- context_association_verified(:association).
-triple(:association, :cryptosuite, "ecdsa-rdfc-2019") :- context_association_verified(:association).
-triple(:association, :issuer, :University) :- context_association_verified(:association).
-triple(:association, :status, :contextAssociationVerified) :- context_association_verified(:association).
+triple(:association, :metadataGraph, :g3) :-
+  context_triple(:g3, skolem:g1, sec:proof, :signature2).

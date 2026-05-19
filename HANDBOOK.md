@@ -575,24 +575,25 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/gd-step-certified.pl` adapts the certified gradient-descent interval example using decimal arithmetic, interval bounds, and objective bounds.
 - `examples/fft8-numeric.pl` adapts the numeric FFT example using explicit complex pairs and radix-2 decomposition.
 - `examples/odrl-dpv-risk-ranked.pl` adapts the ODRL + DPV ranked-risk assessment example. It derives missing-safeguard risks, DPV risk levels, mitigation measures, and inverse-score report keys from a graph-valued policy term, so policy triples are treated as scoped data rather than globally asserted facts.
-- `examples/annotation-graph.pl` adapts the RDF annotation example. A triple is represented as a named graph term and then linked to provenance metadata.
-- `examples/context-association.pl` adapts the context-association example. It verifies a data graph, signature graph, and metadata graph chain without asserting their internal triples globally.
+- `examples/annotation.pl` adapts the RDF annotation example closely: it asserts `:a :name "Alice"`, names the quoted graph containing that triple with `log:nameOf`, and attaches the provenance triples directly.
+- `examples/context-association.pl` adapts the context-association example more directly: the data, signature, and metadata contexts are top-level `log:nameOf` triples whose objects are quoted `graph([...])` terms. A tiny `context_triple/4` projection demonstrates scoped inspection without turning the whole context into ambient facts.
 - `examples/derived-rule.pl` adapts the derived-rule example closely: a top-level `triple/3` cat fact derives a quoted implication graph, and a top-level `triple/3` dog fact then fires that derived rule.
 - `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as graph-valued terms and derives only the risks supported by the scoped graph.
 
-For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer graph-valued data when triples should stay scoped.
-For example, `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([triple(S, P, O), ...]))` and derives local helper predicates from graph membership. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. That lets rules inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different graphs may contain incompatible clauses.
+For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer graph-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log:nameOf { ... }` usually translates well to a top-level `triple(G, log:nameOf, graph([...]))`, not to a separate `named_graph/2` table unless several rules need that indirection.
+For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log:nameOf, graph([...]))` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([triple(S, P, O), ...]))` because the policy graph is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different graphs may contain incompatible clauses.
 
 Use lists when order or a closed collection matters: candidate routes, action sequences, interval tables, product catalogs, evidence vectors, and bounded fuel tokens are clearer as list terms than as many unrelated facts. Use graph terms when the data is RDF-shaped or intentionally scoped. It is fine to combine both: `dijkstra-risk-path.pl` keeps network segments in a quoted graph and candidate routes as lists.
 
 Graph terms are ordinary Eyelog terms. Use one representation for RDF-shaped content inside a graph:
 
 ```prolog
-named_graph(:G1, graph([
+triple(:G1, log:nameOf, graph([
   triple(:s, :p, :o)
 ])).
 
-graph_triple(graph(Statements), S, P, O) :-
+graph_triple(GraphName, S, P, O) :-
+  triple(GraphName, log:nameOf, graph(Statements)),
   member(triple(S, P, O), Statements).
 ```
 

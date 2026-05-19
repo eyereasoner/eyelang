@@ -1,10 +1,6 @@
-triple(:DataGraph, log:nameOf, graph([triple(:Bob, foaf:name, "Bob")])).
-triple(:MetadataGraph, log:nameOf, graph([triple(:SignatureGraph, sec:proof, :MetadataSignature), triple(:MetadataProof, rdf:type, sec:DataIntegrityProof), triple(:MetadataProof, sec:proofPurpose, "assertionMethod")])).
-triple(:SignatureGraph, log:nameOf, graph([triple(:DataGraph, sec:proof, :DataSignature), triple(:Proof1, rdf:type, sec:DataIntegrityProof), triple(:Proof1, sec:cryptosuite, "ecdsa-rdfc-2019"), triple(:Proof1, sec:issuer, :University), triple(:Proof1, sec:validUntil, "2025-04-03T00:00:00.000Z")])).
-triple(:association, :cryptosuite, "ecdsa-rdfc-2019").
-triple(:association, :dataGraph, :DataGraph).
-triple(:association, :issuer, :University).
-triple(:association, :metadataGraph, :MetadataGraph).
-triple(:association, :signatureGraph, :SignatureGraph).
-triple(:association, :status, :contextAssociationVerified).
-triple(:association, :subject, :Bob).
+triple(:association, :dataGraph, skolem:g0).
+triple(:association, :metadataGraph, :g3).
+triple(:association, :signatureGraph, skolem:g1).
+triple(:g3, log:nameOf, graph([triple(skolem:g1, sec:proof, :signature2), triple(:signature2, rdf:type, sec:DataIntegrityProof), triple(:signature2, sec:cryptosuite, "ecdsa-rdfc-2019"), triple(:signature2, sec:created, "2021-11-13T18:19:39Z"), triple(:signature2, sec:verificationMethod, "https://university.example/issuers/14#key-1"), triple(:signature2, sec:proofPurpose, "assertionMethod"), triple(:signature2, sec:proofValue, "adad123efv434r5200...dqed2t44v43das")])).
+triple(skolem:g0, log:nameOf, graph([triple(:Bob, foaf:name, "Bob")])).
+triple(skolem:g1, log:nameOf, graph([triple(skolem:g0, sec:proof, :dataSignature), triple(:signature1, rdf:type, sec:DataIntegrityProof), triple(:signature1, sec:cryptosuite, "ecdsa-rdfc-2019"), triple(:signature1, sec:created, "2021-11-13T18:19:39Z"), triple(:signature1, sec:verificationMethod, "https://university.example/issuers/14#key-1"), triple(:signature1, sec:proofPurpose, "assertionMethod"), triple(:signature1, sec:proofValue, "z58DAdFfa9SkqZMVPxAQp...jQCrfFPP2oumHKtz"), triple(:signature1, sec:issuer, :University), triple(:signature1, sec:validFrom, "2024-04-03T00:00:00.000Z"), triple(:signature1, sec:validUntil, "2025-04-03T00:00:00.000Z")])).
