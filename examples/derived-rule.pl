@@ -6,6 +6,8 @@
 %   { ?x a :Cat. } => { { ?y a :Dog. } => { :test :is true. }. }.
 %
 % The inner implication is represented directly as quoted graph data.
+% var(:y) is not an eyelog variable; it is a ground term that names
+% a variable placeholder inside the quoted graph.
 
 triple(:Minka, rdf:type, :Cat).
 triple(:Charly, rdf:type, :Dog).

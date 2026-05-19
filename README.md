@@ -2,7 +2,7 @@
 
 `eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
 
-Current version: `0.3.16`
+Current version: `0.3.18`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 

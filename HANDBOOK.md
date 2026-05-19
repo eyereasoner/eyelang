@@ -166,9 +166,13 @@ Examples of ground terms are:
 123
 pair(:left, :right)
 [a, b, c]
+var(:x)
+graph([triple(var(:x), rdf:type, :Dog)])
 ```
 
-A ground term contains no variables. Compound terms and lists can be nested, so the Herbrand universe may be infinite if the program has a compound term symbol.
+A ground term contains no eyelog variables. Compound terms and lists can be nested, so the Herbrand universe may be infinite if the program has a compound term symbol.
+
+Notice the distinction between `X` and `var(:x)`. `X` is an eyelog variable: it can be bound by unification while a rule is being proved. `var(:x)` is an ordinary compound term with functor `var/1`; it is ground because `:x` is an atom. Eyelog uses this convention when a quoted graph needs to mention an object-language variable as data.
 
 If a program has no constants, the usual convention is to add one fresh constant so the universe is non-empty.
 
@@ -274,7 +278,41 @@ triple(:pat, :ancestor, :emma)
 
 so the default output contains the three `triple/3` facts.
 
-### 5.6 Interpolation lemma
+### 5.6 Quoted graphs and variables-as-data
+
+Graph terms such as `graph([triple(:s, :p, :o)])` are ordinary Herbrand terms. A `triple/3` at top level is an atom that can belong to the least Herbrand model. A `triple/3` inside `graph([...])` is just a subterm of some larger atom until a rule projects it.
+
+For example:
+
+```prolog
+triple(:Charly, rdf:type, :Dog).
+```
+
+is a candidate member of the Herbrand base: it may be true or false in an interpretation. But in:
+
+```prolog
+graph([triple(var(:y), rdf:type, :Dog)])
+```
+
+the inner `triple/3` is quoted data. The whole graph term can occur as an argument of another atom, for example:
+
+```prolog
+triple(
+  graph([triple(var(:y), rdf:type, :Dog)]),
+  log:implies,
+  graph([triple(:test, :is, true)])
+).
+```
+
+Here `var(:y)` does not bind like `Y`. It is the ground term that represents a variable named `y` inside the quoted rule. A rule that wants to interpret such a graph as a rule schema must do so explicitly. This keeps Herbrand semantics simple: quoted formulas are data, not automatically asserted facts and not automatically active rules.
+
+Use this convention:
+
+- use `Y` for an eyelog variable in the current rule,
+- use `var(:y)` only when a quoted graph itself needs to contain a variable placeholder,
+- use helper predicates to project or interpret quoted graph terms when needed.
+
+### 5.7 Interpolation lemma
 
 The following lemma is often useful when reasoning about a derived answer.
 
@@ -310,11 +348,13 @@ where every `Bi ∈ Ik`. By the induction hypothesis, each `Bi` has a finite pro
 
 Therefore every atom in the least Herbrand model is supported by a finite derivation, and every ground query answer can be interpolated by the finite rule instances that justify it.
 
-### 5.7 Scope of the lemma in eyelog
+### 5.8 Scope of the lemma in eyelog
 
 The lemma applies directly to pure facts and Horn rules.
 
 It extends cleanly to deterministic built-ins when they are treated as interpreted leaves, for example arithmetic comparisons or `length/2` on a ground proper list. In that reading, a proof tree may have built-in leaves that are checked by their intended interpretation rather than by user-defined facts.
+
+Quoted graph terms do not invalidate the lemma. They are just terms in the Herbrand universe. If a program derives a ground atom whose argument is a quoted graph, that atom still appears at some finite `T_P` stage. If another rule later interprets `var(:x)` placeholders inside that graph, the interpretation is an ordinary user-defined relation and its derived conclusions are again supported by finite rule instances.
 
 Use more care with `not/1`. Negation as failure depends on failure of search, not membership in the least Herbrand model of a positive program. Programs using `not/1` should be written so the negated goal is sufficiently ground and finite.
 
@@ -557,6 +597,14 @@ graph_triple(graph(Statements), S, P, O) :-
 ```
 
 There is deliberately only one RDF-shaped constructor: `triple/3`.
+
+Quoted graph variables use `var(:name)` when the variable itself is part of the quoted data:
+
+```prolog
+graph([triple(var(:y), rdf:type, :Dog)])
+```
+
+This is different from `Y`. `Y` is an eyelog variable in the surrounding rule; `var(:y)` is a ground term that denotes a variable placeholder inside the quoted graph. The `derived-rule.pl` example uses this to represent an inner rule schema without letting the outer rule accidentally bind that inner variable.
 
 The difference between an asserted/output triple and a quoted triple is positional, not syntactic:
 
