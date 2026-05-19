@@ -683,6 +683,64 @@ static Clause fresh_clause(Clause *clause) {
 }
 
 /* ------------------------------------------------------------------------- */
+/* Variant goal checks                                                       */
+/* ------------------------------------------------------------------------- */
+
+typedef struct {
+  const char *left;
+  const char *right;
+} VarPair;
+
+typedef struct {
+  VarPair *items;
+  int len;
+  int cap;
+} VarPairs;
+
+static bool var_pair_matches(VarPairs *pairs, const char *left, const char *right) {
+  for (int i = 0; i < pairs->len; i++) {
+    bool same_left = strcmp(pairs->items[i].left, left) == 0;
+    bool same_right = strcmp(pairs->items[i].right, right) == 0;
+    if (same_left || same_right) return same_left && same_right;
+  }
+
+  if (pairs->len == pairs->cap) {
+    pairs->cap = pairs->cap ? pairs->cap * 2 : 8;
+    pairs->items = xrealloc(pairs->items, sizeof(VarPair) * pairs->cap);
+  }
+
+  pairs->items[pairs->len++] = (VarPair){ left, right };
+  return true;
+}
+
+static bool variant_terms(Term *left, Env *left_env, Term *right, Env *right_env,
+                          VarPairs *pairs) {
+  left = deref(left, left_env);
+  right = deref(right, right_env);
+
+  if (left->type == TERM_VAR || right->type == TERM_VAR) {
+    if (left->type != TERM_VAR || right->type != TERM_VAR) return false;
+    return var_pair_matches(pairs, left->name, right->name);
+  }
+
+  if (left->type != right->type) return false;
+  if (strcmp(left->name, right->name) != 0) return false;
+  if (left->arity != right->arity) return false;
+
+  for (int i = 0; i < left->arity; i++) {
+    if (!variant_terms(left->args[i], left_env, right->args[i], right_env, pairs)) return false;
+  }
+  return true;
+}
+
+static bool variant_goals(Term *left, Env *left_env, Term *right, Env *right_env) {
+  VarPairs pairs = { NULL, 0, 0 };
+  bool same = variant_terms(left, left_env, right, right_env, &pairs);
+  free(pairs.items);
+  return same;
+}
+
+/* ------------------------------------------------------------------------- */
 /* String builder and term rendering                                         */
 /* ------------------------------------------------------------------------- */
 
@@ -1167,10 +1225,36 @@ struct Solver {
   int max_depth;
   long long solutions_seen;
   long long solution_limit;
+  Term **active_goals;
+  Env **active_envs;
+  int active_len;
+  int active_cap;
 };
 
 static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
                         int depth, SolutionCallback callback, void *user_data);
+
+static bool active_variant_goal(Solver *solver, Term *goal, Env *env) {
+  for (int i = solver->active_len - 1; i >= 0; i--) {
+    if (variant_goals(solver->active_goals[i], solver->active_envs[i], goal, env)) return true;
+  }
+  return false;
+}
+
+static void push_active_goal(Solver *solver, Term *goal, Env *env) {
+  if (solver->active_len == solver->active_cap) {
+    solver->active_cap = solver->active_cap ? solver->active_cap * 2 : 64;
+    solver->active_goals = xrealloc(solver->active_goals, sizeof(Term *) * solver->active_cap);
+    solver->active_envs = xrealloc(solver->active_envs, sizeof(Env *) * solver->active_cap);
+  }
+  solver->active_goals[solver->active_len] = goal;
+  solver->active_envs[solver->active_len] = env;
+  solver->active_len++;
+}
+
+static void pop_active_goal(Solver *solver) {
+  if (solver->active_len > 0) solver->active_len--;
+}
 
 static void call_once(Env *env, SolutionCallback callback, void *user_data) {
   callback(env, user_data);
@@ -1189,6 +1273,30 @@ static void continue_after_builtin(Env *env, void *user_data) {
   Continuation *cont = user_data;
   solve_goals(cont->solver, cont->rest, cont->rest_len, env, cont->next_depth,
               cont->callback, cont->user_data);
+}
+
+typedef struct {
+  Solver *solver;
+  Term *goal;
+  Env *goal_env;
+  Term **rest;
+  int rest_len;
+  int next_depth;
+  SolutionCallback callback;
+  void *user_data;
+} RuleContinuation;
+
+static void continue_after_rule_body(Env *env, void *user_data) {
+  RuleContinuation *cont = user_data;
+  /* Completing a rule body is an internal continuation point, not a user-visible
+     solution. solve_goals increments the counter whenever a goal list is empty,
+     so undo that body-completion increment before continuing with the caller's
+     remaining goals. */
+  if (cont->solver->solutions_seen > 0) cont->solver->solutions_seen--;
+  pop_active_goal(cont->solver);
+  solve_goals(cont->solver, cont->rest, cont->rest_len, env, cont->next_depth,
+              cont->callback, cont->user_data);
+  push_active_goal(cont->solver, cont->goal, cont->goal_env);
 }
 
 typedef struct {
@@ -1628,6 +1736,10 @@ static bool builtin_not(Solver *solver, Term *goal, Env *env,
   Solver limited = *solver;
   limited.solutions_seen = 0;
   limited.solution_limit = 1;
+  limited.active_goals = NULL;
+  limited.active_envs = NULL;
+  limited.active_len = 0;
+  limited.active_cap = 0;
   solve_goals(&limited, inner_goals, 1, &attempt, 0, count_solution, &counter);
   if (counter.count == 0) call_once(env, callback, user_data);
   return true;
@@ -1755,6 +1867,8 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
   PredicateGroup *group = find_group(solver->program, goal->name, goal->arity);
   if (!group) return;
 
+  if (active_variant_goal(solver, goal, env)) return;
+
   for (int i = 0; i < group->len && solver->solutions_seen < solver->solution_limit; i++) {
     Clause *clause = &solver->program->clauses[group->clause_indexes[i]];
     if (clause_head_cannot_match(goal, clause, env)) continue;
@@ -1763,11 +1877,15 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
     Env next = clone_env(env);
 
     if (unify(goal, fresh.head, &next)) {
-      int total = fresh.body_len + rest_len;
-      Term **next_goals = xmalloc(sizeof(Term *) * (total ? total : 1));
-      for (int j = 0; j < fresh.body_len; j++) next_goals[j] = fresh.body[j];
-      for (int j = 0; j < rest_len; j++) next_goals[fresh.body_len + j] = rest[j];
-      solve_goals(solver, next_goals, total, &next, depth + 1, callback, user_data);
+      if (fresh.body_len == 0) {
+        solve_goals(solver, rest, rest_len, &next, depth + 1, callback, user_data);
+      } else {
+        RuleContinuation cont = { solver, goal, env, rest, rest_len, depth + 1, callback, user_data };
+        push_active_goal(solver, goal, env);
+        solve_goals(solver, fresh.body, fresh.body_len, &next, depth + 1,
+                    continue_after_rule_body, &cont);
+        pop_active_goal(solver);
+      }
     }
   }
 }
@@ -1884,7 +2002,7 @@ static void collect_printed_goal(Env *env, void *user_data) {
 }
 
 static void print_default_output(Program *program) {
-  Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS };
+  Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0 };
   Term *args[3] = { new_term(TERM_VAR, "S"), new_term(TERM_VAR, "P"), new_term(TERM_VAR, "O") };
   Term *goal = new_compound("triple", 3, args);
   Term *goals[1] = { goal };
@@ -1967,7 +2085,7 @@ int main(int argc, char **argv) {
     Term *goal = parse_query_goal(query);
     Term *goals[1] = { goal };
     Env env = { 0 };
-    Solver solver = { &program, MAX_DEPTH, 0, MAX_SOLUTIONS };
+    Solver solver = { &program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0 };
     solve_goals(&solver, goals, 1, &env, 0, print_query_solution, goal);
   } else {
     print_default_output(&program);

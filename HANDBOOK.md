@@ -407,6 +407,8 @@ ancestor(:pat, :emma).
 
 Query variables are instantiated by unification. In the pure core, each printed query instance is a consequence of the program's least Herbrand model. Operationally, eyelog finds those instances by depth-first rule search with unification and backtracking.
 
+To avoid a common non-termination case, eyelog keeps an active-call stack and does not re-enter a user-defined goal that is a variant of an already active goal. A variant is the same goal up to variable renaming after current bindings are taken into account. This is not full tabling, but it prevents simple cyclic transitive closures from revisiting the same subgoal forever. For example, the recursive `path/2` program in `examples/cyclic-path.pl` terminates on a directed cycle and emits the finite reachability relation. If you need to enumerate paths rather than reachability pairs, use an explicit visited list as in the Dijkstra examples.
+
 ## 7. Built-ins
 
 Built-ins are ordinary predicate calls that the engine knows how to evaluate.
@@ -589,6 +591,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 
 - `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
 - `examples/gps.pl` adapts the GPS route-planning example more closely: map descriptions are quoted graph data, route actions are lists built with `list:append/3`, route metrics include duration/cost/belief/comfort, and the output layer emits the recommendation, checks, and report text.
+- `examples/cyclic-path.pl` demonstrates transitive closure over a directed cycle. The logical reachability result is finite, and eyelog's active-call variant guard prevents recursive proof search from looping forever.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 - `examples/ackermann.pl` adapts Eyeling's Ackermann-style hyperoperation benchmark and uses `pow/3` with arbitrary-size integers, including the large `ackermann(4, 2)` value.
 - `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted `graph([...])` term, and path search uses `list:notMember/2` for visited-node checks.
@@ -618,6 +621,15 @@ For policy-like inputs, annotations, signatures, route networks, and quoted rule
 For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log:nameOf, graph([...]))` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([triple(S, P, O), ...]))` because the policy graph is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different graphs may contain incompatible clauses.
 
 Use lists when order or a closed collection matters: candidate routes, action sequences, interval tables, product catalogs, evidence vectors, and bounded fuel tokens are clearer as list terms than as many unrelated facts. Use graph terms when the data is RDF-shaped or intentionally scoped. It is fine to combine both: `dijkstra-risk-path.pl` keeps network segments in a quoted graph and candidate routes as lists.
+
+For cyclic graph reachability, a simple transitive closure is usually fine:
+
+```prolog
+path(X, Y) :- arc(X, Y).
+path(X, Z) :- arc(X, Y), path(Y, Z).
+```
+
+On a cyclic finite graph, eyelog's variant loop guard stops the proof search from re-entering the same active `path/2` subgoal. For path enumeration, shortest paths, or routes with costs, prefer an explicit visited-list argument so the program says which revisits are forbidden.
 
 Graph terms are ordinary Eyelog terms. Use one representation for RDF-shaped content inside a graph:
 
