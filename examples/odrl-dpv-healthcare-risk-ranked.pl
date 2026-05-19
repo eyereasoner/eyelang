@@ -159,7 +159,7 @@ risk(:riskH4) :-
   permission(Graph, :PermRetention10y),
   clause(Graph, :PermRetention10y, :ClauseH4),
   retention_days(Graph, :PermRetention10y, Days),
-  greater_than(Days, Max).
+  gt(Days, Max).
 
 base_score(:riskH1, 85).
 base_score(:riskH2, 90).
@@ -210,15 +210,15 @@ score_raw(Risk, Raw) :-
   base_score(Risk, Base),
   violates_need(Risk, Need),
   importance(Need, Weight),
-  sum(Base, Weight, Raw).
+  add(Base, Weight, Raw).
 
-score(Risk, 100) :- score_raw(Risk, Raw), greater_than(Raw, 100).
-score(Risk, Raw) :- score_raw(Risk, Raw), not_less_than(100, Raw).
+score(Risk, 100) :- score_raw(Risk, Raw), gt(Raw, 100).
+score(Risk, Raw) :- score_raw(Risk, Raw), ge(100, Raw).
 
-severity(Risk, risk:HighSeverity) :- score(Risk, Score), greater_than(Score, 79).
-severity(Risk, risk:ModerateSeverity) :- score(Risk, Score), less_than(Score, 80), greater_than(Score, 49).
-risk_level(Risk, risk:HighRisk) :- score(Risk, Score), greater_than(Score, 79).
-risk_level(Risk, risk:ModerateRisk) :- score(Risk, Score), less_than(Score, 80), greater_than(Score, 49).
+severity(Risk, risk:HighSeverity) :- score(Risk, Score), gt(Score, 79).
+severity(Risk, risk:ModerateSeverity) :- score(Risk, Score), lt(Score, 80), gt(Score, 49).
+risk_level(Risk, risk:HighRisk) :- score(Risk, Score), gt(Score, 79).
+risk_level(Risk, risk:ModerateRisk) :- score(Risk, Score), lt(Score, 80), gt(Score, 49).
 
 report_key(Risk, Key) :- score(Risk, Score), sub(1000, Score, Key).
 

@@ -11,20 +11,20 @@ w8(6, c(0.0, 1.0)).
 w8(7, c(0.7071067811865476, 0.7071067811865476)).
 
 c_add(c(AR, AI), c(BR, BI), c(CR, CI)) :-
-  math:sum(AR, BR, CR),
-  math:sum(AI, BI, CI).
+  add(AR, BR, CR),
+  add(AI, BI, CI).
 
 c_sub(c(AR, AI), c(BR, BI), c(CR, CI)) :-
-  math:difference(AR, BR, CR),
-  math:difference(AI, BI, CI).
+  sub(AR, BR, CR),
+  sub(AI, BI, CI).
 
 c_mul(c(AR, AI), c(BR, BI), c(CR, CI)) :-
-  math:product(AR, BR, AC),
-  math:product(AI, BI, BD),
-  math:difference(AC, BD, CR),
-  math:product(AR, BI, AD),
-  math:product(AI, BR, BC),
-  math:sum(AD, BC, CI).
+  mul(AR, BR, AC),
+  mul(AI, BI, BD),
+  sub(AC, BD, CR),
+  mul(AR, BI, AD),
+  mul(AI, BR, BC),
+  add(AD, BC, CI).
 
 fft1([X], [c(X, 0.0)]).
 

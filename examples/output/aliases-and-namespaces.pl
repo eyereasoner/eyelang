@@ -1,8 +1,5 @@
-triple(:namespaceCompare, :ok, true).
-triple(:namespaceList, :tail, [b, c]).
-triple(:namespaceMath, :value, 1.0).
-triple(:namespaceString, :ok, true).
-triple(:shortCompare, :ok, true).
-triple(:shortList, :tail, [b, c]).
-triple(:shortMath, :value, 1.0).
-triple(:shortString, :ok, true).
+triple(:namespaceExample, :label, "colon names are ordinary predicate names").
+triple(:nativeCompare, :ok, true).
+triple(:nativeList, :tail, [b, c]).
+triple(:nativeMath, :value, 1.0).
+triple(:nativeString, :ok, true).

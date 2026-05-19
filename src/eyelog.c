@@ -1707,9 +1707,9 @@ static bool builtin_contains(const char *name, Term *goal, Env *env,
   bool has = strstr(haystack, needle) != NULL;
   bool pass = (strcmp(name, "contains") == 0 && has) ||
               (strcmp(name, "not_contains") == 0 && !has) ||
-              ((strcmp(name, "matches") == 0 || strcmp(name, "string:matches") == 0) &&
+              ((strcmp(name, "matches") == 0 || strcmp(name, "matches") == 0) &&
                simple_alternation_match(haystack, needle)) ||
-              ((strcmp(name, "not_matches") == 0 || strcmp(name, "string:notMatches") == 0) &&
+              ((strcmp(name, "not_matches") == 0 || strcmp(name, "not_matches") == 0) &&
                !simple_alternation_match(haystack, needle));
   if (pass) call_once(env, callback, user_data);
 
@@ -1914,72 +1914,31 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   const char *name = goal->name;
   int arity = goal->arity;
 
-  if ((strcmp(name, "eq") == 0 || strcmp(name, "=") == 0 ||
-       strcmp(name, "equal_to") == 0 || strcmp(name, "math:equalTo") == 0) && arity == 2) {
+  if (strcmp(name, "eq") == 0 && arity == 2) {
     return builtin_unify(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "neq") == 0 || strcmp(name, "not_eq") == 0 ||
-       strcmp(name, "not_equal") == 0 || strcmp(name, "not_equal_to") == 0 ||
-       strcmp(name, "math:notEqualTo") == 0 || strcmp(name, "log:notEqualTo") == 0) && arity == 2) {
+  if (strcmp(name, "neq") == 0 && arity == 2) {
     return builtin_neq(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "neg") == 0 || strcmp(name, "negation") == 0 || strcmp(name, "math:negation") == 0 ||
-       strcmp(name, "abs") == 0 || strcmp(name, "absolute_value") == 0 || strcmp(name, "math:absoluteValue") == 0 ||
-       strcmp(name, "sin") == 0 || strcmp(name, "math:sin") == 0 ||
-       strcmp(name, "cos") == 0 || strcmp(name, "math:cos") == 0 ||
-       strcmp(name, "asin") == 0 || strcmp(name, "math:asin") == 0 ||
-       strcmp(name, "acos") == 0 || strcmp(name, "math:acos") == 0 ||
-       strcmp(name, "log") == 0 || strcmp(name, "ln") == 0 || strcmp(name, "math:log") == 0 ||
-       strcmp(name, "math:logarithm") == 0) && arity == 2) {
-    const char *op = name;
-    if (strcmp(name, "negation") == 0 || strcmp(name, "math:negation") == 0) op = "neg";
-    else if (strcmp(name, "absolute_value") == 0 || strcmp(name, "math:absoluteValue") == 0) op = "abs";
-    else if (strcmp(name, "math:sin") == 0) op = "sin";
-    else if (strcmp(name, "math:cos") == 0) op = "cos";
-    else if (strcmp(name, "math:asin") == 0) op = "asin";
-    else if (strcmp(name, "math:acos") == 0) op = "acos";
-    else if (strcmp(name, "ln") == 0 || strcmp(name, "math:log") == 0 ||
-             strcmp(name, "math:logarithm") == 0) op = "log";
-    return builtin_unary_math(op, goal, env, callback, user_data);
+  if ((strcmp(name, "neg") == 0 || strcmp(name, "abs") == 0 ||
+       strcmp(name, "sin") == 0 || strcmp(name, "cos") == 0 ||
+       strcmp(name, "asin") == 0 || strcmp(name, "acos") == 0 ||
+       strcmp(name, "log") == 0) && arity == 2) {
+    return builtin_unary_math(name, goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "add") == 0 || strcmp(name, "sum") == 0 || strcmp(name, "math:sum") == 0 ||
-       strcmp(name, "sub") == 0 || strcmp(name, "difference") == 0 || strcmp(name, "math:difference") == 0 ||
-       strcmp(name, "mul") == 0 || strcmp(name, "product") == 0 || strcmp(name, "math:product") == 0 ||
-       strcmp(name, "div") == 0 || strcmp(name, "quotient") == 0 || strcmp(name, "math:quotient") == 0 ||
-       strcmp(name, "integer_quotient") == 0 || strcmp(name, "integerQuotient") == 0 || strcmp(name, "math:integerQuotient") == 0 ||
-       strcmp(name, "mod") == 0 || strcmp(name, "remainder") == 0 || strcmp(name, "math:remainder") == 0 ||
-       strcmp(name, "max") == 0 || strcmp(name, "maximum") == 0 || strcmp(name, "math:max") == 0 || strcmp(name, "math:maximum") == 0 ||
-       strcmp(name, "min") == 0 || strcmp(name, "minimum") == 0 || strcmp(name, "math:min") == 0 || strcmp(name, "math:minimum") == 0 ||
-       strcmp(name, "pow") == 0 || strcmp(name, "exponentiation") == 0 || strcmp(name, "math:exponentiation") == 0) && arity == 3) {
-    const char *op = name;
-    if (strcmp(name, "sum") == 0 || strcmp(name, "math:sum") == 0) op = "add";
-    else if (strcmp(name, "difference") == 0 || strcmp(name, "math:difference") == 0) op = "sub";
-    else if (strcmp(name, "product") == 0 || strcmp(name, "math:product") == 0) op = "mul";
-    else if (strcmp(name, "quotient") == 0 || strcmp(name, "math:quotient") == 0 ||
-             strcmp(name, "integer_quotient") == 0 || strcmp(name, "integerQuotient") == 0 ||
-             strcmp(name, "math:integerQuotient") == 0) op = "div";
-    else if (strcmp(name, "remainder") == 0 || strcmp(name, "math:remainder") == 0) op = "mod";
-    else if (strcmp(name, "maximum") == 0 || strcmp(name, "math:max") == 0 || strcmp(name, "math:maximum") == 0) op = "max";
-    else if (strcmp(name, "minimum") == 0 || strcmp(name, "math:min") == 0 || strcmp(name, "math:minimum") == 0) op = "min";
-    else if (strcmp(name, "exponentiation") == 0 || strcmp(name, "math:exponentiation") == 0) op = "pow";
-    return builtin_arithmetic(op, goal, env, callback, user_data);
+  if ((strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
+       strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
+       strcmp(name, "mod") == 0 || strcmp(name, "max") == 0 ||
+       strcmp(name, "min") == 0 || strcmp(name, "pow") == 0) && arity == 3) {
+    return builtin_arithmetic(name, goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "lt") == 0 || strcmp(name, "less_than") == 0 ||
-       strcmp(name, "gt") == 0 || strcmp(name, "greater_than") == 0 ||
-       strcmp(name, "le") == 0 || strcmp(name, "not_greater_than") == 0 ||
-       strcmp(name, "ge") == 0 || strcmp(name, "not_less_than") == 0 ||
-       strcmp(name, "math:lessThan") == 0 || strcmp(name, "math:greaterThan") == 0 ||
-       strcmp(name, "math:notGreaterThan") == 0 || strcmp(name, "math:notLessThan") == 0) && arity == 2) {
-    const char *op = name;
-    if (strcmp(name, "less_than") == 0 || strcmp(name, "math:lessThan") == 0) op = "lt";
-    else if (strcmp(name, "greater_than") == 0 || strcmp(name, "math:greaterThan") == 0) op = "gt";
-    else if (strcmp(name, "not_greater_than") == 0 || strcmp(name, "math:notGreaterThan") == 0) op = "le";
-    else if (strcmp(name, "not_less_than") == 0 || strcmp(name, "math:notLessThan") == 0) op = "ge";
-    return builtin_compare(op, goal, env, callback, user_data);
+  if ((strcmp(name, "lt") == 0 || strcmp(name, "gt") == 0 ||
+       strcmp(name, "le") == 0 || strcmp(name, "ge") == 0) && arity == 2) {
+    return builtin_compare(name, goal, env, callback, user_data);
   }
 
   if (strcmp(name, "between") == 0 && arity == 3) {
@@ -1995,41 +1954,39 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   }
 
   if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0 ||
-       strcmp(name, "matches") == 0 || strcmp(name, "not_matches") == 0 ||
-       strcmp(name, "string:matches") == 0 || strcmp(name, "string:notMatches") == 0) && arity == 2) {
+       strcmp(name, "matches") == 0 || strcmp(name, "not_matches") == 0) && arity == 2) {
     return builtin_contains(name, goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "append") == 0 || strcmp(name, "list:append") == 0) && arity == 3) {
+  if (strcmp(name, "append") == 0 && arity == 3) {
     return builtin_append(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "rest") == 0 || strcmp(name, "list:rest") == 0) && arity == 2) {
+  if (strcmp(name, "rest") == 0 && arity == 2) {
     return builtin_rest(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "member") == 0 || strcmp(name, "in") == 0 ||
-       strcmp(name, "list:member") == 0 || strcmp(name, "list:in") == 0) && arity == 2) {
+  if (strcmp(name, "member") == 0 && arity == 2) {
     return builtin_member(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "not_member") == 0 || strcmp(name, "list:notMember") == 0) && arity == 2) {
+  if (strcmp(name, "not_member") == 0 && arity == 2) {
     return builtin_not_member(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "formula_triple") == 0 || strcmp(name, "log:formulaTriple") == 0) && arity == 4) {
+  if (strcmp(name, "formula_triple") == 0 && arity == 4) {
     return builtin_formula_triple(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "reverse") == 0 || strcmp(name, "list:reverse") == 0) && arity == 2) {
+  if (strcmp(name, "reverse") == 0 && arity == 2) {
     return builtin_reverse(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "length") == 0 || strcmp(name, "list:length") == 0) && arity == 2) {
+  if (strcmp(name, "length") == 0 && arity == 2) {
     return builtin_length(goal, env, callback, user_data);
   }
 
-  if ((strcmp(name, "is_list") == 0 || strcmp(name, "list:isList") == 0) && arity == 1) {
+  if (strcmp(name, "is_list") == 0 && arity == 1) {
     return builtin_is_list(goal, env, callback, user_data);
   }
 

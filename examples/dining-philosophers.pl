@@ -89,9 +89,9 @@ meal_handle(dp:P4, 1, dp:mP4_1). meal_handle(dp:P4, 2, dp:mP4_2). meal_handle(dp
 meal_handle(dp:P5, 1, dp:mP5_1). meal_handle(dp:P5, 2, dp:mP5_2). meal_handle(dp:P5, 3, dp:mP5_3).
 
 request(C, P, Q, F) :-
-  hungry(C, P), left_fork(P, F), start_state(C, F, Q, _Cleanliness), log:notEqualTo(Q, P).
+  hungry(C, P), left_fork(P, F), start_state(C, F, Q, _Cleanliness), neq(Q, P).
 request(C, P, Q, F) :-
-  hungry(C, P), right_fork(P, F), start_state(C, F, Q, _Cleanliness), log:notEqualTo(Q, P).
+  hungry(C, P), right_fork(P, F), start_state(C, F, Q, _Cleanliness), neq(Q, P).
 
 send_fork(C, Q, P, F) :-
   request(C, P, Q, F), start_state(C, F, Q, dp:Dirty).

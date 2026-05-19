@@ -133,7 +133,7 @@ signature_verifies(:check) :-
 
 minimization_strips_sensitive_terms(:check) :-
   serialized_lowercase(:insight, Text),
-  string:notMatches(Text, "diabetes|medical").
+  not_matches(Text, "diabetes|medical").
 
 scope_complete(:check) :-
   scope_device(:insight, _Device),
@@ -145,7 +145,7 @@ authorization_allowed(:check) :-
   request_purpose(:case, "shopping_assist"),
   scanner_auth_at(:case, AuthAt),
   expires_at(:insight, ExpiresAt),
-  math:notGreaterThan(AuthAt, ExpiresAt).
+  le(AuthAt, ExpiresAt).
 
 decision(:decision, "Allowed", :insight) :-
   authorization_allowed(:check).
@@ -155,7 +155,7 @@ banner_flags_high_sugar(:check) :-
   scanned_product(:scan, Product),
   sugar_per_serving(Product, Sugar),
   threshold_g(:insight, Threshold),
-  math:notLessThan(Sugar, Threshold).
+  ge(Sugar, Threshold).
 
 banner_headline(:banner, "Track sugar per serving while you scan") :-
   banner_flags_high_sugar(:check).
@@ -166,15 +166,15 @@ banner_note(:banner, "High sugar") :-
 better_lower_sugar(ScannedSugar, CandidateSugar) :-
   product(Other),
   sugar_tenths(Other, OtherSugar),
-  math:greaterThan(ScannedSugar, OtherSugar),
-  math:lessThan(OtherSugar, CandidateSugar).
+  gt(ScannedSugar, OtherSugar),
+  lt(OtherSugar, CandidateSugar).
 
 suggested_alternative(:case, Candidate) :-
   scanned_product(:scan, Scanned),
   sugar_tenths(Scanned, ScannedSugar),
   product(Candidate),
   sugar_tenths(Candidate, CandidateSugar),
-  math:greaterThan(ScannedSugar, CandidateSugar),
+  gt(ScannedSugar, CandidateSugar),
   not(better_lower_sugar(ScannedSugar, CandidateSugar)).
 
 banner_suggested_alternative(:banner, Name) :-
@@ -187,12 +187,12 @@ alternative_is_lower_sugar(:check) :-
   sugar_tenths(Scanned, ScannedSugar),
   suggested_alternative(:case, Alternative),
   sugar_tenths(Alternative, AlternativeSugar),
-  math:greaterThan(ScannedSugar, AlternativeSugar).
+  gt(ScannedSugar, AlternativeSugar).
 
 duty_timing_consistent(:check) :-
   scanner_duty_at(:case, DutyAt),
   expires_at(:insight, ExpiresAt),
-  math:notGreaterThan(DutyAt, ExpiresAt).
+  le(DutyAt, ExpiresAt).
 
 marketing_prohibited(:check) :-
   prohibition(:policy, odrl:distribute, :insight, "marketing").

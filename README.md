@@ -4,7 +4,7 @@
 
 Eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping.
 
-Current version: `0.4.1`
+Current version: `0.4.2`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 
@@ -24,9 +24,10 @@ bin/eyelog --query 'triple(:pat, :ancestor, X)' examples/ancestor.pl
 
 Swap in any file under `examples/` to run another self-contained program.
 
-Built-ins have short native names such as `sum/3`, `less_than/2`, and `rest/2`.
-Namespaced forms such as `math:sum/3` and `list:rest/2` are aliases for
-Eyeling/N3-style vocabularies, not a separate kind of built-in.
+Built-ins use one native spelling each, such as `add/3`, `lt/2`, and `rest/2`.
+Namespaced predicates remain ordinary names for user vocabularies, but built-in
+`math:*`, `list:*`, `string:*`, and `log:*` aliases are intentionally not
+special-cased.
 
 ## Release
 

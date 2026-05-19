@@ -21,23 +21,23 @@ step(state(:Kortrijk, :full, :yes), state(:Oostende, :mid, :yes), :direct_corrid
 
 path(From, To, [Act], Duration, Cost, Belief, Comfort, FuelIn, FuelOut) :-
   step(From, To, Act, Duration, Cost, Belief, Comfort),
-  list:rest(FuelIn, FuelOut).
+  rest(FuelIn, FuelOut).
 
 path(From, To, Actions, Duration, Cost, Belief, Comfort, FuelIn, FuelOut) :-
   step(From, Mid, Act, D1, C1, B1, M1),
-  list:rest(FuelIn, FuelMid),
+  rest(FuelIn, FuelMid),
   path(Mid, To, RestActions, D2, C2, B2, M2, FuelMid, FuelOut),
-  list:append([Act], RestActions, Actions),
-  math:sum(D1, D2, Duration),
-  math:sum(C1, C2, Cost),
-  math:product(B1, B2, Belief),
-  math:product(M1, M2, Comfort).
+  append([Act], RestActions, Actions),
+  add(D1, D2, Duration),
+  add(C1, C2, Cost),
+  mul(B1, B2, Belief),
+  mul(M1, M2, Comfort).
 
 surviving_plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft) :-
   fuel(:fuel7, Fuel),
   path(state(:Gent, :full, :none), state(:Oostende, Battery, Permit), Actions, Duration, Cost, Belief, Comfort, Fuel, FuelLeft),
-  math:greaterThan(Belief, 0.94),
-  math:lessThan(Cost, 0.03).
+  gt(Belief, 0.94),
+  lt(Cost, 0.03).
 
 triple(:d1, gps:plan, plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft)) :-
   surviving_plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft).

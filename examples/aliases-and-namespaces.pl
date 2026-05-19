@@ -1,14 +1,10 @@
-% Short eyelog names and namespaced Eyeling-style aliases call the same built-ins.
-% The colon is just part of the predicate name, used as a vocabulary prefix.
+% Built-ins use one native spelling each.
+% Namespaced predicate names remain ordinary user vocabulary names.
 
-triple(:shortMath, :value, X) :- sum(0.125, 0.875, X).
-triple(:namespaceMath, :value, X) :- math:sum(0.125, 0.875, X).
+triple(:nativeMath, :value, X) :- add(0.125, 0.875, X).
+triple(:nativeCompare, :ok, true) :- lt(2, 3).
+triple(:nativeString, :ok, true) :- matches("scoped retail insight", "retail|medical").
+triple(:nativeList, :tail, Tail) :- rest([a, b, c], Tail).
 
-triple(:shortCompare, :ok, true) :- less_than(2, 3).
-triple(:namespaceCompare, :ok, true) :- math:lessThan(2, 3).
-
-triple(:shortString, :ok, true) :- matches("scoped retail insight", "retail|medical").
-triple(:namespaceString, :ok, true) :- string:matches("scoped retail insight", "retail|medical").
-
-triple(:shortList, :tail, Tail) :- rest([a, b, c], Tail).
-triple(:namespaceList, :tail, Tail) :- list:rest([a, b, c], Tail).
+example:label(:namespaceExample, "colon names are ordinary predicate names").
+triple(:namespaceExample, :label, Text) :- example:label(:namespaceExample, Text).

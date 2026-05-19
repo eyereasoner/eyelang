@@ -7,54 +7,54 @@ expected_factors(:fta, [3, 3, 7, 829, 3881]).
 
 % A divides B in positive integers.
 divides(A, B) :-
-  math:greaterThan(A, 0),
-  math:greaterThan(B, 0),
-  math:remainder(B, A, 0).
+  gt(A, 0),
+  gt(B, 0),
+  mod(B, A, 0).
 
 smallest_divisor_from(N, D, D) :-
   divides(D, N).
 
 smallest_divisor_from(N, D, N) :-
-  math:product(D, D, D2),
-  math:greaterThan(D2, N).
+  mul(D, D, D2),
+  gt(D2, N).
 
 smallest_divisor_from(N, D, S) :-
   not(divides(D, N)),
-  math:product(D, D, D2),
-  math:notGreaterThan(D2, N),
-  math:sum(D, 1, D1),
+  mul(D, D, D2),
+  le(D2, N),
+  add(D, 1, D1),
   smallest_divisor_from(N, D1, S).
 
 trial_prime(2).
 trial_prime(3).
 trial_prime(P) :-
-  math:greaterThan(P, 3),
+  gt(P, 3),
   smallest_divisor_from(P, 2, P).
 
 factor_smallest(N, []) :-
-  math:lessThan(N, 2).
+  lt(N, 2).
 
 factor_smallest(N, [N]) :-
-  math:notLessThan(N, 2),
+  ge(N, 2),
   smallest_divisor_from(N, 2, N).
 
 factor_smallest(N, Factors) :-
-  math:notLessThan(N, 2),
+  ge(N, 2),
   smallest_divisor_from(N, 2, D),
-  math:notEqualTo(D, N),
-  math:integerQuotient(N, D, Q),
+  neq(D, N),
+  div(N, D, Q),
   factor_smallest(D, Left),
   factor_smallest(Q, Right),
-  list:append(Left, Right, Factors).
+  append(Left, Right, Factors).
 
 factor_largest(N, Factors) :-
   factor_smallest(N, Smallest),
-  list:reverse(Smallest, Factors).
+  reverse(Smallest, Factors).
 
 product([], 1).
 product([X|Rest], P) :-
   product(Rest, P0),
-  math:product(X, P0, P).
+  mul(X, P0, P).
 
 all_expected_primes(true) :-
   trial_prime(3),

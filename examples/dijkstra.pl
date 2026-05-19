@@ -27,7 +27,7 @@ link(B, A, Cost) :- base_link(A, B, Cost).
 path(Goal, Goal, _Visited, [Goal], 0).
 path(Node, Goal, Visited, [Node|Path], Cost) :-
   link(Node, Next, StepCost),
-  list:notMember(Next, Visited),
+  not_member(Next, Visited),
   path(Next, Goal, [Next|Visited], Path, RestCost),
   add(StepCost, RestCost, Cost).
 

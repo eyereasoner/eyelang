@@ -141,7 +141,7 @@ risk(:risk2) :-
   action(:PermChangeTerms, tosl:changeTerms),
   duty(:PermChangeTerms, odrl:inform),
   notice_days(:PermChangeTerms, Days),
-  math:lessThan(Days, Required).
+  lt(Days, Required).
 
 risk_source(:risk2, :src2).
 risk_class(:risk2, risk:PolicyRisk).
@@ -199,59 +199,59 @@ score_raw(Risk, Raw) :-
   base_score(Risk, Base),
   violates_need(Risk, Need),
   importance(Need, Weight),
-  math:sum(Base, Weight, Raw).
+  add(Base, Weight, Raw).
 
 score(Risk, 100) :-
   score_raw(Risk, Raw),
-  math:greaterThan(Raw, 100).
+  gt(Raw, 100).
 
 score(Risk, Raw) :-
   score_raw(Risk, Raw),
-  math:notLessThan(100, Raw).
+  ge(100, Raw).
 
 severity(Risk, risk:HighSeverity) :-
   score(Risk, Score),
-  math:greaterThan(Score, 79).
+  gt(Score, 79).
 
 risk_level(Risk, risk:HighRisk) :-
   score(Risk, Score),
-  math:greaterThan(Score, 79).
+  gt(Score, 79).
 
 severity(Risk, risk:ModerateSeverity) :-
   score(Risk, Score),
-  math:lessThan(Score, 80),
-  math:greaterThan(Score, 49).
+  lt(Score, 80),
+  gt(Score, 49).
 
 risk_level(Risk, risk:ModerateRisk) :-
   score(Risk, Score),
-  math:lessThan(Score, 80),
-  math:greaterThan(Score, 49).
+  lt(Score, 80),
+  gt(Score, 49).
 
 severity(Risk, risk:LowSeverity) :-
   score(Risk, Score),
-  math:lessThan(Score, 50).
+  lt(Score, 50).
 
 risk_level(Risk, risk:LowRisk) :-
   score(Risk, Score),
-  math:lessThan(Score, 50).
+  lt(Score, 50).
 
 report_key(Risk, key(InvScore, ClauseId)) :-
   risk(Risk),
   score(Risk, Score),
-  math:difference(1000, Score, InvScore),
+  sub(1000, Score, InvScore),
   about_clause(Risk, Clause),
   clause_id(Clause, ClauseId).
 
 ranked_before(Left, Right) :-
   report_key(Left, key(LeftInv, _LeftClause)),
   report_key(Right, key(RightInv, _RightClause)),
-  math:lessThan(LeftInv, RightInv).
+  lt(LeftInv, RightInv).
 
 ranked_before(Left, Right) :-
   report_key(Left, key(Inv, LeftClause)),
   report_key(Right, key(Inv, RightClause)),
-  string:notMatches(LeftClause, RightClause),
-  math:lessThan(LeftClause, RightClause).
+  not_matches(LeftClause, RightClause),
+  lt(LeftClause, RightClause).
 
 % Output layer.
 triple(:Agreement1, dct:title, Title) :- title(:Agreement1, Title).

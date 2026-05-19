@@ -28,13 +28,13 @@ route_cost([_], 0.0, 0.0, 0).
 route_cost([From, To|Rest], Raw, Risk, Edges) :-
   route_segment(From, To, StepRaw, StepRisk),
   route_cost([To|Rest], RestRaw, RestRisk, RestEdges),
-  math:sum(StepRaw, RestRaw, Raw),
-  math:sum(StepRisk, RestRisk, Risk),
+  add(StepRaw, RestRaw, Raw),
+  add(StepRisk, RestRisk, Risk),
   add(1, RestEdges, Edges).
 
 score(Raw, Risk, Score) :-
-  math:product(Risk, 10.0, Penalty),
-  math:sum(Raw, Penalty, Score).
+  mul(Risk, 10.0, Penalty),
+  add(Raw, Penalty, Score).
 
 path_metrics(Path, Route, Raw, Risk, Score, Edges) :-
   candidate(Path, Route),
@@ -47,16 +47,16 @@ best_path(:pathB) :-
   path_metrics(:pathRelay, _RRoute, _RRaw, _RRisk, RelayScore, _REdges),
   path_metrics(:pathDirectC, _DRoute, _DRaw, _DRisk, DirectScore, _DEdges),
   path_metrics(:pathViaC, _VRoute, _VRaw, _VRisk, ViaScore, _VEdges),
-  math:lessThan(BestScore, CScore),
-  math:lessThan(BestScore, RelayScore),
-  math:lessThan(BestScore, DirectScore),
-  math:lessThan(BestScore, ViaScore).
+  lt(BestScore, CScore),
+  lt(BestScore, RelayScore),
+  lt(BestScore, DirectScore),
+  lt(BestScore, ViaScore).
 
 risk_outweighs_raw_cost(true) :-
   path_metrics(:pathB, _BR, BestRaw, _BRS, BestScore, _BE),
   path_metrics(:pathViaC, _VR, ViaRaw, _VRS, ViaScore, _VE),
-  math:lessThan(ViaRaw, BestRaw),
-  math:lessThan(BestScore, ViaScore).
+  lt(ViaRaw, BestRaw),
+  lt(BestScore, ViaScore).
 
 triple(Path, :route, Route) :- path_metrics(Path, Route, _Raw, _Risk, _Score, _Edges).
 triple(Path, :rawCost, Raw) :- path_metrics(Path, _Route, Raw, _Risk, _Score, _Edges).

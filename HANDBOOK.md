@@ -122,7 +122,7 @@ Semantically, list syntax is just notation for ordinary terms. The empty list is
 
 Eyelog is **Prolog-like**, but it is not intended to be a portable SWI-Prolog
 source format. In particular, names such as `:pat`, `:payment_service`,
-`rdf:type`, `math:sum`, and `skolem:observation/2` are Eyelog atoms or
+`rdf:type`, `add`, and `skolem:observation/2` are Eyelog atoms or
 functors with vocabulary-style names.
 
 The colon is part of the name syntax used to stay close to RDF, N3, and
@@ -464,78 +464,50 @@ A variant is the same goal up to variable renaming after current bindings are ta
 ## 7. Built-ins
 
 Built-ins are ordinary predicate calls that the engine knows how to evaluate.
-There is only one mechanism: a call such as `add/3` and a call such as
-`math:sum/3` both enter the same arithmetic built-in.
+Each built-in has a single native eyelog spelling. Namespaced predicate names
+remain useful as RDF/Eyeling-style vocabulary names, but they are not built-in
+aliases: `math:sum/3` is just the ordinary predicate name `math:sum`, while
+`add/3` is the built-in arithmetic operation.
 
-The colon is a vocabulary separator, not a module operator. In other words,
-`math:sum` is just the predicate name `math:sum`, much like an RDF or Eyeling
-prefixed name. The short names are the native eyelog spelling. The namespaced
-forms are aliases that make translated Eyeling/N3 examples read close to their
-source vocabulary.
-
-A useful rule of thumb:
-
-- write new eyelog programs with the short names, such as `sum/3`, `less_than/2`,
-  `rest/2`, and `matches/2`,
-- keep the namespaced aliases, such as `math:sum/3`, `list:rest/2`, and
-  `string:matches/2`, when translating or comparing with Eyeling examples.
-
-For example, these two goals are equivalent:
-
-```prolog
-sum(2, 3, X)
-math:sum(2, 3, X)
-```
-
-and these two are equivalent:
-
-```prolog
-less_than(A, B)
-math:lessThan(A, B)
-```
+When older examples offered several native spellings for one operation, eyelog
+keeps the first spelling and drops the rest. This keeps the built-in dispatch
+small and makes programs less ambiguous.
 
 ### Unification and equality
 
-| Native eyelog name | Namespaced alias | Meaning |
-| --- | --- | --- |
-| `=(X, Y)` |  | unify two terms |
-| `eq(X, Y)` | `math:equalTo(X, Y)` | unify two terms |
-| `equal_to(X, Y)` | `math:equalTo(X, Y)` | unify two terms |
-| `neq(X, Y)` | `math:notEqualTo(X, Y)` | succeeds when terms are not unifiable |
-| `not_eq(X, Y)` | `log:notEqualTo(X, Y)` | same as `neq/2` |
-| `not_equal_to(X, Y)` | `math:notEqualTo(X, Y)` | same as `neq/2` |
+| Built-in | Meaning |
+| --- | --- |
+| `eq(X, Y)` | unify two terms |
+| `neq(X, Y)` | succeeds when terms are not unifiable |
 
 Inequality is most predictable when both arguments are already bound.
 
 ### Arithmetic
 
-| Native eyelog name | Namespaced alias | Meaning |
-| --- | --- | --- |
-| `add(A, B, X)` or `sum(A, B, X)` | `math:sum(A, B, X)` | `X = A + B` |
-| `sub(A, B, X)` or `difference(A, B, X)` | `math:difference(A, B, X)` | `X = A - B` |
-| `mul(A, B, X)` or `product(A, B, X)` | `math:product(A, B, X)` | `X = A * B` |
-| `div(A, B, X)` or `quotient(A, B, X)` | `math:quotient(A, B, X)` | `X = A / B` |
-| `integer_quotient(A, B, X)` | `math:integerQuotient(A, B, X)` | integer quotient alias for translated examples |
-| `pow(A, B, X)` or `exponentiation(A, B, X)` | `math:exponentiation(A, B, X)` | `X = A ** B` |
-| `mod(A, B, X)` or `remainder(A, B, X)` | `math:remainder(A, B, X)` | integer remainder |
-| `max(A, B, X)` or `maximum(A, B, X)` | `math:max(A, B, X)` | larger value |
-| `min(A, B, X)` or `minimum(A, B, X)` | `math:min(A, B, X)` | smaller value |
-| `neg(A, X)` or `negation(A, X)` | `math:negation(A, X)` | `X = -A` |
-| `abs(A, X)` or `absolute_value(A, X)` | `math:absoluteValue(A, X)` | absolute value |
-| `sin(A, X)` | `math:sin(A, X)` | sine, in radians |
-| `cos(A, X)` | `math:cos(A, X)` | cosine, in radians |
-| `asin(A, X)` | `math:asin(A, X)` | inverse sine, in radians |
-| `acos(A, X)` | `math:acos(A, X)` | inverse cosine, in radians |
-| `log(A, X)` or `ln(A, X)` | `math:log(A, X)` | natural logarithm |
+| Built-in | Meaning |
+| --- | --- |
+| `add(A, B, X)` | `X = A + B` |
+| `sub(A, B, X)` | `X = A - B` |
+| `mul(A, B, X)` | `X = A * B` |
+| `div(A, B, X)` | `X = A / B`; integer quotient in integer mode |
+| `mod(A, B, X)` | integer remainder |
+| `max(A, B, X)` | larger value |
+| `min(A, B, X)` | smaller value |
+| `pow(A, B, X)` | `X = A ** B` |
+| `neg(A, X)` | `X = -A` |
+| `abs(A, X)` | absolute value |
+| `sin(A, X)` | sine, in radians |
+| `cos(A, X)` | cosine, in radians |
+| `asin(A, X)` | inverse sine, in radians |
+| `acos(A, X)` | inverse cosine, in radians |
+| `log(A, X)` | natural logarithm |
 
-When all operands are integers, `add/3`, `sum/3`, `sub/3`, `difference/3`,
-`mul/3`, `product/3`, `div/3`, `quotient/3`, `integer_quotient/3`,
-`pow/3`, `exponentiation/3`, `max/3`, and `min/3` use arbitrary-size
-decimal-integer helpers. This is why examples such
-as `fib(10000)` and the Ackermann-style hyperoperation example can be written
-without engine-specific Fibonacci or exponentiation code. In integer mode,
-exponentiation requires a non-negative machine-integer exponent, and division is
-integer quotient.
+When all operands are integers, `add/3`, `sub/3`, `mul/3`, `div/3`,
+`pow/3`, `max/3`, and `min/3` use arbitrary-size decimal-integer helpers.
+This is why examples such as `fib(10000)` and the Ackermann-style
+hyperoperation example can be written without engine-specific Fibonacci or
+exponentiation code. In integer mode, exponentiation requires a non-negative
+machine-integer exponent, and division is integer quotient.
 
 When either operand contains a decimal point or exponent, the same arithmetic
 predicates use C double-precision floating-point arithmetic. The result is
@@ -543,10 +515,10 @@ printed as a numeric term, with `.0` added when the floating result is
 mathematically integral. This is useful for Eyeling-style probability and
 measurement examples, but it is not exact decimal arithmetic.
 
-`mod/3`, `remainder/3`, and `math:remainder/3` remain integer-only.
-The unary transcendental functions are double-precision operations and expect
-bound numeric input. They are intended for translated mathematical examples such
-as `complex.pl`, not exact symbolic mathematics.
+`mod/3` remains integer-only. The unary transcendental functions are
+double-precision operations and expect bound numeric input. They are intended
+for translated mathematical examples such as `complex.pl`, not exact symbolic
+mathematics.
 
 `smallest_divisor_from(N, D, S)` is a bounded integer helper used by the
 Fundamental Theorem of Arithmetic example. With `N` and starting divisor `D`
@@ -555,12 +527,12 @@ bound, it unifies `S` with the first divisor of `N` at or above `D`, or with
 
 ### Comparisons
 
-| Native eyelog name | Namespaced alias | Meaning |
-| --- | --- | --- |
-| `lt(A, B)` or `less_than(A, B)` | `math:lessThan(A, B)` | `A < B` |
-| `gt(A, B)` or `greater_than(A, B)` | `math:greaterThan(A, B)` | `A > B` |
-| `le(A, B)` or `not_greater_than(A, B)` | `math:notGreaterThan(A, B)` | `A <= B` |
-| `ge(A, B)` or `not_less_than(A, B)` | `math:notLessThan(A, B)` | `A >= B` |
+| Built-in | Meaning |
+| --- | --- |
+| `lt(A, B)` | `A < B` |
+| `gt(A, B)` | `A > B` |
+| `le(A, B)` | `A <= B` |
+| `ge(A, B)` | `A >= B` |
 
 Integer comparisons use arbitrary-size decimal-integer ordering. Decimal or
 scientific operands use double-precision floating-point ordering. If both
@@ -577,16 +549,16 @@ between(Low, High, N)
 
 ### Lists
 
-| Native eyelog name | Namespaced alias | Meaning |
-| --- | --- | --- |
-| `append(A, B, C)` | `list:append(A, B, C)` | concatenate lists |
-| `rest(List, Tail)` | `list:rest(List, Tail)` | tail of a non-empty list |
-| `member(Item, List)` or `in(Item, List)` | `list:member(Item, List)` or `list:in(Item, List)` | item occurs in list |
-| `not_member(Item, List)` | `list:notMember(Item, List)` | item does not occur in a known list |
-| `reverse(List, Reversed)` | `list:reverse(List, Reversed)` | reverse a known list |
-| `length(List, N)` | `list:length(List, N)` | count a known proper list |
-| `is_list(List)` | `list:isList(List)` | proper-list check |
-| `formula_triple(Formula, S, P, O)` | `log:formulaTriple(Formula, S, P, O)` | enumerate `triple/3` terms inside a comma formula |
+| Built-in | Meaning |
+| --- | --- |
+| `append(A, B, C)` | concatenate lists |
+| `rest(List, Tail)` | tail of a non-empty list |
+| `member(Item, List)` | item occurs in list |
+| `not_member(Item, List)` | item does not occur in a known list |
+| `reverse(List, Reversed)` | reverse a known list |
+| `length(List, N)` | count a known proper list |
+| `is_list(List)` | proper-list check |
+| `formula_triple(Formula, S, P, O)` | enumerate `triple/3` terms inside a comma formula |
 
 `append/3` concatenates lists. It supports the common finite modes where the
 first list is known, or where the combined list is known and the predicate
@@ -606,14 +578,14 @@ proper list when the list is known. `is_list/1` succeeds for proper lists.
 
 ### String and atom construction
 
-| Native eyelog name | Namespaced alias | Meaning |
-| --- | --- | --- |
-| `atom_concat(A, B, C)` |  | concatenate into an atom |
-| `str_concat(A, B, C)` |  | concatenate into a string |
-| `contains(Text, Part)` |  | literal substring test |
-| `not_contains(Text, Part)` |  | negated literal substring test |
-| `matches(Text, Pattern)` | `string:matches(Text, Pattern)` | simple alternation match |
-| `not_matches(Text, Pattern)` | `string:notMatches(Text, Pattern)` | negated simple alternation match |
+| Built-in | Meaning |
+| --- | --- |
+| `atom_concat(A, B, C)` | concatenate into an atom |
+| `str_concat(A, B, C)` | concatenate into a string |
+| `contains(Text, Part)` | literal substring test |
+| `not_contains(Text, Part)` | negated literal substring test |
+| `matches(Text, Pattern)` | simple alternation match |
+| `not_matches(Text, Pattern)` | negated simple alternation match |
 
 `matches/2` and `not_matches/2` support the simple alternation form used in the
 translated Eyeling examples, for example `"diabetes|medical"`; they are not full
@@ -653,21 +625,21 @@ Each example should contain:
 The repository includes small examples adapted from the Eyeling examples collection:
 
 - `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
-- `examples/gps.pl` adapts the GPS route-planning example more closely: map descriptions are quoted formula data, route actions are lists built with `list:append/3`, route metrics include duration/cost/belief/comfort, and the output layer emits the recommendation, checks, and report text.
+- `examples/gps.pl` adapts the GPS route-planning example more closely: map descriptions are quoted formula data, route actions are lists built with `append/3`, route metrics include duration/cost/belief/comfort, and the output layer emits the recommendation, checks, and report text.
 - `examples/cyclic-path.pl` demonstrates transitive closure over a directed cycle. The logical reachability result is finite, and eyelog's active-call variant guard prevents recursive proof search from looping forever.
 - `examples/service-impact.pl` applies the same cyclic-closure pattern to incident analysis: when `:payment_service` fails, services and business functions that depend on it transitively are marked at risk even though the payment/fraud/risk-rules dependency graph contains a cycle.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 - `examples/ackermann.pl` adapts Eyeling's Ackermann-style hyperoperation benchmark and uses `pow/3` with arbitrary-size integers, including the large `ackermann(4, 2)` value.
-- `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted formula term, and path search uses `list:notMember/2` for visited-node checks.
+- `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted formula term, and path search uses `not_member/2` for visited-node checks.
 - `examples/family-cousins.pl` adapts the generation/branch cousin derivation. The family tree is a scoped formula term, so parent links and seed branch labels are read from quoted data.
 - `examples/allen-interval-calculus.pl` adapts Allen's interval relations over integer endpoints. The interval table is represented as a list of `interval(Id, Start, End)` records.
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/bayes-therapy.pl` adapts the Bayesian therapy decision-support example. It uses list-valued disease, evidence, posterior, and therapy vectors to combine Naive Bayes diagnosis with expected-utility therapy selection.
-- `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
-- `examples/complex.pl` adapts Eyeling's complex-number example. Complex values are two-item lists `[Real, Imaginary]`; the example derives complex exponentiation, polar form, `complex:asin/2`, and `complex:acos/2` using the floating-point `math:*` aliases.
+- `examples/floating-point.pl` demonstrates decimal arithmetic and floating-point comparisons using native built-ins.
+- `examples/complex.pl` adapts Eyeling's complex-number example. Complex values are two-item lists `[Real, Imaginary]`; the example derives complex exponentiation, polar form, `complex:asin/2`, and `complex:acos/2` using the native floating-point built-ins.
 - `examples/skolem-functions.pl` demonstrates generated resources using `skolem:` functional terms in rule heads, such as `skolem:observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.
-- `examples/aliases-and-namespaces.pl` demonstrates that short built-in names and namespaced aliases call the same implementation.
+- `examples/aliases-and-namespaces.pl` demonstrates native built-ins alongside ordinary namespaced vocabulary predicates.
 - `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation. Its case, insight, policy, envelope, and signature inputs are formula terms; the product catalog is a list of records.
 - `examples/dijkstra-risk-path.pl` adapts the risk-adjusted route example, deriving route metrics and selecting the lowest risk-adjusted score. It combines a quoted segment graph with list-valued candidate paths.
 - `examples/drone-corridor-planner.pl` adapts the bounded corridor-planning example, using a fuel list to keep recursive planning finite while aggregating cost, duration, belief, and comfort.
