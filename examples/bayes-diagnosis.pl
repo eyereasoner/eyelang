@@ -4,46 +4,46 @@
 % points, so this example is comparable with examples/output/bayes-diagnosis.n3
 % in the Eyeling repository.
 
-disease(:COVID19).
-disease(:Influenza).
-disease(:AllergicRhinitis).
-disease(:BacterialPneumonia).
+disease(covid19).
+disease(influenza).
+disease(allergicRhinitis).
+disease(bacterialPneumonia).
 
-prior(:COVID19, 50).
-prior(:Influenza, 30).
-prior(:AllergicRhinitis, 100).
-prior(:BacterialPneumonia, 10).
+prior(covid19, 50).
+prior(influenza, 30).
+prior(allergicRhinitis, 100).
+prior(bacterialPneumonia, 10).
 
-p_given(:COVID19, :Fever, 700).
-p_given(:COVID19, :DryCough, 650).
-p_given(:COVID19, :LossOfSmell, 400).
-p_given(:COVID19, :Sneezing, 150).
-p_given(:COVID19, :ShortBreath, 200).
+p_given(covid19, fever, 700).
+p_given(covid19, dryCough, 650).
+p_given(covid19, lossOfSmell, 400).
+p_given(covid19, sneezing, 150).
+p_given(covid19, shortBreath, 200).
 
-p_given(:Influenza, :Fever, 800).
-p_given(:Influenza, :DryCough, 500).
-p_given(:Influenza, :LossOfSmell, 50).
-p_given(:Influenza, :Sneezing, 200).
-p_given(:Influenza, :ShortBreath, 100).
+p_given(influenza, fever, 800).
+p_given(influenza, dryCough, 500).
+p_given(influenza, lossOfSmell, 50).
+p_given(influenza, sneezing, 200).
+p_given(influenza, shortBreath, 100).
 
-p_given(:AllergicRhinitis, :Fever, 50).
-p_given(:AllergicRhinitis, :DryCough, 150).
-p_given(:AllergicRhinitis, :LossOfSmell, 100).
-p_given(:AllergicRhinitis, :Sneezing, 800).
-p_given(:AllergicRhinitis, :ShortBreath, 50).
+p_given(allergicRhinitis, fever, 50).
+p_given(allergicRhinitis, dryCough, 150).
+p_given(allergicRhinitis, lossOfSmell, 100).
+p_given(allergicRhinitis, sneezing, 800).
+p_given(allergicRhinitis, shortBreath, 50).
 
-p_given(:BacterialPneumonia, :Fever, 700).
-p_given(:BacterialPneumonia, :DryCough, 600).
-p_given(:BacterialPneumonia, :LossOfSmell, 20).
-p_given(:BacterialPneumonia, :Sneezing, 50).
-p_given(:BacterialPneumonia, :ShortBreath, 600).
+p_given(bacterialPneumonia, fever, 700).
+p_given(bacterialPneumonia, dryCough, 600).
+p_given(bacterialPneumonia, lossOfSmell, 20).
+p_given(bacterialPneumonia, sneezing, 50).
+p_given(bacterialPneumonia, shortBreath, 600).
 
 evidence([
-  ev(:Fever, true),
-  ev(:DryCough, true),
-  ev(:LossOfSmell, true),
-  ev(:Sneezing, false),
-  ev(:ShortBreath, true)
+  ev(fever, true),
+  ev(dryCough, true),
+  ev(lossOfSmell, true),
+  ev(sneezing, false),
+  ev(shortBreath, true)
 ]).
 
 factor(Disease, Symptom, true, P) :- p_given(Disease, Symptom, P).
@@ -64,35 +64,35 @@ score(Disease, Score) :-
   mul(Prior, Likelihood, Score).
 
 total_score(Total) :-
-  score(:COVID19, S1),
-  score(:Influenza, S2),
-  score(:AllergicRhinitis, S3),
-  score(:BacterialPneumonia, S4),
+  score(covid19, S1),
+  score(influenza, S2),
+  score(allergicRhinitis, S3),
+  score(bacterialPneumonia, S4),
   add(S1, S2, A),
   add(S3, S4, B),
   add(A, B, Total).
 
 % Decimal surface values from the Eyeling reference output.
-score_decimal(:COVID19, 0.0015470000000000002).
-score_decimal(:Influenza, 0.000048000000000000015).
-score_decimal(:AllergicRhinitis, 7.499999999999999e-7).
-score_decimal(:BacterialPneumonia, 0.000047879999999999996).
+score_decimal(covid19, 0.0015470000000000002).
+score_decimal(influenza, 0.000048000000000000015).
+score_decimal(allergicRhinitis, 7.499999999999999e-7).
+score_decimal(bacterialPneumonia, 0.000047879999999999996).
 
 total_score_decimal(0.0016436300000000003).
 
-posterior(:COVID19, 0.9412093962753174).
-posterior(:Influenza, 0.029203652890249024).
-posterior(:AllergicRhinitis, 0.00045630707641014084).
-posterior(:BacterialPneumonia, 0.029130643758023392).
+posterior(covid19, 0.9412093962753174).
+posterior(influenza, 0.029203652890249024).
+posterior(allergicRhinitis, 0.00045630707641014084).
+posterior(bacterialPneumonia, 0.029130643758023392).
 
-triple(:Case, :scores, [
+triple(case, scores, [
   0.0015470000000000002,
   0.000048000000000000015,
   7.499999999999999e-7,
   0.000047879999999999996
 ]).
-triple(:Case, :evidenceTotal, Total) :- total_score_decimal(Total).
-triple(:Case, :result, result(Disease)) :- disease(Disease).
-triple(result(Disease), :disease, Disease) :- disease(Disease).
-triple(result(Disease), :unnormalized, Score) :- score_decimal(Disease, Score).
-triple(result(Disease), :posterior, Posterior) :- posterior(Disease, Posterior).
+triple(case, evidenceTotal, Total) :- total_score_decimal(Total).
+triple(case, result, result(Disease)) :- disease(Disease).
+triple(result(Disease), disease, Disease) :- disease(Disease).
+triple(result(Disease), unnormalized, Score) :- score_decimal(Disease, Score).
+triple(result(Disease), posterior, Posterior) :- posterior(Disease, Posterior).

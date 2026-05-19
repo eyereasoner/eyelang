@@ -1,16 +1,16 @@
-triple(:skolemDemo, :noObservationClash, true).
-triple(:skolemDemo, :sameInputsSameId, true).
-triple(skolem:alert(:Alice, :glucose), :about, skolem:observation(:Alice, :glucose)).
-triple(skolem:alert(:Alice, :glucose), rdf:type, :HighGlucoseAlert).
-triple(skolem:observation(:Alice, :cholesterol), :patient, :Alice).
-triple(skolem:observation(:Alice, :cholesterol), :test, :cholesterol).
-triple(skolem:observation(:Alice, :cholesterol), :value, 4.2).
-triple(skolem:observation(:Alice, :cholesterol), rdf:type, :Observation).
-triple(skolem:observation(:Alice, :glucose), :patient, :Alice).
-triple(skolem:observation(:Alice, :glucose), :test, :glucose).
-triple(skolem:observation(:Alice, :glucose), :value, 6.8).
-triple(skolem:observation(:Alice, :glucose), rdf:type, :Observation).
-triple(skolem:observation(:Bob, :glucose), :patient, :Bob).
-triple(skolem:observation(:Bob, :glucose), :test, :glucose).
-triple(skolem:observation(:Bob, :glucose), :value, 5.1).
-triple(skolem:observation(:Bob, :glucose), rdf:type, :Observation).
+triple(skolemDemo, noObservationClash, true).
+triple(skolemDemo, sameInputsSameId, true).
+triple(skolem_alert(alice, glucose), about, skolem_observation(alice, glucose)).
+triple(skolem_alert(alice, glucose), rdf_type, highGlucoseAlert).
+triple(skolem_observation(alice, cholesterol), patient, alice).
+triple(skolem_observation(alice, cholesterol), rdf_type, observation).
+triple(skolem_observation(alice, cholesterol), test, cholesterol).
+triple(skolem_observation(alice, cholesterol), value, 4.2).
+triple(skolem_observation(alice, glucose), patient, alice).
+triple(skolem_observation(alice, glucose), rdf_type, observation).
+triple(skolem_observation(alice, glucose), test, glucose).
+triple(skolem_observation(alice, glucose), value, 6.8).
+triple(skolem_observation(bob, glucose), patient, bob).
+triple(skolem_observation(bob, glucose), rdf_type, observation).
+triple(skolem_observation(bob, glucose), test, glucose).
+triple(skolem_observation(bob, glucose), value, 5.1).

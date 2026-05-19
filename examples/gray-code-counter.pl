@@ -36,5 +36,5 @@ testgcc([C|Cs], State, [Next|Rest]) :-
   gcc(C, State, Next),
   testgcc(Cs, Next, Rest).
 
-triple([[1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0]], :isgcc, States) :-
+triple([[1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0]], isgcc, States) :-
   testgcc([1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0], States).

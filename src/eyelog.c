@@ -189,7 +189,7 @@ static bool atom_char(char c) {
   return c &&
          !isspace((unsigned char)c) &&
          c != '(' && c != ')' && c != '[' && c != ']' &&
-         c != ',' && c != '|' && c != '.' &&
+         c != ',' && c != '|' && c != '.' && c != ':' &&
          c != '"' && c != '\'';
 }
 
@@ -226,6 +226,8 @@ static Token next_token(Parser *parser) {
     token.text = xstrdup(":-");
     return token;
   }
+
+  if (c == ':') die("colon names are no longer supported; use name or prefix_name");
 
   if (c == '"' || c == '\'') {
     char quote = take(parser);

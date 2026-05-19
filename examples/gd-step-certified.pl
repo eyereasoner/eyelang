@@ -100,36 +100,36 @@ f_lower(K, FL) :-
   end_squares(K, SL, SU),
   min2(SL, SU, FL).
 
-triple(:result, :eta, Eta) :-
+triple(result, eta, Eta) :-
   eta(Eta).
 
-triple(:result, :etaLeHalf, true) :-
+triple(result, etaLeHalf, true) :-
   eta_le_half(true).
 
-triple(:result, :xBounds, bounds(K, L, U)) :-
+triple(result, xBounds, bounds(K, L, U)) :-
   index(K),
   x_bounds(K, L, U).
 
-triple(:result, :midpoint, midpoint(K, M, HalfW)) :-
+triple(result, midpoint, midpoint(K, M, HalfW)) :-
   index(K),
   midpoint(K, M, HalfW).
 
-triple(:result, :width, width(K, W)) :-
+triple(result, width, width(K, W)) :-
   index(K),
   width(K, W).
 
-triple(:result, :gradientBounds, gradient(K, GL, GU)) :-
+triple(result, gradientBounds, gradient(K, GL, GU)) :-
   index(K),
   g_bounds(K, GL, GU).
 
-triple(:result, :stepBounds, step(K, PL, PU)) :-
+triple(result, stepBounds, step(K, PL, PU)) :-
   index(K),
   p_bounds(K, PL, PU).
 
-triple(:result, :objectiveBounds, f(K, FL, FU)) :-
+triple(result, objectiveBounds, f(K, FL, FU)) :-
   index(K),
   f_lower(K, FL),
   f_upper(K, FU).
 
-triple(:result, :widthContractsAt, K) :-
+triple(result, widthContractsAt, K) :-
   width_contracts_at(K, true).

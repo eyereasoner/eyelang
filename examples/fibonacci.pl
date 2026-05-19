@@ -1,6 +1,6 @@
 % BigInt Fibonacci via fast doubling, implemented in Prolog using generic
 % decimal add/sub/mul built-ins.  The result predicate follows Eyeling's
-% fibonacci.n3 output shape: N :fibonacci Value.
+% fibonacci.n3 output shape: N fibonacci Value.
 fib_case(0).
 fib_case(1).
 fib_case(10).
@@ -39,6 +39,6 @@ fib_pair(N, F, G) :-
   eq(F, D),
   eq(G, Next).
 
-triple(N, :fibonacci, Value) :-
+triple(N, fibonacci, Value) :-
   fib_case(N),
   fib(N, Value).

@@ -2,7 +2,7 @@
 % Change or add route_query(FromLabel, ToLabel, MaxStopOvers) to answer other routes.
 route_query("Ostend-Bruges International Airport", "Václav Havel Airport Prague", 2).
 
-triple(:discovered, :airroute, RouteText) :-
+triple(discovered, airroute, RouteText) :-
   route_query(From, To, MaxStopOvers),
   airport(Source, From),
   airport(Destination, To),

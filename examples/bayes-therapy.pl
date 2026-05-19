@@ -3,62 +3,62 @@
 % The example combines a tiny Naive Bayes diagnosis model with a therapy
 % utility layer: expected utility = 10 * expectedSuccess - 3 * expectedAdverse.
 
-triple(:Case, :diseases, [:COVID19, :Influenza, :AllergicRhinitis, :BacterialPneumonia]).
-triple(:Case, :therapies, [:Paxlovid, :Oseltamivir, :SupportiveCare, :Antibiotic, :Antihistamine]).
-triple(:Case, :evidence, [
-  ev(:Fever, true),
-  ev(:DryCough, true),
-  ev(:LossOfSmell, false),
-  ev(:Sneezing, false),
-  ev(:ShortBreath, false)
+triple(case, diseases, [covid19, influenza, allergicRhinitis, bacterialPneumonia]).
+triple(case, therapies, [paxlovid, oseltamivir, supportiveCare, antibiotic, antihistamine]).
+triple(case, evidence, [
+  ev(fever, true),
+  ev(dryCough, true),
+  ev(lossOfSmell, false),
+  ev(sneezing, false),
+  ev(shortBreath, false)
 ]).
 
-prior(:COVID19, 0.05).
-prior(:Influenza, 0.03).
-prior(:AllergicRhinitis, 0.10).
-prior(:BacterialPneumonia, 0.01).
+prior(covid19, 0.05).
+prior(influenza, 0.03).
+prior(allergicRhinitis, 0.10).
+prior(bacterialPneumonia, 0.01).
 
-p_given(:COVID19, :Fever, 0.70).
-p_given(:COVID19, :DryCough, 0.65).
-p_given(:COVID19, :LossOfSmell, 0.40).
-p_given(:COVID19, :Sneezing, 0.15).
-p_given(:COVID19, :ShortBreath, 0.20).
+p_given(covid19, fever, 0.70).
+p_given(covid19, dryCough, 0.65).
+p_given(covid19, lossOfSmell, 0.40).
+p_given(covid19, sneezing, 0.15).
+p_given(covid19, shortBreath, 0.20).
 
-p_given(:Influenza, :Fever, 0.80).
-p_given(:Influenza, :DryCough, 0.50).
-p_given(:Influenza, :LossOfSmell, 0.05).
-p_given(:Influenza, :Sneezing, 0.20).
-p_given(:Influenza, :ShortBreath, 0.10).
+p_given(influenza, fever, 0.80).
+p_given(influenza, dryCough, 0.50).
+p_given(influenza, lossOfSmell, 0.05).
+p_given(influenza, sneezing, 0.20).
+p_given(influenza, shortBreath, 0.10).
 
-p_given(:AllergicRhinitis, :Fever, 0.05).
-p_given(:AllergicRhinitis, :DryCough, 0.15).
-p_given(:AllergicRhinitis, :LossOfSmell, 0.10).
-p_given(:AllergicRhinitis, :Sneezing, 0.80).
-p_given(:AllergicRhinitis, :ShortBreath, 0.05).
+p_given(allergicRhinitis, fever, 0.05).
+p_given(allergicRhinitis, dryCough, 0.15).
+p_given(allergicRhinitis, lossOfSmell, 0.10).
+p_given(allergicRhinitis, sneezing, 0.80).
+p_given(allergicRhinitis, shortBreath, 0.05).
 
-p_given(:BacterialPneumonia, :Fever, 0.70).
-p_given(:BacterialPneumonia, :DryCough, 0.60).
-p_given(:BacterialPneumonia, :LossOfSmell, 0.02).
-p_given(:BacterialPneumonia, :Sneezing, 0.05).
-p_given(:BacterialPneumonia, :ShortBreath, 0.60).
+p_given(bacterialPneumonia, fever, 0.70).
+p_given(bacterialPneumonia, dryCough, 0.60).
+p_given(bacterialPneumonia, lossOfSmell, 0.02).
+p_given(bacterialPneumonia, sneezing, 0.05).
+p_given(bacterialPneumonia, shortBreath, 0.60).
 
-therapy(:Paxlovid).
-therapy(:Oseltamivir).
-therapy(:Antihistamine).
-therapy(:Antibiotic).
-therapy(:SupportiveCare).
+therapy(paxlovid).
+therapy(oseltamivir).
+therapy(antihistamine).
+therapy(antibiotic).
+therapy(supportiveCare).
 
-success_by_disease(:Paxlovid, [0.75, 0.05, 0.02, 0.05]).
-success_by_disease(:Oseltamivir, [0.05, 0.60, 0.02, 0.05]).
-success_by_disease(:Antihistamine, [0.10, 0.10, 0.75, 0.05]).
-success_by_disease(:Antibiotic, [0.05, 0.05, 0.02, 0.80]).
-success_by_disease(:SupportiveCare, [0.30, 0.30, 0.25, 0.20]).
+success_by_disease(paxlovid, [0.75, 0.05, 0.02, 0.05]).
+success_by_disease(oseltamivir, [0.05, 0.60, 0.02, 0.05]).
+success_by_disease(antihistamine, [0.10, 0.10, 0.75, 0.05]).
+success_by_disease(antibiotic, [0.05, 0.05, 0.02, 0.80]).
+success_by_disease(supportiveCare, [0.30, 0.30, 0.25, 0.20]).
 
-adverse(:Paxlovid, 0.10).
-adverse(:Oseltamivir, 0.08).
-adverse(:Antihistamine, 0.03).
-adverse(:Antibiotic, 0.07).
-adverse(:SupportiveCare, 0.01).
+adverse(paxlovid, 0.10).
+adverse(oseltamivir, 0.08).
+adverse(antihistamine, 0.03).
+adverse(antibiotic, 0.07).
+adverse(supportiveCare, 0.01).
 
 benefit_weight(10).
 harm_weight(3).
@@ -76,7 +76,7 @@ likelihood(Disease, [Evidence|Rest], Likelihood) :-
 
 score(Disease, Score) :-
   prior(Disease, Prior),
-  triple(:Case, :evidence, Evidence),
+  triple(case, evidence, Evidence),
   likelihood(Disease, Evidence, Likelihood),
   mul(Prior, Likelihood, Score).
 
@@ -106,7 +106,7 @@ dot_product([Left|RestLeft], [Right|RestRight], Sum) :-
   add(Term, TailSum, Sum).
 
 expected_success(Therapy, ExpectedSuccess) :-
-  triple(:Case, :posteriors, Posteriors),
+  triple(case, posteriors, Posteriors),
   success_by_disease(Therapy, SuccessByDisease),
   dot_product(Posteriors, SuccessByDisease, ExpectedSuccess).
 
@@ -133,29 +133,29 @@ best_therapy([Head, Next|Rest], Best) :-
   best_therapy([Next|Rest], BestRest),
   better_of(Head, BestRest, Best).
 
-triple(:Case, :scores, Scores) :-
-  triple(:Case, :diseases, Diseases),
+triple(case, scores, Scores) :-
+  triple(case, diseases, Diseases),
   scores_for(Diseases, Scores).
-triple(:Case, :evidenceTotal, Total) :-
-  triple(:Case, :scores, Scores),
+triple(case, evidenceTotal, Total) :-
+  triple(case, scores, Scores),
   sum_list(Scores, Total).
-triple(:Case, :posteriors, Posteriors) :-
-  triple(:Case, :scores, Scores),
-  triple(:Case, :evidenceTotal, Total),
+triple(case, posteriors, Posteriors) :-
+  triple(case, scores, Scores),
+  triple(case, evidenceTotal, Total),
   normalize_scores(Scores, Total, Posteriors).
-triple(Disease, :posterior, Posterior) :-
-  triple(:Case, :diseases, Diseases),
-  triple(:Case, :posteriors, Posteriors),
+triple(Disease, posterior, Posterior) :-
+  triple(case, diseases, Diseases),
+  triple(case, posteriors, Posteriors),
   disease_posterior(Diseases, Posteriors, Disease, Posterior).
-triple(Therapy, :expectedSuccess, ExpectedSuccess) :-
+triple(Therapy, expectedSuccess, ExpectedSuccess) :-
   therapy(Therapy),
   expected_success(Therapy, ExpectedSuccess).
-triple(Therapy, :expectedAdverse, Adverse) :-
+triple(Therapy, expectedAdverse, Adverse) :-
   therapy(Therapy),
   adverse(Therapy, Adverse).
-triple(Therapy, :utility, Utility) :-
+triple(Therapy, utility, Utility) :-
   therapy(Therapy),
   utility(Therapy, Utility).
-triple(:Case, :recommendedTherapy, Best) :-
-  triple(:Case, :therapies, Therapies),
+triple(case, recommendedTherapy, Best) :-
+  triple(case, therapies, Therapies),
   best_therapy(Therapies, Best).

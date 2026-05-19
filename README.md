@@ -4,7 +4,7 @@
 
 Eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping.
 
-Current version: `0.4.2`
+Current version: `0.4.3`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 
@@ -19,15 +19,14 @@ bin/eyelog --version
 
 ```sh
 bin/eyelog examples/delfour.pl
-bin/eyelog --query 'triple(:pat, :ancestor, X)' examples/ancestor.pl
+bin/eyelog --query 'triple(pat, ancestor, X)' examples/ancestor.pl
 ```
 
 Swap in any file under `examples/` to run another self-contained program.
 
 Built-ins use one native spelling each, such as `add/3`, `lt/2`, and `rest/2`.
-Namespaced predicates remain ordinary names for user vocabularies, but built-in
-`math:*`, `list:*`, `string:*`, and `log:*` aliases are intentionally not
-special-cased.
+Vocabulary-style names use plain atoms and underscores: write `b` instead of
+`:b`, and `a_b` instead of `a:b`.
 
 ## Release
 

@@ -9,5 +9,5 @@ hanoi(N, From, To, Via, Moves) :-
   hanoi(N1, Via, To, From, After),
   append(Before, [[From, To]|After], Moves).
 
-triple(3, :answer, Moves) :-
-  hanoi(3, :left, :right, :center, Moves).
+triple(3, answer, Moves) :-
+  hanoi(3, left, right, center, Moves).

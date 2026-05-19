@@ -1,1 +1,1 @@
-triple(:Root, :result, 12).
+triple(root, result, 12).

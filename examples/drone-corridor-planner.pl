@@ -2,22 +2,22 @@
 % A fuel list bounds recursion; duration and cost are summed, belief and comfort
 % are multiplied along the action sequence.
 
-fuel(:fuel7, [:t, :t, :t, :t, :t, :t, :t]).
+fuel(fuel7, [t, t, t, t, t, t, t]).
 
-step(state(:Gent, :full, P), state(:Brugge, :mid, P), :fly_gent_brugge, 1500.0, 0.006, 0.99, 0.99).
-step(state(:Gent, B, P), state(:Brugge, B, P), :train_gent_brugge, 1700.0, 0.012, 0.999, 0.995).
-step(state(:Gent, :full, P), state(:Kortrijk, :mid, P), :fly_gent_kortrijk, 1600.0, 0.007, 0.99, 0.99).
-step(state(:Kortrijk, :mid, P), state(:Brugge, :low, P), :fly_kortrijk_brugge, 1600.0, 0.007, 0.99, 0.99).
-step(state(:Brugge, :mid, P), state(:Kortrijk, :low, P), :fly_brugge_kortrijk, 1600.0, 0.007, 0.985, 0.98).
-step(state(:Kortrijk, B, :none), state(:Kortrijk, B, :yes), :get_zone_permit_kortrijk, 300.0, 0.001, 0.999, 1.0).
-step(state(:Brugge, B, :none), state(:Brugge, B, :yes), :buy_permit_brugge, 450.0, 0.002, 0.98, 1.0).
-step(state(:Brugge, :low, P), state(:Brugge, :full, P), :quick_charge_brugge, 600.0, 0.004, 0.999, 0.97).
-step(state(:Brugge, :mid, P), state(:Brugge, :full, P), :topup_brugge, 400.0, 0.003, 0.999, 0.98).
-step(state(:Kortrijk, :mid, P), state(:Kortrijk, :full, P), :emergency_charge_kortrijk, 500.0, 0.003, 0.999, 0.95).
-step(state(:Brugge, :full, :yes), state(:Oostende, :mid, :yes), :cross_corridor_brugge_oostende, 900.0, 0.004, 0.98, 1.0).
-step(state(:Brugge, :mid, P), state(:Oostende, :low, P), :public_coastline_brugge_oostende, 1300.0, 0.006, 0.97, 0.96).
-step(state(:Brugge, :full, P), state(:Oostende, :mid, P), :public_coastline_brugge_oostende, 1200.0, 0.006, 0.975, 0.96).
-step(state(:Kortrijk, :full, :yes), state(:Oostende, :mid, :yes), :direct_corridor_kortrijk_oostende, 1100.0, 0.009, 0.955, 0.92).
+step(state(gent, full, P), state(brugge, mid, P), fly_gent_brugge, 1500.0, 0.006, 0.99, 0.99).
+step(state(gent, B, P), state(brugge, B, P), train_gent_brugge, 1700.0, 0.012, 0.999, 0.995).
+step(state(gent, full, P), state(kortrijk, mid, P), fly_gent_kortrijk, 1600.0, 0.007, 0.99, 0.99).
+step(state(kortrijk, mid, P), state(brugge, low, P), fly_kortrijk_brugge, 1600.0, 0.007, 0.99, 0.99).
+step(state(brugge, mid, P), state(kortrijk, low, P), fly_brugge_kortrijk, 1600.0, 0.007, 0.985, 0.98).
+step(state(kortrijk, B, none), state(kortrijk, B, yes), get_zone_permit_kortrijk, 300.0, 0.001, 0.999, 1.0).
+step(state(brugge, B, none), state(brugge, B, yes), buy_permit_brugge, 450.0, 0.002, 0.98, 1.0).
+step(state(brugge, low, P), state(brugge, full, P), quick_charge_brugge, 600.0, 0.004, 0.999, 0.97).
+step(state(brugge, mid, P), state(brugge, full, P), topup_brugge, 400.0, 0.003, 0.999, 0.98).
+step(state(kortrijk, mid, P), state(kortrijk, full, P), emergency_charge_kortrijk, 500.0, 0.003, 0.999, 0.95).
+step(state(brugge, full, yes), state(oostende, mid, yes), cross_corridor_brugge_oostende, 900.0, 0.004, 0.98, 1.0).
+step(state(brugge, mid, P), state(oostende, low, P), public_coastline_brugge_oostende, 1300.0, 0.006, 0.97, 0.96).
+step(state(brugge, full, P), state(oostende, mid, P), public_coastline_brugge_oostende, 1200.0, 0.006, 0.975, 0.96).
+step(state(kortrijk, full, yes), state(oostende, mid, yes), direct_corridor_kortrijk_oostende, 1100.0, 0.009, 0.955, 0.92).
 
 path(From, To, [Act], Duration, Cost, Belief, Comfort, FuelIn, FuelOut) :-
   step(From, To, Act, Duration, Cost, Belief, Comfort),
@@ -34,10 +34,10 @@ path(From, To, Actions, Duration, Cost, Belief, Comfort, FuelIn, FuelOut) :-
   mul(M1, M2, Comfort).
 
 surviving_plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft) :-
-  fuel(:fuel7, Fuel),
-  path(state(:Gent, :full, :none), state(:Oostende, Battery, Permit), Actions, Duration, Cost, Belief, Comfort, Fuel, FuelLeft),
+  fuel(fuel7, Fuel),
+  path(state(gent, full, none), state(oostende, Battery, Permit), Actions, Duration, Cost, Belief, Comfort, Fuel, FuelLeft),
   gt(Belief, 0.94),
   lt(Cost, 0.03).
 
-triple(:d1, gps:plan, plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft)) :-
+triple(d1, gps_plan, plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft)) :-
   surviving_plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft).

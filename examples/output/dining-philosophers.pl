@@ -1,350 +1,350 @@
-triple(dp:mP1_1, dp:inSlot, dp:s1).
-triple(dp:mP1_1, dp:mealNo, 1).
-triple(dp:mP1_1, dp:philosopher, dp:P1).
-triple(dp:mP1_1, dp:type, dp:Meal).
-triple(dp:mP1_1, dp:usesFork, dp:F12).
-triple(dp:mP1_1, dp:usesFork, dp:F51).
-triple(dp:mP1_2, dp:inSlot, dp:s4).
-triple(dp:mP1_2, dp:mealNo, 2).
-triple(dp:mP1_2, dp:philosopher, dp:P1).
-triple(dp:mP1_2, dp:type, dp:Meal).
-triple(dp:mP1_2, dp:usesFork, dp:F12).
-triple(dp:mP1_2, dp:usesFork, dp:F51).
-triple(dp:mP1_3, dp:inSlot, dp:s7).
-triple(dp:mP1_3, dp:mealNo, 3).
-triple(dp:mP1_3, dp:philosopher, dp:P1).
-triple(dp:mP1_3, dp:type, dp:Meal).
-triple(dp:mP1_3, dp:usesFork, dp:F12).
-triple(dp:mP1_3, dp:usesFork, dp:F51).
-triple(dp:mP2_1, dp:inSlot, dp:s2).
-triple(dp:mP2_1, dp:mealNo, 1).
-triple(dp:mP2_1, dp:philosopher, dp:P2).
-triple(dp:mP2_1, dp:type, dp:Meal).
-triple(dp:mP2_1, dp:usesFork, dp:F12).
-triple(dp:mP2_1, dp:usesFork, dp:F23).
-triple(dp:mP2_2, dp:inSlot, dp:s5).
-triple(dp:mP2_2, dp:mealNo, 2).
-triple(dp:mP2_2, dp:philosopher, dp:P2).
-triple(dp:mP2_2, dp:type, dp:Meal).
-triple(dp:mP2_2, dp:usesFork, dp:F12).
-triple(dp:mP2_2, dp:usesFork, dp:F23).
-triple(dp:mP2_3, dp:inSlot, dp:s8).
-triple(dp:mP2_3, dp:mealNo, 3).
-triple(dp:mP2_3, dp:philosopher, dp:P2).
-triple(dp:mP2_3, dp:type, dp:Meal).
-triple(dp:mP2_3, dp:usesFork, dp:F12).
-triple(dp:mP2_3, dp:usesFork, dp:F23).
-triple(dp:mP3_1, dp:inSlot, dp:s1).
-triple(dp:mP3_1, dp:mealNo, 1).
-triple(dp:mP3_1, dp:philosopher, dp:P3).
-triple(dp:mP3_1, dp:type, dp:Meal).
-triple(dp:mP3_1, dp:usesFork, dp:F23).
-triple(dp:mP3_1, dp:usesFork, dp:F34).
-triple(dp:mP3_2, dp:inSlot, dp:s4).
-triple(dp:mP3_2, dp:mealNo, 2).
-triple(dp:mP3_2, dp:philosopher, dp:P3).
-triple(dp:mP3_2, dp:type, dp:Meal).
-triple(dp:mP3_2, dp:usesFork, dp:F23).
-triple(dp:mP3_2, dp:usesFork, dp:F34).
-triple(dp:mP3_3, dp:inSlot, dp:s7).
-triple(dp:mP3_3, dp:mealNo, 3).
-triple(dp:mP3_3, dp:philosopher, dp:P3).
-triple(dp:mP3_3, dp:type, dp:Meal).
-triple(dp:mP3_3, dp:usesFork, dp:F23).
-triple(dp:mP3_3, dp:usesFork, dp:F34).
-triple(dp:mP4_1, dp:inSlot, dp:s2).
-triple(dp:mP4_1, dp:mealNo, 1).
-triple(dp:mP4_1, dp:philosopher, dp:P4).
-triple(dp:mP4_1, dp:type, dp:Meal).
-triple(dp:mP4_1, dp:usesFork, dp:F34).
-triple(dp:mP4_1, dp:usesFork, dp:F45).
-triple(dp:mP4_2, dp:inSlot, dp:s5).
-triple(dp:mP4_2, dp:mealNo, 2).
-triple(dp:mP4_2, dp:philosopher, dp:P4).
-triple(dp:mP4_2, dp:type, dp:Meal).
-triple(dp:mP4_2, dp:usesFork, dp:F34).
-triple(dp:mP4_2, dp:usesFork, dp:F45).
-triple(dp:mP4_3, dp:inSlot, dp:s8).
-triple(dp:mP4_3, dp:mealNo, 3).
-triple(dp:mP4_3, dp:philosopher, dp:P4).
-triple(dp:mP4_3, dp:type, dp:Meal).
-triple(dp:mP4_3, dp:usesFork, dp:F34).
-triple(dp:mP4_3, dp:usesFork, dp:F45).
-triple(dp:mP5_1, dp:inSlot, dp:s3).
-triple(dp:mP5_1, dp:mealNo, 1).
-triple(dp:mP5_1, dp:philosopher, dp:P5).
-triple(dp:mP5_1, dp:type, dp:Meal).
-triple(dp:mP5_1, dp:usesFork, dp:F45).
-triple(dp:mP5_1, dp:usesFork, dp:F51).
-triple(dp:mP5_2, dp:inSlot, dp:s6).
-triple(dp:mP5_2, dp:mealNo, 2).
-triple(dp:mP5_2, dp:philosopher, dp:P5).
-triple(dp:mP5_2, dp:type, dp:Meal).
-triple(dp:mP5_2, dp:usesFork, dp:F45).
-triple(dp:mP5_2, dp:usesFork, dp:F51).
-triple(dp:mP5_3, dp:inSlot, dp:s9).
-triple(dp:mP5_3, dp:mealNo, 3).
-triple(dp:mP5_3, dp:philosopher, dp:P5).
-triple(dp:mP5_3, dp:type, dp:Meal).
-triple(dp:mP5_3, dp:usesFork, dp:F45).
-triple(dp:mP5_3, dp:usesFork, dp:F51).
-triple(request(dp:C0, dp:P3, dp:P2, dp:F23), dp:fork, dp:F23).
-triple(request(dp:C0, dp:P3, dp:P2, dp:F23), dp:from, dp:P3).
-triple(request(dp:C0, dp:P3, dp:P2, dp:F23), dp:in, dp:C0).
-triple(request(dp:C0, dp:P3, dp:P2, dp:F23), dp:to, dp:P2).
-triple(request(dp:C0, dp:P3, dp:P2, dp:F23), dp:type, dp:Request).
-triple(request(dp:C10, dp:P5, dp:P1, dp:F51), dp:fork, dp:F51).
-triple(request(dp:C10, dp:P5, dp:P1, dp:F51), dp:from, dp:P5).
-triple(request(dp:C10, dp:P5, dp:P1, dp:F51), dp:in, dp:C10).
-triple(request(dp:C10, dp:P5, dp:P1, dp:F51), dp:to, dp:P1).
-triple(request(dp:C10, dp:P5, dp:P1, dp:F51), dp:type, dp:Request).
-triple(request(dp:C10, dp:P5, dp:P4, dp:F45), dp:fork, dp:F45).
-triple(request(dp:C10, dp:P5, dp:P4, dp:F45), dp:from, dp:P5).
-triple(request(dp:C10, dp:P5, dp:P4, dp:F45), dp:in, dp:C10).
-triple(request(dp:C10, dp:P5, dp:P4, dp:F45), dp:to, dp:P4).
-triple(request(dp:C10, dp:P5, dp:P4, dp:F45), dp:type, dp:Request).
-triple(request(dp:C12, dp:P1, dp:P2, dp:F12), dp:fork, dp:F12).
-triple(request(dp:C12, dp:P1, dp:P2, dp:F12), dp:from, dp:P1).
-triple(request(dp:C12, dp:P1, dp:P2, dp:F12), dp:in, dp:C12).
-triple(request(dp:C12, dp:P1, dp:P2, dp:F12), dp:to, dp:P2).
-triple(request(dp:C12, dp:P1, dp:P2, dp:F12), dp:type, dp:Request).
-triple(request(dp:C12, dp:P1, dp:P5, dp:F51), dp:fork, dp:F51).
-triple(request(dp:C12, dp:P1, dp:P5, dp:F51), dp:from, dp:P1).
-triple(request(dp:C12, dp:P1, dp:P5, dp:F51), dp:in, dp:C12).
-triple(request(dp:C12, dp:P1, dp:P5, dp:F51), dp:to, dp:P5).
-triple(request(dp:C12, dp:P1, dp:P5, dp:F51), dp:type, dp:Request).
-triple(request(dp:C12, dp:P3, dp:P2, dp:F23), dp:fork, dp:F23).
-triple(request(dp:C12, dp:P3, dp:P2, dp:F23), dp:from, dp:P3).
-triple(request(dp:C12, dp:P3, dp:P2, dp:F23), dp:in, dp:C12).
-triple(request(dp:C12, dp:P3, dp:P2, dp:F23), dp:to, dp:P2).
-triple(request(dp:C12, dp:P3, dp:P2, dp:F23), dp:type, dp:Request).
-triple(request(dp:C12, dp:P3, dp:P4, dp:F34), dp:fork, dp:F34).
-triple(request(dp:C12, dp:P3, dp:P4, dp:F34), dp:from, dp:P3).
-triple(request(dp:C12, dp:P3, dp:P4, dp:F34), dp:in, dp:C12).
-triple(request(dp:C12, dp:P3, dp:P4, dp:F34), dp:to, dp:P4).
-triple(request(dp:C12, dp:P3, dp:P4, dp:F34), dp:type, dp:Request).
-triple(request(dp:C14, dp:P2, dp:P1, dp:F12), dp:fork, dp:F12).
-triple(request(dp:C14, dp:P2, dp:P1, dp:F12), dp:from, dp:P2).
-triple(request(dp:C14, dp:P2, dp:P1, dp:F12), dp:in, dp:C14).
-triple(request(dp:C14, dp:P2, dp:P1, dp:F12), dp:to, dp:P1).
-triple(request(dp:C14, dp:P2, dp:P1, dp:F12), dp:type, dp:Request).
-triple(request(dp:C14, dp:P2, dp:P3, dp:F23), dp:fork, dp:F23).
-triple(request(dp:C14, dp:P2, dp:P3, dp:F23), dp:from, dp:P2).
-triple(request(dp:C14, dp:P2, dp:P3, dp:F23), dp:in, dp:C14).
-triple(request(dp:C14, dp:P2, dp:P3, dp:F23), dp:to, dp:P3).
-triple(request(dp:C14, dp:P2, dp:P3, dp:F23), dp:type, dp:Request).
-triple(request(dp:C14, dp:P4, dp:P3, dp:F34), dp:fork, dp:F34).
-triple(request(dp:C14, dp:P4, dp:P3, dp:F34), dp:from, dp:P4).
-triple(request(dp:C14, dp:P4, dp:P3, dp:F34), dp:in, dp:C14).
-triple(request(dp:C14, dp:P4, dp:P3, dp:F34), dp:to, dp:P3).
-triple(request(dp:C14, dp:P4, dp:P3, dp:F34), dp:type, dp:Request).
-triple(request(dp:C14, dp:P4, dp:P5, dp:F45), dp:fork, dp:F45).
-triple(request(dp:C14, dp:P4, dp:P5, dp:F45), dp:from, dp:P4).
-triple(request(dp:C14, dp:P4, dp:P5, dp:F45), dp:in, dp:C14).
-triple(request(dp:C14, dp:P4, dp:P5, dp:F45), dp:to, dp:P5).
-triple(request(dp:C14, dp:P4, dp:P5, dp:F45), dp:type, dp:Request).
-triple(request(dp:C16, dp:P5, dp:P1, dp:F51), dp:fork, dp:F51).
-triple(request(dp:C16, dp:P5, dp:P1, dp:F51), dp:from, dp:P5).
-triple(request(dp:C16, dp:P5, dp:P1, dp:F51), dp:in, dp:C16).
-triple(request(dp:C16, dp:P5, dp:P1, dp:F51), dp:to, dp:P1).
-triple(request(dp:C16, dp:P5, dp:P1, dp:F51), dp:type, dp:Request).
-triple(request(dp:C16, dp:P5, dp:P4, dp:F45), dp:fork, dp:F45).
-triple(request(dp:C16, dp:P5, dp:P4, dp:F45), dp:from, dp:P5).
-triple(request(dp:C16, dp:P5, dp:P4, dp:F45), dp:in, dp:C16).
-triple(request(dp:C16, dp:P5, dp:P4, dp:F45), dp:to, dp:P4).
-triple(request(dp:C16, dp:P5, dp:P4, dp:F45), dp:type, dp:Request).
-triple(request(dp:C2, dp:P2, dp:P1, dp:F12), dp:fork, dp:F12).
-triple(request(dp:C2, dp:P2, dp:P1, dp:F12), dp:from, dp:P2).
-triple(request(dp:C2, dp:P2, dp:P1, dp:F12), dp:in, dp:C2).
-triple(request(dp:C2, dp:P2, dp:P1, dp:F12), dp:to, dp:P1).
-triple(request(dp:C2, dp:P2, dp:P1, dp:F12), dp:type, dp:Request).
-triple(request(dp:C2, dp:P2, dp:P3, dp:F23), dp:fork, dp:F23).
-triple(request(dp:C2, dp:P2, dp:P3, dp:F23), dp:from, dp:P2).
-triple(request(dp:C2, dp:P2, dp:P3, dp:F23), dp:in, dp:C2).
-triple(request(dp:C2, dp:P2, dp:P3, dp:F23), dp:to, dp:P3).
-triple(request(dp:C2, dp:P2, dp:P3, dp:F23), dp:type, dp:Request).
-triple(request(dp:C2, dp:P4, dp:P3, dp:F34), dp:fork, dp:F34).
-triple(request(dp:C2, dp:P4, dp:P3, dp:F34), dp:from, dp:P4).
-triple(request(dp:C2, dp:P4, dp:P3, dp:F34), dp:in, dp:C2).
-triple(request(dp:C2, dp:P4, dp:P3, dp:F34), dp:to, dp:P3).
-triple(request(dp:C2, dp:P4, dp:P3, dp:F34), dp:type, dp:Request).
-triple(request(dp:C4, dp:P5, dp:P1, dp:F51), dp:fork, dp:F51).
-triple(request(dp:C4, dp:P5, dp:P1, dp:F51), dp:from, dp:P5).
-triple(request(dp:C4, dp:P5, dp:P1, dp:F51), dp:in, dp:C4).
-triple(request(dp:C4, dp:P5, dp:P1, dp:F51), dp:to, dp:P1).
-triple(request(dp:C4, dp:P5, dp:P1, dp:F51), dp:type, dp:Request).
-triple(request(dp:C4, dp:P5, dp:P4, dp:F45), dp:fork, dp:F45).
-triple(request(dp:C4, dp:P5, dp:P4, dp:F45), dp:from, dp:P5).
-triple(request(dp:C4, dp:P5, dp:P4, dp:F45), dp:in, dp:C4).
-triple(request(dp:C4, dp:P5, dp:P4, dp:F45), dp:to, dp:P4).
-triple(request(dp:C4, dp:P5, dp:P4, dp:F45), dp:type, dp:Request).
-triple(request(dp:C6, dp:P1, dp:P2, dp:F12), dp:fork, dp:F12).
-triple(request(dp:C6, dp:P1, dp:P2, dp:F12), dp:from, dp:P1).
-triple(request(dp:C6, dp:P1, dp:P2, dp:F12), dp:in, dp:C6).
-triple(request(dp:C6, dp:P1, dp:P2, dp:F12), dp:to, dp:P2).
-triple(request(dp:C6, dp:P1, dp:P2, dp:F12), dp:type, dp:Request).
-triple(request(dp:C6, dp:P1, dp:P5, dp:F51), dp:fork, dp:F51).
-triple(request(dp:C6, dp:P1, dp:P5, dp:F51), dp:from, dp:P1).
-triple(request(dp:C6, dp:P1, dp:P5, dp:F51), dp:in, dp:C6).
-triple(request(dp:C6, dp:P1, dp:P5, dp:F51), dp:to, dp:P5).
-triple(request(dp:C6, dp:P1, dp:P5, dp:F51), dp:type, dp:Request).
-triple(request(dp:C6, dp:P3, dp:P2, dp:F23), dp:fork, dp:F23).
-triple(request(dp:C6, dp:P3, dp:P2, dp:F23), dp:from, dp:P3).
-triple(request(dp:C6, dp:P3, dp:P2, dp:F23), dp:in, dp:C6).
-triple(request(dp:C6, dp:P3, dp:P2, dp:F23), dp:to, dp:P2).
-triple(request(dp:C6, dp:P3, dp:P2, dp:F23), dp:type, dp:Request).
-triple(request(dp:C6, dp:P3, dp:P4, dp:F34), dp:fork, dp:F34).
-triple(request(dp:C6, dp:P3, dp:P4, dp:F34), dp:from, dp:P3).
-triple(request(dp:C6, dp:P3, dp:P4, dp:F34), dp:in, dp:C6).
-triple(request(dp:C6, dp:P3, dp:P4, dp:F34), dp:to, dp:P4).
-triple(request(dp:C6, dp:P3, dp:P4, dp:F34), dp:type, dp:Request).
-triple(request(dp:C8, dp:P2, dp:P1, dp:F12), dp:fork, dp:F12).
-triple(request(dp:C8, dp:P2, dp:P1, dp:F12), dp:from, dp:P2).
-triple(request(dp:C8, dp:P2, dp:P1, dp:F12), dp:in, dp:C8).
-triple(request(dp:C8, dp:P2, dp:P1, dp:F12), dp:to, dp:P1).
-triple(request(dp:C8, dp:P2, dp:P1, dp:F12), dp:type, dp:Request).
-triple(request(dp:C8, dp:P2, dp:P3, dp:F23), dp:fork, dp:F23).
-triple(request(dp:C8, dp:P2, dp:P3, dp:F23), dp:from, dp:P2).
-triple(request(dp:C8, dp:P2, dp:P3, dp:F23), dp:in, dp:C8).
-triple(request(dp:C8, dp:P2, dp:P3, dp:F23), dp:to, dp:P3).
-triple(request(dp:C8, dp:P2, dp:P3, dp:F23), dp:type, dp:Request).
-triple(request(dp:C8, dp:P4, dp:P3, dp:F34), dp:fork, dp:F34).
-triple(request(dp:C8, dp:P4, dp:P3, dp:F34), dp:from, dp:P4).
-triple(request(dp:C8, dp:P4, dp:P3, dp:F34), dp:in, dp:C8).
-triple(request(dp:C8, dp:P4, dp:P3, dp:F34), dp:to, dp:P3).
-triple(request(dp:C8, dp:P4, dp:P3, dp:F34), dp:type, dp:Request).
-triple(request(dp:C8, dp:P4, dp:P5, dp:F45), dp:fork, dp:F45).
-triple(request(dp:C8, dp:P4, dp:P5, dp:F45), dp:from, dp:P4).
-triple(request(dp:C8, dp:P4, dp:P5, dp:F45), dp:in, dp:C8).
-triple(request(dp:C8, dp:P4, dp:P5, dp:F45), dp:to, dp:P5).
-triple(request(dp:C8, dp:P4, dp:P5, dp:F45), dp:type, dp:Request).
-triple(send(dp:C0, dp:P2, dp:P3, dp:F23), dp:fork, dp:F23).
-triple(send(dp:C0, dp:P2, dp:P3, dp:F23), dp:from, dp:P2).
-triple(send(dp:C0, dp:P2, dp:P3, dp:F23), dp:in, dp:C0).
-triple(send(dp:C0, dp:P2, dp:P3, dp:F23), dp:to, dp:P3).
-triple(send(dp:C0, dp:P2, dp:P3, dp:F23), dp:type, dp:SendFork).
-triple(send(dp:C10, dp:P1, dp:P5, dp:F51), dp:fork, dp:F51).
-triple(send(dp:C10, dp:P1, dp:P5, dp:F51), dp:from, dp:P1).
-triple(send(dp:C10, dp:P1, dp:P5, dp:F51), dp:in, dp:C10).
-triple(send(dp:C10, dp:P1, dp:P5, dp:F51), dp:to, dp:P5).
-triple(send(dp:C10, dp:P1, dp:P5, dp:F51), dp:type, dp:SendFork).
-triple(send(dp:C10, dp:P4, dp:P5, dp:F45), dp:fork, dp:F45).
-triple(send(dp:C10, dp:P4, dp:P5, dp:F45), dp:from, dp:P4).
-triple(send(dp:C10, dp:P4, dp:P5, dp:F45), dp:in, dp:C10).
-triple(send(dp:C10, dp:P4, dp:P5, dp:F45), dp:to, dp:P5).
-triple(send(dp:C10, dp:P4, dp:P5, dp:F45), dp:type, dp:SendFork).
-triple(send(dp:C12, dp:P2, dp:P1, dp:F12), dp:fork, dp:F12).
-triple(send(dp:C12, dp:P2, dp:P1, dp:F12), dp:from, dp:P2).
-triple(send(dp:C12, dp:P2, dp:P1, dp:F12), dp:in, dp:C12).
-triple(send(dp:C12, dp:P2, dp:P1, dp:F12), dp:to, dp:P1).
-triple(send(dp:C12, dp:P2, dp:P1, dp:F12), dp:type, dp:SendFork).
-triple(send(dp:C12, dp:P2, dp:P3, dp:F23), dp:fork, dp:F23).
-triple(send(dp:C12, dp:P2, dp:P3, dp:F23), dp:from, dp:P2).
-triple(send(dp:C12, dp:P2, dp:P3, dp:F23), dp:in, dp:C12).
-triple(send(dp:C12, dp:P2, dp:P3, dp:F23), dp:to, dp:P3).
-triple(send(dp:C12, dp:P2, dp:P3, dp:F23), dp:type, dp:SendFork).
-triple(send(dp:C12, dp:P4, dp:P3, dp:F34), dp:fork, dp:F34).
-triple(send(dp:C12, dp:P4, dp:P3, dp:F34), dp:from, dp:P4).
-triple(send(dp:C12, dp:P4, dp:P3, dp:F34), dp:in, dp:C12).
-triple(send(dp:C12, dp:P4, dp:P3, dp:F34), dp:to, dp:P3).
-triple(send(dp:C12, dp:P4, dp:P3, dp:F34), dp:type, dp:SendFork).
-triple(send(dp:C12, dp:P5, dp:P1, dp:F51), dp:fork, dp:F51).
-triple(send(dp:C12, dp:P5, dp:P1, dp:F51), dp:from, dp:P5).
-triple(send(dp:C12, dp:P5, dp:P1, dp:F51), dp:in, dp:C12).
-triple(send(dp:C12, dp:P5, dp:P1, dp:F51), dp:to, dp:P1).
-triple(send(dp:C12, dp:P5, dp:P1, dp:F51), dp:type, dp:SendFork).
-triple(send(dp:C14, dp:P1, dp:P2, dp:F12), dp:fork, dp:F12).
-triple(send(dp:C14, dp:P1, dp:P2, dp:F12), dp:from, dp:P1).
-triple(send(dp:C14, dp:P1, dp:P2, dp:F12), dp:in, dp:C14).
-triple(send(dp:C14, dp:P1, dp:P2, dp:F12), dp:to, dp:P2).
-triple(send(dp:C14, dp:P1, dp:P2, dp:F12), dp:type, dp:SendFork).
-triple(send(dp:C14, dp:P3, dp:P2, dp:F23), dp:fork, dp:F23).
-triple(send(dp:C14, dp:P3, dp:P2, dp:F23), dp:from, dp:P3).
-triple(send(dp:C14, dp:P3, dp:P2, dp:F23), dp:in, dp:C14).
-triple(send(dp:C14, dp:P3, dp:P2, dp:F23), dp:to, dp:P2).
-triple(send(dp:C14, dp:P3, dp:P2, dp:F23), dp:type, dp:SendFork).
-triple(send(dp:C14, dp:P3, dp:P4, dp:F34), dp:fork, dp:F34).
-triple(send(dp:C14, dp:P3, dp:P4, dp:F34), dp:from, dp:P3).
-triple(send(dp:C14, dp:P3, dp:P4, dp:F34), dp:in, dp:C14).
-triple(send(dp:C14, dp:P3, dp:P4, dp:F34), dp:to, dp:P4).
-triple(send(dp:C14, dp:P3, dp:P4, dp:F34), dp:type, dp:SendFork).
-triple(send(dp:C14, dp:P5, dp:P4, dp:F45), dp:fork, dp:F45).
-triple(send(dp:C14, dp:P5, dp:P4, dp:F45), dp:from, dp:P5).
-triple(send(dp:C14, dp:P5, dp:P4, dp:F45), dp:in, dp:C14).
-triple(send(dp:C14, dp:P5, dp:P4, dp:F45), dp:to, dp:P4).
-triple(send(dp:C14, dp:P5, dp:P4, dp:F45), dp:type, dp:SendFork).
-triple(send(dp:C16, dp:P1, dp:P5, dp:F51), dp:fork, dp:F51).
-triple(send(dp:C16, dp:P1, dp:P5, dp:F51), dp:from, dp:P1).
-triple(send(dp:C16, dp:P1, dp:P5, dp:F51), dp:in, dp:C16).
-triple(send(dp:C16, dp:P1, dp:P5, dp:F51), dp:to, dp:P5).
-triple(send(dp:C16, dp:P1, dp:P5, dp:F51), dp:type, dp:SendFork).
-triple(send(dp:C16, dp:P4, dp:P5, dp:F45), dp:fork, dp:F45).
-triple(send(dp:C16, dp:P4, dp:P5, dp:F45), dp:from, dp:P4).
-triple(send(dp:C16, dp:P4, dp:P5, dp:F45), dp:in, dp:C16).
-triple(send(dp:C16, dp:P4, dp:P5, dp:F45), dp:to, dp:P5).
-triple(send(dp:C16, dp:P4, dp:P5, dp:F45), dp:type, dp:SendFork).
-triple(send(dp:C2, dp:P1, dp:P2, dp:F12), dp:fork, dp:F12).
-triple(send(dp:C2, dp:P1, dp:P2, dp:F12), dp:from, dp:P1).
-triple(send(dp:C2, dp:P1, dp:P2, dp:F12), dp:in, dp:C2).
-triple(send(dp:C2, dp:P1, dp:P2, dp:F12), dp:to, dp:P2).
-triple(send(dp:C2, dp:P1, dp:P2, dp:F12), dp:type, dp:SendFork).
-triple(send(dp:C2, dp:P3, dp:P2, dp:F23), dp:fork, dp:F23).
-triple(send(dp:C2, dp:P3, dp:P2, dp:F23), dp:from, dp:P3).
-triple(send(dp:C2, dp:P3, dp:P2, dp:F23), dp:in, dp:C2).
-triple(send(dp:C2, dp:P3, dp:P2, dp:F23), dp:to, dp:P2).
-triple(send(dp:C2, dp:P3, dp:P2, dp:F23), dp:type, dp:SendFork).
-triple(send(dp:C2, dp:P3, dp:P4, dp:F34), dp:fork, dp:F34).
-triple(send(dp:C2, dp:P3, dp:P4, dp:F34), dp:from, dp:P3).
-triple(send(dp:C2, dp:P3, dp:P4, dp:F34), dp:in, dp:C2).
-triple(send(dp:C2, dp:P3, dp:P4, dp:F34), dp:to, dp:P4).
-triple(send(dp:C2, dp:P3, dp:P4, dp:F34), dp:type, dp:SendFork).
-triple(send(dp:C4, dp:P1, dp:P5, dp:F51), dp:fork, dp:F51).
-triple(send(dp:C4, dp:P1, dp:P5, dp:F51), dp:from, dp:P1).
-triple(send(dp:C4, dp:P1, dp:P5, dp:F51), dp:in, dp:C4).
-triple(send(dp:C4, dp:P1, dp:P5, dp:F51), dp:to, dp:P5).
-triple(send(dp:C4, dp:P1, dp:P5, dp:F51), dp:type, dp:SendFork).
-triple(send(dp:C4, dp:P4, dp:P5, dp:F45), dp:fork, dp:F45).
-triple(send(dp:C4, dp:P4, dp:P5, dp:F45), dp:from, dp:P4).
-triple(send(dp:C4, dp:P4, dp:P5, dp:F45), dp:in, dp:C4).
-triple(send(dp:C4, dp:P4, dp:P5, dp:F45), dp:to, dp:P5).
-triple(send(dp:C4, dp:P4, dp:P5, dp:F45), dp:type, dp:SendFork).
-triple(send(dp:C6, dp:P2, dp:P1, dp:F12), dp:fork, dp:F12).
-triple(send(dp:C6, dp:P2, dp:P1, dp:F12), dp:from, dp:P2).
-triple(send(dp:C6, dp:P2, dp:P1, dp:F12), dp:in, dp:C6).
-triple(send(dp:C6, dp:P2, dp:P1, dp:F12), dp:to, dp:P1).
-triple(send(dp:C6, dp:P2, dp:P1, dp:F12), dp:type, dp:SendFork).
-triple(send(dp:C6, dp:P2, dp:P3, dp:F23), dp:fork, dp:F23).
-triple(send(dp:C6, dp:P2, dp:P3, dp:F23), dp:from, dp:P2).
-triple(send(dp:C6, dp:P2, dp:P3, dp:F23), dp:in, dp:C6).
-triple(send(dp:C6, dp:P2, dp:P3, dp:F23), dp:to, dp:P3).
-triple(send(dp:C6, dp:P2, dp:P3, dp:F23), dp:type, dp:SendFork).
-triple(send(dp:C6, dp:P4, dp:P3, dp:F34), dp:fork, dp:F34).
-triple(send(dp:C6, dp:P4, dp:P3, dp:F34), dp:from, dp:P4).
-triple(send(dp:C6, dp:P4, dp:P3, dp:F34), dp:in, dp:C6).
-triple(send(dp:C6, dp:P4, dp:P3, dp:F34), dp:to, dp:P3).
-triple(send(dp:C6, dp:P4, dp:P3, dp:F34), dp:type, dp:SendFork).
-triple(send(dp:C6, dp:P5, dp:P1, dp:F51), dp:fork, dp:F51).
-triple(send(dp:C6, dp:P5, dp:P1, dp:F51), dp:from, dp:P5).
-triple(send(dp:C6, dp:P5, dp:P1, dp:F51), dp:in, dp:C6).
-triple(send(dp:C6, dp:P5, dp:P1, dp:F51), dp:to, dp:P1).
-triple(send(dp:C6, dp:P5, dp:P1, dp:F51), dp:type, dp:SendFork).
-triple(send(dp:C8, dp:P1, dp:P2, dp:F12), dp:fork, dp:F12).
-triple(send(dp:C8, dp:P1, dp:P2, dp:F12), dp:from, dp:P1).
-triple(send(dp:C8, dp:P1, dp:P2, dp:F12), dp:in, dp:C8).
-triple(send(dp:C8, dp:P1, dp:P2, dp:F12), dp:to, dp:P2).
-triple(send(dp:C8, dp:P1, dp:P2, dp:F12), dp:type, dp:SendFork).
-triple(send(dp:C8, dp:P3, dp:P2, dp:F23), dp:fork, dp:F23).
-triple(send(dp:C8, dp:P3, dp:P2, dp:F23), dp:from, dp:P3).
-triple(send(dp:C8, dp:P3, dp:P2, dp:F23), dp:in, dp:C8).
-triple(send(dp:C8, dp:P3, dp:P2, dp:F23), dp:to, dp:P2).
-triple(send(dp:C8, dp:P3, dp:P2, dp:F23), dp:type, dp:SendFork).
-triple(send(dp:C8, dp:P3, dp:P4, dp:F34), dp:fork, dp:F34).
-triple(send(dp:C8, dp:P3, dp:P4, dp:F34), dp:from, dp:P3).
-triple(send(dp:C8, dp:P3, dp:P4, dp:F34), dp:in, dp:C8).
-triple(send(dp:C8, dp:P3, dp:P4, dp:F34), dp:to, dp:P4).
-triple(send(dp:C8, dp:P3, dp:P4, dp:F34), dp:type, dp:SendFork).
-triple(send(dp:C8, dp:P5, dp:P4, dp:F45), dp:fork, dp:F45).
-triple(send(dp:C8, dp:P5, dp:P4, dp:F45), dp:from, dp:P5).
-triple(send(dp:C8, dp:P5, dp:P4, dp:F45), dp:in, dp:C8).
-triple(send(dp:C8, dp:P5, dp:P4, dp:F45), dp:to, dp:P4).
-triple(send(dp:C8, dp:P5, dp:P4, dp:F45), dp:type, dp:SendFork).
+triple(dp_mP1_1, dp_inSlot, dp_s1).
+triple(dp_mP1_1, dp_mealNo, 1).
+triple(dp_mP1_1, dp_philosopher, dp_P1).
+triple(dp_mP1_1, dp_type, dp_Meal).
+triple(dp_mP1_1, dp_usesFork, dp_F12).
+triple(dp_mP1_1, dp_usesFork, dp_F51).
+triple(dp_mP1_2, dp_inSlot, dp_s4).
+triple(dp_mP1_2, dp_mealNo, 2).
+triple(dp_mP1_2, dp_philosopher, dp_P1).
+triple(dp_mP1_2, dp_type, dp_Meal).
+triple(dp_mP1_2, dp_usesFork, dp_F12).
+triple(dp_mP1_2, dp_usesFork, dp_F51).
+triple(dp_mP1_3, dp_inSlot, dp_s7).
+triple(dp_mP1_3, dp_mealNo, 3).
+triple(dp_mP1_3, dp_philosopher, dp_P1).
+triple(dp_mP1_3, dp_type, dp_Meal).
+triple(dp_mP1_3, dp_usesFork, dp_F12).
+triple(dp_mP1_3, dp_usesFork, dp_F51).
+triple(dp_mP2_1, dp_inSlot, dp_s2).
+triple(dp_mP2_1, dp_mealNo, 1).
+triple(dp_mP2_1, dp_philosopher, dp_P2).
+triple(dp_mP2_1, dp_type, dp_Meal).
+triple(dp_mP2_1, dp_usesFork, dp_F12).
+triple(dp_mP2_1, dp_usesFork, dp_F23).
+triple(dp_mP2_2, dp_inSlot, dp_s5).
+triple(dp_mP2_2, dp_mealNo, 2).
+triple(dp_mP2_2, dp_philosopher, dp_P2).
+triple(dp_mP2_2, dp_type, dp_Meal).
+triple(dp_mP2_2, dp_usesFork, dp_F12).
+triple(dp_mP2_2, dp_usesFork, dp_F23).
+triple(dp_mP2_3, dp_inSlot, dp_s8).
+triple(dp_mP2_3, dp_mealNo, 3).
+triple(dp_mP2_3, dp_philosopher, dp_P2).
+triple(dp_mP2_3, dp_type, dp_Meal).
+triple(dp_mP2_3, dp_usesFork, dp_F12).
+triple(dp_mP2_3, dp_usesFork, dp_F23).
+triple(dp_mP3_1, dp_inSlot, dp_s1).
+triple(dp_mP3_1, dp_mealNo, 1).
+triple(dp_mP3_1, dp_philosopher, dp_P3).
+triple(dp_mP3_1, dp_type, dp_Meal).
+triple(dp_mP3_1, dp_usesFork, dp_F23).
+triple(dp_mP3_1, dp_usesFork, dp_F34).
+triple(dp_mP3_2, dp_inSlot, dp_s4).
+triple(dp_mP3_2, dp_mealNo, 2).
+triple(dp_mP3_2, dp_philosopher, dp_P3).
+triple(dp_mP3_2, dp_type, dp_Meal).
+triple(dp_mP3_2, dp_usesFork, dp_F23).
+triple(dp_mP3_2, dp_usesFork, dp_F34).
+triple(dp_mP3_3, dp_inSlot, dp_s7).
+triple(dp_mP3_3, dp_mealNo, 3).
+triple(dp_mP3_3, dp_philosopher, dp_P3).
+triple(dp_mP3_3, dp_type, dp_Meal).
+triple(dp_mP3_3, dp_usesFork, dp_F23).
+triple(dp_mP3_3, dp_usesFork, dp_F34).
+triple(dp_mP4_1, dp_inSlot, dp_s2).
+triple(dp_mP4_1, dp_mealNo, 1).
+triple(dp_mP4_1, dp_philosopher, dp_P4).
+triple(dp_mP4_1, dp_type, dp_Meal).
+triple(dp_mP4_1, dp_usesFork, dp_F34).
+triple(dp_mP4_1, dp_usesFork, dp_F45).
+triple(dp_mP4_2, dp_inSlot, dp_s5).
+triple(dp_mP4_2, dp_mealNo, 2).
+triple(dp_mP4_2, dp_philosopher, dp_P4).
+triple(dp_mP4_2, dp_type, dp_Meal).
+triple(dp_mP4_2, dp_usesFork, dp_F34).
+triple(dp_mP4_2, dp_usesFork, dp_F45).
+triple(dp_mP4_3, dp_inSlot, dp_s8).
+triple(dp_mP4_3, dp_mealNo, 3).
+triple(dp_mP4_3, dp_philosopher, dp_P4).
+triple(dp_mP4_3, dp_type, dp_Meal).
+triple(dp_mP4_3, dp_usesFork, dp_F34).
+triple(dp_mP4_3, dp_usesFork, dp_F45).
+triple(dp_mP5_1, dp_inSlot, dp_s3).
+triple(dp_mP5_1, dp_mealNo, 1).
+triple(dp_mP5_1, dp_philosopher, dp_P5).
+triple(dp_mP5_1, dp_type, dp_Meal).
+triple(dp_mP5_1, dp_usesFork, dp_F45).
+triple(dp_mP5_1, dp_usesFork, dp_F51).
+triple(dp_mP5_2, dp_inSlot, dp_s6).
+triple(dp_mP5_2, dp_mealNo, 2).
+triple(dp_mP5_2, dp_philosopher, dp_P5).
+triple(dp_mP5_2, dp_type, dp_Meal).
+triple(dp_mP5_2, dp_usesFork, dp_F45).
+triple(dp_mP5_2, dp_usesFork, dp_F51).
+triple(dp_mP5_3, dp_inSlot, dp_s9).
+triple(dp_mP5_3, dp_mealNo, 3).
+triple(dp_mP5_3, dp_philosopher, dp_P5).
+triple(dp_mP5_3, dp_type, dp_Meal).
+triple(dp_mP5_3, dp_usesFork, dp_F45).
+triple(dp_mP5_3, dp_usesFork, dp_F51).
+triple(request(dp_C0, dp_P3, dp_P2, dp_F23), dp_fork, dp_F23).
+triple(request(dp_C0, dp_P3, dp_P2, dp_F23), dp_from, dp_P3).
+triple(request(dp_C0, dp_P3, dp_P2, dp_F23), dp_in, dp_C0).
+triple(request(dp_C0, dp_P3, dp_P2, dp_F23), dp_to, dp_P2).
+triple(request(dp_C0, dp_P3, dp_P2, dp_F23), dp_type, dp_Request).
+triple(request(dp_C10, dp_P5, dp_P1, dp_F51), dp_fork, dp_F51).
+triple(request(dp_C10, dp_P5, dp_P1, dp_F51), dp_from, dp_P5).
+triple(request(dp_C10, dp_P5, dp_P1, dp_F51), dp_in, dp_C10).
+triple(request(dp_C10, dp_P5, dp_P1, dp_F51), dp_to, dp_P1).
+triple(request(dp_C10, dp_P5, dp_P1, dp_F51), dp_type, dp_Request).
+triple(request(dp_C10, dp_P5, dp_P4, dp_F45), dp_fork, dp_F45).
+triple(request(dp_C10, dp_P5, dp_P4, dp_F45), dp_from, dp_P5).
+triple(request(dp_C10, dp_P5, dp_P4, dp_F45), dp_in, dp_C10).
+triple(request(dp_C10, dp_P5, dp_P4, dp_F45), dp_to, dp_P4).
+triple(request(dp_C10, dp_P5, dp_P4, dp_F45), dp_type, dp_Request).
+triple(request(dp_C12, dp_P1, dp_P2, dp_F12), dp_fork, dp_F12).
+triple(request(dp_C12, dp_P1, dp_P2, dp_F12), dp_from, dp_P1).
+triple(request(dp_C12, dp_P1, dp_P2, dp_F12), dp_in, dp_C12).
+triple(request(dp_C12, dp_P1, dp_P2, dp_F12), dp_to, dp_P2).
+triple(request(dp_C12, dp_P1, dp_P2, dp_F12), dp_type, dp_Request).
+triple(request(dp_C12, dp_P1, dp_P5, dp_F51), dp_fork, dp_F51).
+triple(request(dp_C12, dp_P1, dp_P5, dp_F51), dp_from, dp_P1).
+triple(request(dp_C12, dp_P1, dp_P5, dp_F51), dp_in, dp_C12).
+triple(request(dp_C12, dp_P1, dp_P5, dp_F51), dp_to, dp_P5).
+triple(request(dp_C12, dp_P1, dp_P5, dp_F51), dp_type, dp_Request).
+triple(request(dp_C12, dp_P3, dp_P2, dp_F23), dp_fork, dp_F23).
+triple(request(dp_C12, dp_P3, dp_P2, dp_F23), dp_from, dp_P3).
+triple(request(dp_C12, dp_P3, dp_P2, dp_F23), dp_in, dp_C12).
+triple(request(dp_C12, dp_P3, dp_P2, dp_F23), dp_to, dp_P2).
+triple(request(dp_C12, dp_P3, dp_P2, dp_F23), dp_type, dp_Request).
+triple(request(dp_C12, dp_P3, dp_P4, dp_F34), dp_fork, dp_F34).
+triple(request(dp_C12, dp_P3, dp_P4, dp_F34), dp_from, dp_P3).
+triple(request(dp_C12, dp_P3, dp_P4, dp_F34), dp_in, dp_C12).
+triple(request(dp_C12, dp_P3, dp_P4, dp_F34), dp_to, dp_P4).
+triple(request(dp_C12, dp_P3, dp_P4, dp_F34), dp_type, dp_Request).
+triple(request(dp_C14, dp_P2, dp_P1, dp_F12), dp_fork, dp_F12).
+triple(request(dp_C14, dp_P2, dp_P1, dp_F12), dp_from, dp_P2).
+triple(request(dp_C14, dp_P2, dp_P1, dp_F12), dp_in, dp_C14).
+triple(request(dp_C14, dp_P2, dp_P1, dp_F12), dp_to, dp_P1).
+triple(request(dp_C14, dp_P2, dp_P1, dp_F12), dp_type, dp_Request).
+triple(request(dp_C14, dp_P2, dp_P3, dp_F23), dp_fork, dp_F23).
+triple(request(dp_C14, dp_P2, dp_P3, dp_F23), dp_from, dp_P2).
+triple(request(dp_C14, dp_P2, dp_P3, dp_F23), dp_in, dp_C14).
+triple(request(dp_C14, dp_P2, dp_P3, dp_F23), dp_to, dp_P3).
+triple(request(dp_C14, dp_P2, dp_P3, dp_F23), dp_type, dp_Request).
+triple(request(dp_C14, dp_P4, dp_P3, dp_F34), dp_fork, dp_F34).
+triple(request(dp_C14, dp_P4, dp_P3, dp_F34), dp_from, dp_P4).
+triple(request(dp_C14, dp_P4, dp_P3, dp_F34), dp_in, dp_C14).
+triple(request(dp_C14, dp_P4, dp_P3, dp_F34), dp_to, dp_P3).
+triple(request(dp_C14, dp_P4, dp_P3, dp_F34), dp_type, dp_Request).
+triple(request(dp_C14, dp_P4, dp_P5, dp_F45), dp_fork, dp_F45).
+triple(request(dp_C14, dp_P4, dp_P5, dp_F45), dp_from, dp_P4).
+triple(request(dp_C14, dp_P4, dp_P5, dp_F45), dp_in, dp_C14).
+triple(request(dp_C14, dp_P4, dp_P5, dp_F45), dp_to, dp_P5).
+triple(request(dp_C14, dp_P4, dp_P5, dp_F45), dp_type, dp_Request).
+triple(request(dp_C16, dp_P5, dp_P1, dp_F51), dp_fork, dp_F51).
+triple(request(dp_C16, dp_P5, dp_P1, dp_F51), dp_from, dp_P5).
+triple(request(dp_C16, dp_P5, dp_P1, dp_F51), dp_in, dp_C16).
+triple(request(dp_C16, dp_P5, dp_P1, dp_F51), dp_to, dp_P1).
+triple(request(dp_C16, dp_P5, dp_P1, dp_F51), dp_type, dp_Request).
+triple(request(dp_C16, dp_P5, dp_P4, dp_F45), dp_fork, dp_F45).
+triple(request(dp_C16, dp_P5, dp_P4, dp_F45), dp_from, dp_P5).
+triple(request(dp_C16, dp_P5, dp_P4, dp_F45), dp_in, dp_C16).
+triple(request(dp_C16, dp_P5, dp_P4, dp_F45), dp_to, dp_P4).
+triple(request(dp_C16, dp_P5, dp_P4, dp_F45), dp_type, dp_Request).
+triple(request(dp_C2, dp_P2, dp_P1, dp_F12), dp_fork, dp_F12).
+triple(request(dp_C2, dp_P2, dp_P1, dp_F12), dp_from, dp_P2).
+triple(request(dp_C2, dp_P2, dp_P1, dp_F12), dp_in, dp_C2).
+triple(request(dp_C2, dp_P2, dp_P1, dp_F12), dp_to, dp_P1).
+triple(request(dp_C2, dp_P2, dp_P1, dp_F12), dp_type, dp_Request).
+triple(request(dp_C2, dp_P2, dp_P3, dp_F23), dp_fork, dp_F23).
+triple(request(dp_C2, dp_P2, dp_P3, dp_F23), dp_from, dp_P2).
+triple(request(dp_C2, dp_P2, dp_P3, dp_F23), dp_in, dp_C2).
+triple(request(dp_C2, dp_P2, dp_P3, dp_F23), dp_to, dp_P3).
+triple(request(dp_C2, dp_P2, dp_P3, dp_F23), dp_type, dp_Request).
+triple(request(dp_C2, dp_P4, dp_P3, dp_F34), dp_fork, dp_F34).
+triple(request(dp_C2, dp_P4, dp_P3, dp_F34), dp_from, dp_P4).
+triple(request(dp_C2, dp_P4, dp_P3, dp_F34), dp_in, dp_C2).
+triple(request(dp_C2, dp_P4, dp_P3, dp_F34), dp_to, dp_P3).
+triple(request(dp_C2, dp_P4, dp_P3, dp_F34), dp_type, dp_Request).
+triple(request(dp_C4, dp_P5, dp_P1, dp_F51), dp_fork, dp_F51).
+triple(request(dp_C4, dp_P5, dp_P1, dp_F51), dp_from, dp_P5).
+triple(request(dp_C4, dp_P5, dp_P1, dp_F51), dp_in, dp_C4).
+triple(request(dp_C4, dp_P5, dp_P1, dp_F51), dp_to, dp_P1).
+triple(request(dp_C4, dp_P5, dp_P1, dp_F51), dp_type, dp_Request).
+triple(request(dp_C4, dp_P5, dp_P4, dp_F45), dp_fork, dp_F45).
+triple(request(dp_C4, dp_P5, dp_P4, dp_F45), dp_from, dp_P5).
+triple(request(dp_C4, dp_P5, dp_P4, dp_F45), dp_in, dp_C4).
+triple(request(dp_C4, dp_P5, dp_P4, dp_F45), dp_to, dp_P4).
+triple(request(dp_C4, dp_P5, dp_P4, dp_F45), dp_type, dp_Request).
+triple(request(dp_C6, dp_P1, dp_P2, dp_F12), dp_fork, dp_F12).
+triple(request(dp_C6, dp_P1, dp_P2, dp_F12), dp_from, dp_P1).
+triple(request(dp_C6, dp_P1, dp_P2, dp_F12), dp_in, dp_C6).
+triple(request(dp_C6, dp_P1, dp_P2, dp_F12), dp_to, dp_P2).
+triple(request(dp_C6, dp_P1, dp_P2, dp_F12), dp_type, dp_Request).
+triple(request(dp_C6, dp_P1, dp_P5, dp_F51), dp_fork, dp_F51).
+triple(request(dp_C6, dp_P1, dp_P5, dp_F51), dp_from, dp_P1).
+triple(request(dp_C6, dp_P1, dp_P5, dp_F51), dp_in, dp_C6).
+triple(request(dp_C6, dp_P1, dp_P5, dp_F51), dp_to, dp_P5).
+triple(request(dp_C6, dp_P1, dp_P5, dp_F51), dp_type, dp_Request).
+triple(request(dp_C6, dp_P3, dp_P2, dp_F23), dp_fork, dp_F23).
+triple(request(dp_C6, dp_P3, dp_P2, dp_F23), dp_from, dp_P3).
+triple(request(dp_C6, dp_P3, dp_P2, dp_F23), dp_in, dp_C6).
+triple(request(dp_C6, dp_P3, dp_P2, dp_F23), dp_to, dp_P2).
+triple(request(dp_C6, dp_P3, dp_P2, dp_F23), dp_type, dp_Request).
+triple(request(dp_C6, dp_P3, dp_P4, dp_F34), dp_fork, dp_F34).
+triple(request(dp_C6, dp_P3, dp_P4, dp_F34), dp_from, dp_P3).
+triple(request(dp_C6, dp_P3, dp_P4, dp_F34), dp_in, dp_C6).
+triple(request(dp_C6, dp_P3, dp_P4, dp_F34), dp_to, dp_P4).
+triple(request(dp_C6, dp_P3, dp_P4, dp_F34), dp_type, dp_Request).
+triple(request(dp_C8, dp_P2, dp_P1, dp_F12), dp_fork, dp_F12).
+triple(request(dp_C8, dp_P2, dp_P1, dp_F12), dp_from, dp_P2).
+triple(request(dp_C8, dp_P2, dp_P1, dp_F12), dp_in, dp_C8).
+triple(request(dp_C8, dp_P2, dp_P1, dp_F12), dp_to, dp_P1).
+triple(request(dp_C8, dp_P2, dp_P1, dp_F12), dp_type, dp_Request).
+triple(request(dp_C8, dp_P2, dp_P3, dp_F23), dp_fork, dp_F23).
+triple(request(dp_C8, dp_P2, dp_P3, dp_F23), dp_from, dp_P2).
+triple(request(dp_C8, dp_P2, dp_P3, dp_F23), dp_in, dp_C8).
+triple(request(dp_C8, dp_P2, dp_P3, dp_F23), dp_to, dp_P3).
+triple(request(dp_C8, dp_P2, dp_P3, dp_F23), dp_type, dp_Request).
+triple(request(dp_C8, dp_P4, dp_P3, dp_F34), dp_fork, dp_F34).
+triple(request(dp_C8, dp_P4, dp_P3, dp_F34), dp_from, dp_P4).
+triple(request(dp_C8, dp_P4, dp_P3, dp_F34), dp_in, dp_C8).
+triple(request(dp_C8, dp_P4, dp_P3, dp_F34), dp_to, dp_P3).
+triple(request(dp_C8, dp_P4, dp_P3, dp_F34), dp_type, dp_Request).
+triple(request(dp_C8, dp_P4, dp_P5, dp_F45), dp_fork, dp_F45).
+triple(request(dp_C8, dp_P4, dp_P5, dp_F45), dp_from, dp_P4).
+triple(request(dp_C8, dp_P4, dp_P5, dp_F45), dp_in, dp_C8).
+triple(request(dp_C8, dp_P4, dp_P5, dp_F45), dp_to, dp_P5).
+triple(request(dp_C8, dp_P4, dp_P5, dp_F45), dp_type, dp_Request).
+triple(send(dp_C0, dp_P2, dp_P3, dp_F23), dp_fork, dp_F23).
+triple(send(dp_C0, dp_P2, dp_P3, dp_F23), dp_from, dp_P2).
+triple(send(dp_C0, dp_P2, dp_P3, dp_F23), dp_in, dp_C0).
+triple(send(dp_C0, dp_P2, dp_P3, dp_F23), dp_to, dp_P3).
+triple(send(dp_C0, dp_P2, dp_P3, dp_F23), dp_type, dp_SendFork).
+triple(send(dp_C10, dp_P1, dp_P5, dp_F51), dp_fork, dp_F51).
+triple(send(dp_C10, dp_P1, dp_P5, dp_F51), dp_from, dp_P1).
+triple(send(dp_C10, dp_P1, dp_P5, dp_F51), dp_in, dp_C10).
+triple(send(dp_C10, dp_P1, dp_P5, dp_F51), dp_to, dp_P5).
+triple(send(dp_C10, dp_P1, dp_P5, dp_F51), dp_type, dp_SendFork).
+triple(send(dp_C10, dp_P4, dp_P5, dp_F45), dp_fork, dp_F45).
+triple(send(dp_C10, dp_P4, dp_P5, dp_F45), dp_from, dp_P4).
+triple(send(dp_C10, dp_P4, dp_P5, dp_F45), dp_in, dp_C10).
+triple(send(dp_C10, dp_P4, dp_P5, dp_F45), dp_to, dp_P5).
+triple(send(dp_C10, dp_P4, dp_P5, dp_F45), dp_type, dp_SendFork).
+triple(send(dp_C12, dp_P2, dp_P1, dp_F12), dp_fork, dp_F12).
+triple(send(dp_C12, dp_P2, dp_P1, dp_F12), dp_from, dp_P2).
+triple(send(dp_C12, dp_P2, dp_P1, dp_F12), dp_in, dp_C12).
+triple(send(dp_C12, dp_P2, dp_P1, dp_F12), dp_to, dp_P1).
+triple(send(dp_C12, dp_P2, dp_P1, dp_F12), dp_type, dp_SendFork).
+triple(send(dp_C12, dp_P2, dp_P3, dp_F23), dp_fork, dp_F23).
+triple(send(dp_C12, dp_P2, dp_P3, dp_F23), dp_from, dp_P2).
+triple(send(dp_C12, dp_P2, dp_P3, dp_F23), dp_in, dp_C12).
+triple(send(dp_C12, dp_P2, dp_P3, dp_F23), dp_to, dp_P3).
+triple(send(dp_C12, dp_P2, dp_P3, dp_F23), dp_type, dp_SendFork).
+triple(send(dp_C12, dp_P4, dp_P3, dp_F34), dp_fork, dp_F34).
+triple(send(dp_C12, dp_P4, dp_P3, dp_F34), dp_from, dp_P4).
+triple(send(dp_C12, dp_P4, dp_P3, dp_F34), dp_in, dp_C12).
+triple(send(dp_C12, dp_P4, dp_P3, dp_F34), dp_to, dp_P3).
+triple(send(dp_C12, dp_P4, dp_P3, dp_F34), dp_type, dp_SendFork).
+triple(send(dp_C12, dp_P5, dp_P1, dp_F51), dp_fork, dp_F51).
+triple(send(dp_C12, dp_P5, dp_P1, dp_F51), dp_from, dp_P5).
+triple(send(dp_C12, dp_P5, dp_P1, dp_F51), dp_in, dp_C12).
+triple(send(dp_C12, dp_P5, dp_P1, dp_F51), dp_to, dp_P1).
+triple(send(dp_C12, dp_P5, dp_P1, dp_F51), dp_type, dp_SendFork).
+triple(send(dp_C14, dp_P1, dp_P2, dp_F12), dp_fork, dp_F12).
+triple(send(dp_C14, dp_P1, dp_P2, dp_F12), dp_from, dp_P1).
+triple(send(dp_C14, dp_P1, dp_P2, dp_F12), dp_in, dp_C14).
+triple(send(dp_C14, dp_P1, dp_P2, dp_F12), dp_to, dp_P2).
+triple(send(dp_C14, dp_P1, dp_P2, dp_F12), dp_type, dp_SendFork).
+triple(send(dp_C14, dp_P3, dp_P2, dp_F23), dp_fork, dp_F23).
+triple(send(dp_C14, dp_P3, dp_P2, dp_F23), dp_from, dp_P3).
+triple(send(dp_C14, dp_P3, dp_P2, dp_F23), dp_in, dp_C14).
+triple(send(dp_C14, dp_P3, dp_P2, dp_F23), dp_to, dp_P2).
+triple(send(dp_C14, dp_P3, dp_P2, dp_F23), dp_type, dp_SendFork).
+triple(send(dp_C14, dp_P3, dp_P4, dp_F34), dp_fork, dp_F34).
+triple(send(dp_C14, dp_P3, dp_P4, dp_F34), dp_from, dp_P3).
+triple(send(dp_C14, dp_P3, dp_P4, dp_F34), dp_in, dp_C14).
+triple(send(dp_C14, dp_P3, dp_P4, dp_F34), dp_to, dp_P4).
+triple(send(dp_C14, dp_P3, dp_P4, dp_F34), dp_type, dp_SendFork).
+triple(send(dp_C14, dp_P5, dp_P4, dp_F45), dp_fork, dp_F45).
+triple(send(dp_C14, dp_P5, dp_P4, dp_F45), dp_from, dp_P5).
+triple(send(dp_C14, dp_P5, dp_P4, dp_F45), dp_in, dp_C14).
+triple(send(dp_C14, dp_P5, dp_P4, dp_F45), dp_to, dp_P4).
+triple(send(dp_C14, dp_P5, dp_P4, dp_F45), dp_type, dp_SendFork).
+triple(send(dp_C16, dp_P1, dp_P5, dp_F51), dp_fork, dp_F51).
+triple(send(dp_C16, dp_P1, dp_P5, dp_F51), dp_from, dp_P1).
+triple(send(dp_C16, dp_P1, dp_P5, dp_F51), dp_in, dp_C16).
+triple(send(dp_C16, dp_P1, dp_P5, dp_F51), dp_to, dp_P5).
+triple(send(dp_C16, dp_P1, dp_P5, dp_F51), dp_type, dp_SendFork).
+triple(send(dp_C16, dp_P4, dp_P5, dp_F45), dp_fork, dp_F45).
+triple(send(dp_C16, dp_P4, dp_P5, dp_F45), dp_from, dp_P4).
+triple(send(dp_C16, dp_P4, dp_P5, dp_F45), dp_in, dp_C16).
+triple(send(dp_C16, dp_P4, dp_P5, dp_F45), dp_to, dp_P5).
+triple(send(dp_C16, dp_P4, dp_P5, dp_F45), dp_type, dp_SendFork).
+triple(send(dp_C2, dp_P1, dp_P2, dp_F12), dp_fork, dp_F12).
+triple(send(dp_C2, dp_P1, dp_P2, dp_F12), dp_from, dp_P1).
+triple(send(dp_C2, dp_P1, dp_P2, dp_F12), dp_in, dp_C2).
+triple(send(dp_C2, dp_P1, dp_P2, dp_F12), dp_to, dp_P2).
+triple(send(dp_C2, dp_P1, dp_P2, dp_F12), dp_type, dp_SendFork).
+triple(send(dp_C2, dp_P3, dp_P2, dp_F23), dp_fork, dp_F23).
+triple(send(dp_C2, dp_P3, dp_P2, dp_F23), dp_from, dp_P3).
+triple(send(dp_C2, dp_P3, dp_P2, dp_F23), dp_in, dp_C2).
+triple(send(dp_C2, dp_P3, dp_P2, dp_F23), dp_to, dp_P2).
+triple(send(dp_C2, dp_P3, dp_P2, dp_F23), dp_type, dp_SendFork).
+triple(send(dp_C2, dp_P3, dp_P4, dp_F34), dp_fork, dp_F34).
+triple(send(dp_C2, dp_P3, dp_P4, dp_F34), dp_from, dp_P3).
+triple(send(dp_C2, dp_P3, dp_P4, dp_F34), dp_in, dp_C2).
+triple(send(dp_C2, dp_P3, dp_P4, dp_F34), dp_to, dp_P4).
+triple(send(dp_C2, dp_P3, dp_P4, dp_F34), dp_type, dp_SendFork).
+triple(send(dp_C4, dp_P1, dp_P5, dp_F51), dp_fork, dp_F51).
+triple(send(dp_C4, dp_P1, dp_P5, dp_F51), dp_from, dp_P1).
+triple(send(dp_C4, dp_P1, dp_P5, dp_F51), dp_in, dp_C4).
+triple(send(dp_C4, dp_P1, dp_P5, dp_F51), dp_to, dp_P5).
+triple(send(dp_C4, dp_P1, dp_P5, dp_F51), dp_type, dp_SendFork).
+triple(send(dp_C4, dp_P4, dp_P5, dp_F45), dp_fork, dp_F45).
+triple(send(dp_C4, dp_P4, dp_P5, dp_F45), dp_from, dp_P4).
+triple(send(dp_C4, dp_P4, dp_P5, dp_F45), dp_in, dp_C4).
+triple(send(dp_C4, dp_P4, dp_P5, dp_F45), dp_to, dp_P5).
+triple(send(dp_C4, dp_P4, dp_P5, dp_F45), dp_type, dp_SendFork).
+triple(send(dp_C6, dp_P2, dp_P1, dp_F12), dp_fork, dp_F12).
+triple(send(dp_C6, dp_P2, dp_P1, dp_F12), dp_from, dp_P2).
+triple(send(dp_C6, dp_P2, dp_P1, dp_F12), dp_in, dp_C6).
+triple(send(dp_C6, dp_P2, dp_P1, dp_F12), dp_to, dp_P1).
+triple(send(dp_C6, dp_P2, dp_P1, dp_F12), dp_type, dp_SendFork).
+triple(send(dp_C6, dp_P2, dp_P3, dp_F23), dp_fork, dp_F23).
+triple(send(dp_C6, dp_P2, dp_P3, dp_F23), dp_from, dp_P2).
+triple(send(dp_C6, dp_P2, dp_P3, dp_F23), dp_in, dp_C6).
+triple(send(dp_C6, dp_P2, dp_P3, dp_F23), dp_to, dp_P3).
+triple(send(dp_C6, dp_P2, dp_P3, dp_F23), dp_type, dp_SendFork).
+triple(send(dp_C6, dp_P4, dp_P3, dp_F34), dp_fork, dp_F34).
+triple(send(dp_C6, dp_P4, dp_P3, dp_F34), dp_from, dp_P4).
+triple(send(dp_C6, dp_P4, dp_P3, dp_F34), dp_in, dp_C6).
+triple(send(dp_C6, dp_P4, dp_P3, dp_F34), dp_to, dp_P3).
+triple(send(dp_C6, dp_P4, dp_P3, dp_F34), dp_type, dp_SendFork).
+triple(send(dp_C6, dp_P5, dp_P1, dp_F51), dp_fork, dp_F51).
+triple(send(dp_C6, dp_P5, dp_P1, dp_F51), dp_from, dp_P5).
+triple(send(dp_C6, dp_P5, dp_P1, dp_F51), dp_in, dp_C6).
+triple(send(dp_C6, dp_P5, dp_P1, dp_F51), dp_to, dp_P1).
+triple(send(dp_C6, dp_P5, dp_P1, dp_F51), dp_type, dp_SendFork).
+triple(send(dp_C8, dp_P1, dp_P2, dp_F12), dp_fork, dp_F12).
+triple(send(dp_C8, dp_P1, dp_P2, dp_F12), dp_from, dp_P1).
+triple(send(dp_C8, dp_P1, dp_P2, dp_F12), dp_in, dp_C8).
+triple(send(dp_C8, dp_P1, dp_P2, dp_F12), dp_to, dp_P2).
+triple(send(dp_C8, dp_P1, dp_P2, dp_F12), dp_type, dp_SendFork).
+triple(send(dp_C8, dp_P3, dp_P2, dp_F23), dp_fork, dp_F23).
+triple(send(dp_C8, dp_P3, dp_P2, dp_F23), dp_from, dp_P3).
+triple(send(dp_C8, dp_P3, dp_P2, dp_F23), dp_in, dp_C8).
+triple(send(dp_C8, dp_P3, dp_P2, dp_F23), dp_to, dp_P2).
+triple(send(dp_C8, dp_P3, dp_P2, dp_F23), dp_type, dp_SendFork).
+triple(send(dp_C8, dp_P3, dp_P4, dp_F34), dp_fork, dp_F34).
+triple(send(dp_C8, dp_P3, dp_P4, dp_F34), dp_from, dp_P3).
+triple(send(dp_C8, dp_P3, dp_P4, dp_F34), dp_in, dp_C8).
+triple(send(dp_C8, dp_P3, dp_P4, dp_F34), dp_to, dp_P4).
+triple(send(dp_C8, dp_P3, dp_P4, dp_F34), dp_type, dp_SendFork).
+triple(send(dp_C8, dp_P5, dp_P4, dp_F45), dp_fork, dp_F45).
+triple(send(dp_C8, dp_P5, dp_P4, dp_F45), dp_from, dp_P5).
+triple(send(dp_C8, dp_P5, dp_P4, dp_F45), dp_in, dp_C8).
+triple(send(dp_C8, dp_P5, dp_P4, dp_F45), dp_to, dp_P4).
+triple(send(dp_C8, dp_P5, dp_P4, dp_F45), dp_type, dp_SendFork).

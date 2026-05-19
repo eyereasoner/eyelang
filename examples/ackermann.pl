@@ -36,6 +36,6 @@ ack_case(4, 1).
 ack_case(4, 2).
 ack_case(5, 0).
 
-triple([X, Y], :ackermann, A) :-
+triple([X, Y], ackermann, A) :-
   ack_case(X, Y),
   ackermann(X, Y, A).

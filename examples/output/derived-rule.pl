@@ -1,4 +1,4 @@
-triple(:Charly, rdf:type, :Dog).
-triple(:Minka, rdf:type, :Cat).
-triple(:test, :is, true).
-triple(triple(var(:y), rdf:type, :Dog), log:implies, triple(:test, :is, true)).
+triple(charly, rdf_type, dog).
+triple(minka, rdf_type, cat).
+triple(test, is, true).
+triple(triple(var(y), rdf_type, dog), log_implies, triple(test, is, true)).

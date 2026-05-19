@@ -1,28 +1,28 @@
 % Derived rule example adapted from Eyeling derived-rule.n3.
 %
 % Eyeling source shape:
-%   :Minka a :Cat.
-%   :Charly a :Dog.
-%   { ?x a :Cat. } => { { ?y a :Dog. } => { :test :is true. }. }.
+%   minka a cat.
+%   charly a dog.
+%   { ?x a cat. } => { { ?y a dog. } => { test is true. }. }.
 %
 % The inner implication is represented directly as quoted formula data.
-% var(:y) is not an eyelog variable; it is a ground term that names
+% var(y) is not an eyelog variable; it is a ground term that names
 % a variable placeholder inside the quoted formula.
 
-triple(:Minka, rdf:type, :Cat).
-triple(:Charly, rdf:type, :Dog).
+triple(minka, rdf_type, cat).
+triple(charly, rdf_type, dog).
 
 triple(
-  triple(var(:y), rdf:type, :Dog),
-  log:implies,
-  triple(:test, :is, true)
+  triple(var(y), rdf_type, dog),
+  log_implies,
+  triple(test, is, true)
 ) :-
-  triple(_X, rdf:type, :Cat).
+  triple(_X, rdf_type, cat).
 
-triple(:test, :is, true) :-
+triple(test, is, true) :-
   triple(
-    triple(var(:y), rdf:type, :Dog),
-    log:implies,
-    triple(:test, :is, true)
+    triple(var(y), rdf_type, dog),
+    log_implies,
+    triple(test, is, true)
   ),
-  triple(_Y, rdf:type, :Dog).
+  triple(_Y, rdf_type, dog).

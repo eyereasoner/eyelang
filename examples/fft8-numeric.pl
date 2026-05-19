@@ -62,13 +62,13 @@ fft8([X0, X1, X2, X3, X4, X5, X6, X7], [Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7]) :-
   c_sub(E2, T2, Y6),
   c_sub(E3, T3, Y7).
 
-wave(:ramp8, [0, 1, 2, 3, 4, 5, 6, 7]).
-wave(:alternating8, [1, -1, 1, -1, 1, -1, 1, -1]).
+wave(ramp8, [0, 1, 2, 3, 4, 5, 6, 7]).
+wave(alternating8, [1, -1, 1, -1, 1, -1, 1, -1]).
 
-triple(Wave, :fft, Spectrum) :-
+triple(Wave, fft, Spectrum) :-
   wave(Wave, Samples),
   fft8(Samples, Spectrum).
 
-triple(Wave, :dcComponent, DC) :-
+triple(Wave, dcComponent, DC) :-
   wave(Wave, Samples),
   fft8(Samples, [DC|_]).

@@ -14,6 +14,6 @@ collatz(N, [N|Rest]) :-
   add(T, 1, Next),
   collatz(Next, Rest).
 
-triple(N, :collatzTrajectory, Trajectory) :-
+triple(N, collatzTrajectory, Trajectory) :-
   between(1, 1000, N),
   collatz(N, Trajectory).

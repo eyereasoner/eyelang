@@ -6,8 +6,8 @@
 pi(3.141592653589793).
 e(2.718281828459045).
 
-complex:exponentiation([A, B], [C, D], [E, F]) :-
-  complex:polar([A, B], [R, T]),
+complex_exponentiation([A, B], [C, D], [E, F]) :-
+  complex_polar([A, B], [R, T]),
   pow(R, C, Z1),
   neg(D, Z2),
   mul(Z2, T, Z3),
@@ -23,7 +23,7 @@ complex:exponentiation([A, B], [C, D], [E, F]) :-
   sin(Z8, Z10),
   mul(Z1Z4, Z10, F).
 
-complex:asin([A, B], [C, D]) :-
+complex_asin([A, B], [C, D]) :-
   add(1, A, Z1),
   pow(Z1, 2, Z2),
   pow(B, 2, Z3),
@@ -44,7 +44,7 @@ complex:asin([A, B], [C, D]) :-
   add(F, Z14, Z15),
   log(Z15, D).
 
-complex:acos([A, B], [C, D]) :-
+complex_acos([A, B], [C, D]) :-
   add(1, A, Z1),
   pow(Z1, 2, Z2),
   pow(B, 2, Z3),
@@ -66,7 +66,7 @@ complex:acos([A, B], [C, D]) :-
   log(Z15, U),
   neg(U, D).
 
-complex:polar([X, Y], [R, Tp]) :-
+complex_polar([X, Y], [R, Tp]) :-
   pow(X, 2, Z1),
   pow(Y, 2, Z2),
   add(Z1, Z2, Z3),
@@ -74,43 +74,43 @@ complex:polar([X, Y], [R, Tp]) :-
   abs(X, Z4),
   div(Z4, R, Z5),
   acos(Z5, T),
-  complex:dial(X, Y, T, Tp).
+  complex_dial(X, Y, T, Tp).
 
-complex:dial(X, Y, T, Tp) :-
+complex_dial(X, Y, T, Tp) :-
   ge(X, 0),
   ge(Y, 0),
   add(0, T, Tp).
 
-complex:dial(X, Y, T, Tp) :-
+complex_dial(X, Y, T, Tp) :-
   lt(X, 0),
   ge(Y, 0),
   pi(Pi),
   sub(Pi, T, Tp).
 
-complex:dial(X, Y, T, Tp) :-
+complex_dial(X, Y, T, Tp) :-
   lt(X, 0),
   lt(Y, 0),
   pi(Pi),
   add(Pi, T, Tp).
 
-complex:dial(X, Y, T, Tp) :-
+complex_dial(X, Y, T, Tp) :-
   ge(X, 0),
   lt(Y, 0),
   pi(Pi),
   mul(Pi, 2, Z1),
   sub(Z1, T, Tp).
 
-triple(:test, :is, (
-  triple(input(exponentiation, [-1, 0], [0.5, 0]), complex:exponentiation, C1),
-  triple(input(exponentiation, [2.718281828459045, 0], [0, 3.141592653589793]), complex:exponentiation, C2),
-  triple(input(exponentiation, [0, 1], [0, 1]), complex:exponentiation, C3),
-  triple(input(exponentiation, [2.718281828459045, 0], [-1.57079632679, 0]), complex:exponentiation, C4),
-  triple(input(asin, [2, 0]), complex:asin, C5),
-  triple(input(acos, [2, 0]), complex:acos, C6)
+triple(test, is, (
+  triple(input(exponentiation, [-1, 0], [0.5, 0]), complex_exponentiation, C1),
+  triple(input(exponentiation, [2.718281828459045, 0], [0, 3.141592653589793]), complex_exponentiation, C2),
+  triple(input(exponentiation, [0, 1], [0, 1]), complex_exponentiation, C3),
+  triple(input(exponentiation, [2.718281828459045, 0], [-1.57079632679, 0]), complex_exponentiation, C4),
+  triple(input(asin, [2, 0]), complex_asin, C5),
+  triple(input(acos, [2, 0]), complex_acos, C6)
 )) :-
-  complex:exponentiation([-1, 0], [0.5, 0], C1),
-  complex:exponentiation([2.718281828459045, 0], [0, 3.141592653589793], C2),
-  complex:exponentiation([0, 1], [0, 1], C3),
-  complex:exponentiation([2.718281828459045, 0], [-1.57079632679, 0], C4),
-  complex:asin([2, 0], C5),
-  complex:acos([2, 0], C6).
+  complex_exponentiation([-1, 0], [0.5, 0], C1),
+  complex_exponentiation([2.718281828459045, 0], [0, 3.141592653589793], C2),
+  complex_exponentiation([0, 1], [0, 1], C3),
+  complex_exponentiation([2.718281828459045, 0], [-1.57079632679, 0], C4),
+  complex_asin([2, 0], C5),
+  complex_acos([2, 0], C6).

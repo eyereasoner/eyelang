@@ -2,8 +2,8 @@
 % Compute a prime factorization by repeated smallest-divisor decomposition,
 % then check product reconstruction and primality of the distinct factors.
 
-case(:fta, 202692987).
-expected_factors(:fta, [3, 3, 7, 829, 3881]).
+case(fta, 202692987).
+expected_factors(fta, [3, 3, 7, 829, 3881]).
 
 % A divides B in positive integers.
 divides(A, B) :-
@@ -62,39 +62,39 @@ all_expected_primes(true) :-
   trial_prime(829),
   trial_prime(3881).
 
-triple(:case, :n, N) :-
-  case(:fta, N).
+triple(case, n, N) :-
+  case(fta, N).
 
-triple(:case, :factorsSmallest, Factors) :-
-  case(:fta, N),
+triple(case, factorsSmallest, Factors) :-
+  case(fta, N),
   factor_smallest(N, Factors).
 
-triple(:case, :factorsLargest, Factors) :-
-  case(:fta, N),
+triple(case, factorsLargest, Factors) :-
+  case(fta, N),
   factor_largest(N, Factors).
 
-triple(:case, :product, Product) :-
-  case(:fta, N),
+triple(case, product, Product) :-
+  case(fta, N),
   factor_smallest(N, Factors),
   product(Factors, Product).
 
-triple(:case, :expectedFactorsMatched, true) :-
-  case(:fta, N),
-  expected_factors(:fta, Factors),
+triple(case, expectedFactorsMatched, true) :-
+  case(fta, N),
+  expected_factors(fta, Factors),
   factor_smallest(N, Factors).
 
-triple(:case, :productReconstructsInput, true) :-
-  case(:fta, N),
+triple(case, productReconstructsInput, true) :-
+  case(fta, N),
   factor_smallest(N, Factors),
   product(Factors, N).
 
-triple(:case, :distinctPrimeCount, 4) :-
+triple(case, distinctPrimeCount, 4) :-
   all_expected_primes(true).
 
-triple(:case, :smallestPrimeFactor, 3) :-
-  case(:fta, N),
+triple(case, smallestPrimeFactor, 3) :-
+  case(fta, N),
   factor_smallest(N, [3|_]).
 
-triple(:case, :largestPrimeFactor, 3881) :-
-  case(:fta, N),
+triple(case, largestPrimeFactor, 3881) :-
+  case(fta, N),
   factor_largest(N, [3881|_]).

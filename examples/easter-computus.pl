@@ -1,24 +1,24 @@
 % Adapted from Eyeling's easter.n3.
 % Gregorian computus for a sample decade, with independent range/window checks.
 
-case(:y2026, 2026).
-case(:y2027, 2027).
-case(:y2028, 2028).
-case(:y2029, 2029).
-case(:y2030, 2030).
-case(:y2031, 2031).
-case(:y2032, 2032).
-case(:y2033, 2033).
-case(:y2034, 2034).
-case(:y2035, 2035).
+case(y2026, 2026).
+case(y2027, 2027).
+case(y2028, 2028).
+case(y2029, 2029).
+case(y2030, 2030).
+case(y2031, 2031).
+case(y2032, 2032).
+case(y2033, 2033).
+case(y2034, 2034).
+case(y2035, 2035).
 
 valid_golden(N) :- between(0, 18, N).
 valid_epact(N) :- between(0, 29, N).
 valid_weekday(N) :- between(0, 6, N).
 legal_easter_date(3, D) :- between(22, 31, D).
 legal_easter_date(4, D) :- between(1, 25, D).
-month_name(3, :March).
-month_name(4, :April).
+month_name(3, march).
+month_name(4, april).
 
 computus(Case, Year, Month, Day, J, K, Q, R, V, Z) :-
   case(Case, Year),
@@ -68,12 +68,12 @@ checks_pass(Case) :-
   month_name(Month, _Name),
   legal_easter_date(Month, Day).
 
-triple(Case, :easterDate, date(Year, MonthName, Day)) :-
+triple(Case, easterDate, date(Year, MonthName, Day)) :-
   computus(Case, Year, Month, Day, _J, _K, _Q, _R, _V, _Z),
   month_name(Month, MonthName).
 
-triple(Case, :computusRemainders, remainders(J, R, V)) :-
+triple(Case, computusRemainders, remainders(J, R, V)) :-
   computus(Case, _Year, _Month, _Day, J, _K, _Q, R, V, _Z).
 
-triple(Case, :legalGregorianWindow, true) :-
+triple(Case, legalGregorianWindow, true) :-
   checks_pass(Case).
