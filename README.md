@@ -34,10 +34,17 @@ After updating `VERSION`, commit, tag, and push with:
 ./mkeyelog "release message"
 ```
 
-The script first runs `make test`. If any test fails, it stops before committing,
-tagging, or pushing. When tests pass, it commits all changes with the supplied
-message, creates an annotated `v$(cat VERSION)` tag, and pushes the current branch
-plus the tag. The release workflow then runs from the pushed tag.
+The script must be run from `main`. It first runs `make test`. If any test fails,
+it stops before committing, tagging, or pushing. When tests pass, it commits all
+changes with the supplied message, creates an annotated `v$(cat VERSION)` tag,
+and pushes `main` plus the tag. The `main` push triggers the GitHub Pages
+workflow, and the tag push triggers the release workflow.
+
+## GitHub Pages
+
+The site is deployed by `.github/workflows/pages.yml` on every push to `main` and
+can also be run manually from the Actions tab. Use `./mkeyelog "release message"`
+for normal releases so tests, Pages, and the GitHub Release stay in sync.
 
 ## Test
 

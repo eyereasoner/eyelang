@@ -23,7 +23,13 @@ tag="v$version"
 branch="$(git rev-parse --abbrev-ref HEAD)"
 
 if [ "$branch" = "HEAD" ]; then
-  echo "Not on a branch; checkout main or another branch first." >&2
+  echo "Not on a branch; checkout main first." >&2
+  exit 1
+fi
+
+if [ "$branch" != "main" ]; then
+  echo "mkeyelog releases from main so the GitHub Pages workflow is triggered." >&2
+  echo "Current branch: $branch" >&2
   exit 1
 fi
 
@@ -43,6 +49,10 @@ make test
 git add -A
 git commit -m "$message"
 git tag -a "$tag" -m "$message"
-git push origin "$branch" "$tag"
+git push origin main "$tag"
 
-echo "Committed, tested, tagged, and pushed $tag."
+cat <<EOF2
+Committed, tested, tagged, and pushed $tag.
+The main push triggers the GitHub Pages workflow.
+The tag push triggers the release workflow.
+EOF2
