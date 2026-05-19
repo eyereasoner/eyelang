@@ -1,15 +1,15 @@
 % Risk-adjusted route selection adapted from Eyeling dijkstra-risk-path.n3.
 % The score is raw delivery cost plus ten times the accumulated risk.
 
-edge(:DepotA, :DepotB, 4.0, 0.2).
-edge(:DepotB, :LabD, 4.0, 0.3).
-edge(:DepotA, :DepotC, 3.0, 0.9).
-edge(:DepotC, :LabD, 6.0, 0.3).
-edge(:DepotC, :DepotB, 0.5, 0.5).
-edge(:DepotB, :DepotC, 1.0, 0.5).
-edge(:DepotA, :Relay, 5.0, 0.2).
-edge(:Relay, :LabD, 5.0, 0.2).
-edge(:DepotA, :LabD, 14.0, 0.05).
+route_segment(:DepotA, :DepotB, 4.0, 0.2).
+route_segment(:DepotB, :LabD, 4.0, 0.3).
+route_segment(:DepotA, :DepotC, 3.0, 0.9).
+route_segment(:DepotC, :LabD, 6.0, 0.3).
+route_segment(:DepotC, :DepotB, 0.5, 0.5).
+route_segment(:DepotB, :DepotC, 1.0, 0.5).
+route_segment(:DepotA, :Relay, 5.0, 0.2).
+route_segment(:Relay, :LabD, 5.0, 0.2).
+route_segment(:DepotA, :LabD, 14.0, 0.05).
 
 candidate(:pathB, [:DepotA, :DepotB, :LabD]).
 candidate(:pathC, [:DepotA, :DepotC, :LabD]).
@@ -19,7 +19,7 @@ candidate(:pathViaC, [:DepotA, :DepotC, :DepotB, :LabD]).
 
 route_cost([_], 0.0, 0.0, 0).
 route_cost([From, To|Rest], Raw, Risk, Edges) :-
-  edge(From, To, StepRaw, StepRisk),
+  route_segment(From, To, StepRaw, StepRisk),
   route_cost([To|Rest], RestRaw, RestRisk, RestEdges),
   math:sum(StepRaw, RestRaw, Raw),
   math:sum(StepRisk, RestRisk, Risk),

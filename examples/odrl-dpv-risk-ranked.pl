@@ -29,60 +29,60 @@ process_context(:ProcessContext1, :Agreement1).
 title(:ProcessContext1, "Service operation under Agreement1").
 
 % The ODRL policy is kept as a graph value.  The clauses below are not asserted
-% globally as permission/2, prohibition/2, action/2, ... facts; they are triples
-% inside :PolicyGraph1.  The local projection predicates below read from the
+% globally as permission/2, prohibition/2, action/2, ... facts; they are
+% statement/3 terms inside :PolicyGraph1.  The local projection predicates below read from the
 % graph when evaluating this agreement.  This mirrors N3 quoted graphs and avoids
 % making policy statements true outside the graph that contains them.
 policy_graph(:PolicyGraph1, [
-  edge(:Policy1, rdf:type, odrl:Policy),
-  edge(:Policy1, odrl:appliesTo, :Agreement1),
-  edge(:Policy1, odrl:permission, :PermDeleteAccount),
-  edge(:Policy1, odrl:permission, :PermChangeTerms),
-  edge(:Policy1, odrl:permission, :PermShareData),
-  edge(:Policy1, odrl:prohibition, :ProhibitExportData),
+  statement(:Policy1, rdf:type, odrl:Policy),
+  statement(:Policy1, odrl:appliesTo, :Agreement1),
+  statement(:Policy1, odrl:permission, :PermDeleteAccount),
+  statement(:Policy1, odrl:permission, :PermChangeTerms),
+  statement(:Policy1, odrl:permission, :PermShareData),
+  statement(:Policy1, odrl:prohibition, :ProhibitExportData),
 
-  edge(:PermDeleteAccount, odrl:assigner, :Provider),
-  edge(:PermDeleteAccount, odrl:assignee, :ConsumerExample),
-  edge(:PermDeleteAccount, odrl:action, tosl:removeAccount),
-  edge(:PermDeleteAccount, odrl:target, :UserAccount),
-  edge(:PermDeleteAccount, :clause, :ClauseC1),
+  statement(:PermDeleteAccount, odrl:assigner, :Provider),
+  statement(:PermDeleteAccount, odrl:assignee, :ConsumerExample),
+  statement(:PermDeleteAccount, odrl:action, tosl:removeAccount),
+  statement(:PermDeleteAccount, odrl:target, :UserAccount),
+  statement(:PermDeleteAccount, :clause, :ClauseC1),
 
-  edge(:PermChangeTerms, odrl:assigner, :Provider),
-  edge(:PermChangeTerms, odrl:assignee, :ConsumerExample),
-  edge(:PermChangeTerms, odrl:action, tosl:changeTerms),
-  edge(:PermChangeTerms, odrl:target, :AgreementText),
-  edge(:PermChangeTerms, :clause, :ClauseC2),
-  edge(:PermChangeTerms, odrl:duty, odrl:inform),
-  edge(:PermChangeTerms, :noticeDays, 3),
+  statement(:PermChangeTerms, odrl:assigner, :Provider),
+  statement(:PermChangeTerms, odrl:assignee, :ConsumerExample),
+  statement(:PermChangeTerms, odrl:action, tosl:changeTerms),
+  statement(:PermChangeTerms, odrl:target, :AgreementText),
+  statement(:PermChangeTerms, :clause, :ClauseC2),
+  statement(:PermChangeTerms, odrl:duty, odrl:inform),
+  statement(:PermChangeTerms, :noticeDays, 3),
 
-  edge(:PermShareData, odrl:assigner, :Provider),
-  edge(:PermShareData, odrl:assignee, :ConsumerExample),
-  edge(:PermShareData, odrl:action, tosl:shareData),
-  edge(:PermShareData, odrl:target, :UserData),
-  edge(:PermShareData, :clause, :ClauseC3),
+  statement(:PermShareData, odrl:assigner, :Provider),
+  statement(:PermShareData, odrl:assignee, :ConsumerExample),
+  statement(:PermShareData, odrl:action, tosl:shareData),
+  statement(:PermShareData, odrl:target, :UserData),
+  statement(:PermShareData, :clause, :ClauseC3),
 
-  edge(:ProhibitExportData, odrl:assigner, :Provider),
-  edge(:ProhibitExportData, odrl:assignee, :ConsumerExample),
-  edge(:ProhibitExportData, odrl:action, tosl:exportData),
-  edge(:ProhibitExportData, odrl:target, :UserData),
-  edge(:ProhibitExportData, :clause, :ClauseC4)
+  statement(:ProhibitExportData, odrl:assigner, :Provider),
+  statement(:ProhibitExportData, odrl:assignee, :ConsumerExample),
+  statement(:ProhibitExportData, odrl:action, tosl:exportData),
+  statement(:ProhibitExportData, odrl:target, :UserData),
+  statement(:ProhibitExportData, :clause, :ClauseC4)
 ]).
 
-policy_edge(Subject, Predicate, Object) :-
-  policy_graph(_Graph, Edges),
-  member(edge(Subject, Predicate, Object), Edges).
+policy_statement(Subject, Predicate, Object) :-
+  policy_graph(_Graph, Statements),
+  member(statement(Subject, Predicate, Object), Statements).
 
-policy(Policy, Agreement) :- policy_edge(Policy, odrl:appliesTo, Agreement).
-permission(Policy, Rule) :- policy_edge(Policy, odrl:permission, Rule).
-prohibition(Policy, Rule) :- policy_edge(Policy, odrl:prohibition, Rule).
-assigner(Rule, Party) :- policy_edge(Rule, odrl:assigner, Party).
-assignee(Rule, Party) :- policy_edge(Rule, odrl:assignee, Party).
-action(Rule, Action) :- policy_edge(Rule, odrl:action, Action).
-target(Rule, Target) :- policy_edge(Rule, odrl:target, Target).
-clause(Rule, Clause) :- policy_edge(Rule, :clause, Clause).
-duty(Rule, Duty) :- policy_edge(Rule, odrl:duty, Duty).
-notice_days(Rule, Days) :- policy_edge(Rule, :noticeDays, Days).
-consent_constraint(Rule, Value) :- policy_edge(Rule, :consentConstraint, Value).
+policy(Policy, Agreement) :- policy_statement(Policy, odrl:appliesTo, Agreement).
+permission(Policy, Rule) :- policy_statement(Policy, odrl:permission, Rule).
+prohibition(Policy, Rule) :- policy_statement(Policy, odrl:prohibition, Rule).
+assigner(Rule, Party) :- policy_statement(Rule, odrl:assigner, Party).
+assignee(Rule, Party) :- policy_statement(Rule, odrl:assignee, Party).
+action(Rule, Action) :- policy_statement(Rule, odrl:action, Action).
+target(Rule, Target) :- policy_statement(Rule, odrl:target, Target).
+clause(Rule, Clause) :- policy_statement(Rule, :clause, Clause).
+duty(Rule, Duty) :- policy_statement(Rule, odrl:duty, Duty).
+notice_days(Rule, Days) :- policy_statement(Rule, :noticeDays, Days).
+consent_constraint(Rule, Value) :- policy_statement(Rule, :consentConstraint, Value).
 
 clause_id(:ClauseC1, "C1").
 clause_text(:ClauseC1, "Provider may remove the user account (and associated data) at its discretion.").
@@ -260,8 +260,8 @@ triple(:ProcessContext1, dct:title, Title) :- title(:ProcessContext1, Title).
 triple(:ProcessContext1, dpv:hasRisk, Risk) :- risk(Risk).
 triple(:PolicyGraph1, rdf:type, :PolicyGraph).
 triple(:Agreement1, :policyGraph, :PolicyGraph1).
-triple(:PolicyGraph1, :contains, edge(Subject, Predicate, Object)) :-
-  policy_edge(Subject, Predicate, Object).
+triple(:PolicyGraph1, :contains, statement(Subject, Predicate, Object)) :-
+  policy_statement(Subject, Predicate, Object).
 triple(:report, :source, :Agreement1).
 triple(:report, :profile, :ConsumerExample).
 triple(:report, :firstRisk, Risk) :- risk(Risk), not(ranked_before(_Other, Risk)).
