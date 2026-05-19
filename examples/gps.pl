@@ -1,34 +1,104 @@
-% Goal-driven route planning adapted from Eyeling's gps.n3 example.
-% Lists hold the planned action sequence; list:append/3 extends paths.
-route_query(:gent, :oostende).
+% GPS — ARC-style goal-driven route planning, translated from Eyeling's gps.n3.
+%
+% The map is kept as quoted graph data.  Rules project gps:description
+% statements from that graph, chain them into paths, compare the two complete
+% routes from Gent to Oostende, and produce a compact explanation report.
 
-road(:gent, :brugge, drive_gent_brugge, 1500, 6).
-road(:gent, :kortrijk, drive_gent_kortrijk, 1600, 7).
-road(:kortrijk, :brugge, drive_kortrijk_brugge, 1600, 7).
-road(:brugge, :oostende, drive_brugge_oostende, 900, 4).
+case_graph(:CaseGraph, graph([
+  triple(:i1, :location, :Gent),
+  triple(:question, :text, "Which route should we take from Gent to Oostende?"),
+  triple(:routeDirect, :label, "Gent -> Brugge -> Oostende"),
+  triple(:routeViaKortrijk, :label, "Gent -> Kortrijk -> Brugge -> Oostende")
+])).
 
-path(From, To, [Action], Duration, Cost) :-
-  road(From, To, Action, Duration, Cost).
+map_graph(:mapBE, graph([
+  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Gent)]), true, graph([triple(S, :location, :Brugge)]), :drive_gent_brugge, 1500.0, 0.006, 0.96, 0.99)),
+  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Gent)]), true, graph([triple(S, :location, :Kortrijk)]), :drive_gent_kortrijk, 1600.0, 0.007, 0.96, 0.99)),
+  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Kortrijk)]), true, graph([triple(S, :location, :Brugge)]), :drive_kortrijk_brugge, 1600.0, 0.007, 0.96, 0.99)),
+  triple(:mapBE, gps:description, description(graph([triple(S, :location, :Brugge)]), true, graph([triple(S, :location, :Oostende)]), :drive_brugge_oostende, 900.0, 0.004, 0.98, 1.0))
+])).
 
-path(From, To, Actions, Duration, Cost) :-
-  road(From, Mid, Action, D1, C1),
-  path(Mid, To, RestActions, D2, C2),
+case_triple(S, P, O) :-
+  case_graph(:CaseGraph, graph(Triples)),
+  member(triple(S, P, O), Triples).
+
+map_description(From, To, Action, Duration, Cost, Belief, Comfort) :-
+  map_graph(:mapBE, graph(Triples)),
+  member(triple(:mapBE, gps:description, description(From, true, To, Action, Duration, Cost, Belief, Comfort)), Triples).
+
+path(From, To, [Action], Duration, Cost, Belief, Comfort) :-
+  map_description(From, To, Action, Duration, Cost, Belief, Comfort).
+
+path(From, To, Actions, Duration, Cost, Belief, Comfort) :-
+  map_description(From, Mid, Action, D1, C1, B1, F1),
+  path(Mid, To, RestActions, D2, C2, B2, F2),
   list:append([Action], RestActions, Actions),
-  add(D1, D2, Duration),
-  add(C1, C2, Cost).
+  math:sum(D1, D2, Duration),
+  math:sum(C1, C2, Cost),
+  math:product(B1, B2, Belief),
+  math:product(F1, F2, Comfort).
 
-direct_route(Duration, Cost) :-
-  path(:gent, :oostende, [drive_gent_brugge, drive_brugge_oostende], Duration, Cost).
+traveller_start(:i1, graph([triple(:i1, :location, :Gent)])).
+traveller_goal(:i1, graph([triple(:i1, :location, :Oostende)])).
 
-via_kortrijk_route(Duration, Cost) :-
-  path(:gent, :oostende, [drive_gent_kortrijk, drive_kortrijk_brugge, drive_brugge_oostende], Duration, Cost).
+traveller_path(Traveller, Actions, Duration, Cost, Belief, Comfort) :-
+  traveller_start(Traveller, From),
+  traveller_goal(Traveller, To),
+  path(From, To, Actions, Duration, Cost, Belief, Comfort).
 
-triple(:gps, :path, route(Actions, Duration, Cost)) :-
-  route_query(From, To),
-  path(From, To, Actions, Duration, Cost).
+route_metrics(:routeDirect, Duration, Cost, Belief, Comfort) :-
+  traveller_path(:i1, [:drive_gent_brugge, :drive_brugge_oostende], Duration, Cost, Belief, Comfort).
 
-triple(:gps, :recommended, [drive_gent_brugge, drive_brugge_oostende]) :-
-  direct_route(DirectDuration, DirectCost),
-  via_kortrijk_route(ViaDuration, ViaCost),
-  lt(DirectDuration, ViaDuration),
-  lt(DirectCost, ViaCost).
+route_metrics(:routeViaKortrijk, Duration, Cost, Belief, Comfort) :-
+  traveller_path(:i1, [:drive_gent_kortrijk, :drive_kortrijk_brugge, :drive_brugge_oostende], Duration, Cost, Belief, Comfort).
+
+recommended_route(:routeDirect) :-
+  route_metrics(:routeDirect, DirectDuration, DirectCost, DirectBelief, DirectComfort),
+  route_metrics(:routeViaKortrijk, ViaDuration, ViaCost, ViaBelief, ViaComfort),
+  math:lessThan(DirectDuration, ViaDuration),
+  math:lessThan(DirectCost, ViaCost),
+  math:greaterThan(DirectBelief, ViaBelief),
+  math:greaterThan(DirectComfort, ViaComfort).
+
+outcome(:routeDirect, "Take the direct route via Brugge.").
+
+% Verification checks, analogous to the false-producing guards in gps.n3.
+check(:C1, true) :-
+  traveller_path(:i1, [:drive_gent_brugge, :drive_brugge_oostende], _, _, _, _).
+
+check(:C2, true) :-
+  traveller_path(:i1, [:drive_gent_kortrijk, :drive_kortrijk_brugge, :drive_brugge_oostende], _, _, _, _).
+
+check(:C3, true) :-
+  route_metrics(:routeDirect, D1, _, _, _),
+  route_metrics(:routeViaKortrijk, D2, _, _, _),
+  math:lessThan(D1, D2).
+
+check(:C4, true) :-
+  route_metrics(:routeDirect, _, C1, _, _),
+  route_metrics(:routeViaKortrijk, _, C2, _, _),
+  math:lessThan(C1, C2).
+
+check(:C5, true) :-
+  route_metrics(:routeDirect, _, _, B1, F1),
+  route_metrics(:routeViaKortrijk, _, _, B2, F2),
+  math:greaterThan(B1, B2),
+  math:greaterThan(F1, F2).
+
+triple(:decision, :recommendedRoute, Route) :-
+  recommended_route(Route).
+
+triple(:decision, :outcome, Outcome) :-
+  recommended_route(Route),
+  outcome(Route, Outcome).
+
+triple(:check, Check, true) :-
+  check(Check, true).
+
+triple(:report, log:outputString, "# gps\n\n## Source files\n\n- [N3 rules](../gps.n3)\n\nGPS — Goal driven route planning\n\n## Answer\nTake the direct route via Brugge.\nRecommended route: Gent → Brugge → Oostende\n\n## Reason Why\nFrom Gent to Oostende, the planner found two routes in this small map. The direct route (Gent → Brugge → Oostende) takes 2400 seconds at cost 0.01, with belief 0.9408 and comfort 0.99. The alternative (Gent → Kortrijk → Brugge → Oostende) takes 4100 seconds at cost 0.018, with belief 0.903168 and comfort 0.9801.\nSo the direct route is faster, cheaper, more reliable, and slightly more comfortable.\n\n## Check\nC1 OK - the direct Gent → Brugge → Oostende route was derived.\nC2 OK - the alternative Gent → Kortrijk → Brugge → Oostende route was derived.\nC3 OK - the recommended route is faster than the alternative.\nC4 OK - the recommended route is cheaper than the alternative.\nC5 OK - the recommended route has higher belief and comfort scores.") :-
+  recommended_route(:routeDirect),
+  check(:C1, true),
+  check(:C2, true),
+  check(:C3, true),
+  check(:C4, true),
+  check(:C5, true).

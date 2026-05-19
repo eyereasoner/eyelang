@@ -516,7 +516,7 @@ Each example should contain:
 The repository includes small examples adapted from the Eyeling examples collection:
 
 - `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
-- `examples/gps.pl` adapts the GPS route-planning example and uses `list:append/3` for action sequences.
+- `examples/gps.pl` adapts the GPS route-planning example more closely: map descriptions are quoted graph data, route actions are lists built with `list:append/3`, route metrics include duration/cost/belief/comfort, and the output layer emits the recommendation, checks, and report text.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 - `examples/ackermann.pl` adapts Eyeling's Ackermann-style hyperoperation benchmark and uses `pow/3` with arbitrary-size integers, including the large `ackermann(4, 2)` value.
 - `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted `graph([...])` term, and path search uses `list:notMember/2` for visited-node checks.
