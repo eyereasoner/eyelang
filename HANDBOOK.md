@@ -504,6 +504,13 @@ Inequality is most predictable when both arguments are already bound.
 | `mod(A, B, X)` or `remainder(A, B, X)` | `math:remainder(A, B, X)` | integer remainder |
 | `max(A, B, X)` or `maximum(A, B, X)` | `math:max(A, B, X)` | larger value |
 | `min(A, B, X)` or `minimum(A, B, X)` | `math:min(A, B, X)` | smaller value |
+| `neg(A, X)` or `negation(A, X)` | `math:negation(A, X)` | `X = -A` |
+| `abs(A, X)` or `absolute_value(A, X)` | `math:absoluteValue(A, X)` | absolute value |
+| `sin(A, X)` | `math:sin(A, X)` | sine, in radians |
+| `cos(A, X)` | `math:cos(A, X)` | cosine, in radians |
+| `asin(A, X)` | `math:asin(A, X)` | inverse sine, in radians |
+| `acos(A, X)` | `math:acos(A, X)` | inverse cosine, in radians |
+| `log(A, X)` or `ln(A, X)` | `math:log(A, X)` | natural logarithm |
 
 When all operands are integers, `add/3`, `sum/3`, `sub/3`, `difference/3`,
 `mul/3`, `product/3`, `div/3`, `quotient/3`, `integer_quotient/3`,
@@ -521,6 +528,9 @@ mathematically integral. This is useful for Eyeling-style probability and
 measurement examples, but it is not exact decimal arithmetic.
 
 `mod/3`, `remainder/3`, and `math:remainder/3` remain integer-only.
+The unary transcendental functions are double-precision operations and expect
+bound numeric input. They are intended for translated mathematical examples such
+as `complex.pl`, not exact symbolic mathematics.
 
 `smallest_divisor_from(N, D, S)` is a bounded integer helper used by the
 Fundamental Theorem of Arithmetic example. With `N` and starting divisor `D`
@@ -638,6 +648,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
 - `examples/bayes-therapy.pl` adapts the Bayesian therapy decision-support example. It uses list-valued disease, evidence, posterior, and therapy vectors to combine Naive Bayes diagnosis with expected-utility therapy selection.
 - `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
+- `examples/complex.pl` adapts Eyeling's complex-number example. Complex values are two-item lists `[Real, Imaginary]`; the example derives complex exponentiation, polar form, `complex:asin/2`, and `complex:acos/2` using the floating-point `math:*` aliases.
 - `examples/skolem-functions.pl` demonstrates generated resources using `skolem:` functional terms in rule heads, such as `skolem:observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.
 - `examples/aliases-and-namespaces.pl` demonstrates that short built-in names and namespaced aliases call the same implementation.
 - `examples/delfour.pl` adapts the Delfour neutral-insight authorization case, including policy checks, scoped shopping assistance, minimization, and a lower-sugar product recommendation. Its case, insight, policy, envelope, and signature inputs are graph terms; the product catalog is a list of records.

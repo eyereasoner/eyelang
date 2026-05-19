@@ -52,6 +52,8 @@ run 'native sum alias query' bash -c './bin/eyelog --query "sum(0.125, 0.875, X)
 run 'native string match alias query' bash -c './bin/eyelog --query "matches(scoped_retail_insight, retail)" examples/aliases-and-namespaces.pl | grep -q "matches(scoped_retail_insight, retail)."'
 run 'native comparison alias query' bash -c './bin/eyelog --query "less_than(2, 3)" examples/aliases-and-namespaces.pl | grep -q "less_than(2, 3)."'
 run 'floating comparison query' bash -c './bin/eyelog --query "gt(2.5, 2)" examples/floating-point.pl | grep -q "gt(2.5, 2)."'
+run 'complex exponentiation query' bash -c './bin/eyelog --query "complex:exponentiation([0, 1], [0, 1], X)" examples/complex.pl | grep -q "complex:exponentiation(\[0, 1\], \[0, 1\], \[0.20787957635076193, 0.0\])."'
+run 'complex asin query' bash -c './bin/eyelog --query "complex:asin([2, 0], X)" examples/complex.pl | grep -q "complex:asin(\[2, 0\], \[1.5707963267948966, 1.3169578969248166\])."'
 run 'delfour all checks pass' bash -c './bin/eyelog examples/delfour.pl | grep -q "triple(:result, :allChecksPass, true)."'
 run 'delfour suggests low sugar biscuits' bash -c './bin/eyelog --query "suggested_alternative(:case, X)" examples/delfour.pl | grep -q "suggested_alternative(:case, :prod_BIS_101)."'
 run 'delfour policy is projected from graph data' bash -c './bin/eyelog --query "policy_triple(:policy, odrl:permission, X)" examples/delfour.pl | grep -q "policy_triple(:policy, odrl:permission, permission(odrl:use, :insight, \"shopping_assist\"))."'

@@ -1321,6 +1321,79 @@ static bool builtin_neq(Term *goal, Env *env, SolutionCallback callback, void *u
   return true;
 }
 
+
+static bool builtin_unary_math(const char *name, Term *goal, Env *env,
+                               SolutionCallback callback, void *user_data) {
+  char *input_text = term_lexical_value(goal->args[0], env);
+  if (!input_text) return true;
+
+  Term *result = NULL;
+
+  if ((strcmp(name, "neg") == 0 || strcmp(name, "abs") == 0) &&
+      is_decimal_integer(input_text)) {
+    char *value = NULL;
+    if (strcmp(name, "abs") == 0) {
+      value = xstrdup(input_text[0] == '-' ? input_text + 1 : input_text);
+    } else if (strcmp(input_text, "0") == 0) {
+      value = xstrdup("0");
+    } else if (input_text[0] == '-') {
+      value = xstrdup(input_text + 1);
+    } else {
+      StringBuilder sb;
+      sb_init(&sb);
+      sb_append_char(&sb, '-');
+      sb_append(&sb, input_text);
+      value = sb.data;
+    }
+    result = number_term_from_text(value);
+    free(value);
+  } else {
+    double input = 0.0;
+    if (!parse_double_strict(input_text, &input)) {
+      free(input_text);
+      return true;
+    }
+
+    errno = 0;
+    double value = 0.0;
+    if (strcmp(name, "neg") == 0) value = -input;
+    else if (strcmp(name, "abs") == 0) value = fabs(input);
+    else if (strcmp(name, "sin") == 0) value = sin(input);
+    else if (strcmp(name, "cos") == 0) value = cos(input);
+    else if (strcmp(name, "asin") == 0) value = asin(input);
+    else if (strcmp(name, "acos") == 0) value = acos(input);
+    else if (strcmp(name, "log") == 0) {
+      if (input <= 0.0) {
+        free(input_text);
+        return true;
+      }
+      value = log(input);
+    } else {
+      free(input_text);
+      return true;
+    }
+
+    if (errno != 0 || !isfinite(value)) {
+      free(input_text);
+      return true;
+    }
+
+    char *value_text = number_text_from_double(value);
+    if (!value_text) {
+      free(input_text);
+      return true;
+    }
+    result = number_term_from_text(value_text);
+    free(value_text);
+  }
+
+  Env next = clone_env(env);
+  if (result && unify(goal->args[1], result, &next)) call_once(&next, callback, user_data);
+
+  free(input_text);
+  return true;
+}
+
 static bool builtin_compare(const char *name, Term *goal, Env *env,
                             SolutionCallback callback, void *user_data) {
   char *left_text = term_lexical_value(goal->args[0], env);
@@ -1761,6 +1834,26 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
        strcmp(name, "not_equal") == 0 || strcmp(name, "not_equal_to") == 0 ||
        strcmp(name, "math:notEqualTo") == 0 || strcmp(name, "log:notEqualTo") == 0) && arity == 2) {
     return builtin_neq(goal, env, callback, user_data);
+  }
+
+  if ((strcmp(name, "neg") == 0 || strcmp(name, "negation") == 0 || strcmp(name, "math:negation") == 0 ||
+       strcmp(name, "abs") == 0 || strcmp(name, "absolute_value") == 0 || strcmp(name, "math:absoluteValue") == 0 ||
+       strcmp(name, "sin") == 0 || strcmp(name, "math:sin") == 0 ||
+       strcmp(name, "cos") == 0 || strcmp(name, "math:cos") == 0 ||
+       strcmp(name, "asin") == 0 || strcmp(name, "math:asin") == 0 ||
+       strcmp(name, "acos") == 0 || strcmp(name, "math:acos") == 0 ||
+       strcmp(name, "log") == 0 || strcmp(name, "ln") == 0 || strcmp(name, "math:log") == 0 ||
+       strcmp(name, "math:logarithm") == 0) && arity == 2) {
+    const char *op = name;
+    if (strcmp(name, "negation") == 0 || strcmp(name, "math:negation") == 0) op = "neg";
+    else if (strcmp(name, "absolute_value") == 0 || strcmp(name, "math:absoluteValue") == 0) op = "abs";
+    else if (strcmp(name, "math:sin") == 0) op = "sin";
+    else if (strcmp(name, "math:cos") == 0) op = "cos";
+    else if (strcmp(name, "math:asin") == 0) op = "asin";
+    else if (strcmp(name, "math:acos") == 0) op = "acos";
+    else if (strcmp(name, "ln") == 0 || strcmp(name, "math:log") == 0 ||
+             strcmp(name, "math:logarithm") == 0) op = "log";
+    return builtin_unary_math(op, goal, env, callback, user_data);
   }
 
   if ((strcmp(name, "add") == 0 || strcmp(name, "sum") == 0 || strcmp(name, "math:sum") == 0 ||
