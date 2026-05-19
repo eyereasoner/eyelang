@@ -65,15 +65,15 @@ run 'easter computus 2035' bash -c './bin/eyelog examples/easter-computus.pl | g
 run 'gradient descent emits tenth bound' bash -c './bin/eyelog examples/gd-step-certified.pl | grep -q "triple(:result, :xBounds, bounds(10, -27.925465497600001, 29.925465497600001))."'
 run 'fft8 ramp dc component' bash -c './bin/eyelog examples/fft8-numeric.pl | grep -q "triple(:ramp8, :dcComponent, c(28, 0.0))."'
 run 'odrl dpv ranks account removal first' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:report, :firstRisk, :risk1)."'
-run 'odrl policy graph is materialized as graph data' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:PolicyGraph1, :contains, statement(:Policy1, odrl:permission, :PermDeleteAccount))."'
+run 'odrl policy graph is materialized as graph data' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:PolicyGraph1, :contains, triple(:Policy1, odrl:permission, :PermDeleteAccount))."'
 run 'odrl dpv scores sharing risk 97' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:risk3, :score, 97)."'
 run 'odrl dpv classifies export as moderate' bash -c './bin/eyelog examples/odrl-dpv-risk-ranked.pl | grep -q "triple(:risk4, dpv:hasRiskLevel, risk:ModerateRisk)."'
-run 'annotation graph names Alice statement' bash -c './bin/eyelog examples/annotation-graph.pl | grep -q "triple(:t, log:nameOf, graph(\[statement(:a, :name, \"Alice\")\]))."'
+run 'annotation graph names Alice triple' bash -c './bin/eyelog examples/annotation-graph.pl | grep -q "triple(:t, log:nameOf, graph(\[triple(:a, :name, \"Alice\")\]))."'
 run 'context association verifies graph chain' bash -c './bin/eyelog examples/context-association.pl | grep -q "triple(:association, :status, :contextAssociationVerified)."'
 run 'derived rule graph fires' bash -c './bin/eyelog examples/derived-rule-graph.pl | grep -q "triple(:test, :is, true)."'
 run 'healthcare policy graph ranks consent risk first' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(:report, :firstRisk, :riskH1)."'
 run 'healthcare policy graph suppresses satisfied human review risk' bash -c '! ./bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "riskH3"'
-run 'healthcare mitigation is graph-valued' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(:MitigateDeId, :suggestAddGraph, graph(\[statement(:PermShareWithPharma"'
+run 'healthcare mitigation is graph-valued' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(:MitigateDeId, :suggestAddGraph, graph(\[triple(:PermShareWithPharma"'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

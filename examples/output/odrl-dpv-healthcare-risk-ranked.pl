@@ -1,57 +1,57 @@
-triple(:AgreementHC1, :policyGraph, graph([statement(:PolicyHC1, rdf:type, odrl:Policy), statement(:PolicyHC1, odrl:permission, :PermResearchUse), statement(:PolicyHC1, odrl:permission, :PermShareWithPharma), statement(:PolicyHC1, odrl:permission, :PermAutomatedTriage), statement(:PolicyHC1, odrl:permission, :PermRetention10y), statement(:PermResearchUse, rdf:type, odrl:Permission), statement(:PermResearchUse, odrl:assigner, :Hospital), statement(:PermResearchUse, odrl:assignee, :ResearchUnit), statement(:PermResearchUse, odrl:action, hl7ca:use), statement(:PermResearchUse, odrl:target, :HealthRecordData), statement(:PermResearchUse, odrl:target, :GenomicData), statement(:PermResearchUse, odrl:constraint, :CResearchPurpose), statement(:CResearchPurpose, odrl:leftOperand, odrl:purpose), statement(:CResearchPurpose, odrl:rightOperandReference, :PurposeHMB), statement(:PermResearchUse, :clause, :ClauseH1), statement(:PermShareWithPharma, rdf:type, odrl:Permission), statement(:PermShareWithPharma, odrl:assigner, :Hospital), statement(:PermShareWithPharma, odrl:assignee, :PharmaPartner), statement(:PermShareWithPharma, odrl:action, hl7ca:disclose), statement(:PermShareWithPharma, odrl:target, :GenomicData), statement(:PermShareWithPharma, odrl:constraint, :CSharePurpose), statement(:CSharePurpose, odrl:leftOperand, odrl:purpose), statement(:CSharePurpose, odrl:rightOperandReference, :PurposeHMB), statement(:PermShareWithPharma, :clause, :ClauseH2), statement(:PermAutomatedTriage, rdf:type, odrl:Permission), statement(:PermAutomatedTriage, odrl:assigner, :Hospital), statement(:PermAutomatedTriage, odrl:assignee, :ClinicalAIService), statement(:PermAutomatedTriage, odrl:action, hl7ca:use), statement(:PermAutomatedTriage, odrl:target, :HealthRecordData), statement(:PermAutomatedTriage, odrl:constraint, :CTriagePurpose), statement(:CTriagePurpose, odrl:leftOperand, odrl:purpose), statement(:CTriagePurpose, odrl:rightOperandReference, :PurposeCC), statement(:PermAutomatedTriage, odrl:duty, :DutyHumanReview), statement(:DutyHumanReview, odrl:action, :humanReview), statement(:DutyHumanReview, odrl:constraint, :CTriageEncryption), statement(:CTriageEncryption, odrl:leftOperand, :encryptionAtRest), statement(:CTriageEncryption, odrl:rightOperand, true), statement(:PermAutomatedTriage, :clause, :ClauseH3), statement(:PermRetention10y, rdf:type, odrl:Permission), statement(:PermRetention10y, odrl:assigner, :Hospital), statement(:PermRetention10y, odrl:assignee, :Hospital), statement(:PermRetention10y, odrl:action, hl7ca:collect), statement(:PermRetention10y, odrl:target, :HealthRecordData), statement(:PermRetention10y, odrl:constraint, :CRetentionPurpose), statement(:CRetentionPurpose, odrl:leftOperand, odrl:purpose), statement(:CRetentionPurpose, odrl:rightOperandReference, :PurposeCC), statement(:PermRetention10y, odrl:constraint, :CRetentionDays), statement(:CRetentionDays, odrl:leftOperand, :retentionDays), statement(:CRetentionDays, odrl:rightOperand, 3650), statement(:PermRetention10y, :clause, :ClauseH4)])).
-triple(:MitigateConsent, :suggestAddGraph, graph([statement(:PermResearchUse, odrl:constraint, :CExplicitConsent), statement(:CExplicitConsent, odrl:leftOperand, :explicitConsent), statement(:CExplicitConsent, odrl:rightOperand, true)])).
-triple(:MitigateDeId, :suggestAddGraph, graph([statement(:PermShareWithPharma, odrl:constraint, :CDeIdentified), statement(:CDeIdentified, odrl:leftOperand, :deIdentified), statement(:CDeIdentified, odrl:rightOperand, true), statement(:PermShareWithPharma, odrl:duty, :DutyDeIdentify), statement(:DutyDeIdentify, odrl:action, :deIdentify)])).
-triple(:MitigateRetention, :suggestAddGraph, graph([statement(:PermRetention10y, odrl:constraint, :CRetentionLimit), statement(:CRetentionLimit, odrl:leftOperand, :retentionDays), statement(:CRetentionLimit, odrl:rightOperand, 1095)])).
-triple(:PolicyGraphHC1, :contains, statement(:CResearchPurpose, odrl:leftOperand, odrl:purpose)).
-triple(:PolicyGraphHC1, :contains, statement(:CResearchPurpose, odrl:rightOperandReference, :PurposeHMB)).
-triple(:PolicyGraphHC1, :contains, statement(:CRetentionDays, odrl:leftOperand, :retentionDays)).
-triple(:PolicyGraphHC1, :contains, statement(:CRetentionDays, odrl:rightOperand, 3650)).
-triple(:PolicyGraphHC1, :contains, statement(:CRetentionPurpose, odrl:leftOperand, odrl:purpose)).
-triple(:PolicyGraphHC1, :contains, statement(:CRetentionPurpose, odrl:rightOperandReference, :PurposeCC)).
-triple(:PolicyGraphHC1, :contains, statement(:CSharePurpose, odrl:leftOperand, odrl:purpose)).
-triple(:PolicyGraphHC1, :contains, statement(:CSharePurpose, odrl:rightOperandReference, :PurposeHMB)).
-triple(:PolicyGraphHC1, :contains, statement(:CTriageEncryption, odrl:leftOperand, :encryptionAtRest)).
-triple(:PolicyGraphHC1, :contains, statement(:CTriageEncryption, odrl:rightOperand, true)).
-triple(:PolicyGraphHC1, :contains, statement(:CTriagePurpose, odrl:leftOperand, odrl:purpose)).
-triple(:PolicyGraphHC1, :contains, statement(:CTriagePurpose, odrl:rightOperandReference, :PurposeCC)).
-triple(:PolicyGraphHC1, :contains, statement(:DutyHumanReview, odrl:action, :humanReview)).
-triple(:PolicyGraphHC1, :contains, statement(:DutyHumanReview, odrl:constraint, :CTriageEncryption)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, :clause, :ClauseH3)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, odrl:action, hl7ca:use)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, odrl:assignee, :ClinicalAIService)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, odrl:assigner, :Hospital)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, odrl:constraint, :CTriagePurpose)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, odrl:duty, :DutyHumanReview)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, odrl:target, :HealthRecordData)).
-triple(:PolicyGraphHC1, :contains, statement(:PermAutomatedTriage, rdf:type, odrl:Permission)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, :clause, :ClauseH1)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, odrl:action, hl7ca:use)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, odrl:assignee, :ResearchUnit)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, odrl:assigner, :Hospital)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, odrl:constraint, :CResearchPurpose)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, odrl:target, :GenomicData)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, odrl:target, :HealthRecordData)).
-triple(:PolicyGraphHC1, :contains, statement(:PermResearchUse, rdf:type, odrl:Permission)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, :clause, :ClauseH4)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, odrl:action, hl7ca:collect)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, odrl:assignee, :Hospital)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, odrl:assigner, :Hospital)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, odrl:constraint, :CRetentionDays)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, odrl:constraint, :CRetentionPurpose)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, odrl:target, :HealthRecordData)).
-triple(:PolicyGraphHC1, :contains, statement(:PermRetention10y, rdf:type, odrl:Permission)).
-triple(:PolicyGraphHC1, :contains, statement(:PermShareWithPharma, :clause, :ClauseH2)).
-triple(:PolicyGraphHC1, :contains, statement(:PermShareWithPharma, odrl:action, hl7ca:disclose)).
-triple(:PolicyGraphHC1, :contains, statement(:PermShareWithPharma, odrl:assignee, :PharmaPartner)).
-triple(:PolicyGraphHC1, :contains, statement(:PermShareWithPharma, odrl:assigner, :Hospital)).
-triple(:PolicyGraphHC1, :contains, statement(:PermShareWithPharma, odrl:constraint, :CSharePurpose)).
-triple(:PolicyGraphHC1, :contains, statement(:PermShareWithPharma, odrl:target, :GenomicData)).
-triple(:PolicyGraphHC1, :contains, statement(:PermShareWithPharma, rdf:type, odrl:Permission)).
-triple(:PolicyGraphHC1, :contains, statement(:PolicyHC1, odrl:permission, :PermAutomatedTriage)).
-triple(:PolicyGraphHC1, :contains, statement(:PolicyHC1, odrl:permission, :PermResearchUse)).
-triple(:PolicyGraphHC1, :contains, statement(:PolicyHC1, odrl:permission, :PermRetention10y)).
-triple(:PolicyGraphHC1, :contains, statement(:PolicyHC1, odrl:permission, :PermShareWithPharma)).
-triple(:PolicyGraphHC1, :contains, statement(:PolicyHC1, rdf:type, odrl:Policy)).
+triple(:AgreementHC1, :policyGraph, graph([triple(:PolicyHC1, rdf:type, odrl:Policy), triple(:PolicyHC1, odrl:permission, :PermResearchUse), triple(:PolicyHC1, odrl:permission, :PermShareWithPharma), triple(:PolicyHC1, odrl:permission, :PermAutomatedTriage), triple(:PolicyHC1, odrl:permission, :PermRetention10y), triple(:PermResearchUse, rdf:type, odrl:Permission), triple(:PermResearchUse, odrl:assigner, :Hospital), triple(:PermResearchUse, odrl:assignee, :ResearchUnit), triple(:PermResearchUse, odrl:action, hl7ca:use), triple(:PermResearchUse, odrl:target, :HealthRecordData), triple(:PermResearchUse, odrl:target, :GenomicData), triple(:PermResearchUse, odrl:constraint, :CResearchPurpose), triple(:CResearchPurpose, odrl:leftOperand, odrl:purpose), triple(:CResearchPurpose, odrl:rightOperandReference, :PurposeHMB), triple(:PermResearchUse, :clause, :ClauseH1), triple(:PermShareWithPharma, rdf:type, odrl:Permission), triple(:PermShareWithPharma, odrl:assigner, :Hospital), triple(:PermShareWithPharma, odrl:assignee, :PharmaPartner), triple(:PermShareWithPharma, odrl:action, hl7ca:disclose), triple(:PermShareWithPharma, odrl:target, :GenomicData), triple(:PermShareWithPharma, odrl:constraint, :CSharePurpose), triple(:CSharePurpose, odrl:leftOperand, odrl:purpose), triple(:CSharePurpose, odrl:rightOperandReference, :PurposeHMB), triple(:PermShareWithPharma, :clause, :ClauseH2), triple(:PermAutomatedTriage, rdf:type, odrl:Permission), triple(:PermAutomatedTriage, odrl:assigner, :Hospital), triple(:PermAutomatedTriage, odrl:assignee, :ClinicalAIService), triple(:PermAutomatedTriage, odrl:action, hl7ca:use), triple(:PermAutomatedTriage, odrl:target, :HealthRecordData), triple(:PermAutomatedTriage, odrl:constraint, :CTriagePurpose), triple(:CTriagePurpose, odrl:leftOperand, odrl:purpose), triple(:CTriagePurpose, odrl:rightOperandReference, :PurposeCC), triple(:PermAutomatedTriage, odrl:duty, :DutyHumanReview), triple(:DutyHumanReview, odrl:action, :humanReview), triple(:DutyHumanReview, odrl:constraint, :CTriageEncryption), triple(:CTriageEncryption, odrl:leftOperand, :encryptionAtRest), triple(:CTriageEncryption, odrl:rightOperand, true), triple(:PermAutomatedTriage, :clause, :ClauseH3), triple(:PermRetention10y, rdf:type, odrl:Permission), triple(:PermRetention10y, odrl:assigner, :Hospital), triple(:PermRetention10y, odrl:assignee, :Hospital), triple(:PermRetention10y, odrl:action, hl7ca:collect), triple(:PermRetention10y, odrl:target, :HealthRecordData), triple(:PermRetention10y, odrl:constraint, :CRetentionPurpose), triple(:CRetentionPurpose, odrl:leftOperand, odrl:purpose), triple(:CRetentionPurpose, odrl:rightOperandReference, :PurposeCC), triple(:PermRetention10y, odrl:constraint, :CRetentionDays), triple(:CRetentionDays, odrl:leftOperand, :retentionDays), triple(:CRetentionDays, odrl:rightOperand, 3650), triple(:PermRetention10y, :clause, :ClauseH4)])).
+triple(:MitigateConsent, :suggestAddGraph, graph([triple(:PermResearchUse, odrl:constraint, :CExplicitConsent), triple(:CExplicitConsent, odrl:leftOperand, :explicitConsent), triple(:CExplicitConsent, odrl:rightOperand, true)])).
+triple(:MitigateDeId, :suggestAddGraph, graph([triple(:PermShareWithPharma, odrl:constraint, :CDeIdentified), triple(:CDeIdentified, odrl:leftOperand, :deIdentified), triple(:CDeIdentified, odrl:rightOperand, true), triple(:PermShareWithPharma, odrl:duty, :DutyDeIdentify), triple(:DutyDeIdentify, odrl:action, :deIdentify)])).
+triple(:MitigateRetention, :suggestAddGraph, graph([triple(:PermRetention10y, odrl:constraint, :CRetentionLimit), triple(:CRetentionLimit, odrl:leftOperand, :retentionDays), triple(:CRetentionLimit, odrl:rightOperand, 1095)])).
+triple(:PolicyGraphHC1, :contains, triple(:CResearchPurpose, odrl:leftOperand, odrl:purpose)).
+triple(:PolicyGraphHC1, :contains, triple(:CResearchPurpose, odrl:rightOperandReference, :PurposeHMB)).
+triple(:PolicyGraphHC1, :contains, triple(:CRetentionDays, odrl:leftOperand, :retentionDays)).
+triple(:PolicyGraphHC1, :contains, triple(:CRetentionDays, odrl:rightOperand, 3650)).
+triple(:PolicyGraphHC1, :contains, triple(:CRetentionPurpose, odrl:leftOperand, odrl:purpose)).
+triple(:PolicyGraphHC1, :contains, triple(:CRetentionPurpose, odrl:rightOperandReference, :PurposeCC)).
+triple(:PolicyGraphHC1, :contains, triple(:CSharePurpose, odrl:leftOperand, odrl:purpose)).
+triple(:PolicyGraphHC1, :contains, triple(:CSharePurpose, odrl:rightOperandReference, :PurposeHMB)).
+triple(:PolicyGraphHC1, :contains, triple(:CTriageEncryption, odrl:leftOperand, :encryptionAtRest)).
+triple(:PolicyGraphHC1, :contains, triple(:CTriageEncryption, odrl:rightOperand, true)).
+triple(:PolicyGraphHC1, :contains, triple(:CTriagePurpose, odrl:leftOperand, odrl:purpose)).
+triple(:PolicyGraphHC1, :contains, triple(:CTriagePurpose, odrl:rightOperandReference, :PurposeCC)).
+triple(:PolicyGraphHC1, :contains, triple(:DutyHumanReview, odrl:action, :humanReview)).
+triple(:PolicyGraphHC1, :contains, triple(:DutyHumanReview, odrl:constraint, :CTriageEncryption)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, :clause, :ClauseH3)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, odrl:action, hl7ca:use)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, odrl:assignee, :ClinicalAIService)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, odrl:assigner, :Hospital)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, odrl:constraint, :CTriagePurpose)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, odrl:duty, :DutyHumanReview)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, odrl:target, :HealthRecordData)).
+triple(:PolicyGraphHC1, :contains, triple(:PermAutomatedTriage, rdf:type, odrl:Permission)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, :clause, :ClauseH1)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, odrl:action, hl7ca:use)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, odrl:assignee, :ResearchUnit)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, odrl:assigner, :Hospital)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, odrl:constraint, :CResearchPurpose)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, odrl:target, :GenomicData)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, odrl:target, :HealthRecordData)).
+triple(:PolicyGraphHC1, :contains, triple(:PermResearchUse, rdf:type, odrl:Permission)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, :clause, :ClauseH4)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, odrl:action, hl7ca:collect)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, odrl:assignee, :Hospital)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, odrl:assigner, :Hospital)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, odrl:constraint, :CRetentionDays)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, odrl:constraint, :CRetentionPurpose)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, odrl:target, :HealthRecordData)).
+triple(:PolicyGraphHC1, :contains, triple(:PermRetention10y, rdf:type, odrl:Permission)).
+triple(:PolicyGraphHC1, :contains, triple(:PermShareWithPharma, :clause, :ClauseH2)).
+triple(:PolicyGraphHC1, :contains, triple(:PermShareWithPharma, odrl:action, hl7ca:disclose)).
+triple(:PolicyGraphHC1, :contains, triple(:PermShareWithPharma, odrl:assignee, :PharmaPartner)).
+triple(:PolicyGraphHC1, :contains, triple(:PermShareWithPharma, odrl:assigner, :Hospital)).
+triple(:PolicyGraphHC1, :contains, triple(:PermShareWithPharma, odrl:constraint, :CSharePurpose)).
+triple(:PolicyGraphHC1, :contains, triple(:PermShareWithPharma, odrl:target, :GenomicData)).
+triple(:PolicyGraphHC1, :contains, triple(:PermShareWithPharma, rdf:type, odrl:Permission)).
+triple(:PolicyGraphHC1, :contains, triple(:PolicyHC1, odrl:permission, :PermAutomatedTriage)).
+triple(:PolicyGraphHC1, :contains, triple(:PolicyHC1, odrl:permission, :PermResearchUse)).
+triple(:PolicyGraphHC1, :contains, triple(:PolicyHC1, odrl:permission, :PermRetention10y)).
+triple(:PolicyGraphHC1, :contains, triple(:PolicyHC1, odrl:permission, :PermShareWithPharma)).
+triple(:PolicyGraphHC1, :contains, triple(:PolicyHC1, rdf:type, odrl:Policy)).
 triple(:ProcessContextHC1, dpv:hasRisk, :riskH1).
 triple(:ProcessContextHC1, dpv:hasRisk, :riskH2).
 triple(:ProcessContextHC1, dpv:hasRisk, :riskH4).

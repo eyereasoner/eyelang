@@ -534,32 +534,34 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/easter-computus.pl` adapts the Gregorian computus example. It derives Easter dates for 2026-2035 and emits independent range/window checks.
 - `examples/gd-step-certified.pl` adapts the certified gradient-descent interval example using decimal arithmetic, interval bounds, and objective bounds.
 - `examples/fft8-numeric.pl` adapts the numeric FFT example using explicit complex pairs and radix-2 decomposition.
-- `examples/odrl-dpv-risk-ranked.pl` adapts the ODRL + DPV ranked-risk assessment example. It derives missing-safeguard risks, DPV risk levels, mitigation measures, and inverse-score report keys from a graph-valued policy term, so policy statements are treated as scoped data rather than globally asserted facts.
-- `examples/annotation-graph.pl` adapts the RDF annotation example. A statement is represented as a named graph term and then linked to provenance metadata.
+- `examples/odrl-dpv-risk-ranked.pl` adapts the ODRL + DPV ranked-risk assessment example. It derives missing-safeguard risks, DPV risk levels, mitigation measures, and inverse-score report keys from a graph-valued policy term, so policy triples are treated as scoped data rather than globally asserted facts.
+- `examples/annotation-graph.pl` adapts the RDF annotation example. A triple is represented as a named graph term and then linked to provenance metadata.
 - `examples/context-association.pl` adapts the context-association example. It verifies a data graph, signature graph, and metadata graph chain without asserting their internal triples globally.
 - `examples/derived-rule-graph.pl` adapts the derived-rule example by representing a rule as a `rule(PremiseGraph, ConclusionGraph)` term and applying a small graph-pattern interpreter.
 - `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as graph-valued terms and derives only the risks supported by the scoped graph.
 
-For policy-like inputs, annotations, signatures, and quoted rules, prefer graph-valued data when the statements should stay scoped.
-For example, `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([statement(S, P, O), ...]))` and derives local helper predicates from graph membership. That lets rules inspect a policy without asserting every permission, prohibition, or constraint as a global fact, which is useful when different policy graphs may contain incompatible clauses.
+For policy-like inputs, annotations, signatures, and quoted rules, prefer graph-valued data when triples should stay scoped.
+For example, `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(:PolicyGraph1, graph([triple(S, P, O), ...]))` and derives local helper predicates from graph membership. That lets rules inspect a policy without asserting every permission, prohibition, or constraint as a global fact, which is useful when different policy graphs may contain incompatible clauses.
 
 Graph terms are ordinary Eyelog terms. Use one representation for RDF-shaped content inside a graph:
 
 ```prolog
 named_graph(:G1, graph([
-  statement(:s, :p, :o)
+  triple(:s, :p, :o)
 ])).
 
-graph_statement(graph(Statements), S, P, O) :-
-  member(statement(S, P, O), Statements).
+graph_triple(graph(Statements), S, P, O) :-
+  member(triple(S, P, O), Statements).
 ```
 
-The intended distinction is:
+There is deliberately only one RDF-shaped constructor: `triple/3`.
 
-- `triple(S, P, O)` is the ambient output/query convention. Running a file without `--query` materializes `triple/3` results.
-- `statement(S, P, O)` is a quoted or scoped graph item inside `graph([...])`. It is just data until a rule explicitly projects it.
+The difference between an asserted/output triple and a quoted triple is positional, not syntactic:
 
-Avoid using `edge/3` for RDF-shaped graph contents. Reserve domain names such as `arc/2`, `link/3`, or `route_segment/4` for ordinary graph algorithms where they are not RDF statements.
+- `triple(S, P, O)` as a top-level derived fact is materialized by the default query.
+- `triple(S, P, O)` inside `graph([...])` is ordinary data. It becomes relevant only when a rule projects it with a helper such as `graph_triple/4`.
+
+This avoids parallel names such as `statement/3` and `triple/3` for the same shape. Avoid using `edge/3` for RDF-shaped graph contents. Reserve domain names such as `arc/2`, `link/3`, or `route_segment/4` for ordinary graph algorithms where they are not RDF triples.
 
 For example, a graph reachability program can use domain arcs without involving graph terms:
 

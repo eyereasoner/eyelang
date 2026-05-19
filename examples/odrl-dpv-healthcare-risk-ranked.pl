@@ -36,78 +36,78 @@ clause_text(:ClauseH4, "Hospital retains patient health records for 10 years.").
 agreement_policy_graph(:AgreementHC1, :PolicyGraphHC1).
 
 policy_graph(:PolicyGraphHC1, graph([
-  statement(:PolicyHC1, rdf:type, odrl:Policy),
-  statement(:PolicyHC1, odrl:permission, :PermResearchUse),
-  statement(:PolicyHC1, odrl:permission, :PermShareWithPharma),
-  statement(:PolicyHC1, odrl:permission, :PermAutomatedTriage),
-  statement(:PolicyHC1, odrl:permission, :PermRetention10y),
+  triple(:PolicyHC1, rdf:type, odrl:Policy),
+  triple(:PolicyHC1, odrl:permission, :PermResearchUse),
+  triple(:PolicyHC1, odrl:permission, :PermShareWithPharma),
+  triple(:PolicyHC1, odrl:permission, :PermAutomatedTriage),
+  triple(:PolicyHC1, odrl:permission, :PermRetention10y),
 
-  statement(:PermResearchUse, rdf:type, odrl:Permission),
-  statement(:PermResearchUse, odrl:assigner, :Hospital),
-  statement(:PermResearchUse, odrl:assignee, :ResearchUnit),
-  statement(:PermResearchUse, odrl:action, hl7ca:use),
-  statement(:PermResearchUse, odrl:target, :HealthRecordData),
-  statement(:PermResearchUse, odrl:target, :GenomicData),
-  statement(:PermResearchUse, odrl:constraint, :CResearchPurpose),
-  statement(:CResearchPurpose, odrl:leftOperand, odrl:purpose),
-  statement(:CResearchPurpose, odrl:rightOperandReference, :PurposeHMB),
-  statement(:PermResearchUse, :clause, :ClauseH1),
+  triple(:PermResearchUse, rdf:type, odrl:Permission),
+  triple(:PermResearchUse, odrl:assigner, :Hospital),
+  triple(:PermResearchUse, odrl:assignee, :ResearchUnit),
+  triple(:PermResearchUse, odrl:action, hl7ca:use),
+  triple(:PermResearchUse, odrl:target, :HealthRecordData),
+  triple(:PermResearchUse, odrl:target, :GenomicData),
+  triple(:PermResearchUse, odrl:constraint, :CResearchPurpose),
+  triple(:CResearchPurpose, odrl:leftOperand, odrl:purpose),
+  triple(:CResearchPurpose, odrl:rightOperandReference, :PurposeHMB),
+  triple(:PermResearchUse, :clause, :ClauseH1),
 
-  statement(:PermShareWithPharma, rdf:type, odrl:Permission),
-  statement(:PermShareWithPharma, odrl:assigner, :Hospital),
-  statement(:PermShareWithPharma, odrl:assignee, :PharmaPartner),
-  statement(:PermShareWithPharma, odrl:action, hl7ca:disclose),
-  statement(:PermShareWithPharma, odrl:target, :GenomicData),
-  statement(:PermShareWithPharma, odrl:constraint, :CSharePurpose),
-  statement(:CSharePurpose, odrl:leftOperand, odrl:purpose),
-  statement(:CSharePurpose, odrl:rightOperandReference, :PurposeHMB),
-  statement(:PermShareWithPharma, :clause, :ClauseH2),
+  triple(:PermShareWithPharma, rdf:type, odrl:Permission),
+  triple(:PermShareWithPharma, odrl:assigner, :Hospital),
+  triple(:PermShareWithPharma, odrl:assignee, :PharmaPartner),
+  triple(:PermShareWithPharma, odrl:action, hl7ca:disclose),
+  triple(:PermShareWithPharma, odrl:target, :GenomicData),
+  triple(:PermShareWithPharma, odrl:constraint, :CSharePurpose),
+  triple(:CSharePurpose, odrl:leftOperand, odrl:purpose),
+  triple(:CSharePurpose, odrl:rightOperandReference, :PurposeHMB),
+  triple(:PermShareWithPharma, :clause, :ClauseH2),
 
-  statement(:PermAutomatedTriage, rdf:type, odrl:Permission),
-  statement(:PermAutomatedTriage, odrl:assigner, :Hospital),
-  statement(:PermAutomatedTriage, odrl:assignee, :ClinicalAIService),
-  statement(:PermAutomatedTriage, odrl:action, hl7ca:use),
-  statement(:PermAutomatedTriage, odrl:target, :HealthRecordData),
-  statement(:PermAutomatedTriage, odrl:constraint, :CTriagePurpose),
-  statement(:CTriagePurpose, odrl:leftOperand, odrl:purpose),
-  statement(:CTriagePurpose, odrl:rightOperandReference, :PurposeCC),
-  statement(:PermAutomatedTriage, odrl:duty, :DutyHumanReview),
-  statement(:DutyHumanReview, odrl:action, :humanReview),
-  statement(:DutyHumanReview, odrl:constraint, :CTriageEncryption),
-  statement(:CTriageEncryption, odrl:leftOperand, :encryptionAtRest),
-  statement(:CTriageEncryption, odrl:rightOperand, true),
-  statement(:PermAutomatedTriage, :clause, :ClauseH3),
+  triple(:PermAutomatedTriage, rdf:type, odrl:Permission),
+  triple(:PermAutomatedTriage, odrl:assigner, :Hospital),
+  triple(:PermAutomatedTriage, odrl:assignee, :ClinicalAIService),
+  triple(:PermAutomatedTriage, odrl:action, hl7ca:use),
+  triple(:PermAutomatedTriage, odrl:target, :HealthRecordData),
+  triple(:PermAutomatedTriage, odrl:constraint, :CTriagePurpose),
+  triple(:CTriagePurpose, odrl:leftOperand, odrl:purpose),
+  triple(:CTriagePurpose, odrl:rightOperandReference, :PurposeCC),
+  triple(:PermAutomatedTriage, odrl:duty, :DutyHumanReview),
+  triple(:DutyHumanReview, odrl:action, :humanReview),
+  triple(:DutyHumanReview, odrl:constraint, :CTriageEncryption),
+  triple(:CTriageEncryption, odrl:leftOperand, :encryptionAtRest),
+  triple(:CTriageEncryption, odrl:rightOperand, true),
+  triple(:PermAutomatedTriage, :clause, :ClauseH3),
 
-  statement(:PermRetention10y, rdf:type, odrl:Permission),
-  statement(:PermRetention10y, odrl:assigner, :Hospital),
-  statement(:PermRetention10y, odrl:assignee, :Hospital),
-  statement(:PermRetention10y, odrl:action, hl7ca:collect),
-  statement(:PermRetention10y, odrl:target, :HealthRecordData),
-  statement(:PermRetention10y, odrl:constraint, :CRetentionPurpose),
-  statement(:CRetentionPurpose, odrl:leftOperand, odrl:purpose),
-  statement(:CRetentionPurpose, odrl:rightOperandReference, :PurposeCC),
-  statement(:PermRetention10y, odrl:constraint, :CRetentionDays),
-  statement(:CRetentionDays, odrl:leftOperand, :retentionDays),
-  statement(:CRetentionDays, odrl:rightOperand, 3650),
-  statement(:PermRetention10y, :clause, :ClauseH4)
+  triple(:PermRetention10y, rdf:type, odrl:Permission),
+  triple(:PermRetention10y, odrl:assigner, :Hospital),
+  triple(:PermRetention10y, odrl:assignee, :Hospital),
+  triple(:PermRetention10y, odrl:action, hl7ca:collect),
+  triple(:PermRetention10y, odrl:target, :HealthRecordData),
+  triple(:PermRetention10y, odrl:constraint, :CRetentionPurpose),
+  triple(:CRetentionPurpose, odrl:leftOperand, odrl:purpose),
+  triple(:CRetentionPurpose, odrl:rightOperandReference, :PurposeCC),
+  triple(:PermRetention10y, odrl:constraint, :CRetentionDays),
+  triple(:CRetentionDays, odrl:leftOperand, :retentionDays),
+  triple(:CRetentionDays, odrl:rightOperand, 3650),
+  triple(:PermRetention10y, :clause, :ClauseH4)
 ])).
 
-graph_statement(graph(Statements), Subject, Predicate, Object) :-
-  member(statement(Subject, Predicate, Object), Statements).
+graph_triple(graph(Statements), Subject, Predicate, Object) :-
+  member(triple(Subject, Predicate, Object), Statements).
 
-policy_statement(GraphName, Subject, Predicate, Object) :-
+policy_triple(GraphName, Subject, Predicate, Object) :-
   policy_graph(GraphName, Graph),
-  graph_statement(Graph, Subject, Predicate, Object).
+  graph_triple(Graph, Subject, Predicate, Object).
 
-permission(Graph, Permission) :- policy_statement(Graph, :PolicyHC1, odrl:permission, Permission).
-clause(Graph, Permission, Clause) :- policy_statement(Graph, Permission, :clause, Clause).
-action(Graph, Permission, Action) :- policy_statement(Graph, Permission, odrl:action, Action).
-target(Graph, Permission, Target) :- policy_statement(Graph, Permission, odrl:target, Target).
-duty(Graph, Permission, Duty) :- policy_statement(Graph, Permission, odrl:duty, Duty).
-duty_action(Graph, Duty, Action) :- policy_statement(Graph, Duty, odrl:action, Action).
-constraint(Graph, Permission, Constraint) :- policy_statement(Graph, Permission, odrl:constraint, Constraint).
-constraint_left(Graph, Constraint, Left) :- policy_statement(Graph, Constraint, odrl:leftOperand, Left).
-constraint_right(Graph, Constraint, Right) :- policy_statement(Graph, Constraint, odrl:rightOperand, Right).
+permission(Graph, Permission) :- policy_triple(Graph, :PolicyHC1, odrl:permission, Permission).
+clause(Graph, Permission, Clause) :- policy_triple(Graph, Permission, :clause, Clause).
+action(Graph, Permission, Action) :- policy_triple(Graph, Permission, odrl:action, Action).
+target(Graph, Permission, Target) :- policy_triple(Graph, Permission, odrl:target, Target).
+duty(Graph, Permission, Duty) :- policy_triple(Graph, Permission, odrl:duty, Duty).
+duty_action(Graph, Duty, Action) :- policy_triple(Graph, Duty, odrl:action, Action).
+constraint(Graph, Permission, Constraint) :- policy_triple(Graph, Permission, odrl:constraint, Constraint).
+constraint_left(Graph, Constraint, Left) :- policy_triple(Graph, Constraint, odrl:leftOperand, Left).
+constraint_right(Graph, Constraint, Right) :- policy_triple(Graph, Constraint, odrl:rightOperand, Right).
 
 has_constraint(Graph, Permission, Left, Right) :-
   constraint(Graph, Permission, Constraint),
@@ -187,25 +187,25 @@ description(:riskH3, "Risk: automated triage may affect care pathways without a 
 description(:riskH4, "Risk: retention (3650 days) exceeds patient preference (1095 days).").
 
 mitigation_graph(:riskH1, :MitigateConsent, graph([
-  statement(:PermResearchUse, odrl:constraint, :CExplicitConsent),
-  statement(:CExplicitConsent, odrl:leftOperand, :explicitConsent),
-  statement(:CExplicitConsent, odrl:rightOperand, true)
+  triple(:PermResearchUse, odrl:constraint, :CExplicitConsent),
+  triple(:CExplicitConsent, odrl:leftOperand, :explicitConsent),
+  triple(:CExplicitConsent, odrl:rightOperand, true)
 ])).
 mitigation_graph(:riskH2, :MitigateDeId, graph([
-  statement(:PermShareWithPharma, odrl:constraint, :CDeIdentified),
-  statement(:CDeIdentified, odrl:leftOperand, :deIdentified),
-  statement(:CDeIdentified, odrl:rightOperand, true),
-  statement(:PermShareWithPharma, odrl:duty, :DutyDeIdentify),
-  statement(:DutyDeIdentify, odrl:action, :deIdentify)
+  triple(:PermShareWithPharma, odrl:constraint, :CDeIdentified),
+  triple(:CDeIdentified, odrl:leftOperand, :deIdentified),
+  triple(:CDeIdentified, odrl:rightOperand, true),
+  triple(:PermShareWithPharma, odrl:duty, :DutyDeIdentify),
+  triple(:DutyDeIdentify, odrl:action, :deIdentify)
 ])).
 mitigation_graph(:riskH3, :MitigateHumanReview, graph([
-  statement(:PermAutomatedTriage, odrl:duty, :DutyHumanReview),
-  statement(:DutyHumanReview, odrl:action, :humanReview)
+  triple(:PermAutomatedTriage, odrl:duty, :DutyHumanReview),
+  triple(:DutyHumanReview, odrl:action, :humanReview)
 ])).
 mitigation_graph(:riskH4, :MitigateRetention, graph([
-  statement(:PermRetention10y, odrl:constraint, :CRetentionLimit),
-  statement(:CRetentionLimit, odrl:leftOperand, :retentionDays),
-  statement(:CRetentionLimit, odrl:rightOperand, 1095)
+  triple(:PermRetention10y, odrl:constraint, :CRetentionLimit),
+  triple(:CRetentionLimit, odrl:leftOperand, :retentionDays),
+  triple(:CRetentionLimit, odrl:rightOperand, 1095)
 ])).
 
 score_raw(Risk, Raw) :-
@@ -229,8 +229,8 @@ triple(:AgreementHC1, :policyGraph, GraphTerm) :-
   agreement_policy_graph(:AgreementHC1, Graph),
   policy_graph(Graph, GraphTerm).
 
-triple(:PolicyGraphHC1, :contains, statement(Subject, Predicate, Object)) :-
-  policy_statement(:PolicyGraphHC1, Subject, Predicate, Object).
+triple(:PolicyGraphHC1, :contains, triple(Subject, Predicate, Object)) :-
+  policy_triple(:PolicyGraphHC1, Subject, Predicate, Object).
 
 triple(:ProcessContextHC1, dpv:hasRisk, Risk) :- risk(Risk).
 triple(Risk, rdf:type, dpv:Risk) :- risk(Risk).

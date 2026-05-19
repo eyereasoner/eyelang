@@ -2,29 +2,29 @@
 % Data, signature, and metadata contexts are graph-valued terms.
 
 named_graph(:DataGraph, graph([
-  statement(:Bob, foaf:name, "Bob")
+  triple(:Bob, foaf:name, "Bob")
 ])).
 
 named_graph(:SignatureGraph, graph([
-  statement(:DataGraph, sec:proof, :DataSignature),
-  statement(:Proof1, rdf:type, sec:DataIntegrityProof),
-  statement(:Proof1, sec:cryptosuite, "ecdsa-rdfc-2019"),
-  statement(:Proof1, sec:issuer, :University),
-  statement(:Proof1, sec:validUntil, "2025-04-03T00:00:00.000Z")
+  triple(:DataGraph, sec:proof, :DataSignature),
+  triple(:Proof1, rdf:type, sec:DataIntegrityProof),
+  triple(:Proof1, sec:cryptosuite, "ecdsa-rdfc-2019"),
+  triple(:Proof1, sec:issuer, :University),
+  triple(:Proof1, sec:validUntil, "2025-04-03T00:00:00.000Z")
 ])).
 
 named_graph(:MetadataGraph, graph([
-  statement(:SignatureGraph, sec:proof, :MetadataSignature),
-  statement(:MetadataProof, rdf:type, sec:DataIntegrityProof),
-  statement(:MetadataProof, sec:proofPurpose, "assertionMethod")
+  triple(:SignatureGraph, sec:proof, :MetadataSignature),
+  triple(:MetadataProof, rdf:type, sec:DataIntegrityProof),
+  triple(:MetadataProof, sec:proofPurpose, "assertionMethod")
 ])).
 
-graph_statement(graph(Statements), Subject, Predicate, Object) :-
-  member(statement(Subject, Predicate, Object), Statements).
+graph_triple(graph(Statements), Subject, Predicate, Object) :-
+  member(triple(Subject, Predicate, Object), Statements).
 
 context_includes(GraphName, Subject, Predicate, Object) :-
   named_graph(GraphName, Graph),
-  graph_statement(Graph, Subject, Predicate, Object).
+  graph_triple(Graph, Subject, Predicate, Object).
 
 context_association_verified(:association) :-
   context_includes(:DataGraph, :Bob, foaf:name, "Bob"),

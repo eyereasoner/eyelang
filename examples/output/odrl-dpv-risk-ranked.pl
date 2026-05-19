@@ -9,34 +9,34 @@ triple(:ClauseC3, :text, "Provider may share user data with partners for busines
 triple(:ClauseC4, :clauseId, "C4").
 triple(:ClauseC4, :text, "Users are not permitted to export their data.").
 triple(:ConsumerExample, dct:title, "Example consumer profile").
-triple(:PolicyGraph1, :contains, statement(:PermChangeTerms, :clause, :ClauseC2)).
-triple(:PolicyGraph1, :contains, statement(:PermChangeTerms, :noticeDays, 3)).
-triple(:PolicyGraph1, :contains, statement(:PermChangeTerms, odrl:action, tosl:changeTerms)).
-triple(:PolicyGraph1, :contains, statement(:PermChangeTerms, odrl:assignee, :ConsumerExample)).
-triple(:PolicyGraph1, :contains, statement(:PermChangeTerms, odrl:assigner, :Provider)).
-triple(:PolicyGraph1, :contains, statement(:PermChangeTerms, odrl:duty, odrl:inform)).
-triple(:PolicyGraph1, :contains, statement(:PermChangeTerms, odrl:target, :AgreementText)).
-triple(:PolicyGraph1, :contains, statement(:PermDeleteAccount, :clause, :ClauseC1)).
-triple(:PolicyGraph1, :contains, statement(:PermDeleteAccount, odrl:action, tosl:removeAccount)).
-triple(:PolicyGraph1, :contains, statement(:PermDeleteAccount, odrl:assignee, :ConsumerExample)).
-triple(:PolicyGraph1, :contains, statement(:PermDeleteAccount, odrl:assigner, :Provider)).
-triple(:PolicyGraph1, :contains, statement(:PermDeleteAccount, odrl:target, :UserAccount)).
-triple(:PolicyGraph1, :contains, statement(:PermShareData, :clause, :ClauseC3)).
-triple(:PolicyGraph1, :contains, statement(:PermShareData, odrl:action, tosl:shareData)).
-triple(:PolicyGraph1, :contains, statement(:PermShareData, odrl:assignee, :ConsumerExample)).
-triple(:PolicyGraph1, :contains, statement(:PermShareData, odrl:assigner, :Provider)).
-triple(:PolicyGraph1, :contains, statement(:PermShareData, odrl:target, :UserData)).
-triple(:PolicyGraph1, :contains, statement(:Policy1, odrl:appliesTo, :Agreement1)).
-triple(:PolicyGraph1, :contains, statement(:Policy1, odrl:permission, :PermChangeTerms)).
-triple(:PolicyGraph1, :contains, statement(:Policy1, odrl:permission, :PermDeleteAccount)).
-triple(:PolicyGraph1, :contains, statement(:Policy1, odrl:permission, :PermShareData)).
-triple(:PolicyGraph1, :contains, statement(:Policy1, odrl:prohibition, :ProhibitExportData)).
-triple(:PolicyGraph1, :contains, statement(:Policy1, rdf:type, odrl:Policy)).
-triple(:PolicyGraph1, :contains, statement(:ProhibitExportData, :clause, :ClauseC4)).
-triple(:PolicyGraph1, :contains, statement(:ProhibitExportData, odrl:action, tosl:exportData)).
-triple(:PolicyGraph1, :contains, statement(:ProhibitExportData, odrl:assignee, :ConsumerExample)).
-triple(:PolicyGraph1, :contains, statement(:ProhibitExportData, odrl:assigner, :Provider)).
-triple(:PolicyGraph1, :contains, statement(:ProhibitExportData, odrl:target, :UserData)).
+triple(:PolicyGraph1, :contains, triple(:PermChangeTerms, :clause, :ClauseC2)).
+triple(:PolicyGraph1, :contains, triple(:PermChangeTerms, :noticeDays, 3)).
+triple(:PolicyGraph1, :contains, triple(:PermChangeTerms, odrl:action, tosl:changeTerms)).
+triple(:PolicyGraph1, :contains, triple(:PermChangeTerms, odrl:assignee, :ConsumerExample)).
+triple(:PolicyGraph1, :contains, triple(:PermChangeTerms, odrl:assigner, :Provider)).
+triple(:PolicyGraph1, :contains, triple(:PermChangeTerms, odrl:duty, odrl:inform)).
+triple(:PolicyGraph1, :contains, triple(:PermChangeTerms, odrl:target, :AgreementText)).
+triple(:PolicyGraph1, :contains, triple(:PermDeleteAccount, :clause, :ClauseC1)).
+triple(:PolicyGraph1, :contains, triple(:PermDeleteAccount, odrl:action, tosl:removeAccount)).
+triple(:PolicyGraph1, :contains, triple(:PermDeleteAccount, odrl:assignee, :ConsumerExample)).
+triple(:PolicyGraph1, :contains, triple(:PermDeleteAccount, odrl:assigner, :Provider)).
+triple(:PolicyGraph1, :contains, triple(:PermDeleteAccount, odrl:target, :UserAccount)).
+triple(:PolicyGraph1, :contains, triple(:PermShareData, :clause, :ClauseC3)).
+triple(:PolicyGraph1, :contains, triple(:PermShareData, odrl:action, tosl:shareData)).
+triple(:PolicyGraph1, :contains, triple(:PermShareData, odrl:assignee, :ConsumerExample)).
+triple(:PolicyGraph1, :contains, triple(:PermShareData, odrl:assigner, :Provider)).
+triple(:PolicyGraph1, :contains, triple(:PermShareData, odrl:target, :UserData)).
+triple(:PolicyGraph1, :contains, triple(:Policy1, odrl:appliesTo, :Agreement1)).
+triple(:PolicyGraph1, :contains, triple(:Policy1, odrl:permission, :PermChangeTerms)).
+triple(:PolicyGraph1, :contains, triple(:Policy1, odrl:permission, :PermDeleteAccount)).
+triple(:PolicyGraph1, :contains, triple(:Policy1, odrl:permission, :PermShareData)).
+triple(:PolicyGraph1, :contains, triple(:Policy1, odrl:prohibition, :ProhibitExportData)).
+triple(:PolicyGraph1, :contains, triple(:Policy1, rdf:type, odrl:Policy)).
+triple(:PolicyGraph1, :contains, triple(:ProhibitExportData, :clause, :ClauseC4)).
+triple(:PolicyGraph1, :contains, triple(:ProhibitExportData, odrl:action, tosl:exportData)).
+triple(:PolicyGraph1, :contains, triple(:ProhibitExportData, odrl:assignee, :ConsumerExample)).
+triple(:PolicyGraph1, :contains, triple(:ProhibitExportData, odrl:assigner, :Provider)).
+triple(:PolicyGraph1, :contains, triple(:ProhibitExportData, odrl:target, :UserData)).
 triple(:PolicyGraph1, rdf:type, :PolicyGraph).
 triple(:ProcessContext1, dct:title, "Service operation under Agreement1").
 triple(:ProcessContext1, dpv:hasRisk, :risk1).
