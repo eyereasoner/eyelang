@@ -592,6 +592,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/list-collection.pl` demonstrates list literals, `member/2`, `length/2`, `append/3`, and `[Head|Tail]`.
 - `examples/gps.pl` adapts the GPS route-planning example more closely: map descriptions are quoted graph data, route actions are lists built with `list:append/3`, route metrics include duration/cost/belief/comfort, and the output layer emits the recommendation, checks, and report text.
 - `examples/cyclic-path.pl` demonstrates transitive closure over a directed cycle. The logical reachability result is finite, and eyelog's active-call variant guard prevents recursive proof search from looping forever.
+- `examples/service-impact.pl` applies the same cyclic-closure pattern to incident analysis: when `:payment_service` fails, services and business functions that depend on it transitively are marked at risk even though the payment/fraud/risk-rules dependency graph contains a cycle.
 - `examples/expression-eval.pl` adapts the expression evaluator example using eyelog arithmetic predicates.
 - `examples/ackermann.pl` adapts Eyeling's Ackermann-style hyperoperation benchmark and uses `pow/3` with arbitrary-size integers, including the large `ackermann(4, 2)` value.
 - `examples/dijkstra.pl` adapts the weighted Dijkstra graph as bounded simple-path enumeration. The route network is a quoted `graph([...])` term, and path search uses `list:notMember/2` for visited-node checks.
@@ -629,7 +630,7 @@ path(X, Y) :- arc(X, Y).
 path(X, Z) :- arc(X, Y), path(Y, Z).
 ```
 
-On a cyclic finite graph, eyelog's variant loop guard stops the proof search from re-entering the same active `path/2` subgoal. For path enumeration, shortest paths, or routes with costs, prefer an explicit visited-list argument so the program says which revisits are forbidden.
+On a cyclic finite graph, eyelog's variant loop guard stops the proof search from re-entering the same active `path/2` subgoal. `examples/service-impact.pl` uses the same pattern for a practical service-dependency closure: if `Service` depends on `Dependency`, then a failure of `Dependency` affects `Service`, transitively, even when two services depend on each other. For path enumeration, shortest paths, or routes with costs, prefer an explicit visited-list argument so the program says which revisits are forbidden.
 
 Graph terms are ordinary Eyelog terms. Use one representation for RDF-shaped content inside a graph:
 

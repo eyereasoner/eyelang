@@ -35,6 +35,8 @@ run 'query ancestor' bash -c './bin/eyelog --query "triple(:pat, :ancestor, X)" 
 run 'fib(10000) has 2090 digits' bash -c './bin/eyelog examples/fibonacci.pl | sed -n "s/^triple(10000, :fibonacci, \([0-9]*\)).$/\1/p" | awk "length(\$0)==2090 {ok=1} END{exit !ok}"'
 run 'path discovery derives three routes' bash -c '[ "$(./bin/eyelog examples/path-discovery.pl | wc -l)" -eq 3 ]'
 run 'cyclic path closure terminates' bash -c '[ "$(./bin/eyelog examples/cyclic-path.pl | wc -l)" -eq 16 ]'
+run 'service impact closure terminates' bash -c '[ "$(./bin/eyelog examples/service-impact.pl | wc -l)" -eq 11 ]'
+run 'service impact flags mobile checkout' bash -c './bin/eyelog examples/service-impact.pl | grep -q "triple(:mobile_checkout, :businessFunctionAtRisk, true)."'
 run 'list append query' bash -c './bin/eyelog --query "append([a, b], [c], X)" examples/list-collection.pl | grep -q "append(\[a, b\], \[c\], \[a, b, c\])."'
 run 'list split query' bash -c '[ "$(./bin/eyelog --query "append(A, B, [a, b])" examples/list-collection.pl | wc -l)" -eq 3 ]'
 run 'pow bigint query' bash -c './bin/eyelog --query "pow(2, 100, X)" examples/list-collection.pl | grep -q "1267650600228229401496703205376"'

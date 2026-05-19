@@ -2,7 +2,7 @@
 
 `eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
 
-Current version: `0.3.22`
+Current version: `0.3.23`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 
@@ -58,4 +58,4 @@ Graph-term examples include `delfour.pl`, `dijkstra.pl`, `family-cousins.pl`,
 and the ODRL/DPV risk examples. List-heavy examples include `gps.pl`, `allen-interval-calculus.pl`, and `drone-corridor-planner.pl`.
 `gps.pl` mirrors Eyeling's route-planning report more closely: map descriptions are quoted graph data, paths are action lists, and the default output includes the derived recommendation and checks.
 Inside `graph([...])`, RDF-shaped content uses `triple(S, P, O)` consistently; `triple/3` remains the output convention.
-`skolem-functions.pl` demonstrates deterministic generated resources such as `skolem:observation(Patient, Test)` in rule heads. `cyclic-path.pl` shows cyclic transitive closure terminating under eyelog's variant loop guard. `bayes-therapy.pl` combines list-valued evidence, disease, and therapy vectors with decimal Bayes/utility calculations.
+`skolem-functions.pl` demonstrates deterministic generated resources such as `skolem:observation(Patient, Test)` in rule heads. `cyclic-path.pl` shows cyclic transitive closure terminating under eyelog's variant loop guard, and `service-impact.pl` applies the same idea to incident impact analysis over cyclic service dependencies. `bayes-therapy.pl` combines list-valued evidence, disease, and therapy vectors with decimal Bayes/utility calculations.
