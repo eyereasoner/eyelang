@@ -4,7 +4,7 @@
 
 Eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping.
 
-Current version: `0.3.27`
+Current version: `0.3.28`
 
 For language details, examples, built-ins, and test conventions, see [HANDBOOK.md](HANDBOOK.md).
 
@@ -55,5 +55,7 @@ make test
 ```
 
 Examples are self-contained `.pl` programs. Golden outputs live in `examples/output/`.
-For the example-writing conventions and the example tour, see the Handbook's
-[Writing examples](HANDBOOK.md#8-writing-examples) chapter.
+The test runner uses a private `mktemp` directory, so parallel test runs do not
+share fixed files under `/tmp`. For the example-writing conventions and the
+example tour, see the Handbook's [Writing examples](HANDBOOK.md#8-writing-examples)
+chapter.

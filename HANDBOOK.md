@@ -747,6 +747,12 @@ Then run:
 make test
 ```
 
+The test runner creates a private temporary directory with `mktemp` and removes
+it on exit. It does not use fixed names such as `/tmp/eyelog-actual`, so several
+`make test` runs can execute at the same time without clobbering each other's
+intermediate files. Query parsing in `src/eyelog.c` also uses `mkstemp`, honoring
+`TMPDIR` when it is set.
+
 ## 10. Performance tips
 
 Place the most selective goals early in a rule body.

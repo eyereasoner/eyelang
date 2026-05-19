@@ -2130,17 +2130,27 @@ static Term *parse_query_goal(const char *query) {
   char *source = NULL;
   if (asprintf(&source, "q(%s).", query) < 0) die("out of memory");
 
-  char path[] = "/tmp/eyelog-query-XXXXXX";
+  const char *tmpdir = getenv("TMPDIR");
+  if (!tmpdir || !tmpdir[0]) tmpdir = "/tmp";
+
+  char *path = NULL;
+  if (asprintf(&path, "%s/eyelog-query-XXXXXX", tmpdir) < 0) die("out of memory");
+
   int fd = mkstemp(path);
   if (fd < 0) die("could not create query temp file");
 
   FILE *file = fdopen(fd, "w");
-  if (!file) die("could not open query temp file");
+  if (!file) {
+    remove(path);
+    free(path);
+    die("could not open query temp file");
+  }
   fputs(source, file);
   fclose(file);
 
   Program program = parse_program(path);
   remove(path);
+  free(path);
   free(source);
 
   return program.clauses[0].head->args[0];

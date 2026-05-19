@@ -8,26 +8,31 @@ if [ -t 1 ]; then
   GREEN=$'\033[32m'; DIM=$'\033[2m'; RED=$'\033[31m'; RESET=$'\033[0m'
 fi
 ok=0; total=0; start=$(date +%s%3N)
+TEST_TMPDIR=$(mktemp -d "${TMPDIR:-/tmp}/eyelog-test.XXXXXX")
+trap 'rm -rf "$TEST_TMPDIR"' EXIT
+TEST_OUT="$TEST_TMPDIR/out"
+TEST_ERR="$TEST_TMPDIR/err"
+TEST_ACTUAL="$TEST_TMPDIR/actual"
 section(){ printf '\n== %s\n' "$1"; }
 run(){
   total=$((total+1)); nr=$(printf '%03d' "$total"); name=$1; shift
   t0=$(date +%s%3N)
-  if "$@" > /tmp/eyelog-test-out 2> /tmp/eyelog-test-err; then
+  if "$@" > "$TEST_OUT" 2> "$TEST_ERR"; then
     t1=$(date +%s%3N)
     ms=$((t1-t0))
     ok=$((ok+1))
     printf '%s %bOK%b %b%s%b %b(%s ms)%b\n' "$nr" "$GREEN" "$RESET" "$GREEN" "$name" "$RESET" "$DIM" "$ms" "$RESET"
   else
     printf '%s %bFAIL%b %s\n' "$nr" "$RED" "$RESET" "$name"
-    cat /tmp/eyelog-test-err
-    cat /tmp/eyelog-test-out
+    cat "$TEST_ERR"
+    cat "$TEST_OUT"
     exit 1
   fi
 }
 compare_example(){
   f=$1; b=$(basename "$f" .pl)
-  ./bin/eyelog "$f" > /tmp/eyelog-actual
-  diff -u "examples/output/$b.pl" /tmp/eyelog-actual
+  ./bin/eyelog "$f" > "$TEST_ACTUAL"
+  diff -u "examples/output/$b.pl" "$TEST_ACTUAL"
 }
 section API
 run 'version flag' bash -c './bin/eyelog --version | grep -q "^eyelog $(cat VERSION)$"'
