@@ -41,6 +41,8 @@ run 'ackermann [4,2] has 19729 digits' bash -c './bin/eyelog --query "ackermann(
 run 'big integer div query' bash -c './bin/eyelog --query "div(15470000000000000000, 1643630000000000, X)" examples/bayes-diagnosis.pl | grep -q "div(15470000000000000000, 1643630000000000, 9412)."'
 run 'decimal literal query' bash -c './bin/eyelog --query "posterior(:COVID19, X)" examples/bayes-diagnosis.pl | grep -q "posterior(:COVID19, 0.9412093962753174)."'
 run 'bayes emits COVID posterior' bash -c './bin/eyelog examples/bayes-diagnosis.pl | grep -q "triple(result(:COVID19), :posterior, 0.9412093962753174)."'
+run 'bayes therapy recommends Paxlovid' bash -c './bin/eyelog examples/bayes-therapy.pl | grep -q "triple(:Case, :recommendedTherapy, :Paxlovid)."'
+run 'bayes therapy utility remains queryable' bash -c './bin/eyelog --query "utility(:Paxlovid, X)" examples/bayes-therapy.pl | grep -q "utility(:Paxlovid, 3.5851740117076503)."'
 run 'floating add query' bash -c './bin/eyelog --query "add(1.5, 2.25, X)" examples/floating-point.pl | grep -q "add(1.5, 2.25, 3.75)."'
 run 'floating math:sum query' bash -c './bin/eyelog --query "math:sum(0.125, 0.875, X)" examples/floating-point.pl | grep -q "math:sum(0.125, 0.875, 1.0)."'
 run 'native sum alias query' bash -c './bin/eyelog --query "sum(0.125, 0.875, X)" examples/aliases-and-namespaces.pl | grep -q "sum(0.125, 0.875, 1.0)."'

@@ -596,6 +596,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/allen-interval-calculus.pl` adapts Allen's interval relations over integer endpoints. The interval table is represented as a list of `interval(Id, Start, End)` records.
 - `examples/gray-code-counter.pl` adapts the Clause and Effect gray-code counter.
 - `examples/bayes-diagnosis.pl` adapts the Bayesian diagnosis model and emits Eyeling-style full posterior probabilities.
+- `examples/bayes-therapy.pl` adapts the Bayesian therapy decision-support example. It uses list-valued disease, evidence, posterior, and therapy vectors to combine Naive Bayes diagnosis with expected-utility therapy selection.
 - `examples/floating-point.pl` demonstrates decimal arithmetic, `math:*` aliases, and floating-point comparisons.
 - `examples/skolem-functions.pl` demonstrates generated resources using `skolem:` functional terms in rule heads, such as `skolem:observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.
 - `examples/aliases-and-namespaces.pl` demonstrates that short built-in names and namespaced aliases call the same implementation.
