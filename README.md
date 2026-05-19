@@ -34,9 +34,10 @@ After updating `VERSION`, commit, tag, and push with:
 ./mkeyelog "release message"
 ```
 
-The script commits all changes with the supplied message, creates an annotated
-`v$(cat VERSION)` tag, and pushes the current branch plus the tag. The release
-workflow then runs from the pushed tag.
+The script first runs `make test`. If any test fails, it stops before committing,
+tagging, or pushing. When tests pass, it commits all changes with the supplied
+message, creates an annotated `v$(cat VERSION)` tag, and pushes the current branch
+plus the tag. The release workflow then runs from the pushed tag.
 
 ## Test
 

@@ -37,9 +37,12 @@ if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; the
   exit 1
 fi
 
+echo "Running make test before release..."
+make test
+
 git add -A
 git commit -m "$message"
 git tag -a "$tag" -m "$message"
 git push origin "$branch" "$tag"
 
-echo "Committed and pushed $tag."
+echo "Committed, tested, tagged, and pushed $tag."
