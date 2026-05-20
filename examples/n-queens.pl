@@ -1,3 +1,5 @@
+memoize(queens, 2).
+
 % N-Queens puzzle, adapted from Eyelet's input/n-queens.pl.
 %
 % This uses the classic permutation-and-diagonal-check Prolog encoding, here
