@@ -128,6 +128,9 @@ run 'kaprekar reports four demo cases' bash -c '[ "$(./bin/eyelog examples/kapre
 run 'kaprekar treats 6174 as already converged' bash -c './bin/eyelog examples/kaprekar.pl | grep -q "triple(6174, kaprekarSteps, 0)."'
 run 'takeuchi classic result' bash -c './bin/eyelog examples/takeuchi.pl | grep -q "triple(classic, takeuchiResult, 13)."'
 run 'control system computes actuator2 signal' bash -c './bin/eyelog examples/control-system.pl | grep -q "triple(actuator2, controlSignal, 26.079999999999998)."'
+run 'matrix determinant matches Trealla reference' bash -c './bin/eyelog examples/matrix.pl | grep -q "determinant(\[\[2, -1, 0\], \[-1, 2, -1\], \[0, -1, 2\]\], 4.0)"'
+run 'matrix multiplication matches Trealla reference' bash -c './bin/eyelog examples/matrix.pl | grep -q "matrix_multiply(\[\[\[1, 2\], \[3, 4\], \[5, 6\]\], \[\[1, 1, 1\], \[1, 1, 1\]\]\], \[\[3, 3, 3\], \[7, 7, 7\], \[11, 11, 11\]\])"'
+run 'matrix Cholesky matches Trealla reference' bash -c './bin/eyelog examples/matrix.pl | grep -q "cholesky_decomposition(\[\[25, 15, -5\], \[15, 18, 0\], \[-5, 0, 11\]\], \[\[5.0, 0, 0\], \[3.0, 3.0, 0\], \[-1.0, 1.0, 3.0\]\])"'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
