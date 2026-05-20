@@ -30,4 +30,15 @@ triple(reason, categoryRule, "Normal").
 triple(reason, formula, "BMI is defined as weight in kilograms divided by height in meters squared.").
 triple(reason, units, "Inputs were already metric, so kilograms stay kilograms and centimeters are divided by 100 to obtain meters.").
 triple(reason, unitsExplanation, "Inputs were already metric, so kilograms stay kilograms and centimeters are divided by 100 to obtain meters.").
-triple(report, log_outputString, "# bmi\n\n## Source files\n\n- [Eyelog rules](../bmi.pl)\n- [N3 source](https://github.com/eyereasoner/eyeling/blob/main/examples/bmi.n3)\n\nBMI — ARC-style Body Mass Index example\n\n## Answer\nBMI = 22.72\nCategory = Normal\nAt height 178 cm, a healthy-weight range is about 58.6–78.9 kg (BMI 18.5–24.9).\n\n## Reason Why\nBMI is defined as weight in kilograms divided by height in meters squared. This program first normalizes the input to SI units, computes BMI, and then applies WHO adult categories as half-open intervals. The healthy-weight band is the weight range at the same height that corresponds to BMI 18.5 through 24.9.\n\n## Check\nC1 OK - the input was normalized into positive SI values.\nC2 OK - height squared was reconstructed from the normalized height.\nC3 OK - the BMI value matches the BMI = kg / m² formula.\nC4 OK - a BMI of 18.49 stays below the normal-weight threshold.\nC5 OK - the lower boundary is half-open: BMI 18.5 is classified as Normal.\nC6 OK - BMI 25.0 starts the Overweight category.\nC7 OK - BMI 30.0 starts the Obesity I category.\nC8 OK - classification behavior is monotonic across representative BMI values.\nC9 OK - the healthy-weight band was reconstructed from BMI 18.5 to 24.9 at the same height.").
+triple(report, checkPassed, c1).
+triple(report, checkPassed, c2).
+triple(report, checkPassed, c3).
+triple(report, checkPassed, c4).
+triple(report, checkPassed, c5).
+triple(report, checkPassed, c6).
+triple(report, checkPassed, c7).
+triple(report, checkPassed, c8).
+triple(report, checkPassed, c9).
+triple(report, healthyWeightRangeKg, range(58.6, 78.9)).
+triple(report, heightCm, 178).
+triple(report, result, bmi(22.72, "Normal")).

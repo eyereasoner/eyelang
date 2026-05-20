@@ -175,7 +175,7 @@ parent(pat, jan) :- true.
 
 The pure core of eyelog has the standard Herbrand semantics of definite logic programs.
 
-This section describes the mathematical meaning of facts and rules. Built-ins are discussed afterward: arithmetic, comparisons, strings, and finite list predicates are interpreted predicates, and `not/1` is negation as failure rather than part of the monotone definite-clause semantics.
+This section describes the mathematical meaning of facts and rules. Built-ins are discussed afterward: arithmetic, comparisons, strings, finite list predicates, and solution-control predicates are interpreted predicates; `not/1` is negation as failure and `once/1` is first-solution search control rather than part of the monotone definite-clause semantics.
 
 ### 5.1 Herbrand universe
 
@@ -578,6 +578,24 @@ proper list. `not_member/2` succeeds when an item is not present in a known
 proper list. `reverse/2` reverses a known proper list. `length/2` counts a
 proper list when the list is known. `is_list/1` succeeds for proper lists.
 
+### Finite constraint helpers
+
+| Built-in | Meaning |
+| --- | --- |
+| `sudoku(Puzzle, Solution)` | solve a standard 9x9 Sudoku puzzle |
+
+`sudoku/2` accepts an 81-character puzzle string, using `0` or `.` for blanks,
+or a 9x9 grid list using `0` for blanks. It enumerates completed 9x9 grid
+solutions. The built-in is generic: it is not tied to one example puzzle, and
+it exists because a plain Prolog-style Sudoku search otherwise obscures the
+reasoning example with a large amount of constraint plumbing.
+
+Example:
+
+```prolog
+once(sudoku("100007090030020008009600500005300900010080002600004000300000010040000007007000300", Grid))
+```
+
 ### String and atom construction
 
 | Built-in | Meaning |
@@ -593,19 +611,27 @@ proper list when the list is known. `is_list/1` succeeds for proper lists.
 translated Eyeling examples, for example `"diabetes|medical"`; they are not full
 regular-expression engines.
 
-### Negation as failure
+### Search control
 
 ```prolog
 not(Goal)
+once(Goal)
 ```
 
 `not/1` succeeds when `Goal` has no solution. Use it only with goals whose
 variables are already bound enough to make the check finite.
 
+`once/1` runs `Goal` and keeps only the first solution. It is useful at the
+output/reporting layer when an example wants one witness rather than all
+possible witnesses. The Sudoku example uses `once/1` to report the first completed grid returned by
+the generic `sudoku/2` solver without re-emitting alternative solution searches
+for each report triple.
+
 Good:
 
 ```prolog
 not(visited(Node, Path))
+once(sudoku(Puzzle, Solution))
 ```
 
 Risky:
@@ -658,6 +684,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/context-association.pl` adapts the context-association example more directly: the data, signature, and metadata contexts are top-level `log_nameOf` triples whose objects are quoted formula terms. A tiny `context_triple/4` projection demonstrates scoped inspection without turning the whole context into ambient facts.
 - `examples/derived-rule.pl` adapts the derived-rule example closely: a top-level `triple/3` cat fact derives a quoted implication graph, and a top-level `triple/3` dog fact then fires that derived rule.
 - `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as formula-valued terms and derives only the risks supported by the scoped formula.
+- `examples/sudoku.pl` adapts Eyeling's Sudoku case. The puzzle is an ordinary 81-character string, and `sudoku/2` is a generic native helper that solves any standard 9x9 puzzle string or grid using constraint propagation and search.
 
 For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer formula-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log_nameOf { ... }` usually translates well to a top-level `triple(G, log_nameOf, ...)`, not to a separate `named_graph/2` table unless several rules need that indirection.
 For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log_nameOf, ...)` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(policyGraph1, (triple(S, P, O), ...))` because the policy formula is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different formulae may contain incompatible clauses.

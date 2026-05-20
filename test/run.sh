@@ -81,7 +81,7 @@ run 'list rest query' bash -c './bin/eyelog --query "rest([a, b, c], X)" example
 run 'log not equal query' bash -c './bin/eyelog --query "neq(dp_P1, dp_P2)" examples/dining-philosophers.pl | grep -q "neq(dp_P1, dp_P2)."'
 run 'risk path selects B' bash -c './bin/eyelog examples/dijkstra-risk-path.pl | grep -q "triple(dijkstraRiskPath, selects, pathB)."'
 run 'gps recommends direct route' bash -c './bin/eyelog examples/gps.pl | grep -q "triple(decision, recommendedRoute, routeDirect)."'
-run 'gps report mirrors Eyeling answer' bash -c './bin/eyelog examples/gps.pl | grep -q "Recommended route: Gent → Brugge → Oostende"'
+run 'gps report derives selected route metrics' bash -c './bin/eyelog examples/gps.pl | grep -q "triple(report, selectedRoute, route(routeDirect, \[drive_gent_brugge, drive_brugge_oostende\], 2400.0"'
 run 'gps path metrics remain queryable' bash -c './bin/eyelog --query "route_metrics(routeDirect, D, C, B, F)" examples/gps.pl | grep -q "route_metrics(routeDirect, 2400.0, 0.01"'
 run 'dijkstra network is projected from quoted formula' bash -c './bin/eyelog --query "base_link(a, b, X)" examples/dijkstra.pl | grep -q "base_link(a, b, 4)."'
 run 'risk route segment is projected from quoted formula' bash -c './bin/eyelog --query "route_segment(depotA, relay, Raw, Risk)" examples/dijkstra-risk-path.pl | grep -q "route_segment(depotA, relay, 5.0, 0.2)."'
@@ -119,6 +119,10 @@ run 'diamond property is preserved under reflexive closure' bash -c './bin/eyelo
 run 'monkey bananas finds a grab plan' bash -c './bin/eyelog examples/monkey-bananas.pl | grep -q "triple(monkeyBananas, plan, \[go(loc3), push(loc1), climb_on, grab\])."'
 run 'n queens enumerates all 92 eight-queen solutions' bash -c '[ "$(./bin/eyelog examples/n-queens.pl | grep -c "triple(nQueens8, solution")" -eq 92 ]'
 run 'zebra puzzle solves classic answer' bash -c './bin/eyelog examples/zebra.pl | grep -q "triple(zebraPuzzle, zebraOwner, japanese)."'
+run 'sudoku solves classic puzzle' bash -c './bin/eyelog examples/sudoku.pl | grep -q "triple(case, status, ok)."'
+run 'sudoku emits completed first row' bash -c './bin/eyelog examples/sudoku.pl | grep -q "\[1, 6, 2, 8, 5, 7, 4, 9, 3\]"'
+run 'sudoku builtin accepts dot blanks' bash -c './bin/eyelog --query "once(sudoku(\"1....7.9..3..2...8..96..5....53..9...1..8...26....4...3......1..4......7..7...3..\", S))" examples/sudoku.pl | grep -q "\[8, 9, 7, 2, 6, 1, 3, 5, 4\]"'
+run 'once returns a single n-queens solution' bash -c '[ "$(./bin/eyelog --query "once(queens(8, Qs))" examples/n-queens.pl | grep -c "once")" -eq 1 ]'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

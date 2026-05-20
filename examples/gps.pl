@@ -100,10 +100,38 @@ triple(decision, outcome, Outcome) :-
 triple(check, Check, true) :-
   check(Check, true).
 
-triple(report, log_outputString, "# gps\n\n## Source files\n\n- [N3 rules](../gps.n3)\n\nGPS — Goal driven route planning\n\n## Answer\nTake the direct route via Brugge.\nRecommended route: Gent → Brugge → Oostende\n\n## Reason Why\nFrom Gent to Oostende, the planner found two routes in this small map. The direct route (Gent → Brugge → Oostende) takes 2400 seconds at cost 0.01, with belief 0.9408 and comfort 0.99. The alternative (Gent → Kortrijk → Brugge → Oostende) takes 4100 seconds at cost 0.018, with belief 0.903168 and comfort 0.9801.\nSo the direct route is faster, cheaper, more reliable, and slightly more comfortable.\n\n## Check\nC1 OK - the direct Gent → Brugge → Oostende route was derived.\nC2 OK - the alternative Gent → Kortrijk → Brugge → Oostende route was derived.\nC3 OK - the recommended route is faster than the alternative.\nC4 OK - the recommended route is cheaper than the alternative.\nC5 OK - the recommended route has higher belief and comfort scores.") :-
+route_actions(routeDirect, [drive_gent_brugge, drive_brugge_oostende]).
+route_actions(routeViaKortrijk, [drive_gent_kortrijk, drive_kortrijk_brugge, drive_brugge_oostende]).
+
+% Derived route and report triples.  These are consequences of the route search
+% and comparison, not pre-written markdown output.
+triple(Route, label, Label) :-
+  case_triple(Route, label, Label),
+  route_metrics(Route, _Duration, _Cost, _Belief, _Comfort).
+
+triple(Route, actionSequence, Actions) :-
+  route_actions(Route, Actions),
+  route_metrics(Route, _Duration, _Cost, _Belief, _Comfort).
+
+triple(Route, durationSeconds, Duration) :-
+  route_metrics(Route, Duration, _Cost, _Belief, _Comfort).
+
+triple(Route, cost, Cost) :-
+  route_metrics(Route, _Duration, Cost, _Belief, _Comfort).
+
+triple(Route, belief, Belief) :-
+  route_metrics(Route, _Duration, _Cost, Belief, _Comfort).
+
+triple(Route, comfort, Comfort) :-
+  route_metrics(Route, _Duration, _Cost, _Belief, Comfort).
+
+triple(report, selectedRoute, route(Route, Actions, Duration, Cost, Belief, Comfort)) :-
+  recommended_route(Route),
+  route_actions(Route, Actions),
+  route_metrics(Route, Duration, Cost, Belief, Comfort).
+
+triple(report, comparison, dominates(routeDirect, routeViaKortrijk)) :-
   recommended_route(routeDirect),
-  check(c1, true),
-  check(c2, true),
   check(c3, true),
   check(c4, true),
   check(c5, true).

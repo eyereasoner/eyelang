@@ -2238,6 +2238,243 @@ static bool builtin_not(Solver *solver, Term *goal, Env *env,
   return true;
 }
 
+
+typedef struct {
+  SolutionCallback callback;
+  void *user_data;
+  int count;
+} OnceContext;
+
+static void once_solution(Env *env, void *user_data) {
+  OnceContext *ctx = user_data;
+  if (ctx->count == 0) {
+    ctx->count++;
+    ctx->callback(env, ctx->user_data);
+  }
+}
+
+static bool builtin_once(Solver *solver, Term *goal, Env *env,
+                         SolutionCallback callback, void *user_data) {
+  Term *inner_goals[1] = { goal->args[0] };
+  Env attempt = clone_env(env);
+  Solver limited = *solver;
+  limited.solutions_seen = 0;
+  limited.solution_limit = 1;
+  limited.active_goals = NULL;
+  limited.active_envs = NULL;
+  limited.active_len = 0;
+  limited.active_cap = 0;
+  OnceContext ctx = { callback, user_data, 0 };
+  solve_goals(&limited, inner_goals, 1, &attempt, 0, once_solution, &ctx);
+  return true;
+}
+
+
+/* ------------------------------------------------------------------------- */
+/* Generic Sudoku solver built-in                                            */
+/* ------------------------------------------------------------------------- */
+
+static int sudoku_box_index(int row, int col) {
+  return (row / 3) * 3 + (col / 3);
+}
+
+static int popcount9(int mask) {
+  int count = 0;
+  while (mask) {
+    count += mask & 1;
+    mask >>= 1;
+  }
+  return count;
+}
+
+static bool sudoku_parse_cell_text(const char *text, int *value) {
+  if (!text || !*text) return false;
+  if ((text[0] == '.' || text[0] == '0') && text[1] == '\0') {
+    *value = 0;
+    return true;
+  }
+  if (text[0] >= '1' && text[0] <= '9' && text[1] == '\0') {
+    *value = text[0] - '0';
+    return true;
+  }
+  return false;
+}
+
+static bool sudoku_init_masks(int cells[81], int row_mask[9], int col_mask[9], int box_mask[9]) {
+  for (int i = 0; i < 9; i++) row_mask[i] = col_mask[i] = box_mask[i] = 0;
+
+  for (int idx = 0; idx < 81; idx++) {
+    int value = cells[idx];
+    if (value == 0) continue;
+    if (value < 1 || value > 9) return false;
+
+    int row = idx / 9;
+    int col = idx % 9;
+    int box = sudoku_box_index(row, col);
+    int bit = 1 << value;
+
+    if ((row_mask[row] & bit) || (col_mask[col] & bit) || (box_mask[box] & bit)) return false;
+
+    row_mask[row] |= bit;
+    col_mask[col] |= bit;
+    box_mask[box] |= bit;
+  }
+
+  return true;
+}
+
+static bool sudoku_parse_string(const char *text, int cells[81]) {
+  if (!text || strlen(text) != 81) return false;
+
+  for (int i = 0; i < 81; i++) {
+    char c = text[i];
+    if (c >= '1' && c <= '9') cells[i] = c - '0';
+    else if (c == '0' || c == '.') cells[i] = 0;
+    else return false;
+  }
+
+  return true;
+}
+
+static bool sudoku_parse_grid(Term *term, Env *env, int cells[81]) {
+  Term **rows = NULL;
+  int row_count = 0;
+  if (!proper_list_items(term, env, &rows, &row_count)) return false;
+  if (row_count != 9) {
+    free(rows);
+    return false;
+  }
+
+  for (int r = 0; r < 9; r++) {
+    Term **cols = NULL;
+    int col_count = 0;
+    if (!proper_list_items(rows[r], env, &cols, &col_count)) {
+      free(rows);
+      return false;
+    }
+    if (col_count != 9) {
+      free(cols);
+      free(rows);
+      return false;
+    }
+
+    for (int c = 0; c < 9; c++) {
+      char *text = term_lexical_value(cols[c], env);
+      int value = 0;
+      bool ok = sudoku_parse_cell_text(text, &value);
+      free(text);
+      if (!ok) {
+        free(cols);
+        free(rows);
+        return false;
+      }
+      cells[r * 9 + c] = value;
+    }
+    free(cols);
+  }
+
+  free(rows);
+  return true;
+}
+
+static bool sudoku_parse_puzzle(Term *term, Env *env, int cells[81]) {
+  term = deref(term, env);
+  if (term->type == TERM_VAR) return false;
+
+  if (term->type == TERM_STRING || term->type == TERM_ATOM) {
+    return sudoku_parse_string(term->name, cells);
+  }
+
+  return sudoku_parse_grid(term, env, cells);
+}
+
+static Term *sudoku_grid_term(int cells[81]) {
+  Term *rows[9];
+  for (int r = 0; r < 9; r++) {
+    Term *items[9];
+    for (int c = 0; c < 9; c++) items[c] = number_term_from_i64(cells[r * 9 + c]);
+    rows[r] = list_from_items(items, 0, 9, empty_list_term());
+  }
+  return list_from_items(rows, 0, 9, empty_list_term());
+}
+
+typedef struct {
+  Term *solution;
+  Env *env;
+  SolutionCallback callback;
+  void *user_data;
+} SudokuContext;
+
+static void sudoku_emit_solution(int cells[81], SudokuContext *ctx) {
+  Term *grid = sudoku_grid_term(cells);
+  Env next = clone_env(ctx->env);
+  if (unify(ctx->solution, grid, &next)) call_once(&next, ctx->callback, ctx->user_data);
+}
+
+static void sudoku_search(int cells[81], int row_mask[9], int col_mask[9], int box_mask[9],
+                          SudokuContext *ctx) {
+  int best = -1;
+  int best_mask = 0;
+  int best_count = 10;
+  const int all = 0x3FE; /* bits 1..9 */
+
+  for (int idx = 0; idx < 81; idx++) {
+    if (cells[idx] != 0) continue;
+    int row = idx / 9;
+    int col = idx % 9;
+    int box = sudoku_box_index(row, col);
+    int mask = all & ~(row_mask[row] | col_mask[col] | box_mask[box]);
+    int count = popcount9(mask);
+    if (count == 0) return;
+    if (count < best_count) {
+      best = idx;
+      best_mask = mask;
+      best_count = count;
+      if (count == 1) break;
+    }
+  }
+
+  if (best < 0) {
+    sudoku_emit_solution(cells, ctx);
+    return;
+  }
+
+  int row = best / 9;
+  int col = best % 9;
+  int box = sudoku_box_index(row, col);
+
+  for (int value = 1; value <= 9; value++) {
+    int bit = 1 << value;
+    if (!(best_mask & bit)) continue;
+
+    cells[best] = value;
+    row_mask[row] |= bit;
+    col_mask[col] |= bit;
+    box_mask[box] |= bit;
+
+    sudoku_search(cells, row_mask, col_mask, box_mask, ctx);
+
+    row_mask[row] &= ~bit;
+    col_mask[col] &= ~bit;
+    box_mask[box] &= ~bit;
+    cells[best] = 0;
+  }
+}
+
+static bool builtin_sudoku(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  int cells[81] = { 0 };
+  int row_mask[9] = { 0 };
+  int col_mask[9] = { 0 };
+  int box_mask[9] = { 0 };
+
+  if (!sudoku_parse_puzzle(goal->args[0], env, cells)) return true;
+  if (!sudoku_init_masks(cells, row_mask, col_mask, box_mask)) return true;
+
+  SudokuContext ctx = { goal->args[1], env, callback, user_data };
+  sudoku_search(cells, row_mask, col_mask, box_mask, &ctx);
+  return true;
+}
+
 static bool try_builtin(Solver *solver, Term *goal, Env *env,
                         SolutionCallback callback, void *user_data) {
   if (goal->type != TERM_COMPOUND) return false;
@@ -2329,8 +2566,16 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_is_list(goal, env, callback, user_data);
   }
 
+  if (strcmp(name, "sudoku") == 0 && arity == 2) {
+    return builtin_sudoku(goal, env, callback, user_data);
+  }
+
   if (strcmp(name, "not") == 0 && arity == 1) {
     return builtin_not(solver, goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "once") == 0 && arity == 1) {
+    return builtin_once(solver, goal, env, callback, user_data);
   }
 
   return false;

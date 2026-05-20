@@ -15,6 +15,3 @@ triple(t, log_nameOf, triple(a, name, "Alice")).
 triple(t, statedBy, bob).
 triple(t, recorded, "2021-07-07").
 
-triple(md_output, text, "# annotation\n").
-triple(md_output, log_outputString, Text) :-
-  triple(md_output, text, Text).

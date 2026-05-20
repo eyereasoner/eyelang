@@ -1,5 +1,5 @@
 % Delfour insight-economy case adapted from Eyeling delfour.n3.
-% The original N3 emits a Markdown answer with log_outputString.  This Eyelog
+% The original N3 emits a Markdown answer.  This Eyelog
 % translation derives the same authorization, shopping banner, alternative, and
 % checklist facts as triple/3 materialization.
 %

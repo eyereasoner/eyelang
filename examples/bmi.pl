@@ -180,19 +180,18 @@ triple(check, c9, "OK - the healthy-weight band was reconstructed from BMI 18.5 
   mul(18.5, M2, Min),
   mul(24.9, M2, Max).
 
-% ARC report, guarded by actual derived values and checks.
-triple(report, log_outputString, "# bmi\n\n## Source files\n\n- [Eyelog rules](../bmi.pl)\n- [N3 source](https://github.com/eyereasoner/eyeling/blob/main/examples/bmi.n3)\n\nBMI — ARC-style Body Mass Index example\n\n## Answer\nBMI = 22.72\nCategory = Normal\nAt height 178 cm, a healthy-weight range is about 58.6–78.9 kg (BMI 18.5–24.9).\n\n## Reason Why\nBMI is defined as weight in kilograms divided by height in meters squared. This program first normalizes the input to SI units, computes BMI, and then applies WHO adult categories as half-open intervals. The healthy-weight band is the weight range at the same height that corresponds to BMI 18.5 through 24.9.\n\n## Check\nC1 OK - the input was normalized into positive SI values.\nC2 OK - height squared was reconstructed from the normalized height.\nC3 OK - the BMI value matches the BMI = kg / m² formula.\nC4 OK - a BMI of 18.49 stays below the normal-weight threshold.\nC5 OK - the lower boundary is half-open: BMI 18.5 is classified as Normal.\nC6 OK - BMI 25.0 starts the Overweight category.\nC7 OK - BMI 30.0 starts the Obesity I category.\nC8 OK - classification behavior is monotonic across representative BMI values.\nC9 OK - the healthy-weight band was reconstructed from BMI 18.5 to 24.9 at the same height.") :-
-  triple(answer, bmi, 22.72),
-  triple(answer, category, "Normal"),
-  triple(answer, healthyMinKg, 58.6),
-  triple(answer, healthyMaxKg, 78.9),
-  triple(answer, heightCm, 178),
-  triple(check, c1, _C1),
-  triple(check, c2, _C2),
-  triple(check, c3, _C3),
-  triple(check, c4, _C4),
-  triple(check, c5, _C5),
-  triple(check, c6, _C6),
-  triple(check, c7, _C7),
-  triple(check, c8, _C8),
-  triple(check, c9, _C9).
+% Derived report summary.  These triples are consequences of the calculation
+% and checks, not pre-written report lines.
+triple(report, result, bmi(Bmi, Category)) :-
+  triple(answer, bmi, Bmi),
+  triple(answer, category, Category).
+
+triple(report, healthyWeightRangeKg, range(Min, Max)) :-
+  triple(answer, healthyMinKg, Min),
+  triple(answer, healthyMaxKg, Max).
+
+triple(report, heightCm, Height) :-
+  triple(answer, heightCm, Height).
+
+triple(report, checkPassed, Check) :-
+  triple(check, Check, _Message).
