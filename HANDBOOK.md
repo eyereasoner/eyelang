@@ -755,6 +755,14 @@ Place the most selective goals early in a rule body.
 
 For large materializations, prefer rules that generate each result once. The engine keeps a hash-backed set of printed `triple/3` facts, so examples such as `deep-taxonomy-100000.pl` can produce hundreds of thousands of distinct triples without quadratic duplicate checks.
 
+For acyclic recursive workloads where the same bound subgoal is solved many times, add an opt-in memoization declaration:
+
+```prolog
+memoize(reachable, 2).
+```
+
+This caches answers for calls to `reachable/2` when at least one argument is already bound. It is useful for generated chains and other dynamic-programming-shaped examples, but it is deliberately explicit rather than automatic: cyclic closures should continue to rely on the guarded recursive search unless the memoized predicate is known to be safe for that workload.
+
 Prefer this:
 
 ```prolog
@@ -781,7 +789,7 @@ Current limits:
 - no cut,
 - no DCGs,
 - no module system,
-- no general tabling,
+- no automatic general tabling; `memoize/2` is explicit and workload-specific,
 - no RDF parser yet.
 
 List support is intentionally finite: `append/3`, `member/2`, `not_member/2`, and `reverse/2` are useful when at least one list-shaped argument is already bound enough to avoid infinite generation. Floating-point arithmetic uses the platform C `double` type. It is suitable for measurements, probabilities, and examples that need approximate real arithmetic, but it is not exact rational or exact decimal arithmetic. Use atoms and `triple/3` for RDF-shaped data until Turtle/TriG input support is added.

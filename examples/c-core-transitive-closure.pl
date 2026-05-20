@@ -13,6 +13,12 @@
 %
 % The default scale is test-friendly. Increase closure_nodes/1 to 1000 or more
 % for a larger local run.
+%
+% memoize/2 is an Eyelog declaration: cache answers for calls to the named
+% predicate when at least one argument is bound. It is useful for acyclic
+% recursive workloads such as this generated chain.
+
+memoize(reachable, 2).
 
 closure_nodes(70).
 

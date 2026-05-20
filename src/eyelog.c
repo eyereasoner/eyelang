@@ -483,6 +483,7 @@ typedef struct {
   int *clause_indexes;
   int len;
   int cap;
+  bool memoized;
 } PredicateGroup;
 
 typedef struct {
@@ -544,6 +545,7 @@ static void index_clause(Program *program, int clause_index) {
     group->clause_indexes = NULL;
     group->len = 0;
     group->cap = 0;
+    group->memoized = false;
   }
 
   if (group->len == group->cap) {
@@ -551,6 +553,30 @@ static void index_clause(Program *program, int clause_index) {
     group->clause_indexes = xrealloc(group->clause_indexes, sizeof(int) * group->cap);
   }
   group->clause_indexes[group->len++] = clause_index;
+}
+
+
+static void mark_memoized_predicates(Program *program) {
+  for (int i = 0; i < program->len; i++) {
+    Clause *clause = &program->clauses[i];
+    Term *head = clause->head;
+    if (clause->body_len != 0 || head->type != TERM_COMPOUND ||
+        strcmp(head->name, "memoize") != 0 || head->arity != 2) {
+      continue;
+    }
+
+    Term *name = head->args[0];
+    Term *arity = head->args[1];
+    if (name->type != TERM_ATOM || arity->type != TERM_NUMBER) continue;
+
+    char *end = NULL;
+    errno = 0;
+    long value = strtol(arity->name, &end, 10);
+    if (errno != 0 || !end || *end != '\0' || value < 0 || value > MAX_ARGS) continue;
+
+    PredicateGroup *group = find_group(program, name->name, (int)value);
+    if (group) group->memoized = true;
+  }
 }
 
 static Program parse_program(const char *path) {
@@ -583,6 +609,7 @@ static Program parse_program(const char *path) {
     index_clause(&program, program.len - 1);
   }
 
+  mark_memoized_predicates(&program);
   free(source);
   return program;
 }
@@ -1278,6 +1305,24 @@ static char *pow_decimal(const char *base_text, long long exponent) {
 typedef struct Solver Solver;
 typedef void (*SolutionCallback)(Env *env, void *user_data);
 
+typedef struct MemoAnswer {
+  Term **args;
+  char *key;
+} MemoAnswer;
+
+typedef struct MemoEntry MemoEntry;
+
+struct MemoEntry {
+  char *key;
+  int arity;
+  bool computing;
+  bool complete;
+  MemoAnswer *answers;
+  int len;
+  int cap;
+  MemoEntry *next;
+};
+
 struct Solver {
   Program *program;
   int max_depth;
@@ -1287,6 +1332,7 @@ struct Solver {
   Env **active_envs;
   int active_len;
   int active_cap;
+  MemoEntry *memo;
 };
 
 static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
@@ -1312,6 +1358,105 @@ static void push_active_goal(Solver *solver, Term *goal, Env *env) {
 
 static void pop_active_goal(Solver *solver) {
   if (solver->active_len > 0) solver->active_len--;
+}
+
+static void append_memo_key_term(StringBuilder *sb, Term *term, Env *env) {
+  term = deref(term, env);
+  if (term->type == TERM_VAR) {
+    sb_append_char(sb, '_');
+    return;
+  }
+  write_term(sb, term, env, true);
+}
+
+static char *memo_key_for_goal(Term *goal, Env *env, bool *has_bound) {
+  if (goal->type != TERM_COMPOUND) return NULL;
+  *has_bound = false;
+
+  StringBuilder sb;
+  sb_init(&sb);
+  sb_append(&sb, goal->name);
+  sb_append_char(&sb, '/');
+  char arity_text[32];
+  snprintf(arity_text, sizeof(arity_text), "%d", goal->arity);
+  sb_append(&sb, arity_text);
+  sb_append_char(&sb, '(');
+
+  for (int i = 0; i < goal->arity; i++) {
+    if (i) sb_append_char(&sb, ',');
+    Term *arg = deref(goal->args[i], env);
+    if (arg->type != TERM_VAR) *has_bound = true;
+    append_memo_key_term(&sb, goal->args[i], env);
+  }
+
+  sb_append_char(&sb, ')');
+  return sb.data;
+}
+
+static MemoEntry *find_memo_entry(Solver *solver, const char *key) {
+  for (MemoEntry *entry = solver->memo; entry; entry = entry->next) {
+    if (strcmp(entry->key, key) == 0) return entry;
+  }
+  return NULL;
+}
+
+static MemoEntry *get_memo_entry(Solver *solver, const char *key, int arity) {
+  MemoEntry *entry = find_memo_entry(solver, key);
+  if (entry) return entry;
+
+  entry = xcalloc(1, sizeof(*entry));
+  entry->key = xstrdup(key);
+  entry->arity = arity;
+  entry->next = solver->memo;
+  solver->memo = entry;
+  return entry;
+}
+
+static Term *copy_resolved_term(Term *term, Env *env) {
+  term = deref(term, env);
+  Term *copy = new_term(term->type, term->name);
+  copy->arity = term->arity;
+  if (term->arity) {
+    copy->args = xmalloc(sizeof(Term *) * term->arity);
+    for (int i = 0; i < term->arity; i++) copy->args[i] = copy_resolved_term(term->args[i], env);
+  }
+  return copy;
+}
+
+static char *memo_answer_key(Term **args, int arity) {
+  StringBuilder sb;
+  sb_init(&sb);
+  Env empty = { 0 };
+  for (int i = 0; i < arity; i++) {
+    if (i) sb_append_char(&sb, ',');
+    write_term(&sb, args[i], &empty, true);
+  }
+  return sb.data;
+}
+
+static bool memo_entry_has_answer(MemoEntry *entry, const char *key) {
+  for (int i = 0; i < entry->len; i++) {
+    if (strcmp(entry->answers[i].key, key) == 0) return true;
+  }
+  return false;
+}
+
+static void memo_entry_add_answer(MemoEntry *entry, Term *goal, Env *env) {
+  Term **args = xmalloc(sizeof(Term *) * entry->arity);
+  for (int i = 0; i < entry->arity; i++) args[i] = copy_resolved_term(goal->args[i], env);
+
+  char *answer_key = memo_answer_key(args, entry->arity);
+  if (memo_entry_has_answer(entry, answer_key)) {
+    free(answer_key);
+    free(args);
+    return;
+  }
+
+  if (entry->len == entry->cap) {
+    entry->cap = entry->cap ? entry->cap * 2 : 16;
+    entry->answers = xrealloc(entry->answers, sizeof(MemoAnswer) * entry->cap);
+  }
+  entry->answers[entry->len++] = (MemoAnswer){ args, answer_key };
 }
 
 static void call_once(Env *env, SolutionCallback callback, void *user_data) {
@@ -2202,8 +2347,8 @@ static int append_conjunction_goals(Term *goal, Term **buffer, int count, int ca
   return count;
 }
 
-static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len,
-                           Env *env, int depth, SolutionCallback callback, void *user_data) {
+static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int rest_len,
+                                    Env *env, int depth, SolutionCallback callback, void *user_data) {
   if (depth > solver->max_depth) return;
   if (solver->solutions_seen >= solver->solution_limit) return;
 
@@ -2245,6 +2390,75 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
       }
     }
   }
+}
+
+typedef struct {
+  Solver *solver;
+  MemoEntry *entry;
+  Term *goal;
+} MemoCollectContext;
+
+static void collect_memo_answer(Env *env, void *user_data) {
+  MemoCollectContext *ctx = user_data;
+  if (ctx->solver->solutions_seen > 0) ctx->solver->solutions_seen--;
+  memo_entry_add_answer(ctx->entry, ctx->goal, env);
+}
+
+static void replay_memo_answers(Solver *solver, Term *goal, Term **rest, int rest_len,
+                                Env *env, int depth, SolutionCallback callback,
+                                void *user_data, MemoEntry *entry) {
+  for (int i = 0; i < entry->len && solver->solutions_seen < solver->solution_limit; i++) {
+    Env next = clone_env(env);
+    bool ok = true;
+    for (int j = 0; j < entry->arity; j++) {
+      if (!unify(goal->args[j], entry->answers[i].args[j], &next)) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) solve_goals(solver, rest, rest_len, &next, depth + 1, callback, user_data);
+  }
+}
+
+static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len,
+                           Env *env, int depth, SolutionCallback callback, void *user_data) {
+  if (depth > solver->max_depth) return;
+  if (solver->solutions_seen >= solver->solution_limit) return;
+
+  PredicateGroup *group = goal->type == TERM_COMPOUND ? find_group(solver->program, goal->name, goal->arity) : NULL;
+  if (!group || !group->memoized) {
+    solve_one_goal_uncached(solver, goal, rest, rest_len, env, depth, callback, user_data);
+    return;
+  }
+
+  bool has_bound = false;
+  char *key = memo_key_for_goal(goal, env, &has_bound);
+  if (!key || !has_bound) {
+    free(key);
+    solve_one_goal_uncached(solver, goal, rest, rest_len, env, depth, callback, user_data);
+    return;
+  }
+
+  MemoEntry *entry = get_memo_entry(solver, key, goal->arity);
+  free(key);
+
+  if (entry->complete) {
+    replay_memo_answers(solver, goal, rest, rest_len, env, depth, callback, user_data, entry);
+    return;
+  }
+
+  if (entry->computing) {
+    solve_one_goal_uncached(solver, goal, rest, rest_len, env, depth, callback, user_data);
+    return;
+  }
+
+  entry->computing = true;
+  MemoCollectContext ctx = { solver, entry, goal };
+  solve_one_goal_uncached(solver, goal, NULL, 0, env, depth, collect_memo_answer, &ctx);
+  entry->computing = false;
+  entry->complete = true;
+
+  replay_memo_answers(solver, goal, rest, rest_len, env, depth, callback, user_data, entry);
 }
 
 static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
@@ -2364,7 +2578,7 @@ static void collect_printed_goal(Env *env, void *user_data) {
 }
 
 static void print_default_output(Program *program) {
-  Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0 };
+  Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
   Term *args[3] = { new_term(TERM_VAR, "S"), new_term(TERM_VAR, "P"), new_term(TERM_VAR, "O") };
   Term *goal = new_compound("triple", 3, args);
   Term *goals[1] = { goal };
@@ -2457,7 +2671,7 @@ int main(int argc, char **argv) {
     Term *goal = parse_query_goal(query);
     Term *goals[1] = { goal };
     Env env = { 0 };
-    Solver solver = { &program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0 };
+    Solver solver = { &program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
     solve_goals(&solver, goals, 1, &env, 0, print_query_solution, goal);
   } else {
     print_default_output(&program);
