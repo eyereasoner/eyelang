@@ -278,7 +278,7 @@ Default execution materializes distinct `triple/3` consequences by Prolog-like H
 triple(S, P, O)
 ```
 
-In the pure core, the printed facts are the ground `triple/3` atoms that belong to the least Herbrand model of the loaded program. The implementation is intentionally top-down and Prolog-like; it should not be described as a full bottom-up saturation engine.
+In the pure core, the printed facts are the ground `triple/3` atoms that belong to the least Herbrand model of the loaded program. The implementation is intentionally top-down and Prolog-like, but the default output has a forward-chaining reading: it is the set of `triple/3` consequences that the program derives.
 
 For example:
 
@@ -305,7 +305,44 @@ triple(pat, ancestor, emma)
 
 so the default output contains the three `triple/3` facts.
 
-### 5.6 Quoted formulae and variables-as-data
+### 5.6 Backward search and forward materialization
+
+Eyelog can be understood in two complementary ways. Operationally it is a backward-chaining engine, like Prolog: given a goal, it selects matching clauses, unifies the goal with clause heads, proves the body goals from left to right, and backtracks over alternatives. This is what happens in query mode and also inside the default `triple(S, P, O)` run.
+
+At the same time, Eyelog has two materialization points that give this top-down search a forward-chaining flavor.
+
+The first materialization point is the default output relation. By asking for all ground answers to `triple(S, P, O)` and printing each distinct answer once, Eyelog exposes the derived `triple/3` consequences as if the program had saturated its output graph. This is why examples can be written as rules over helper predicates and still produce a materialized set of triples.
+
+For example, the rule:
+
+```prolog
+triple(X, ancestor, Z) :-
+  parent(X, Y),
+  ancestor(Y, Z).
+```
+
+is used backward when Eyelog tries to prove `triple(S, P, O)`: the head unifies with the query, and the body is solved as subgoals. But the visible result is forward-looking: all distinct ground instances such as `triple(pat, ancestor, emma)` are emitted as derived facts.
+
+The second materialization point is explicit memoization. A declaration such as:
+
+```prolog
+memoize(reachable, 2).
+```
+
+keeps answers for selected calls to `reachable/2`. The first call is still solved by ordinary backward search, but the answers found are stored in a table and reused by later calls. For recursive predicates such as `reachable/2`, this behaves like a local materialization of that relation: once enough reachable pairs have been found, they are available as facts for subsequent subgoals.
+
+So `memoize/2` is a bridge between the two views. It does not turn the whole engine into a forward reasoner, and it is not full general tabling. It lets selected backward-derived relations become incrementally materialized when that is useful for the workload.
+
+This dual view is useful:
+
+- write rules as ordinary Prolog-style backward-chaining clauses,
+- read the default output as the materialized RDF-shaped consequence set,
+- use `memoize/2` for local materialization of repeated recursive or deterministic subcomputations,
+- use helper predicates for computation and `triple/3` as the public output relation.
+
+Eyelog is therefore not a full bottom-up saturation engine. It does not eagerly derive every atom in the Herbrand base. It performs top-down search for selected goals; the default selected goal is `triple(S, P, O)`, and memoized predicates add opt-in local materialization for selected helper relations.
+
+### 5.7 Quoted formulae and variables-as-data
 
 Formula terms such as `triple(s, p, o)` and `(triple(s1, p1, o1), triple(s2, p2, o2))` are ordinary Herbrand terms when they occur in argument position. A `triple/3` at top level is an atom that can belong to the least Herbrand model. A `triple/3` inside another term is quoted data until a rule projects it.
 
@@ -350,7 +387,7 @@ Use this convention:
 - use `var(y)` only when a quoted formula itself needs to contain a variable placeholder,
 - use helper predicates to project or interpret quoted formula terms when needed.
 
-### 5.7 Skolem terms in rule heads
+### 5.8 Skolem terms in rule heads
 
 Use the `skolem_` vocabulary prefix when a rule needs to introduce a generated resource. In Eyelog this is not a special runtime feature. It is a naming convention for ordinary compound terms used as Skolem functions.
 
@@ -788,7 +825,7 @@ For acyclic recursive workloads where the same bound subgoal is solved many time
 memoize(reachable, 2).
 ```
 
-This caches answers for calls to `reachable/2` when at least one argument is already bound. It is useful for generated chains and other dynamic-programming-shaped examples. It can also help deterministic helper predicates that are called repeatedly with the same bound input, for example score vectors, route metrics, interval bounds, or list reductions used by several output triples. Memoization is deliberately explicit rather than automatic: cyclic closures should continue to rely on the guarded recursive search unless the memoized predicate is known to be safe for that workload.
+This caches answers for calls to `reachable/2` when at least one argument is already bound. It is useful for generated chains and other dynamic-programming-shaped examples. It can also help deterministic helper predicates that are called repeatedly with the same bound input, for example score vectors, route metrics, interval bounds, or list reductions used by several output triples. In this sense, memoization is local forward materialization inside backward chaining: answers are derived on demand, stored, and then reused as tabled facts for later calls. Memoization is deliberately explicit rather than automatic: cyclic closures should continue to rely on the guarded recursive search unless the memoized predicate is known to be safe for that workload.
 
 Prefer this:
 
@@ -809,7 +846,7 @@ For bounded challenge examples, it is fine to include domain facts such as airpo
 
 ## 11. Current limits
 
-The implementation is intentionally direct. Eyelog materializes distinct `triple/3` consequences by guarded Horn-clause search; it is not a complete bottom-up saturation engine.
+The implementation is intentionally direct. Eyelog solves goals by guarded, Prolog-style Horn-clause search. Its default run materializes the selected output relation, `triple(S, P, O)`, by printing each distinct answer once; it is not a complete bottom-up saturation engine over every predicate.
 
 Current limits:
 
