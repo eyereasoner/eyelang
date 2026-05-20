@@ -1,0 +1,41 @@
+% Hamiltonian path, adapted from Eyelet's input/hamiltonian-path.pl.
+%
+% The graph is the same six-vertex undirected graph.  Eyelog spells the finite
+% vertex set directly and derives every path that visits each vertex exactly
+% once.
+
+edge(v1, v2).
+edge(v1, v3).
+edge(v1, v5).
+edge(v1, v6).
+edge(v2, v3).
+edge(v2, v4).
+edge(v2, v6).
+edge(v3, v4).
+edge(v3, v6).
+edge(v4, v5).
+edge(v4, v6).
+
+adjacent(V, U) :- edge(V, U).
+adjacent(V, U) :- edge(U, V).
+
+vertex(v1).
+vertex(v2).
+vertex(v3).
+vertex(v4).
+vertex(v5).
+vertex(v6).
+
+hamiltonian_path([A, B, C, D, E, F]) :-
+  vertex(A),
+  vertex(B), adjacent(A, B), not_member(B, [A]),
+  vertex(C), adjacent(B, C), not_member(C, [A, B]),
+  vertex(D), adjacent(C, D), not_member(D, [A, B, C]),
+  vertex(E), adjacent(D, E), not_member(E, [A, B, C, D]),
+  vertex(F), adjacent(E, F), not_member(F, [A, B, C, D, E]).
+
+triple(graph, hasHamiltonianPath, true) :-
+  hamiltonian_path(_Path).
+
+triple(graph, hamiltonianPath, Path) :-
+  hamiltonian_path(Path).

@@ -109,6 +109,11 @@ run 'healthcare policy formula ranks consent risk first' bash -c './bin/eyelog e
 run 'healthcare policy formula suppresses satisfied human review risk' bash -c '! ./bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "riskH3"'
 run 'healthcare mitigation is formula-valued' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(mitigateDeId, suggestAddGraph, (triple(permShareWithPharma"'
 run 'turing machine increments carry chain' bash -c './bin/eyelog examples/turing.pl | grep -q "triple(case3, output, \[1, 0, 0, 0, 0, 0, 0, #\])."'
+run 'socrates derives mortal' bash -c './bin/eyelog examples/socrates.pl | grep -q "triple(socrates, type, mortal)."'
+run 'superdense coding preserves all four messages' bash -c '[ "$(./bin/eyelog examples/superdense-coding.pl | grep -c "decodesAs")" -eq 4 ]'
+run 'superdense coding cancels cross talk' bash -c './bin/eyelog examples/superdense-coding.pl | grep -q "triple(protocol, cancelsCrossTalk, true)."'
+run 'wolf goat cabbage finds two seven-move solutions' bash -c '[ "$(./bin/eyelog examples/wolf-goat-cabbage.pl | grep -c "triple(puzzle, solution")" -eq 2 ]'
+run 'hamiltonian path enumerates 120 paths' bash -c '[ "$(./bin/eyelog examples/hamiltonian-path.pl | grep -c "hamiltonianPath")" -eq 120 ]'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
