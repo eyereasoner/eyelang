@@ -117,7 +117,7 @@ run 'hamiltonian path enumerates 120 paths' bash -c '[ "$(./bin/eyelog examples/
 run 'animal example derives Joe as animal' bash -c './bin/eyelog examples/animal.pl | grep -q "triple(joe, type, animal)."'
 run 'diamond property is preserved under reflexive closure' bash -c './bin/eyelog examples/diamond-property.pl | grep -q "triple(diamondProperty, preservedUnderReflexiveClosure, true)."'
 run 'monkey bananas finds a grab plan' bash -c './bin/eyelog examples/monkey-bananas.pl | grep -q "triple(monkeyBananas, plan, \[go(loc3), push(loc1), climb_on, grab\])."'
-run 'n queens produces two 4-queen solutions' bash -c '[ "$(./bin/eyelog examples/n-queens.pl | grep -c "triple(nQueens4, solution")" -eq 2 ]'
+run 'n queens enumerates all 92 eight-queen solutions' bash -c '[ "$(./bin/eyelog examples/n-queens.pl | grep -c "triple(nQueens8, solution")" -eq 92 ]'
 run 'zebra puzzle solves classic answer' bash -c './bin/eyelog examples/zebra.pl | grep -q "triple(zebraPuzzle, zebraOwner, japanese)."'
 section Examples
 for f in examples/*.pl; do

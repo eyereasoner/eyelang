@@ -1,7 +1,7 @@
 % N-Queens puzzle, adapted from Eyelet's input/n-queens.pl.
 %
 % This uses the classic permutation-and-diagonal-check Prolog encoding, here
-% shown for N=4 so the expected output stays compact.
+% shown for N=8, materializing all 92 solutions.
 
 queens(N, Qs) :-
   range(1, N, Us),
@@ -28,5 +28,5 @@ attack(X, N, [_|Ys]) :-
   add(N, 1, N1),
   attack(X, N1, Ys).
 
-triple(nQueens4, solution, Qs) :- queens(4, Qs).
-triple(nQueens4, solved, true) :- queens(4, _Qs).
+triple(nQueens8, solution, Qs) :- queens(8, Qs).
+triple(nQueens8, solved, true) :- queens(8, _Qs).
