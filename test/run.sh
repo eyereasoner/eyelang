@@ -58,6 +58,8 @@ run 'rounded query returns integer term' bash -c './bin/eyelog --query "rounded(
 run 'age example passes 80-year threshold' bash -c './bin/eyelog examples/age.pl | grep -q "triple(test, is, true)."'
 run 'age date difference query returns ISO duration' bash -c './bin/eyelog --query "difference(\"2026-05-19\", \"1944-08-21\", X)" examples/age.pl | grep -q "difference(\"2026-05-19\", \"1944-08-21\", \"P81Y8M28D\")."'
 run 'age duration comparison query' bash -c './bin/eyelog --query "gt(\"P81Y8M28D\", \"P80Y\")" examples/age.pl | grep -q "gt"'
+run 'c core throughput materializes 40007 triples' bash -c '[ "$(./bin/eyelog examples/c-core-throughput.pl | wc -l)" -eq 40007 ]'
+run 'c core throughput reaches last generated row' bash -c './bin/eyelog examples/c-core-throughput.pl | grep -q "triple(report, lastRow, row10000)."'
 run 'floating add query' bash -c './bin/eyelog --query "add(1.5, 2.25, X)" examples/floating-point.pl | grep -q "add(1.5, 2.25, 3.75)."'
 run 'floating add query' bash -c './bin/eyelog --query "add(0.125, 0.875, X)" examples/floating-point.pl | grep -q "add(0.125, 0.875, 1.0)."'
 run 'native add query' bash -c './bin/eyelog --query "add(0.125, 0.875, X)" examples/aliases-and-namespaces.pl | grep -q "add(0.125, 0.875, 1.0)."'

@@ -638,6 +638,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/bayes-therapy.pl` adapts the Bayesian therapy decision-support example. It uses list-valued disease, evidence, posterior, and therapy vectors to combine Naive Bayes diagnosis with expected-utility therapy selection.
 - `examples/bmi.pl` adapts Eyeling's ARC-style BMI example, normalizing metric or US inputs, computing BMI, assigning a WHO adult category, deriving a healthy-weight band, and emitting checks plus a report.
 - `examples/age.pl` adapts Eyeling's age checker, using `local_time/1`, `difference/3`, and ISO duration comparison to test whether a person is older than a threshold.
+- `examples/c-core-throughput.pl` demonstrates Eyelog's compact C hot path by deriving many generated triples from a tiny rule set using range generation, atom construction, native arithmetic, unification, duplicate suppression, and formatted output.
 - `examples/floating-point.pl` demonstrates decimal arithmetic and floating-point comparisons using native built-ins.
 - `examples/complex.pl` adapts Eyeling's complex-number example. Complex values are two-item lists `[Real, Imaginary]`; the example derives complex exponentiation, polar form, `complex_asin/2`, and `complex_acos/2` using the native floating-point built-ins.
 - `examples/skolem-functions.pl` demonstrates generated resources using `skolem_` functional terms in rule heads, such as `skolem_observation(Patient, Test)`, so derived identifiers are deterministic and collision-free.
