@@ -123,6 +123,11 @@ run 'sudoku solves classic puzzle' bash -c './bin/eyelog examples/sudoku.pl | gr
 run 'sudoku emits completed first row' bash -c './bin/eyelog examples/sudoku.pl | grep -q "\[1, 6, 2, 8, 5, 7, 4, 9, 3\]"'
 run 'sudoku builtin accepts dot blanks' bash -c './bin/eyelog --query "once(sudoku(\"1....7.9..3..2...8..96..5....53..9...1..8...26....4...3......1..4......7..7...3..\", S))" examples/sudoku.pl | grep -q "\[8, 9, 7, 2, 6, 1, 3, 5, 4\]"'
 run 'once returns a single n-queens solution' bash -c '[ "$(./bin/eyelog --query "once(queens(8, Qs))" examples/n-queens.pl | grep -c "once")" -eq 1 ]'
+run 'kaprekar reaches 6174 for 3524' bash -c './bin/eyelog examples/kaprekar.pl | grep -q "triple(3524, kaprekarSteps, 3)."'
+run 'kaprekar reports four demo cases' bash -c '[ "$(./bin/eyelog examples/kaprekar.pl | grep -c "kaprekarSteps")" -eq 4 ]'
+run 'kaprekar treats 6174 as already converged' bash -c './bin/eyelog examples/kaprekar.pl | grep -q "triple(6174, kaprekarSteps, 0)."'
+run 'takeuchi classic result' bash -c './bin/eyelog examples/takeuchi.pl | grep -q "triple(classic, takeuchiResult, 13)."'
+run 'control system computes actuator2 signal' bash -c './bin/eyelog examples/control-system.pl | grep -q "triple(actuator2, controlSignal, 26.079999999999998)."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

@@ -2521,6 +2521,7 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_between(goal, env, callback, user_data);
   }
 
+
   if (strcmp(name, "smallest_divisor_from") == 0 && arity == 3) {
     return builtin_smallest_divisor_from(goal, env, callback, user_data);
   }

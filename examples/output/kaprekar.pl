@@ -1,0 +1,9 @@
+triple(2111, kaprekarSteps, 5).
+triple(3524, kaprekarSteps, 3).
+triple(6174, kaprekarSteps, 0).
+triple(9831, kaprekarSteps, 7).
+triple(kaprekar, constant, 6174).
+triple(kaprekar, reachesConstant, 2111).
+triple(kaprekar, reachesConstant, 3524).
+triple(kaprekar, reachesConstant, 6174).
+triple(kaprekar, reachesConstant, 9831).

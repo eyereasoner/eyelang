@@ -589,7 +589,6 @@ or a 9x9 grid list using `0` for blanks. It enumerates completed 9x9 grid
 solutions. The built-in is generic: it is not tied to one example puzzle, and
 it exists because a plain Prolog-style Sudoku search otherwise obscures the
 reasoning example with a large amount of constraint plumbing.
-
 Example:
 
 ```prolog
@@ -685,6 +684,7 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/derived-rule.pl` adapts the derived-rule example closely: a top-level `triple/3` cat fact derives a quoted implication graph, and a top-level `triple/3` dog fact then fires that derived rule.
 - `examples/odrl-dpv-healthcare-risk-ranked.pl` adapts the healthcare ODRL + DPV example. It keeps the policy and mitigation suggestions as formula-valued terms and derives only the risks supported by the scoped formula.
 - `examples/sudoku.pl` adapts Eyeling's Sudoku case. The puzzle is an ordinary 81-character string, and `sudoku/2` is a generic native helper that solves any standard 9x9 puzzle string or grid using constraint propagation and search.
+- `examples/kaprekar.pl` adapts Eyelet's Kaprekar example as a small rule-level demo. It derives Kaprekar step counts for representative inputs using digit extraction, sorting, subtraction, recursion, and memoization, without adding a Kaprekar-specific built-in.
 
 For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer formula-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log_nameOf { ... }` usually translates well to a top-level `triple(G, log_nameOf, ...)`, not to a separate `named_graph/2` table unless several rules need that indirection.
 For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log_nameOf, ...)` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(policyGraph1, (triple(S, P, O), ...))` because the policy formula is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different formulae may contain incompatible clauses.
