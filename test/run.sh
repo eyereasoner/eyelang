@@ -108,6 +108,7 @@ run 'skolem function avoids clashes' bash -c './bin/eyelog examples/skolem-funct
 run 'healthcare policy formula ranks consent risk first' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(report, firstRisk, riskH1)."'
 run 'healthcare policy formula suppresses satisfied human review risk' bash -c '! ./bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "riskH3"'
 run 'healthcare mitigation is formula-valued' bash -c './bin/eyelog examples/odrl-dpv-healthcare-risk-ranked.pl | grep -q "triple(mitigateDeId, suggestAddGraph, (triple(permShareWithPharma"'
+run 'turing machine increments carry chain' bash -c './bin/eyelog examples/turing.pl | grep -q "triple(case3, output, \[1, 0, 0, 0, 0, 0, 0, #\])."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
