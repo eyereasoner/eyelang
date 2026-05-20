@@ -1,3 +1,7 @@
+% Memoize route costs: selected paths, route triples, and trust checks reuse
+% the same path-list reductions.
+memoize(route_cost, 4).
+
 % Risk-adjusted route selection adapted from Eyeling dijkstra-risk-path.n3.
 % The score is raw delivery cost plus ten times the accumulated risk.
 % Segments live in a quoted formula term, while candidate paths remain lists.

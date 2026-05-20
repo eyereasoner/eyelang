@@ -1,3 +1,7 @@
+% Memoize trajectories because different start values quickly merge into
+% shared Collatz tails.
+memoize(collatz, 2).
+
 % Collatz trajectory benchmark adapted from Eyeling collatz-1000.n3.
 % Output mirrors Eyeling semantically: each start value maps to its full trajectory.
 

@@ -761,7 +761,7 @@ For acyclic recursive workloads where the same bound subgoal is solved many time
 memoize(reachable, 2).
 ```
 
-This caches answers for calls to `reachable/2` when at least one argument is already bound. It is useful for generated chains and other dynamic-programming-shaped examples, but it is deliberately explicit rather than automatic: cyclic closures should continue to rely on the guarded recursive search unless the memoized predicate is known to be safe for that workload.
+This caches answers for calls to `reachable/2` when at least one argument is already bound. It is useful for generated chains and other dynamic-programming-shaped examples. It can also help deterministic helper predicates that are called repeatedly with the same bound input, for example score vectors, route metrics, interval bounds, or list reductions used by several output triples. Memoization is deliberately explicit rather than automatic: cyclic closures should continue to rely on the guarded recursive search unless the memoized predicate is known to be safe for that workload.
 
 Prefer this:
 

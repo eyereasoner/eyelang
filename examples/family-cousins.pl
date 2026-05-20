@@ -1,3 +1,9 @@
+% Memoize scoped family projection and recursive labels; cousin derivation asks
+% for the same generation and branch facts many times.
+memoize(family_triple, 3).
+memoize(generation, 2).
+memoize(branch, 2).
+
 % Family-cousins derivation adapted from Eyeling family-cousins.n3.
 % Generation numbers are derived from parent links; branch labels distinguish
 % descendants of Bob from descendants of Carol.

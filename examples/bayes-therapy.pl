@@ -1,3 +1,9 @@
+% Memoize shared inference layers: the score vector, disease likelihood tails,
+% and expected therapy success are reused by several report triples.
+memoize(scores_for, 2).
+memoize(likelihood, 3).
+memoize(expected_success, 2).
+
 % Bayes therapy decision support adapted from Eyeling bayes-therapy.n3.
 % Probabilities are illustrative and are not medical advice.
 % The example combines a tiny Naive Bayes diagnosis model with a therapy

@@ -1,3 +1,7 @@
+% Memoize the fast-doubling helper: several requested Fibonacci numbers reuse
+% the same half-size subproblems.
+memoize(fib_pair, 3).
+
 % BigInt Fibonacci via fast doubling, implemented in Prolog using generic
 % decimal add/sub/mul built-ins.  The result predicate follows Eyeling's
 % fibonacci.n3 output shape: N fibonacci Value.

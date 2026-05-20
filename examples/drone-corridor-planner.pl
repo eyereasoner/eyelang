@@ -1,3 +1,6 @@
+% Memoize bounded paths because surviving-plan metrics reuse route prefixes.
+memoize(path, 9).
+
 % Bounded drone corridor planner adapted from Eyeling drone-corridor-planner.n3.
 % A fuel list bounds recursion; duration and cost are summed, belief and comfort
 % are multiplied along the action sequence.

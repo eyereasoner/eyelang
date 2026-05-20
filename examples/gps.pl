@@ -1,3 +1,8 @@
+% Memoize route paths because the same candidate routes are checked repeatedly
+% for explanation and verification triples.
+memoize(path, 7).
+memoize(traveller_path, 6).
+
 % GPS — ARC-style goal-driven route planning, translated from Eyeling's gps.n3.
 %
 % The map is kept as quoted formula data.  Rules project gps_description

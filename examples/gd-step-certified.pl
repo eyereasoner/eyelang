@@ -1,3 +1,13 @@
+% Memoize interval computations reused across width, midpoint, gradient, step,
+% objective, and contraction report triples.
+memoize(x_bounds, 3).
+memoize(width, 2).
+memoize(g_bounds, 3).
+memoize(p_bounds, 3).
+memoize(midpoint, 3).
+memoize(f_lower, 2).
+memoize(f_upper, 2).
+
 % Adapted from Eyeling's gd-step-certified.n3.
 % One-dimensional gradient descent over certified interval bounds.
 
