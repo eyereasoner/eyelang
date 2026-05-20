@@ -193,7 +193,7 @@ skolem_observation(alice, glucose)
 triple(var(x), rdf_type, dog)
 ```
 
-A ground term contains no eyelog variables. Compound terms and lists can be nested, so the Herbrand universe may be infinite if the program has a compound term symbol.
+A ground term contains no eyelog variables. For a fixed finite program, the Herbrand universe is formed only from the constants and compound term symbols that occur in that program. The language may allow endlessly many possible atom names, but they are not all automatically in `U_P`. If there are no compound term symbols, `U_P` is finite. If there is at least one compound term symbol of positive arity, `U_P` may be infinite, because terms can be nested without bound.
 
 Notice the distinction between `X` and `var(x)`. `X` is an eyelog variable: it can be bound by unification while a rule is being proved. `var(x)` is an ordinary compound term with functor `var/1`; it is ground because `x` is an atom. Eyelog uses this convention when a quoted formula needs to mention an object-language variable as data.
 
@@ -203,7 +203,9 @@ If a program has no constants, the usual convention is to add one fresh constant
 
 ### 5.2 Herbrand base
 
-The Herbrand base `B_P` is the set of all ground atoms that can be formed by applying predicate symbols from `P` to ground terms from `U_P`.
+The Herbrand base `B_P` is the set of all ground atoms that can be formed by applying predicate symbols from `P` to ground terms from `U_P`. Here “ground atom” means an atomic formula such as `triple(a, b, c)` or `parent(pat, jan)`, not an atom name such as `a` or `pat`.
+
+`B_P` is a set, not a bag. A ground atom is either present or absent. Duplicate facts or duplicate derivations do not create new logical facts, although an implementation may temporarily encounter the same fact more than once during search.
 
 For a program containing `parent/2` and constants `pat`, `jan`, and `emma`, the Herbrand base includes atoms such as:
 
