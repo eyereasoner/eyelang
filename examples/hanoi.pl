@@ -1,6 +1,8 @@
 % Towers of Hanoi adapted from Eyeling hanoi.n3.
 % Output is the complete list of moves for size 3.
 
+memoize(hanoi, 5).
+
 hanoi(0, _From, _To, _Via, []).
 hanoi(N, From, To, Via, Moves) :-
   gt(N, 0),

@@ -4,6 +4,8 @@
 % vertex set directly and derives every path that visits each vertex exactly
 % once.
 
+memoize(adjacent, 2).
+
 edge(v1, v2).
 edge(v1, v3).
 edge(v1, v5).

@@ -5,6 +5,8 @@
 % bank w or east bank e.  The recursive search keeps a visited list so Eyelog
 % explores the finite state space without looping.
 
+memoize(solve, 4).
+
 solution(Moves) :-
   solve([w, w, w, w], [e, e, e, e], [[w, w, w, w]], Moves),
   length(Moves, 7).
