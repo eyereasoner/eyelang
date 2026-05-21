@@ -13,8 +13,9 @@ This handbook describes the eyelog language and how to write examples that are s
 - [7. Built-ins](#7-built-ins)
 - [8. Writing examples](#8-writing-examples)
 - [9. Golden outputs and tests](#9-golden-outputs-and-tests)
-- [10. Performance tips](#10-performance-tips)
-- [11. Current limits](#11-current-limits)
+- [10. Development and release](#10-development-and-release)
+- [11. Performance tips](#11-performance-tips)
+- [12. Current limits](#12-current-limits)
 
 ## 1. Program shape
 
@@ -104,6 +105,14 @@ make serve
 and open `http://localhost:8000/playground.html`. Opening the page directly as a `file://` URL usually blocks the module worker or `.wasm` file, so the playground shows a warning in that mode.
 
 The playground is intentionally vertical and mobile-friendly. It supports loading examples, loading `.pl` files from URLs, adding background programs before the editor contents, passing an optional `--query`, viewing stdout and stderr separately, autosaving in local storage, stopping a run by terminating the worker, and creating compact share links. On insecure HTTP origins where the modern Clipboard API is unavailable, the share-link button falls back to an older textarea copy path and then to a manual copy prompt.
+
+After changing the C source, the Makefile, or browser build settings, rebuild stale browser assets with:
+
+```sh
+make clean browser
+```
+
+The browser build writes generated assets under `dist/browser/`. These files are local build products and should not be committed.
 
 ## 3. Terms
 
@@ -837,9 +846,77 @@ it on exit. It does not use fixed names such as `/tmp/eyelog-actual`, so several
 intermediate files. Query parsing in `src/eyelog.c` also uses `mkstemp`, honoring
 `TMPDIR` when it is set.
 
-## 10. Performance tips
+## 10. Development and release
 
-Place the most selective goals early in a rule body.
+### 10.1 Build targets
+
+The default target builds both the native CLI and the browser playground assets:
+
+```sh
+make
+# same as: make all
+```
+
+This creates:
+
+```text
+bin/eyelog
+
+dist/browser/eyelog.mjs
+dist/browser/eyelog.wasm
+```
+
+`make` and `make all` require both a C compiler and Emscripten's `emcc`. To build only one target, use:
+
+```sh
+make cli       # native executable only
+make browser   # WebAssembly playground assets only
+```
+
+Check the version with:
+
+```sh
+bin/eyelog --version
+```
+
+Use `make test` for the native example suite. It cleans and rebuilds `bin/eyelog`, but it does not require Emscripten.
+
+### 10.2 Release script
+
+After updating `VERSION`, commit, tag, and push with:
+
+```sh
+./mkeyelog "release message"
+```
+
+The script must be run from `main`. It first runs `make all` and `make test`, so release preparation requires both a C compiler and Emscripten. If any build or test step fails, it stops before committing, tagging, or pushing.
+
+When checks pass, the script commits all source and documentation changes with the supplied message, creates an annotated `v$(cat VERSION)` tag, and pushes `main` plus the tag. Generated binaries under `bin/` and browser assets under `dist/` are generated locally and should not be committed, so releases do not depend on the libc or Emscripten version of the machine that prepared them.
+
+### 10.3 GitHub Pages
+
+The site is deployed by `.github/workflows/pages.yml` on every push to `main` and can also be run manually from the Actions tab. The workflow installs Emscripten, builds the WebAssembly playground assets, and then lets Jekyll package the site.
+
+Use `./mkeyelog "release message"` for normal releases so native tests, browser assets, Pages, and the GitHub Release stay in sync.
+
+### 10.4 Indexing implementation note
+
+At load time, eyelog groups clauses by predicate name and arity. Within each predicate group it builds scalar indexes for every argument position, not only for `triple/3`. During solving, a goal with one or more bound atom, string, or number arguments chooses the smallest matching bucket and still checks candidate heads by unification. Clauses whose indexed argument is variable-headed or otherwise non-scalar remain in a fallback list so general rules continue to match.
+
+For example, the same indexing mechanism helps all of these calls:
+
+```prolog
+triple(S, rdf_type, O)
+parent(pat, X)
+edge(A, B)
+score(Item, 97)
+```
+
+The index narrows the candidate clauses; correctness still comes from the ordinary head-match and unification path.
+
+## 11. Performance tips
+
+Place the most selective goals early in a rule body. The engine groups clauses by predicate name and arity, then builds per-argument scalar indexes for every predicate. A call with one or more bound atom, string, or number arguments uses the most selective matching argument bucket and also keeps variable-headed clauses through a fallback list. This helps `triple/3`, but it also helps ordinary predicates such as `parent(pat, X)`, `edge(A, B)`, and `score(Item, 97)`.
 
 For large materializations, prefer rules that generate each result once. The engine keeps a hash-backed set of printed `triple/3` facts, so examples such as `deep-taxonomy-100000.pl` can produce hundreds of thousands of distinct triples without quadratic duplicate checks.
 
@@ -870,7 +947,7 @@ Avoid generating a large Cartesian product before filtering it.
 
 For bounded challenge examples, it is fine to include domain facts such as airport routes or prime numbers as input data. What should be avoided is pasting the final answers as `triple/3` facts.
 
-## 11. Current limits
+## 12. Current limits
 
 The implementation is intentionally direct. Eyelog solves goals by guarded, Prolog-style Horn-clause search. Its default run materializes the selected output relation, `triple(S, P, O)`, by printing each distinct answer once; it is not a complete bottom-up saturation engine over every predicate.
 

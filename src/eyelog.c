@@ -120,6 +120,10 @@ static Term *empty_list_term(void) {
   return new_term(TERM_ATOM, "[]");
 }
 
+static bool simple_scalar(Term *term) {
+  return term->type == TERM_ATOM || term->type == TERM_STRING || term->type == TERM_NUMBER;
+}
+
 static Term *cons_term(Term *head, Term *tail) {
   Term *args[2] = { head, tail };
   return new_compound(".", 2, args);
@@ -478,11 +482,31 @@ typedef struct {
 } Clause;
 
 typedef struct {
+  char *key;
+  int *clause_indexes;
+  int len;
+  int cap;
+  int next_hash;
+} ClauseIndexBucket;
+
+typedef struct {
+  ClauseIndexBucket *buckets;
+  int len;
+  int cap;
+  int *hash_slots;
+  int hash_cap;
+  int *fallback_indexes;
+  int fallback_len;
+  int fallback_cap;
+} ArgumentIndex;
+
+typedef struct {
   char *name;
   int arity;
   int *clause_indexes;
   int len;
   int cap;
+  ArgumentIndex *arg_indexes;
   bool memoized;
 } PredicateGroup;
 
@@ -521,6 +545,140 @@ static void add_clause(Program *program, Clause clause) {
   program->clauses[program->len++] = clause;
 }
 
+static uint64_t index_hash_key(const char *text) {
+  uint64_t hash = 1469598103934665603ULL;
+  while (*text) {
+    hash ^= (unsigned char)*text++;
+    hash *= 1099511628211ULL;
+  }
+  return hash;
+}
+
+static void add_clause_index(int **items, int *len, int *cap, int clause_index) {
+  if (*len == *cap) {
+    *cap = *cap ? *cap * 2 : 16;
+    *items = xrealloc(*items, sizeof(int) * *cap);
+  }
+  (*items)[(*len)++] = clause_index;
+}
+
+static void rehash_argument_index(ArgumentIndex *index, int requested_cap) {
+  int cap = 16;
+  while (cap < requested_cap) cap *= 2;
+
+  int *slots = xcalloc((size_t)cap, sizeof(int));
+  int mask = cap - 1;
+
+  for (int i = 0; i < index->len; i++) {
+    ClauseIndexBucket *bucket = &index->buckets[i];
+    int slot = (int)(index_hash_key(bucket->key) & (uint64_t)mask);
+    bucket->next_hash = slots[slot];
+    slots[slot] = i + 1;
+  }
+
+  free(index->hash_slots);
+  index->hash_slots = slots;
+  index->hash_cap = cap;
+}
+
+static ClauseIndexBucket *find_arg_bucket(ArgumentIndex *index, const char *key) {
+  if (!index->hash_slots) return NULL;
+
+  int mask = index->hash_cap - 1;
+  int slot = (int)(index_hash_key(key) & (uint64_t)mask);
+  for (int cursor = index->hash_slots[slot]; cursor; cursor = index->buckets[cursor - 1].next_hash) {
+    ClauseIndexBucket *bucket = &index->buckets[cursor - 1];
+    if (strcmp(bucket->key, key) == 0) return bucket;
+  }
+  return NULL;
+}
+
+static ClauseIndexBucket *ensure_arg_bucket(ArgumentIndex *index, const char *key) {
+  ClauseIndexBucket *bucket = find_arg_bucket(index, key);
+  if (bucket) return bucket;
+
+  if (index->len == index->cap) {
+    index->cap = index->cap ? index->cap * 2 : 16;
+    index->buckets = xrealloc(index->buckets, sizeof(ClauseIndexBucket) * index->cap);
+  }
+
+  int bucket_index = index->len++;
+  bucket = &index->buckets[bucket_index];
+  bucket->key = xstrdup(key);
+  bucket->clause_indexes = NULL;
+  bucket->len = 0;
+  bucket->cap = 0;
+  bucket->next_hash = 0;
+
+  if (!index->hash_slots || index->len * 2 > index->hash_cap) {
+    rehash_argument_index(index, index->hash_cap ? index->hash_cap * 2 : 16);
+  } else {
+    int mask = index->hash_cap - 1;
+    int slot = (int)(index_hash_key(key) & (uint64_t)mask);
+    bucket->next_hash = index->hash_slots[slot];
+    index->hash_slots[slot] = bucket_index + 1;
+  }
+
+  return bucket;
+}
+
+static void index_clause_argument(PredicateGroup *group, Term *arg, int arg_index, int clause_index) {
+  ArgumentIndex *index = &group->arg_indexes[arg_index];
+
+  if (simple_scalar(arg)) {
+    ClauseIndexBucket *bucket = ensure_arg_bucket(index, arg->name);
+    add_clause_index(&bucket->clause_indexes, &bucket->len, &bucket->cap, clause_index);
+    return;
+  }
+
+  add_clause_index(&index->fallback_indexes, &index->fallback_len, &index->fallback_cap, clause_index);
+}
+
+typedef struct Env Env;
+static Term *deref(Term *term, Env *env);
+
+typedef struct {
+  int *primary_indexes;
+  int primary_len;
+  int *fallback_indexes;
+  int fallback_len;
+} ClauseCandidates;
+
+static ClauseCandidates all_group_clauses(PredicateGroup *group) {
+  ClauseCandidates candidates = { group->clause_indexes, group->len, NULL, 0 };
+  return candidates;
+}
+
+static ClauseCandidates select_clause_candidates(PredicateGroup *group, Term *goal, Env *env) {
+  ClauseCandidates best = all_group_clauses(group);
+  int best_len = group->len;
+  bool indexed = false;
+
+  if (goal->type != TERM_COMPOUND || !group->arg_indexes) return best;
+
+  for (int i = 0; i < goal->arity; i++) {
+    Term *goal_arg = deref(goal->args[i], env);
+    if (!simple_scalar(goal_arg)) continue;
+
+    ArgumentIndex *index = &group->arg_indexes[i];
+    ClauseIndexBucket *bucket = find_arg_bucket(index, goal_arg->name);
+    int bucket_len = bucket ? bucket->len : 0;
+    int candidate_len = bucket_len + index->fallback_len;
+
+    if (!indexed || candidate_len < best_len) {
+      best.primary_indexes = bucket ? bucket->clause_indexes : NULL;
+      best.primary_len = bucket_len;
+      best.fallback_indexes = index->fallback_indexes;
+      best.fallback_len = index->fallback_len;
+      best_len = candidate_len;
+      indexed = true;
+      if (best_len == 0) break;
+    }
+  }
+
+  return indexed ? best : all_group_clauses(group);
+}
+
 static PredicateGroup *find_group(Program *program, const char *name, int arity) {
   for (int i = 0; i < program->group_len; i++) {
     PredicateGroup *group = &program->groups[i];
@@ -545,14 +703,12 @@ static void index_clause(Program *program, int clause_index) {
     group->clause_indexes = NULL;
     group->len = 0;
     group->cap = 0;
+    group->arg_indexes = head->arity ? xcalloc((size_t)head->arity, sizeof(ArgumentIndex)) : NULL;
     group->memoized = false;
   }
 
-  if (group->len == group->cap) {
-    group->cap = group->cap ? group->cap * 2 : 256;
-    group->clause_indexes = xrealloc(group->clause_indexes, sizeof(int) * group->cap);
-  }
-  group->clause_indexes[group->len++] = clause_index;
+  add_clause_index(&group->clause_indexes, &group->len, &group->cap, clause_index);
+  for (int i = 0; i < head->arity; i++) index_clause_argument(group, head->args[i], i, clause_index);
 }
 
 
@@ -626,9 +782,9 @@ struct Binding {
   Binding *next;
 };
 
-typedef struct {
+struct Env {
   Binding *head;
-} Env;
+};
 
 static Binding *find_binding(Env *env, const char *name) {
   for (Binding *binding = env->head; binding; binding = binding->next) {
@@ -696,10 +852,6 @@ static bool unify(Term *left, Term *right, Env *env) {
   return false;
 }
 
-
-static bool simple_scalar(Term *term) {
-  return term->type == TERM_ATOM || term->type == TERM_STRING || term->type == TERM_NUMBER;
-}
 
 static bool scalar_terms_match(Term *left, Term *right) {
   return simple_scalar(left) && simple_scalar(right) && strcmp(left->name, right->name) == 0;
@@ -2696,22 +2848,29 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
 
   if (active_variant_goal(solver, goal, env)) return;
 
-  for (int i = 0; i < group->len && solver->solutions_seen < solver->solution_limit; i++) {
-    Clause *clause = &solver->program->clauses[group->clause_indexes[i]];
-    if (clause_head_cannot_match(goal, clause, env)) continue;
+  ClauseCandidates candidates = select_clause_candidates(group, goal, env);
 
-    Clause fresh = fresh_clause(clause);
-    Env next = clone_env(env);
+  for (int pass = 0; pass < 2 && solver->solutions_seen < solver->solution_limit; pass++) {
+    int *clause_indexes = pass == 0 ? candidates.primary_indexes : candidates.fallback_indexes;
+    int clause_count = pass == 0 ? candidates.primary_len : candidates.fallback_len;
 
-    if (unify(goal, fresh.head, &next)) {
-      if (fresh.body_len == 0) {
-        solve_goals(solver, rest, rest_len, &next, depth + 1, callback, user_data);
-      } else {
-        RuleContinuation cont = { solver, goal, env, rest, rest_len, depth + 1, callback, user_data };
-        push_active_goal(solver, goal, env);
-        solve_goals(solver, fresh.body, fresh.body_len, &next, depth + 1,
-                    continue_after_rule_body, &cont);
-        pop_active_goal(solver);
+    for (int i = 0; i < clause_count && solver->solutions_seen < solver->solution_limit; i++) {
+      Clause *clause = &solver->program->clauses[clause_indexes[i]];
+      if (clause_head_cannot_match(goal, clause, env)) continue;
+
+      Clause fresh = fresh_clause(clause);
+      Env next = clone_env(env);
+
+      if (unify(goal, fresh.head, &next)) {
+        if (fresh.body_len == 0) {
+          solve_goals(solver, rest, rest_len, &next, depth + 1, callback, user_data);
+        } else {
+          RuleContinuation cont = { solver, goal, env, rest, rest_len, depth + 1, callback, user_data };
+          push_active_goal(solver, goal, env);
+          solve_goals(solver, fresh.body, fresh.body_len, &next, depth + 1,
+                      continue_after_rule_body, &cont);
+          pop_active_goal(solver);
+        }
       }
     }
   }
