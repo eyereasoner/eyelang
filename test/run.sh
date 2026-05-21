@@ -38,6 +38,13 @@ section API
 run 'version flag' bash -c './bin/eyelog --version | grep -q "^eyelog $(cat VERSION)$"'
 run 'query ancestor' bash -c './bin/eyelog --query "triple(pat, ancestor, X)" examples/ancestor.pl | grep -q "triple(pat, ancestor, emma)."'
 run 'parenthesized conjunction query' bash -c './bin/eyelog --query "(triple(pat, ancestor, X), triple(X, ancestor, emma))" examples/ancestor.pl | grep -q "(triple(pat, ancestor, jan), triple(jan, ancestor, emma))."'
+run 'quoted atom output round-trips' bash -c "./bin/eyelog test/eyelog-syntax.pl | grep -Fq \"triple('quoted atom', p, 'atom with space').\""
+run 'doubled quote in atom query' bash -c "./bin/eyelog --query \"triple('needs''quote', p, X)\" test/eyelog-syntax.pl | grep -Fq \"triple('needs''quote', p, ok).\""
+run 'empty quoted atom output' bash -c "./bin/eyelog test/eyelog-syntax.pl | grep -Fq \"triple('empty atom', p, '').\""
+run 'list tail syntax in rule head' bash -c "./bin/eyelog test/eyelog-syntax.pl | grep -Fq \"triple(list_case, tail, [b, c]).\""
+run 'anonymous variables are fresh' bash -c "./bin/eyelog test/eyelog-syntax.pl | grep -Fq \"triple(anonymous_case, matched, true).\""
+run 'scientific and negative decimal syntax' bash -c "./bin/eyelog test/eyelog-syntax.pl | grep -Fq \"triple(scientific, number, 1.25e-3).\" && ./bin/eyelog test/eyelog-syntax.pl | grep -Fq \"triple(negative_decimal, number, -2.5).\""
+run 'Eyelog syntax covers atoms strings numbers compounds lists' bash -c "./bin/eyelog test/eyelog-syntax.pl | grep -Fq 'triple(graphic_atom, value, #).' && ./bin/eyelog test/eyelog-syntax.pl | grep -Fq 'triple(string_case, escaped, \"line\\nquote: \\\"ok\\\"\").' && ./bin/eyelog test/eyelog-syntax.pl | grep -Fq 'triple(compound_case, term, pair(3, nested(atom, [x, y]))).' && ./bin/eyelog test/eyelog-syntax.pl | grep -Fq 'triple(improper_list_case, value, [a, b | tail]).'"
 run 'fib(10000) has 2090 digits' bash -c './bin/eyelog examples/fibonacci.pl | sed -n "s/^triple(10000, fibonacci, \([0-9]*\)).$/\1/p" | awk "length(\$0)==2090 {ok=1} END{exit !ok}"'
 run 'path discovery derives three routes' bash -c '[ "$(./bin/eyelog examples/path-discovery.pl | wc -l)" -eq 3 ]'
 run 'cyclic path closure terminates' bash -c '[ "$(./bin/eyelog examples/cyclic-path.pl | wc -l)" -eq 16 ]'

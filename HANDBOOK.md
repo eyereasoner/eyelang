@@ -119,21 +119,36 @@ The browser build writes generated assets under `dist/browser/`. These files are
 Supported term forms are:
 
 ```prolog
-X                  % variable, starts with uppercase or _
-pat               % atom
-parent             % atom
-"hello world"      % string
-123                % integer
-0.25               % decimal literal
-7.5e-7             % scientific decimal literal
-pair(3, 7)         % compound term
-skolem_id(x)      % vocabulary-style compound term
-[]                 % empty list
-[a, b, c]          % proper list
-[Head|Tail]        % head/tail list pattern
+X                         % variable, starts with uppercase or _
+_                         % anonymous variable; each occurrence is fresh
+pat                       % lower-case atom
+atom_123                  % atom with underscores and digits
+#                         % graphic atom
+'atom with space'         % quoted atom
+'can''t'                  % quoted atom with an embedded quote
+''                        % empty atom
+"hello world"             % string
+"line\ntext"               % string with a backslash escape
+123                       % integer
+-42                       % negative integer
+0.25                      % decimal literal
+-2.5                      % negative decimal literal
+7.5e-7                    % scientific decimal literal
+pair(3, 7)                % compound term
+nil()                     % zero-arity compound term
+skolem_id(x)              % vocabulary-style compound term
+[]                        % empty list
+[a, b, c]                 % proper list
+[Head|Tail]               % head/tail list pattern
+[a, b | Tail]             % explicit tail / improper-list notation
+(triple(a, b, c), triple(d, e, f))  % comma formula term
 ```
 
 The anonymous variable `_` is allowed. Each occurrence is treated as a fresh variable. Decimal and scientific numeric literals are parsed as numeric terms. Integer-only arithmetic uses arbitrary-size decimal-integer helpers for `add/3`, `sub/3`, `mul/3`, `div/3`, `pow/3`, and `max/3`. When at least one arithmetic operand contains a decimal point or exponent, the arithmetic built-ins use the host C `double` type and print a decimal result.
+
+Single-quoted atoms are accepted for ISO-style Prolog syntax, including doubled embedded quotes such as `'can''t'`. Output quotes atoms when needed so atoms containing spaces, embedded quotes, or the empty atom print as parseable Prolog terms. Existing backslash escapes such as `\n` and `\t` are also accepted inside quoted terms. Strings are double-quoted terms and print with double quotes.
+
+Eyelog's syntax is a compact Prolog-like subset, not full ISO Prolog. Supported program forms are facts and definite Horn clauses using `:-`, comma-separated bodies, variables, atoms, strings, numbers, compound terms, lists, parenthesized comma terms, and `%` line comments. Eyelog deliberately does not implement the complete ISO reader or evaluator: there is no operator-declaration system, no general infix arithmetic such as `X is 1 + 2`, no cut, no disjunction, no DCGs, no modules, no dynamic database predicates, and no portable ISO standard-library claim. Use explicit built-ins such as `add/3`, `sub/3`, `mul/3`, `div/3`, `eq/2`, `neq/2`, `lt/2`, `gt/2`, `not/1`, and `once/1` instead.
 
 Lists are first-class terms. They can appear in facts, rule heads, rule bodies, queries, and `triple/3` output. Proper lists print with bracket syntax:
 
@@ -846,6 +861,8 @@ it on exit. It does not use fixed names such as `/tmp/eyelog-actual`, so several
 `make test` runs can execute at the same time without clobbering each other's
 intermediate files. Query parsing in `src/eyelog.c` also uses `mkstemp`, honoring
 `TMPDIR` when it is set.
+
+The API section of `test/run.sh` includes focused syntax regressions in `test/eyelog-syntax.pl`. These tests cover the term and clause syntax Eyelog actually supports: atoms, graphic atoms, quoted atoms, doubled quotes, empty atoms, strings and escapes, comments, integers, decimals, scientific numbers, negative numbers, compound terms, zero-arity compounds, proper and improper lists, list head/tail patterns, anonymous variables, parenthesized conjunction/comma formula terms, and basic built-in integration. They are Eyelog syntax/API checks, not a claim of complete ISO Prolog implementation.
 
 ## 10. Development and release
 

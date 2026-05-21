@@ -240,14 +240,26 @@ static Token next_token(Parser *parser) {
     size_t length = 0;
     char *buffer = xmalloc(capacity);
 
-    while (peek(parser) && peek(parser) != quote) {
+    for (;;) {
+      if (!peek(parser)) die("unterminated quoted term");
+
       char value = take(parser);
-      if (value == '\\' && peek(parser)) {
+      if (value == quote) {
+        if (peek(parser) == quote) {
+          /* ISO Prolog writes an embedded quote by doubling it, e.g.
+             'don''t'. Keep accepting the existing backslash escapes too. */
+          take(parser);
+          value = quote;
+        } else {
+          break;
+        }
+      } else if (value == '\\' && peek(parser)) {
         char escaped = take(parser);
         if (escaped == 'n') value = '\n';
         else if (escaped == 't') value = '\t';
         else value = escaped;
       }
+
       if (length + 2 >= capacity) {
         capacity *= 2;
         buffer = xrealloc(buffer, capacity);
@@ -255,8 +267,6 @@ static Token next_token(Parser *parser) {
       buffer[length++] = value;
     }
 
-    if (peek(parser) != quote) die("unterminated quoted term");
-    take(parser);
     buffer[length] = '\0';
 
     token.type = quote == '"' ? TOK_STRING : TOK_ATOM;
@@ -993,6 +1003,51 @@ static void sb_append_char(StringBuilder *sb, char c) {
 
 static void write_term(StringBuilder *sb, Term *term, Env *env, bool quote_strings);
 
+static void write_quoted_atom(StringBuilder *sb, const char *name) {
+  sb_append_char(sb, '\'');
+  for (const char *p = name; *p; p++) {
+    if (*p == '\'') {
+      /* ISO Prolog represents a quote inside a quoted atom by doubling it. */
+      sb_append(sb, "''");
+    } else if (*p == '\\') {
+      sb_append(sb, "\\\\");
+    } else if (*p == '\n') {
+      sb_append(sb, "\\n");
+    } else if (*p == '\t') {
+      sb_append(sb, "\\t");
+    } else {
+      sb_append_char(sb, *p);
+    }
+  }
+  sb_append_char(sb, '\'');
+}
+
+static bool graphic_atom_char(char c) {
+  return strchr("#$&*+-/<=>?@^~\\", c) != NULL;
+}
+
+static bool atom_needs_quotes(const char *name) {
+  if (!name || !*name) return true;
+  if (strcmp(name, "[]") == 0) return false;
+
+  if (islower((unsigned char)name[0])) {
+    for (const char *p = name + 1; *p; p++) {
+      if (!isalnum((unsigned char)*p) && *p != '_') return true;
+    }
+    return false;
+  }
+
+  for (const char *p = name; *p; p++) {
+    if (!graphic_atom_char(*p)) return true;
+  }
+  return false;
+}
+
+static void write_atom_name(StringBuilder *sb, const char *name) {
+  if (atom_needs_quotes(name)) write_quoted_atom(sb, name);
+  else sb_append(sb, name);
+}
+
 static void write_list(StringBuilder *sb, Term *term, Env *env) {
   sb_append_char(sb, '[');
   bool first = true;
@@ -1053,7 +1108,12 @@ static void write_term(StringBuilder *sb, Term *term, Env *env, bool quote_strin
     return;
   }
 
-  if (term->type == TERM_ATOM || term->type == TERM_NUMBER) {
+  if (term->type == TERM_ATOM) {
+    write_atom_name(sb, term->name);
+    return;
+  }
+
+  if (term->type == TERM_NUMBER) {
     sb_append(sb, term->name);
     return;
   }
@@ -1079,7 +1139,7 @@ static void write_term(StringBuilder *sb, Term *term, Env *env, bool quote_strin
     return;
   }
 
-  sb_append(sb, term->name);
+  write_atom_name(sb, term->name);
   sb_append_char(sb, '(');
   for (int i = 0; i < term->arity; i++) {
     if (i) sb_append(sb, ", ");
