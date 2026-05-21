@@ -191,7 +191,7 @@
   <header>
     <h1>Eyelog Playground</h1>
     <p class="lead">Edit an Eyelog program, run it entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
-    <p class="meta"><span id="versionBadge" class="version-badge">version 0.5.14</span></p>
+    <p class="meta"><span id="versionBadge" class="version-badge">version 0.5.15</span></p>
   </header>
 
   <main class="stack">
@@ -489,7 +489,9 @@
     }
 
     function setRunning(isRunning) {
-      runButton.disabled = isRunning || !workerReady;
+      // Keep Run clickable while the engine is preloading. A click will wait for
+      // preload to finish, which avoids the UI looking dead on slow first loads.
+      runButton.disabled = isRunning;
       stopButton.disabled = !isRunning;
     }
 
