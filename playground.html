@@ -57,6 +57,18 @@
     a { color: var(--accent); }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
     .lead { max-width: 760px; color: var(--muted); margin: 10px 0 0; }
+    .meta { margin: 10px 0 0; color: var(--muted); font-size: 0.92rem; }
+    .version-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--panel) 82%, transparent);
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
     .stack {
       display: flex;
       flex-direction: column;
@@ -179,6 +191,7 @@
   <header>
     <h1>Eyelog Playground</h1>
     <p class="lead">Edit an Eyelog program, run it entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
+    <p class="meta"><span id="versionBadge" class="version-badge">version 0.5.14</span></p>
   </header>
 
   <main class="stack">
@@ -321,12 +334,20 @@
     const stdoutTab = document.getElementById('stdoutTab');
     const stderrTab = document.getElementById('stderrTab');
     const fileProtocolNotice = document.getElementById('fileProtocolNotice');
+    const versionBadge = document.getElementById('versionBadge');
 
     const moduleUrl = new URL('./dist/browser/eyelog.mjs', location.href).href;
     const workerUrl = new URL('./playground-worker.mjs', location.href).href;
 
     let backgroundPrograms = [];
     let worker = null;
+    let workerReady = false;
+    let workerLoadError = null;
+    let preloadPromise = null;
+    let preloadResolve = null;
+    let preloadReject = null;
+    let currentRunId = null;
+    let runStarted = 0;
     let saveTimer = 0;
 
     for (const name of EXAMPLES) {
@@ -432,6 +453,19 @@
       programInput.value = DEFAULT_PROGRAM;
     }
 
+
+    async function loadVersion() {
+      if (!versionBadge || location.protocol === 'file:') return;
+      try {
+        const response = await fetch(new URL('./VERSION', location.href), { cache: 'no-store' });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        const version = (await response.text()).trim();
+        if (version) versionBadge.textContent = `version ${version}`;
+      } catch (error) {
+        console.warn('Could not load Eyelog version:', error);
+      }
+    }
+
     async function loadText(url) {
       if (location.protocol === 'file:') {
         throw new Error('Local file mode cannot fetch examples or WebAssembly assets. Serve the directory over HTTP first.');
@@ -455,8 +489,12 @@
     }
 
     function setRunning(isRunning) {
-      runButton.disabled = isRunning;
+      runButton.disabled = isRunning || !workerReady;
       stopButton.disabled = !isRunning;
+    }
+
+    function newRequestId() {
+      return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
     }
 
     function localFileMessage() {
@@ -493,7 +531,106 @@
       ].join('\n');
     }
 
-    function runEyelog() {
+    function formatWorkerError(error) {
+      const message = error && error.message ? String(error.message) : String(error);
+      if (/Maximum call stack size exceeded|call stack|stack overflow/i.test(message)) {
+        return [
+          message,
+          '',
+          'Eyelog exhausted the browser WebAssembly stack.',
+          'Rebuild the browser assets with the current Makefile:',
+          '',
+          '  make clean browser',
+          '',
+          'Then hard-refresh this page.',
+        ].join('\n');
+      }
+      return buildMissingMessage(error);
+    }
+
+    function handleWorkerMessage(event) {
+      const data = event.data || {};
+
+      if (data.type === 'ready') {
+        workerReady = true;
+        workerLoadError = null;
+        preloadResolve?.();
+        setRunning(false);
+        if (!currentRunId) setStatus('Engine ready.', 'ok');
+        return;
+      }
+
+      if (data.type === 'init-error') {
+        workerReady = false;
+        workerLoadError = data.stderr || 'Browser build could not be loaded.';
+        preloadReject?.(new Error(workerLoadError));
+        stdoutOutput.textContent = '(no stdout)';
+        stderrOutput.textContent = buildMissingMessage(new Error(workerLoadError));
+        showTab('stderr');
+        setStatus('Browser build could not be loaded.', 'error');
+        setRunning(false);
+        return;
+      }
+
+      if (data.type !== 'result' || data.id !== currentRunId) return;
+
+      const elapsed = Math.max(1, Math.round(performance.now() - runStarted));
+      stdoutOutput.textContent = data.stdout || '(no stdout)';
+      stderrOutput.textContent = data.stderr || '(no stderr)';
+      if (data.exitCode === 0) {
+        setStatus(`Finished in ${elapsed} ms.`, 'ok');
+      } else {
+        setStatus(`Failed while ${data.phase}.`, 'error');
+        showTab('stderr');
+      }
+      currentRunId = null;
+      setRunning(false);
+    }
+
+    function handleWorkerError(error) {
+      stdoutOutput.textContent = '(no stdout)';
+      stderrOutput.textContent = formatWorkerError(error);
+      showTab('stderr');
+      setStatus('Browser build could not be loaded.', 'error');
+      currentRunId = null;
+      workerReady = false;
+      workerLoadError = stderrOutput.textContent;
+      setRunning(false);
+      preloadReject?.(new Error(workerLoadError));
+      worker?.terminate();
+      worker = null;
+    }
+
+    function startPlaygroundWorker(statusText = 'Loading engine…') {
+      if (location.protocol === 'file:') return Promise.reject(new Error(localFileMessage()));
+
+      if (worker) worker.terminate();
+      worker = null;
+      workerReady = false;
+      workerLoadError = null;
+      currentRunId = null;
+      setRunning(false);
+      setStatus(statusText);
+
+      preloadPromise = new Promise((resolve, reject) => {
+        preloadResolve = resolve;
+        preloadReject = reject;
+      });
+
+      try {
+        worker = new Worker(workerUrl, { type: 'module' });
+      } catch (error) {
+        handleWorkerError(error);
+        return preloadPromise;
+      }
+
+      worker.onmessage = handleWorkerMessage;
+      worker.onerror = handleWorkerError;
+      worker.postMessage({ type: 'init', id: newRequestId(), moduleUrl });
+      return preloadPromise;
+    }
+
+    async function runEyelog() {
       if (location.protocol === 'file:') {
         stdoutOutput.textContent = '(no stdout)';
         stderrOutput.textContent = localFileMessage();
@@ -502,66 +639,39 @@
         return;
       }
 
-      if (worker) worker.terminate();
-      try {
-        worker = new Worker(workerUrl, { type: 'module' });
-      } catch (error) {
-        stdoutOutput.textContent = '(no stdout)';
-        stderrOutput.textContent = buildMissingMessage(error);
-        showTab('stderr');
-        setStatus('Browser worker could not be started.', 'error');
-        return;
+      if (currentRunId) return;
+      if (!worker || !preloadPromise) startPlaygroundWorker();
+
+      if (!workerReady) {
+        if (workerLoadError) {
+          stdoutOutput.textContent = '(no stdout)';
+          stderrOutput.textContent = buildMissingMessage(new Error(workerLoadError));
+          showTab('stderr');
+          setStatus('Browser build could not be loaded.', 'error');
+          return;
+        }
+        try {
+          setStatus('Finishing engine load…');
+          await preloadPromise;
+        } catch (_) {
+          return;
+        }
       }
 
-      const started = performance.now();
+      runStarted = performance.now();
       stdoutOutput.textContent = 'Running…';
       stderrOutput.textContent = '(no errors)';
       showTab('stdout');
       setStatus('Running Eyelog…');
+      currentRunId = newRequestId();
       setRunning(true);
-      const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
 
-      worker.onmessage = event => {
-        if (event.data.id !== id) return;
-        const elapsed = Math.max(1, Math.round(performance.now() - started));
-        stdoutOutput.textContent = event.data.stdout || '(no stdout)';
-        stderrOutput.textContent = event.data.stderr || '(no stderr)';
-        if (event.data.exitCode === 0) {
-          setStatus(`Finished in ${elapsed} ms.`, 'ok');
-        } else {
-          setStatus(`Failed while ${event.data.phase}.`, 'error');
-          showTab('stderr');
-        }
-        setRunning(false);
-        worker.terminate();
-        worker = null;
-      };
-
-      worker.onerror = error => {
-        stdoutOutput.textContent = '(no stdout)';
-        const message = error && error.message ? String(error.message) : String(error);
-        if (/Maximum call stack size exceeded|call stack|stack overflow/i.test(message)) {
-          stderrOutput.textContent = [
-            message,
-            '',
-            'Eyelog exhausted the browser WebAssembly stack.',
-            'Rebuild the browser assets with the current Makefile:',
-            '',
-            '  make clean browser',
-            '',
-            'Then hard-refresh this page.',
-          ].join('\n');
-        } else {
-          stderrOutput.textContent = buildMissingMessage(error);
-        }
-        showTab('stderr');
-        setStatus('Browser build could not be loaded.', 'error');
-        setRunning(false);
-        worker?.terminate();
-        worker = null;
-      };
-
-      worker.postMessage({ id, program: combinedProgram(), query: queryInput.value, moduleUrl });
+      worker.postMessage({
+        type: 'run',
+        id: currentRunId,
+        program: combinedProgram(),
+        query: queryInput.value,
+      });
     }
 
     async function copyText(text) {
@@ -624,8 +734,11 @@
         worker.terminate();
         worker = null;
       }
+      currentRunId = null;
+      workerReady = false;
       setRunning(false);
-      setStatus('Stopped.', 'error');
+      setStatus('Stopped. Reloading engine…', 'error');
+      startPlaygroundWorker('Reloading engine…').catch(() => {});
     });
     copyLinkButton.addEventListener('click', () => copyShareLink().catch(error => setStatus(`Could not copy link: ${error.message}`, 'error')));
     clearSavedButton.addEventListener('click', () => {
@@ -638,10 +751,13 @@
     programInput.addEventListener('input', saveState);
     queryInput.addEventListener('input', saveState);
 
+    loadVersion();
     restoreState();
     if (location.protocol === 'file:') {
       fileProtocolNotice.classList.remove('hidden');
       setStatus('Serve over HTTP before running.', 'error');
+    } else {
+      startPlaygroundWorker().catch(() => {});
     }
   </script>
 </body>

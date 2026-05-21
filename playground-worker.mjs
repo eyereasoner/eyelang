@@ -1,4 +1,9 @@
 let active = false;
+let moduleUrl = null;
+let modulePromise = null;
+let mod = null;
+let stdout = [];
+let stderr = [];
 
 function stringifyError(error) {
   if (!error) return 'Unknown error';
@@ -22,30 +27,70 @@ function stringifyError(error) {
   return stack;
 }
 
-self.onmessage = async event => {
-  const { id, program, query, moduleUrl } = event.data;
-  if (active) return;
-  active = true;
+async function loadModule() {
+  if (mod) return mod;
+  if (!moduleUrl) throw new Error('Browser module URL was not provided.');
 
-  const stdout = [];
-  const stderr = [];
+  if (!modulePromise) {
+    modulePromise = (async () => {
+      const { default: createEyelogModule } = await import(moduleUrl);
+      return createEyelogModule({
+        noInitialRun: true,
+        locateFile: path => new URL(path, moduleUrl).href,
+        print: text => stdout.push(String(text)),
+        printErr: text => stderr.push(String(text)),
+      });
+    })();
+  }
+
+  mod = await modulePromise;
+  try { mod.FS.mkdir('/work'); } catch (_) {}
+  return mod;
+}
+
+async function initialize(requestId, url) {
+  moduleUrl = url;
+  try {
+    await loadModule();
+    self.postMessage({ type: 'ready', id: requestId });
+  } catch (error) {
+    modulePromise = null;
+    mod = null;
+    self.postMessage({
+      type: 'init-error',
+      id: requestId,
+      phase: 'loading browser build',
+      stderr: stringifyError(error),
+    });
+  }
+}
+
+async function runEyelog(request) {
+  const { id, program, query } = request;
+  if (active) {
+    self.postMessage({
+      type: 'result',
+      id,
+      exitCode: 1,
+      phase: 'starting Eyelog',
+      stdout: '',
+      stderr: 'Eyelog is already running.',
+    });
+    return;
+  }
+
+  active = true;
+  stdout = [];
+  stderr = [];
   let exitCode = 0;
-  let phase = 'loading browser build';
+  let phase = 'initializing WebAssembly';
 
   try {
-    const { default: createEyelogModule } = await import(moduleUrl);
-
-    phase = 'initializing WebAssembly';
-    const mod = await createEyelogModule({
-      noInitialRun: true,
-      locateFile: path => new URL(path, moduleUrl).href,
-      print: text => stdout.push(String(text)),
-      printErr: text => stderr.push(String(text)),
-    });
+    const engine = await loadModule();
 
     phase = 'preparing input';
-    try { mod.FS.mkdir('/work'); } catch (_) {}
-    mod.FS.writeFile('/work/input.pl', program);
+    try { engine.FS.unlink('/work/input.pl'); } catch (_) {}
+    engine.FS.writeFile('/work/input.pl', program);
 
     phase = 'running Eyelog';
     const args = [];
@@ -53,7 +98,7 @@ self.onmessage = async event => {
     args.push('/work/input.pl');
 
     try {
-      mod.callMain(args);
+      engine.callMain(args);
     } catch (error) {
       if (typeof error === 'number') exitCode = error;
       else if (error && typeof error.status === 'number') exitCode = error.status;
@@ -64,6 +109,7 @@ self.onmessage = async event => {
     stderr.push(stringifyError(error));
   } finally {
     self.postMessage({
+      type: 'result',
       id,
       exitCode,
       phase,
@@ -71,5 +117,14 @@ self.onmessage = async event => {
       stderr: stderr.join('\n'),
     });
     active = false;
+  }
+}
+
+self.onmessage = event => {
+  const message = event.data || {};
+  if (message.type === 'init') {
+    initialize(message.id, message.moduleUrl);
+  } else if (message.type === 'run') {
+    runEyelog(message);
   }
 };
