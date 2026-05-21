@@ -131,8 +131,8 @@ run 'control system computes actuator2 signal' bash -c './bin/eyelog examples/co
 run 'matrix determinant matches Trealla reference' bash -c './bin/eyelog examples/matrix.pl | grep -q "determinant(\[\[2, -1, 0\], \[-1, 2, -1\], \[0, -1, 2\]\], 4.0)"'
 run 'matrix multiplication matches Trealla reference' bash -c './bin/eyelog examples/matrix.pl | grep -q "matrix_multiply(\[\[\[1, 2\], \[3, 4\], \[5, 6\]\], \[\[1, 1, 1\], \[1, 1, 1\]\]\], \[\[3, 3, 3\], \[7, 7, 7\], \[11, 11, 11\]\])"'
 run 'matrix Cholesky matches Trealla reference' bash -c './bin/eyelog examples/matrix.pl | grep -q "cholesky_decomposition(\[\[25, 15, -5\], \[15, 18, 0\], \[-5, 0, 11\]\], \[\[5.0, 0, 0\], \[3.0, 3.0, 0\], \[-1.0, 1.0, 3.0\]\])"'
-run 'lldm computes discrepancy alarm' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, type, lld_alarm)."'
-run 'lldm computes final discrepancy' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, dCm, -1.9082339805374957)."'
+run 'lldm outputs discrepancy alarm' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, type, lld_alarm)."'
+run 'lldm outputs concise discrepancy reason' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, lld_discrepancy_cm, -1.9082339805374957)."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
