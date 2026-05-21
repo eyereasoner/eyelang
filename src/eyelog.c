@@ -825,41 +825,80 @@ static Term *deref(Term *term, Env *env) {
   return term;
 }
 
+typedef struct {
+  Term *left;
+  Term *right;
+} UnifyPair;
+
+static void push_unify_pair(UnifyPair **stack, int *len, int *cap, Term *left, Term *right) {
+  if (*len == *cap) {
+    *cap = *cap ? *cap * 2 : 32;
+    *stack = xrealloc(*stack, sizeof(UnifyPair) * *cap);
+  }
+  (*stack)[*len].left = left;
+  (*stack)[*len].right = right;
+  (*len)++;
+}
+
 static bool unify(Term *left, Term *right, Env *env) {
-  left = deref(left, env);
-  right = deref(right, env);
+  UnifyPair *stack = NULL;
+  int len = 0;
+  int cap = 0;
 
-  if (left->type == TERM_VAR && right->type == TERM_VAR && strcmp(left->name, right->name) == 0) {
-    return true;
-  }
-  if (left->type == TERM_VAR) {
-    bind_var(env, left->name, right);
-    return true;
-  }
-  if (right->type == TERM_VAR) {
-    bind_var(env, right->name, left);
-    return true;
-  }
+  push_unify_pair(&stack, &len, &cap, left, right);
 
-  if (left->type != right->type) {
-    bool left_scalar = left->type == TERM_ATOM || left->type == TERM_STRING || left->type == TERM_NUMBER;
-    bool right_scalar = right->type == TERM_ATOM || right->type == TERM_STRING || right->type == TERM_NUMBER;
-    return left_scalar && right_scalar && strcmp(left->name, right->name) == 0;
-  }
+  while (len > 0) {
+    UnifyPair pair = stack[--len];
+    left = deref(pair.left, env);
+    right = deref(pair.right, env);
 
-  if (left->type == TERM_ATOM || left->type == TERM_STRING || left->type == TERM_NUMBER) {
-    return strcmp(left->name, right->name) == 0;
-  }
-
-  if (left->type == TERM_COMPOUND) {
-    if (strcmp(left->name, right->name) != 0 || left->arity != right->arity) return false;
-    for (int i = 0; i < left->arity; i++) {
-      if (!unify(left->args[i], right->args[i], env)) return false;
+    if (left->type == TERM_VAR && right->type == TERM_VAR && strcmp(left->name, right->name) == 0) {
+      continue;
     }
-    return true;
+    if (left->type == TERM_VAR) {
+      bind_var(env, left->name, right);
+      continue;
+    }
+    if (right->type == TERM_VAR) {
+      bind_var(env, right->name, left);
+      continue;
+    }
+
+    if (left->type != right->type) {
+      bool left_scalar = left->type == TERM_ATOM || left->type == TERM_STRING || left->type == TERM_NUMBER;
+      bool right_scalar = right->type == TERM_ATOM || right->type == TERM_STRING || right->type == TERM_NUMBER;
+      if (!(left_scalar && right_scalar && strcmp(left->name, right->name) == 0)) {
+        free(stack);
+        return false;
+      }
+      continue;
+    }
+
+    if (left->type == TERM_ATOM || left->type == TERM_STRING || left->type == TERM_NUMBER) {
+      if (strcmp(left->name, right->name) != 0) {
+        free(stack);
+        return false;
+      }
+      continue;
+    }
+
+    if (left->type == TERM_COMPOUND) {
+      if (strcmp(left->name, right->name) != 0 || left->arity != right->arity) {
+        free(stack);
+        return false;
+      }
+      for (int i = left->arity - 1; i >= 0; i--) {
+        push_unify_pair(&stack, &len, &cap, left->args[i], right->args[i]);
+      }
+      continue;
+    }
+
+    free(stack);
+    return false;
   }
 
-  return false;
+  free(stack);
+  return true;
 }
 
 
@@ -2295,6 +2334,66 @@ static Term *list_from_items(Term **items, int start, int end, Term *tail) {
   return result;
 }
 
+static bool builtin_nth0(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[1], env, &items, &len)) return false;
+
+  bool index_ok = false;
+  long long index = term_i64(goal->args[0], env, &index_ok);
+
+  if (index_ok) {
+    if (index >= 0 && index < len) {
+      Env next = clone_env(env);
+      if (unify(goal->args[2], items[index], &next)) call_once(&next, callback, user_data);
+    }
+    free(items);
+    return true;
+  }
+
+  if (deref(goal->args[0], env)->type != TERM_VAR) {
+    free(items);
+    return false;
+  }
+
+  for (int i = 0; i < len; i++) {
+    Env next = clone_env(env);
+    if (unify(goal->args[0], number_term_from_i64(i), &next) &&
+        unify(goal->args[2], items[i], &next)) {
+      call_once(&next, callback, user_data);
+    }
+  }
+
+  free(items);
+  return true;
+}
+
+static bool builtin_set_nth0(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  bool index_ok = false;
+  long long index = term_i64(goal->args[0], env, &index_ok);
+  if (!index_ok || index < 0) return false;
+
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[1], env, &items, &len)) return false;
+  if (index >= len) {
+    free(items);
+    return true;
+  }
+
+  Term **updated = xmalloc(sizeof(Term *) * len);
+  for (int i = 0; i < len; i++) updated[i] = items[i];
+  updated[index] = goal->args[3];
+
+  Term *result = list_from_items(updated, 0, len, empty_list_term());
+  Env next = clone_env(env);
+  if (unify(goal->args[2], result, &next)) call_once(&next, callback, user_data);
+
+  free(updated);
+  free(items);
+  return true;
+}
+
 static bool builtin_append(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
   Term **items = NULL;
   int len = 0;
@@ -2754,6 +2853,14 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_append(goal, env, callback, user_data);
   }
 
+  if (strcmp(name, "nth0") == 0 && arity == 3) {
+    return builtin_nth0(goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "set_nth0") == 0 && arity == 4) {
+    return builtin_set_nth0(goal, env, callback, user_data);
+  }
+
   if (strcmp(name, "rest") == 0 && arity == 2) {
     return builtin_rest(goal, env, callback, user_data);
   }
@@ -2855,6 +2962,21 @@ static DeterministicBuiltinResult try_deterministic_builtin(Solver *solver, Term
   } else if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0 ||
               strcmp(name, "matches") == 0 || strcmp(name, "not_matches") == 0) && arity == 2) {
     handled = builtin_contains(name, goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "append") == 0 && arity == 3) {
+    Term **items = NULL;
+    int len = 0;
+    if (proper_list_items(goal->args[0], env, &items, &len)) {
+      free(items);
+      handled = builtin_append(goal, env, capture_deterministic_solution, &capture);
+    }
+  } else if (strcmp(name, "nth0") == 0 && arity == 3) {
+    bool index_ok = false;
+    term_i64(goal->args[0], env, &index_ok);
+    if (index_ok) handled = builtin_nth0(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "set_nth0") == 0 && arity == 4) {
+    bool index_ok = false;
+    term_i64(goal->args[0], env, &index_ok);
+    if (index_ok) handled = builtin_set_nth0(goal, env, capture_deterministic_solution, &capture);
   } else if (strcmp(name, "rest") == 0 && arity == 2) {
     handled = builtin_rest(goal, env, capture_deterministic_solution, &capture);
   } else if (strcmp(name, "length") == 0 && arity == 2) {

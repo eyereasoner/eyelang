@@ -104,7 +104,7 @@ make serve
 
 and open `http://localhost:8000/playground.html`. Opening the page directly as a `file://` URL usually blocks the module worker or `.wasm` file, so the playground shows a warning in that mode.
 
-The playground is intentionally vertical and mobile-friendly. It shows the current version from `VERSION`, preloads the WebAssembly engine in a module worker as soon as the page opens, then reuses that warm worker for runs. The Run button remains clickable while the engine is still loading and waits for preload to finish before executing. This avoids making the first visible run pay the full `.mjs`/`.wasm` load and initialization cost. It supports loading examples, loading `.pl` files from URLs, adding background programs before the editor contents, passing an optional `--query`, viewing stdout and stderr separately, autosaving in local storage, stopping a run by terminating the worker, and creating compact share links. On insecure HTTP origins where the modern Clipboard API is unavailable, the share-link button falls back to an older textarea copy path and then to a manual copy prompt.
+The playground is intentionally vertical and mobile-friendly. It shows the current version from `VERSION`, preloads the WebAssembly engine in a module worker as soon as the page opens, then reuses that warm worker for runs. The Run button remains clickable while the engine is still loading and waits for preload to finish before executing. This avoids making the first visible run pay the full `.mjs`/`.wasm` load and initialization cost. It supports loading examples, loading `.pl` files from URLs, adding background programs before the editor contents, passing an optional `--query`, viewing stdout and stderr separately, autosaving in local storage, stopping a run by terminating the worker, and creating share links. If the editor was loaded from a URL and has not been edited, the share link uses the readable `?url=...` form, for example `playground?url=https://raw.githubusercontent.com/eyereasoner/eyelog/refs/heads/main/examples/matrix.pl`; edited inline programs still use compact hash links. On insecure HTTP origins where the modern Clipboard API is unavailable, the share-link button falls back to an older textarea copy path and then to a manual copy prompt.
 
 After changing the C source, the Makefile, or browser build settings, rebuild stale browser assets with:
 
@@ -640,6 +640,8 @@ between(Low, High, N)
 | Built-in | Meaning |
 | --- | --- |
 | `append(A, B, C)` | concatenate lists |
+| `nth0(N, List, Value)` | zero-based list lookup or finite enumeration |
+| `set_nth0(N, List, Updated, Value)` | replace a zero-based list item |
 | `rest(List, Tail)` | tail of a non-empty list |
 | `member(Item, List)` | item occurs in list |
 | `not_member(Item, List)` | item does not occur in a known list |
@@ -650,13 +652,17 @@ between(Low, High, N)
 
 `append/3` concatenates lists. It supports the common finite modes where the
 first list is known, or where the combined list is known and the predicate
-enumerates all prefix/suffix splits.
+enumerates all prefix/suffix splits. `nth0/3` and `set_nth0/4` are native
+finite list helpers; they are useful for examples such as matrix algorithms and
+avoid building deep Prolog recursion in browser WebAssembly.
 
 Examples:
 
 ```prolog
 append([a, b], [c], X).      % X = [a, b, c]
 append(A, B, [a, b]).        % enumerates [], [a], [a, b] prefixes
+nth0(2, [a, b, c], X).       % X = c
+set_nth0(1, [a, b, c], X, z). % X = [a, z, c]
 ```
 
 `rest/2` exposes the tail of a non-empty list. `member/2` enumerates items in a

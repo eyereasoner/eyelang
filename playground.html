@@ -191,7 +191,7 @@
   <header>
     <h1>Eyelog Playground</h1>
     <p class="lead">Edit an Eyelog program, run it entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
-    <p class="meta"><span id="versionBadge" class="version-badge">version 0.5.15</span></p>
+    <p class="meta"><span id="versionBadge" class="version-badge">version 0.5.18</span></p>
   </header>
 
   <main class="stack">
@@ -349,6 +349,8 @@
     let currentRunId = null;
     let runStarted = 0;
     let saveTimer = 0;
+    let currentProgramUrl = null;
+    let currentProgramSource = null;
 
     for (const name of EXAMPLES) {
       const option = document.createElement('option');
@@ -406,6 +408,7 @@
           program: programInput.value,
           query: queryInput.value,
           backgroundPrograms,
+          currentProgramUrl,
         }));
       }, 150);
     }
@@ -424,12 +427,28 @@
       return new TextDecoder().decode(bytes);
     }
 
-    function restoreState() {
+    async function restoreState() {
+      const searchParams = new URLSearchParams(location.search);
+      if (searchParams.has('url')) {
+        const sourceUrl = searchParams.get('url');
+        urlInput.value = sourceUrl;
+        queryInput.value = searchParams.get('query') || searchParams.get('q') || '';
+        try {
+          await loadIntoEditor(sourceUrl, false, { save: false });
+          setStatus(`Loaded ${sourceUrl}.`, 'ok');
+          return;
+        } catch (error) {
+          setStatus(`Could not load URL parameter: ${error.message}`, 'error');
+        }
+      }
+
       const params = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : location.hash);
       if (params.has('p')) {
         try {
           programInput.value = decodePayload(params.get('p'));
           queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
+          currentProgramUrl = null;
+          currentProgramSource = null;
           setStatus('Loaded shared program.', 'ok');
           return;
         } catch (error) {
@@ -443,6 +462,9 @@
           programInput.value = payload.program || DEFAULT_PROGRAM;
           queryInput.value = payload.query || '';
           backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
+          currentProgramUrl = payload.currentProgramUrl || null;
+          currentProgramSource = currentProgramUrl ? programInput.value : null;
+          if (currentProgramUrl) urlInput.value = currentProgramUrl;
           updateBackgroundNote();
           setStatus('Restored autosave.', 'ok');
           return;
@@ -451,6 +473,8 @@
         console.warn(error);
       }
       programInput.value = DEFAULT_PROGRAM;
+      currentProgramUrl = null;
+      currentProgramSource = null;
     }
 
 
@@ -475,7 +499,7 @@
       return response.text();
     }
 
-    async function loadIntoEditor(url, asBackground = false) {
+    async function loadIntoEditor(url, asBackground = false, options = {}) {
       setStatus(`Loading ${url}…`);
       const source = await loadText(url);
       if (asBackground) {
@@ -483,9 +507,12 @@
         updateBackgroundNote();
       } else {
         programInput.value = source.trimEnd();
+        currentProgramUrl = url;
+        currentProgramSource = programInput.value;
+        urlInput.value = url;
       }
       setStatus(`Loaded ${url}.`, 'ok');
-      saveState();
+      if (options.save !== false) saveState();
     }
 
     function setRunning(isRunning) {
@@ -704,12 +731,37 @@
       return 'manual';
     }
 
+    function currentProgramStillMatchesUrl() {
+      return currentProgramUrl &&
+        currentProgramSource !== null &&
+        programInput.value === currentProgramSource &&
+        backgroundPrograms.length === 0;
+    }
+
+    function markProgramEdited() {
+      if (currentProgramUrl && programInput.value !== currentProgramSource) {
+        currentProgramUrl = null;
+        currentProgramSource = null;
+      }
+      saveState();
+    }
+
     async function copyShareLink() {
-      const params = new URLSearchParams();
-      params.set('p', encodePayload(programInput.value));
-      if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
       const url = new URL(location.href);
-      url.hash = params.toString();
+      url.hash = '';
+
+      if (currentProgramStillMatchesUrl()) {
+        url.search = '';
+        url.searchParams.set('url', currentProgramUrl);
+        if (queryInput.value.trim()) url.searchParams.set('query', queryInput.value.trim());
+      } else {
+        const params = new URLSearchParams();
+        params.set('p', encodePayload(programInput.value));
+        if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
+        url.search = '';
+        url.hash = params.toString();
+      }
+
       const method = await copyText(url.href);
       setStatus(method === 'manual' ? 'Share link shown for manual copy.' : 'Share link copied.', 'ok');
     }
@@ -719,6 +771,9 @@
       programInput.value = DEFAULT_PROGRAM;
       queryInput.value = '';
       backgroundPrograms = [];
+      currentProgramUrl = null;
+      currentProgramSource = null;
+      urlInput.value = '';
       updateBackgroundNote();
       stdoutOutput.textContent = '(no output yet)';
       stderrOutput.textContent = '(no errors)';
@@ -750,17 +805,21 @@
     });
     stdoutTab.addEventListener('click', () => showTab('stdout'));
     stderrTab.addEventListener('click', () => showTab('stderr'));
-    programInput.addEventListener('input', saveState);
+    programInput.addEventListener('input', markProgramEdited);
     queryInput.addEventListener('input', saveState);
 
-    loadVersion();
-    restoreState();
-    if (location.protocol === 'file:') {
-      fileProtocolNotice.classList.remove('hidden');
-      setStatus('Serve over HTTP before running.', 'error');
-    } else {
-      startPlaygroundWorker().catch(() => {});
+    async function initializePage() {
+      loadVersion();
+      await restoreState();
+      if (location.protocol === 'file:') {
+        fileProtocolNotice.classList.remove('hidden');
+        setStatus('Serve over HTTP before running.', 'error');
+      } else {
+        startPlaygroundWorker().catch(() => {});
+      }
     }
+
+    initializePage();
   </script>
 </body>
 </html>

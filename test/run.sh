@@ -85,6 +85,8 @@ run 'timestamp comparison query' bash -c './bin/eyelog --query "le(\"2025-10-05T
 run 'list reverse query' bash -c './bin/eyelog --query "reverse([a, b, c], X)" examples/list-collection.pl | grep -q "reverse(\[a, b, c\], \[c, b, a\])."'
 run 'list not member query' bash -c './bin/eyelog --query "not_member(d, [a, b, c])" examples/list-collection.pl | grep -q "not_member(d, \[a, b, c\])."'
 run 'list rest query' bash -c './bin/eyelog --query "rest([a, b, c], X)" examples/list-collection.pl | grep -q "rest(\[a, b, c\], \[b, c\])."'
+run 'list nth0 query' bash -c './bin/eyelog --query "nth0(2, [a, b, c], X)" test/eyelog-syntax.pl | grep -q "nth0(2, \[a, b, c\], c)."'
+run 'list set_nth0 query' bash -c './bin/eyelog --query "set_nth0(1, [a, b, c], X, z)" test/eyelog-syntax.pl | grep -q "set_nth0(1, \[a, b, c\], \[a, z, c\], z)."'
 run 'log not equal query' bash -c './bin/eyelog --query "neq(dp_P1, dp_P2)" examples/dining-philosophers.pl | grep -q "neq(dp_P1, dp_P2)."'
 run 'risk path selects B' bash -c './bin/eyelog examples/dijkstra-risk-path.pl | grep -q "triple(dijkstraRiskPath, selects, pathB)."'
 run 'gps recommends direct route' bash -c './bin/eyelog examples/gps.pl | grep -q "triple(decision, recommendedRoute, routeDirect)."'
