@@ -26,6 +26,14 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: latest
+
+      - name: Build browser playground assets
+        run: make browser
+
       - name: Build site with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:

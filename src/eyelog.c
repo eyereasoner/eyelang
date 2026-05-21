@@ -663,6 +663,9 @@ static bool unify(Term *left, Term *right, Env *env) {
   left = deref(left, env);
   right = deref(right, env);
 
+  if (left->type == TERM_VAR && right->type == TERM_VAR && strcmp(left->name, right->name) == 0) {
+    return true;
+  }
   if (left->type == TERM_VAR) {
     bind_var(env, left->name, right);
     return true;
@@ -2582,6 +2585,82 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
   return false;
 }
 
+
+typedef enum {
+  DET_BUILTIN_NOT_HANDLED,
+  DET_BUILTIN_FAILED,
+  DET_BUILTIN_SUCCEEDED
+} DeterministicBuiltinResult;
+
+typedef struct {
+  bool has_solution;
+  Env env;
+} DeterministicBuiltinCapture;
+
+static void capture_deterministic_solution(Env *env, void *user_data) {
+  DeterministicBuiltinCapture *capture = user_data;
+  if (!capture->has_solution) {
+    capture->env = clone_env(env);
+    capture->has_solution = true;
+  }
+}
+
+static DeterministicBuiltinResult try_deterministic_builtin(Solver *solver, Term *goal,
+                                                           Env *env, Env *out) {
+  (void)solver;
+  if (goal->type != TERM_COMPOUND) return DET_BUILTIN_NOT_HANDLED;
+
+  const char *name = goal->name;
+  int arity = goal->arity;
+  bool handled = false;
+  DeterministicBuiltinCapture capture = { 0 };
+
+  if (strcmp(name, "eq") == 0 && arity == 2) {
+    handled = builtin_unify(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "neq") == 0 && arity == 2) {
+    handled = builtin_neq(goal, env, capture_deterministic_solution, &capture);
+  } else if ((strcmp(name, "neg") == 0 || strcmp(name, "abs") == 0 ||
+              strcmp(name, "sin") == 0 || strcmp(name, "cos") == 0 ||
+              strcmp(name, "asin") == 0 || strcmp(name, "acos") == 0 ||
+              strcmp(name, "rounded") == 0 || strcmp(name, "log") == 0) && arity == 2) {
+    handled = builtin_unary_math(name, goal, env, capture_deterministic_solution, &capture);
+  } else if ((strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
+              strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
+              strcmp(name, "mod") == 0 || strcmp(name, "max") == 0 ||
+              strcmp(name, "min") == 0 || strcmp(name, "pow") == 0) && arity == 3) {
+    handled = builtin_arithmetic(name, goal, env, capture_deterministic_solution, &capture);
+  } else if ((strcmp(name, "lt") == 0 || strcmp(name, "gt") == 0 ||
+              strcmp(name, "le") == 0 || strcmp(name, "ge") == 0) && arity == 2) {
+    handled = builtin_compare(name, goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "local_time") == 0 && arity == 1) {
+    handled = builtin_local_time(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "difference") == 0 && arity == 3) {
+    handled = builtin_difference(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "smallest_divisor_from") == 0 && arity == 3) {
+    handled = builtin_smallest_divisor_from(goal, env, capture_deterministic_solution, &capture);
+  } else if ((strcmp(name, "atom_concat") == 0 || strcmp(name, "str_concat") == 0) && arity == 3) {
+    handled = builtin_concat(name, goal, env, capture_deterministic_solution, &capture);
+  } else if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0 ||
+              strcmp(name, "matches") == 0 || strcmp(name, "not_matches") == 0) && arity == 2) {
+    handled = builtin_contains(name, goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "rest") == 0 && arity == 2) {
+    handled = builtin_rest(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "length") == 0 && arity == 2) {
+    handled = builtin_length(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "is_list") == 0 && arity == 1) {
+    handled = builtin_is_list(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "reverse") == 0 && arity == 2) {
+    handled = builtin_reverse(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "not_member") == 0 && arity == 2) {
+    handled = builtin_not_member(goal, env, capture_deterministic_solution, &capture);
+  }
+
+  if (!handled) return DET_BUILTIN_NOT_HANDLED;
+  if (!capture.has_solution) return DET_BUILTIN_FAILED;
+  *out = capture.env;
+  return DET_BUILTIN_SUCCEEDED;
+}
+
 static int append_conjunction_goals(Term *goal, Term **buffer, int count, int cap) {
   if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
     count = append_conjunction_goals(goal->args[0], buffer, count, cap);
@@ -2709,15 +2788,32 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
 
 static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
                         int depth, SolutionCallback callback, void *user_data) {
-  if (solver->solutions_seen >= solver->solution_limit) return;
+  Env current = clone_env(env);
+  env = &current;
 
-  if (goal_count == 0) {
-    solver->solutions_seen++;
-    callback(env, user_data);
+  while (goal_count > 0) {
+    if (solver->solutions_seen >= solver->solution_limit) return;
+    if (depth > solver->max_depth) return;
+
+    Env next = { 0 };
+    DeterministicBuiltinResult det = try_deterministic_builtin(solver, goals[0], env, &next);
+    if (det == DET_BUILTIN_FAILED) return;
+    if (det == DET_BUILTIN_SUCCEEDED) {
+      current = next;
+      env = &current;
+      goals++;
+      goal_count--;
+      depth++;
+      continue;
+    }
+
+    solve_one_goal(solver, goals[0], goals + 1, goal_count - 1, env, depth, callback, user_data);
     return;
   }
 
-  solve_one_goal(solver, goals[0], goals + 1, goal_count - 1, env, depth, callback, user_data);
+  if (solver->solutions_seen >= solver->solution_limit) return;
+  solver->solutions_seen++;
+  callback(env, user_data);
 }
 
 /* ------------------------------------------------------------------------- */

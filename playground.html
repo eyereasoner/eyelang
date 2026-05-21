@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eyelog Playground</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d0d5dd;
+      --accent: #315efb;
+      --accent-strong: #2448c7;
+      --danger: #b42318;
+      --ok: #067647;
+      --warn-bg: #fff7e6;
+      --warn-border: #fdb022;
+      --code-bg: #101828;
+      --code-text: #f8fafc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1020;
+        --panel: #111827;
+        --text: #f8fafc;
+        --muted: #98a2b3;
+        --border: #344054;
+        --accent: #88a2ff;
+        --accent-strong: #aebdff;
+        --danger: #f97066;
+        --ok: #32d583;
+        --warn-bg: #2b2105;
+        --warn-border: #fdb022;
+        --code-bg: #030712;
+        --code-text: #f8fafc;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 18%, transparent), transparent 30rem), var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header, main {
+      width: min(920px, calc(100vw - 24px));
+      margin: 0 auto;
+    }
+    header { padding: 24px 0 16px; }
+    h1 { margin: 0; font-size: clamp(2rem, 11vw, 3.4rem); letter-spacing: -0.055em; }
+    h2 { margin: 0 0 12px; font-size: 1.05rem; }
+    p { line-height: 1.55; }
+    a { color: var(--accent); }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .lead { max-width: 760px; color: var(--muted); margin: 10px 0 0; }
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 32px;
+    }
+    .card {
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 18px 45px color-mix(in srgb, black 10%, transparent);
+      overflow: hidden;
+    }
+    .card-header { padding: 16px 16px 0; }
+    .card-body { padding: 16px; }
+    .toolbar, .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .toolbar { margin: 12px 0; }
+    .toolbar.grow > input[type="text"] { flex: 1 1 280px; }
+    label { font-size: 0.9rem; color: var(--muted); }
+    select, input[type="text"], textarea, button { font: inherit; }
+    select, input[type="text"] {
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      background: var(--panel);
+      color: var(--text);
+    }
+    select { max-width: 100%; }
+    textarea {
+      width: 100%;
+      min-height: 44vh;
+      resize: vertical;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      line-height: 1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95rem;
+      tab-size: 2;
+    }
+    button {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 9px 14px;
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+    }
+    button.primary { border-color: var(--accent); background: var(--accent); color: white; }
+    button.primary:hover { background: var(--accent-strong); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .query-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .query-row input { width: 100%; }
+    .status { min-height: 1.4em; color: var(--muted); font-size: 0.92rem; }
+    .status.ok { color: var(--ok); }
+    .status.error { color: var(--danger); }
+    .output-header { justify-content: space-between; }
+    .output-tabs { display: inline-flex; padding: 3px; border: 1px solid var(--border); border-radius: 999px; gap: 3px; }
+    .output-tabs button { border: 0; padding: 6px 12px; }
+    .output-tabs button.active { background: var(--accent); color: white; }
+    pre {
+      margin: 0;
+      min-height: 280px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: var(--code-bg);
+      color: var(--code-text);
+      overflow: auto;
+      line-height: 1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95rem;
+    }
+    .notice, .background-note {
+      margin-top: 10px;
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .notice {
+      border: 1px solid var(--warn-border);
+      background: var(--warn-bg);
+      color: var(--text);
+    }
+    .background-note { border: 1px dashed var(--border); }
+    .hidden { display: none !important; }
+    .small { font-size: 0.86rem; color: var(--muted); }
+
+    @media (max-width: 620px) {
+      header, main { width: min(100vw - 14px, 920px); }
+      header { padding-top: 18px; }
+      .card { border-radius: 16px; }
+      .card-header, .card-body { padding-left: 12px; padding-right: 12px; }
+      .toolbar { align-items: stretch; }
+      .toolbar > label:first-child { flex-basis: 100%; }
+      .toolbar button,
+      .toolbar select,
+      .toolbar input[type="text"] { width: 100%; }
+      .toolbar label.row { width: 100%; }
+      .output-header { align-items: flex-start; }
+      .output-tabs { width: 100%; }
+      .output-tabs button { flex: 1; }
+      textarea { min-height: 360px; font-size: 0.9rem; }
+      pre { min-height: 240px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Eyelog Playground</h1>
+    <p class="lead">Edit an Eyelog program, run it entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
+  </header>
+
+  <main class="stack">
+    <section id="fileProtocolNotice" class="notice hidden">
+      This page is open as a local <code>file://</code> URL. Browser security rules usually block the WebAssembly files in that mode. Run <code>make browser</code>, then serve this directory with <code>python3 -m http.server 8000</code> and open <code>http://localhost:8000/playground.html</code>.
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Input program</h2>
+        <div class="toolbar">
+          <label for="exampleSelect">Example</label>
+          <select id="exampleSelect"></select>
+          <button id="loadExampleButton" type="button">Load example</button>
+          <button id="resetButton" type="button">Reset</button>
+        </div>
+        <div class="toolbar grow">
+          <input id="urlInput" type="text" placeholder="Load .pl from URL, for example examples/ancestor.pl" spellcheck="false">
+          <button id="loadUrlButton" type="button">Load from URL</button>
+          <label class="row"><input id="backgroundToggle" type="checkbox"> add as background</label>
+        </div>
+        <div id="backgroundNote" class="background-note hidden"></div>
+      </div>
+      <div class="card-body">
+        <textarea id="programInput" spellcheck="false" aria-label="Editable Eyelog program"></textarea>
+        <div class="query-row">
+          <label for="queryInput">Optional <code>--query</code> goal</label>
+          <input id="queryInput" type="text" placeholder="triple(pat, ancestor, X)" spellcheck="false">
+        </div>
+        <div class="toolbar">
+          <button id="runButton" class="primary" type="button">Run Eyelog</button>
+          <button id="stopButton" type="button" disabled>Stop</button>
+          <button id="copyLinkButton" type="button">Copy share link</button>
+          <button id="clearSavedButton" type="button">Clear autosave</button>
+          <span id="status" class="status" role="status">Idle.</span>
+        </div>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Output without a query is the sorted set of derived <code>triple/3</code> facts, matching the CLI default.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header row output-header">
+        <h2>Output</h2>
+        <div class="output-tabs" aria-label="Output view">
+          <button id="stdoutTab" class="active" type="button">stdout</button>
+          <button id="stderrTab" type="button">stderr</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <pre id="stdoutOutput">(no output yet)</pre>
+        <pre id="stderrOutput" class="hidden">(no errors)</pre>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    const EXAMPLES = [
+  "ackermann",
+  "age",
+  "aliases-and-namespaces",
+  "allen-interval-calculus",
+  "ancestor",
+  "animal",
+  "annotation",
+  "bayes-diagnosis",
+  "bayes-therapy",
+  "bmi",
+  "c-core-throughput",
+  "c-core-transitive-closure",
+  "collatz-1000",
+  "complex",
+  "context-association",
+  "control-system",
+  "cyclic-path",
+  "deep-taxonomy-10",
+  "deep-taxonomy-100",
+  "deep-taxonomy-1000",
+  "deep-taxonomy-10000",
+  "deep-taxonomy-100000",
+  "delfour",
+  "derived-rule",
+  "diamond-property",
+  "dijkstra",
+  "dijkstra-risk-path",
+  "dining-philosophers",
+  "drone-corridor-planner",
+  "easter-computus",
+  "expression-eval",
+  "family-cousins",
+  "fastpow",
+  "fft8-numeric",
+  "fibonacci",
+  "floating-point",
+  "fundamental-theorem-arithmetic",
+  "gd-step-certified",
+  "goldbach-1000",
+  "gps",
+  "gray-code-counter",
+  "hamiltonian-path",
+  "hanoi",
+  "kaprekar",
+  "list-collection",
+  "matrix",
+  "monkey-bananas",
+  "n-queens",
+  "odrl-dpv-healthcare-risk-ranked",
+  "odrl-dpv-risk-ranked",
+  "path-discovery",
+  "polynomial",
+  "service-impact",
+  "skolem-functions",
+  "socrates",
+  "sudoku",
+  "superdense-coding",
+  "takeuchi",
+  "turing",
+  "wolf-goat-cabbage",
+  "zebra"
+];
+    const DEFAULT_PROGRAM = "% Socrates is mortal.\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\ntriple(X, type, T) :-\n  type(X, T).\n\ntriple(test, is, true) :-\n  type(socrates, mortal).";
+    const STORAGE_KEY = 'eyelog.playground.v2';
+
+    const programInput = document.getElementById('programInput');
+    const queryInput = document.getElementById('queryInput');
+    const exampleSelect = document.getElementById('exampleSelect');
+    const loadExampleButton = document.getElementById('loadExampleButton');
+    const resetButton = document.getElementById('resetButton');
+    const urlInput = document.getElementById('urlInput');
+    const loadUrlButton = document.getElementById('loadUrlButton');
+    const backgroundToggle = document.getElementById('backgroundToggle');
+    const backgroundNote = document.getElementById('backgroundNote');
+    const runButton = document.getElementById('runButton');
+    const stopButton = document.getElementById('stopButton');
+    const copyLinkButton = document.getElementById('copyLinkButton');
+    const clearSavedButton = document.getElementById('clearSavedButton');
+    const statusEl = document.getElementById('status');
+    const stdoutOutput = document.getElementById('stdoutOutput');
+    const stderrOutput = document.getElementById('stderrOutput');
+    const stdoutTab = document.getElementById('stdoutTab');
+    const stderrTab = document.getElementById('stderrTab');
+    const fileProtocolNotice = document.getElementById('fileProtocolNotice');
+
+    const moduleUrl = new URL('./dist/browser/eyelog.mjs', location.href).href;
+    const workerUrl = new URL('./playground-worker.mjs', location.href).href;
+
+    let backgroundPrograms = [];
+    let worker = null;
+    let saveTimer = 0;
+
+    for (const name of EXAMPLES) {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      if (name === 'socrates') option.selected = true;
+      exampleSelect.append(option);
+    }
+
+    function setStatus(text, kind = '') {
+      statusEl.textContent = text;
+      statusEl.className = `status ${kind}`;
+    }
+
+    function showTab(which) {
+      const stdout = which === 'stdout';
+      stdoutOutput.classList.toggle('hidden', !stdout);
+      stderrOutput.classList.toggle('hidden', stdout);
+      stdoutTab.classList.toggle('active', stdout);
+      stderrTab.classList.toggle('active', !stdout);
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[char]);
+    }
+
+    function updateBackgroundNote() {
+      if (!backgroundPrograms.length) {
+        backgroundNote.classList.add('hidden');
+        backgroundNote.textContent = '';
+        return;
+      }
+      const names = backgroundPrograms.map(item => item.name).join(', ');
+      backgroundNote.classList.remove('hidden');
+      backgroundNote.innerHTML = `<strong>${backgroundPrograms.length}</strong> background program(s): ${escapeHtml(names)} <button id="clearBackgroundInline" type="button">Clear background</button>`;
+      document.getElementById('clearBackgroundInline').addEventListener('click', () => {
+        backgroundPrograms = [];
+        updateBackgroundNote();
+        saveState();
+      });
+    }
+
+    function combinedProgram() {
+      const parts = backgroundPrograms.map(item => `% background: ${item.name}\n${item.source.trim()}`);
+      parts.push(programInput.value.trim());
+      return parts.filter(Boolean).join('\n\n');
+    }
+
+    function saveState() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          program: programInput.value,
+          query: queryInput.value,
+          backgroundPrograms,
+        }));
+      }, 150);
+    }
+
+    function encodePayload(text) {
+      const bytes = new TextEncoder().encode(text);
+      let binary = '';
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function decodePayload(text) {
+      const padded = text.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(text.length / 4) * 4, '=');
+      const binary = atob(padded);
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+
+    function restoreState() {
+      const params = new URLSearchParams(location.hash.startsWith('#') ? location.hash.slice(1) : location.hash);
+      if (params.has('p')) {
+        try {
+          programInput.value = decodePayload(params.get('p'));
+          queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
+          setStatus('Loaded shared program.', 'ok');
+          return;
+        } catch (error) {
+          setStatus(`Could not decode shared link: ${error.message}`, 'error');
+        }
+      }
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelog.playground.v1');
+        if (raw) {
+          const payload = JSON.parse(raw);
+          programInput.value = payload.program || DEFAULT_PROGRAM;
+          queryInput.value = payload.query || '';
+          backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
+          updateBackgroundNote();
+          setStatus('Restored autosave.', 'ok');
+          return;
+        }
+      } catch (error) {
+        console.warn(error);
+      }
+      programInput.value = DEFAULT_PROGRAM;
+    }
+
+    async function loadText(url) {
+      if (location.protocol === 'file:') {
+        throw new Error('Local file mode cannot fetch examples or WebAssembly assets. Serve the directory over HTTP first.');
+      }
+      const response = await fetch(url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response.text();
+    }
+
+    async function loadIntoEditor(url, asBackground = false) {
+      setStatus(`Loading ${url}…`);
+      const source = await loadText(url);
+      if (asBackground) {
+        backgroundPrograms.push({ name: url, source });
+        updateBackgroundNote();
+      } else {
+        programInput.value = source.trimEnd();
+      }
+      setStatus(`Loaded ${url}.`, 'ok');
+      saveState();
+    }
+
+    function setRunning(isRunning) {
+      runButton.disabled = isRunning;
+      stopButton.disabled = !isRunning;
+    }
+
+    function localFileMessage() {
+      return [
+        'This page is open as file://, so the browser cannot load the module worker and WebAssembly build reliably.',
+        '',
+        'From the repository directory, run:',
+        '',
+        '  make browser',
+        '  python3 -m http.server 8000',
+        '',
+        'Then open:',
+        '',
+        '  http://localhost:8000/playground.html',
+      ].join('\n');
+    }
+
+    function buildMissingMessage(error) {
+      return [
+        error && error.message ? error.message : String(error),
+        '',
+        'Expected browser build files:',
+        '',
+        '  dist/browser/eyelog.mjs',
+        '  dist/browser/eyelog.wasm',
+        '',
+        'Build them with:',
+        '',
+        '  make browser',
+        '',
+        'After updating the playground or Makefile, rebuild stale browser assets with:',
+        '',
+        '  make clean browser',
+      ].join('\n');
+    }
+
+    function runEyelog() {
+      if (location.protocol === 'file:') {
+        stdoutOutput.textContent = '(no stdout)';
+        stderrOutput.textContent = localFileMessage();
+        showTab('stderr');
+        setStatus('Serve the playground over HTTP first.', 'error');
+        return;
+      }
+
+      if (worker) worker.terminate();
+      try {
+        worker = new Worker(workerUrl, { type: 'module' });
+      } catch (error) {
+        stdoutOutput.textContent = '(no stdout)';
+        stderrOutput.textContent = buildMissingMessage(error);
+        showTab('stderr');
+        setStatus('Browser worker could not be started.', 'error');
+        return;
+      }
+
+      const started = performance.now();
+      stdoutOutput.textContent = 'Running…';
+      stderrOutput.textContent = '(no errors)';
+      showTab('stdout');
+      setStatus('Running Eyelog…');
+      setRunning(true);
+      const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
+
+      worker.onmessage = event => {
+        if (event.data.id !== id) return;
+        const elapsed = Math.max(1, Math.round(performance.now() - started));
+        stdoutOutput.textContent = event.data.stdout || '(no stdout)';
+        stderrOutput.textContent = event.data.stderr || '(no stderr)';
+        if (event.data.exitCode === 0) {
+          setStatus(`Finished in ${elapsed} ms.`, 'ok');
+        } else {
+          setStatus(`Failed while ${event.data.phase}.`, 'error');
+          showTab('stderr');
+        }
+        setRunning(false);
+        worker.terminate();
+        worker = null;
+      };
+
+      worker.onerror = error => {
+        stdoutOutput.textContent = '(no stdout)';
+        const message = error && error.message ? String(error.message) : String(error);
+        if (/Maximum call stack size exceeded|call stack|stack overflow/i.test(message)) {
+          stderrOutput.textContent = [
+            message,
+            '',
+            'Eyelog exhausted the browser WebAssembly stack.',
+            'Rebuild the browser assets with the current Makefile:',
+            '',
+            '  make clean browser',
+            '',
+            'Then hard-refresh this page.',
+          ].join('\n');
+        } else {
+          stderrOutput.textContent = buildMissingMessage(error);
+        }
+        showTab('stderr');
+        setStatus('Browser build could not be loaded.', 'error');
+        setRunning(false);
+        worker?.terminate();
+        worker = null;
+      };
+
+      worker.postMessage({ id, program: combinedProgram(), query: queryInput.value, moduleUrl });
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return 'clipboard';
+      }
+
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '-9999px';
+      document.body.append(textarea);
+      textarea.focus();
+      textarea.select();
+
+      try {
+        if (document.execCommand && document.execCommand('copy')) {
+          return 'fallback';
+        }
+      } finally {
+        textarea.remove();
+      }
+
+      window.prompt('Copy this Eyelog playground link:', text);
+      return 'manual';
+    }
+
+    async function copyShareLink() {
+      const params = new URLSearchParams();
+      params.set('p', encodePayload(programInput.value));
+      if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
+      const url = new URL(location.href);
+      url.hash = params.toString();
+      const method = await copyText(url.href);
+      setStatus(method === 'manual' ? 'Share link shown for manual copy.' : 'Share link copied.', 'ok');
+    }
+
+    loadExampleButton.addEventListener('click', () => loadIntoEditor(`examples/${exampleSelect.value}.pl`, false).catch(error => setStatus(error.message, 'error')));
+    resetButton.addEventListener('click', () => {
+      programInput.value = DEFAULT_PROGRAM;
+      queryInput.value = '';
+      backgroundPrograms = [];
+      updateBackgroundNote();
+      stdoutOutput.textContent = '(no output yet)';
+      stderrOutput.textContent = '(no errors)';
+      setStatus('Reset to the built-in Socrates example.', 'ok');
+      saveState();
+    });
+    loadUrlButton.addEventListener('click', () => {
+      const url = urlInput.value.trim();
+      if (!url) return setStatus('Enter a URL first.', 'error');
+      loadIntoEditor(url, backgroundToggle.checked).catch(error => setStatus(`Could not load URL: ${error.message}`, 'error'));
+    });
+    runButton.addEventListener('click', runEyelog);
+    stopButton.addEventListener('click', () => {
+      if (worker) {
+        worker.terminate();
+        worker = null;
+      }
+      setRunning(false);
+      setStatus('Stopped.', 'error');
+    });
+    copyLinkButton.addEventListener('click', () => copyShareLink().catch(error => setStatus(`Could not copy link: ${error.message}`, 'error')));
+    clearSavedButton.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('eyelog.playground.v1');
+      setStatus('Autosave cleared.', 'ok');
+    });
+    stdoutTab.addEventListener('click', () => showTab('stdout'));
+    stderrTab.addEventListener('click', () => showTab('stderr'));
+    programInput.addEventListener('input', saveState);
+    queryInput.addEventListener('input', saveState);
+
+    restoreState();
+    if (location.protocol === 'file:') {
+      fileProtocolNotice.classList.remove('hidden');
+      setStatus('Serve over HTTP before running.', 'error');
+    }
+  </script>
+</body>
+</html>

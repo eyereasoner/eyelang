@@ -42,10 +42,17 @@ Most examples follow this shape:
 
 ## 2. Running eyelog
 
-Build the executable with:
+The default build builds both the native command-line executable and the browser playground assets:
 
 ```sh
 make
+# same as: make all
+```
+
+This writes the CLI to `bin/eyelog` and the browser build to `dist/browser/eyelog.mjs` plus `dist/browser/eyelog.wasm`. The default build requires Emscripten's `emcc` as well as a C compiler. To build only the native command-line executable, run:
+
+```sh
+make cli
 ```
 
 Then run an example:
@@ -79,6 +86,24 @@ ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 
 triple(X, ancestor, Y) :- ancestor(X, Y).
 ```
+
+### 2.1 Browser playground
+
+`playground.html` runs the same engine in the browser through WebAssembly. Build the browser assets with:
+
+```sh
+make browser
+```
+
+For local use, serve the repository over HTTP:
+
+```sh
+make serve
+```
+
+and open `http://localhost:8000/playground.html`. Opening the page directly as a `file://` URL usually blocks the module worker or `.wasm` file, so the playground shows a warning in that mode.
+
+The playground is intentionally vertical and mobile-friendly. It supports loading examples, loading `.pl` files from URLs, adding background programs before the editor contents, passing an optional `--query`, viewing stdout and stderr separately, autosaving in local storage, stopping a run by terminating the worker, and creating compact share links. On insecure HTTP origins where the modern Clipboard API is unavailable, the share-link button falls back to an older textarea copy path and then to a manual copy prompt.
 
 ## 3. Terms
 
@@ -802,10 +827,9 @@ Then run:
 make test
 ```
 
-`make test` cleans and rebuilds `bin/eyelog` before executing the suite. The
-binary is a generated local artifact and should not be committed. This avoids
-portable-release problems such as checking in an executable that was linked
-against a newer glibc than another user's system provides.
+`make test` cleans and rebuilds the native `bin/eyelog` executable before executing the suite. It does not build the browser target, so it can run on machines that have a C compiler but not Emscripten. Use `make` or `make all` when you also want to validate the browser build.
+
+The native binary and the `dist/browser` WebAssembly assets are generated local artifacts and should not be committed. This avoids portable-release problems such as checking in an executable that was linked against a newer glibc than another user's system provides, and it keeps WebAssembly output tied to the Emscripten version used by the current build.
 
 The test runner creates a private temporary directory with `mktemp` and removes
 it on exit. It does not use fixed names such as `/tmp/eyelog-actual`, so several
@@ -818,6 +842,8 @@ intermediate files. Query parsing in `src/eyelog.c` also uses `mkstemp`, honorin
 Place the most selective goals early in a rule body.
 
 For large materializations, prefer rules that generate each result once. The engine keeps a hash-backed set of printed `triple/3` facts, so examples such as `deep-taxonomy-100000.pl` can produce hundreds of thousands of distinct triples without quadratic duplicate checks.
+
+The browser build runs inside a WebAssembly worker and has a smaller host call stack than a native process. The engine therefore uses an internal trampoline for long deterministic built-in chains, but programs should still avoid unnecessary recursive helper layers in tight arithmetic loops. `examples/kaprekar.pl` is a representative browser-friendly recursive arithmetic example.
 
 For acyclic recursive workloads where the same bound subgoal is solved many times, add an opt-in memoization declaration:
 

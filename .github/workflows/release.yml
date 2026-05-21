@@ -27,6 +27,11 @@ jobs:
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: latest
+
       - name: Build and test
         run: |
           make
