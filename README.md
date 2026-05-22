@@ -44,4 +44,5 @@ Then open <http://localhost:8000/playground.html>.
 
 ## Read further
 
-Read further in the [HANDBOOK](HANDBOOK.md) for language details, built-ins, examples, browser use, indexing, tests, release workflow, and GitHub Pages deployment.
+Read the [language specification](SPEC.md) for the normative Prolog-like language definition.
+Read further in the [HANDBOOK](HANDBOOK.md) for examples, browser use, indexing, tests, release workflow, and GitHub Pages deployment.

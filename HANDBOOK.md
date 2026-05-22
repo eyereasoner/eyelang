@@ -1,6 +1,8 @@
 # eyelog Handbook
 
-This handbook describes the eyelog language and how to write examples that are self-contained: data, logic, and the final query live in the same `.pl` file.
+This handbook describes how to write Eyelog examples that are self-contained: data, logic, and the final query live in the same `.pl` file.
+
+This handbook is a practical companion to the language specification. For the normative Prolog-like language definition, see [SPEC.md](SPEC.md).
 
 ## Contents
 
