@@ -217,6 +217,13 @@ The repository contains examples across several styles and domains. Each example
 - [`cache-performance.pl`](examples/cache-performance.pl), [`canary-release.pl`](examples/canary-release.pl), [`network-sla.pl`](examples/network-sla.pl), [`hamming-code.pl`](examples/hamming-code.pl) — technology-domain checks.
 - [`lldm.pl`](examples/lldm.pl) — concise leg-length discrepancy alarm report.
 
+### Representative applied scenarios
+
+- [`clinical-trial-screening.pl`](examples/clinical-trial-screening.pl) — protocol-style inclusion/exclusion screening with concise reasons.
+- [`microgrid-dispatch.pl`](examples/microgrid-dispatch.pl) — reserve-aware battery dispatch and grid-import feasibility.
+- [`manufacturing-quality-control.pl`](examples/manufacturing-quality-control.pl) — Cpk capability classification for production runs.
+- [`security-incident-correlation.pl`](examples/security-incident-correlation.pl) — security signal correlation for incident escalation.
+
 ### Other demonstrations
 
 - [`bayes-diagnosis.pl`](examples/bayes-diagnosis.pl) and [`bayes-therapy.pl`](examples/bayes-therapy.pl) — probability-style decision examples.

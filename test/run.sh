@@ -232,6 +232,10 @@ run 'lldm outputs discrepancy alarm' bash -c './bin/eyelog examples/lldm.pl | gr
 run 'lldm outputs concise discrepancy reason' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, lld_discrepancy_cm, -1.9082339805374957)."'
 run 'illegitimate reasoning flags affirming consequent' bash -c './bin/eyelog examples/illegitimate-reasoning.pl | grep -q "triple(arg_affirming_consequent, fallacy, affirming_consequent)."'
 run 'illegitimate reasoning leaves modus ponens unflagged' bash -c '! ./bin/eyelog examples/illegitimate-reasoning.pl | grep -q "arg_modus_ponens"'
+run 'clinical trial screening keeps only eligible candidate' bash -c './bin/eyelog examples/clinical-trial-screening.pl | grep -q "triple(p001, status, eligible)." && ! ./bin/eyelog examples/clinical-trial-screening.pl | grep -q "triple(p002, status, eligible)."'
+run 'microgrid dispatch preserves reserve' bash -c './bin/eyelog examples/microgrid-dispatch.pl | grep -q "triple(campus_interval_17, status, stable_dispatch)." && ./bin/eyelog examples/microgrid-dispatch.pl | grep -q "triple(campus_interval_17, reserveAfterDispatch_kW, 80.0)."'
+run 'manufacturing quality control flags one capable and one adjustment' bash -c './bin/eyelog examples/manufacturing-quality-control.pl | grep -q "triple(line8_shift_b, status, capable_process)." && ./bin/eyelog examples/manufacturing-quality-control.pl | grep -q "triple(line7_shift_a, status, needs_process_adjustment)."'
+run 'security incident correlation escalates only confirmed compromise' bash -c './bin/eyelog examples/security-incident-correlation.pl | grep -q "triple(inc42, status, escalate_to_incident_response)." && ! ./bin/eyelog examples/security-incident-correlation.pl | grep -q "inc43"'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
