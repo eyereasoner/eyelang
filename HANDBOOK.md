@@ -170,60 +170,60 @@ For exact language rules, Herbrand semantics, built-in modes, list syntax, quote
 
 ## 4. Example catalog
 
-The repository contains examples across several styles and domains.
+The repository contains examples across several styles and domains. Each example name links to its source file.
 
 ### Core logic and graph reasoning
 
-- `ancestor.pl` — recursive ancestry.
-- `path-discovery.pl` and `cyclic-path.pl` — reachability and guarded recursive closure.
-- `diamond-property.pl` — graph property reasoning.
-- `service-impact.pl` — dependency-impact closure.
-- `dijkstra.pl` and `dijkstra-risk-path.pl` — path search with accumulated costs.
+- [`ancestor.pl`](examples/ancestor.pl) — recursive ancestry.
+- [`path-discovery.pl`](examples/path-discovery.pl) and [`cyclic-path.pl`](examples/cyclic-path.pl) — reachability and guarded recursive closure.
+- [`diamond-property.pl`](examples/diamond-property.pl) — graph property reasoning.
+- [`service-impact.pl`](examples/service-impact.pl) — dependency-impact closure.
+- [`dijkstra.pl`](examples/dijkstra.pl) and [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl) — path search with accumulated costs.
 
 ### Data, RDF-shaped output, and formula data
 
-- `annotation.pl` — formula-valued triples and formula enumeration.
-- `context-association.pl` — naming formula data.
-- `derived-rule.pl` — rule-derived test facts.
-- `skolem-functions.pl` — deterministic generated resources as ordinary terms.
-- `odrl-dpv-risk-ranked.pl` and `odrl-dpv-healthcare-risk-ranked.pl` — policy/risk examples with ranked output.
+- [`annotation.pl`](examples/annotation.pl) — formula-valued triples and formula enumeration.
+- [`context-association.pl`](examples/context-association.pl) — naming formula data.
+- [`derived-rule.pl`](examples/derived-rule.pl) — rule-derived test facts.
+- [`skolem-functions.pl`](examples/skolem-functions.pl) — deterministic generated resources as ordinary terms.
+- [`odrl-dpv-risk-ranked.pl`](examples/odrl-dpv-risk-ranked.pl) and [`odrl-dpv-healthcare-risk-ranked.pl`](examples/odrl-dpv-healthcare-risk-ranked.pl) — policy/risk examples with ranked output.
 
 ### Search and puzzles
 
-- `n-queens.pl` — enumerates all 8-queen solutions.
-- `sudoku.pl` — solves a Sudoku puzzle.
-- `zebra.pl` — classic zebra puzzle.
-- `wolf-goat-cabbage.pl` — river-crossing plans.
-- `hamiltonian-path.pl` — Hamiltonian path enumeration.
-- `monkey-bananas.pl` — planning example.
+- [`n-queens.pl`](examples/n-queens.pl) — enumerates all 8-queen solutions.
+- [`sudoku.pl`](examples/sudoku.pl) — solves a Sudoku puzzle.
+- [`zebra.pl`](examples/zebra.pl) — classic zebra puzzle.
+- [`wolf-goat-cabbage.pl`](examples/wolf-goat-cabbage.pl) — river-crossing plans.
+- [`hamiltonian-path.pl`](examples/hamiltonian-path.pl) — Hamiltonian path enumeration.
+- [`monkey-bananas.pl`](examples/monkey-bananas.pl) — planning example.
 
 ### Arithmetic and mathematics
 
-- `fibonacci.pl`, `ackermann.pl`, `collatz-1000.pl`, `goldbach-1000.pl` — integer-heavy examples.
-- `fundamental-theorem-arithmetic.pl` — factorization-style reasoning.
-- `quadratic-formula.pl` — roots of quadratic equations.
-- `statistics-summary.pl` — mean and population variance.
-- `vector-similarity.pl` — cosine similarity.
-- `least-squares-regression.pl` — regression fit summary.
-- `matrix.pl` — determinant, multiplication, and Cholesky-style matrix computations.
+- [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy examples.
+- [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — factorization-style reasoning.
+- [`quadratic-formula.pl`](examples/quadratic-formula.pl) — roots of quadratic equations.
+- [`statistics-summary.pl`](examples/statistics-summary.pl) — mean and population variance.
+- [`vector-similarity.pl`](examples/vector-similarity.pl) — cosine similarity.
+- [`least-squares-regression.pl`](examples/least-squares-regression.pl) — regression fit summary.
+- [`matrix.pl`](examples/matrix.pl) — determinant, multiplication, and Cholesky-style matrix computations.
 
 ### Science, technology, and engineering
 
-- `ideal-gas-law.pl`, `radioactive-decay.pl`, `pendulum-period.pl` — basic physics/science calculations.
-- `orbital-transfer-design.pl` — Hohmann transfer delta-v and transfer-time check.
-- `competitive-enzyme-kinetics.pl` — enzyme inhibition status.
-- `electrical-rc-filter.pl`, `beam-deflection.pl`, `heat-loss.pl` — engineering calculations.
-- `buck-converter-design.pl` — converter ripple design.
-- `cache-performance.pl`, `canary-release.pl`, `network-sla.pl`, `hamming-code.pl` — technology-domain checks.
-- `lldm.pl` — concise leg-length discrepancy alarm report.
+- [`ideal-gas-law.pl`](examples/ideal-gas-law.pl), [`radioactive-decay.pl`](examples/radioactive-decay.pl), [`pendulum-period.pl`](examples/pendulum-period.pl) — basic physics/science calculations.
+- [`orbital-transfer-design.pl`](examples/orbital-transfer-design.pl) — Hohmann transfer delta-v and transfer-time check.
+- [`competitive-enzyme-kinetics.pl`](examples/competitive-enzyme-kinetics.pl) — enzyme inhibition status.
+- [`electrical-rc-filter.pl`](examples/electrical-rc-filter.pl), [`beam-deflection.pl`](examples/beam-deflection.pl), [`heat-loss.pl`](examples/heat-loss.pl) — engineering calculations.
+- [`buck-converter-design.pl`](examples/buck-converter-design.pl) — converter ripple design.
+- [`cache-performance.pl`](examples/cache-performance.pl), [`canary-release.pl`](examples/canary-release.pl), [`network-sla.pl`](examples/network-sla.pl), [`hamming-code.pl`](examples/hamming-code.pl) — technology-domain checks.
+- [`lldm.pl`](examples/lldm.pl) — concise leg-length discrepancy alarm report.
 
 ### Other demonstrations
 
-- `bayes-diagnosis.pl` and `bayes-therapy.pl` — probability-style decision examples.
-- `bmi.pl` and `age.pl` — healthcare-flavored examples.
-- `complex.pl`, `fft8-numeric.pl`, `gd-step-certified.pl` — numeric examples.
-- `kaprekar.pl`, `takeuchi.pl`, `turing.pl`, `superdense-coding.pl` — algorithmic demonstrations.
-- `illegitimate-reasoning.pl` — fallacy detection with concise reason triples.
+- [`bayes-diagnosis.pl`](examples/bayes-diagnosis.pl) and [`bayes-therapy.pl`](examples/bayes-therapy.pl) — probability-style decision examples.
+- [`bmi.pl`](examples/bmi.pl) and [`age.pl`](examples/age.pl) — healthcare-flavored examples.
+- [`complex.pl`](examples/complex.pl), [`fft8-numeric.pl`](examples/fft8-numeric.pl), [`gd-step-certified.pl`](examples/gd-step-certified.pl) — numeric examples.
+- [`kaprekar.pl`](examples/kaprekar.pl), [`takeuchi.pl`](examples/takeuchi.pl), [`turing.pl`](examples/turing.pl), [`superdense-coding.pl`](examples/superdense-coding.pl) — algorithmic demonstrations.
+- [`illegitimate-reasoning.pl`](examples/illegitimate-reasoning.pl) — fallacy detection with concise reason triples.
 
 ## 5. Golden outputs and tests
 
