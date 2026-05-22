@@ -782,6 +782,9 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/quadratic-formula.pl` derives discriminants and roots for sample quadratic equations using only arithmetic built-ins.
 - `examples/statistics-summary.pl` computes a small population summary: count, mean, variance, and standard deviation.
 - `examples/vector-similarity.pl` computes dot product, Euclidean norms, and cosine similarity for two vectors.
+- `examples/electrical-rc-filter.pl` computes an RC low-pass filter time constant and cutoff frequency from resistance and capacitance.
+- `examples/beam-deflection.pl` computes cantilever beam tip deflection from load, length, elastic modulus, and second moment of area, then checks a deflection limit.
+- `examples/heat-loss.pl` computes conductive wall heat loss from thermal resistance and temperature difference, then flags a high-loss case.
 
 For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer formula-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log_nameOf { ... }` usually translates well to a top-level `triple(G, log_nameOf, ...)`, not to a separate `named_graph/2` table unless several rules need that indirection.
 For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log_nameOf, ...)` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(policyGraph1, (triple(S, P, O), ...))` because the policy formula is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different formulae may contain incompatible clauses.
