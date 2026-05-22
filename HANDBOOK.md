@@ -788,6 +788,9 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/cache-performance.pl` computes cache hit rate and weighted average response latency, then classifies whether a cache is effective.
 - `examples/canary-release.pl` computes canary error rate and latency checks, then recommends rollback when the error budget is exceeded.
 - `examples/network-sla.pl` computes end-to-end network path latency from link delays plus jitter, then checks it against an SLA limit.
+- `examples/ideal-gas-law.pl` computes gas pressure from moles, temperature, volume, and a gas constant, then checks an atmospheric-pressure tolerance band.
+- `examples/radioactive-decay.pl` computes elapsed half-lives, remaining activity, and decayed activity for a sample.
+- `examples/pendulum-period.pl` computes the small-angle period of a pendulum and checks it against a target period.
 
 For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer formula-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log_nameOf { ... }` usually translates well to a top-level `triple(G, log_nameOf, ...)`, not to a separate `named_graph/2` table unless several rules need that indirection.
 For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log_nameOf, ...)` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(policyGraph1, (triple(S, P, O), ...))` because the policy formula is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different formulae may contain incompatible clauses.
