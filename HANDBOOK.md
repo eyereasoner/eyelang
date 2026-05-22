@@ -177,6 +177,7 @@ The repository contains examples across several styles and domains. Each example
 - [`ancestor.pl`](examples/ancestor.pl) — recursive ancestry.
 - [`path-discovery.pl`](examples/path-discovery.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), and [`cyclic-path.pl`](examples/cyclic-path.pl) — reachability and guarded recursive closure.
 - [`diamond-property.pl`](examples/diamond-property.pl) — graph property reasoning.
+- [`four-color-map.pl`](examples/four-color-map.pl) — EYE-inspired four-colour EU map validation.
 - [`service-impact.pl`](examples/service-impact.pl) — dependency-impact closure.
 - [`dijkstra.pl`](examples/dijkstra.pl), [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl), and [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl) — path search with accumulated costs; the `findall`/`sort` variant mirrors a common Prolog frontier pattern.
 - [`eulerian-path.pl`](examples/eulerian-path.pl) — Eulerian circuit search with canonicalized graph data.
@@ -204,6 +205,7 @@ The repository contains examples across several styles and domains. Each example
 
 - [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy examples; `peano-arithmetic.pl` mirrors the EYE Peano query `(1 * 2 + 3)! = 5!`.
 - [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — factorization-style reasoning.
+- [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl) — extended Euclidean algorithm with Bézout coefficients and checks.
 - [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl) — combinations collected with `findall/3` and canonicalized with `sort/2`.
 - [`quine-mccluskey.pl`](examples/quine-mccluskey.pl) — Boolean minimization with generated implicants and sorted covers.
 - [`quadratic-formula.pl`](examples/quadratic-formula.pl) — roots of quadratic equations.
@@ -215,10 +217,12 @@ The repository contains examples across several styles and domains. Each example
 ### Science, technology, and engineering
 
 - [`ideal-gas-law.pl`](examples/ideal-gas-law.pl), [`radioactive-decay.pl`](examples/radioactive-decay.pl), [`pendulum-period.pl`](examples/pendulum-period.pl) — basic physics/science calculations.
+- [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl) — EYE-inspired Bayesian/heuristic world comparison for exoplanet validation.
 - [`orbital-transfer-design.pl`](examples/orbital-transfer-design.pl) — Hohmann transfer delta-v and transfer-time check.
 - [`competitive-enzyme-kinetics.pl`](examples/competitive-enzyme-kinetics.pl) — enzyme inhibition status.
 - [`electrical-rc-filter.pl`](examples/electrical-rc-filter.pl), [`beam-deflection.pl`](examples/beam-deflection.pl), [`heat-loss.pl`](examples/heat-loss.pl) — engineering calculations.
 - [`buck-converter-design.pl`](examples/buck-converter-design.pl) — converter ripple design.
+- [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl) — EYE-inspired alternative-world braking safety classifications.
 - [`cache-performance.pl`](examples/cache-performance.pl), [`canary-release.pl`](examples/canary-release.pl), [`network-sla.pl`](examples/network-sla.pl), [`hamming-code.pl`](examples/hamming-code.pl) — technology-domain checks.
 - [`lldm.pl`](examples/lldm.pl) — concise leg-length discrepancy alarm report.
 
@@ -243,7 +247,7 @@ The repository contains examples across several styles and domains. Each example
 
 Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: predicates that are clear source-level relations, such as `select/3`, stay written as Eyelog rules, while broadly useful collection and ordering patterns may use the core `findall/3` and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
 
-The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), and [`d3-group.pl`](examples/d3-group.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
+The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), [`d3-group.pl`](examples/d3-group.pl), [`four-color-map.pl`](examples/four-color-map.pl), [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl), [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl), and [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
 
 ## 5. Golden outputs and tests
 

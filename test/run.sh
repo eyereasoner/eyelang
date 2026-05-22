@@ -248,6 +248,10 @@ run 'eulerian path findall sort derives circuit' bash -c './bin/eyelog examples/
 run 'd3 group findall sort enumerates subgroups' bash -c './bin/eyelog examples/d3-group.pl | grep -Fq "triple(d3_group, subgroupCount, 6)."'
 run 'quine mccluskey findall sort derives minimal cover' bash -c './bin/eyelog examples/quine-mccluskey.pl | grep -Fq "triple(quine_mccluskey, minimalCover, [[0, 0, x, x], [x, x, 1, 1]])."'
 run 'basic monadic matches EYE ten-step answer count' bash -c 'out=$(./bin/eyelog examples/basic-monadic.pl); test "$(printf "%s\n" "$out" | wc -l | tr -d " " )" = 1518 && printf "%s\n" "$out" | grep -Fq "triple(i12, cycle, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45])."'
+run 'four color map validates EYE colouring' bash -c './bin/eyelog examples/four-color-map.pl | grep -Fq "triple(map_eu, status, valid_four_colour_assignment)." && ./bin/eyelog examples/four-color-map.pl | grep -Fq "[belgium, yellow]"'
+run 'gcd bezout computes EYE harness cases' bash -c './bin/eyelog examples/gcd-bezout-identity.pl | grep -Fq "triple(c2, bezoutCoefficients, [215, -47])." && ./bin/eyelog examples/gcd-bezout-identity.pl | grep -Fq "triple(c6, gcd, 6)."'
+run 'braking safety worlds matches expected pattern' bash -c './bin/eyelog examples/braking-safety-worlds.pl | grep -Fq "triple(braking_safety_worlds, status, expected_world_pattern)." && ./bin/eyelog examples/braking-safety-worlds.pl | grep -Fq "triple(city_ice, safeInWorld, w2)."'
+run 'exoplanet validation worlds matches expected pattern' bash -c './bin/eyelog examples/exoplanet-validation-worlds.pl | grep -Fq "triple(exoplanet_validation_worlds, status, expected_world_pattern)." && ./bin/eyelog examples/exoplanet-validation-worlds.pl | grep -Fq "triple(rare_wide_orbit, confirmsInWorld, w1)."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

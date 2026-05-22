@@ -1,0 +1,22 @@
+triple(common_hot_neptune_good, confirmsInWorld, w0).
+triple(common_hot_neptune_good, confirmsInWorld, w1).
+triple(common_hot_neptune_good, confirmsInWorld, w2).
+triple(common_hot_neptune_good, ppvPlanetGivenDetection, 0.91346153846153844).
+triple(common_hot_neptune_good, rejectsInWorld, w3).
+triple(common_hot_neptune_low_spec, confirmsInWorld, w1).
+triple(common_hot_neptune_low_spec, ppvPlanetGivenDetection, 0.76000000000000001).
+triple(common_hot_neptune_low_spec, rejectsInWorld, w0).
+triple(common_hot_neptune_low_spec, rejectsInWorld, w2).
+triple(common_hot_neptune_low_spec, rejectsInWorld, w3).
+triple(exoplanet_validation_worlds, reason, "Bayesian worlds account for occurrence and false positives while the naive world trusts sensitivity alone").
+triple(exoplanet_validation_worlds, status, expected_world_pattern).
+triple(mstar_short_period, confirmsInWorld, w0).
+triple(mstar_short_period, confirmsInWorld, w1).
+triple(mstar_short_period, confirmsInWorld, w2).
+triple(mstar_short_period, confirmsInWorld, w3).
+triple(mstar_short_period, ppvPlanetGivenDetection, 0.96116504854368934).
+triple(rare_wide_orbit, confirmsInWorld, w1).
+triple(rare_wide_orbit, ppvPlanetGivenDetection, 0.090163934426229442).
+triple(rare_wide_orbit, rejectsInWorld, w0).
+triple(rare_wide_orbit, rejectsInWorld, w2).
+triple(rare_wide_orbit, rejectsInWorld, w3).
