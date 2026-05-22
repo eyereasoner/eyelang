@@ -18,7 +18,11 @@ An **Eyelog processor** is any parser, interpreter, compiler, translator, or che
 
 A **program** is a finite sequence of clauses.
 
-A **term** is a variable, atom, string, number, compound term, or list.
+A **term** is a variable, atom constant, string, number, compound term, or list.
+
+An **atom constant** is a symbolic scalar term, such as `pat`, `rdf_type`, or `'atom with spaces'`. In this specification, the word **atom** by itself refers to an atom constant unless explicitly qualified.
+
+An **atomic formula** is a predicate application such as `parent(pat, jan)` or `triple(a, b, c)`. In logic-programming literature, atomic formulas are often also called atoms; this specification avoids that usage where ambiguity with atom constants could arise.
 
 A **callable term** is a compound term whose functor and arity identify a predicate call. For example, `parent(pat, jan)` is a callable term with predicate indicator `parent/2`.
 
@@ -26,7 +30,7 @@ A **goal** is a callable term evaluated by proof search, or a comma term that ex
 
 A **ground term** is a term containing no variables.
 
-A **scalar term** is an atom, string, or number.
+A **scalar term** is an atom constant, string, or number.
 
 ## 2. Design goals
 
@@ -44,9 +48,9 @@ Non-goals include complete ISO Prolog compatibility, operator declarations, modu
 
 ### 3.1 Character stream
 
-An Eyelog source document is a sequence of Unicode scalar values or bytes interpreted as text by the processor. A conforming processor MUST recognize at least ASCII source text. Implementations MAY accept wider character sets in quoted atoms and strings.
+An Eyelog source document is a sequence of Unicode scalar values or bytes interpreted as text by the processor. A conforming processor MUST recognize at least ASCII source text. Implementations MAY accept wider character sets in quoted atom constants and strings.
 
-Whitespace separates tokens and is otherwise insignificant, except inside quoted atoms and strings.
+Whitespace separates tokens and is otherwise insignificant, except inside quoted atom constants and strings.
 
 ### 3.2 Comments
 
@@ -72,7 +76,7 @@ The following punctuation tokens have fixed meaning:
 | `[` `]` | list notation |
 | `|` | explicit list tail |
 
-A colon outside the `:-` token is not part of the language. Namespace-like names SHOULD be written as plain atoms such as `rdf_type` rather than `rdf:type`.
+A colon outside the `:-` token is not part of the language. Namespace-like names SHOULD be written as plain atom constants such as `rdf_type` rather than `rdf:type`.
 
 ### 3.4 Variables
 
@@ -91,9 +95,9 @@ The token `_` is the anonymous variable. Each occurrence of `_` denotes a fresh 
 
 Variable names are scoped to one clause or one query goal. Variables with the same name inside a clause denote the same logical variable.
 
-### 3.5 Atoms
+### 3.5 Atom constants
 
-An unquoted atom is a nonempty token that:
+An unquoted atom constant is a nonempty token that:
 
 - is not a number;
 - does not start with an uppercase ASCII letter or `_`;
@@ -110,9 +114,9 @@ checkout-api
 <=
 ```
 
-The last two examples are atoms, not operators. Eyelog has no general operator system.
+The last two examples are atom constants, not operators. Eyelog has no general operator system.
 
-A single-quoted atom begins and ends with `'`:
+A single-quoted atom constant begins and ends with `'`:
 
 ```prolog
 'atom with spaces'
@@ -120,7 +124,9 @@ A single-quoted atom begins and ends with `'`:
 ''
 ```
 
-Inside a single-quoted atom, two adjacent single quotes denote one embedded single quote. A processor SHOULD also accept common backslash escapes described in Section 3.7.
+Inside a single-quoted atom constant, two adjacent single quotes denote one embedded single quote. A processor SHOULD also accept common backslash escapes described in Section 3.7.
+
+In this lexical section, **atom constant** means a symbolic term. It does not mean an atomic formula such as `p(a)`. Atomic formulas are introduced by the proof-theoretic and Herbrand-semantics sections.
 
 ### 3.6 Strings
 
@@ -131,18 +137,18 @@ A string begins and ends with `"`:
 "line\ntext"
 ```
 
-Strings are scalar terms distinct from atoms. An atom `'hello'` and a string `"hello"` are not the same term.
+Strings are scalar terms distinct from atom constants. The atom constant `'hello'` and the string `"hello"` are not the same term.
 
 ### 3.7 Escapes in quoted terms
 
-Inside single-quoted atoms and double-quoted strings, processors SHOULD recognize:
+Inside single-quoted atom constants and double-quoted strings, processors SHOULD recognize:
 
 | Escape | Character |
 | --- | --- |
 | `\n` | newline |
 | `\t` | horizontal tab |
 | `\\` | backslash |
-| `\'` | single quote, inside single-quoted atoms |
+| `\'` | single quote, inside single-quoted atom constants |
 | `\"` | double quote, inside strings |
 
 Processors MAY pass through other escaped characters as the escaped character itself.
@@ -194,14 +200,14 @@ goal-list     ::= goal { "," goal } ;
 goal          ::= callable | comma-term ;
 
 term          ::= variable
-                | atom
+                | atom-constant
                 | string
                 | number
                 | compound
                 | list
                 | comma-term ;
 
-callable      ::= atom "(" [ term { "," term } ] ")" ;
+callable      ::= atom-constant "(" [ term { "," term } ] ")" ;
 compound      ::= callable ;
 
 comma-term    ::= "(" term "," term { "," term } ")" ;
@@ -210,6 +216,8 @@ list          ::= "[" "]"
                 | "[" term { "," term } "]"
                 | "[" term { "," term } "|" term "]" ;
 ```
+
+`atom-constant`, `variable`, `string`, and `number` are lexical classes defined in Section 3.
 
 A conforming Eyelog source program SHOULD use callable terms as clause heads and goals. Non-callable terms may be accepted by a permissive parser, but they have no portable proof-search meaning.
 
@@ -220,7 +228,7 @@ nil().
 triple(example, value, nil()).
 ```
 
-`nil()` is a compound term with arity 0. It is distinct from the atom `nil`.
+`nil()` is a compound term with arity 0. It is distinct from the atom constant `nil`.
 
 ## 5. Terms
 
@@ -238,9 +246,9 @@ The anonymous variable `_` does not impose equality between occurrences:
 edge(_, _).
 ```
 
-### 5.2 Atoms
+### 5.2 Atom constants
 
-Atoms are symbolic constants. They are compared by identity for unification. Processors that print atoms SHOULD quote atoms when needed so the printed form can be read back as an Eyelog term.
+Atom constants are symbolic constants. They are compared by identity for unification. Processors that print atom constants SHOULD quote them when needed so the printed form can be read back as an Eyelog term.
 
 ### 5.3 Strings
 
@@ -252,7 +260,7 @@ Numbers are scalar terms. Numeric identity for unification is textual: `1` and `
 
 ### 5.5 Compound terms
 
-A compound term has a functor atom and zero or more arguments:
+A compound term has a functor atom constant and zero or more arguments:
 
 ```prolog
 point(3, 4)
@@ -341,7 +349,7 @@ This describes the observable language behavior. A processor MAY use indexing, m
 Unification makes two terms equal by binding variables.
 
 - A variable can unify with any term.
-- Two atoms unify if they are the same atom.
+- Two atom constants unify if they are the same atom constant.
 - Two strings unify if they are the same string.
 - Two numbers unify if they have the same numeric token text.
 - Two compound terms unify if they have the same functor, same arity, and pairwise unifiable arguments.
@@ -367,17 +375,19 @@ This section gives the declarative reading of the pure Eyelog language. It is no
 
 The **Herbrand universe** of a program is the set of ground terms that can be built from the constants and functors appearing in the program, plus any implementation-provided constants that are part of supported built-ins.
 
-Atoms, strings, and numbers are constants. Compound functors and list constructors build larger terms. Lists are interpreted through their ordinary nested term structure, so `[a, b]` denotes the same ground term as the corresponding cons-list representation ending in `[]`.
+Atom constants, strings, and numbers are constants. Compound functors and list constructors build larger terms. Lists are interpreted through their ordinary nested term structure, so `[a, b]` denotes the same ground term as the corresponding cons-list representation ending in `[]`.
 
-Terms denote themselves. The atom `a` denotes `a`; the compound term `point(3, 4)` denotes `point(3, 4)`. There is no separate object domain hidden behind these symbols in the pure language.
+Terms denote themselves. The atom constant `a` denotes `a`; the compound term `point(3, 4)` denotes `point(3, 4)`. There is no separate object domain hidden behind these symbols in the pure language.
 
 ### 8.2 Herbrand base and interpretations
 
-The **Herbrand base** of a program is the set of all ground atoms whose predicate indicators occur in the program or in the language profile, applied to ground terms from the Herbrand universe.
+The **Herbrand base** of a program is the set of all ground **atomic formulas** whose predicate indicators occur in the program or in the language profile, applied to ground terms from the Herbrand universe.
 
-A **Herbrand interpretation** is a subset of the Herbrand base. A ground atom is true in an interpretation when it is a member of that subset.
+A **Herbrand interpretation** is a subset of the Herbrand base. A ground atomic formula is true in an interpretation when it is a member of that subset.
 
-For example, if `parent/2` and `ancestor/2` occur in a program, then ground atoms such as these are members of the Herbrand base:
+This use of **atomic formula** is intentionally distinct from **atom constant**. For example, in `parent(pat, jan)`, `parent(pat, jan)` is an atomic formula, while `pat` and `jan` are atom constants.
+
+For example, if `parent/2` and `ancestor/2` occur in a program, then ground atomic formulas such as these are members of the Herbrand base:
 
 ```prolog
 parent(pat, jan)
@@ -392,7 +402,7 @@ A fact:
 p(a).
 ```
 
-asserts the ground atom `p(a)` when it is already ground. A non-ground fact represents all of its ground instances.
+asserts the ground atomic formula `p(a)` when it is already ground. A non-ground fact represents all of its ground instances.
 
 A rule:
 
@@ -400,9 +410,9 @@ A rule:
 p(X) :- q(X), r(X).
 ```
 
-states that every ground instance of `p(X)` is true whenever the corresponding ground instances of `q(X)` and `r(X)` are true.
+states that every ground instance of `p(X)` is true whenever the corresponding ground atomic formulas `q(X)` and `r(X)` are true.
 
-All variables in a clause are universally quantified over that clause. A rule is satisfied by an interpretation when every ground instance whose body atoms are true also has its head atom true.
+All variables in a clause are universally quantified over that clause. A rule is satisfied by an interpretation when every ground instance whose body atomic formulas are true also has its head atomic formula true.
 
 ### 8.4 Immediate consequence operator
 
@@ -412,7 +422,7 @@ For a pure program `P`, the immediate consequence operator `T_P` maps a Herbrand
 H :- B1, ..., Bn.
 ```
 
-where each body atom `B1` through `Bn` is true in `I`. A fact is the special case where `n = 0`; its head is always produced by `T_P`.
+where each body atomic formula `B1` through `Bn` is true in `I`. A fact is the special case where `n = 0`; its head is always produced by `T_P`.
 
 Repeated application from the empty interpretation constructs the least fixed point:
 
@@ -554,11 +564,11 @@ formula_triple((triple(a, b, c), triple(d, e, f)), S, P, O).
 
 This yields the two triples in the formula term.
 
-### 9.8 String and atom construction
+### 9.8 String and atom-constant construction
 
 | Predicate | Meaning |
 | --- | --- |
-| `atom_concat(A, B, C)` | Concatenates scalar text into atom `C`. |
+| `atom_concat(A, B, C)` | Concatenates scalar text into atom constant `C`. |
 | `str_concat(A, B, C)` | Concatenates scalar text into string `C`. |
 | `contains(Text, Part)` | Succeeds when `Text` contains `Part`. |
 | `not_contains(Text, Part)` | Succeeds when `Text` does not contain `Part`. |
@@ -605,7 +615,7 @@ The fact:
 memoize(Name, Arity).
 ```
 
-where `Name` is an atom and `Arity` is a non-negative integer, declares that calls to predicate `Name/Arity` MAY be memoized by the processor.
+where `Name` is an atom constant and `Arity` is a non-negative integer, declares that calls to predicate `Name/Arity` MAY be memoized by the processor.
 
 This declaration is an optimization directive. It MUST NOT change the logical answers of pure finite programs. It MAY affect termination, performance, and resource usage for recursive programs.
 
@@ -641,8 +651,8 @@ When a processor prints Eyelog terms, it SHOULD produce text that is accepted by
 
 In particular, it SHOULD:
 
-- quote atoms that are empty or contain whitespace, punctuation reserved by the grammar, or embedded quotes;
-- double embedded quotes in single-quoted atoms;
+- quote atom constants that are empty or contain whitespace, punctuation reserved by the grammar, or embedded quotes;
+- double embedded quotes in single-quoted atom constants;
 - print strings with double quotes;
 - print proper lists with bracket notation;
 - print improper lists with explicit tail notation;
@@ -657,7 +667,7 @@ Output order is not specified by the language.
 A processor conforms to the Eyelog core profile when it accepts and correctly evaluates:
 
 - facts and definite Horn clauses;
-- variables, atoms, quoted atoms, strings, numbers, compound terms, lists, and comma terms;
+- variables, atom constants, quoted atom constants, strings, numbers, compound terms, lists, and comma terms;
 - unification and left-to-right conjunction;
 - the built-ins in Sections 9.1 through 9.9, except where marked as extension-specific;
 - `triple/3` as an ordinary user predicate.
@@ -683,7 +693,7 @@ Eyelog intentionally supports:
 - variables with uppercase or `_` initial characters;
 - facts and rules using `:-`;
 - comma-separated conjunctions;
-- single-quoted atoms, including doubled embedded quotes;
+- single-quoted atom constants, including doubled embedded quotes;
 - double-quoted strings;
 - numbers;
 - compound terms;
@@ -755,4 +765,4 @@ Portable programs SHOULD:
 - avoid cyclic terms;
 - avoid host-dependent `local_time/1` when reproducible output is required;
 - use `triple/3` for public RDF-shaped output and helper predicates for internal computation;
-- use plain vocabulary atoms such as `rdf_type` rather than colon names.
+- use plain vocabulary atom constants such as `rdf_type` rather than colon names.
