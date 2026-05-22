@@ -142,6 +142,8 @@ run 'matrix multiplication matches Trealla reference' bash -c './bin/eyelog exam
 run 'matrix Cholesky matches Trealla reference' bash -c './bin/eyelog examples/matrix.pl | grep -q "cholesky_decomposition(\[\[25, 15, -5\], \[15, 18, 0\], \[-5, 0, 11\]\], \[\[5.0, 0, 0\], \[3.0, 3.0, 0\], \[-1.0, 1.0, 3.0\]\])"'
 run 'lldm outputs discrepancy alarm' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, type, lld_alarm)."'
 run 'lldm outputs concise discrepancy reason' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, lld_discrepancy_cm, -1.9082339805374957)."'
+run 'illegitimate reasoning flags affirming consequent' bash -c './bin/eyelog examples/illegitimate-reasoning.pl | grep -q "triple(arg_affirming_consequent, fallacy, affirming_consequent)."'
+run 'illegitimate reasoning leaves modus ponens unflagged' bash -c '! ./bin/eyelog examples/illegitimate-reasoning.pl | grep -q "arg_modus_ponens"'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
