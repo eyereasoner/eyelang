@@ -2478,6 +2478,85 @@ static Term *list_from_items(Term **items, int start, int end, Term *tail) {
   return result;
 }
 
+
+
+typedef struct {
+  Term **items;
+  int len;
+  int cap;
+} TermList;
+
+static void term_list_append(TermList *list, Term *term) {
+  if (list->len == list->cap) {
+    list->cap = list->cap ? list->cap * 2 : 16;
+    list->items = xrealloc(list->items, sizeof(Term *) * list->cap);
+  }
+  list->items[list->len++] = term;
+}
+
+static int term_type_rank(Term *term) {
+  if (term->type == TERM_VAR) return 0;
+  if (term->type == TERM_NUMBER) return 1;
+  if (term->type == TERM_ATOM) return 2;
+  if (term->type == TERM_STRING) return 3;
+  return 4;
+}
+
+static int compare_numbers_for_sort(const char *left, const char *right) {
+  bool left_int = is_decimal_integer(left);
+  bool right_int = is_decimal_integer(right);
+  if (left_int && right_int) return compare_signed_decimal(left, right);
+
+  double a = 0.0;
+  double b = 0.0;
+  if (parse_double_strict(left, &a) && parse_double_strict(right, &b)) {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  }
+
+  int cmp = strcmp(left, right);
+  return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
+}
+
+static int compare_terms_for_sort(Term *left, Term *right) {
+  Env empty = { 0 };
+  left = deref(left, &empty);
+  right = deref(right, &empty);
+
+  int left_rank = term_type_rank(left);
+  int right_rank = term_type_rank(right);
+  if (left_rank != right_rank) return left_rank < right_rank ? -1 : 1;
+
+  if (left->type == TERM_VAR) {
+    int cmp = strcmp(left->name, right->name);
+    return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
+  }
+
+  if (left->type == TERM_NUMBER) return compare_numbers_for_sort(left->name, right->name);
+
+  if (left->type == TERM_ATOM || left->type == TERM_STRING) {
+    int cmp = strcmp(left->name, right->name);
+    return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
+  }
+
+  int cmp = strcmp(left->name, right->name);
+  if (cmp != 0) return cmp < 0 ? -1 : 1;
+  if (left->arity != right->arity) return left->arity < right->arity ? -1 : 1;
+
+  for (int i = 0; i < left->arity; i++) {
+    cmp = compare_terms_for_sort(left->args[i], right->args[i]);
+    if (cmp != 0) return cmp;
+  }
+  return 0;
+}
+
+static int compare_term_ptrs_for_sort(const void *left, const void *right) {
+  Term *const *a = left;
+  Term *const *b = right;
+  return compare_terms_for_sort(*a, *b);
+}
+
 static bool builtin_nth0(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
   Term **items = NULL;
   int len = 0;
@@ -2586,6 +2665,70 @@ static bool builtin_member(Term *goal, Env *env, SolutionCallback callback, void
   }
 
   free(items);
+  return true;
+}
+
+
+typedef struct {
+  Term *template;
+  TermList collected;
+} FindallContext;
+
+static void collect_findall_template(Env *env, void *user_data) {
+  FindallContext *ctx = user_data;
+  term_list_append(&ctx->collected, copy_resolved_term(ctx->template, env));
+}
+
+static bool builtin_findall(Solver *solver, Term *goal, Env *env,
+                            SolutionCallback callback, void *user_data) {
+  Term *template = goal->args[0];
+  Term *inner_goal = goal->args[1];
+  Term *bag = goal->args[2];
+
+  Term *inner_goals[1] = { inner_goal };
+  Env attempt = clone_env(env);
+  Solver collector = *solver;
+  collector.solutions_seen = 0;
+  collector.solution_limit = MAX_SOLUTIONS;
+  collector.active_goals = NULL;
+  collector.active_envs = NULL;
+  collector.active_len = 0;
+  collector.active_cap = 0;
+
+  FindallContext ctx = { template, { NULL, 0, 0 } };
+  solve_goals(&collector, inner_goals, 1, &attempt, 0, collect_findall_template, &ctx);
+
+  Term *result = list_from_items(ctx.collected.items, 0, ctx.collected.len, empty_list_term());
+  Env next = clone_env(env);
+  if (unify(bag, result, &next)) call_once(&next, callback, user_data);
+
+  free(ctx.collected.items);
+  return true;
+}
+
+static bool builtin_sort(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[0], env, &items, &len)) return true;
+
+  TermList sorted = { NULL, 0, 0 };
+  for (int i = 0; i < len; i++) term_list_append(&sorted, copy_resolved_term(items[i], env));
+  free(items);
+
+  qsort(sorted.items, sorted.len, sizeof(Term *), compare_term_ptrs_for_sort);
+
+  int unique_len = 0;
+  for (int i = 0; i < sorted.len; i++) {
+    if (unique_len == 0 || compare_terms_for_sort(sorted.items[unique_len - 1], sorted.items[i]) != 0) {
+      sorted.items[unique_len++] = sorted.items[i];
+    }
+  }
+
+  Term *result = list_from_items(sorted.items, 0, unique_len, empty_list_term());
+  Env next = clone_env(env);
+  if (unify(goal->args[1], result, &next)) call_once(&next, callback, user_data);
+
+  free(sorted.items);
   return true;
 }
 
@@ -3017,6 +3160,14 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_not_member(goal, env, callback, user_data);
   }
 
+  if (strcmp(name, "findall") == 0 && arity == 3) {
+    return builtin_findall(solver, goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "sort") == 0 && arity == 2) {
+    return builtin_sort(goal, env, callback, user_data);
+  }
+
   if (strcmp(name, "formula_triple") == 0 && arity == 4) {
     return builtin_formula_triple(goal, env, callback, user_data);
   }
@@ -3131,6 +3282,8 @@ static DeterministicBuiltinResult try_deterministic_builtin(Solver *solver, Term
     handled = builtin_reverse(goal, env, capture_deterministic_solution, &capture);
   } else if (strcmp(name, "not_member") == 0 && arity == 2) {
     handled = builtin_not_member(goal, env, capture_deterministic_solution, &capture);
+  } else if (strcmp(name, "sort") == 0 && arity == 2) {
+    handled = builtin_sort(goal, env, capture_deterministic_solution, &capture);
   }
 
   if (!handled) return DET_BUILTIN_NOT_HANDLED;

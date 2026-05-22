@@ -459,7 +459,7 @@ Processors MAY use indexing, memoization, tabling, compilation, or bottom-up mat
 
 Built-ins that behave as pure relations, such as arithmetic relations over ground numeric inputs or finite list relations, can be understood as fixed interpreted predicates added to the Herbrand base. Their exact modes and numeric behavior are specified in Section 9.
 
-The built-ins `not/1`, `once/1`, date/time predicates, and resource-bounded predicates are operational constructs. They are not part of the pure monotonic Herbrand semantics. Programs that use them are interpreted by the operational rules in Section 9 rather than solely by the least Herbrand model of the pure fragment.
+The built-ins `not/1`, `once/1`, `findall/3`, date/time predicates, and resource-bounded predicates are operational constructs. They are not part of the pure monotonic Herbrand semantics. Programs that use them are interpreted by the operational rules in Section 9 rather than solely by the least Herbrand model of the pure fragment.
 
 ## 9. Built-in predicates
 
@@ -467,7 +467,7 @@ Built-ins are ordinary predicate calls whose meaning is fixed by the language pr
 
 Unless otherwise stated, output arguments may be variables and input arguments SHOULD be sufficiently instantiated to make the operation finite.
 
-The core language deliberately keeps the built-in set small. Common Prolog library predicates that can be written as ordinary Eyelog rules, such as specialized list selectors or domain-specific aggregators, SHOULD normally remain source-level definitions rather than new built-ins. Aggregation predicates such as `findall/3`, ordering predicates such as `sort/2`, cut-based control, and operator-driven arithmetic are outside this language profile unless a processor advertises an explicit extension.
+The core language deliberately keeps the built-in set small. Common Prolog library predicates that can be written as ordinary Eyelog rules, such as specialized list selectors or domain-specific aggregators, SHOULD normally remain source-level definitions rather than new built-ins. `findall/3` and `sort/2` are included because collecting finite solution sets and imposing a deterministic term order are broadly useful across Prolog-style programs. Cut-based control, operator declarations, operator-driven arithmetic, destructive update, dynamic assertion, and general I/O remain outside this language profile unless a processor advertises an explicit extension.
 
 ### 9.1 Equality and unification
 
@@ -552,7 +552,25 @@ Programs that use `local_time/1` are time-dependent and are not pure logical pro
 
 List built-ins are finite-list predicates. Portable programs SHOULD call them with enough instantiated arguments to avoid infinite generation.
 
-### 9.7 Formula terms
+### 9.7 Aggregation and ordering
+
+| Predicate | Meaning |
+| --- | --- |
+| `findall(Template, Goal, Bag)` | Collects one copy of `Template` for every finite solution of `Goal`, preserving solution order and duplicates, and unifies `Bag` with the resulting proper list. |
+| `sort(List, Sorted)` | Sorts a known proper list into standard term order and removes duplicate terms. |
+
+`findall/3` executes `Goal` as a finite subquery. Bindings produced inside `Goal` do not escape except through the copied `Template` terms placed in `Bag`. If `Goal` has no solutions, `Bag` is `[]`. Programs SHOULD use `findall/3` only when `Goal` is finite.
+
+`sort/2` requires its first argument to be a known proper list. The ordering profile is: variables, numbers, atom constants, strings, then compounds; numbers compare numerically; atom constants and strings compare lexically; compounds compare by functor, arity, and then arguments from left to right. `sort/2` removes duplicates according to this term order.
+
+Examples:
+
+```prolog
+findall(X, parent(X, alice), Parents).
+sort([3, 1, 2, 1], [1, 2, 3]).
+```
+
+### 9.8 Formula terms
 
 | Predicate | Meaning |
 | --- | --- |
@@ -566,7 +584,7 @@ formula_triple((triple(a, b, c), triple(d, e, f)), S, P, O).
 
 This yields the two triples in the formula term.
 
-### 9.8 String and atom-constant construction
+### 9.9 String and atom-constant construction
 
 | Predicate | Meaning |
 | --- | --- |
@@ -579,7 +597,7 @@ This yields the two triples in the formula term.
 
 `matches/2` supports a simple alternation profile such as `"diabetes|medical"`. It is not a full regular-expression language.
 
-### 9.9 Search control
+### 9.10 Search control
 
 | Predicate | Meaning |
 | --- | --- |
@@ -597,7 +615,7 @@ not((visited(Node, Path), blocked(Node)))
 once((member(X, List), lt(X, 10)))
 ```
 
-### 9.10 Finite constraint helper
+### 9.11 Finite constraint helper
 
 | Predicate | Meaning |
 | --- | --- |
@@ -671,7 +689,7 @@ A processor conforms to the Eyelog core profile when it accepts and correctly ev
 - facts and definite Horn clauses;
 - variables, atom constants, quoted atom constants, strings, numbers, compound terms, lists, and comma terms;
 - unification and left-to-right conjunction;
-- the built-ins in Sections 9.1 through 9.9, except where marked as extension-specific;
+- the built-ins in Sections 9.1 through 9.10, except where marked as extension-specific;
 - `triple/3` as an ordinary user predicate.
 
 ### 13.2 Extension profile

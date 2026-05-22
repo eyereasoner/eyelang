@@ -158,6 +158,8 @@ run 'list not member query' bash -c './bin/eyelog --query "not_member(d, [a, b, 
 run 'list rest query' bash -c './bin/eyelog --query "rest([a, b, c], X)" examples/list-collection.pl | grep -q "rest(\[a, b, c\], \[b, c\])."'
 run 'list nth0 query' bash -c './bin/eyelog --query "nth0(2, [a, b, c], X)" test/eyelog-syntax.pl | grep -q "nth0(2, \[a, b, c\], c)."'
 run 'list set_nth0 query' bash -c './bin/eyelog --query "set_nth0(1, [a, b, c], X, z)" test/eyelog-syntax.pl | grep -q "set_nth0(1, \[a, b, c\], \[a, z, c\], z)."'
+run 'findall collects duplicate solutions' bash -c 'printf "p(a).\np(b).\np(a).\n" | ./bin/eyelog --query "findall(X, p(X), L)" - | grep -Fq "findall(X, p(X), [a, b, a])."'
+run 'sort orders and removes duplicates' bash -c './bin/eyelog --query "sort([3, 1, 2, 1], S)" test/eyelog-syntax.pl | grep -Fq "sort([3, 1, 2, 1], [1, 2, 3])."'
 run 'log not equal query' bash -c './bin/eyelog --query "neq(dp_P1, dp_P2)" examples/dining-philosophers.pl | grep -q "neq(dp_P1, dp_P2)."'
 run 'risk path selects B' bash -c './bin/eyelog examples/dijkstra-risk-path.pl | grep -q "triple(dijkstraRiskPath, selects, pathB)."'
 run 'gps recommends direct route' bash -c './bin/eyelog examples/gps.pl | grep -q "triple(decision, recommendedRoute, routeDirect)."'
@@ -240,6 +242,8 @@ run 'peano arithmetic derives unary sum and product' bash -c './bin/eyelog examp
 run 'graph reachability finds positive and negative cases' bash -c './bin/eyelog examples/graph-reachability.pl | grep -Fq "triple(reachability_case, reachable, path(a, f))." && ./bin/eyelog examples/graph-reachability.pl | grep -Fq "triple(reachability_case, not_reachable, path(b, e))."'
 run 'proof by contrapositive refutes raining' bash -c './bin/eyelog examples/proof-contrapositive.pl | grep -Fq "triple(proof1, refutes, raining)."'
 run 'access control policy passes finite checks' bash -c './bin/eyelog examples/access-control-policy.pl | grep -Fq "triple(test1, status, policy_passed)."'
+run 'dijkstra findall sort derives shortest path' bash -c './bin/eyelog examples/dijkstra-findall-sort.pl | grep -Fq "triple(dijkstra_findall_sort, shortestPath, [a, c, b, d, e, f])."'
+run 'combinatorics findall sort derives ten unique combinations' bash -c './bin/eyelog examples/combinatorics-findall-sort.pl | grep -Fq "triple(combinations_5_choose_3, count, 10)."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

@@ -178,7 +178,7 @@ The repository contains examples across several styles and domains. Each example
 - [`path-discovery.pl`](examples/path-discovery.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), and [`cyclic-path.pl`](examples/cyclic-path.pl) — reachability and guarded recursive closure.
 - [`diamond-property.pl`](examples/diamond-property.pl) — graph property reasoning.
 - [`service-impact.pl`](examples/service-impact.pl) — dependency-impact closure.
-- [`dijkstra.pl`](examples/dijkstra.pl) and [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl) — path search with accumulated costs.
+- [`dijkstra.pl`](examples/dijkstra.pl), [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl), and [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl) — path search with accumulated costs; the `findall`/`sort` variant mirrors a common Prolog frontier pattern.
 
 ### Data, RDF-shaped output, and formula data
 
@@ -203,6 +203,7 @@ The repository contains examples across several styles and domains. Each example
 
 - [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy and Peano-style examples.
 - [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — factorization-style reasoning.
+- [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl) — combinations collected with `findall/3` and canonicalized with `sort/2`.
 - [`quadratic-formula.pl`](examples/quadratic-formula.pl) — roots of quadratic equations.
 - [`statistics-summary.pl`](examples/statistics-summary.pl) — mean and population variance.
 - [`vector-similarity.pl`](examples/vector-similarity.pl) — cosine similarity.
@@ -236,9 +237,9 @@ The repository contains examples across several styles and domains. Each example
 
 ### Eyelet-inspired Prolog ports
 
-Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports avoid adding Prolog library predicates unless they are broadly useful and not cleanly expressible as Eyelog rules. In particular, examples that use `findall/3`, `sort/2`, `select/3`, operator declarations, cut, or infix arithmetic in Prolog are rewritten with ordinary Eyelog predicates, explicit built-ins, and finite `not/1` checks when possible.
+Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: predicates that are clear source-level relations, such as `select/3`, stay written as Eyelog rules, while broadly useful collection and ordering patterns may use the core `findall/3` and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
 
-The current Eyelet-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), and [`access-control-policy.pl`](examples/access-control-policy.pl).
+The current Eyelet-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), and [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl).
 
 ## 5. Golden outputs and tests
 
