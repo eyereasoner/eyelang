@@ -1,5 +1,7 @@
 # eyelog
 
+[![DOI](https://zenodo.org/badge/1242549108.svg)](https://doi.org/10.5281/zenodo.20342331)
+
 `eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
 It materializes distinct `triple/3` consequences by Horn-clause search, with duplicate suppression and guarded recursion for common cyclic closures.
 
