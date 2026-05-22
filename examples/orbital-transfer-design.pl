@@ -1,0 +1,102 @@
+% Ambitious STEM example: Hohmann transfer design from Earth orbit to Mars orbit.
+%
+% The rules combine orbital mechanics, numerical math, and engineering-style
+% mission constraints. Distances are in kilometres, speeds in kilometres per
+% second, and time in days.
+
+mission(mars_hohmann, centralBodyMu_km3_s2, 132712440018.0).
+mission(mars_hohmann, departureOrbitRadius_km, 149597870.7).
+mission(mars_hohmann, arrivalOrbitRadius_km, 227939200.0).
+mission(mars_hohmann, deltaVBudget_km_s, 6.0).
+mission(mars_hohmann, pi, 3.141592653589793).
+mission(mars_hohmann, secondsPerDay, 86400.0).
+
+semi_major_axis(Mission, Axis) :-
+  mission(Mission, departureOrbitRadius_km, R1),
+  mission(Mission, arrivalOrbitRadius_km, R2),
+  add(R1, R2, Sum),
+  div(Sum, 2.0, Axis).
+
+circular_speed_at_departure(Mission, Speed) :-
+  mission(Mission, centralBodyMu_km3_s2, Mu),
+  mission(Mission, departureOrbitRadius_km, Radius),
+  div(Mu, Radius, SpeedSquared),
+  pow(SpeedSquared, 0.5, Speed).
+
+circular_speed_at_arrival(Mission, Speed) :-
+  mission(Mission, centralBodyMu_km3_s2, Mu),
+  mission(Mission, arrivalOrbitRadius_km, Radius),
+  div(Mu, Radius, SpeedSquared),
+  pow(SpeedSquared, 0.5, Speed).
+
+transfer_speed_at_departure(Mission, Speed) :-
+  mission(Mission, centralBodyMu_km3_s2, Mu),
+  mission(Mission, departureOrbitRadius_km, Radius),
+  semi_major_axis(Mission, Axis),
+  div(2.0, Radius, TwiceOverRadius),
+  div(1.0, Axis, OneOverAxis),
+  sub(TwiceOverRadius, OneOverAxis, Bracket),
+  mul(Mu, Bracket, SpeedSquared),
+  pow(SpeedSquared, 0.5, Speed).
+
+transfer_speed_at_arrival(Mission, Speed) :-
+  mission(Mission, centralBodyMu_km3_s2, Mu),
+  mission(Mission, arrivalOrbitRadius_km, Radius),
+  semi_major_axis(Mission, Axis),
+  div(2.0, Radius, TwiceOverRadius),
+  div(1.0, Axis, OneOverAxis),
+  sub(TwiceOverRadius, OneOverAxis, Bracket),
+  mul(Mu, Bracket, SpeedSquared),
+  pow(SpeedSquared, 0.5, Speed).
+
+departure_delta_v(Mission, DeltaV) :-
+  transfer_speed_at_departure(Mission, TransferSpeed),
+  circular_speed_at_departure(Mission, CircularSpeed),
+  sub(TransferSpeed, CircularSpeed, DeltaV).
+
+arrival_delta_v(Mission, DeltaV) :-
+  circular_speed_at_arrival(Mission, CircularSpeed),
+  transfer_speed_at_arrival(Mission, TransferSpeed),
+  sub(CircularSpeed, TransferSpeed, DeltaV).
+
+total_delta_v(Mission, Total) :-
+  departure_delta_v(Mission, Depart),
+  arrival_delta_v(Mission, Arrive),
+  add(Depart, Arrive, Total).
+
+transfer_time_days(Mission, Days) :-
+  semi_major_axis(Mission, Axis),
+  mission(Mission, centralBodyMu_km3_s2, Mu),
+  mission(Mission, pi, Pi),
+  mission(Mission, secondsPerDay, SecondsPerDay),
+  pow(Axis, 3.0, AxisCubed),
+  div(AxisCubed, Mu, TimeFactor),
+  pow(TimeFactor, 0.5, HalfPeriodBase),
+  mul(Pi, HalfPeriodBase, Seconds),
+  div(Seconds, SecondsPerDay, Days).
+
+within_delta_v_budget(Mission) :-
+  total_delta_v(Mission, Total),
+  mission(Mission, deltaVBudget_km_s, Budget),
+  le(Total, Budget).
+
+triple(Mission, transferSemiMajorAxis_km, Axis) :-
+  semi_major_axis(Mission, Axis).
+
+triple(Mission, departureDeltaV_km_s, DeltaV) :-
+  departure_delta_v(Mission, DeltaV).
+
+triple(Mission, arrivalDeltaV_km_s, DeltaV) :-
+  arrival_delta_v(Mission, DeltaV).
+
+triple(Mission, totalDeltaV_km_s, Total) :-
+  total_delta_v(Mission, Total).
+
+triple(Mission, transferTime_days, Days) :-
+  transfer_time_days(Mission, Days).
+
+triple(Mission, status, feasible_reference_transfer) :-
+  within_delta_v_budget(Mission).
+
+triple(Mission, reason, "total Hohmann transfer delta-v is within the mission budget") :-
+  within_delta_v_budget(Mission).

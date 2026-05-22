@@ -227,6 +227,7 @@ run 'competitive enzyme kinetics flags significant inhibition' bash -c './bin/ey
 run 'hamming code corrects bit five' bash -c './bin/eyelog examples/hamming-code.pl | grep -q "triple(packet1, errorBit, 5)." && ./bin/eyelog examples/hamming-code.pl | grep -q "triple(packet1, decodedPayload, \[1, 0, 1, 0\])."'
 run 'buck converter ripple design is stable' bash -c './bin/eyelog examples/buck-converter-design.pl | grep -q "triple(regulator1, status, stable_ripple_design)."'
 run 'least squares regression accepts model fit' bash -c './bin/eyelog examples/least-squares-regression.pl | grep -q "triple(regression1, rSquared, 0.64000000000000001)."'
+run 'orbital transfer design is within delta-v budget' bash -c './bin/eyelog examples/orbital-transfer-design.pl | grep -q "triple(mars_hohmann, status, feasible_reference_transfer)."'
 run 'lldm outputs discrepancy alarm' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, type, lld_alarm)."'
 run 'lldm outputs concise discrepancy reason' bash -c './bin/eyelog examples/lldm.pl | grep -q "triple(meas47, lld_discrepancy_cm, -1.9082339805374957)."'
 run 'illegitimate reasoning flags affirming consequent' bash -c './bin/eyelog examples/illegitimate-reasoning.pl | grep -q "triple(arg_affirming_consequent, fallacy, affirming_consequent)."'

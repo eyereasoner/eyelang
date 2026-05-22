@@ -210,6 +210,7 @@ The repository contains examples across several styles and domains.
 ### Science, technology, and engineering
 
 - `ideal-gas-law.pl`, `radioactive-decay.pl`, `pendulum-period.pl` — basic physics/science calculations.
+- `orbital-transfer-design.pl` — Hohmann transfer delta-v and transfer-time check.
 - `competitive-enzyme-kinetics.pl` — enzyme inhibition status.
 - `electrical-rc-filter.pl`, `beam-deflection.pl`, `heat-loss.pl` — engineering calculations.
 - `buck-converter-design.pl` — converter ripple design.
