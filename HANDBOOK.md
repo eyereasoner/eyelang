@@ -791,6 +791,10 @@ The repository includes small examples adapted from the Eyeling examples collect
 - `examples/ideal-gas-law.pl` computes gas pressure from moles, temperature, volume, and a gas constant, then checks an atmospheric-pressure tolerance band.
 - `examples/radioactive-decay.pl` computes elapsed half-lives, remaining activity, and decayed activity for a sample.
 - `examples/pendulum-period.pl` computes the small-angle period of a pendulum and checks it against a target period.
+- `examples/competitive-enzyme-kinetics.pl` models Michaelis-Menten kinetics with competitive inhibition, deriving effective Km, inhibited rate, inhibition fraction, and a significant-inhibition status.
+- `examples/hamming-code.pl` derives Hamming(7,4) syndrome bits, corrects a single-bit error, and decodes the payload.
+- `examples/buck-converter-design.pl` computes buck-converter duty cycle, inductor current ripple, capacitor voltage ripple, and checks ripple limits.
+- `examples/least-squares-regression.pl` reduces a point list to sufficient statistics and derives least-squares slope, intercept, R², and fit status.
 
 For policy-like inputs, annotations, signatures, route networks, and quoted rules, prefer formula-valued data when triples should stay scoped. Keep the outer shape close to the source when possible: an N3 `G log_nameOf { ... }` usually translates well to a top-level `triple(G, log_nameOf, ...)`, not to a separate `named_graph/2` table unless several rules need that indirection.
 For example, `annotation.pl` and `context-association.pl` use top-level `triple(G, log_nameOf, ...)` declarations because that is the shape of the Eyeling inputs. `odrl-dpv-risk-ranked.pl` stores ODRL clauses as `policy_graph(policyGraph1, (triple(S, P, O), ...))` because the policy formula is a domain object that many helper predicates read from. `delfour.pl` uses the same idea for its case, insight, policy, envelope, and signature inputs. In each case rules can inspect a policy or signed payload without asserting every permission, prohibition, constraint, or signed field as a global fact, which is useful when different formulae may contain incompatible clauses.
