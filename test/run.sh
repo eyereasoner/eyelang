@@ -41,6 +41,50 @@ run 'query ancestor' bash -c './bin/eyelog --query "triple(pat, ancestor, X)" ex
 run 'usage shows multiple inputs stdin and URLs' bash -c './bin/eyelog --help | grep -Fq "usage: eyelog [--version] [--query GOAL] [file-or-url.pl|- ...]"'
 run 'multiple input files compose one program' bash -c 'printf "seed(alice).\n" > "$TEST_TMPDIR/multi-a.pl" && printf "triple(X, type, person) :- seed(X).\n" > "$TEST_TMPDIR/multi-b.pl" && ./bin/eyelog "$TEST_TMPDIR/multi-a.pl" "$TEST_TMPDIR/multi-b.pl" | grep -Fq "triple(alice, type, person)."'
 run 'stdin input with dash' bash -c 'printf "triple(stdin, works, true).\n" | ./bin/eyelog - | grep -Fq "triple(stdin, works, true)."'
+run 'interactive stdin exits after one Ctrl-D' bash -c 'python3 - <<"PY"
+import os
+import pty
+import select
+import subprocess
+import sys
+import time
+
+master, slave = pty.openpty()
+proc = subprocess.Popen(["./bin/eyelog", "-"], stdin=slave, stdout=slave, stderr=slave, close_fds=True)
+os.close(slave)
+os.write(master, b"triple(tty, eof, ok).\n")
+time.sleep(0.1)
+os.write(master, b"\x04")
+output = b""
+deadline = time.time() + 3
+while time.time() < deadline:
+    ready, _, _ = select.select([master], [], [], 0.1)
+    if ready:
+        try:
+            chunk = os.read(master, 4096)
+        except OSError:
+            break
+        if not chunk:
+            break
+        output += chunk
+    if proc.poll() is not None:
+        try:
+            while True:
+                chunk = os.read(master, 4096)
+                if not chunk:
+                    break
+                output += chunk
+        except OSError:
+            pass
+        break
+if proc.poll() is None:
+    proc.kill()
+    print(output.decode(errors="replace"))
+    raise SystemExit(1)
+if b"triple(tty, eof, ok)." not in output:
+    print(output.decode(errors="replace"))
+    raise SystemExit(1)
+PY'
 run 'file and stdin inputs compose one program' bash -c 'printf "seed(bob).\n" > "$TEST_TMPDIR/file-plus-stdin.pl" && printf "triple(X, type, streamed) :- seed(X).\n" | ./bin/eyelog "$TEST_TMPDIR/file-plus-stdin.pl" - | grep -Fq "triple(bob, type, streamed)."'
 run 'URL input loads program' bash -c 'printf "triple(url, works, true).\n" > "$TEST_TMPDIR/url-example.pl" && python3 - "$TEST_TMPDIR" <<"PY"
 import os

@@ -572,9 +572,38 @@ static char *read_file(const char *path) {
   return buffer;
 }
 
+static char *read_stdin_interactive(void) {
+  size_t len = 0;
+  size_t cap = 8192;
+  char *buffer = xmalloc(cap);
+
+  for (;;) {
+    char line[4096];
+    if (!fgets(line, sizeof(line), stdin)) {
+      if (ferror(stdin)) {
+        fprintf(stderr, "eyelog: read failed: stdin\n");
+        exit(1);
+      }
+      break;
+    }
+
+    size_t n = strlen(line);
+    if (len + n + 1 > cap) {
+      while (len + n + 1 > cap) cap *= 2;
+      buffer = xrealloc(buffer, cap);
+    }
+    memcpy(buffer + len, line, n);
+    len += n;
+  }
+
+  buffer[len] = '\0';
+  return buffer;
+}
+
 static char *read_stdin_once(bool *used_stdin) {
   if (*used_stdin) die("stdin input '-' can only be used once");
   *used_stdin = true;
+  if (isatty(STDIN_FILENO)) return read_stdin_interactive();
   return read_stream(stdin, "stdin");
 }
 

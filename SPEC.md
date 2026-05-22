@@ -359,9 +359,32 @@ Failure is not an exception. It is ordinary search backtracking.
 
 The language permits recursive rules and generators. Program authors are responsible for writing rules whose selected goals have finite search for the intended queries. A processor MAY impose resource limits.
 
-## 8. Logical reading
+## 8. Herbrand semantics
 
-Ignoring non-monotonic and control built-ins, an Eyelog program denotes a set of definite Horn clauses over the Herbrand universe of its terms.
+This section gives the declarative reading of the pure Eyelog language. It is normative for the pure definite-clause fragment and provides the reference meaning that operational proof search is intended to approximate or realize for terminating queries.
+
+### 8.1 Herbrand universe
+
+The **Herbrand universe** of a program is the set of ground terms that can be built from the constants and functors appearing in the program, plus any implementation-provided constants that are part of supported built-ins.
+
+Atoms, strings, and numbers are constants. Compound functors and list constructors build larger terms. Lists are interpreted through their ordinary nested term structure, so `[a, b]` denotes the same ground term as the corresponding cons-list representation ending in `[]`.
+
+Terms denote themselves. The atom `a` denotes `a`; the compound term `point(3, 4)` denotes `point(3, 4)`. There is no separate object domain hidden behind these symbols in the pure language.
+
+### 8.2 Herbrand base and interpretations
+
+The **Herbrand base** of a program is the set of all ground atoms whose predicate indicators occur in the program or in the language profile, applied to ground terms from the Herbrand universe.
+
+A **Herbrand interpretation** is a subset of the Herbrand base. A ground atom is true in an interpretation when it is a member of that subset.
+
+For example, if `parent/2` and `ancestor/2` occur in a program, then ground atoms such as these are members of the Herbrand base:
+
+```prolog
+parent(pat, jan)
+ancestor(pat, emma)
+```
+
+### 8.3 Facts and rules
 
 A fact:
 
@@ -369,7 +392,7 @@ A fact:
 p(a).
 ```
 
-asserts `p(a)`.
+asserts the ground atom `p(a)` when it is already ground. A non-ground fact represents all of its ground instances.
 
 A rule:
 
@@ -377,9 +400,56 @@ A rule:
 p(X) :- q(X), r(X).
 ```
 
-states that `p(X)` holds whenever `q(X)` and `r(X)` hold.
+states that every ground instance of `p(X)` is true whenever the corresponding ground instances of `q(X)` and `r(X)` are true.
 
-The pure fragment is monotonic: adding clauses can add answers but does not invalidate existing answers. The built-ins `not/1`, `once/1`, date/time predicates, and resource-bounded predicates are operational and are not part of the pure monotonic fragment.
+All variables in a clause are universally quantified over that clause. A rule is satisfied by an interpretation when every ground instance whose body atoms are true also has its head atom true.
+
+### 8.4 Immediate consequence operator
+
+For a pure program `P`, the immediate consequence operator `T_P` maps a Herbrand interpretation `I` to a new interpretation containing every ground head `H` for which there is a ground instance of a program clause:
+
+```prolog
+H :- B1, ..., Bn.
+```
+
+where each body atom `B1` through `Bn` is true in `I`. A fact is the special case where `n = 0`; its head is always produced by `T_P`.
+
+Repeated application from the empty interpretation constructs the least fixed point:
+
+```text
+T_P^0(∅) = ∅
+T_P^{n+1}(∅) = T_P(T_P^n(∅))
+```
+
+The union of these stages is the least Herbrand model for finite pure definite programs, and it is the intended declarative meaning of the pure fragment.
+
+### 8.5 Least-model reading
+
+The intended meaning of a pure Eyelog program is its **least Herbrand model**: the smallest Herbrand interpretation that satisfies all facts and rules in the program.
+
+This least-model reading makes the pure fragment monotonic. Adding facts or rules can add consequences, but it cannot invalidate consequences that were already true.
+
+The common public-output convention follows directly from this reading: a ground fact
+
+```prolog
+triple(S, P, O)
+```
+
+is a materialized consequence when it belongs to the least Herbrand model of the program.
+
+### 8.6 Relationship to proof search
+
+The operational procedure in Section 7 is a top-down proof procedure. For the pure definite-clause fragment, successful finite derivations are sound with respect to the least Herbrand model: every answer found by proof search is a logical consequence of the program.
+
+For terminating pure programs with sufficient search coverage, proof search is also complete for the queried answers. Programs with left recursion, infinite generators, or insufficiently instantiated goals may diverge operationally even when the least-model meaning is well defined.
+
+Processors MAY use indexing, memoization, tabling, compilation, or bottom-up materialization when those techniques preserve the least-model answers for the supported language profile.
+
+### 8.7 Built-ins, control, and non-pure constructs
+
+Built-ins that behave as pure relations, such as arithmetic relations over ground numeric inputs or finite list relations, can be understood as fixed interpreted predicates added to the Herbrand base. Their exact modes and numeric behavior are specified in Section 9.
+
+The built-ins `not/1`, `once/1`, date/time predicates, and resource-bounded predicates are operational constructs. They are not part of the pure monotonic Herbrand semantics. Programs that use them are interpreted by the operational rules in Section 9 rather than solely by the least Herbrand model of the pure fragment.
 
 ## 9. Built-in predicates
 
