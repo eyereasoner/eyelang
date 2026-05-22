@@ -3,6 +3,8 @@
 `eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
 It materializes distinct `triple/3` consequences by Horn-clause search, with duplicate suppression and guarded recursion for common cyclic closures.
 
+Its inherent potential comes from the small, general Horn-clause core: unification, goal-directed proof search, and `triple/3` materialization provide a compact foundation on which RDF reasoning, graph algorithms, transformations, and higher-level rule languages can be built. The theoretical underpinning is deliberately simple and well understood, making `eyelog` a lightweight logic kernel rather than a large specialized reasoner.
+
 Current version: see [`VERSION`](VERSION).
 
 Try it in the [browser playground](https://eyereasoner.github.io/eyelog/playground).
