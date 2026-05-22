@@ -202,7 +202,7 @@ The repository contains examples across several styles and domains. Each example
 
 ### Arithmetic and mathematics
 
-- [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy and Peano-style examples.
+- [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy examples; `peano-arithmetic.pl` mirrors the EYE Peano query `(1 * 2 + 3)! = 5!`.
 - [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — factorization-style reasoning.
 - [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl) — combinations collected with `findall/3` and canonicalized with `sort/2`.
 - [`quine-mccluskey.pl`](examples/quine-mccluskey.pl) — Boolean minimization with generated implicants and sorted covers.
@@ -234,7 +234,7 @@ The repository contains examples across several styles and domains. Each example
 - [`bayes-diagnosis.pl`](examples/bayes-diagnosis.pl) and [`bayes-therapy.pl`](examples/bayes-therapy.pl) — probability-style decision examples.
 - [`bmi.pl`](examples/bmi.pl) and [`age.pl`](examples/age.pl) — healthcare-flavored examples.
 - [`complex.pl`](examples/complex.pl), [`fft8-numeric.pl`](examples/fft8-numeric.pl), [`gd-step-certified.pl`](examples/gd-step-certified.pl) — numeric examples.
-- [`basic-monadic.pl`](examples/basic-monadic.pl) — compact monadic-benchmark summary with duplicate-heavy relations.
+- [`basic-monadic.pl`](examples/basic-monadic.pl) — EYE-style Basic Monadic Benchmark port deriving the 1518 ten-step `cycle` triples from the ten `1tt*.ttl` inputs.
 - [`d3-group.pl`](examples/d3-group.pl) — subgroup enumeration for the dihedral group of order 6.
 - [`kaprekar.pl`](examples/kaprekar.pl), [`takeuchi.pl`](examples/takeuchi.pl), [`turing.pl`](examples/turing.pl), [`superdense-coding.pl`](examples/superdense-coding.pl) — algorithmic demonstrations.
 - [`illegitimate-reasoning.pl`](examples/illegitimate-reasoning.pl) — fallacy detection with concise reason triples.
@@ -243,7 +243,7 @@ The repository contains examples across several styles and domains. Each example
 
 Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: predicates that are clear source-level relations, such as `select/3`, stay written as Eyelog rules, while broadly useful collection and ordering patterns may use the core `findall/3` and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
 
-The current Eyelet-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), and [`d3-group.pl`](examples/d3-group.pl).
+The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), and [`d3-group.pl`](examples/d3-group.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
 
 ## 5. Golden outputs and tests
 
@@ -313,7 +313,131 @@ Eyelog is a compact top-down Horn-clause engine. The following habits keep examp
 - prefer built-ins such as `nth0/3` and `set_nth0/4` over hand-written deep recursive list traversal when appropriate;
 - avoid intentionally enumerating huge unconstrained spaces unless that is the point of the example.
 
-The implementation indexes user clauses by predicate and by bound scalar arguments. This helps all predicates, not just `triple/3`, especially when a goal has a bound atom/string/number argument.
+### 7.1 Clause indexing
+
+Indexing is an implementation optimization, not part of the language semantics. A correct program must not depend on which index is chosen. The language-level meaning remains the least-model/proof-search behavior described in [SPEC.md](SPEC.md); indexing only narrows the clauses that must be tried for a goal.
+
+At load time, Eyelog groups every user clause by the predicate indicator of its head:
+
+```text
+name/arity -> candidate clauses
+```
+
+For example, all `edge/3` clauses are kept in one predicate group, all `path/2` clauses in another, and all `triple/3` clauses in another. This first-level index applies to every predicate, not only `triple/3`.
+
+Within each predicate group, Eyelog also builds scalar argument indexes. A head argument is indexable when it is a simple scalar term: an atom constant, string, or number. Variables and compound terms are not scalar keys. For a predicate such as `edge/3`, clauses with heads like these contribute entries to per-argument indexes:
+
+```prolog
+edge(g1, a, b).
+edge(g1, b, c).
+edge(g2, a, d).
+```
+
+Conceptually, the indexes look like this:
+
+```text
+edge/3 argument 0:
+  g1 -> [edge(g1,a,b), edge(g1,b,c)]
+  g2 -> [edge(g2,a,d)]
+
+edge/3 argument 1:
+  a  -> [edge(g1,a,b), edge(g2,a,d)]
+  b  -> [edge(g1,b,c)]
+
+edge/3 argument 2:
+  b  -> [edge(g1,a,b)]
+  c  -> [edge(g1,b,c)]
+  d  -> [edge(g2,a,d)]
+```
+
+Rules whose head has a variable or compound at a position are kept in that argument index's fallback list, because they may still match any query value at that position:
+
+```prolog
+edge(G, X, Y) :- base_edge(G, X, Y).
+```
+
+At solve time, when a goal has one or more bound scalar arguments, Eyelog chooses the most selective available argument index: the bucket with the fewest matching clauses plus fallback clauses. A goal such as:
+
+```prolog
+edge(g1, a, X)
+```
+
+can use either the `g1` bucket for argument 0 or the `a` bucket for argument 1. Eyelog picks the smaller candidate set and still checks unification afterwards, so indexing cannot introduce incorrect answers.
+
+Eyelog also builds two-argument scalar indexes for every pair of argument positions. For `edge/3`, that means indexes for `(0,1)`, `(0,2)`, and `(1,2)`. A goal with two bound scalar arguments can therefore use a more selective composite key:
+
+```prolog
+edge(g1, a, X)
+```
+
+can use the conceptual key `(argument 0 = g1, argument 1 = a)`, often reducing candidate clauses much more than either single argument alone. This is especially useful for join-heavy datasets such as graph, RDF-shaped, and benchmark examples.
+
+The final filtering step is always unification. The index is only a candidate selector:
+
+```text
+select indexed candidates -> reject impossible scalar mismatches -> unify -> solve body
+```
+
+### 7.2 Ground-fact fast path
+
+A clause with no body and a ground head is a ground fact:
+
+```prolog
+edge(g1, a, b).
+```
+
+Ground facts do not need variable freshening. Eyelog therefore unifies a selected ground fact directly with the current goal. Rules and non-ground facts still go through ordinary clause freshening, because their variables must be kept distinct for each use.
+
+This optimization matters for fact-heavy programs. The EYE-style Basic Monadic example contains thousands of ground `edge/3` facts and derives 1518 `cycle` triples; the ground-fact fast path and two-argument indexes avoid repeatedly copying those facts as if they were general rules.
+
+### 7.3 Writing index-friendly rules
+
+The most useful indexing advice is the same as in many Prolog systems: put selective, already-bound goals early in a rule body. For example, this shape is usually index-friendly:
+
+```prolog
+triple(Node, status, reachable) :-
+  start(Start),
+  edge(Graph, Start, Node),
+  allowed_graph(Graph).
+```
+
+If `Start` or `Graph` is already bound when `edge/3` is called, the argument or pair indexes can narrow the fact scan. By contrast, a very open goal such as:
+
+```prolog
+edge(Graph, From, To)
+```
+
+has no bound scalar argument and must enumerate the whole predicate group. That can be correct, but it is naturally more expensive.
+
+For RDF-shaped data, do not assume only the subject position is important. Eyelog indexes every scalar argument, so these can all be selective:
+
+```prolog
+triple(alice, P, O).
+triple(S, rdf_type, person).
+triple(S, knows, bob).
+```
+
+When two positions are known, the pair index may be better still:
+
+```prolog
+triple(S, rdf_type, person).
+edge(graph1, From, To).
+measurement(case42, temperature, Value).
+```
+
+### 7.4 Current indexing limits
+
+The current indexes are deliberately simple:
+
+- they index predicate name and arity;
+- they index scalar constants in individual head arguments;
+- they index scalar-constant pairs in head arguments;
+- they keep variable or compound head arguments in fallback lists;
+- they do not index inside compound terms;
+- they do not reorder goals automatically;
+- they do not replace memoization for recursive computations.
+
+For recursive closures or repeated deterministic subcomputations, use `memoize(Name, Arity).` in addition to writing selective goals.
 
 The browser build has stricter call-stack limits than native execution. Several examples use native built-ins and iterative internals to reduce WebAssembly stack pressure, but deeply recursive search can still be more demanding in the browser than on the command line.
 

@@ -493,6 +493,7 @@ typedef struct {
   Term *head;
   int body_len;
   Term **body;
+  bool head_ground;
 } Clause;
 
 typedef struct {
@@ -515,12 +516,20 @@ typedef struct {
 } ArgumentIndex;
 
 typedef struct {
+  int left;
+  int right;
+  ArgumentIndex index;
+} CompositeIndex;
+
+typedef struct {
   char *name;
   int arity;
   int *clause_indexes;
   int len;
   int cap;
   ArgumentIndex *arg_indexes;
+  CompositeIndex *pair_indexes;
+  int pair_len;
   bool memoized;
 } PredicateGroup;
 
@@ -674,6 +683,16 @@ static char *read_input_source(const char *path, bool *used_stdin) {
   return read_file(path);
 }
 
+
+static bool term_is_ground(Term *term) {
+  if (!term) return true;
+  if (term->type == TERM_VAR) return false;
+  for (int i = 0; i < term->arity; i++) {
+    if (!term_is_ground(term->args[i])) return false;
+  }
+  return true;
+}
+
 static void add_clause(Program *program, Clause clause) {
   if (program->len == program->cap) {
     program->cap = program->cap ? program->cap * 2 : 1024;
@@ -771,6 +790,32 @@ static void index_clause_argument(PredicateGroup *group, Term *arg, int arg_inde
   add_clause_index(&index->fallback_indexes, &index->fallback_len, &index->fallback_cap, clause_index);
 }
 
+static char *composite_key2(const char *left, const char *right) {
+  size_t left_len = strlen(left);
+  size_t right_len = strlen(right);
+  char *key = xmalloc(left_len + right_len + 2);
+  memcpy(key, left, left_len);
+  key[left_len] = '\x1f';
+  memcpy(key + left_len + 1, right, right_len + 1);
+  return key;
+}
+
+static void index_clause_pair(CompositeIndex *pair, Term *head, int clause_index) {
+  ArgumentIndex *index = &pair->index;
+  Term *left = head->args[pair->left];
+  Term *right = head->args[pair->right];
+
+  if (simple_scalar(left) && simple_scalar(right)) {
+    char *key = composite_key2(left->name, right->name);
+    ClauseIndexBucket *bucket = ensure_arg_bucket(index, key);
+    free(key);
+    add_clause_index(&bucket->clause_indexes, &bucket->len, &bucket->cap, clause_index);
+    return;
+  }
+
+  add_clause_index(&index->fallback_indexes, &index->fallback_len, &index->fallback_cap, clause_index);
+}
+
 typedef struct Env Env;
 static Term *deref(Term *term, Env *env);
 
@@ -813,6 +858,30 @@ static ClauseCandidates select_clause_candidates(PredicateGroup *group, Term *go
     }
   }
 
+  for (int i = 0; i < group->pair_len; i++) {
+    CompositeIndex *pair = &group->pair_indexes[i];
+    Term *left = deref(goal->args[pair->left], env);
+    Term *right = deref(goal->args[pair->right], env);
+    if (!simple_scalar(left) || !simple_scalar(right)) continue;
+
+    char *key = composite_key2(left->name, right->name);
+    ArgumentIndex *index = &pair->index;
+    ClauseIndexBucket *bucket = find_arg_bucket(index, key);
+    free(key);
+
+    int bucket_len = bucket ? bucket->len : 0;
+    int candidate_len = bucket_len + index->fallback_len;
+    if (!indexed || candidate_len < best_len) {
+      best.primary_indexes = bucket ? bucket->clause_indexes : NULL;
+      best.primary_len = bucket_len;
+      best.fallback_indexes = index->fallback_indexes;
+      best.fallback_len = index->fallback_len;
+      best_len = candidate_len;
+      indexed = true;
+      if (best_len == 0) break;
+    }
+  }
+
   return indexed ? best : all_group_clauses(group);
 }
 
@@ -841,11 +910,22 @@ static void index_clause(Program *program, int clause_index) {
     group->len = 0;
     group->cap = 0;
     group->arg_indexes = head->arity ? xcalloc((size_t)head->arity, sizeof(ArgumentIndex)) : NULL;
+    group->pair_len = head->arity > 1 ? (head->arity * (head->arity - 1)) / 2 : 0;
+    group->pair_indexes = group->pair_len ? xcalloc((size_t)group->pair_len, sizeof(CompositeIndex)) : NULL;
+    int pair_index = 0;
+    for (int left = 0; left < head->arity; left++) {
+      for (int right = left + 1; right < head->arity; right++) {
+        group->pair_indexes[pair_index].left = left;
+        group->pair_indexes[pair_index].right = right;
+        pair_index++;
+      }
+    }
     group->memoized = false;
   }
 
   add_clause_index(&group->clause_indexes, &group->len, &group->cap, clause_index);
   for (int i = 0; i < head->arity; i++) index_clause_argument(group, head->args[i], i, clause_index);
+  for (int i = 0; i < group->pair_len; i++) index_clause_pair(&group->pair_indexes[i], head, clause_index);
 }
 
 
@@ -896,6 +976,7 @@ static void parse_source_into_program(Program *program, const char *source) {
 
     expect(&parser, TOK_DOT, ".");
     advance(&parser);
+    clause.head_ground = term_is_ground(clause.head);
     add_clause(program, clause);
     index_clause(program, program->len - 1);
   }
@@ -1088,7 +1169,8 @@ static Clause fresh_clause(Clause *clause) {
   Clause fresh = {
     fresh_term(clause->head, id),
     clause->body_len,
-    xmalloc(sizeof(Term *) * (clause->body_len ? clause->body_len : 1))
+    xmalloc(sizeof(Term *) * (clause->body_len ? clause->body_len : 1)),
+    clause->head_ground
   };
   for (int i = 0; i < clause->body_len; i++) fresh.body[i] = fresh_term(clause->body[i], id);
   return fresh;
@@ -3336,6 +3418,14 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
     for (int i = 0; i < clause_count && solver->solutions_seen < solver->solution_limit; i++) {
       Clause *clause = &solver->program->clauses[clause_indexes[i]];
       if (clause_head_cannot_match(goal, clause, env)) continue;
+
+      if (clause->body_len == 0 && clause->head_ground) {
+        Env next = clone_env(env);
+        if (unify(goal, clause->head, &next)) {
+          solve_goals(solver, rest, rest_len, &next, depth + 1, callback, user_data);
+        }
+        continue;
+      }
 
       Clause fresh = fresh_clause(clause);
       Env next = clone_env(env);

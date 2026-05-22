@@ -238,7 +238,7 @@ run 'clinical trial screening keeps only eligible candidate' bash -c './bin/eyel
 run 'microgrid dispatch preserves reserve' bash -c './bin/eyelog examples/microgrid-dispatch.pl | grep -q "triple(campus_interval_17, status, stable_dispatch)." && ./bin/eyelog examples/microgrid-dispatch.pl | grep -q "triple(campus_interval_17, reserveAfterDispatch_kW, 80.0)."'
 run 'manufacturing quality control flags one capable and one adjustment' bash -c './bin/eyelog examples/manufacturing-quality-control.pl | grep -q "triple(line8_shift_b, status, capable_process)." && ./bin/eyelog examples/manufacturing-quality-control.pl | grep -q "triple(line7_shift_a, status, needs_process_adjustment)."'
 run 'security incident correlation escalates only confirmed compromise' bash -c './bin/eyelog examples/security-incident-correlation.pl | grep -q "triple(inc42, status, escalate_to_incident_response)." && ! ./bin/eyelog examples/security-incident-correlation.pl | grep -q "inc43"'
-run 'peano arithmetic derives unary sum and product' bash -c './bin/eyelog examples/peano-arithmetic.pl | grep -Fq "triple(peano_case, sum, s(s(s(s(s(0))))))." && ./bin/eyelog examples/peano-arithmetic.pl | grep -Fq "triple(peano_case, product, s(s(s(s(s(s(0)))))))."'
+run 'peano arithmetic follows EYE factorial query' bash -c './bin/eyelog examples/peano-arithmetic.pl | grep -Fq "triple(s(s(s(s(s(0))))), factorial,"'
 run 'graph reachability finds positive and negative cases' bash -c './bin/eyelog examples/graph-reachability.pl | grep -Fq "triple(reachability_case, reachable, path(a, f))." && ./bin/eyelog examples/graph-reachability.pl | grep -Fq "triple(reachability_case, not_reachable, path(b, e))."'
 run 'proof by contrapositive refutes raining' bash -c './bin/eyelog examples/proof-contrapositive.pl | grep -Fq "triple(proof1, refutes, raining)."'
 run 'access control policy passes finite checks' bash -c './bin/eyelog examples/access-control-policy.pl | grep -Fq "triple(test1, status, policy_passed)."'
@@ -247,7 +247,7 @@ run 'combinatorics findall sort derives ten unique combinations' bash -c './bin/
 run 'eulerian path findall sort derives circuit' bash -c './bin/eyelog examples/eulerian-path.pl | grep -Fq "triple(eulerian_path_case, edgeCount, 11)." && ./bin/eyelog examples/eulerian-path.pl | grep -Fq "triple(eulerian_path_case, path, [v1, v2, v3, v4, v5, v1, v3, v6, v2, v4, v6, v1])."'
 run 'd3 group findall sort enumerates subgroups' bash -c './bin/eyelog examples/d3-group.pl | grep -Fq "triple(d3_group, subgroupCount, 6)."'
 run 'quine mccluskey findall sort derives minimal cover' bash -c './bin/eyelog examples/quine-mccluskey.pl | grep -Fq "triple(quine_mccluskey, minimalCover, [[0, 0, x, x], [x, x, 1, 1]])."'
-run 'basic monadic findall sort summarizes classes' bash -c './bin/eyelog examples/basic-monadic.pl | grep -Fq "triple(basic_monadic, entityCount, 29)." && ./bin/eyelog examples/basic-monadic.pl | grep -Fq "triple(basic_monadic, selfLoops, [i_11, i_75, i_76, i_93])."'
+run 'basic monadic matches EYE ten-step answer count' bash -c 'out=$(./bin/eyelog examples/basic-monadic.pl); test "$(printf "%s\n" "$out" | wc -l | tr -d " " )" = 1518 && printf "%s\n" "$out" | grep -Fq "triple(i12, cycle, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45])."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
