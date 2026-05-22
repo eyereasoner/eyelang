@@ -244,6 +244,10 @@ run 'proof by contrapositive refutes raining' bash -c './bin/eyelog examples/pro
 run 'access control policy passes finite checks' bash -c './bin/eyelog examples/access-control-policy.pl | grep -Fq "triple(test1, status, policy_passed)."'
 run 'dijkstra findall sort derives shortest path' bash -c './bin/eyelog examples/dijkstra-findall-sort.pl | grep -Fq "triple(dijkstra_findall_sort, shortestPath, [a, c, b, d, e, f])."'
 run 'combinatorics findall sort derives ten unique combinations' bash -c './bin/eyelog examples/combinatorics-findall-sort.pl | grep -Fq "triple(combinations_5_choose_3, count, 10)."'
+run 'eulerian path findall sort derives circuit' bash -c './bin/eyelog examples/eulerian-path.pl | grep -Fq "triple(eulerian_path_case, edgeCount, 11)." && ./bin/eyelog examples/eulerian-path.pl | grep -Fq "triple(eulerian_path_case, path, [v1, v2, v3, v4, v5, v1, v3, v6, v2, v4, v6, v1])."'
+run 'd3 group findall sort enumerates subgroups' bash -c './bin/eyelog examples/d3-group.pl | grep -Fq "triple(d3_group, subgroupCount, 6)."'
+run 'quine mccluskey findall sort derives minimal cover' bash -c './bin/eyelog examples/quine-mccluskey.pl | grep -Fq "triple(quine_mccluskey, minimalCover, [[0, 0, x, x], [x, x, 1, 1]])."'
+run 'basic monadic findall sort summarizes classes' bash -c './bin/eyelog examples/basic-monadic.pl | grep -Fq "triple(basic_monadic, entityCount, 29)." && ./bin/eyelog examples/basic-monadic.pl | grep -Fq "triple(basic_monadic, selfLoops, [i_11, i_75, i_76, i_93])."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

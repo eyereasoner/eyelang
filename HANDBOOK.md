@@ -179,6 +179,7 @@ The repository contains examples across several styles and domains. Each example
 - [`diamond-property.pl`](examples/diamond-property.pl) — graph property reasoning.
 - [`service-impact.pl`](examples/service-impact.pl) — dependency-impact closure.
 - [`dijkstra.pl`](examples/dijkstra.pl), [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl), and [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl) — path search with accumulated costs; the `findall`/`sort` variant mirrors a common Prolog frontier pattern.
+- [`eulerian-path.pl`](examples/eulerian-path.pl) — Eulerian circuit search with canonicalized graph data.
 
 ### Data, RDF-shaped output, and formula data
 
@@ -204,6 +205,7 @@ The repository contains examples across several styles and domains. Each example
 - [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy and Peano-style examples.
 - [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — factorization-style reasoning.
 - [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl) — combinations collected with `findall/3` and canonicalized with `sort/2`.
+- [`quine-mccluskey.pl`](examples/quine-mccluskey.pl) — Boolean minimization with generated implicants and sorted covers.
 - [`quadratic-formula.pl`](examples/quadratic-formula.pl) — roots of quadratic equations.
 - [`statistics-summary.pl`](examples/statistics-summary.pl) — mean and population variance.
 - [`vector-similarity.pl`](examples/vector-similarity.pl) — cosine similarity.
@@ -232,6 +234,8 @@ The repository contains examples across several styles and domains. Each example
 - [`bayes-diagnosis.pl`](examples/bayes-diagnosis.pl) and [`bayes-therapy.pl`](examples/bayes-therapy.pl) — probability-style decision examples.
 - [`bmi.pl`](examples/bmi.pl) and [`age.pl`](examples/age.pl) — healthcare-flavored examples.
 - [`complex.pl`](examples/complex.pl), [`fft8-numeric.pl`](examples/fft8-numeric.pl), [`gd-step-certified.pl`](examples/gd-step-certified.pl) — numeric examples.
+- [`basic-monadic.pl`](examples/basic-monadic.pl) — compact monadic-benchmark summary with duplicate-heavy relations.
+- [`d3-group.pl`](examples/d3-group.pl) — subgroup enumeration for the dihedral group of order 6.
 - [`kaprekar.pl`](examples/kaprekar.pl), [`takeuchi.pl`](examples/takeuchi.pl), [`turing.pl`](examples/turing.pl), [`superdense-coding.pl`](examples/superdense-coding.pl) — algorithmic demonstrations.
 - [`illegitimate-reasoning.pl`](examples/illegitimate-reasoning.pl) — fallacy detection with concise reason triples.
 
@@ -239,7 +243,7 @@ The repository contains examples across several styles and domains. Each example
 
 Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: predicates that are clear source-level relations, such as `select/3`, stay written as Eyelog rules, while broadly useful collection and ordering patterns may use the core `findall/3` and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
 
-The current Eyelet-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), and [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl).
+The current Eyelet-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), and [`d3-group.pl`](examples/d3-group.pl).
 
 ## 5. Golden outputs and tests
 
