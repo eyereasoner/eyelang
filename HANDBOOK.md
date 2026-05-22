@@ -218,9 +218,11 @@ The repository contains examples across several styles and domains. Each example
 
 - [`ideal-gas-law.pl`](examples/ideal-gas-law.pl), [`radioactive-decay.pl`](examples/radioactive-decay.pl), [`pendulum-period.pl`](examples/pendulum-period.pl) — basic physics/science calculations.
 - [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl) — EYE-inspired Bayesian/heuristic world comparison for exoplanet validation.
+- [`ev-range-worlds.pl`](examples/ev-range-worlds.pl) — EYE-inspired EV range estimation across optimistic, speed-aware, physics-aware, and cautious worlds.
 - [`orbital-transfer-design.pl`](examples/orbital-transfer-design.pl) — Hohmann transfer delta-v and transfer-time check.
 - [`competitive-enzyme-kinetics.pl`](examples/competitive-enzyme-kinetics.pl) — enzyme inhibition status.
 - [`electrical-rc-filter.pl`](examples/electrical-rc-filter.pl), [`beam-deflection.pl`](examples/beam-deflection.pl), [`heat-loss.pl`](examples/heat-loss.pl) — engineering calculations.
+- [`dairy-energy-balance.pl`](examples/dairy-energy-balance.pl) and [`field-nitrogen-balance.pl`](examples/field-nitrogen-balance.pl) — EYE-inspired agricultural balance calculations with explanatory status triples.
 - [`buck-converter-design.pl`](examples/buck-converter-design.pl) — converter ripple design.
 - [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl) — EYE-inspired alternative-world braking safety classifications.
 - [`cache-performance.pl`](examples/cache-performance.pl), [`canary-release.pl`](examples/canary-release.pl), [`network-sla.pl`](examples/network-sla.pl), [`hamming-code.pl`](examples/hamming-code.pl) — technology-domain checks.
@@ -229,6 +231,7 @@ The repository contains examples across several styles and domains. Each example
 ### Representative applied scenarios
 
 - [`clinical-trial-screening.pl`](examples/clinical-trial-screening.pl) — protocol-style inclusion/exclusion screening with concise reasons.
+- [`epidemic-policy.pl`](examples/epidemic-policy.pl) — EYE-inspired outbreak policy selection from risk and cost factors.
 - [`microgrid-dispatch.pl`](examples/microgrid-dispatch.pl) — reserve-aware battery dispatch and grid-import feasibility.
 - [`manufacturing-quality-control.pl`](examples/manufacturing-quality-control.pl) — Cpk capability classification for production runs.
 - [`security-incident-correlation.pl`](examples/security-incident-correlation.pl) — security signal correlation for incident escalation.
@@ -247,7 +250,7 @@ The repository contains examples across several styles and domains. Each example
 
 Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: predicates that are clear source-level relations, such as `select/3`, stay written as Eyelog rules, while broadly useful collection and ordering patterns may use the core `findall/3` and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
 
-The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), [`d3-group.pl`](examples/d3-group.pl), [`four-color-map.pl`](examples/four-color-map.pl), [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl), [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl), and [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
+The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), [`d3-group.pl`](examples/d3-group.pl), [`four-color-map.pl`](examples/four-color-map.pl), [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl), [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl), [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl), [`ev-range-worlds.pl`](examples/ev-range-worlds.pl), [`dairy-energy-balance.pl`](examples/dairy-energy-balance.pl), [`field-nitrogen-balance.pl`](examples/field-nitrogen-balance.pl), and [`epidemic-policy.pl`](examples/epidemic-policy.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
 
 ## 5. Golden outputs and tests
 
