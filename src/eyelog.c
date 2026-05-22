@@ -10,6 +10,10 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#ifndef __EMSCRIPTEN__
+#include <sys/types.h>
+#include <sys/wait.h>
+#endif
 
 #ifndef EYELOG_VERSION
 #define EYELOG_VERSION "0.0.0"
@@ -529,6 +533,33 @@ typedef struct {
   int group_cap;
 } Program;
 
+static char *read_stream(FILE *stream, const char *label) {
+  size_t len = 0;
+  size_t cap = 8192;
+  char *buffer = xmalloc(cap);
+
+  for (;;) {
+    if (len + 4096 + 1 > cap) {
+      cap *= 2;
+      buffer = xrealloc(buffer, cap);
+    }
+
+    size_t n = fread(buffer + len, 1, cap - len - 1, stream);
+    len += n;
+
+    if (n == 0) {
+      if (ferror(stream)) {
+        fprintf(stderr, "eyelog: read failed: %s\n", label);
+        exit(1);
+      }
+      break;
+    }
+  }
+
+  buffer[len] = '\0';
+  return buffer;
+}
+
 static char *read_file(const char *path) {
   FILE *file = fopen(path, "rb");
   if (!file) {
@@ -536,15 +567,82 @@ static char *read_file(const char *path) {
     exit(1);
   }
 
-  fseek(file, 0, SEEK_END);
-  long length = ftell(file);
-  fseek(file, 0, SEEK_SET);
-
-  char *buffer = xmalloc((size_t)length + 1);
-  if (fread(buffer, 1, (size_t)length, file) != (size_t)length) die("read failed");
-  buffer[length] = '\0';
+  char *buffer = read_stream(file, path);
   fclose(file);
   return buffer;
+}
+
+static char *read_stdin_once(bool *used_stdin) {
+  if (*used_stdin) die("stdin input '-' can only be used once");
+  *used_stdin = true;
+  return read_stream(stdin, "stdin");
+}
+
+static bool is_http_url(const char *text) {
+  return strncmp(text, "http://", 7) == 0 || strncmp(text, "https://", 8) == 0;
+}
+
+#ifndef __EMSCRIPTEN__
+static char *read_command_output(const char *const argv[], const char *label, bool *ok) {
+  int pipefd[2];
+  if (pipe(pipefd) != 0) die("could not create pipe for URL fetch");
+
+  pid_t pid = fork();
+  if (pid < 0) die("could not fork for URL fetch");
+
+  if (pid == 0) {
+    close(pipefd[0]);
+    if (dup2(pipefd[1], STDOUT_FILENO) < 0) _exit(127);
+    close(pipefd[1]);
+    execvp(argv[0], (char *const *)argv);
+    _exit(127);
+  }
+
+  close(pipefd[1]);
+  FILE *stream = fdopen(pipefd[0], "rb");
+  if (!stream) die("could not read URL fetch output");
+  char *buffer = read_stream(stream, label);
+  fclose(stream);
+
+  int status = 0;
+  if (waitpid(pid, &status, 0) < 0) die("could not wait for URL fetch");
+
+  *ok = WIFEXITED(status) && WEXITSTATUS(status) == 0;
+  if (!*ok) {
+    free(buffer);
+    return NULL;
+  }
+
+  return buffer;
+}
+
+static char *read_url(const char *url) {
+  bool ok = false;
+
+  const char *const curl_argv[] = { "curl", "-fsSL", "--", url, NULL };
+  char *buffer = read_command_output(curl_argv, url, &ok);
+  if (ok) return buffer;
+
+  const char *const wget_argv[] = { "wget", "-qO-", "--", url, NULL };
+  buffer = read_command_output(wget_argv, url, &ok);
+  if (ok) return buffer;
+
+  fprintf(stderr, "eyelog: could not fetch URL: %s\n", url);
+  fprintf(stderr, "eyelog: install curl or wget, or download the file first\n");
+  exit(1);
+}
+#else
+static char *read_url(const char *url) {
+  (void)url;
+  die("URL inputs are not supported by the WebAssembly command-line runtime");
+  return NULL;
+}
+#endif
+
+static char *read_input_source(const char *path, bool *used_stdin) {
+  if (strcmp(path, "-") == 0) return read_stdin_once(used_stdin);
+  if (is_http_url(path)) return read_url(path);
+  return read_file(path);
 }
 
 static void add_clause(Program *program, Clause clause) {
@@ -745,10 +843,8 @@ static void mark_memoized_predicates(Program *program) {
   }
 }
 
-static Program parse_program(const char *path) {
-  char *source = read_file(path);
+static void parse_source_into_program(Program *program, const char *source) {
   Parser parser = { source, 0, strlen(source), 1, 0, { TOK_EOF, NULL, 1 } };
-  Program program = { 0 };
 
   advance(&parser);
   while (parser.token.type != TOK_EOF) {
@@ -771,12 +867,31 @@ static Program parse_program(const char *path) {
 
     expect(&parser, TOK_DOT, ".");
     advance(&parser);
-    add_clause(&program, clause);
-    index_clause(&program, program.len - 1);
+    add_clause(program, clause);
+    index_clause(program, program->len - 1);
+  }
+
+  free_token(&parser.token);
+}
+
+static Program parse_program_text(const char *source) {
+  Program program = { 0 };
+  parse_source_into_program(&program, source);
+  mark_memoized_predicates(&program);
+  return program;
+}
+
+static Program parse_inputs(int input_count, const char **inputs) {
+  Program program = { 0 };
+  bool used_stdin = false;
+
+  for (int i = 0; i < input_count; i++) {
+    char *source = read_input_source(inputs[i], &used_stdin);
+    parse_source_into_program(&program, source);
+    free(source);
   }
 
   mark_memoized_predicates(&program);
-  free(source);
   return program;
 }
 
@@ -3280,7 +3395,7 @@ static void print_default_output(Program *program) {
 /* ------------------------------------------------------------------------- */
 
 static void print_usage(FILE *stream) {
-  fprintf(stream, "usage: eyelog [--version] [--query GOAL] FILE.pl\n");
+  fprintf(stream, "usage: eyelog [--version] [--query GOAL] [file-or-url.pl|- ...]\n");
 }
 
 static void print_version(void) {
@@ -3291,27 +3406,7 @@ static Term *parse_query_goal(const char *query) {
   char *source = NULL;
   if (asprintf(&source, "q(%s).", query) < 0) die("out of memory");
 
-  const char *tmpdir = getenv("TMPDIR");
-  if (!tmpdir || !tmpdir[0]) tmpdir = "/tmp";
-
-  char *path = NULL;
-  if (asprintf(&path, "%s/eyelog-query-XXXXXX", tmpdir) < 0) die("out of memory");
-
-  int fd = mkstemp(path);
-  if (fd < 0) die("could not create query temp file");
-
-  FILE *file = fdopen(fd, "w");
-  if (!file) {
-    remove(path);
-    free(path);
-    die("could not open query temp file");
-  }
-  fputs(source, file);
-  fclose(file);
-
-  Program program = parse_program(path);
-  remove(path);
-  free(path);
+  Program program = parse_program_text(source);
   free(source);
 
   return program.clauses[0].head->args[0];
@@ -3326,29 +3421,37 @@ static void print_query_solution(Env *env, void *user_data) {
 
 int main(int argc, char **argv) {
   const char *query = NULL;
-  const char *file = NULL;
+  const char **inputs = xmalloc(sizeof(char *) * (size_t)argc);
+  int input_count = 0;
+  bool end_options = false;
 
   for (int i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
+    if (!end_options && strcmp(argv[i], "--") == 0) {
+      end_options = true;
+    } else if (!end_options && (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)) {
       print_version();
+      free(inputs);
       return 0;
-    } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+    } else if (!end_options && (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)) {
       print_usage(stdout);
+      free(inputs);
       return 0;
-    } else if (strcmp(argv[i], "--query") == 0) {
+    } else if (!end_options && strcmp(argv[i], "--query") == 0) {
       if (++i >= argc) die("missing query after --query");
       query = argv[i];
     } else {
-      file = argv[i];
+      inputs[input_count++] = argv[i];
     }
   }
 
-  if (!file) {
+  if (input_count == 0) {
     print_usage(stderr);
+    free(inputs);
     return 2;
   }
 
-  Program program = parse_program(file);
+  Program program = parse_inputs(input_count, inputs);
+  free(inputs);
 
   if (query) {
     Term *goal = parse_query_goal(query);

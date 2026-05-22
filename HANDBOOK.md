@@ -62,7 +62,31 @@ Then run an example:
 bin/eyelog examples/ancestor.pl
 ```
 
-When you run a file without `--query`, eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping. Operationally, the default query is:
+The command-line interface is:
+
+```text
+usage: eyelog [--version] [--query GOAL] [file-or-url.pl|- ...]
+```
+
+Inputs are parsed into one program before solving, so facts and rules can be split across files:
+
+```sh
+bin/eyelog facts.pl rules.pl
+```
+
+Use `-` to read one input from standard input:
+
+```sh
+printf 'triple(stdin, works, true).\n' | bin/eyelog -
+```
+
+Native builds can also load `http://` or `https://` inputs by invoking `curl` or `wget`:
+
+```sh
+bin/eyelog https://raw.githubusercontent.com/eyereasoner/eyelog/refs/heads/main/examples/ancestor.pl
+```
+
+When you run inputs without `--query`, eyelog materializes distinct `triple/3` consequences by Prolog-like Horn-clause search, with duplicate suppression and a guarded recursion rule that prevents common cyclic closures from looping. Operationally, the default query is:
 
 ```prolog
 triple(S, P, O)
@@ -921,6 +945,8 @@ bin/eyelog --version
 ```
 
 Use `make test` for the native example suite. It cleans and rebuilds `bin/eyelog`, but it does not require Emscripten.
+
+Version `0.6.0` is a minor release because the command-line interface now accepts multiple source inputs, standard input via `-`, and native URL inputs in addition to the previous single-file form.
 
 ### 10.2 Release script
 

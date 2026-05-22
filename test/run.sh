@@ -9,6 +9,7 @@ if [ -t 1 ]; then
 fi
 ok=0; total=0; start=$(date +%s%3N)
 TEST_TMPDIR=$(mktemp -d "${TMPDIR:-/tmp}/eyelog-test.XXXXXX")
+export TEST_TMPDIR
 trap 'rm -rf "$TEST_TMPDIR"' EXIT
 TEST_OUT="$TEST_TMPDIR/out"
 TEST_ERR="$TEST_TMPDIR/err"
@@ -37,6 +38,32 @@ compare_example(){
 section API
 run 'version flag' bash -c './bin/eyelog --version | grep -q "^eyelog $(cat VERSION)$"'
 run 'query ancestor' bash -c './bin/eyelog --query "triple(pat, ancestor, X)" examples/ancestor.pl | grep -q "triple(pat, ancestor, emma)."'
+run 'usage shows multiple inputs stdin and URLs' bash -c './bin/eyelog --help | grep -Fq "usage: eyelog [--version] [--query GOAL] [file-or-url.pl|- ...]"'
+run 'multiple input files compose one program' bash -c 'printf "seed(alice).\n" > "$TEST_TMPDIR/multi-a.pl" && printf "triple(X, type, person) :- seed(X).\n" > "$TEST_TMPDIR/multi-b.pl" && ./bin/eyelog "$TEST_TMPDIR/multi-a.pl" "$TEST_TMPDIR/multi-b.pl" | grep -Fq "triple(alice, type, person)."'
+run 'stdin input with dash' bash -c 'printf "triple(stdin, works, true).\n" | ./bin/eyelog - | grep -Fq "triple(stdin, works, true)."'
+run 'file and stdin inputs compose one program' bash -c 'printf "seed(bob).\n" > "$TEST_TMPDIR/file-plus-stdin.pl" && printf "triple(X, type, streamed) :- seed(X).\n" | ./bin/eyelog "$TEST_TMPDIR/file-plus-stdin.pl" - | grep -Fq "triple(bob, type, streamed)."'
+run 'URL input loads program' bash -c 'printf "triple(url, works, true).\n" > "$TEST_TMPDIR/url-example.pl" && python3 - "$TEST_TMPDIR" <<"PY"
+import os
+import subprocess
+import sys
+import threading
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+root = sys.argv[1]
+handler = partial(SimpleHTTPRequestHandler, directory=root)
+server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
+thread = threading.Thread(target=server.serve_forever, daemon=True)
+thread.start()
+try:
+    url = f"http://127.0.0.1:{server.server_port}/url-example.pl"
+    result = subprocess.run(["./bin/eyelog", url], cwd=os.getcwd(), text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    if "triple(url, works, true)." not in result.stdout:
+        print(result.stdout)
+        print(result.stderr, file=sys.stderr)
+        raise SystemExit(1)
+finally:
+    server.shutdown()
+PY'
 run 'parenthesized conjunction query' bash -c './bin/eyelog --query "(triple(pat, ancestor, X), triple(X, ancestor, emma))" examples/ancestor.pl | grep -q "(triple(pat, ancestor, jan), triple(jan, ancestor, emma))."'
 run 'quoted atom output round-trips' bash -c "./bin/eyelog test/eyelog-syntax.pl | grep -Fq \"triple('quoted atom', p, 'atom with space').\""
 run 'doubled quote in atom query' bash -c "./bin/eyelog --query \"triple('needs''quote', p, X)\" test/eyelog-syntax.pl | grep -Fq \"triple('needs''quote', p, ok).\""

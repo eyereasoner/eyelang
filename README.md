@@ -19,11 +19,14 @@ Build the native command-line executable:
 make cli
 ```
 
-Run an example:
+Run examples, queries, multiple inputs, stdin, or a URL:
 
 ```sh
 bin/eyelog examples/delfour.pl
 bin/eyelog --query 'triple(pat, ancestor, X)' examples/ancestor.pl
+bin/eyelog facts.pl rules.pl
+printf 'triple(stdin, works, true).\n' | bin/eyelog -
+bin/eyelog https://raw.githubusercontent.com/eyereasoner/eyelog/refs/heads/main/examples/ancestor.pl
 ```
 
 The default `make` / `make all` builds both the native CLI and browser assets, so it also requires Emscripten's `emcc`.
