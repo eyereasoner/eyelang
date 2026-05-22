@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "eyelog"
+message: "If you use eyelog, please cite it as below."
+type: software
+authors:
+  - family-names: "De Roo"
+    given-names: "Jos"
+abstract: "A compact C Prolog-style rule engine with an RDF bridge through triple(S, P, O)."
+license: "MIT"
+repository-code: "https://github.com/eyereasoner/eyelog"
+keywords:
+  - Prolog
+  - RDF
+  - logic programming
+  - Horn clauses
+  - reasoning
