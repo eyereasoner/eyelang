@@ -467,6 +467,8 @@ Built-ins are ordinary predicate calls whose meaning is fixed by the language pr
 
 Unless otherwise stated, output arguments may be variables and input arguments SHOULD be sufficiently instantiated to make the operation finite.
 
+The core language deliberately keeps the built-in set small. Common Prolog library predicates that can be written as ordinary Eyelog rules, such as specialized list selectors or domain-specific aggregators, SHOULD normally remain source-level definitions rather than new built-ins. Aggregation predicates such as `findall/3`, ordering predicates such as `sort/2`, cut-based control, and operator-driven arithmetic are outside this language profile unless a processor advertises an explicit extension.
+
 ### 9.1 Equality and unification
 
 | Predicate | Meaning |

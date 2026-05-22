@@ -236,6 +236,10 @@ run 'clinical trial screening keeps only eligible candidate' bash -c './bin/eyel
 run 'microgrid dispatch preserves reserve' bash -c './bin/eyelog examples/microgrid-dispatch.pl | grep -q "triple(campus_interval_17, status, stable_dispatch)." && ./bin/eyelog examples/microgrid-dispatch.pl | grep -q "triple(campus_interval_17, reserveAfterDispatch_kW, 80.0)."'
 run 'manufacturing quality control flags one capable and one adjustment' bash -c './bin/eyelog examples/manufacturing-quality-control.pl | grep -q "triple(line8_shift_b, status, capable_process)." && ./bin/eyelog examples/manufacturing-quality-control.pl | grep -q "triple(line7_shift_a, status, needs_process_adjustment)."'
 run 'security incident correlation escalates only confirmed compromise' bash -c './bin/eyelog examples/security-incident-correlation.pl | grep -q "triple(inc42, status, escalate_to_incident_response)." && ! ./bin/eyelog examples/security-incident-correlation.pl | grep -q "inc43"'
+run 'peano arithmetic derives unary sum and product' bash -c './bin/eyelog examples/peano-arithmetic.pl | grep -Fq "triple(peano_case, sum, s(s(s(s(s(0))))))." && ./bin/eyelog examples/peano-arithmetic.pl | grep -Fq "triple(peano_case, product, s(s(s(s(s(s(0)))))))."'
+run 'graph reachability finds positive and negative cases' bash -c './bin/eyelog examples/graph-reachability.pl | grep -Fq "triple(reachability_case, reachable, path(a, f))." && ./bin/eyelog examples/graph-reachability.pl | grep -Fq "triple(reachability_case, not_reachable, path(b, e))."'
+run 'proof by contrapositive refutes raining' bash -c './bin/eyelog examples/proof-contrapositive.pl | grep -Fq "triple(proof1, refutes, raining)."'
+run 'access control policy passes finite checks' bash -c './bin/eyelog examples/access-control-policy.pl | grep -Fq "triple(test1, status, policy_passed)."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"

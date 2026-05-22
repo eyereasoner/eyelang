@@ -175,7 +175,7 @@ The repository contains examples across several styles and domains. Each example
 ### Core logic and graph reasoning
 
 - [`ancestor.pl`](examples/ancestor.pl) — recursive ancestry.
-- [`path-discovery.pl`](examples/path-discovery.pl) and [`cyclic-path.pl`](examples/cyclic-path.pl) — reachability and guarded recursive closure.
+- [`path-discovery.pl`](examples/path-discovery.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), and [`cyclic-path.pl`](examples/cyclic-path.pl) — reachability and guarded recursive closure.
 - [`diamond-property.pl`](examples/diamond-property.pl) — graph property reasoning.
 - [`service-impact.pl`](examples/service-impact.pl) — dependency-impact closure.
 - [`dijkstra.pl`](examples/dijkstra.pl) and [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl) — path search with accumulated costs.
@@ -185,8 +185,10 @@ The repository contains examples across several styles and domains. Each example
 - [`annotation.pl`](examples/annotation.pl) — formula-valued triples and formula enumeration.
 - [`context-association.pl`](examples/context-association.pl) — naming formula data.
 - [`derived-rule.pl`](examples/derived-rule.pl) — rule-derived test facts.
+- [`proof-contrapositive.pl`](examples/proof-contrapositive.pl) — proof-by-contrapositive encoded with implication facts.
 - [`skolem-functions.pl`](examples/skolem-functions.pl) — deterministic generated resources as ordinary terms.
 - [`odrl-dpv-risk-ranked.pl`](examples/odrl-dpv-risk-ranked.pl) and [`odrl-dpv-healthcare-risk-ranked.pl`](examples/odrl-dpv-healthcare-risk-ranked.pl) — policy/risk examples with ranked output.
+- [`access-control-policy.pl`](examples/access-control-policy.pl) — all-of/any-of/none-of policy checks without aggregation built-ins.
 
 ### Search and puzzles
 
@@ -199,7 +201,7 @@ The repository contains examples across several styles and domains. Each example
 
 ### Arithmetic and mathematics
 
-- [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy examples.
+- [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy and Peano-style examples.
 - [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — factorization-style reasoning.
 - [`quadratic-formula.pl`](examples/quadratic-formula.pl) — roots of quadratic equations.
 - [`statistics-summary.pl`](examples/statistics-summary.pl) — mean and population variance.
@@ -231,6 +233,12 @@ The repository contains examples across several styles and domains. Each example
 - [`complex.pl`](examples/complex.pl), [`fft8-numeric.pl`](examples/fft8-numeric.pl), [`gd-step-certified.pl`](examples/gd-step-certified.pl) — numeric examples.
 - [`kaprekar.pl`](examples/kaprekar.pl), [`takeuchi.pl`](examples/takeuchi.pl), [`turing.pl`](examples/turing.pl), [`superdense-coding.pl`](examples/superdense-coding.pl) — algorithmic demonstrations.
 - [`illegitimate-reasoning.pl`](examples/illegitimate-reasoning.pl) — fallacy detection with concise reason triples.
+
+### Eyelet-inspired Prolog ports
+
+Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports avoid adding Prolog library predicates unless they are broadly useful and not cleanly expressible as Eyelog rules. In particular, examples that use `findall/3`, `sort/2`, `select/3`, operator declarations, cut, or infix arithmetic in Prolog are rewritten with ordinary Eyelog predicates, explicit built-ins, and finite `not/1` checks when possible.
+
+The current Eyelet-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), and [`access-control-policy.pl`](examples/access-control-policy.pl).
 
 ## 5. Golden outputs and tests
 

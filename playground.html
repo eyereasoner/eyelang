@@ -301,6 +301,7 @@
 
   <script type="module">
     const EXAMPLES = [
+  "access-control-policy",
   "ackermann",
   "age",
   "aliases-and-namespaces",
@@ -316,8 +317,8 @@
   "c-core-throughput",
   "c-core-transitive-closure",
   "cache-performance",
-  "clinical-trial-screening",
   "canary-release",
+  "clinical-trial-screening",
   "collatz-1000",
   "competitive-enzyme-kinetics",
   "complex",
@@ -348,6 +349,7 @@
   "gd-step-certified",
   "goldbach-1000",
   "gps",
+  "graph-reachability",
   "gray-code-counter",
   "hamiltonian-path",
   "hamming-code",
@@ -359,9 +361,9 @@
   "least-squares-regression",
   "list-collection",
   "lldm",
+  "manufacturing-quality-control",
   "matrix",
   "microgrid-dispatch",
-  "manufacturing-quality-control",
   "monkey-bananas",
   "n-queens",
   "network-sla",
@@ -369,12 +371,14 @@
   "odrl-dpv-risk-ranked",
   "orbital-transfer-design",
   "path-discovery",
+  "peano-arithmetic",
   "pendulum-period",
   "polynomial",
+  "proof-contrapositive",
   "quadratic-formula",
   "radioactive-decay",
-  "service-impact",
   "security-incident-correlation",
+  "service-impact",
   "skolem-functions",
   "socrates",
   "statistics-summary",
@@ -384,7 +388,7 @@
   "turing",
   "vector-similarity",
   "wolf-goat-cabbage",
-  "zebra"
+  "zebra",
 ];
     const DEFAULT_PROGRAM = "% Socrates is mortal.\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\ntriple(X, type, T) :-\n  type(X, T).\n\ntriple(test, is, true) :-\n  type(socrates, mortal).";
     const STORAGE_KEY = 'eyelog.playground.v2';
