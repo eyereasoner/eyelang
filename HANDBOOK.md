@@ -195,7 +195,7 @@ The repository contains examples across several styles and domains. Each example
 
 ### Search and puzzles
 
-- [`n-queens.pl`](examples/n-queens.pl) — enumerates all 8-queen solutions.
+- [`n-queens.pl`](examples/n-queens.pl) — enumerates all 8-queen solutions using a diagonal-set search encoding.
 - [`sudoku.pl`](examples/sudoku.pl) — solves a Sudoku puzzle.
 - [`zebra.pl`](examples/zebra.pl) — classic zebra puzzle.
 - [`wolf-goat-cabbage.pl`](examples/wolf-goat-cabbage.pl) — river-crossing plans.
@@ -253,7 +253,7 @@ The repository contains examples across several styles and domains. Each example
 
 ### Eyelet-inspired Prolog ports
 
-Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: predicates that are clear source-level relations, such as `select/3`, stay written as Eyelog rules, while broadly useful collection and ordering patterns may use the core `findall/3` and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
+Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: most clear source-level relations stay as Eyelog rules, while broadly useful finite-list and collection patterns may use the core `select/3`, `findall/3`, and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
 
 The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), [`d3-group.pl`](examples/d3-group.pl), [`four-color-map.pl`](examples/four-color-map.pl), [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl), [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl), [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl), [`ev-range-worlds.pl`](examples/ev-range-worlds.pl), [`dairy-energy-balance.pl`](examples/dairy-energy-balance.pl), [`field-nitrogen-balance.pl`](examples/field-nitrogen-balance.pl), and [`epidemic-policy.pl`](examples/epidemic-policy.pl), plus [`nixon-diamond.pl`](examples/nixon-diamond.pl), [`deontic-logic.pl`](examples/deontic-logic.pl), [`gdpr-compliance.pl`](examples/gdpr-compliance.pl), [`complex-matrix-stability.pl`](examples/complex-matrix-stability.pl), [`law-of-cosines.pl`](examples/law-of-cosines.pl), and [`heron-theorem.pl`](examples/heron-theorem.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
 
@@ -403,6 +403,9 @@ Ground facts do not need variable freshening. Eyelog therefore unifies a selecte
 This optimization matters for fact-heavy programs. The EYE-style Basic Monadic example contains thousands of ground `edge/3` facts and derives 1518 `cycle` triples; the ground-fact fast path and two-argument indexes avoid repeatedly copying those facts as if they were general rules.
 
 ### 7.3 Writing index-friendly rules
+
+For permutation-style search, prefer carrying explicit finite sets of used values and constraint keys. For example, the N-Queens example carries occupied columns and the two diagonal families (`Row + Column` and `Row - Column`) so each partial placement is checked before deeper recursion. The `select/3` built-in also avoids expanding a recursive selector rule at every search level.
+
 
 The most useful indexing advice is the same as in many Prolog systems: put selective, already-bound goals early in a rule body. For example, this shape is usually index-friendly:
 

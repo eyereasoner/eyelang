@@ -467,7 +467,7 @@ Built-ins are ordinary predicate calls whose meaning is fixed by the language pr
 
 Unless otherwise stated, output arguments may be variables and input arguments SHOULD be sufficiently instantiated to make the operation finite.
 
-The core language deliberately keeps the built-in set small. Common Prolog library predicates that can be written as ordinary Eyelog rules, such as specialized list selectors or domain-specific aggregators, SHOULD normally remain source-level definitions rather than new built-ins. `findall/3` and `sort/2` are included because collecting finite solution sets and imposing a deterministic term order are broadly useful across Prolog-style programs. Cut-based control, operator declarations, operator-driven arithmetic, destructive update, dynamic assertion, and general I/O remain outside this language profile unless a processor advertises an explicit extension.
+The core language deliberately keeps the built-in set small. Common Prolog library predicates that can be written as ordinary Eyelog rules SHOULD normally remain source-level definitions rather than new built-ins. `findall/3` and `sort/2` are included because collecting finite solution sets and imposing a deterministic term order are broadly useful across Prolog-style programs. `select/3` is included as a finite-list relation because it is a common Prolog building block for search programs and avoids making list permutation examples depend on deep recursive selector code. Cut-based control, operator declarations, operator-driven arithmetic, destructive update, dynamic assertion, and general I/O remain outside this language profile unless a processor advertises an explicit extension.
 
 ### 9.1 Equality and unification
 
@@ -545,12 +545,13 @@ Programs that use `local_time/1` are time-dependent and are not pure logical pro
 | `set_nth0(N, List, Updated, Value)` | `Updated` is `List` with item `N` replaced by `Value`. |
 | `rest(List, Tail)` | `Tail` is the tail of a non-empty list. |
 | `member(Item, List)` | `Item` occurs in `List`. |
+| `select(Item, List, Rest)` | Selects one occurrence of `Item` from a known finite list, leaving `Rest`. |
 | `not_member(Item, List)` | `Item` does not occur in a known finite list. |
 | `reverse(List, Reversed)` | `Reversed` is `List` in reverse order. |
 | `length(List, N)` | `N` is the length of a known proper list. |
 | `is_list(List)` | Succeeds when `List` is a proper list. |
 
-List built-ins are finite-list predicates. Portable programs SHOULD call them with enough instantiated arguments to avoid infinite generation.
+List built-ins are finite-list predicates. Portable programs SHOULD call them with enough instantiated arguments to avoid infinite generation. In the portable profile, `select/3` expects `List` to be a known proper list and enumerates one solution for each position in the list; duplicate items therefore produce duplicate selections.
 
 ### 9.7 Aggregation and ordering
 

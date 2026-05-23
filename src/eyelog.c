@@ -2736,6 +2736,31 @@ static bool builtin_rest(Term *goal, Env *env, SolutionCallback callback, void *
   return true;
 }
 
+
+static bool builtin_select(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[1], env, &items, &len)) return true;
+
+  for (int i = 0; i < len; i++) {
+    Term **rest_items = NULL;
+    if (len > 1) rest_items = xmalloc(sizeof(Term *) * (size_t)(len - 1));
+    int out = 0;
+    for (int j = 0; j < len; j++) {
+      if (j != i) rest_items[out++] = items[j];
+    }
+    Term *rest = list_from_items(rest_items, 0, len - 1, empty_list_term());
+    Env next = clone_env(env);
+    if (unify(goal->args[0], items[i], &next) && unify(goal->args[2], rest, &next)) {
+      call_once(&next, callback, user_data);
+    }
+    free(rest_items);
+  }
+
+  free(items);
+  return true;
+}
+
 static bool builtin_member(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
   Term **items = NULL;
   int len = 0;
@@ -3236,6 +3261,10 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
 
   if (strcmp(name, "member") == 0 && arity == 2) {
     return builtin_member(goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "select") == 0 && arity == 3) {
+    return builtin_select(goal, env, callback, user_data);
   }
 
   if (strcmp(name, "not_member") == 0 && arity == 2) {
