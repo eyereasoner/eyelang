@@ -188,6 +188,7 @@ The repository contains examples across several styles and domains. Each example
 - [`context-association.pl`](examples/context-association.pl) — naming formula data.
 - [`derived-rule.pl`](examples/derived-rule.pl) — rule-derived test facts.
 - [`proof-contrapositive.pl`](examples/proof-contrapositive.pl) — proof-by-contrapositive encoded with implication facts.
+- [`nixon-diamond.pl`](examples/nixon-diamond.pl) — classic conflicting defaults represented as explicit conflict triples.
 - [`skolem-functions.pl`](examples/skolem-functions.pl) — deterministic generated resources as ordinary terms.
 - [`odrl-dpv-risk-ranked.pl`](examples/odrl-dpv-risk-ranked.pl) and [`odrl-dpv-healthcare-risk-ranked.pl`](examples/odrl-dpv-healthcare-risk-ranked.pl) — policy/risk examples with ranked output.
 - [`access-control-policy.pl`](examples/access-control-policy.pl) — all-of/any-of/none-of policy checks without aggregation built-ins.
@@ -206,6 +207,7 @@ The repository contains examples across several styles and domains. Each example
 - [`fibonacci.pl`](examples/fibonacci.pl), [`ackermann.pl`](examples/ackermann.pl), [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`collatz-1000.pl`](examples/collatz-1000.pl), [`goldbach-1000.pl`](examples/goldbach-1000.pl) — integer-heavy examples; `peano-arithmetic.pl` mirrors the EYE Peano query `(1 * 2 + 3)! = 5!`.
 - [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — factorization-style reasoning.
 - [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl) — extended Euclidean algorithm with Bézout coefficients and checks.
+- [`law-of-cosines.pl`](examples/law-of-cosines.pl) and [`heron-theorem.pl`](examples/heron-theorem.pl) — triangle geometry calculations.
 - [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl) — combinations collected with `findall/3` and canonicalized with `sort/2`.
 - [`quine-mccluskey.pl`](examples/quine-mccluskey.pl) — Boolean minimization with generated implicants and sorted covers.
 - [`quadratic-formula.pl`](examples/quadratic-formula.pl) — roots of quadratic equations.
@@ -213,6 +215,7 @@ The repository contains examples across several styles and domains. Each example
 - [`vector-similarity.pl`](examples/vector-similarity.pl) — cosine similarity.
 - [`least-squares-regression.pl`](examples/least-squares-regression.pl) — regression fit summary.
 - [`matrix.pl`](examples/matrix.pl) — determinant, multiplication, and Cholesky-style matrix computations.
+- [`complex-matrix-stability.pl`](examples/complex-matrix-stability.pl) — 2x2 control-system stability via trace, determinant, and discriminant.
 
 ### Science, technology, and engineering
 
@@ -235,6 +238,8 @@ The repository contains examples across several styles and domains. Each example
 - [`microgrid-dispatch.pl`](examples/microgrid-dispatch.pl) — reserve-aware battery dispatch and grid-import feasibility.
 - [`manufacturing-quality-control.pl`](examples/manufacturing-quality-control.pl) — Cpk capability classification for production runs.
 - [`security-incident-correlation.pl`](examples/security-incident-correlation.pl) — security signal correlation for incident escalation.
+- [`deontic-logic.pl`](examples/deontic-logic.pl) — obligations, prohibitions, compensations, and violation reporting.
+- [`gdpr-compliance.pl`](examples/gdpr-compliance.pl) — lawful-basis, minimisation, safeguards, and transfer checks.
 
 ### Other demonstrations
 
@@ -250,7 +255,7 @@ The repository contains examples across several styles and domains. Each example
 
 Several examples are deliberately adapted from the typical Prolog-style programs in Eyelet's `input/` directory. The ports remain conservative about built-ins: predicates that are clear source-level relations, such as `select/3`, stay written as Eyelog rules, while broadly useful collection and ordering patterns may use the core `findall/3` and `sort/2` built-ins. Operator declarations, cut, infix arithmetic, destructive update, and dynamic assertion are still avoided.
 
-The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), [`d3-group.pl`](examples/d3-group.pl), [`four-color-map.pl`](examples/four-color-map.pl), [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl), [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl), [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl), [`ev-range-worlds.pl`](examples/ev-range-worlds.pl), [`dairy-energy-balance.pl`](examples/dairy-energy-balance.pl), [`field-nitrogen-balance.pl`](examples/field-nitrogen-balance.pl), and [`epidemic-policy.pl`](examples/epidemic-policy.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
+The current Eyelet/EYE-inspired set includes [`peano-arithmetic.pl`](examples/peano-arithmetic.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), [`proof-contrapositive.pl`](examples/proof-contrapositive.pl), [`access-control-policy.pl`](examples/access-control-policy.pl), [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl), [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl), [`eulerian-path.pl`](examples/eulerian-path.pl), [`quine-mccluskey.pl`](examples/quine-mccluskey.pl), [`basic-monadic.pl`](examples/basic-monadic.pl), [`d3-group.pl`](examples/d3-group.pl), [`four-color-map.pl`](examples/four-color-map.pl), [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl), [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl), [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl), [`ev-range-worlds.pl`](examples/ev-range-worlds.pl), [`dairy-energy-balance.pl`](examples/dairy-energy-balance.pl), [`field-nitrogen-balance.pl`](examples/field-nitrogen-balance.pl), and [`epidemic-policy.pl`](examples/epidemic-policy.pl), plus [`nixon-diamond.pl`](examples/nixon-diamond.pl), [`deontic-logic.pl`](examples/deontic-logic.pl), [`gdpr-compliance.pl`](examples/gdpr-compliance.pl), [`complex-matrix-stability.pl`](examples/complex-matrix-stability.pl), [`law-of-cosines.pl`](examples/law-of-cosines.pl), and [`heron-theorem.pl`](examples/heron-theorem.pl). The Peano example follows the corresponding EYE Peano query, and Basic Monadic now follows the EYE ten-input benchmark answer cardinality of 1518 cycle triples.
 
 ## 5. Golden outputs and tests
 
