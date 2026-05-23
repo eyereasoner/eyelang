@@ -264,6 +264,11 @@ run 'gdpr compliance distinguishes compliant and noncompliant cases' bash -c './
 run 'complex matrix stability derives stable complex pair' bash -c './bin/eyelog examples/complex-matrix-stability.pl | grep -Fq "triple(controller_loop, status, asymptotically_stable)." && ./bin/eyelog examples/complex-matrix-stability.pl | grep -Fq "triple(controller_loop, eigenShape, complex_conjugate_pair)."'
 run 'law of cosines computes third side' bash -c './bin/eyelog examples/law-of-cosines.pl | grep -Fq "triple(tri60, sideCSquared, 67.0)." && ./bin/eyelog examples/law-of-cosines.pl | grep -Fq "triple(tri60, sideC, 8.1853527718724504)."'
 run 'heron theorem computes survey area' bash -c './bin/eyelog examples/heron-theorem.pl | grep -Fq "triple(field_plot, area, 84.0)." && ./bin/eyelog examples/heron-theorem.pl | grep -Fq "triple(field_plot, status, valid_survey_triangle)."'
+run 'sat dpll finds four models' bash -c './bin/eyelog examples/sat-dpll.pl | grep -Fq "triple(sat_instance, modelCount, 4)." && ./bin/eyelog examples/sat-dpll.pl | grep -Fq "triple(sat_instance, status, satisfiable)."'
+run 'hamiltonian cycle finds ten cycles from fixed start' bash -c './bin/eyelog examples/hamiltonian-cycle.pl | grep -Fq "triple(hamiltonian_cycle, cycleCountFromA, 10)." && ./bin/eyelog examples/hamiltonian-cycle.pl | grep -Fq "triple(hamiltonian_cycle, witness, [a, b, c, d, e, f, a])."'
+run 'cryptarithmetic send more money solves classic puzzle' bash -c './bin/eyelog examples/cryptarithmetic-send-more-money.pl | grep -Fq "triple(send_more_money, equation, plus(9567, 1085, 10652))."'
+run 'exact cover sudoku solves 4x4 puzzle' bash -c './bin/eyelog examples/exact-cover-sudoku.pl | grep -Fq "triple(exact_cover_sudoku, solution, [[1, 2, 3, 4], [3, 4, 1, 2], [2, 1, 4, 3], [4, 3, 2, 1]])."'
+run 'blocks world planner finds three move plan' bash -c './bin/eyelog examples/blocks-world-planning.pl | grep -Fq "triple(blocks_world, plan, [move(c, a, table), move(b, table, a), move(c, table, b)])."'
 section Examples
 for f in examples/*.pl; do
   run "$(basename "$f")" compare_example "$f"
