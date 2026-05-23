@@ -178,7 +178,7 @@ The repository contains examples across several styles and domains. Each example
 - [`path-discovery.pl`](examples/path-discovery.pl), [`graph-reachability.pl`](examples/graph-reachability.pl), and [`cyclic-path.pl`](examples/cyclic-path.pl) — reachability and guarded recursive closure.
 - [`diamond-property.pl`](examples/diamond-property.pl) — graph property reasoning.
 - [`four-color-map.pl`](examples/four-color-map.pl) — EYE-inspired four-colour EU map validation.
-- [`sat-dpll.pl`](examples/sat-dpll.pl) — finite CNF satisfiability search with model collection.
+- [`sat-dpll.pl`](examples/sat-dpll.pl) — finite 8-variable CNF satisfiability search with model collection.
 - [`service-impact.pl`](examples/service-impact.pl) — dependency-impact closure.
 - [`dijkstra.pl`](examples/dijkstra.pl), [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl), and [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl) — path search with accumulated costs; the `findall`/`sort` variant mirrors a common Prolog frontier pattern.
 - [`eulerian-path.pl`](examples/eulerian-path.pl) — Eulerian circuit search with canonicalized graph data.
@@ -196,14 +196,14 @@ The repository contains examples across several styles and domains. Each example
 
 ### Search and puzzles
 
-- [`n-queens.pl`](examples/n-queens.pl) — enumerates all 8-queen solutions using a diagonal-set search encoding.
+- [`n-queens.pl`](examples/n-queens.pl) — enumerates all 8-queen solutions using a commented diagonal-set search encoding; `queens/2` can also enumerate larger boards such as 10 queens.
 - [`sudoku.pl`](examples/sudoku.pl) — solves a Sudoku puzzle.
 - [`zebra.pl`](examples/zebra.pl) — classic zebra puzzle.
 - [`wolf-goat-cabbage.pl`](examples/wolf-goat-cabbage.pl) — river-crossing plans.
-- [`hamiltonian-path.pl`](examples/hamiltonian-path.pl) and [`hamiltonian-cycle.pl`](examples/hamiltonian-cycle.pl) — Hamiltonian path and cycle search.
-- [`cryptarithmetic-send-more-money.pl`](examples/cryptarithmetic-send-more-money.pl) — SEND + MORE = MONEY with column-pruned digit search.
-- [`exact-cover-sudoku.pl`](examples/exact-cover-sudoku.pl) — 4x4 Sudoku expressed as row, column, and box exact covers.
-- [`monkey-bananas.pl`](examples/monkey-bananas.pl) and [`blocks-world-planning.pl`](examples/blocks-world-planning.pl) — planning examples without cut.
+- [`hamiltonian-path.pl`](examples/hamiltonian-path.pl) and [`hamiltonian-cycle.pl`](examples/hamiltonian-cycle.pl) — Hamiltonian path and larger 8-vertex cycle search.
+- [`cryptarithmetic-send-more-money.pl`](examples/cryptarithmetic-send-more-money.pl) — SEND + MORE = MONEY plus DONALD + GERALD = ROBERT with column-pruned digit search.
+- [`exact-cover-sudoku.pl`](examples/exact-cover-sudoku.pl) — 9x9 Sudoku expressed as candidate-row, column, and box exact covers.
+- [`monkey-bananas.pl`](examples/monkey-bananas.pl) and [`blocks-world-planning.pl`](examples/blocks-world-planning.pl) — planning examples without cut, including a five-block/five-move blocks-world search.
 
 ### Arithmetic and mathematics
 
@@ -252,7 +252,7 @@ The repository contains examples across several styles and domains. Each example
 - [`basic-monadic.pl`](examples/basic-monadic.pl) — EYE-style Basic Monadic Benchmark port deriving the 1518 ten-step `cycle` triples from the ten `1tt*.ttl` inputs.
 - [`d3-group.pl`](examples/d3-group.pl) — subgroup enumeration for the dihedral group of order 6.
 - [`kaprekar.pl`](examples/kaprekar.pl), [`takeuchi.pl`](examples/takeuchi.pl), [`turing.pl`](examples/turing.pl), [`superdense-coding.pl`](examples/superdense-coding.pl) — algorithmic demonstrations.
-- [`sat-dpll.pl`](examples/sat-dpll.pl), [`hamiltonian-cycle.pl`](examples/hamiltonian-cycle.pl), [`cryptarithmetic-send-more-money.pl`](examples/cryptarithmetic-send-more-money.pl), [`exact-cover-sudoku.pl`](examples/exact-cover-sudoku.pl), and [`blocks-world-planning.pl`](examples/blocks-world-planning.pl) — no-cut challenge examples covering SAT, graph search, finite-domain arithmetic, exact cover, and planning.
+- [`sat-dpll.pl`](examples/sat-dpll.pl), [`hamiltonian-cycle.pl`](examples/hamiltonian-cycle.pl), [`cryptarithmetic-send-more-money.pl`](examples/cryptarithmetic-send-more-money.pl), [`exact-cover-sudoku.pl`](examples/exact-cover-sudoku.pl), and [`blocks-world-planning.pl`](examples/blocks-world-planning.pl) — larger no-cut challenge examples covering 8-variable SAT, 8-vertex graph search, two cryptarithms, 9x9 exact cover, and five-block planning.
 - [`illegitimate-reasoning.pl`](examples/illegitimate-reasoning.pl) — fallacy detection with concise reason triples.
 
 ### Eyelet-inspired Prolog ports

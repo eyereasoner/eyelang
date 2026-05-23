@@ -1,17 +1,25 @@
 % SAT solving without cut.
 %
 % A compact DPLL-style example for a finite CNF formula.  The program first
-% generates truth assignments, then checks every clause declaratively.  The
-% result reports satisfiability, a witness model, and the number of models.
+% generates truth assignments, then checks every clause declaratively.  This
+% larger instance has eight variables and twelve clauses, so it is still small
+% enough for full model collection but no longer a toy four-variable search.
 
 problem(sat_instance,
-  [a, b, c, d],
+  [a, b, c, d, e, f, g, h],
   [
     [pos(a), pos(b)],
     [neg(a), pos(c)],
-    [neg(b), pos(c)],
-    [neg(c), pos(d)],
-    [neg(d), pos(a)]
+    [neg(b), pos(d)],
+    [pos(c), pos(d)],
+    [neg(c), pos(e)],
+    [neg(d), pos(f)],
+    [pos(e), pos(f)],
+    [neg(e), pos(g)],
+    [neg(f), pos(h)],
+    [pos(g), pos(h)],
+    [neg(g), pos(a)],
+    [neg(h), pos(b)]
   ]).
 
 truth(false).
@@ -52,4 +60,12 @@ triple(sat_instance, modelCount, Count) :-
   findall(Assignment, model(sat_instance, Assignment), Models),
   length(Models, Count).
 
-triple(sat_instance, reason, "finite CNF search succeeds without cut").
+triple(sat_instance, variableCount, Count) :-
+  problem(sat_instance, Variables, _Clauses),
+  length(Variables, Count).
+
+triple(sat_instance, clauseCount, Count) :-
+  problem(sat_instance, _Variables, Clauses),
+  length(Clauses, Count).
+
+triple(sat_instance, reason, "finite 8-variable CNF search succeeds without cut").

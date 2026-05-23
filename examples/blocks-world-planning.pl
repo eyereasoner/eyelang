@@ -1,14 +1,17 @@
 % Blocks-world planning without cut.
 %
-% A finite-depth planner searches for a three-move plan.  States are sorted
-% lists of on(Block, Support) facts so state comparison is structural.
+% A finite-depth planner searches for a five-move plan over five blocks.  States
+% are sorted lists of on(Block, Support) facts so equality and visited-state
+% checks are purely structural.
 
-initial([on(a, table), on(b, table), on(c, a)]).
-goal([on(a, table), on(b, a), on(c, b)]).
+initial([on(a, table), on(b, a), on(c, b), on(d, c), on(e, d)]).
+goal([on(a, table), on(b, a), on(c, table), on(d, c), on(e, d)]).
 
 block(a).
 block(b).
 block(c).
+block(d).
+block(e).
 
 support(table, _State).
 support(Block, State) :-
@@ -33,27 +36,32 @@ move(State, move(Block, From, To), NewState) :-
   select(on(Block, From), State, Rest),
   sort([on(Block, To)|Rest], NewState).
 
-plan(State, Goal, 0, [], State) :-
+plan(State, Goal, 0, _Visited, [], State) :-
   eq(State, Goal).
 
-plan(State, Goal, Depth, [Move|Moves], Final) :-
+plan(State, Goal, Depth, Visited, [Move|Moves], Final) :-
   gt(Depth, 0),
   move(State, Move, Next),
+  not_member(Next, Visited),
   sub(Depth, 1, RestDepth),
-  plan(Next, Goal, RestDepth, Moves, Final).
+  plan(Next, Goal, RestDepth, [Next|Visited], Moves, Final).
 
-three_move_plan(Moves, Final) :-
+five_move_plan(Moves, Final) :-
   initial(Start),
   goal(Goal),
   sort(Start, SortedStart),
   sort(Goal, SortedGoal),
-  plan(SortedStart, SortedGoal, 3, Moves, Final).
+  plan(SortedStart, SortedGoal, 5, [SortedStart], Moves, Final).
 
 triple(blocks_world, status, planned) :-
-  once(three_move_plan(_Moves, _Final)).
+  once(five_move_plan(_Moves, _Final)).
 
 triple(blocks_world, plan, Moves) :-
-  once(three_move_plan(Moves, _Final)).
+  once(five_move_plan(Moves, _Final)).
 
 triple(blocks_world, finalState, Final) :-
-  once(three_move_plan(_Moves, Final)).
+  once(five_move_plan(_Moves, Final)).
+
+triple(blocks_world, blockCount, Count) :-
+  findall(Block, block(Block), Blocks),
+  length(Blocks, Count).

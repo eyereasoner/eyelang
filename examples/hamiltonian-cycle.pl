@@ -1,24 +1,32 @@
 % Hamiltonian cycle without cut.
 %
-% The graph is small but dense enough to have many possible paths.  The program
-% fixes the first vertex to avoid rotational duplicates, carries the remaining
-% vertices explicitly, and closes the cycle back to the start.
+% The graph has eight vertices and enough chords to create a non-trivial search
+% space.  The first vertex is fixed to avoid rotational duplicates; the two
+% cycle directions are still distinct, so the count is for cycles from a fixed
+% start in traversal order.
 
 edge(a, b).
-edge(a, c).
 edge(a, f).
+edge(a, g).
+edge(a, h).
 edge(b, c).
 edge(b, d).
+edge(b, g).
+edge(b, h).
 edge(c, d).
 edge(c, e).
+edge(c, g).
 edge(d, e).
-edge(d, f).
+edge(d, g).
+edge(d, h).
 edge(e, f).
+edge(f, g).
+edge(g, h).
 
 adjacent(X, Y) :- edge(X, Y).
 adjacent(X, Y) :- edge(Y, X).
 
-vertices([a, b, c, d, e, f]).
+vertices([a, b, c, d, e, f, g, h]).
 
 hamiltonian_cycle(Cycle) :-
   vertices([Start|Rest]),
@@ -39,6 +47,10 @@ triple(hamiltonian_cycle, status, exists) :-
 
 triple(hamiltonian_cycle, witness, Cycle) :-
   once(hamiltonian_cycle(Cycle)).
+
+triple(hamiltonian_cycle, vertexCount, Count) :-
+  vertices(Vertices),
+  length(Vertices, Count).
 
 triple(hamiltonian_cycle, cycleCountFromA, Count) :-
   findall(Cycle, hamiltonian_cycle(Cycle), Cycles),
