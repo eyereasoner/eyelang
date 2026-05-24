@@ -36,10 +36,19 @@ Ask a direct query:
 bin/eyelog --query 'triple(pat, ancestor, X)' examples/ancestor.pl
 ```
 
+Explain derived answers or materialized `triple/3` output:
+
+```sh
+bin/eyelog --explain examples/socrates.pl
+bin/eyelog --query 'triple(socrates, type, mortal)' --explain examples/socrates.pl
+```
+
+`--explain` prints a why/because/therefore proof tree. Rule and fact references use clause numbers in source order. Rules are printed in their original, general form; bindings are shown separately as `where` lines before the instantiated conclusion, for example `where X = socrates`.
+
 The command-line usage is:
 
 ```text
-usage: eyelog [--version] [--query GOAL] [file-or-url.pl|- ...]
+usage: eyelog [--version] [--explain] [--query GOAL] [file-or-url.pl|- ...]
 ```
 
 Inputs are parsed into one program before solving, so facts and rules can be split across files:

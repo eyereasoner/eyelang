@@ -681,6 +681,20 @@ In particular, it SHOULD:
 
 Output order is not specified by the language.
 
+### 12.1 Host explanation output
+
+A host environment MAY provide non-normative explanation output for query answers or for materialized `triple/3` answers. Such output is outside the logical language semantics: it MUST NOT change the set of answers.
+
+When a host explains a rule application, it SHOULD preserve the original rule text separately from the substitution that made the rule apply. For example, an explanation may show:
+
+```text
+because rule #2: type(X, mortal) :- type(X, man)
+  where X = socrates
+therefore type(socrates, mortal)
+```
+
+This keeps the general rule auditable while still showing the instantiated proof step that produced the answer.
+
 ## 13. Conformance profiles
 
 ### 13.1 Core profile

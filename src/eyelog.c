@@ -10,6 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdarg.h>
 #ifndef __EMSCRIPTEN__
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -3636,12 +3637,12 @@ static bool lines_contains(Lines *lines, const char *line) {
   }
 }
 
-static void add_line(Lines *lines, const char *line) {
+static bool add_line(Lines *lines, const char *line) {
   if (!lines->set_cap || (lines->set_count + 1) * 10 >= lines->set_cap * 7) {
     lines_rehash(lines, lines->set_cap ? lines->set_cap * 2 : 2048);
   }
 
-  if (lines_contains(lines, line)) return;
+  if (lines_contains(lines, line)) return false;
 
   if (lines->len == lines->cap) {
     lines->cap = lines->cap ? lines->cap * 2 : 1024;
@@ -3651,6 +3652,7 @@ static void add_line(Lines *lines, const char *line) {
   char *copy = xstrdup(line);
   lines->items[lines->len++] = copy;
   lines_insert_existing(lines, copy);
+  return true;
 }
 
 static int compare_lines(const void *left, const void *right) {
@@ -3660,7 +3662,12 @@ static int compare_lines(const void *left, const void *right) {
 typedef struct {
   Lines *lines;
   Term *goal;
+  Program *program;
+  bool explain;
 } PrintContext;
+
+static bool explain_goal(Program *program, Term *goal, Env *env, int depth, int max_depth);
+static Term *resolved_copy(Term *term, Env *env);
 
 static void collect_printed_goal(Env *env, void *user_data) {
   PrintContext *ctx = user_data;
@@ -3670,25 +3677,35 @@ static void collect_printed_goal(Env *env, void *user_data) {
   sb_init(&line);
   sb_append(&line, text);
   sb_append(&line, ".\n");
-  add_line(ctx->lines, line.data);
+  bool added = add_line(ctx->lines, line.data);
+  if (ctx->explain && added) {
+    fputs(line.data, stdout);
+    Term *resolved = resolved_copy(ctx->goal, env);
+    Env empty = { 0 };
+    puts("% why");
+    if (!explain_goal(ctx->program, resolved, &empty, 0, 256)) {
+      puts("% no proof found by the experimental proof printer");
+    }
+  }
 
   free(text);
   free(line.data);
 }
 
-static void print_default_output(Program *program) {
+static void print_default_output(Program *program, bool explain) {
   Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
   Term *args[3] = { new_term(TERM_VAR, "S"), new_term(TERM_VAR, "P"), new_term(TERM_VAR, "O") };
   Term *goal = new_compound("triple", 3, args);
   Term *goals[1] = { goal };
   Env env = { 0 };
   Lines lines = { 0 };
-  PrintContext ctx = { &lines, goal };
+  PrintContext ctx = { &lines, goal, program, explain };
 
   solve_goals(&solver, goals, 1, &env, 0, collect_printed_goal, &ctx);
-  qsort(lines.items, lines.len, sizeof(char *), compare_lines);
-
-  for (int i = 0; i < lines.len; i++) fputs(lines.items[i], stdout);
+  if (!explain) {
+    qsort(lines.items, lines.len, sizeof(char *), compare_lines);
+    for (int i = 0; i < lines.len; i++) fputs(lines.items[i], stdout);
+  }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3696,7 +3713,7 @@ static void print_default_output(Program *program) {
 /* ------------------------------------------------------------------------- */
 
 static void print_usage(FILE *stream) {
-  fprintf(stream, "usage: eyelog [--version] [--query GOAL] [file-or-url.pl|- ...]\n");
+  fprintf(stream, "usage: eyelog [--version] [--explain] [--query GOAL] [file-or-url.pl|- ...]\n\nOptions:\n  --version       show version\n  --query GOAL    run GOAL instead of materializing triple/3\n  --explain       include explanations for derived answers/triples\n");
 }
 
 static void print_version(void) {
@@ -3713,15 +3730,238 @@ static Term *parse_query_goal(const char *query) {
   return program.clauses[0].head->args[0];
 }
 
+
+/* ------------------------------------------------------------------------- */
+/* Experimental explanation output                                           */
+/*                                                                           */
+/* --explain deliberately starts small: it prints a valid proof tree for each */
+/* query answer by replaying the resolved query against the program. It does  */
+/* not yet expose the solver's internal search trace, memo table, or all      */
+/* alternative derivations.                                                   */
+/* ------------------------------------------------------------------------- */
+
+typedef struct {
+  Program *program;
+  Term *goal;
+  bool explain;
+} QueryContext;
+
+static void explain_indent(int depth) {
+  for (int i = 0; i < depth; i++) fputs("  ", stdout);
+}
+
+static void explain_line(int depth, const char *fmt, ...) {
+  explain_indent(depth);
+  va_list args;
+  va_start(args, fmt);
+  vprintf(fmt, args);
+  va_end(args);
+  putchar('\n');
+}
+
+static char *goals_to_string(Term **goals, int goal_count, Env *env) {
+  StringBuilder sb;
+  sb_init(&sb);
+  for (int i = 0; i < goal_count; i++) {
+    if (i) sb_append(&sb, ", ");
+    char *text = term_to_string(goals[i], env, true);
+    sb_append(&sb, text);
+    free(text);
+  }
+  return sb.data;
+}
+
+typedef struct {
+  const char *name;
+  Term *fresh;
+} ExplainSubstitution;
+
+typedef struct {
+  ExplainSubstitution *items;
+  int len;
+  int cap;
+} ExplainSubstitutions;
+
+static ExplainSubstitution *find_explain_substitution(ExplainSubstitutions *subs, const char *name) {
+  for (int i = 0; i < subs->len; i++) {
+    if (strcmp(subs->items[i].name, name) == 0) return &subs->items[i];
+  }
+  return NULL;
+}
+
+static void add_explain_substitution(ExplainSubstitutions *subs, const char *name, Term *fresh) {
+  if (find_explain_substitution(subs, name)) return;
+  if (subs->len == subs->cap) {
+    subs->cap = subs->cap ? subs->cap * 2 : 8;
+    subs->items = xrealloc(subs->items, sizeof(ExplainSubstitution) * subs->cap);
+  }
+  subs->items[subs->len].name = name;
+  subs->items[subs->len].fresh = fresh;
+  subs->len++;
+}
+
+static void collect_explain_substitutions(Term *original, Term *fresh, ExplainSubstitutions *subs) {
+  if (!original || !fresh) return;
+  if (original->type == TERM_VAR) {
+    add_explain_substitution(subs, original->name, fresh);
+    return;
+  }
+  if (original->type != TERM_COMPOUND || fresh->type != TERM_COMPOUND) return;
+  int arity = original->arity < fresh->arity ? original->arity : fresh->arity;
+  for (int i = 0; i < arity; i++) collect_explain_substitutions(original->args[i], fresh->args[i], subs);
+}
+
+static void collect_clause_explain_substitutions(Clause *original, Clause *fresh, ExplainSubstitutions *subs) {
+  collect_explain_substitutions(original->head, fresh->head, subs);
+  int body_len = original->body_len < fresh->body_len ? original->body_len : fresh->body_len;
+  for (int i = 0; i < body_len; i++) {
+    collect_explain_substitutions(original->body[i], fresh->body[i], subs);
+  }
+}
+
+static void explain_substitutions(ExplainSubstitutions *subs, Env *env, int depth) {
+  for (int i = 0; i < subs->len; i++) {
+    Term *resolved = deref(subs->items[i].fresh, env);
+    if (resolved->type == TERM_VAR) continue;
+    char *value = term_to_string(subs->items[i].fresh, env, true);
+    explain_line(depth, "where %s = %s", subs->items[i].name, value);
+    free(value);
+  }
+}
+
+static bool explain_goals(Program *program, Term **goals, int goal_count, Env *env, int depth, int max_depth);
+
+static bool explain_goal(Program *program, Term *goal, Env *env, int depth, int max_depth) {
+  if (depth > max_depth) {
+    explain_line(depth, "... depth limit reached");
+    return false;
+  }
+
+  char *goal_text = term_to_string(goal, env, true);
+  explain_line(depth, "need %s", goal_text);
+  free(goal_text);
+
+  if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
+    Term *expanded[MAX_BODY];
+    int expanded_len = append_conjunction_goals(goal, expanded, 0, MAX_BODY);
+    return explain_goals(program, expanded, expanded_len, env, depth + 1, max_depth);
+  }
+
+  Solver builtin_solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
+  Env builtin_env = { 0 };
+  DeterministicBuiltinResult det = try_deterministic_builtin(&builtin_solver, goal, env, &builtin_env);
+  if (det == DET_BUILTIN_SUCCEEDED) {
+    char *text = term_to_string(goal, &builtin_env, true);
+    explain_line(depth + 1, "builtin %s succeeds", text);
+    free(text);
+    *env = builtin_env;
+    return true;
+  }
+  if (det == DET_BUILTIN_FAILED) {
+    explain_line(depth + 1, "builtin fails");
+    return false;
+  }
+
+  if (goal->type != TERM_COMPOUND) {
+    explain_line(depth + 1, "no rule can prove this non-compound goal");
+    return false;
+  }
+
+  PredicateGroup *group = find_group(program, goal->name, goal->arity);
+  if (!group) {
+    explain_line(depth + 1, "no clauses for %s/%d", goal->name, goal->arity);
+    return false;
+  }
+
+  ClauseCandidates candidates = select_clause_candidates(group, goal, env);
+  for (int pass = 0; pass < 2; pass++) {
+    int *clause_indexes = pass == 0 ? candidates.primary_indexes : candidates.fallback_indexes;
+    int clause_count = pass == 0 ? candidates.primary_len : candidates.fallback_len;
+
+    for (int i = 0; i < clause_count; i++) {
+      Clause *clause = &program->clauses[clause_indexes[i]];
+      if (clause_head_cannot_match(goal, clause, env)) continue;
+
+      Clause fresh = fresh_clause(clause);
+      Env next = clone_env(env);
+      if (!unify(goal, fresh.head, &next)) continue;
+
+      ExplainSubstitutions subs = { 0 };
+      collect_clause_explain_substitutions(clause, &fresh, &subs);
+
+      char *original_head_text = term_to_string(clause->head, env, true);
+      if (fresh.body_len == 0) {
+        explain_line(depth + 1, "because fact #%d: %s", clause_indexes[i] + 1, original_head_text);
+        explain_substitutions(&subs, &next, depth + 2);
+        free(subs.items);
+        free(original_head_text);
+        *env = next;
+        return true;
+      }
+
+      char *original_body_text = goals_to_string(clause->body, clause->body_len, env);
+      explain_line(depth + 1, "because rule #%d: %s :- %s", clause_indexes[i] + 1, original_head_text, original_body_text);
+      explain_substitutions(&subs, &next, depth + 2);
+      free(original_body_text);
+      free(original_head_text);
+      if (explain_goals(program, fresh.body, fresh.body_len, &next, depth + 2, max_depth)) {
+        char *proved_text = term_to_string(goal, &next, true);
+        explain_line(depth + 1, "therefore %s", proved_text);
+        free(proved_text);
+        free(subs.items);
+        *env = next;
+        return true;
+      }
+      free(subs.items);
+    }
+  }
+
+  explain_line(depth + 1, "no matching clause succeeds");
+  return false;
+}
+
+static bool explain_goals(Program *program, Term **goals, int goal_count, Env *env, int depth, int max_depth) {
+  Env current = clone_env(env);
+  for (int i = 0; i < goal_count; i++) {
+    Solver builtin_solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
+    Env next = { 0 };
+    DeterministicBuiltinResult det = try_deterministic_builtin(&builtin_solver, goals[i], &current, &next);
+    if (det == DET_BUILTIN_SUCCEEDED) {
+      char *text = term_to_string(goals[i], &next, true);
+      explain_line(depth, "builtin %s succeeds", text);
+      free(text);
+      current = next;
+      continue;
+    }
+    if (!explain_goal(program, goals[i], &current, depth, max_depth)) return false;
+  }
+  *env = current;
+  return true;
+}
+
+static Term *resolved_copy(Term *term, Env *env) {
+  return copy_resolved_term(term, env);
+}
+
 static void print_query_solution(Env *env, void *user_data) {
-  Term *goal = user_data;
-  char *text = term_to_string(goal, env, true);
+  QueryContext *ctx = user_data;
+  char *text = term_to_string(ctx->goal, env, true);
   printf("%s.\n", text);
   free(text);
+
+  if (ctx->explain) {
+    Term *resolved = resolved_copy(ctx->goal, env);
+    Env empty = { 0 };
+    puts("% why");
+    if (!explain_goal(ctx->program, resolved, &empty, 0, 256)) {
+      puts("% no proof found by the experimental proof printer");
+    }
+  }
 }
 
 int main(int argc, char **argv) {
   const char *query = NULL;
+  bool explain = false;
   const char **inputs = xmalloc(sizeof(char *) * (size_t)argc);
   int input_count = 0;
   bool end_options = false;
@@ -3740,6 +3980,8 @@ int main(int argc, char **argv) {
     } else if (!end_options && strcmp(argv[i], "--query") == 0) {
       if (++i >= argc) die("missing query after --query");
       query = argv[i];
+    } else if (!end_options && strcmp(argv[i], "--explain") == 0) {
+      explain = true;
     } else {
       inputs[input_count++] = argv[i];
     }
@@ -3759,9 +4001,10 @@ int main(int argc, char **argv) {
     Term *goals[1] = { goal };
     Env env = { 0 };
     Solver solver = { &program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
-    solve_goals(&solver, goals, 1, &env, 0, print_query_solution, goal);
+    QueryContext ctx = { &program, goal, explain };
+    solve_goals(&solver, goals, 1, &env, 0, print_query_solution, &ctx);
   } else {
-    print_default_output(&program);
+    print_default_output(&program, explain);
   }
 
   return 0;

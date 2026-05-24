@@ -38,7 +38,8 @@ compare_example(){
 section API
 run 'version flag' bash -c './bin/eyelog --version | grep -q "^eyelog $(cat VERSION)$"'
 run 'query ancestor' bash -c './bin/eyelog --query "triple(pat, ancestor, X)" examples/ancestor.pl | grep -q "triple(pat, ancestor, emma)."'
-run 'usage shows multiple inputs stdin and URLs' bash -c './bin/eyelog --help | grep -Fq "usage: eyelog [--version] [--query GOAL] [file-or-url.pl|- ...]"'
+run 'usage shows explain multiple inputs stdin and URLs' bash -c './bin/eyelog --help | grep -Fq "usage: eyelog [--version] [--explain] [--query GOAL] [file-or-url.pl|- ...]"'
+run 'explain prints original rule and substitution' bash -c './bin/eyelog --explain examples/socrates.pl | grep -Fq "because rule #2: type(X, mortal) :- type(X, man)" && ./bin/eyelog --explain examples/socrates.pl | grep -Fq "where X = socrates"'
 run 'multiple input files compose one program' bash -c 'printf "seed(alice).\n" > "$TEST_TMPDIR/multi-a.pl" && printf "triple(X, type, person) :- seed(X).\n" > "$TEST_TMPDIR/multi-b.pl" && ./bin/eyelog "$TEST_TMPDIR/multi-a.pl" "$TEST_TMPDIR/multi-b.pl" | grep -Fq "triple(alice, type, person)."'
 run 'stdin input with dash' bash -c 'printf "triple(stdin, works, true).\n" | ./bin/eyelog - | grep -Fq "triple(stdin, works, true)."'
 run 'interactive stdin exits after one Ctrl-D' bash -c 'python3 - <<"PY"
