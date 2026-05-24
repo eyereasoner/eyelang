@@ -189,126 +189,127 @@ This can yield `S = alice`, `P = name`, `O = "Alice"` and `S = alice`, `P = know
 
 The repository includes examples for recursion, graph reachability, finite search, arithmetic, list processing, optimization, policies, puzzles, and applied scientific calculations. Bundled examples use relation-style output.
 
-Bundled example files:
+| Input | Short description | Output |
+| --- | --- | --- |
+| [`access-control-policy.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/access-control-policy.pl) | Evaluates role and condition based access decisions. | [`output/access-control-policy.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/access-control-policy.pl) |
+| [`ackermann.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/ackermann.pl) | Computes Ackermann-style hyperoperation values. | [`output/ackermann.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/ackermann.pl) |
+| [`age.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/age.pl) | Checks whether people meet age thresholds. | [`output/age.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/age.pl) |
+| [`aliases-and-namespaces.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/aliases-and-namespaces.pl) | Shows ordinary predicate names for vocabulary aliases. | [`output/aliases-and-namespaces.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/aliases-and-namespaces.pl) |
+| [`allen-interval-calculus.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/allen-interval-calculus.pl) | Classifies interval relations with integer time offsets. | [`output/allen-interval-calculus.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/allen-interval-calculus.pl) |
+| [`ancestor.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/ancestor.pl) | Derives ancestors from parent facts. | [`output/ancestor.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/ancestor.pl) |
+| [`animal.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/animal.pl) | Classifies animals from traits. | [`output/animal.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/animal.pl) |
+| [`annotation.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/annotation.pl) | Derives facts from quoted annotation data. | [`output/annotation.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/annotation.pl) |
+| [`basic-monadic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/basic-monadic.pl) | Runs a monadic benchmark over generated inputs. | [`output/basic-monadic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/basic-monadic.pl) |
+| [`bayes-diagnosis.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/bayes-diagnosis.pl) | Computes scaled Bayesian diagnosis posteriors. | [`output/bayes-diagnosis.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/bayes-diagnosis.pl) |
+| [`bayes-therapy.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/bayes-therapy.pl) | Ranks therapies using Bayesian disease likelihoods. | [`output/bayes-therapy.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/bayes-therapy.pl) |
+| [`beam-deflection.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/beam-deflection.pl) | Computes cantilever beam deflection. | [`output/beam-deflection.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/beam-deflection.pl) |
+| [`blocks-world-planning.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/blocks-world-planning.pl) | Searches a finite blocks-world plan. | [`output/blocks-world-planning.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/blocks-world-planning.pl) |
+| [`bmi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/bmi.pl) | Normalizes BMI inputs and classifies weight. | [`output/bmi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/bmi.pl) |
+| [`braking-safety-worlds.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/braking-safety-worlds.pl) | Classifies braking safety under alternative worlds. | [`output/braking-safety-worlds.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/braking-safety-worlds.pl) |
+| [`buck-converter-design.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/buck-converter-design.pl) | Checks buck-converter ripple design. | [`output/buck-converter-design.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/buck-converter-design.pl) |
+| [`c-core-throughput.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/c-core-throughput.pl) | Materializes many generated throughput relations. | [`output/c-core-throughput.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/c-core-throughput.pl) |
+| [`c-core-transitive-closure.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/c-core-transitive-closure.pl) | Computes a long transitive closure. | [`output/c-core-transitive-closure.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/c-core-transitive-closure.pl) |
+| [`cache-performance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/cache-performance.pl) | Summarizes cache latency performance. | [`output/cache-performance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/cache-performance.pl) |
+| [`canary-release.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/canary-release.pl) | Decides canary rollout or rollback. | [`output/canary-release.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/canary-release.pl) |
+| [`clinical-trial-screening.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/clinical-trial-screening.pl) | Screens candidates for a trial. | [`output/clinical-trial-screening.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/clinical-trial-screening.pl) |
+| [`collatz-1000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/collatz-1000.pl) | Computes shared Collatz trajectories. | [`output/collatz-1000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/collatz-1000.pl) |
+| [`combinatorics-findall-sort.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/combinatorics-findall-sort.pl) | Collects and sorts finite combinations. | [`output/combinatorics-findall-sort.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/combinatorics-findall-sort.pl) |
+| [`competitive-enzyme-kinetics.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/competitive-enzyme-kinetics.pl) | Computes inhibited enzyme reaction rates. | [`output/competitive-enzyme-kinetics.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/competitive-enzyme-kinetics.pl) |
+| [`complex-matrix-stability.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/complex-matrix-stability.pl) | Checks stability of a 2x2 system. | [`output/complex-matrix-stability.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/complex-matrix-stability.pl) |
+| [`complex.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/complex.pl) | Performs arithmetic on complex pairs. | [`output/complex.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/complex.pl) |
+| [`context-association.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/context-association.pl) | Associates named contexts with their contents. | [`output/context-association.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/context-association.pl) |
+| [`control-system.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/control-system.pl) | Evaluates control-system measurements and targets. | [`output/control-system.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/control-system.pl) |
+| [`cryptarithmetic-send-more-money.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/cryptarithmetic-send-more-money.pl) | Solves SEND+MORE and related puzzles. | [`output/cryptarithmetic-send-more-money.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/cryptarithmetic-send-more-money.pl) |
+| [`cyclic-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/cyclic-path.pl) | Computes paths in a cyclic graph. | [`output/cyclic-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/cyclic-path.pl) |
+| [`d3-group.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/d3-group.pl) | Enumerates subgroups of the D3 group. | [`output/d3-group.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/d3-group.pl) |
+| [`dairy-energy-balance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/dairy-energy-balance.pl) | Classifies dairy cow energy balance. | [`output/dairy-energy-balance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/dairy-energy-balance.pl) |
+| [`data-negotiation.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/data-negotiation.pl) | Chooses an accepted data-negotiation offer. | [`output/data-negotiation.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/data-negotiation.pl) |
+| [`deep-taxonomy-10.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deep-taxonomy-10.pl) | Stress-tests recursive taxonomy depth 10. | [`output/deep-taxonomy-10.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deep-taxonomy-10.pl) |
+| [`deep-taxonomy-100.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deep-taxonomy-100.pl) | Stress-tests recursive taxonomy depth 100. | [`output/deep-taxonomy-100.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deep-taxonomy-100.pl) |
+| [`deep-taxonomy-1000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deep-taxonomy-1000.pl) | Stress-tests recursive taxonomy depth 1000. | [`output/deep-taxonomy-1000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deep-taxonomy-1000.pl) |
+| [`deep-taxonomy-10000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deep-taxonomy-10000.pl) | Stress-tests recursive taxonomy depth 10000. | [`output/deep-taxonomy-10000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deep-taxonomy-10000.pl) |
+| [`deep-taxonomy-100000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deep-taxonomy-100000.pl) | Stress-tests recursive taxonomy depth 100000. | [`output/deep-taxonomy-100000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deep-taxonomy-100000.pl) |
+| [`delfour.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/delfour.pl) | Derives shopping and authorization recommendations. | [`output/delfour.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/delfour.pl) |
+| [`deontic-logic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deontic-logic.pl) | Reports obligations, prohibitions, and violations. | [`output/deontic-logic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deontic-logic.pl) |
+| [`derived-rule.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/derived-rule.pl) | Derives conclusions from rule data. | [`output/derived-rule.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/derived-rule.pl) |
+| [`diamond-property.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/diamond-property.pl) | Checks the diamond property of a relation. | [`output/diamond-property.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/diamond-property.pl) |
+| [`dijkstra-findall-sort.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/dijkstra-findall-sort.pl) | Finds shortest paths using collected candidates. | [`output/dijkstra-findall-sort.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/dijkstra-findall-sort.pl) |
+| [`dijkstra-risk-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/dijkstra-risk-path.pl) | Ranks routes by cost and trust. | [`output/dijkstra-risk-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/dijkstra-risk-path.pl) |
+| [`dijkstra.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/dijkstra.pl) | Enumerates weighted simple paths. | [`output/dijkstra.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/dijkstra.pl) |
+| [`dining-philosophers.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/dining-philosophers.pl) | Simulates Chandy-Misra fork exchanges. | [`output/dining-philosophers.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/dining-philosophers.pl) |
+| [`drone-corridor-planner.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/drone-corridor-planner.pl) | Plans bounded drone corridor routes. | [`output/drone-corridor-planner.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/drone-corridor-planner.pl) |
+| [`easter-computus.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/easter-computus.pl) | Computes Gregorian Easter dates. | [`output/easter-computus.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/easter-computus.pl) |
+| [`electrical-rc-filter.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/electrical-rc-filter.pl) | Sizes an RC low-pass filter. | [`output/electrical-rc-filter.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/electrical-rc-filter.pl) |
+| [`epidemic-policy.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/epidemic-policy.pl) | Chooses policies from risk and social cost. | [`output/epidemic-policy.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/epidemic-policy.pl) |
+| [`eulerian-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/eulerian-path.pl) | Finds an Eulerian path using each edge once. | [`output/eulerian-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/eulerian-path.pl) |
+| [`ev-range-worlds.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/ev-range-worlds.pl) | Estimates electric-vehicle trip feasibility. | [`output/ev-range-worlds.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/ev-range-worlds.pl) |
+| [`exact-cover-sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/exact-cover-sudoku.pl) | Solves Sudoku via exact-cover-style constraints. | [`output/exact-cover-sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/exact-cover-sudoku.pl) |
+| [`exoplanet-validation-worlds.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/exoplanet-validation-worlds.pl) | Validates exoplanet candidates across worlds. | [`output/exoplanet-validation-worlds.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/exoplanet-validation-worlds.pl) |
+| [`expression-eval.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/expression-eval.pl) | Evaluates a small arithmetic expression tree. | [`output/expression-eval.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/expression-eval.pl) |
+| [`family-cousins.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/family-cousins.pl) | Derives cousin and family labels. | [`output/family-cousins.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/family-cousins.pl) |
+| [`fastpow.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/fastpow.pl) | Computes powers by repeated squaring. | [`output/fastpow.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/fastpow.pl) |
+| [`fft8-numeric.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/fft8-numeric.pl) | Runs an 8-point FFT over complex pairs. | [`output/fft8-numeric.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/fft8-numeric.pl) |
+| [`fibonacci.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/fibonacci.pl) | Computes large Fibonacci numbers by fast doubling. | [`output/fibonacci.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/fibonacci.pl) |
+| [`field-nitrogen-balance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/field-nitrogen-balance.pl) | Classifies field nitrogen balance. | [`output/field-nitrogen-balance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/field-nitrogen-balance.pl) |
+| [`floating-point.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/floating-point.pl) | Exercises floating-point arithmetic and comparisons. | [`output/floating-point.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/floating-point.pl) |
+| [`four-color-map.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/four-color-map.pl) | Checks a four-colour map assignment. | [`output/four-color-map.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/four-color-map.pl) |
+| [`fundamental-theorem-arithmetic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/fundamental-theorem-arithmetic.pl) | Factors integers and reconstructs products. | [`output/fundamental-theorem-arithmetic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/fundamental-theorem-arithmetic.pl) |
+| [`gcd-bezout-identity.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/gcd-bezout-identity.pl) | Computes gcd and Bézout coefficients. | [`output/gcd-bezout-identity.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/gcd-bezout-identity.pl) |
+| [`gd-step-certified.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/gd-step-certified.pl) | Certifies a gradient-descent step. | [`output/gd-step-certified.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/gd-step-certified.pl) |
+| [`gdpr-compliance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/gdpr-compliance.pl) | Checks GDPR-style processing compliance. | [`output/gdpr-compliance.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/gdpr-compliance.pl) |
+| [`goldbach-1000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/goldbach-1000.pl) | Finds Goldbach prime pairs up to 1000. | [`output/goldbach-1000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/goldbach-1000.pl) |
+| [`gps.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/gps.pl) | Finds and verifies route paths. | [`output/gps.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/gps.pl) |
+| [`graph-reachability.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/graph-reachability.pl) | Derives reachable nodes in a graph. | [`output/graph-reachability.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/graph-reachability.pl) |
+| [`gray-code-counter.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/gray-code-counter.pl) | Generates Gray-code counter states. | [`output/gray-code-counter.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/gray-code-counter.pl) |
+| [`hamiltonian-cycle.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/hamiltonian-cycle.pl) | Finds a Hamiltonian cycle. | [`output/hamiltonian-cycle.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/hamiltonian-cycle.pl) |
+| [`hamiltonian-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/hamiltonian-path.pl) | Finds a Hamiltonian path. | [`output/hamiltonian-path.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/hamiltonian-path.pl) |
+| [`hamming-code.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/hamming-code.pl) | Corrects a single-bit Hamming word. | [`output/hamming-code.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/hamming-code.pl) |
+| [`hanoi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/hanoi.pl) | Derives the Towers of Hanoi moves. | [`output/hanoi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/hanoi.pl) |
+| [`heat-loss.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/heat-loss.pl) | Computes conductive heat loss. | [`output/heat-loss.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/heat-loss.pl) |
+| [`heron-theorem.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/heron-theorem.pl) | Computes triangle area by Heron's theorem. | [`output/heron-theorem.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/heron-theorem.pl) |
+| [`ideal-gas-law.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/ideal-gas-law.pl) | Applies the ideal gas law. | [`output/ideal-gas-law.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/ideal-gas-law.pl) |
+| [`illegitimate-reasoning.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/illegitimate-reasoning.pl) | Detects suspect reasoning patterns. | [`output/illegitimate-reasoning.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/illegitimate-reasoning.pl) |
+| [`kaprekar.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/kaprekar.pl) | Iterates toward Kaprekar's constant. | [`output/kaprekar.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/kaprekar.pl) |
+| [`law-of-cosines.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/law-of-cosines.pl) | Computes a triangle side by cosine law. | [`output/law-of-cosines.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/law-of-cosines.pl) |
+| [`least-squares-regression.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/least-squares-regression.pl) | Fits a least-squares regression line. | [`output/least-squares-regression.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/least-squares-regression.pl) |
+| [`list-collection.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/list-collection.pl) | Demonstrates list and collection built-ins. | [`output/list-collection.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/list-collection.pl) |
+| [`lldm.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/lldm.pl) | Calculates leg-length discrepancy measurements. | [`output/lldm.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/lldm.pl) |
+| [`manufacturing-quality-control.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/manufacturing-quality-control.pl) | Evaluates process capability and quality. | [`output/manufacturing-quality-control.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/manufacturing-quality-control.pl) |
+| [`matrix.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/matrix.pl) | Runs matrix operations over sample inputs. | [`output/matrix.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/matrix.pl) |
+| [`microgrid-dispatch.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/microgrid-dispatch.pl) | Plans microgrid dispatch and reserve. | [`output/microgrid-dispatch.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/microgrid-dispatch.pl) |
+| [`monkey-bananas.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/monkey-bananas.pl) | Solves the monkey-and-bananas puzzle. | [`output/monkey-bananas.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/monkey-bananas.pl) |
+| [`n-queens.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/n-queens.pl) | Searches for N-queens placements. | [`output/n-queens.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/n-queens.pl) |
+| [`network-sla.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/network-sla.pl) | Checks network path SLA compliance. | [`output/network-sla.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/network-sla.pl) |
+| [`newton-raphson.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/newton-raphson.pl) | Finds roots by Newton-Raphson iteration. | [`output/newton-raphson.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/newton-raphson.pl) |
+| [`nixon-diamond.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/nixon-diamond.pl) | Reports the classic Nixon-diamond conflict. | [`output/nixon-diamond.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/nixon-diamond.pl) |
+| [`odrl-dpv-healthcare-risk-ranked.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/odrl-dpv-healthcare-risk-ranked.pl) | Ranks healthcare policy risks and mitigations. | [`output/odrl-dpv-healthcare-risk-ranked.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/odrl-dpv-healthcare-risk-ranked.pl) |
+| [`odrl-dpv-risk-ranked.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/odrl-dpv-risk-ranked.pl) | Ranks data-policy risks and mitigations. | [`output/odrl-dpv-risk-ranked.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/odrl-dpv-risk-ranked.pl) |
+| [`orbital-transfer-design.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/orbital-transfer-design.pl) | Designs a Hohmann orbital transfer. | [`output/orbital-transfer-design.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/orbital-transfer-design.pl) |
+| [`path-discovery.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/path-discovery.pl) | Discovers bounded air-route paths. | [`output/path-discovery.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/path-discovery.pl) |
+| [`peano-arithmetic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/peano-arithmetic.pl) | Computes Peano addition, multiplication, and factorial. | [`output/peano-arithmetic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/peano-arithmetic.pl) |
+| [`peasant.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/peasant.pl) | Performs peasant multiplication and exponentiation. | [`output/peasant.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/peasant.pl) |
+| [`pendulum-period.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/pendulum-period.pl) | Computes simple pendulum periods. | [`output/pendulum-period.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/pendulum-period.pl) |
+| [`polynomial.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/polynomial.pl) | Finds complex integer polynomial roots. | [`output/polynomial.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/polynomial.pl) |
+| [`proof-contrapositive.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/proof-contrapositive.pl) | Models proof by contrapositive. | [`output/proof-contrapositive.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/proof-contrapositive.pl) |
+| [`quadratic-formula.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/quadratic-formula.pl) | Solves sample quadratic equations. | [`output/quadratic-formula.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/quadratic-formula.pl) |
+| [`quine-mccluskey.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/quine-mccluskey.pl) | Minimizes Boolean terms with Quine-McCluskey. | [`output/quine-mccluskey.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/quine-mccluskey.pl) |
+| [`radioactive-decay.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/radioactive-decay.pl) | Computes radioactive decay over time. | [`output/radioactive-decay.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/radioactive-decay.pl) |
+| [`sat-dpll.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/sat-dpll.pl) | Solves a finite SAT instance. | [`output/sat-dpll.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/sat-dpll.pl) |
+| [`security-incident-correlation.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/security-incident-correlation.pl) | Correlates security incidents across signals. | [`output/security-incident-correlation.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/security-incident-correlation.pl) |
+| [`service-impact.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/service-impact.pl) | Analyzes service impact over cyclic dependencies. | [`output/service-impact.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/service-impact.pl) |
+| [`sieve.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/sieve.pl) | Enumerates primes with a sieve-style program. | [`output/sieve.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/sieve.pl) |
+| [`skolem-functions.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/skolem-functions.pl) | Generates deterministic functional terms. | [`output/skolem-functions.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/skolem-functions.pl) |
+| [`socrates.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/socrates.pl) | Derives that Socrates is mortal. | [`output/socrates.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/socrates.pl) |
+| [`statistics-summary.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/statistics-summary.pl) | Computes population statistics for a sample. | [`output/statistics-summary.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/statistics-summary.pl) |
+| [`sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/sudoku.pl) | Solves a 9x9 Sudoku puzzle. | [`output/sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/sudoku.pl) |
+| [`superdense-coding.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/superdense-coding.pl) | Models superdense-coding bit transmission. | [`output/superdense-coding.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/superdense-coding.pl) |
+| [`takeuchi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/takeuchi.pl) | Computes the recursive Takeuchi function. | [`output/takeuchi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/takeuchi.pl) |
+| [`traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/traveling-salesman.pl) | Finds an optimal traveling-salesman tour. | [`output/traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/traveling-salesman.pl) |
+| [`turing.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/turing.pl) | Simulates a binary-increment Turing machine. | [`output/turing.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/turing.pl) |
+| [`vector-similarity.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/vector-similarity.pl) | Computes dot product, norm, and cosine similarity. | [`output/vector-similarity.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/vector-similarity.pl) |
+| [`wolf-goat-cabbage.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/wolf-goat-cabbage.pl) | Solves the wolf-goat-cabbage river crossing. | [`output/wolf-goat-cabbage.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/wolf-goat-cabbage.pl) |
+| [`zebra.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/zebra.pl) | Solves the zebra logic puzzle. | [`output/zebra.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/zebra.pl) |
 
-- [`access-control-policy.pl`](examples/access-control-policy.pl) — Evaluates role and condition based access decisions.
-- [`ackermann.pl`](examples/ackermann.pl) — Computes Ackermann-style hyperoperation values.
-- [`age.pl`](examples/age.pl) — Checks whether people meet age thresholds.
-- [`aliases-and-namespaces.pl`](examples/aliases-and-namespaces.pl) — Shows ordinary predicate names for vocabulary aliases.
-- [`allen-interval-calculus.pl`](examples/allen-interval-calculus.pl) — Classifies interval relations with integer time offsets.
-- [`ancestor.pl`](examples/ancestor.pl) — Derives ancestors from parent facts.
-- [`animal.pl`](examples/animal.pl) — Classifies animals from traits.
-- [`annotation.pl`](examples/annotation.pl) — Derives facts from quoted annotation data.
-- [`basic-monadic.pl`](examples/basic-monadic.pl) — Runs a monadic benchmark over generated inputs.
-- [`bayes-diagnosis.pl`](examples/bayes-diagnosis.pl) — Computes scaled Bayesian diagnosis posteriors.
-- [`bayes-therapy.pl`](examples/bayes-therapy.pl) — Ranks therapies using Bayesian disease likelihoods.
-- [`beam-deflection.pl`](examples/beam-deflection.pl) — Computes cantilever beam deflection.
-- [`blocks-world-planning.pl`](examples/blocks-world-planning.pl) — Searches a finite blocks-world plan.
-- [`bmi.pl`](examples/bmi.pl) — Normalizes BMI inputs and classifies weight.
-- [`braking-safety-worlds.pl`](examples/braking-safety-worlds.pl) — Classifies braking safety under alternative worlds.
-- [`buck-converter-design.pl`](examples/buck-converter-design.pl) — Checks buck-converter ripple design.
-- [`c-core-throughput.pl`](examples/c-core-throughput.pl) — Materializes many generated throughput relations.
-- [`c-core-transitive-closure.pl`](examples/c-core-transitive-closure.pl) — Computes a long transitive closure.
-- [`cache-performance.pl`](examples/cache-performance.pl) — Summarizes cache latency performance.
-- [`canary-release.pl`](examples/canary-release.pl) — Decides canary rollout or rollback.
-- [`clinical-trial-screening.pl`](examples/clinical-trial-screening.pl) — Screens candidates for a trial.
-- [`collatz-1000.pl`](examples/collatz-1000.pl) — Computes shared Collatz trajectories.
-- [`combinatorics-findall-sort.pl`](examples/combinatorics-findall-sort.pl) — Collects and sorts finite combinations.
-- [`competitive-enzyme-kinetics.pl`](examples/competitive-enzyme-kinetics.pl) — Computes inhibited enzyme reaction rates.
-- [`complex-matrix-stability.pl`](examples/complex-matrix-stability.pl) — Checks stability of a 2x2 system.
-- [`complex.pl`](examples/complex.pl) — Performs arithmetic on complex pairs.
-- [`context-association.pl`](examples/context-association.pl) — Associates named contexts with their contents.
-- [`control-system.pl`](examples/control-system.pl) — Evaluates control-system measurements and targets.
-- [`cryptarithmetic-send-more-money.pl`](examples/cryptarithmetic-send-more-money.pl) — Solves SEND+MORE and related puzzles.
-- [`cyclic-path.pl`](examples/cyclic-path.pl) — Computes paths in a cyclic graph.
-- [`d3-group.pl`](examples/d3-group.pl) — Enumerates subgroups of the D3 group.
-- [`dairy-energy-balance.pl`](examples/dairy-energy-balance.pl) — Classifies dairy cow energy balance.
-- [`data-negotiation.pl`](examples/data-negotiation.pl) — Chooses an accepted data-negotiation offer.
-- [`deep-taxonomy-10.pl`](examples/deep-taxonomy-10.pl) — Stress-tests recursive taxonomy depth 10.
-- [`deep-taxonomy-100.pl`](examples/deep-taxonomy-100.pl) — Stress-tests recursive taxonomy depth 100.
-- [`deep-taxonomy-1000.pl`](examples/deep-taxonomy-1000.pl) — Stress-tests recursive taxonomy depth 1000.
-- [`deep-taxonomy-10000.pl`](examples/deep-taxonomy-10000.pl) — Stress-tests recursive taxonomy depth 10000.
-- [`deep-taxonomy-100000.pl`](examples/deep-taxonomy-100000.pl) — Stress-tests recursive taxonomy depth 100000.
-- [`delfour.pl`](examples/delfour.pl) — Derives shopping and authorization recommendations.
-- [`deontic-logic.pl`](examples/deontic-logic.pl) — Reports obligations, prohibitions, and violations.
-- [`derived-rule.pl`](examples/derived-rule.pl) — Derives conclusions from rule data.
-- [`diamond-property.pl`](examples/diamond-property.pl) — Checks the diamond property of a relation.
-- [`dijkstra-findall-sort.pl`](examples/dijkstra-findall-sort.pl) — Finds shortest paths using collected candidates.
-- [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl) — Ranks routes by cost and trust.
-- [`dijkstra.pl`](examples/dijkstra.pl) — Enumerates weighted simple paths.
-- [`dining-philosophers.pl`](examples/dining-philosophers.pl) — Simulates Chandy-Misra fork exchanges.
-- [`drone-corridor-planner.pl`](examples/drone-corridor-planner.pl) — Plans bounded drone corridor routes.
-- [`easter-computus.pl`](examples/easter-computus.pl) — Computes Gregorian Easter dates.
-- [`electrical-rc-filter.pl`](examples/electrical-rc-filter.pl) — Sizes an RC low-pass filter.
-- [`epidemic-policy.pl`](examples/epidemic-policy.pl) — Chooses policies from risk and social cost.
-- [`eulerian-path.pl`](examples/eulerian-path.pl) — Finds an Eulerian path using each edge once.
-- [`ev-range-worlds.pl`](examples/ev-range-worlds.pl) — Estimates electric-vehicle trip feasibility.
-- [`exact-cover-sudoku.pl`](examples/exact-cover-sudoku.pl) — Solves Sudoku via exact-cover-style constraints.
-- [`exoplanet-validation-worlds.pl`](examples/exoplanet-validation-worlds.pl) — Validates exoplanet candidates across worlds.
-- [`expression-eval.pl`](examples/expression-eval.pl) — Evaluates a small arithmetic expression tree.
-- [`family-cousins.pl`](examples/family-cousins.pl) — Derives cousin and family labels.
-- [`fastpow.pl`](examples/fastpow.pl) — Computes powers by repeated squaring.
-- [`fft8-numeric.pl`](examples/fft8-numeric.pl) — Runs an 8-point FFT over complex pairs.
-- [`fibonacci.pl`](examples/fibonacci.pl) — Computes large Fibonacci numbers by fast doubling.
-- [`field-nitrogen-balance.pl`](examples/field-nitrogen-balance.pl) — Classifies field nitrogen balance.
-- [`floating-point.pl`](examples/floating-point.pl) — Exercises floating-point arithmetic and comparisons.
-- [`four-color-map.pl`](examples/four-color-map.pl) — Checks a four-colour map assignment.
-- [`fundamental-theorem-arithmetic.pl`](examples/fundamental-theorem-arithmetic.pl) — Factors integers and reconstructs products.
-- [`gcd-bezout-identity.pl`](examples/gcd-bezout-identity.pl) — Computes gcd and Bézout coefficients.
-- [`gd-step-certified.pl`](examples/gd-step-certified.pl) — Certifies a gradient-descent step.
-- [`gdpr-compliance.pl`](examples/gdpr-compliance.pl) — Checks GDPR-style processing compliance.
-- [`goldbach-1000.pl`](examples/goldbach-1000.pl) — Finds Goldbach prime pairs up to 1000.
-- [`gps.pl`](examples/gps.pl) — Finds and verifies route paths.
-- [`graph-reachability.pl`](examples/graph-reachability.pl) — Derives reachable nodes in a graph.
-- [`gray-code-counter.pl`](examples/gray-code-counter.pl) — Generates Gray-code counter states.
-- [`hamiltonian-cycle.pl`](examples/hamiltonian-cycle.pl) — Finds a Hamiltonian cycle.
-- [`hamiltonian-path.pl`](examples/hamiltonian-path.pl) — Finds a Hamiltonian path.
-- [`hamming-code.pl`](examples/hamming-code.pl) — Corrects a single-bit Hamming word.
-- [`hanoi.pl`](examples/hanoi.pl) — Derives the Towers of Hanoi moves.
-- [`heat-loss.pl`](examples/heat-loss.pl) — Computes conductive heat loss.
-- [`heron-theorem.pl`](examples/heron-theorem.pl) — Computes triangle area by Heron's theorem.
-- [`ideal-gas-law.pl`](examples/ideal-gas-law.pl) — Applies the ideal gas law.
-- [`illegitimate-reasoning.pl`](examples/illegitimate-reasoning.pl) — Detects suspect reasoning patterns.
-- [`kaprekar.pl`](examples/kaprekar.pl) — Iterates toward Kaprekar's constant.
-- [`law-of-cosines.pl`](examples/law-of-cosines.pl) — Computes a triangle side by cosine law.
-- [`least-squares-regression.pl`](examples/least-squares-regression.pl) — Fits a least-squares regression line.
-- [`list-collection.pl`](examples/list-collection.pl) — Demonstrates list and collection built-ins.
-- [`lldm.pl`](examples/lldm.pl) — Calculates leg-length discrepancy measurements.
-- [`manufacturing-quality-control.pl`](examples/manufacturing-quality-control.pl) — Evaluates process capability and quality.
-- [`matrix.pl`](examples/matrix.pl) — Runs matrix operations over sample inputs.
-- [`microgrid-dispatch.pl`](examples/microgrid-dispatch.pl) — Plans microgrid dispatch and reserve.
-- [`monkey-bananas.pl`](examples/monkey-bananas.pl) — Solves the monkey-and-bananas puzzle.
-- [`n-queens.pl`](examples/n-queens.pl) — Searches for N-queens placements.
-- [`network-sla.pl`](examples/network-sla.pl) — Checks network path SLA compliance.
-- [`newton-raphson.pl`](examples/newton-raphson.pl) — Finds roots by Newton-Raphson iteration.
-- [`nixon-diamond.pl`](examples/nixon-diamond.pl) — Reports the classic Nixon-diamond conflict.
-- [`odrl-dpv-healthcare-risk-ranked.pl`](examples/odrl-dpv-healthcare-risk-ranked.pl) — Ranks healthcare policy risks and mitigations.
-- [`odrl-dpv-risk-ranked.pl`](examples/odrl-dpv-risk-ranked.pl) — Ranks data-policy risks and mitigations.
-- [`orbital-transfer-design.pl`](examples/orbital-transfer-design.pl) — Designs a Hohmann orbital transfer.
-- [`path-discovery.pl`](examples/path-discovery.pl) — Discovers bounded air-route paths.
-- [`peano-arithmetic.pl`](examples/peano-arithmetic.pl) — Computes Peano addition, multiplication, and factorial.
-- [`peasant.pl`](examples/peasant.pl) — Performs peasant multiplication and exponentiation.
-- [`pendulum-period.pl`](examples/pendulum-period.pl) — Computes simple pendulum periods.
-- [`polynomial.pl`](examples/polynomial.pl) — Finds complex integer polynomial roots.
-- [`proof-contrapositive.pl`](examples/proof-contrapositive.pl) — Models proof by contrapositive.
-- [`quadratic-formula.pl`](examples/quadratic-formula.pl) — Solves sample quadratic equations.
-- [`quine-mccluskey.pl`](examples/quine-mccluskey.pl) — Minimizes Boolean terms with Quine-McCluskey.
-- [`radioactive-decay.pl`](examples/radioactive-decay.pl) — Computes radioactive decay over time.
-- [`sat-dpll.pl`](examples/sat-dpll.pl) — Solves a finite SAT instance.
-- [`security-incident-correlation.pl`](examples/security-incident-correlation.pl) — Correlates security incidents across signals.
-- [`service-impact.pl`](examples/service-impact.pl) — Analyzes service impact over cyclic dependencies.
-- [`sieve.pl`](examples/sieve.pl) — Enumerates primes with a sieve-style program.
-- [`skolem-functions.pl`](examples/skolem-functions.pl) — Generates deterministic functional terms.
-- [`socrates.pl`](examples/socrates.pl) — Derives that Socrates is mortal.
-- [`statistics-summary.pl`](examples/statistics-summary.pl) — Computes population statistics for a sample.
-- [`sudoku.pl`](examples/sudoku.pl) — Solves a 9x9 Sudoku puzzle.
-- [`superdense-coding.pl`](examples/superdense-coding.pl) — Models superdense-coding bit transmission.
-- [`takeuchi.pl`](examples/takeuchi.pl) — Computes the recursive Takeuchi function.
-- [`traveling-salesman.pl`](examples/traveling-salesman.pl) — Finds an optimal traveling-salesman tour.
-- [`turing.pl`](examples/turing.pl) — Simulates a binary-increment Turing machine.
-- [`vector-similarity.pl`](examples/vector-similarity.pl) — Computes dot product, norm, and cosine similarity.
-- [`wolf-goat-cabbage.pl`](examples/wolf-goat-cabbage.pl) — Solves the wolf-goat-cabbage river crossing.
-- [`zebra.pl`](examples/zebra.pl) — Solves the zebra logic puzzle.
 
 ## Golden outputs, tests, and conformance
 
