@@ -185,12 +185,22 @@ run_api(){
   section_begin API
   run 'version flag' bash -c '"$0" --version | grep -q "^eyelog $(cat VERSION)$"' "$BIN"
   run 'help mentions derived binary materialization' bash -c '"$0" --help | grep -Fq "materializing new binary derivations"' "$BIN"
+  run 'short version flag' bash -c '"$0" -v | grep -q "^eyelog $(cat VERSION)$"' "$BIN"
+  run 'short help flag' bash -c '"$0" -h | grep -Fq "usage: eyelog" && "$0" -h | grep -Fq -- "--query GOAL"' "$BIN"
+  run 'missing input prints usage and exits 2' bash -c '"$0" > "$TEST_TMPDIR/no-input.out" 2> "$TEST_TMPDIR/no-input.err"; status=$?; [ "$status" = 2 ] && grep -Fq "usage: eyelog" "$TEST_TMPDIR/no-input.err"' "$BIN"
+  run 'missing query reports an error' bash -c '"$0" --query > "$TEST_TMPDIR/missing-query.out" 2> "$TEST_TMPDIR/missing-query.err"; status=$?; [ "$status" = 1 ] && grep -Fq "missing query after --query" "$TEST_TMPDIR/missing-query.err"' "$BIN"
   run 'query ancestor' bash -c '"$0" --query "ancestor(pat, X)" examples/ancestor.pl | grep -q "ancestor(pat, emma)."' "$BIN"
   run 'default excludes facts and prints derived binary consequences' bash -c 'printf "parent(pat, jan).\nparent(jan, emma).\nancestor(X, Y) :- parent(X, Y).\nancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).\n" > "$TEST_TMPDIR/anc.pl" && "$0" "$TEST_TMPDIR/anc.pl" | grep -Fq "ancestor(pat, emma)." && ! "$0" "$TEST_TMPDIR/anc.pl" | grep -Fq "parent(pat, jan)."' "$BIN"
+  run 'query with no answers emits empty output' bash -c 'printf "known(alice).\n" > "$TEST_TMPDIR/no-answer.pl" && "$0" --query "known(bob)" "$TEST_TMPDIR/no-answer.pl" > "$TEST_TMPDIR/no-answer.out" && [ ! -s "$TEST_TMPDIR/no-answer.out" ]' "$BIN"
+  run 'default output deduplicates derived consequences' bash -c 'printf "seed(a).\nans(a, ok) :- seed(a).\nans(a, ok) :- seed(a).\n" > "$TEST_TMPDIR/dedup.pl" && [ "$("$0" "$TEST_TMPDIR/dedup.pl" | grep -c "^ans(a, ok)\.$")" = 1 ]' "$BIN"
+  run 'default output is binary unless materialized' bash -c 'printf "seed(a).\nunary(a) :- seed(a).\nbinary(a, ok) :- seed(a).\nternary(a, b, c) :- seed(a).\n" > "$TEST_TMPDIR/binary-default.pl" && "$0" "$TEST_TMPDIR/binary-default.pl" > "$TEST_TMPDIR/binary-default.out" && grep -Fq "binary(a, ok)." "$TEST_TMPDIR/binary-default.out" && ! grep -Fq "unary(a)." "$TEST_TMPDIR/binary-default.out" && ! grep -Fq "ternary(a, b, c)." "$TEST_TMPDIR/binary-default.out"' "$BIN"
   run 'materialize declarations focus default output' bash -c 'printf "materialize(answer, 2).\nseed(a).\nhelper(X, y) :- seed(X).\nanswer(X, ok) :- helper(X, y).\n" > "$TEST_TMPDIR/materialize.pl" && "$0" "$TEST_TMPDIR/materialize.pl" | grep -Fq "answer(a, ok)." && ! "$0" "$TEST_TMPDIR/materialize.pl" | grep -Fq "helper(a, y)."' "$BIN"
+  run 'materialize declarations allow non-binary arities' bash -c 'printf "materialize(unary, 1).\nmaterialize(ternary, 3).\nseed(a).\nunary(a) :- seed(a).\nbinary(a, ok) :- seed(a).\nternary(a, b, c) :- seed(a).\n" > "$TEST_TMPDIR/materialize-arities.pl" && "$0" "$TEST_TMPDIR/materialize-arities.pl" > "$TEST_TMPDIR/materialize-arities.out" && grep -Fq "unary(a)." "$TEST_TMPDIR/materialize-arities.out" && grep -Fq "ternary(a, b, c)." "$TEST_TMPDIR/materialize-arities.out" && ! grep -Fq "binary(a, ok)." "$TEST_TMPDIR/materialize-arities.out"' "$BIN"
   run 'multiple input files compose one program' bash -c 'printf "seed(alice).\n" > "$TEST_TMPDIR/multi-a.pl" && printf "type(X, person) :- seed(X).\n" > "$TEST_TMPDIR/multi-b.pl" && "$0" "$TEST_TMPDIR/multi-a.pl" "$TEST_TMPDIR/multi-b.pl" | grep -Fq "type(alice, person)."' "$BIN"
   run 'stdin input with dash' bash -c 'printf "works(stdin, true) :- eq(ok, ok).\n" | "$0" - | grep -Fq "works(stdin, true)."' "$BIN"
   run 'file and stdin inputs compose one program' bash -c 'printf "seed(bob).\n" > "$TEST_TMPDIR/file-plus-stdin.pl" && printf "type(X, streamed) :- seed(X).\n" | "$0" "$TEST_TMPDIR/file-plus-stdin.pl" - | grep -Fq "type(bob, streamed)."' "$BIN"
+  run 'end of options allows dashed file names' bash -c 'bin=$(pwd)/${0#./}; mkdir -p "$TEST_TMPDIR/dash-file"; printf "works(dashed, true) :- eq(ok, ok).\n" > "$TEST_TMPDIR/dash-file/--program.pl"; (cd "$TEST_TMPDIR/dash-file" && "$bin" -- --program.pl) | grep -Fq "works(dashed, true)."' "$BIN"
+  run 'parse errors fail with diagnostic text' bash -c 'printf "broken(a\n" > "$TEST_TMPDIR/broken.pl"; if "$0" "$TEST_TMPDIR/broken.pl" > "$TEST_TMPDIR/broken.out" 2> "$TEST_TMPDIR/broken.err"; then exit 1; fi; grep -Fq "expected )" "$TEST_TMPDIR/broken.err"' "$BIN"
   run 'URL input loads program' bash -c 'printf "works(url, true) :- eq(ok, ok).\n" > "$TEST_TMPDIR/url-example.pl" && python3 - "$TEST_TMPDIR" "$0" <<"PY"
 import os
 import subprocess
@@ -215,7 +225,10 @@ finally:
     server.shutdown()
 PY' "$BIN"
   run 'parenthesized conjunction query' bash -c '"$0" --query "(ancestor(pat, X), ancestor(X, emma))" examples/ancestor.pl | grep -q "(ancestor(pat, jan), ancestor(jan, emma))."' "$BIN"
+  run 'query preserves duplicate proof answers' bash -c 'printf "seed(a).\nans(a, ok) :- seed(a).\nans(a, ok) :- seed(a).\n" > "$TEST_TMPDIR/query-duplicates.pl" && [ "$("$0" --query "ans(X, Y)" "$TEST_TMPDIR/query-duplicates.pl" | grep -c "^ans(a, ok)\.$")" = 2 ]' "$BIN"
+  run 'query works with empty stdin for pure builtins' bash -c 'printf "" | "$0" --query "eq(ok, ok)" - | grep -Fq "eq(ok, ok)."' "$BIN"
   run 'explain prints original rule and substitution' bash -c '"$0" --explain examples/socrates.pl | grep -Fq "because rule #" && "$0" --explain examples/socrates.pl | grep -Fq "where X = socrates"' "$BIN"
+  run 'explain query prints requested answer proof' bash -c '"$0" --explain --query "ancestor(pat, emma)" examples/ancestor.pl > "$TEST_TMPDIR/explain-query.out" && grep -Fq "ancestor(pat, emma)." "$TEST_TMPDIR/explain-query.out" && grep -Fq "need ancestor(pat, emma)" "$TEST_TMPDIR/explain-query.out" && grep -Fq "therefore ancestor(pat, emma)" "$TEST_TMPDIR/explain-query.out"' "$BIN"
   run 'formula_atom enumerates formula members' bash -c '"$0" --query "formula_atom((b(a, c), e(d, f)), X)" examples/annotation.pl | grep -Fq "formula_atom((b(a, c), e(d, f)), e(d, f))."' "$BIN"
   run 'formula_binary exposes relation name from p(S,O)' bash -c '"$0" --query "formula_binary((b(a, c), e(d, f)), S, P, O)" examples/annotation.pl | grep -Fq "formula_binary((b(a, c), e(d, f)), d, e, f)."' "$BIN"
   run 'quoted atom output round-trips' bash -c '"$0" --query "p('"'"'needs'"'"''"'"'quote'"'"', X)" test/eyelog-syntax.pl | grep -Fq "p('"'"'needs'"'"''"'"'quote'"'"', ok)."' "$BIN"
