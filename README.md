@@ -17,12 +17,13 @@ For the normative language definition, including lexical syntax, terms, clauses,
 2. [Running Eyelog](#running-eyelog)
 3. [Default output](#default-output)
 4. [Writing programs](#writing-programs)
-5. [Formula data](#formula-data)
-6. [Example catalog](#example-catalog)
-7. [Golden outputs, tests, and conformance](#golden-outputs-tests-and-conformance)
-8. [Development and release](#development-and-release)
-9. [Performance notes](#performance-notes)
-10. [Implementation limits](#implementation-limits)
+5. [Aggregation helpers](#aggregation-helpers)
+6. [Formula data](#formula-data)
+7. [Example catalog](#example-catalog)
+8. [Golden outputs, tests, and conformance](#golden-outputs-tests-and-conformance)
+9. [Development and release](#development-and-release)
+10. [Performance notes](#performance-notes)
+11. [Implementation limits](#implementation-limits)
 
 ## Quick start
 
@@ -164,7 +165,28 @@ The default output focuses on materialized binary facts, but the query engine su
 ```sh
 bin/eyelog --query 'append(A, B, [a, b])' examples/list-collection.pl
 bin/eyelog --query 'ackermann(4, 2, A)' examples/ackermann.pl
-bin/eyelog --query 'once(sudoku("1....7.9..3..2...8..96..5....53..9...1..8...26....4...3......1..4......7..7...3..", S))' examples/sudoku.pl
+bin/eyelog --query 'once(solution(classic, S))' examples/sudoku.pl
+```
+
+## Aggregation helpers
+
+Eyelog includes goal-directed aggregation helpers for finite searches:
+
+```prolog
+countall(Goal, Count).
+sumall(Value, Goal, Sum).
+aggregate_min(Key, Template, Goal, BestKey, BestTemplate).
+aggregate_max(Key, Template, Goal, BestKey, BestTemplate).
+```
+
+Use `countall/2` for solution counts, `sumall/3` for numeric totals, and `aggregate_min/5` or `aggregate_max/5` when a search should keep only the best candidate instead of collecting and sorting every answer. The `Key` can be a number, atom, string, compound term, or list; normal term ordering is used, so compound keys such as `[Cost, Path]` are useful for deterministic tie-breaking.
+
+Example:
+
+```prolog
+best_cycle(Cycle, Cost) :-
+  cities(Cities),
+  aggregate_min([Cost, Cycle], Cycle, candidate_cycle(Cities, Cycle, Cost), [Cost, Cycle], Cycle).
 ```
 
 ## Formula data
@@ -230,6 +252,7 @@ The repository includes examples for recursion, graph reachability, finite searc
 | [`deep-taxonomy-10000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deep-taxonomy-10000.pl) | Stress-tests recursive taxonomy depth 10000. | [`output/deep-taxonomy-10000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deep-taxonomy-10000.pl) |
 | [`deep-taxonomy-100000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deep-taxonomy-100000.pl) | Stress-tests recursive taxonomy depth 100000. | [`output/deep-taxonomy-100000.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deep-taxonomy-100000.pl) |
 | [`delfour.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/delfour.pl) | Derives shopping and authorization recommendations. | [`output/delfour.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/delfour.pl) |
+| [`dense-hamiltonian-cycle.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/dense-hamiltonian-cycle.pl) | Searches a dense Hamiltonian cycle with aggregate minimization. | [`output/dense-hamiltonian-cycle.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/dense-hamiltonian-cycle.pl) |
 | [`deontic-logic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/deontic-logic.pl) | Reports obligations, prohibitions, and violations. | [`output/deontic-logic.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/deontic-logic.pl) |
 | [`derived-rule.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/derived-rule.pl) | Derives conclusions from rule data. | [`output/derived-rule.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/derived-rule.pl) |
 | [`diamond-property.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/diamond-property.pl) | Checks the diamond property of a relation. | [`output/diamond-property.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/diamond-property.pl) |
@@ -301,7 +324,7 @@ The repository includes examples for recursion, graph reachability, finite searc
 | [`skolem-functions.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/skolem-functions.pl) | Generates deterministic functional terms. | [`output/skolem-functions.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/skolem-functions.pl) |
 | [`socrates.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/socrates.pl) | Derives that Socrates is mortal. | [`output/socrates.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/socrates.pl) |
 | [`statistics-summary.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/statistics-summary.pl) | Computes population statistics for a sample. | [`output/statistics-summary.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/statistics-summary.pl) |
-| [`sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/sudoku.pl) | Solves a 9x9 Sudoku puzzle. | [`output/sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/sudoku.pl) |
+| [`sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/sudoku.pl) | Solves a generic 9x9 list Sudoku puzzle. | [`output/sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/sudoku.pl) |
 | [`superdense-coding.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/superdense-coding.pl) | Models superdense-coding bit transmission. | [`output/superdense-coding.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/superdense-coding.pl) |
 | [`takeuchi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/takeuchi.pl) | Computes the recursive Takeuchi function. | [`output/takeuchi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/takeuchi.pl) |
 | [`traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/traveling-salesman.pl) | Finds an optimal traveling-salesman tour. | [`output/traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/traveling-salesman.pl) |

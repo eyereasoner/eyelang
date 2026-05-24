@@ -230,7 +230,7 @@ For the pure Horn-clause fragment, an Eyelog program has the standard least-Herb
 
 The CLI is goal-directed rather than a complete bottom-up model enumerator. Its no-query output is a host behavior: it asks broad materialization queries, suppresses duplicates, excludes source facts, and prints selected ground answers. Explicit `--query` gives direct access to the goal-directed solver.
 
-Built-ins such as arithmetic, string operations, time, negation-as-failure, `once/1`, and `findall/3` are operational extensions and should be understood by their specified behavior rather than by pure Horn semantics alone.
+Built-ins such as arithmetic, string operations, time, negation-as-failure, `once/1`, `findall/3`, and aggregation helpers are operational extensions and should be understood by their specified behavior rather than by pure Horn semantics alone.
 
 ## 9. Built-in predicates
 
@@ -315,6 +315,10 @@ Comparisons interpret numeric-looking terms numerically. Other scalar terms are 
 | Built-in | Meaning |
 |---|---|
 | `findall(Template, Goal, Bag)` | Collects all templates for solutions of `Goal`. |
+| `countall(Goal, Count)` | Counts solutions of `Goal`; empty solution sets produce `0`. |
+| `sumall(Template, Goal, Sum)` | Sums numeric `Template` values over solutions of `Goal`; empty solution sets produce `0`. |
+| `aggregate_min(Key, Template, Goal, BestKey, BestTemplate)` | Selects the solution of `Goal` with the smallest resolved `Key`, returning that key and the corresponding resolved `Template`. Fails when `Goal` has no solutions. |
+| `aggregate_max(Key, Template, Goal, BestKey, BestTemplate)` | Selects the solution of `Goal` with the largest resolved `Key`, returning that key and the corresponding resolved `Template`. Fails when `Goal` has no solutions. |
 | `sort(Input, Output)` | Sorts and deduplicates a proper list. |
 
 ### 9.9 Formula terms
@@ -338,12 +342,6 @@ This can yield `formula_binary((name(alice, "Alice"), knows(alice, bob)), alice,
 |---|---|
 | `not(Goal)` | Negation as failure. Succeeds when `Goal` has no solution. |
 | `once(Goal)` | Succeeds with at most the first solution of `Goal`. |
-
-### 9.11 Finite constraint helper
-
-| Built-in | Meaning |
-|---|---|
-| `sudoku(Puzzle, Solution)` | Solves a 9x9 Sudoku string/list puzzle. |
 
 ## 10. Declarations
 

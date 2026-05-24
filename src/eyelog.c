@@ -2814,6 +2814,189 @@ static bool builtin_findall(Solver *solver, Term *goal, Env *env,
   return true;
 }
 
+
+
+typedef struct {
+  long long count;
+} CountAllContext;
+
+static void collect_countall_solution(Env *env, void *user_data) {
+  (void)env;
+  CountAllContext *ctx = user_data;
+  ctx->count++;
+}
+
+static bool builtin_countall(Solver *solver, Term *goal, Env *env,
+                             SolutionCallback callback, void *user_data) {
+  Term *inner_goal = goal->args[0];
+  Term *count = goal->args[1];
+
+  Term *inner_goals[1] = { inner_goal };
+  Env attempt = clone_env(env);
+  Solver collector = *solver;
+  collector.solutions_seen = 0;
+  collector.solution_limit = MAX_SOLUTIONS;
+  collector.active_goals = NULL;
+  collector.active_envs = NULL;
+  collector.active_len = 0;
+  collector.active_cap = 0;
+
+  CountAllContext ctx = { 0 };
+  solve_goals(&collector, inner_goals, 1, &attempt, 0, collect_countall_solution, &ctx);
+
+  Env next = clone_env(env);
+  if (unify(count, number_term_from_i64(ctx.count), &next)) call_once(&next, callback, user_data);
+  return true;
+}
+
+typedef struct {
+  Term *template;
+  bool ok;
+  bool float_mode;
+  char *integer_sum;
+  double float_sum;
+} SumAllContext;
+
+static void collect_sumall_solution(Env *env, void *user_data) {
+  SumAllContext *ctx = user_data;
+  if (!ctx->ok) return;
+
+  char *text = term_lexical_value(ctx->template, env);
+  if (!text) {
+    ctx->ok = false;
+    return;
+  }
+
+  if (!ctx->float_mode && is_decimal_integer(text)) {
+    char *next = add_decimal(ctx->integer_sum, text);
+    free(ctx->integer_sum);
+    ctx->integer_sum = next;
+    free(text);
+    return;
+  }
+
+  double value = 0.0;
+  if (!parse_double_strict(text, &value)) {
+    free(text);
+    ctx->ok = false;
+    return;
+  }
+
+  if (!ctx->float_mode) {
+    if (!parse_double_strict(ctx->integer_sum, &ctx->float_sum)) {
+      free(text);
+      ctx->ok = false;
+      return;
+    }
+    free(ctx->integer_sum);
+    ctx->integer_sum = NULL;
+    ctx->float_mode = true;
+  }
+
+  ctx->float_sum += value;
+  free(text);
+}
+
+static bool builtin_sumall(Solver *solver, Term *goal, Env *env,
+                           SolutionCallback callback, void *user_data) {
+  Term *template = goal->args[0];
+  Term *inner_goal = goal->args[1];
+  Term *sum = goal->args[2];
+
+  Term *inner_goals[1] = { inner_goal };
+  Env attempt = clone_env(env);
+  Solver collector = *solver;
+  collector.solutions_seen = 0;
+  collector.solution_limit = MAX_SOLUTIONS;
+  collector.active_goals = NULL;
+  collector.active_envs = NULL;
+  collector.active_len = 0;
+  collector.active_cap = 0;
+
+  SumAllContext ctx = { template, true, false, xstrdup("0"), 0.0 };
+  solve_goals(&collector, inner_goals, 1, &attempt, 0, collect_sumall_solution, &ctx);
+
+  if (!ctx.ok) {
+    free(ctx.integer_sum);
+    return true;
+  }
+
+  Term *result = NULL;
+  if (ctx.float_mode) {
+    char *text = number_text_from_double(ctx.float_sum);
+    if (!text) return true;
+    result = number_term_from_text(text);
+    free(text);
+  } else {
+    result = number_term_from_text(ctx.integer_sum);
+    free(ctx.integer_sum);
+  }
+
+  Env next = clone_env(env);
+  if (unify(sum, result, &next)) call_once(&next, callback, user_data);
+  return true;
+}
+
+typedef struct {
+  Term *key_template;
+  Term *value_template;
+  bool want_min;
+  bool has_solution;
+  Term *best_key;
+  Term *best_value;
+} AggregateBestContext;
+
+static void collect_aggregate_best_solution(Env *env, void *user_data) {
+  AggregateBestContext *ctx = user_data;
+  Term *key = copy_resolved_term(ctx->key_template, env);
+  Term *value = copy_resolved_term(ctx->value_template, env);
+
+  if (!ctx->has_solution) {
+    ctx->has_solution = true;
+    ctx->best_key = key;
+    ctx->best_value = value;
+    return;
+  }
+
+  int cmp = compare_terms_for_sort(key, ctx->best_key);
+  bool better = ctx->want_min ? cmp < 0 : cmp > 0;
+  if (better) {
+    ctx->best_key = key;
+    ctx->best_value = value;
+  }
+}
+
+static bool builtin_aggregate_best(Solver *solver, Term *goal, Env *env,
+                                   SolutionCallback callback, void *user_data,
+                                   bool want_min) {
+  Term *key_template = goal->args[0];
+  Term *value_template = goal->args[1];
+  Term *inner_goal = goal->args[2];
+  Term *best_key = goal->args[3];
+  Term *best_value = goal->args[4];
+
+  Term *inner_goals[1] = { inner_goal };
+  Env attempt = clone_env(env);
+  Solver collector = *solver;
+  collector.solutions_seen = 0;
+  collector.solution_limit = MAX_SOLUTIONS;
+  collector.active_goals = NULL;
+  collector.active_envs = NULL;
+  collector.active_len = 0;
+  collector.active_cap = 0;
+
+  AggregateBestContext ctx = { key_template, value_template, want_min, false, NULL, NULL };
+  solve_goals(&collector, inner_goals, 1, &attempt, 0, collect_aggregate_best_solution, &ctx);
+
+  if (!ctx.has_solution) return true;
+
+  Env next = clone_env(env);
+  if (unify(best_key, ctx.best_key, &next) && unify(best_value, ctx.best_value, &next)) {
+    call_once(&next, callback, user_data);
+  }
+  return true;
+}
+
 static bool builtin_sort(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
   Term **items = NULL;
   int len = 0;
@@ -2996,211 +3179,6 @@ static bool builtin_once(Solver *solver, Term *goal, Env *env,
 }
 
 
-/* ------------------------------------------------------------------------- */
-/* Generic Sudoku solver built-in                                            */
-/* ------------------------------------------------------------------------- */
-
-static int sudoku_box_index(int row, int col) {
-  return (row / 3) * 3 + (col / 3);
-}
-
-static int popcount9(int mask) {
-  int count = 0;
-  while (mask) {
-    count += mask & 1;
-    mask >>= 1;
-  }
-  return count;
-}
-
-static bool sudoku_parse_cell_text(const char *text, int *value) {
-  if (!text || !*text) return false;
-  if ((text[0] == '.' || text[0] == '0') && text[1] == '\0') {
-    *value = 0;
-    return true;
-  }
-  if (text[0] >= '1' && text[0] <= '9' && text[1] == '\0') {
-    *value = text[0] - '0';
-    return true;
-  }
-  return false;
-}
-
-static bool sudoku_init_masks(int cells[81], int row_mask[9], int col_mask[9], int box_mask[9]) {
-  for (int i = 0; i < 9; i++) row_mask[i] = col_mask[i] = box_mask[i] = 0;
-
-  for (int idx = 0; idx < 81; idx++) {
-    int value = cells[idx];
-    if (value == 0) continue;
-    if (value < 1 || value > 9) return false;
-
-    int row = idx / 9;
-    int col = idx % 9;
-    int box = sudoku_box_index(row, col);
-    int bit = 1 << value;
-
-    if ((row_mask[row] & bit) || (col_mask[col] & bit) || (box_mask[box] & bit)) return false;
-
-    row_mask[row] |= bit;
-    col_mask[col] |= bit;
-    box_mask[box] |= bit;
-  }
-
-  return true;
-}
-
-static bool sudoku_parse_string(const char *text, int cells[81]) {
-  if (!text || strlen(text) != 81) return false;
-
-  for (int i = 0; i < 81; i++) {
-    char c = text[i];
-    if (c >= '1' && c <= '9') cells[i] = c - '0';
-    else if (c == '0' || c == '.') cells[i] = 0;
-    else return false;
-  }
-
-  return true;
-}
-
-static bool sudoku_parse_grid(Term *term, Env *env, int cells[81]) {
-  Term **rows = NULL;
-  int row_count = 0;
-  if (!proper_list_items(term, env, &rows, &row_count)) return false;
-  if (row_count != 9) {
-    free(rows);
-    return false;
-  }
-
-  for (int r = 0; r < 9; r++) {
-    Term **cols = NULL;
-    int col_count = 0;
-    if (!proper_list_items(rows[r], env, &cols, &col_count)) {
-      free(rows);
-      return false;
-    }
-    if (col_count != 9) {
-      free(cols);
-      free(rows);
-      return false;
-    }
-
-    for (int c = 0; c < 9; c++) {
-      char *text = term_lexical_value(cols[c], env);
-      int value = 0;
-      bool ok = sudoku_parse_cell_text(text, &value);
-      free(text);
-      if (!ok) {
-        free(cols);
-        free(rows);
-        return false;
-      }
-      cells[r * 9 + c] = value;
-    }
-    free(cols);
-  }
-
-  free(rows);
-  return true;
-}
-
-static bool sudoku_parse_puzzle(Term *term, Env *env, int cells[81]) {
-  term = deref(term, env);
-  if (term->type == TERM_VAR) return false;
-
-  if (term->type == TERM_STRING || term->type == TERM_ATOM) {
-    return sudoku_parse_string(term->name, cells);
-  }
-
-  return sudoku_parse_grid(term, env, cells);
-}
-
-static Term *sudoku_grid_term(int cells[81]) {
-  Term *rows[9];
-  for (int r = 0; r < 9; r++) {
-    Term *items[9];
-    for (int c = 0; c < 9; c++) items[c] = number_term_from_i64(cells[r * 9 + c]);
-    rows[r] = list_from_items(items, 0, 9, empty_list_term());
-  }
-  return list_from_items(rows, 0, 9, empty_list_term());
-}
-
-typedef struct {
-  Term *solution;
-  Env *env;
-  SolutionCallback callback;
-  void *user_data;
-} SudokuContext;
-
-static void sudoku_emit_solution(int cells[81], SudokuContext *ctx) {
-  Term *grid = sudoku_grid_term(cells);
-  Env next = clone_env(ctx->env);
-  if (unify(ctx->solution, grid, &next)) call_once(&next, ctx->callback, ctx->user_data);
-}
-
-static void sudoku_search(int cells[81], int row_mask[9], int col_mask[9], int box_mask[9],
-                          SudokuContext *ctx) {
-  int best = -1;
-  int best_mask = 0;
-  int best_count = 10;
-  const int all = 0x3FE; /* bits 1..9 */
-
-  for (int idx = 0; idx < 81; idx++) {
-    if (cells[idx] != 0) continue;
-    int row = idx / 9;
-    int col = idx % 9;
-    int box = sudoku_box_index(row, col);
-    int mask = all & ~(row_mask[row] | col_mask[col] | box_mask[box]);
-    int count = popcount9(mask);
-    if (count == 0) return;
-    if (count < best_count) {
-      best = idx;
-      best_mask = mask;
-      best_count = count;
-      if (count == 1) break;
-    }
-  }
-
-  if (best < 0) {
-    sudoku_emit_solution(cells, ctx);
-    return;
-  }
-
-  int row = best / 9;
-  int col = best % 9;
-  int box = sudoku_box_index(row, col);
-
-  for (int value = 1; value <= 9; value++) {
-    int bit = 1 << value;
-    if (!(best_mask & bit)) continue;
-
-    cells[best] = value;
-    row_mask[row] |= bit;
-    col_mask[col] |= bit;
-    box_mask[box] |= bit;
-
-    sudoku_search(cells, row_mask, col_mask, box_mask, ctx);
-
-    row_mask[row] &= ~bit;
-    col_mask[col] &= ~bit;
-    box_mask[box] &= ~bit;
-    cells[best] = 0;
-  }
-}
-
-static bool builtin_sudoku(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
-  int cells[81] = { 0 };
-  int row_mask[9] = { 0 };
-  int col_mask[9] = { 0 };
-  int box_mask[9] = { 0 };
-
-  if (!sudoku_parse_puzzle(goal->args[0], env, cells)) return true;
-  if (!sudoku_init_masks(cells, row_mask, col_mask, box_mask)) return true;
-
-  SudokuContext ctx = { goal->args[1], env, callback, user_data };
-  sudoku_search(cells, row_mask, col_mask, box_mask, &ctx);
-  return true;
-}
-
 static bool try_builtin(Solver *solver, Term *goal, Env *env,
                         SolutionCallback callback, void *user_data) {
   if (goal->type != TERM_COMPOUND) return false;
@@ -3293,6 +3271,22 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_findall(solver, goal, env, callback, user_data);
   }
 
+  if (strcmp(name, "countall") == 0 && arity == 2) {
+    return builtin_countall(solver, goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "sumall") == 0 && arity == 3) {
+    return builtin_sumall(solver, goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "aggregate_min") == 0 && arity == 5) {
+    return builtin_aggregate_best(solver, goal, env, callback, user_data, true);
+  }
+
+  if (strcmp(name, "aggregate_max") == 0 && arity == 5) {
+    return builtin_aggregate_best(solver, goal, env, callback, user_data, false);
+  }
+
   if (strcmp(name, "sort") == 0 && arity == 2) {
     return builtin_sort(goal, env, callback, user_data);
   }
@@ -3317,9 +3311,6 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_is_list(goal, env, callback, user_data);
   }
 
-  if (strcmp(name, "sudoku") == 0 && arity == 2) {
-    return builtin_sudoku(goal, env, callback, user_data);
-  }
 
   if (strcmp(name, "not") == 0 && arity == 1) {
     return builtin_not(solver, goal, env, callback, user_data);

@@ -38,6 +38,6 @@ Regenerate expected outputs for the current implementation with:
 
 `core` covers the core language profile from `SPEC.md`: syntax, facts, definite clauses, first-order terms, lists, conjunction, unification through user predicates, goal-directed proof search, and normal answer printing.
 
-`extension` covers the C implementation extension profile from `SPEC.md`: built-ins, formula-term helpers, `materialize/2`, and default no-query derived output.
+`extension` covers the C implementation extension profile from `SPEC.md`: built-ins, aggregation helpers, formula-term helpers, `materialize/2`, and default no-query derived output.
 
 Explanation trees are intentionally not normatively compared yet, because `SPEC.md` defines explanation output as non-normative and answer-set preserving. A future suite can add answer-set checks for `--explain` once a stable machine-readable explanation format exists.
