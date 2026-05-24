@@ -170,6 +170,7 @@ Representative files:
 - [`basic-monadic.pl`](examples/basic-monadic.pl) — EYE-style benchmark translated to binary `cycle/2` answers.
 - [`dijkstra.pl`](examples/dijkstra.pl) and [`dijkstra-risk-path.pl`](examples/dijkstra-risk-path.pl) — formula data plus path search.
 - [`bmi.pl`](examples/bmi.pl), [`matrix.pl`](examples/matrix.pl), [`sudoku.pl`](examples/sudoku.pl), and [`turing.pl`](examples/turing.pl) — arithmetic, matrix, finite-domain, and list-processing demonstrations.
+- [`sieve.pl`](examples/sieve.pl), [`peasant.pl`](examples/peasant.pl), [`newton-raphson.pl`](examples/newton-raphson.pl), [`traveling-salesman.pl`](examples/traveling-salesman.pl), and [`data-negotiation.pl`](examples/data-negotiation.pl) — Eyelet-derived stress examples with golden outputs.
 - [`delfour.pl`](examples/delfour.pl), [`odrl-dpv-risk-ranked.pl`](examples/odrl-dpv-risk-ranked.pl), and [`odrl-dpv-healthcare-risk-ranked.pl`](examples/odrl-dpv-healthcare-risk-ranked.pl) — larger policy-style examples using formula data and focused `materialize/2` output.
 
 ## 6. Golden outputs, tests, and conformance
