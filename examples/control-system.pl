@@ -3,6 +3,11 @@
 % The example combines measurements, observations, targets, logarithmic
 % feedforward compensation, square-root normalization, and nonlinear feedback.
 
+materialize(controlSignal, 2).
+materialize(status, 2).
+materialize(normalizedMeasurement, 2).
+materialize(log10, 2).
+
 measurement(input1, [6, 11]).
 measurement(disturbance2, [45, 39]).
 measurement(input2, true).
@@ -50,15 +55,15 @@ control(actuator2, C) :-
   mul(NonlinearFactor, DifferentialError, Differential),
   add(Proportional, Differential, C).
 
-triple(Actuator, controlSignal, C) :-
+controlSignal(Actuator, C) :-
   control(Actuator, C).
 
-triple(Actuator, status, active) :-
+status(Actuator, active) :-
   control(Actuator, _C).
 
-triple(input1, normalizedMeasurement, M) :-
+normalizedMeasurement(input1, M) :-
   measurement_normalized(input1, M).
 
-triple(disturbance1, log10, C) :-
+log10(disturbance1, C) :-
   measurement(disturbance1, D),
   log10(D, C).

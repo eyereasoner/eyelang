@@ -1,5 +1,8 @@
 % Goldbach pairs up to 1000.
 % Prime numbers are input data; the rule below derives all Goldbach pairs.
+materialize(isPrime, 2).
+materialize(goldbachOk, 2).
+
 prime(2).
 prime(3).
 prime(5).
@@ -171,10 +174,10 @@ prime(997).
 
 even_between_4_1000(N) :- between(4, 1000, N), mod(N, 2, 0).
 
-triple(N, isPrime, true) :-
+isPrime(N, true) :-
   prime(N).
 
-triple(N, goldbachOk, true) :-
+goldbachOk(N, true) :-
   even_between_4_1000(N),
   div(N, 2, Half),
   prime(P),

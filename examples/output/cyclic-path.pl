@@ -1,16 +1,16 @@
-triple(a, path, a).
-triple(a, path, b).
-triple(a, path, c).
-triple(a, path, d).
-triple(b, path, a).
-triple(b, path, b).
-triple(b, path, c).
-triple(b, path, d).
-triple(c, path, a).
-triple(c, path, b).
-triple(c, path, c).
-triple(c, path, d).
-triple(d, path, a).
-triple(d, path, b).
-triple(d, path, c).
-triple(d, path, d).
+path(a, a).
+path(a, b).
+path(a, c).
+path(a, d).
+path(b, a).
+path(b, b).
+path(b, c).
+path(b, d).
+path(c, a).
+path(c, b).
+path(c, c).
+path(c, d).
+path(d, a).
+path(d, b).
+path(d, c).
+path(d, d).

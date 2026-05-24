@@ -5,6 +5,10 @@
 % until Kaprekar's constant 6174 is reached.  The sample set is small so the
 % example remains a millisecond-scale demo in the normal test suite.
 
+materialize(constant, 2).
+materialize(kaprekarSteps, 2).
+materialize(reachesConstant, 2).
+
 memoize(kaprekar, 3).
 
 number_to_digits(A, [B, C, D, E]) :-
@@ -76,12 +80,12 @@ sample(3524).
 sample(2111).
 sample(9831).
 sample(6174).
-triple(kaprekar, constant, 6174).
+constant(kaprekar, 6174).
 
-triple(N, kaprekarSteps, Count) :-
+kaprekarSteps(N, Count) :-
   sample(N),
   recursion_count(N, Count).
 
-triple(kaprekar, reachesConstant, N) :-
+reachesConstant(kaprekar, N) :-
   sample(N),
   recursion_count(N, _Count).

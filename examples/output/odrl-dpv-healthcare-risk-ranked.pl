@@ -1,92 +1,42 @@
-triple(agreementHC1, policyGraph, (triple(policyHC1, rdf_type, odrl_Policy), triple(policyHC1, odrl_permission, permResearchUse), triple(policyHC1, odrl_permission, permShareWithPharma), triple(policyHC1, odrl_permission, permAutomatedTriage), triple(policyHC1, odrl_permission, permRetention10y), triple(permResearchUse, rdf_type, odrl_Permission), triple(permResearchUse, odrl_assigner, hospital), triple(permResearchUse, odrl_assignee, researchUnit), triple(permResearchUse, odrl_action, hl7ca_use), triple(permResearchUse, odrl_target, healthRecordData), triple(permResearchUse, odrl_target, genomicData), triple(permResearchUse, odrl_constraint, cResearchPurpose), triple(cResearchPurpose, odrl_leftOperand, odrl_purpose), triple(cResearchPurpose, odrl_rightOperandReference, purposeHMB), triple(permResearchUse, clause, clauseH1), triple(permShareWithPharma, rdf_type, odrl_Permission), triple(permShareWithPharma, odrl_assigner, hospital), triple(permShareWithPharma, odrl_assignee, pharmaPartner), triple(permShareWithPharma, odrl_action, hl7ca_disclose), triple(permShareWithPharma, odrl_target, genomicData), triple(permShareWithPharma, odrl_constraint, cSharePurpose), triple(cSharePurpose, odrl_leftOperand, odrl_purpose), triple(cSharePurpose, odrl_rightOperandReference, purposeHMB), triple(permShareWithPharma, clause, clauseH2), triple(permAutomatedTriage, rdf_type, odrl_Permission), triple(permAutomatedTriage, odrl_assigner, hospital), triple(permAutomatedTriage, odrl_assignee, clinicalAIService), triple(permAutomatedTriage, odrl_action, hl7ca_use), triple(permAutomatedTriage, odrl_target, healthRecordData), triple(permAutomatedTriage, odrl_constraint, cTriagePurpose), triple(cTriagePurpose, odrl_leftOperand, odrl_purpose), triple(cTriagePurpose, odrl_rightOperandReference, purposeCC), triple(permAutomatedTriage, odrl_duty, dutyHumanReview), triple(dutyHumanReview, odrl_action, humanReview), triple(dutyHumanReview, odrl_constraint, cTriageEncryption), triple(cTriageEncryption, odrl_leftOperand, encryptionAtRest), triple(cTriageEncryption, odrl_rightOperand, true), triple(permAutomatedTriage, clause, clauseH3), triple(permRetention10y, rdf_type, odrl_Permission), triple(permRetention10y, odrl_assigner, hospital), triple(permRetention10y, odrl_assignee, hospital), triple(permRetention10y, odrl_action, hl7ca_collect), triple(permRetention10y, odrl_target, healthRecordData), triple(permRetention10y, odrl_constraint, cRetentionPurpose), triple(cRetentionPurpose, odrl_leftOperand, odrl_purpose), triple(cRetentionPurpose, odrl_rightOperandReference, purposeCC), triple(permRetention10y, odrl_constraint, cRetentionDays), triple(cRetentionDays, odrl_leftOperand, retentionDays), triple(cRetentionDays, odrl_rightOperand, 3650), triple(permRetention10y, clause, clauseH4))).
-triple(mitigateConsent, suggestAddGraph, (triple(permResearchUse, odrl_constraint, cExplicitConsent), triple(cExplicitConsent, odrl_leftOperand, explicitConsent), triple(cExplicitConsent, odrl_rightOperand, true))).
-triple(mitigateDeId, suggestAddGraph, (triple(permShareWithPharma, odrl_constraint, cDeIdentified), triple(cDeIdentified, odrl_leftOperand, deIdentified), triple(cDeIdentified, odrl_rightOperand, true), triple(permShareWithPharma, odrl_duty, dutyDeIdentify), triple(dutyDeIdentify, odrl_action, deIdentify))).
-triple(mitigateRetention, suggestAddGraph, (triple(permRetention10y, odrl_constraint, cRetentionLimit), triple(cRetentionLimit, odrl_leftOperand, retentionDays), triple(cRetentionLimit, odrl_rightOperand, 1095))).
-triple(policyGraphHC1, contains, triple(cResearchPurpose, odrl_leftOperand, odrl_purpose)).
-triple(policyGraphHC1, contains, triple(cResearchPurpose, odrl_rightOperandReference, purposeHMB)).
-triple(policyGraphHC1, contains, triple(cRetentionDays, odrl_leftOperand, retentionDays)).
-triple(policyGraphHC1, contains, triple(cRetentionDays, odrl_rightOperand, 3650)).
-triple(policyGraphHC1, contains, triple(cRetentionPurpose, odrl_leftOperand, odrl_purpose)).
-triple(policyGraphHC1, contains, triple(cRetentionPurpose, odrl_rightOperandReference, purposeCC)).
-triple(policyGraphHC1, contains, triple(cSharePurpose, odrl_leftOperand, odrl_purpose)).
-triple(policyGraphHC1, contains, triple(cSharePurpose, odrl_rightOperandReference, purposeHMB)).
-triple(policyGraphHC1, contains, triple(cTriageEncryption, odrl_leftOperand, encryptionAtRest)).
-triple(policyGraphHC1, contains, triple(cTriageEncryption, odrl_rightOperand, true)).
-triple(policyGraphHC1, contains, triple(cTriagePurpose, odrl_leftOperand, odrl_purpose)).
-triple(policyGraphHC1, contains, triple(cTriagePurpose, odrl_rightOperandReference, purposeCC)).
-triple(policyGraphHC1, contains, triple(dutyHumanReview, odrl_action, humanReview)).
-triple(policyGraphHC1, contains, triple(dutyHumanReview, odrl_constraint, cTriageEncryption)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, clause, clauseH3)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, odrl_action, hl7ca_use)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, odrl_assignee, clinicalAIService)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, odrl_assigner, hospital)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, odrl_constraint, cTriagePurpose)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, odrl_duty, dutyHumanReview)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, odrl_target, healthRecordData)).
-triple(policyGraphHC1, contains, triple(permAutomatedTriage, rdf_type, odrl_Permission)).
-triple(policyGraphHC1, contains, triple(permResearchUse, clause, clauseH1)).
-triple(policyGraphHC1, contains, triple(permResearchUse, odrl_action, hl7ca_use)).
-triple(policyGraphHC1, contains, triple(permResearchUse, odrl_assignee, researchUnit)).
-triple(policyGraphHC1, contains, triple(permResearchUse, odrl_assigner, hospital)).
-triple(policyGraphHC1, contains, triple(permResearchUse, odrl_constraint, cResearchPurpose)).
-triple(policyGraphHC1, contains, triple(permResearchUse, odrl_target, genomicData)).
-triple(policyGraphHC1, contains, triple(permResearchUse, odrl_target, healthRecordData)).
-triple(policyGraphHC1, contains, triple(permResearchUse, rdf_type, odrl_Permission)).
-triple(policyGraphHC1, contains, triple(permRetention10y, clause, clauseH4)).
-triple(policyGraphHC1, contains, triple(permRetention10y, odrl_action, hl7ca_collect)).
-triple(policyGraphHC1, contains, triple(permRetention10y, odrl_assignee, hospital)).
-triple(policyGraphHC1, contains, triple(permRetention10y, odrl_assigner, hospital)).
-triple(policyGraphHC1, contains, triple(permRetention10y, odrl_constraint, cRetentionDays)).
-triple(policyGraphHC1, contains, triple(permRetention10y, odrl_constraint, cRetentionPurpose)).
-triple(policyGraphHC1, contains, triple(permRetention10y, odrl_target, healthRecordData)).
-triple(policyGraphHC1, contains, triple(permRetention10y, rdf_type, odrl_Permission)).
-triple(policyGraphHC1, contains, triple(permShareWithPharma, clause, clauseH2)).
-triple(policyGraphHC1, contains, triple(permShareWithPharma, odrl_action, hl7ca_disclose)).
-triple(policyGraphHC1, contains, triple(permShareWithPharma, odrl_assignee, pharmaPartner)).
-triple(policyGraphHC1, contains, triple(permShareWithPharma, odrl_assigner, hospital)).
-triple(policyGraphHC1, contains, triple(permShareWithPharma, odrl_constraint, cSharePurpose)).
-triple(policyGraphHC1, contains, triple(permShareWithPharma, odrl_target, genomicData)).
-triple(policyGraphHC1, contains, triple(permShareWithPharma, rdf_type, odrl_Permission)).
-triple(policyGraphHC1, contains, triple(policyHC1, odrl_permission, permAutomatedTriage)).
-triple(policyGraphHC1, contains, triple(policyHC1, odrl_permission, permResearchUse)).
-triple(policyGraphHC1, contains, triple(policyHC1, odrl_permission, permRetention10y)).
-triple(policyGraphHC1, contains, triple(policyHC1, odrl_permission, permShareWithPharma)).
-triple(policyGraphHC1, contains, triple(policyHC1, rdf_type, odrl_Policy)).
-triple(processContextHC1, dpv_hasRisk, riskH1).
-triple(processContextHC1, dpv_hasRisk, riskH2).
-triple(processContextHC1, dpv_hasRisk, riskH4).
-triple(report, firstRisk, riskH1).
-triple(report, retentionRiskScore, 70).
-triple(riskH1, aboutClause, clauseH1).
-triple(riskH1, dct_description, "Risk: health/genomic data may be used for research without explicit opt-in consent.").
-triple(riskH1, dct_source, permResearchUse).
-triple(riskH1, dpv_hasRiskLevel, risk_HighRisk).
-triple(riskH1, dpv_hasSeverity, risk_HighSeverity).
-triple(riskH1, dpv_isMitigatedByMeasure, mitigateConsent).
-triple(riskH1, rdf_type, dpv_Risk).
-triple(riskH1, reportKey, 900).
-triple(riskH1, score, 100).
-triple(riskH1, scoreRaw, 120).
-triple(riskH1, violatesNeed, need_ConsentForResearch).
-triple(riskH2, aboutClause, clauseH2).
-triple(riskH2, dct_description, "Risk: genomic data may be shared with external pharma partners without a de-identification/pseudonymisation requirement.").
-triple(riskH2, dct_source, permShareWithPharma).
-triple(riskH2, dpv_hasRiskLevel, risk_HighRisk).
-triple(riskH2, dpv_hasSeverity, risk_HighSeverity).
-triple(riskH2, dpv_isMitigatedByMeasure, mitigateDeId).
-triple(riskH2, rdf_type, dpv_Risk).
-triple(riskH2, reportKey, 900).
-triple(riskH2, score, 100).
-triple(riskH2, scoreRaw, 125).
-triple(riskH2, violatesNeed, need_DeIdentifyBeforeSharing).
-triple(riskH4, aboutClause, clauseH4).
-triple(riskH4, dct_description, "Risk: retention (3650 days) exceeds patient preference (1095 days).").
-triple(riskH4, dct_source, permRetention10y).
-triple(riskH4, dpv_hasRiskLevel, risk_ModerateRisk).
-triple(riskH4, dpv_hasSeverity, risk_ModerateSeverity).
-triple(riskH4, dpv_isMitigatedByMeasure, mitigateRetention).
-triple(riskH4, rdf_type, dpv_Risk).
-triple(riskH4, reportKey, 930).
-triple(riskH4, score, 70).
-triple(riskH4, scoreRaw, 70).
-triple(riskH4, violatesNeed, need_RetentionLimit3y).
+aboutClause(riskH1, clauseH1).
+aboutClause(riskH2, clauseH2).
+aboutClause(riskH4, clauseH4).
+dct_description(riskH1, "Risk: health/genomic data may be used for research without explicit opt-in consent.").
+dct_description(riskH2, "Risk: genomic data may be shared with external pharma partners without a de-identification/pseudonymisation requirement.").
+dct_description(riskH4, "Risk: retention (3650 days) exceeds patient preference (1095 days).").
+dct_source(riskH1, permResearchUse).
+dct_source(riskH2, permShareWithPharma).
+dct_source(riskH4, permRetention10y).
+dpv_hasRisk(processContextHC1, riskH1).
+dpv_hasRisk(processContextHC1, riskH2).
+dpv_hasRisk(processContextHC1, riskH4).
+dpv_hasRiskLevel(riskH1, risk_HighRisk).
+dpv_hasRiskLevel(riskH2, risk_HighRisk).
+dpv_hasRiskLevel(riskH4, risk_ModerateRisk).
+dpv_hasSeverity(riskH1, risk_HighSeverity).
+dpv_hasSeverity(riskH2, risk_HighSeverity).
+dpv_hasSeverity(riskH4, risk_ModerateSeverity).
+dpv_isMitigatedByMeasure(riskH1, mitigateConsent).
+dpv_isMitigatedByMeasure(riskH2, mitigateDeId).
+dpv_isMitigatedByMeasure(riskH4, mitigateRetention).
+firstRisk(report, riskH1).
+policyGraph(agreementHC1, (type(policyHC1, odrl_Policy), odrl_permission(policyHC1, permResearchUse), odrl_permission(policyHC1, permShareWithPharma), odrl_permission(policyHC1, permAutomatedTriage), odrl_permission(policyHC1, permRetention10y), type(permResearchUse, odrl_Permission), odrl_assigner(permResearchUse, hospital), odrl_assignee(permResearchUse, researchUnit), odrl_action(permResearchUse, hl7ca_use), odrl_target(permResearchUse, healthRecordData), odrl_target(permResearchUse, genomicData), odrl_constraint(permResearchUse, cResearchPurpose), odrl_leftOperand(cResearchPurpose, odrl_purpose), odrl_rightOperandReference(cResearchPurpose, purposeHMB), clause(permResearchUse, clauseH1), type(permShareWithPharma, odrl_Permission), odrl_assigner(permShareWithPharma, hospital), odrl_assignee(permShareWithPharma, pharmaPartner), odrl_action(permShareWithPharma, hl7ca_disclose), odrl_target(permShareWithPharma, genomicData), odrl_constraint(permShareWithPharma, cSharePurpose), odrl_leftOperand(cSharePurpose, odrl_purpose), odrl_rightOperandReference(cSharePurpose, purposeHMB), clause(permShareWithPharma, clauseH2), type(permAutomatedTriage, odrl_Permission), odrl_assigner(permAutomatedTriage, hospital), odrl_assignee(permAutomatedTriage, clinicalAIService), odrl_action(permAutomatedTriage, hl7ca_use), odrl_target(permAutomatedTriage, healthRecordData), odrl_constraint(permAutomatedTriage, cTriagePurpose), odrl_leftOperand(cTriagePurpose, odrl_purpose), odrl_rightOperandReference(cTriagePurpose, purposeCC), odrl_duty(permAutomatedTriage, dutyHumanReview), odrl_action(dutyHumanReview, humanReview), odrl_constraint(dutyHumanReview, cTriageEncryption), odrl_leftOperand(cTriageEncryption, encryptionAtRest), odrl_rightOperand(cTriageEncryption, true), clause(permAutomatedTriage, clauseH3), type(permRetention10y, odrl_Permission), odrl_assigner(permRetention10y, hospital), odrl_assignee(permRetention10y, hospital), odrl_action(permRetention10y, hl7ca_collect), odrl_target(permRetention10y, healthRecordData), odrl_constraint(permRetention10y, cRetentionPurpose), odrl_leftOperand(cRetentionPurpose, odrl_purpose), odrl_rightOperandReference(cRetentionPurpose, purposeCC), odrl_constraint(permRetention10y, cRetentionDays), odrl_leftOperand(cRetentionDays, retentionDays), odrl_rightOperand(cRetentionDays, 3650), clause(permRetention10y, clauseH4))).
+reportKey(riskH1, 900).
+reportKey(riskH2, 900).
+reportKey(riskH4, 930).
+retentionRiskScore(report, 70).
+score(riskH1, 100).
+score(riskH2, 100).
+score(riskH4, 70).
+scoreRaw(riskH1, 120).
+scoreRaw(riskH2, 125).
+scoreRaw(riskH4, 70).
+suggestAddGraph(mitigateConsent, (odrl_constraint(permResearchUse, cExplicitConsent), odrl_leftOperand(cExplicitConsent, explicitConsent), odrl_rightOperand(cExplicitConsent, true))).
+suggestAddGraph(mitigateDeId, (odrl_constraint(permShareWithPharma, cDeIdentified), odrl_leftOperand(cDeIdentified, deIdentified), odrl_rightOperand(cDeIdentified, true), odrl_duty(permShareWithPharma, dutyDeIdentify), odrl_action(dutyDeIdentify, deIdentify))).
+suggestAddGraph(mitigateRetention, (odrl_constraint(permRetention10y, cRetentionLimit), odrl_leftOperand(cRetentionLimit, retentionDays), odrl_rightOperand(cRetentionLimit, 1095))).
+type(riskH1, dpv_Risk).
+type(riskH2, dpv_Risk).
+type(riskH4, dpv_Risk).
+violatesNeed(riskH1, need_ConsentForResearch).
+violatesNeed(riskH2, need_DeIdentifyBeforeSharing).
+violatesNeed(riskH4, need_RetentionLimit3y).

@@ -3,6 +3,13 @@
 % A simplified continuous-conduction buck converter model computes duty cycle,
 % inductor ripple current, capacitor ripple voltage, and checks design limits.
 
+materialize(dutyCycle, 2).
+materialize(inductorRipple_A, 2).
+materialize(rippleRatio, 2).
+materialize(capacitorRipple_V, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 converter(regulator1, inputVoltage_V, 24.0).
 converter(regulator1, outputVoltage_V, 5.0).
 converter(regulator1, loadCurrent_A, 2.0).
@@ -49,20 +56,20 @@ within_ripple_limits(Converter) :-
   limit(Converter, maxOutputRipple_V, MaxRippleVoltage),
   lt(RippleVoltage, MaxRippleVoltage).
 
-triple(Converter, dutyCycle, Duty) :-
+dutyCycle(Converter, Duty) :-
   duty_cycle(Converter, Duty).
 
-triple(Converter, inductorRipple_A, RippleCurrent) :-
+inductorRipple_A(Converter, RippleCurrent) :-
   inductor_ripple_current(Converter, RippleCurrent).
 
-triple(Converter, rippleRatio, Ratio) :-
+rippleRatio(Converter, Ratio) :-
   ripple_ratio(Converter, Ratio).
 
-triple(Converter, capacitorRipple_V, RippleVoltage) :-
+capacitorRipple_V(Converter, RippleVoltage) :-
   capacitor_ripple_voltage(Converter, RippleVoltage).
 
-triple(Converter, status, stable_ripple_design) :-
+status(Converter, stable_ripple_design) :-
   within_ripple_limits(Converter).
 
-triple(Converter, reason, "inductor-current and output-voltage ripple are below design limits") :-
+reason(Converter, "inductor-current and output-voltage ripple are below design limits") :-
   within_ripple_limits(Converter).

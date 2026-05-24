@@ -3,6 +3,11 @@
 % The sample is the textbook data set [2,4,4,4,5,5,7,9], whose population
 % mean is 5, variance is 4, and standard deviation is 2.
 
+materialize(count, 2).
+materialize(mean, 2).
+materialize(populationVariance, 2).
+materialize(populationStddev, 2).
+
 sample(scores, [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]).
 
 sum([], 0.0).
@@ -34,15 +39,13 @@ population_stddev(Name, Stddev) :-
   population_variance(Name, Variance),
   pow(Variance, 0.5, Stddev).
 
-triple(Name, count, Count) :-
+count(Name, Count) :-
   sample(Name, Values),
   length(Values, Count).
 
-triple(Name, mean, Mean) :-
-  mean(Name, Mean).
 
-triple(Name, populationVariance, Variance) :-
+populationVariance(Name, Variance) :-
   population_variance(Name, Variance).
 
-triple(Name, populationStddev, Stddev) :-
+populationStddev(Name, Stddev) :-
   population_stddev(Name, Stddev).

@@ -1,6 +1,9 @@
 % Adapted from Eyeling's fft8-numeric.n3.
 % A radix-2 FFT over explicit complex pairs c(Re, Im).
 
+materialize(fft, 2).
+materialize(dcComponent, 2).
+
 w8(0, c(1.0, 0.0)).
 w8(1, c(0.7071067811865476, -0.7071067811865476)).
 w8(2, c(0.0, -1.0)).
@@ -65,10 +68,10 @@ fft8([X0, X1, X2, X3, X4, X5, X6, X7], [Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7]) :-
 wave(ramp8, [0, 1, 2, 3, 4, 5, 6, 7]).
 wave(alternating8, [1, -1, 1, -1, 1, -1, 1, -1]).
 
-triple(Wave, fft, Spectrum) :-
+fft(Wave, Spectrum) :-
   wave(Wave, Samples),
   fft8(Samples, Spectrum).
 
-triple(Wave, dcComponent, DC) :-
+dcComponent(Wave, DC) :-
   wave(Wave, Samples),
   fft8(Samples, [DC|_]).

@@ -1,6 +1,8 @@
 % Gray-code counter adapted from Eyeling gray-code-counter.n3 and the
 % Clause and Effect example referenced there.
 
+materialize(isgcc, 2).
+
 and(0, 0, 0). and(0, 1, 0). and(1, 0, 0). and(1, 1, 1).
 or(0, 0, 0).  or(0, 1, 1).  or(1, 0, 1).  or(1, 1, 1).
 inv(0, 1). inv(1, 0).
@@ -36,5 +38,5 @@ testgcc([C|Cs], State, [Next|Rest]) :-
   gcc(C, State, Next),
   testgcc(Cs, Next, Rest).
 
-triple([[1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0]], isgcc, States) :-
+isgcc([[1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0]], States) :-
   testgcc([1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0], States).

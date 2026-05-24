@@ -3,12 +3,16 @@
 % The Eyelet source uses Unicode predicate names; this Eyelog version keeps the
 % same tiny inheritance idea with plain vocabulary names.
 
+materialize(type, 2).
+materialize(subclassOf, 2).
+materialize(succeeds, 2).
+
 human(joe).
 animal(human).
 
 animal(X) :- human(X).
 
-triple(joe, type, human) :- human(joe).
-triple(joe, type, animal) :- animal(joe).
-triple(human, subclassOf, animal) :- animal(human).
-triple(animalExample, succeeds, true) :- animal(_).
+type(joe, human) :- human(joe).
+type(joe, animal) :- animal(joe).
+subclassOf(human, animal) :- animal(human).
+succeeds(animalExample, true) :- animal(_).

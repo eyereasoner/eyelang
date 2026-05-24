@@ -1,9 +1,9 @@
-triple(comfortable, value, true).
-triple(difference, value, 6.875).
-triple(mathProduct, value, 3.0).
-triple(mathSum, value, 1.0).
-triple(product, value, 10.0).
-triple(quotient, value, 3.75).
-triple(sqrtByPower, value, 3.0).
-triple(sum, value, 3.75).
-triple(warmer, than, targetC).
+than(warmer, targetC).
+value(comfortable, true).
+value(difference, 6.875).
+value(mathProduct, 3.0).
+value(mathSum, 1.0).
+value(product, 10.0).
+value(quotient, 3.75).
+value(sqrtByPower, 3.0).
+value(sum, 3.75).

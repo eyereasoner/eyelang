@@ -3,6 +3,13 @@
 % The rules compute renewable supply, reserve-aware battery dispatch, remaining
 % grid import, and a concise feasibility report for a campus microgrid interval.
 
+materialize(renewablePower_kW, 2).
+materialize(batteryDispatch_kW, 2).
+materialize(gridImport_kW, 2).
+materialize(reserveAfterDispatch_kW, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 site(campus_interval_17).
 
 load_kW(campus_interval_17, 620.0).
@@ -56,20 +63,20 @@ stable_dispatch(Site) :-
   contract_ok(Site),
   reserve_ok(Site).
 
-triple(Site, renewablePower_kW, Renewable) :-
+renewablePower_kW(Site, Renewable) :-
   renewable_kW(Site, Renewable).
 
-triple(Site, batteryDispatch_kW, Dispatch) :-
+batteryDispatch_kW(Site, Dispatch) :-
   battery_dispatch_kW(Site, Dispatch).
 
-triple(Site, gridImport_kW, Import) :-
+gridImport_kW(Site, Import) :-
   grid_import_kW(Site, Import).
 
-triple(Site, reserveAfterDispatch_kW, ReserveLeft) :-
+reserveAfterDispatch_kW(Site, ReserveLeft) :-
   battery_reserve_after_dispatch_kW(Site, ReserveLeft).
 
-triple(Site, status, stable_dispatch) :-
+status(Site, stable_dispatch) :-
   stable_dispatch(Site).
 
-triple(Site, reason, "battery dispatch covers the deficit while preserving reserve and grid contract limits") :-
+reason(Site, "battery dispatch covers the deficit while preserving reserve and grid contract limits") :-
   stable_dispatch(Site).

@@ -1,6 +1,10 @@
 % Memoize scoped family projection and recursive labels; cousin derivation asks
 % for the same generation and branch facts many times.
-memoize(family_triple, 3).
+materialize(generation, 2).
+materialize(branch, 2).
+materialize(cousin, 2).
+
+memoize(family_statement, 3).
 memoize(generation, 2).
 memoize(branch, 2).
 
@@ -11,25 +15,25 @@ memoize(branch, 2).
 % the rules derive from scoped family data rather than global relationship facts.
 
 family_graph(familyGraph, (
-  triple(adam, parent, bob),
-  triple(adam, parent, carol),
-  triple(bob, parent, dave),
-  triple(bob, parent, eve),
-  triple(carol, parent, frank),
-  triple(carol, parent, grace),
-  triple(dave, parent, heidi),
-  triple(eve, parent, ivan),
-  triple(frank, parent, judy),
-  triple(dave, seedBranch, b),
-  triple(eve, seedBranch, b),
-  triple(frank, seedBranch, c),
-  triple(grace, seedBranch, c)
+  parent(adam, bob),
+  parent(adam, carol),
+  parent(bob, dave),
+  parent(bob, eve),
+  parent(carol, frank),
+  parent(carol, grace),
+  parent(dave, heidi),
+  parent(eve, ivan),
+  parent(frank, judy),
+  seedBranch(dave, b),
+  seedBranch(eve, b),
+  seedBranch(frank, c),
+  seedBranch(grace, c)
 )).
 
-family_triple(S, P, O) :- family_graph(familyGraph, Formula), formula_triple(Formula, S, P, O).
+family_statement(S, P, O) :- family_graph(familyGraph, Formula), formula_binary(Formula, S, P, O).
 
-parent(Parent, Child) :- family_triple(Parent, parent, Child).
-branch(Person, Branch) :- family_triple(Person, seedBranch, Branch).
+parent(Parent, Child) :- family_statement(Parent, parent, Child).
+branch(Person, Branch) :- family_statement(Person, seedBranch, Branch).
 
 different(b, c).
 different(c, b).
@@ -55,6 +59,4 @@ cousin(X, Y) :-
   branch(Y, BY),
   different(BX, BY).
 
-triple(Person, generation, Gen) :- generation(Person, Gen).
-triple(Person, branch, Branch) :- derived_branch(Person, Branch).
-triple(X, cousin, Y) :- cousin(X, Y).
+branch(Person, Branch) :- derived_branch(Person, Branch).

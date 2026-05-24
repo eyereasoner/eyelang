@@ -1,25 +1,28 @@
-triple(adam, generation, 0).
-triple(bob, generation, 1).
-triple(carol, generation, 1).
-triple(dave, cousin, frank).
-triple(dave, cousin, grace).
-triple(dave, generation, 2).
-triple(eve, cousin, frank).
-triple(eve, cousin, grace).
-triple(eve, generation, 2).
-triple(frank, cousin, dave).
-triple(frank, cousin, eve).
-triple(frank, generation, 2).
-triple(grace, cousin, dave).
-triple(grace, cousin, eve).
-triple(grace, generation, 2).
-triple(heidi, branch, b).
-triple(heidi, cousin, judy).
-triple(heidi, generation, 3).
-triple(ivan, branch, b).
-triple(ivan, cousin, judy).
-triple(ivan, generation, 3).
-triple(judy, branch, c).
-triple(judy, cousin, heidi).
-triple(judy, cousin, ivan).
-triple(judy, generation, 3).
+branch(dave, b).
+branch(eve, b).
+branch(frank, c).
+branch(grace, c).
+branch(heidi, b).
+branch(ivan, b).
+branch(judy, c).
+cousin(dave, frank).
+cousin(dave, grace).
+cousin(eve, frank).
+cousin(eve, grace).
+cousin(frank, dave).
+cousin(frank, eve).
+cousin(grace, dave).
+cousin(grace, eve).
+cousin(heidi, judy).
+cousin(ivan, judy).
+cousin(judy, heidi).
+cousin(judy, ivan).
+generation(bob, 1).
+generation(carol, 1).
+generation(dave, 2).
+generation(eve, 2).
+generation(frank, 2).
+generation(grace, 2).
+generation(heidi, 3).
+generation(ivan, 3).
+generation(judy, 3).

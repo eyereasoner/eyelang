@@ -4,6 +4,11 @@
 % The input interval table is a list of records, showing how tabular data can
 % stay scoped as one term instead of many unrelated global start/end facts.
 
+materialize(start, 2).
+materialize(end, 2).
+materialize(duration, 2).
+materialize(statement, 3).
+
 interval_table([
   interval(a, 10, 12),
   interval(b, 13, 15),
@@ -53,7 +58,4 @@ relation(J, finishedBy, I) :- relation(I, finishes, J).
 
 duration(I, D) :- end(I, E), start(I, S), sub(E, S, D).
 
-triple(I, start, S) :- start(I, S).
-triple(I, end, E) :- end(I, E).
-triple(I, duration, D) :- duration(I, D).
-triple(I, Rel, J) :- relation(I, Rel, J).
+statement(I, Rel, J) :- relation(I, Rel, J).

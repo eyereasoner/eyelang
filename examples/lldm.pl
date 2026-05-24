@@ -1,8 +1,15 @@
 % Leg Length Discrepancy Measurement, adapted from Eyeling lldm.n3.
 %
 % The measurement and intermediate geometry are kept in helper predicates so
-% the default triple/3 materialization stays concise.  The visible output is
-% the alarm plus the small set of triples explaining why the alarm fired.
+% the default relation materialization stays concise.  The visible output is
+% the alarm plus the small set of relations explaining why the alarm fired.
+
+materialize(type, 2).
+materialize(lld_left_length_cm, 2).
+materialize(lld_right_length_cm, 2).
+materialize(lld_discrepancy_cm, 2).
+materialize(lld_threshold_cm, 2).
+materialize(lld_reason, 2).
 
 measurement(meas47).
 
@@ -59,10 +66,10 @@ val(M, d64Cm, Z) :- measurement(M), val(M, ssd64Cm2, X), pow(X, 0.5, Z).
 val(M, dCm, Z) :- measurement(M), val(M, d53Cm, X), val(M, d64Cm, Y), sub(X, Y, Z).
 
 % concise output layer
-triple(M, type, lld_alarm) :- measurement(M), val(M, dCm, D), threshold(M, lld_alarm_threshold_cm, T), sub(0, T, NegT), lt(D, NegT).
-triple(M, type, lld_alarm) :- measurement(M), val(M, dCm, D), threshold(M, lld_alarm_threshold_cm, T), gt(D, T).
-triple(M, lld_left_length_cm, L) :- triple(M, type, lld_alarm), val(M, d53Cm, L).
-triple(M, lld_right_length_cm, R) :- triple(M, type, lld_alarm), val(M, d64Cm, R).
-triple(M, lld_discrepancy_cm, D) :- triple(M, type, lld_alarm), val(M, dCm, D).
-triple(M, lld_threshold_cm, T) :- triple(M, type, lld_alarm), threshold(M, lld_alarm_threshold_cm, T).
-triple(M, lld_reason, "discrepancy below negative threshold") :- triple(M, type, lld_alarm).
+type(M, lld_alarm) :- measurement(M), val(M, dCm, D), threshold(M, lld_alarm_threshold_cm, T), sub(0, T, NegT), lt(D, NegT).
+type(M, lld_alarm) :- measurement(M), val(M, dCm, D), threshold(M, lld_alarm_threshold_cm, T), gt(D, T).
+lld_left_length_cm(M, L) :- type(M, lld_alarm), val(M, d53Cm, L).
+lld_right_length_cm(M, R) :- type(M, lld_alarm), val(M, d64Cm, R).
+lld_discrepancy_cm(M, D) :- type(M, lld_alarm), val(M, dCm, D).
+lld_threshold_cm(M, T) :- type(M, lld_alarm), threshold(M, lld_alarm_threshold_cm, T).
+lld_reason(M, "discrepancy below negative threshold") :- type(M, lld_alarm).

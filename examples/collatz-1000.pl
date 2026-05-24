@@ -1,5 +1,7 @@
 % Memoize trajectories because different start values quickly merge into
 % shared Collatz tails.
+materialize(collatzTrajectory, 2).
+
 memoize(collatz, 2).
 
 % Collatz trajectory benchmark adapted from Eyeling collatz-1000.n3.
@@ -18,6 +20,6 @@ collatz(N, [N|Rest]) :-
   add(T, 1, Next),
   collatz(Next, Rest).
 
-triple(N, collatzTrajectory, Trajectory) :-
+collatzTrajectory(N, Trajectory) :-
   between(1, 1000, N),
   collatz(N, Trajectory).

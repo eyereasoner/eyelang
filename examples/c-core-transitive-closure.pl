@@ -18,6 +18,17 @@
 % predicate when at least one argument is bound. It is useful for acyclic
 % recursive workloads such as this generated chain.
 
+materialize(link, 2).
+materialize(reaches, 2).
+materialize(nodes, 2).
+materialize(directLinks, 2).
+materialize(reachablePairs, 2).
+materialize(expectedMaterializedRelations, 2).
+materialize(firstNode, 2).
+materialize(lastNode, 2).
+materialize(message, 2).
+materialize(is, 2).
+
 memoize(reachable, 2).
 
 closure_nodes(70).
@@ -44,42 +55,40 @@ reachable(From, To) :-
   link(From, Via),
   reachable(Via, To).
 
-triple(From, link, To) :-
-  link(From, To).
 
-triple(From, reaches, To) :-
+reaches(From, To) :-
   reachable(From, To).
 
-triple(report, nodes, Max) :-
+nodes(report, Max) :-
   closure_nodes(Max).
 
-triple(report, directLinks, Links) :-
+directLinks(report, Links) :-
   closure_nodes(Max),
   sub(Max, 1, Links).
 
-triple(report, reachablePairs, Pairs) :-
+reachablePairs(report, Pairs) :-
   closure_nodes(Max),
   sub(Max, 1, Previous),
   mul(Max, Previous, TwicePairs),
   div(TwicePairs, 2, Pairs).
 
-triple(report, expectedMaterializedTriples, Total) :-
+expectedMaterializedRelations(report, Total) :-
   closure_nodes(Max),
   sub(Max, 1, Links),
   mul(Max, Links, TwicePairs),
   div(TwicePairs, 2, Pairs),
-  add(Pairs, Links, GraphTriples),
-  add(GraphTriples, 8, Total).
+  add(Pairs, Links, GraphRelations),
+  add(GraphRelations, 8, Total).
 
-triple(report, firstNode, n1).
+firstNode(report, n1).
 
-triple(report, lastNode, Last) :-
+lastNode(report, Last) :-
   closure_nodes(Max),
   atom_concat(n, Max, Last).
 
-triple(report, message, "Recursive closure from a tiny source: this is the C core hot path.").
+message(report, "Recursive closure from a tiny source: this is the C core hot path.").
 
-triple(test, is, true) :-
+is(test, true) :-
   closure_nodes(Max),
   atom_concat(n, Max, Last),
   reachable(n1, Last).

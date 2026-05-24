@@ -2,6 +2,12 @@
 %
 % Thermal resistance is L/(k*A), and heat loss is DeltaT/R.
 
+materialize(type, 2).
+materialize(temperatureDifference_K, 2).
+materialize(thermalResistance_K_W, 2).
+materialize(heatLoss_W, 2).
+materialize(status, 2).
+
 wall(wall1, conductivity_W_mK, 0.8).
 wall(wall1, area_m2, 12.0).
 wall(wall1, thickness_m, 0.2).
@@ -25,18 +31,18 @@ heat_loss(Wall, HeatLoss) :-
   thermal_resistance(Wall, Resistance),
   div(DeltaT, Resistance, HeatLoss).
 
-triple(Wall, type, conduction_heat_loss) :-
+type(Wall, conduction_heat_loss) :-
   wall(Wall, thickness_m, _Thickness).
 
-triple(Wall, temperatureDifference_K, DeltaT) :-
+temperatureDifference_K(Wall, DeltaT) :-
   temperature_difference(Wall, DeltaT).
 
-triple(Wall, thermalResistance_K_W, Resistance) :-
+thermalResistance_K_W(Wall, Resistance) :-
   thermal_resistance(Wall, Resistance).
 
-triple(Wall, heatLoss_W, HeatLoss) :-
+heatLoss_W(Wall, HeatLoss) :-
   heat_loss(Wall, HeatLoss).
 
-triple(Wall, status, high_heat_loss) :-
+status(Wall, high_heat_loss) :-
   heat_loss(Wall, HeatLoss),
   gt(HeatLoss, 1000.0).

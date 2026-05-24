@@ -7,6 +7,10 @@
 % with a single support path after the interference choices are expanded.
 
 % |R) = |0, 0) + |1, 1)
+materialize(decodesAs, 2).
+materialize(preservesMessage, 2).
+materialize(cancelsCrossTalk, 2).
+
 r(false, false).
 r(true, true).
 
@@ -61,16 +65,16 @@ sdcoding(N, M) :-
   sdc_path(N, M, Proof),
   not(duplicate_sdc_path(N, M, Proof)).
 
-triple(message(N), decodesAs, M) :-
+decodesAs(message(N), M) :-
   sdcoding(N, M).
 
-triple(protocol, preservesMessage, true) :-
+preservesMessage(protocol, true) :-
   sdcoding(0, 0),
   sdcoding(1, 1),
   sdcoding(2, 2),
   sdcoding(3, 3).
 
-triple(protocol, cancelsCrossTalk, true) :-
+cancelsCrossTalk(protocol, true) :-
   not(sdcoding(0, 1)),
   not(sdcoding(1, 0)),
   not(sdcoding(2, 3)),

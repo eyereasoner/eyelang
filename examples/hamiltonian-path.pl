@@ -4,6 +4,9 @@
 % vertex set directly and derives every path that visits each vertex exactly
 % once.
 
+materialize(hasHamiltonianPath, 2).
+materialize(hamiltonianPath, 2).
+
 memoize(adjacent, 2).
 
 edge(v1, v2).
@@ -36,8 +39,8 @@ hamiltonian_path([A, B, C, D, E, F]) :-
   vertex(E), adjacent(D, E), not_member(E, [A, B, C, D]),
   vertex(F), adjacent(E, F), not_member(F, [A, B, C, D, E]).
 
-triple(graph, hasHamiltonianPath, true) :-
+hasHamiltonianPath(graph, true) :-
   hamiltonian_path(_Path).
 
-triple(graph, hamiltonianPath, Path) :-
+hamiltonianPath(graph, Path) :-
   hamiltonian_path(Path).

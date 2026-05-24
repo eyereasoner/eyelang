@@ -1,16 +1,16 @@
-triple([a, f], path, [[a, b, d, e, f], 14]).
-triple([a, f], path, [[a, b, d, f], 15]).
-triple([a, f], path, [[a, c, b, d, e, f], 13]).
-triple([a, f], path, [[a, c, b, d, f], 14]).
-triple([a, f], path, [[a, c, d, e, f], 15]).
-triple([a, f], path, [[a, c, d, f], 16]).
-triple([a, f], path, [[a, c, e, f], 15]).
-triple([b, a], edge, 4).
-triple([c, a], edge, 2).
-triple([c, b], edge, 1).
-triple([d, b], edge, 5).
-triple([d, c], edge, 8).
-triple([e, c], edge, 10).
-triple([e, d], edge, 2).
-triple([f, d], edge, 6).
-triple([f, e], edge, 3).
+edge([b, a], 4).
+edge([c, a], 2).
+edge([c, b], 1).
+edge([d, b], 5).
+edge([d, c], 8).
+edge([e, c], 10).
+edge([e, d], 2).
+edge([f, d], 6).
+edge([f, e], 3).
+path([a, f], [[a, b, d, e, f], 14]).
+path([a, f], [[a, b, d, f], 15]).
+path([a, f], [[a, c, b, d, e, f], 13]).
+path([a, f], [[a, c, b, d, f], 14]).
+path([a, f], [[a, c, d, e, f], 15]).
+path([a, f], [[a, c, d, f], 16]).
+path([a, f], [[a, c, e, f], 15]).

@@ -4,6 +4,10 @@
 % finite logical conditions.  The universal allOf/noneOf checks use negation
 % as failure over bound policy facts.
 
+materialize(policy, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 policy_request(test1, policy_x).
 has(test1, claim_a).
 has(test1, claim_b).
@@ -36,10 +40,10 @@ passes_policy(Request, Policy) :-
   passes_any_of(Request, Policy),
   passes_none_of(Request, Policy).
 
-triple(test1, policy, policy_x).
+policy(test1, policy_x).
 
-triple(test1, status, policy_passed) :-
+status(test1, policy_passed) :-
   passes_policy(test1, policy_x).
 
-triple(test1, reason, "all required claims are present, one allowed claim is present, and no forbidden claim is present") :-
+reason(test1, "all required claims are present, one allowed claim is present, and no forbidden claim is present") :-
   passes_policy(test1, policy_x).

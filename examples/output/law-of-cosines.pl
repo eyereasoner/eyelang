@@ -1,3 +1,3 @@
-triple(tri60, sideC, 8.1853527718724504).
-triple(tri60, sideCSquared, 67.0).
-triple(tri60, status, acute_triangle).
+sideC(tri60, 8.1853527718724504).
+sideCSquared(tri60, 67.0).
+status(tri60, acute_triangle).

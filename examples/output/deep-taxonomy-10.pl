@@ -1,32 +1,31 @@
-triple(ind, a, i1).
-triple(ind, a, i10).
-triple(ind, a, i2).
-triple(ind, a, i3).
-triple(ind, a, i4).
-triple(ind, a, i5).
-triple(ind, a, i6).
-triple(ind, a, i7).
-triple(ind, a, i8).
-triple(ind, a, i9).
-triple(ind, a, j1).
-triple(ind, a, j10).
-triple(ind, a, j2).
-triple(ind, a, j3).
-triple(ind, a, j4).
-triple(ind, a, j5).
-triple(ind, a, j6).
-triple(ind, a, j7).
-triple(ind, a, j8).
-triple(ind, a, j9).
-triple(ind, a, n0).
-triple(ind, a, n1).
-triple(ind, a, n10).
-triple(ind, a, n2).
-triple(ind, a, n3).
-triple(ind, a, n4).
-triple(ind, a, n5).
-triple(ind, a, n6).
-triple(ind, a, n7).
-triple(ind, a, n8).
-triple(ind, a, n9).
-triple(test, is, true).
+a(ind, i1).
+a(ind, i10).
+a(ind, i2).
+a(ind, i3).
+a(ind, i4).
+a(ind, i5).
+a(ind, i6).
+a(ind, i7).
+a(ind, i8).
+a(ind, i9).
+a(ind, j1).
+a(ind, j10).
+a(ind, j2).
+a(ind, j3).
+a(ind, j4).
+a(ind, j5).
+a(ind, j6).
+a(ind, j7).
+a(ind, j8).
+a(ind, j9).
+a(ind, n1).
+a(ind, n10).
+a(ind, n2).
+a(ind, n3).
+a(ind, n4).
+a(ind, n5).
+a(ind, n6).
+a(ind, n7).
+a(ind, n8).
+a(ind, n9).
+is(test, true).

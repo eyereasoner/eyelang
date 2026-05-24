@@ -1,5 +1,15 @@
 % Memoize interval computations reused across width, midpoint, gradient, step,
-% objective, and contraction report triples.
+% objective, and contraction report relations.
+materialize(eta, 2).
+materialize(etaLeHalf, 2).
+materialize(xBounds, 2).
+materialize(midpoint, 2).
+materialize(width, 2).
+materialize(gradientBounds, 2).
+materialize(stepBounds, 2).
+materialize(objectiveBounds, 2).
+materialize(widthContractsAt, 2).
+
 memoize(x_bounds, 3).
 memoize(width, 2).
 memoize(g_bounds, 3).
@@ -110,36 +120,36 @@ f_lower(K, FL) :-
   end_squares(K, SL, SU),
   min2(SL, SU, FL).
 
-triple(result, eta, Eta) :-
+eta(result, Eta) :-
   eta(Eta).
 
-triple(result, etaLeHalf, true) :-
+etaLeHalf(result, true) :-
   eta_le_half(true).
 
-triple(result, xBounds, bounds(K, L, U)) :-
+xBounds(result, bounds(K, L, U)) :-
   index(K),
   x_bounds(K, L, U).
 
-triple(result, midpoint, midpoint(K, M, HalfW)) :-
+midpoint(result, midpoint(K, M, HalfW)) :-
   index(K),
   midpoint(K, M, HalfW).
 
-triple(result, width, width(K, W)) :-
+width(result, width(K, W)) :-
   index(K),
   width(K, W).
 
-triple(result, gradientBounds, gradient(K, GL, GU)) :-
+gradientBounds(result, gradient(K, GL, GU)) :-
   index(K),
   g_bounds(K, GL, GU).
 
-triple(result, stepBounds, step(K, PL, PU)) :-
+stepBounds(result, step(K, PL, PU)) :-
   index(K),
   p_bounds(K, PL, PU).
 
-triple(result, objectiveBounds, f(K, FL, FU)) :-
+objectiveBounds(result, f(K, FL, FU)) :-
   index(K),
   f_lower(K, FL),
   f_upper(K, FU).
 
-triple(result, widthContractsAt, K) :-
+widthContractsAt(result, K) :-
   width_contracts_at(K, true).

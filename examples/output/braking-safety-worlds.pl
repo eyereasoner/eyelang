@@ -1,18 +1,18 @@
-triple(braking_safety_worlds, reason, "simplified and naive worlds can be optimistic while the cautious world tightens the reference model").
-triple(braking_safety_worlds, status, expected_world_pattern).
-triple(city_dry, safeInWorld, w0).
-triple(city_dry, safeInWorld, w1).
-triple(city_dry, safeInWorld, w2).
-triple(city_dry, safeInWorld, w3).
-triple(city_ice, riskyInWorld, w0).
-triple(city_ice, riskyInWorld, w1).
-triple(city_ice, riskyInWorld, w3).
-triple(city_ice, safeInWorld, w2).
-triple(city_wet, riskyInWorld, w3).
-triple(city_wet, safeInWorld, w0).
-triple(city_wet, safeInWorld, w1).
-triple(city_wet, safeInWorld, w2).
-triple(highway_dry_short_gap, riskyInWorld, w0).
-triple(highway_dry_short_gap, riskyInWorld, w3).
-triple(highway_dry_short_gap, safeInWorld, w1).
-triple(highway_dry_short_gap, safeInWorld, w2).
+reason(braking_safety_worlds, "simplified and naive worlds can be optimistic while the cautious world tightens the reference model").
+riskyInWorld(city_ice, w0).
+riskyInWorld(city_ice, w1).
+riskyInWorld(city_ice, w3).
+riskyInWorld(city_wet, w3).
+riskyInWorld(highway_dry_short_gap, w0).
+riskyInWorld(highway_dry_short_gap, w3).
+safeInWorld(city_dry, w0).
+safeInWorld(city_dry, w1).
+safeInWorld(city_dry, w2).
+safeInWorld(city_dry, w3).
+safeInWorld(city_ice, w2).
+safeInWorld(city_wet, w0).
+safeInWorld(city_wet, w1).
+safeInWorld(city_wet, w2).
+safeInWorld(highway_dry_short_gap, w1).
+safeInWorld(highway_dry_short_gap, w2).
+status(braking_safety_worlds, expected_world_pattern).

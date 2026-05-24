@@ -1,8 +1,10 @@
 % Generic path discovery over the air-routes graph.
 % Change or add route_query(FromLabel, ToLabel, MaxStopOvers) to answer other routes.
+materialize(airroute, 2).
+
 route_query("Ostend-Bruges International Airport", "Václav Havel Airport Prague", 2).
 
-triple(discovered, airroute, RouteText) :-
+airroute(discovered, RouteText) :-
   route_query(From, To, MaxStopOvers),
   airport(Source, From),
   airport(Destination, To),

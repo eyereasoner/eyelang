@@ -1,29 +1,29 @@
-triple(case, notes, riskCanOutweighRawCost).
-triple(case, selectedPath, pathB).
-triple(case, trustGate, noEnumeratedPathIsLower).
-triple(dijkstraRiskPath, selects, pathB).
-triple(pathB, edgeCount, 2).
-triple(pathB, rawCost, 8.0).
-triple(pathB, riskSum, 0.5).
-triple(pathB, route, [depotA, depotB, labD]).
-triple(pathB, score, 13.0).
-triple(pathC, edgeCount, 2).
-triple(pathC, rawCost, 9.0).
-triple(pathC, riskSum, 1.2).
-triple(pathC, route, [depotA, depotC, labD]).
-triple(pathC, score, 21.0).
-triple(pathDirectC, edgeCount, 1).
-triple(pathDirectC, rawCost, 14.0).
-triple(pathDirectC, riskSum, 0.050000000000000003).
-triple(pathDirectC, route, [depotA, labD]).
-triple(pathDirectC, score, 14.5).
-triple(pathRelay, edgeCount, 2).
-triple(pathRelay, rawCost, 10.0).
-triple(pathRelay, riskSum, 0.40000000000000002).
-triple(pathRelay, route, [depotA, relay, labD]).
-triple(pathRelay, score, 14.0).
-triple(pathViaC, edgeCount, 3).
-triple(pathViaC, rawCost, 7.5).
-triple(pathViaC, riskSum, 1.7000000000000002).
-triple(pathViaC, route, [depotA, depotC, depotB, labD]).
-triple(pathViaC, score, 24.5).
+edgeCount(pathB, 2).
+edgeCount(pathC, 2).
+edgeCount(pathDirectC, 1).
+edgeCount(pathRelay, 2).
+edgeCount(pathViaC, 3).
+notes(case, riskCanOutweighRawCost).
+rawCost(pathB, 8.0).
+rawCost(pathC, 9.0).
+rawCost(pathDirectC, 14.0).
+rawCost(pathRelay, 10.0).
+rawCost(pathViaC, 7.5).
+riskSum(pathB, 0.5).
+riskSum(pathC, 1.2).
+riskSum(pathDirectC, 0.050000000000000003).
+riskSum(pathRelay, 0.40000000000000002).
+riskSum(pathViaC, 1.7000000000000002).
+route(pathB, [depotA, depotB, labD]).
+route(pathC, [depotA, depotC, labD]).
+route(pathDirectC, [depotA, labD]).
+route(pathRelay, [depotA, relay, labD]).
+route(pathViaC, [depotA, depotC, depotB, labD]).
+score(pathB, 13.0).
+score(pathC, 21.0).
+score(pathDirectC, 14.5).
+score(pathRelay, 14.0).
+score(pathViaC, 24.5).
+selectedPath(case, pathB).
+selects(dijkstraRiskPath, pathB).
+trustGate(case, noEnumeratedPathIsLower).

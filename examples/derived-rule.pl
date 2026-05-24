@@ -9,20 +9,16 @@
 % var(y) is not an eyelog variable; it is a ground term that names
 % a variable placeholder inside the quoted formula.
 
-triple(minka, rdf_type, cat).
-triple(charly, rdf_type, dog).
+materialize(type, 2).
+materialize(log_implies, 2).
+materialize(is, 2).
 
-triple(
-  triple(var(y), rdf_type, dog),
-  log_implies,
-  triple(test, is, true)
-) :-
-  triple(_X, rdf_type, cat).
+type(minka, cat).
+type(charly, dog).
 
-triple(test, is, true) :-
-  triple(
-    triple(var(y), rdf_type, dog),
-    log_implies,
-    triple(test, is, true)
-  ),
-  triple(_Y, rdf_type, dog).
+log_implies(type(var(y), dog), is(test, true)) :-
+  type(_X, cat).
+
+is(test, true) :-
+  log_implies(type(var(y), dog), is(test, true)),
+  type(_Y, dog).

@@ -1,5 +1,5 @@
-triple(nativeCompare, ok, true).
-triple(nativeList, tail, [b, c]).
-triple(nativeMath, value, 1.0).
-triple(nativeString, ok, true).
-triple(vocabularyExample, label, "vocabulary names are ordinary predicate names").
+label(vocabularyExample, "vocabulary names are ordinary predicate names").
+ok(nativeCompare, true).
+ok(nativeString, true).
+tail(nativeList, [b, c]).
+value(nativeMath, 1.0).

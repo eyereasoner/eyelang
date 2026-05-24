@@ -1,5 +1,7 @@
 % Tiny expression evaluator adapted from Eyeling's expression-eval.n3 example.
 % Data: (2 * 3) + (10 - 4) = 12.
+materialize(result, 2).
+
 number(n2, 2).
 number(n3, 3).
 number(n10, 10).
@@ -31,6 +33,6 @@ value(Node, Value) :-
   value(Right, RightValue),
   mul(LeftValue, RightValue, Value).
 
-triple(root, result, Value) :-
+result(root, Value) :-
   root(Node),
   value(Node, Value).

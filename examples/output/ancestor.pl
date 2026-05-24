@@ -1,9 +1,6 @@
-triple(jan, ancestor, emma).
-triple(jan, ancestor, lies).
-triple(jan, parent, lies).
-triple(lies, ancestor, emma).
-triple(lies, parent, emma).
-triple(pat, ancestor, emma).
-triple(pat, ancestor, jan).
-triple(pat, ancestor, lies).
-triple(pat, parent, jan).
+ancestor(jan, emma).
+ancestor(jan, lies).
+ancestor(lies, emma).
+ancestor(pat, emma).
+ancestor(pat, jan).
+ancestor(pat, lies).

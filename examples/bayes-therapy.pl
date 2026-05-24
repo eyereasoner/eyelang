@@ -1,5 +1,17 @@
 % Memoize shared inference layers: the score vector, disease likelihood tails,
-% and expected therapy success are reused by several report triples.
+% and expected therapy success are reused by several report relations.
+materialize(diseases, 2).
+materialize(therapies, 2).
+materialize(evidence, 2).
+materialize(scores, 2).
+materialize(evidenceTotal, 2).
+materialize(posteriors, 2).
+materialize(posterior, 2).
+materialize(expectedSuccess, 2).
+materialize(expectedAdverse, 2).
+materialize(utility, 2).
+materialize(recommendedTherapy, 2).
+
 memoize(scores_for, 2).
 memoize(likelihood, 3).
 memoize(expected_success, 2).
@@ -9,9 +21,9 @@ memoize(expected_success, 2).
 % The example combines a tiny Naive Bayes diagnosis model with a therapy
 % utility layer: expected utility = 10 * expectedSuccess - 3 * expectedAdverse.
 
-triple(case, diseases, [covid19, influenza, allergicRhinitis, bacterialPneumonia]).
-triple(case, therapies, [paxlovid, oseltamivir, supportiveCare, antibiotic, antihistamine]).
-triple(case, evidence, [
+diseases(case, [covid19, influenza, allergicRhinitis, bacterialPneumonia]).
+therapies(case, [paxlovid, oseltamivir, supportiveCare, antibiotic, antihistamine]).
+evidence(case, [
   ev(fever, true),
   ev(dryCough, true),
   ev(lossOfSmell, false),
@@ -82,7 +94,7 @@ likelihood(Disease, [Evidence|Rest], Likelihood) :-
 
 score(Disease, Score) :-
   prior(Disease, Prior),
-  triple(case, evidence, Evidence),
+  evidence(case, Evidence),
   likelihood(Disease, Evidence, Likelihood),
   mul(Prior, Likelihood, Score).
 
@@ -112,7 +124,7 @@ dot_product([Left|RestLeft], [Right|RestRight], Sum) :-
   add(Term, TailSum, Sum).
 
 expected_success(Therapy, ExpectedSuccess) :-
-  triple(case, posteriors, Posteriors),
+  posteriors(case, Posteriors),
   success_by_disease(Therapy, SuccessByDisease),
   dot_product(Posteriors, SuccessByDisease, ExpectedSuccess).
 
@@ -139,29 +151,29 @@ best_therapy([Head, Next|Rest], Best) :-
   best_therapy([Next|Rest], BestRest),
   better_of(Head, BestRest, Best).
 
-triple(case, scores, Scores) :-
-  triple(case, diseases, Diseases),
+scores(case, Scores) :-
+  diseases(case, Diseases),
   scores_for(Diseases, Scores).
-triple(case, evidenceTotal, Total) :-
-  triple(case, scores, Scores),
+evidenceTotal(case, Total) :-
+  scores(case, Scores),
   sum_list(Scores, Total).
-triple(case, posteriors, Posteriors) :-
-  triple(case, scores, Scores),
-  triple(case, evidenceTotal, Total),
+posteriors(case, Posteriors) :-
+  scores(case, Scores),
+  evidenceTotal(case, Total),
   normalize_scores(Scores, Total, Posteriors).
-triple(Disease, posterior, Posterior) :-
-  triple(case, diseases, Diseases),
-  triple(case, posteriors, Posteriors),
+posterior(Disease, Posterior) :-
+  diseases(case, Diseases),
+  posteriors(case, Posteriors),
   disease_posterior(Diseases, Posteriors, Disease, Posterior).
-triple(Therapy, expectedSuccess, ExpectedSuccess) :-
+expectedSuccess(Therapy, ExpectedSuccess) :-
   therapy(Therapy),
   expected_success(Therapy, ExpectedSuccess).
-triple(Therapy, expectedAdverse, Adverse) :-
+expectedAdverse(Therapy, Adverse) :-
   therapy(Therapy),
   adverse(Therapy, Adverse).
-triple(Therapy, utility, Utility) :-
+utility(Therapy, Utility) :-
   therapy(Therapy),
   utility(Therapy, Utility).
-triple(case, recommendedTherapy, Best) :-
-  triple(case, therapies, Therapies),
+recommendedTherapy(case, Best) :-
+  therapies(case, Therapies),
   best_therapy(Therapies, Best).

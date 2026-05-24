@@ -1,2492 +1,2490 @@
-triple(n1, link, n2).
-triple(n1, reaches, n10).
-triple(n1, reaches, n11).
-triple(n1, reaches, n12).
-triple(n1, reaches, n13).
-triple(n1, reaches, n14).
-triple(n1, reaches, n15).
-triple(n1, reaches, n16).
-triple(n1, reaches, n17).
-triple(n1, reaches, n18).
-triple(n1, reaches, n19).
-triple(n1, reaches, n2).
-triple(n1, reaches, n20).
-triple(n1, reaches, n21).
-triple(n1, reaches, n22).
-triple(n1, reaches, n23).
-triple(n1, reaches, n24).
-triple(n1, reaches, n25).
-triple(n1, reaches, n26).
-triple(n1, reaches, n27).
-triple(n1, reaches, n28).
-triple(n1, reaches, n29).
-triple(n1, reaches, n3).
-triple(n1, reaches, n30).
-triple(n1, reaches, n31).
-triple(n1, reaches, n32).
-triple(n1, reaches, n33).
-triple(n1, reaches, n34).
-triple(n1, reaches, n35).
-triple(n1, reaches, n36).
-triple(n1, reaches, n37).
-triple(n1, reaches, n38).
-triple(n1, reaches, n39).
-triple(n1, reaches, n4).
-triple(n1, reaches, n40).
-triple(n1, reaches, n41).
-triple(n1, reaches, n42).
-triple(n1, reaches, n43).
-triple(n1, reaches, n44).
-triple(n1, reaches, n45).
-triple(n1, reaches, n46).
-triple(n1, reaches, n47).
-triple(n1, reaches, n48).
-triple(n1, reaches, n49).
-triple(n1, reaches, n5).
-triple(n1, reaches, n50).
-triple(n1, reaches, n51).
-triple(n1, reaches, n52).
-triple(n1, reaches, n53).
-triple(n1, reaches, n54).
-triple(n1, reaches, n55).
-triple(n1, reaches, n56).
-triple(n1, reaches, n57).
-triple(n1, reaches, n58).
-triple(n1, reaches, n59).
-triple(n1, reaches, n6).
-triple(n1, reaches, n60).
-triple(n1, reaches, n61).
-triple(n1, reaches, n62).
-triple(n1, reaches, n63).
-triple(n1, reaches, n64).
-triple(n1, reaches, n65).
-triple(n1, reaches, n66).
-triple(n1, reaches, n67).
-triple(n1, reaches, n68).
-triple(n1, reaches, n69).
-triple(n1, reaches, n7).
-triple(n1, reaches, n70).
-triple(n1, reaches, n8).
-triple(n1, reaches, n9).
-triple(n10, link, n11).
-triple(n10, reaches, n11).
-triple(n10, reaches, n12).
-triple(n10, reaches, n13).
-triple(n10, reaches, n14).
-triple(n10, reaches, n15).
-triple(n10, reaches, n16).
-triple(n10, reaches, n17).
-triple(n10, reaches, n18).
-triple(n10, reaches, n19).
-triple(n10, reaches, n20).
-triple(n10, reaches, n21).
-triple(n10, reaches, n22).
-triple(n10, reaches, n23).
-triple(n10, reaches, n24).
-triple(n10, reaches, n25).
-triple(n10, reaches, n26).
-triple(n10, reaches, n27).
-triple(n10, reaches, n28).
-triple(n10, reaches, n29).
-triple(n10, reaches, n30).
-triple(n10, reaches, n31).
-triple(n10, reaches, n32).
-triple(n10, reaches, n33).
-triple(n10, reaches, n34).
-triple(n10, reaches, n35).
-triple(n10, reaches, n36).
-triple(n10, reaches, n37).
-triple(n10, reaches, n38).
-triple(n10, reaches, n39).
-triple(n10, reaches, n40).
-triple(n10, reaches, n41).
-triple(n10, reaches, n42).
-triple(n10, reaches, n43).
-triple(n10, reaches, n44).
-triple(n10, reaches, n45).
-triple(n10, reaches, n46).
-triple(n10, reaches, n47).
-triple(n10, reaches, n48).
-triple(n10, reaches, n49).
-triple(n10, reaches, n50).
-triple(n10, reaches, n51).
-triple(n10, reaches, n52).
-triple(n10, reaches, n53).
-triple(n10, reaches, n54).
-triple(n10, reaches, n55).
-triple(n10, reaches, n56).
-triple(n10, reaches, n57).
-triple(n10, reaches, n58).
-triple(n10, reaches, n59).
-triple(n10, reaches, n60).
-triple(n10, reaches, n61).
-triple(n10, reaches, n62).
-triple(n10, reaches, n63).
-triple(n10, reaches, n64).
-triple(n10, reaches, n65).
-triple(n10, reaches, n66).
-triple(n10, reaches, n67).
-triple(n10, reaches, n68).
-triple(n10, reaches, n69).
-triple(n10, reaches, n70).
-triple(n11, link, n12).
-triple(n11, reaches, n12).
-triple(n11, reaches, n13).
-triple(n11, reaches, n14).
-triple(n11, reaches, n15).
-triple(n11, reaches, n16).
-triple(n11, reaches, n17).
-triple(n11, reaches, n18).
-triple(n11, reaches, n19).
-triple(n11, reaches, n20).
-triple(n11, reaches, n21).
-triple(n11, reaches, n22).
-triple(n11, reaches, n23).
-triple(n11, reaches, n24).
-triple(n11, reaches, n25).
-triple(n11, reaches, n26).
-triple(n11, reaches, n27).
-triple(n11, reaches, n28).
-triple(n11, reaches, n29).
-triple(n11, reaches, n30).
-triple(n11, reaches, n31).
-triple(n11, reaches, n32).
-triple(n11, reaches, n33).
-triple(n11, reaches, n34).
-triple(n11, reaches, n35).
-triple(n11, reaches, n36).
-triple(n11, reaches, n37).
-triple(n11, reaches, n38).
-triple(n11, reaches, n39).
-triple(n11, reaches, n40).
-triple(n11, reaches, n41).
-triple(n11, reaches, n42).
-triple(n11, reaches, n43).
-triple(n11, reaches, n44).
-triple(n11, reaches, n45).
-triple(n11, reaches, n46).
-triple(n11, reaches, n47).
-triple(n11, reaches, n48).
-triple(n11, reaches, n49).
-triple(n11, reaches, n50).
-triple(n11, reaches, n51).
-triple(n11, reaches, n52).
-triple(n11, reaches, n53).
-triple(n11, reaches, n54).
-triple(n11, reaches, n55).
-triple(n11, reaches, n56).
-triple(n11, reaches, n57).
-triple(n11, reaches, n58).
-triple(n11, reaches, n59).
-triple(n11, reaches, n60).
-triple(n11, reaches, n61).
-triple(n11, reaches, n62).
-triple(n11, reaches, n63).
-triple(n11, reaches, n64).
-triple(n11, reaches, n65).
-triple(n11, reaches, n66).
-triple(n11, reaches, n67).
-triple(n11, reaches, n68).
-triple(n11, reaches, n69).
-triple(n11, reaches, n70).
-triple(n12, link, n13).
-triple(n12, reaches, n13).
-triple(n12, reaches, n14).
-triple(n12, reaches, n15).
-triple(n12, reaches, n16).
-triple(n12, reaches, n17).
-triple(n12, reaches, n18).
-triple(n12, reaches, n19).
-triple(n12, reaches, n20).
-triple(n12, reaches, n21).
-triple(n12, reaches, n22).
-triple(n12, reaches, n23).
-triple(n12, reaches, n24).
-triple(n12, reaches, n25).
-triple(n12, reaches, n26).
-triple(n12, reaches, n27).
-triple(n12, reaches, n28).
-triple(n12, reaches, n29).
-triple(n12, reaches, n30).
-triple(n12, reaches, n31).
-triple(n12, reaches, n32).
-triple(n12, reaches, n33).
-triple(n12, reaches, n34).
-triple(n12, reaches, n35).
-triple(n12, reaches, n36).
-triple(n12, reaches, n37).
-triple(n12, reaches, n38).
-triple(n12, reaches, n39).
-triple(n12, reaches, n40).
-triple(n12, reaches, n41).
-triple(n12, reaches, n42).
-triple(n12, reaches, n43).
-triple(n12, reaches, n44).
-triple(n12, reaches, n45).
-triple(n12, reaches, n46).
-triple(n12, reaches, n47).
-triple(n12, reaches, n48).
-triple(n12, reaches, n49).
-triple(n12, reaches, n50).
-triple(n12, reaches, n51).
-triple(n12, reaches, n52).
-triple(n12, reaches, n53).
-triple(n12, reaches, n54).
-triple(n12, reaches, n55).
-triple(n12, reaches, n56).
-triple(n12, reaches, n57).
-triple(n12, reaches, n58).
-triple(n12, reaches, n59).
-triple(n12, reaches, n60).
-triple(n12, reaches, n61).
-triple(n12, reaches, n62).
-triple(n12, reaches, n63).
-triple(n12, reaches, n64).
-triple(n12, reaches, n65).
-triple(n12, reaches, n66).
-triple(n12, reaches, n67).
-triple(n12, reaches, n68).
-triple(n12, reaches, n69).
-triple(n12, reaches, n70).
-triple(n13, link, n14).
-triple(n13, reaches, n14).
-triple(n13, reaches, n15).
-triple(n13, reaches, n16).
-triple(n13, reaches, n17).
-triple(n13, reaches, n18).
-triple(n13, reaches, n19).
-triple(n13, reaches, n20).
-triple(n13, reaches, n21).
-triple(n13, reaches, n22).
-triple(n13, reaches, n23).
-triple(n13, reaches, n24).
-triple(n13, reaches, n25).
-triple(n13, reaches, n26).
-triple(n13, reaches, n27).
-triple(n13, reaches, n28).
-triple(n13, reaches, n29).
-triple(n13, reaches, n30).
-triple(n13, reaches, n31).
-triple(n13, reaches, n32).
-triple(n13, reaches, n33).
-triple(n13, reaches, n34).
-triple(n13, reaches, n35).
-triple(n13, reaches, n36).
-triple(n13, reaches, n37).
-triple(n13, reaches, n38).
-triple(n13, reaches, n39).
-triple(n13, reaches, n40).
-triple(n13, reaches, n41).
-triple(n13, reaches, n42).
-triple(n13, reaches, n43).
-triple(n13, reaches, n44).
-triple(n13, reaches, n45).
-triple(n13, reaches, n46).
-triple(n13, reaches, n47).
-triple(n13, reaches, n48).
-triple(n13, reaches, n49).
-triple(n13, reaches, n50).
-triple(n13, reaches, n51).
-triple(n13, reaches, n52).
-triple(n13, reaches, n53).
-triple(n13, reaches, n54).
-triple(n13, reaches, n55).
-triple(n13, reaches, n56).
-triple(n13, reaches, n57).
-triple(n13, reaches, n58).
-triple(n13, reaches, n59).
-triple(n13, reaches, n60).
-triple(n13, reaches, n61).
-triple(n13, reaches, n62).
-triple(n13, reaches, n63).
-triple(n13, reaches, n64).
-triple(n13, reaches, n65).
-triple(n13, reaches, n66).
-triple(n13, reaches, n67).
-triple(n13, reaches, n68).
-triple(n13, reaches, n69).
-triple(n13, reaches, n70).
-triple(n14, link, n15).
-triple(n14, reaches, n15).
-triple(n14, reaches, n16).
-triple(n14, reaches, n17).
-triple(n14, reaches, n18).
-triple(n14, reaches, n19).
-triple(n14, reaches, n20).
-triple(n14, reaches, n21).
-triple(n14, reaches, n22).
-triple(n14, reaches, n23).
-triple(n14, reaches, n24).
-triple(n14, reaches, n25).
-triple(n14, reaches, n26).
-triple(n14, reaches, n27).
-triple(n14, reaches, n28).
-triple(n14, reaches, n29).
-triple(n14, reaches, n30).
-triple(n14, reaches, n31).
-triple(n14, reaches, n32).
-triple(n14, reaches, n33).
-triple(n14, reaches, n34).
-triple(n14, reaches, n35).
-triple(n14, reaches, n36).
-triple(n14, reaches, n37).
-triple(n14, reaches, n38).
-triple(n14, reaches, n39).
-triple(n14, reaches, n40).
-triple(n14, reaches, n41).
-triple(n14, reaches, n42).
-triple(n14, reaches, n43).
-triple(n14, reaches, n44).
-triple(n14, reaches, n45).
-triple(n14, reaches, n46).
-triple(n14, reaches, n47).
-triple(n14, reaches, n48).
-triple(n14, reaches, n49).
-triple(n14, reaches, n50).
-triple(n14, reaches, n51).
-triple(n14, reaches, n52).
-triple(n14, reaches, n53).
-triple(n14, reaches, n54).
-triple(n14, reaches, n55).
-triple(n14, reaches, n56).
-triple(n14, reaches, n57).
-triple(n14, reaches, n58).
-triple(n14, reaches, n59).
-triple(n14, reaches, n60).
-triple(n14, reaches, n61).
-triple(n14, reaches, n62).
-triple(n14, reaches, n63).
-triple(n14, reaches, n64).
-triple(n14, reaches, n65).
-triple(n14, reaches, n66).
-triple(n14, reaches, n67).
-triple(n14, reaches, n68).
-triple(n14, reaches, n69).
-triple(n14, reaches, n70).
-triple(n15, link, n16).
-triple(n15, reaches, n16).
-triple(n15, reaches, n17).
-triple(n15, reaches, n18).
-triple(n15, reaches, n19).
-triple(n15, reaches, n20).
-triple(n15, reaches, n21).
-triple(n15, reaches, n22).
-triple(n15, reaches, n23).
-triple(n15, reaches, n24).
-triple(n15, reaches, n25).
-triple(n15, reaches, n26).
-triple(n15, reaches, n27).
-triple(n15, reaches, n28).
-triple(n15, reaches, n29).
-triple(n15, reaches, n30).
-triple(n15, reaches, n31).
-triple(n15, reaches, n32).
-triple(n15, reaches, n33).
-triple(n15, reaches, n34).
-triple(n15, reaches, n35).
-triple(n15, reaches, n36).
-triple(n15, reaches, n37).
-triple(n15, reaches, n38).
-triple(n15, reaches, n39).
-triple(n15, reaches, n40).
-triple(n15, reaches, n41).
-triple(n15, reaches, n42).
-triple(n15, reaches, n43).
-triple(n15, reaches, n44).
-triple(n15, reaches, n45).
-triple(n15, reaches, n46).
-triple(n15, reaches, n47).
-triple(n15, reaches, n48).
-triple(n15, reaches, n49).
-triple(n15, reaches, n50).
-triple(n15, reaches, n51).
-triple(n15, reaches, n52).
-triple(n15, reaches, n53).
-triple(n15, reaches, n54).
-triple(n15, reaches, n55).
-triple(n15, reaches, n56).
-triple(n15, reaches, n57).
-triple(n15, reaches, n58).
-triple(n15, reaches, n59).
-triple(n15, reaches, n60).
-triple(n15, reaches, n61).
-triple(n15, reaches, n62).
-triple(n15, reaches, n63).
-triple(n15, reaches, n64).
-triple(n15, reaches, n65).
-triple(n15, reaches, n66).
-triple(n15, reaches, n67).
-triple(n15, reaches, n68).
-triple(n15, reaches, n69).
-triple(n15, reaches, n70).
-triple(n16, link, n17).
-triple(n16, reaches, n17).
-triple(n16, reaches, n18).
-triple(n16, reaches, n19).
-triple(n16, reaches, n20).
-triple(n16, reaches, n21).
-triple(n16, reaches, n22).
-triple(n16, reaches, n23).
-triple(n16, reaches, n24).
-triple(n16, reaches, n25).
-triple(n16, reaches, n26).
-triple(n16, reaches, n27).
-triple(n16, reaches, n28).
-triple(n16, reaches, n29).
-triple(n16, reaches, n30).
-triple(n16, reaches, n31).
-triple(n16, reaches, n32).
-triple(n16, reaches, n33).
-triple(n16, reaches, n34).
-triple(n16, reaches, n35).
-triple(n16, reaches, n36).
-triple(n16, reaches, n37).
-triple(n16, reaches, n38).
-triple(n16, reaches, n39).
-triple(n16, reaches, n40).
-triple(n16, reaches, n41).
-triple(n16, reaches, n42).
-triple(n16, reaches, n43).
-triple(n16, reaches, n44).
-triple(n16, reaches, n45).
-triple(n16, reaches, n46).
-triple(n16, reaches, n47).
-triple(n16, reaches, n48).
-triple(n16, reaches, n49).
-triple(n16, reaches, n50).
-triple(n16, reaches, n51).
-triple(n16, reaches, n52).
-triple(n16, reaches, n53).
-triple(n16, reaches, n54).
-triple(n16, reaches, n55).
-triple(n16, reaches, n56).
-triple(n16, reaches, n57).
-triple(n16, reaches, n58).
-triple(n16, reaches, n59).
-triple(n16, reaches, n60).
-triple(n16, reaches, n61).
-triple(n16, reaches, n62).
-triple(n16, reaches, n63).
-triple(n16, reaches, n64).
-triple(n16, reaches, n65).
-triple(n16, reaches, n66).
-triple(n16, reaches, n67).
-triple(n16, reaches, n68).
-triple(n16, reaches, n69).
-triple(n16, reaches, n70).
-triple(n17, link, n18).
-triple(n17, reaches, n18).
-triple(n17, reaches, n19).
-triple(n17, reaches, n20).
-triple(n17, reaches, n21).
-triple(n17, reaches, n22).
-triple(n17, reaches, n23).
-triple(n17, reaches, n24).
-triple(n17, reaches, n25).
-triple(n17, reaches, n26).
-triple(n17, reaches, n27).
-triple(n17, reaches, n28).
-triple(n17, reaches, n29).
-triple(n17, reaches, n30).
-triple(n17, reaches, n31).
-triple(n17, reaches, n32).
-triple(n17, reaches, n33).
-triple(n17, reaches, n34).
-triple(n17, reaches, n35).
-triple(n17, reaches, n36).
-triple(n17, reaches, n37).
-triple(n17, reaches, n38).
-triple(n17, reaches, n39).
-triple(n17, reaches, n40).
-triple(n17, reaches, n41).
-triple(n17, reaches, n42).
-triple(n17, reaches, n43).
-triple(n17, reaches, n44).
-triple(n17, reaches, n45).
-triple(n17, reaches, n46).
-triple(n17, reaches, n47).
-triple(n17, reaches, n48).
-triple(n17, reaches, n49).
-triple(n17, reaches, n50).
-triple(n17, reaches, n51).
-triple(n17, reaches, n52).
-triple(n17, reaches, n53).
-triple(n17, reaches, n54).
-triple(n17, reaches, n55).
-triple(n17, reaches, n56).
-triple(n17, reaches, n57).
-triple(n17, reaches, n58).
-triple(n17, reaches, n59).
-triple(n17, reaches, n60).
-triple(n17, reaches, n61).
-triple(n17, reaches, n62).
-triple(n17, reaches, n63).
-triple(n17, reaches, n64).
-triple(n17, reaches, n65).
-triple(n17, reaches, n66).
-triple(n17, reaches, n67).
-triple(n17, reaches, n68).
-triple(n17, reaches, n69).
-triple(n17, reaches, n70).
-triple(n18, link, n19).
-triple(n18, reaches, n19).
-triple(n18, reaches, n20).
-triple(n18, reaches, n21).
-triple(n18, reaches, n22).
-triple(n18, reaches, n23).
-triple(n18, reaches, n24).
-triple(n18, reaches, n25).
-triple(n18, reaches, n26).
-triple(n18, reaches, n27).
-triple(n18, reaches, n28).
-triple(n18, reaches, n29).
-triple(n18, reaches, n30).
-triple(n18, reaches, n31).
-triple(n18, reaches, n32).
-triple(n18, reaches, n33).
-triple(n18, reaches, n34).
-triple(n18, reaches, n35).
-triple(n18, reaches, n36).
-triple(n18, reaches, n37).
-triple(n18, reaches, n38).
-triple(n18, reaches, n39).
-triple(n18, reaches, n40).
-triple(n18, reaches, n41).
-triple(n18, reaches, n42).
-triple(n18, reaches, n43).
-triple(n18, reaches, n44).
-triple(n18, reaches, n45).
-triple(n18, reaches, n46).
-triple(n18, reaches, n47).
-triple(n18, reaches, n48).
-triple(n18, reaches, n49).
-triple(n18, reaches, n50).
-triple(n18, reaches, n51).
-triple(n18, reaches, n52).
-triple(n18, reaches, n53).
-triple(n18, reaches, n54).
-triple(n18, reaches, n55).
-triple(n18, reaches, n56).
-triple(n18, reaches, n57).
-triple(n18, reaches, n58).
-triple(n18, reaches, n59).
-triple(n18, reaches, n60).
-triple(n18, reaches, n61).
-triple(n18, reaches, n62).
-triple(n18, reaches, n63).
-triple(n18, reaches, n64).
-triple(n18, reaches, n65).
-triple(n18, reaches, n66).
-triple(n18, reaches, n67).
-triple(n18, reaches, n68).
-triple(n18, reaches, n69).
-triple(n18, reaches, n70).
-triple(n19, link, n20).
-triple(n19, reaches, n20).
-triple(n19, reaches, n21).
-triple(n19, reaches, n22).
-triple(n19, reaches, n23).
-triple(n19, reaches, n24).
-triple(n19, reaches, n25).
-triple(n19, reaches, n26).
-triple(n19, reaches, n27).
-triple(n19, reaches, n28).
-triple(n19, reaches, n29).
-triple(n19, reaches, n30).
-triple(n19, reaches, n31).
-triple(n19, reaches, n32).
-triple(n19, reaches, n33).
-triple(n19, reaches, n34).
-triple(n19, reaches, n35).
-triple(n19, reaches, n36).
-triple(n19, reaches, n37).
-triple(n19, reaches, n38).
-triple(n19, reaches, n39).
-triple(n19, reaches, n40).
-triple(n19, reaches, n41).
-triple(n19, reaches, n42).
-triple(n19, reaches, n43).
-triple(n19, reaches, n44).
-triple(n19, reaches, n45).
-triple(n19, reaches, n46).
-triple(n19, reaches, n47).
-triple(n19, reaches, n48).
-triple(n19, reaches, n49).
-triple(n19, reaches, n50).
-triple(n19, reaches, n51).
-triple(n19, reaches, n52).
-triple(n19, reaches, n53).
-triple(n19, reaches, n54).
-triple(n19, reaches, n55).
-triple(n19, reaches, n56).
-triple(n19, reaches, n57).
-triple(n19, reaches, n58).
-triple(n19, reaches, n59).
-triple(n19, reaches, n60).
-triple(n19, reaches, n61).
-triple(n19, reaches, n62).
-triple(n19, reaches, n63).
-triple(n19, reaches, n64).
-triple(n19, reaches, n65).
-triple(n19, reaches, n66).
-triple(n19, reaches, n67).
-triple(n19, reaches, n68).
-triple(n19, reaches, n69).
-triple(n19, reaches, n70).
-triple(n2, link, n3).
-triple(n2, reaches, n10).
-triple(n2, reaches, n11).
-triple(n2, reaches, n12).
-triple(n2, reaches, n13).
-triple(n2, reaches, n14).
-triple(n2, reaches, n15).
-triple(n2, reaches, n16).
-triple(n2, reaches, n17).
-triple(n2, reaches, n18).
-triple(n2, reaches, n19).
-triple(n2, reaches, n20).
-triple(n2, reaches, n21).
-triple(n2, reaches, n22).
-triple(n2, reaches, n23).
-triple(n2, reaches, n24).
-triple(n2, reaches, n25).
-triple(n2, reaches, n26).
-triple(n2, reaches, n27).
-triple(n2, reaches, n28).
-triple(n2, reaches, n29).
-triple(n2, reaches, n3).
-triple(n2, reaches, n30).
-triple(n2, reaches, n31).
-triple(n2, reaches, n32).
-triple(n2, reaches, n33).
-triple(n2, reaches, n34).
-triple(n2, reaches, n35).
-triple(n2, reaches, n36).
-triple(n2, reaches, n37).
-triple(n2, reaches, n38).
-triple(n2, reaches, n39).
-triple(n2, reaches, n4).
-triple(n2, reaches, n40).
-triple(n2, reaches, n41).
-triple(n2, reaches, n42).
-triple(n2, reaches, n43).
-triple(n2, reaches, n44).
-triple(n2, reaches, n45).
-triple(n2, reaches, n46).
-triple(n2, reaches, n47).
-triple(n2, reaches, n48).
-triple(n2, reaches, n49).
-triple(n2, reaches, n5).
-triple(n2, reaches, n50).
-triple(n2, reaches, n51).
-triple(n2, reaches, n52).
-triple(n2, reaches, n53).
-triple(n2, reaches, n54).
-triple(n2, reaches, n55).
-triple(n2, reaches, n56).
-triple(n2, reaches, n57).
-triple(n2, reaches, n58).
-triple(n2, reaches, n59).
-triple(n2, reaches, n6).
-triple(n2, reaches, n60).
-triple(n2, reaches, n61).
-triple(n2, reaches, n62).
-triple(n2, reaches, n63).
-triple(n2, reaches, n64).
-triple(n2, reaches, n65).
-triple(n2, reaches, n66).
-triple(n2, reaches, n67).
-triple(n2, reaches, n68).
-triple(n2, reaches, n69).
-triple(n2, reaches, n7).
-triple(n2, reaches, n70).
-triple(n2, reaches, n8).
-triple(n2, reaches, n9).
-triple(n20, link, n21).
-triple(n20, reaches, n21).
-triple(n20, reaches, n22).
-triple(n20, reaches, n23).
-triple(n20, reaches, n24).
-triple(n20, reaches, n25).
-triple(n20, reaches, n26).
-triple(n20, reaches, n27).
-triple(n20, reaches, n28).
-triple(n20, reaches, n29).
-triple(n20, reaches, n30).
-triple(n20, reaches, n31).
-triple(n20, reaches, n32).
-triple(n20, reaches, n33).
-triple(n20, reaches, n34).
-triple(n20, reaches, n35).
-triple(n20, reaches, n36).
-triple(n20, reaches, n37).
-triple(n20, reaches, n38).
-triple(n20, reaches, n39).
-triple(n20, reaches, n40).
-triple(n20, reaches, n41).
-triple(n20, reaches, n42).
-triple(n20, reaches, n43).
-triple(n20, reaches, n44).
-triple(n20, reaches, n45).
-triple(n20, reaches, n46).
-triple(n20, reaches, n47).
-triple(n20, reaches, n48).
-triple(n20, reaches, n49).
-triple(n20, reaches, n50).
-triple(n20, reaches, n51).
-triple(n20, reaches, n52).
-triple(n20, reaches, n53).
-triple(n20, reaches, n54).
-triple(n20, reaches, n55).
-triple(n20, reaches, n56).
-triple(n20, reaches, n57).
-triple(n20, reaches, n58).
-triple(n20, reaches, n59).
-triple(n20, reaches, n60).
-triple(n20, reaches, n61).
-triple(n20, reaches, n62).
-triple(n20, reaches, n63).
-triple(n20, reaches, n64).
-triple(n20, reaches, n65).
-triple(n20, reaches, n66).
-triple(n20, reaches, n67).
-triple(n20, reaches, n68).
-triple(n20, reaches, n69).
-triple(n20, reaches, n70).
-triple(n21, link, n22).
-triple(n21, reaches, n22).
-triple(n21, reaches, n23).
-triple(n21, reaches, n24).
-triple(n21, reaches, n25).
-triple(n21, reaches, n26).
-triple(n21, reaches, n27).
-triple(n21, reaches, n28).
-triple(n21, reaches, n29).
-triple(n21, reaches, n30).
-triple(n21, reaches, n31).
-triple(n21, reaches, n32).
-triple(n21, reaches, n33).
-triple(n21, reaches, n34).
-triple(n21, reaches, n35).
-triple(n21, reaches, n36).
-triple(n21, reaches, n37).
-triple(n21, reaches, n38).
-triple(n21, reaches, n39).
-triple(n21, reaches, n40).
-triple(n21, reaches, n41).
-triple(n21, reaches, n42).
-triple(n21, reaches, n43).
-triple(n21, reaches, n44).
-triple(n21, reaches, n45).
-triple(n21, reaches, n46).
-triple(n21, reaches, n47).
-triple(n21, reaches, n48).
-triple(n21, reaches, n49).
-triple(n21, reaches, n50).
-triple(n21, reaches, n51).
-triple(n21, reaches, n52).
-triple(n21, reaches, n53).
-triple(n21, reaches, n54).
-triple(n21, reaches, n55).
-triple(n21, reaches, n56).
-triple(n21, reaches, n57).
-triple(n21, reaches, n58).
-triple(n21, reaches, n59).
-triple(n21, reaches, n60).
-triple(n21, reaches, n61).
-triple(n21, reaches, n62).
-triple(n21, reaches, n63).
-triple(n21, reaches, n64).
-triple(n21, reaches, n65).
-triple(n21, reaches, n66).
-triple(n21, reaches, n67).
-triple(n21, reaches, n68).
-triple(n21, reaches, n69).
-triple(n21, reaches, n70).
-triple(n22, link, n23).
-triple(n22, reaches, n23).
-triple(n22, reaches, n24).
-triple(n22, reaches, n25).
-triple(n22, reaches, n26).
-triple(n22, reaches, n27).
-triple(n22, reaches, n28).
-triple(n22, reaches, n29).
-triple(n22, reaches, n30).
-triple(n22, reaches, n31).
-triple(n22, reaches, n32).
-triple(n22, reaches, n33).
-triple(n22, reaches, n34).
-triple(n22, reaches, n35).
-triple(n22, reaches, n36).
-triple(n22, reaches, n37).
-triple(n22, reaches, n38).
-triple(n22, reaches, n39).
-triple(n22, reaches, n40).
-triple(n22, reaches, n41).
-triple(n22, reaches, n42).
-triple(n22, reaches, n43).
-triple(n22, reaches, n44).
-triple(n22, reaches, n45).
-triple(n22, reaches, n46).
-triple(n22, reaches, n47).
-triple(n22, reaches, n48).
-triple(n22, reaches, n49).
-triple(n22, reaches, n50).
-triple(n22, reaches, n51).
-triple(n22, reaches, n52).
-triple(n22, reaches, n53).
-triple(n22, reaches, n54).
-triple(n22, reaches, n55).
-triple(n22, reaches, n56).
-triple(n22, reaches, n57).
-triple(n22, reaches, n58).
-triple(n22, reaches, n59).
-triple(n22, reaches, n60).
-triple(n22, reaches, n61).
-triple(n22, reaches, n62).
-triple(n22, reaches, n63).
-triple(n22, reaches, n64).
-triple(n22, reaches, n65).
-triple(n22, reaches, n66).
-triple(n22, reaches, n67).
-triple(n22, reaches, n68).
-triple(n22, reaches, n69).
-triple(n22, reaches, n70).
-triple(n23, link, n24).
-triple(n23, reaches, n24).
-triple(n23, reaches, n25).
-triple(n23, reaches, n26).
-triple(n23, reaches, n27).
-triple(n23, reaches, n28).
-triple(n23, reaches, n29).
-triple(n23, reaches, n30).
-triple(n23, reaches, n31).
-triple(n23, reaches, n32).
-triple(n23, reaches, n33).
-triple(n23, reaches, n34).
-triple(n23, reaches, n35).
-triple(n23, reaches, n36).
-triple(n23, reaches, n37).
-triple(n23, reaches, n38).
-triple(n23, reaches, n39).
-triple(n23, reaches, n40).
-triple(n23, reaches, n41).
-triple(n23, reaches, n42).
-triple(n23, reaches, n43).
-triple(n23, reaches, n44).
-triple(n23, reaches, n45).
-triple(n23, reaches, n46).
-triple(n23, reaches, n47).
-triple(n23, reaches, n48).
-triple(n23, reaches, n49).
-triple(n23, reaches, n50).
-triple(n23, reaches, n51).
-triple(n23, reaches, n52).
-triple(n23, reaches, n53).
-triple(n23, reaches, n54).
-triple(n23, reaches, n55).
-triple(n23, reaches, n56).
-triple(n23, reaches, n57).
-triple(n23, reaches, n58).
-triple(n23, reaches, n59).
-triple(n23, reaches, n60).
-triple(n23, reaches, n61).
-triple(n23, reaches, n62).
-triple(n23, reaches, n63).
-triple(n23, reaches, n64).
-triple(n23, reaches, n65).
-triple(n23, reaches, n66).
-triple(n23, reaches, n67).
-triple(n23, reaches, n68).
-triple(n23, reaches, n69).
-triple(n23, reaches, n70).
-triple(n24, link, n25).
-triple(n24, reaches, n25).
-triple(n24, reaches, n26).
-triple(n24, reaches, n27).
-triple(n24, reaches, n28).
-triple(n24, reaches, n29).
-triple(n24, reaches, n30).
-triple(n24, reaches, n31).
-triple(n24, reaches, n32).
-triple(n24, reaches, n33).
-triple(n24, reaches, n34).
-triple(n24, reaches, n35).
-triple(n24, reaches, n36).
-triple(n24, reaches, n37).
-triple(n24, reaches, n38).
-triple(n24, reaches, n39).
-triple(n24, reaches, n40).
-triple(n24, reaches, n41).
-triple(n24, reaches, n42).
-triple(n24, reaches, n43).
-triple(n24, reaches, n44).
-triple(n24, reaches, n45).
-triple(n24, reaches, n46).
-triple(n24, reaches, n47).
-triple(n24, reaches, n48).
-triple(n24, reaches, n49).
-triple(n24, reaches, n50).
-triple(n24, reaches, n51).
-triple(n24, reaches, n52).
-triple(n24, reaches, n53).
-triple(n24, reaches, n54).
-triple(n24, reaches, n55).
-triple(n24, reaches, n56).
-triple(n24, reaches, n57).
-triple(n24, reaches, n58).
-triple(n24, reaches, n59).
-triple(n24, reaches, n60).
-triple(n24, reaches, n61).
-triple(n24, reaches, n62).
-triple(n24, reaches, n63).
-triple(n24, reaches, n64).
-triple(n24, reaches, n65).
-triple(n24, reaches, n66).
-triple(n24, reaches, n67).
-triple(n24, reaches, n68).
-triple(n24, reaches, n69).
-triple(n24, reaches, n70).
-triple(n25, link, n26).
-triple(n25, reaches, n26).
-triple(n25, reaches, n27).
-triple(n25, reaches, n28).
-triple(n25, reaches, n29).
-triple(n25, reaches, n30).
-triple(n25, reaches, n31).
-triple(n25, reaches, n32).
-triple(n25, reaches, n33).
-triple(n25, reaches, n34).
-triple(n25, reaches, n35).
-triple(n25, reaches, n36).
-triple(n25, reaches, n37).
-triple(n25, reaches, n38).
-triple(n25, reaches, n39).
-triple(n25, reaches, n40).
-triple(n25, reaches, n41).
-triple(n25, reaches, n42).
-triple(n25, reaches, n43).
-triple(n25, reaches, n44).
-triple(n25, reaches, n45).
-triple(n25, reaches, n46).
-triple(n25, reaches, n47).
-triple(n25, reaches, n48).
-triple(n25, reaches, n49).
-triple(n25, reaches, n50).
-triple(n25, reaches, n51).
-triple(n25, reaches, n52).
-triple(n25, reaches, n53).
-triple(n25, reaches, n54).
-triple(n25, reaches, n55).
-triple(n25, reaches, n56).
-triple(n25, reaches, n57).
-triple(n25, reaches, n58).
-triple(n25, reaches, n59).
-triple(n25, reaches, n60).
-triple(n25, reaches, n61).
-triple(n25, reaches, n62).
-triple(n25, reaches, n63).
-triple(n25, reaches, n64).
-triple(n25, reaches, n65).
-triple(n25, reaches, n66).
-triple(n25, reaches, n67).
-triple(n25, reaches, n68).
-triple(n25, reaches, n69).
-triple(n25, reaches, n70).
-triple(n26, link, n27).
-triple(n26, reaches, n27).
-triple(n26, reaches, n28).
-triple(n26, reaches, n29).
-triple(n26, reaches, n30).
-triple(n26, reaches, n31).
-triple(n26, reaches, n32).
-triple(n26, reaches, n33).
-triple(n26, reaches, n34).
-triple(n26, reaches, n35).
-triple(n26, reaches, n36).
-triple(n26, reaches, n37).
-triple(n26, reaches, n38).
-triple(n26, reaches, n39).
-triple(n26, reaches, n40).
-triple(n26, reaches, n41).
-triple(n26, reaches, n42).
-triple(n26, reaches, n43).
-triple(n26, reaches, n44).
-triple(n26, reaches, n45).
-triple(n26, reaches, n46).
-triple(n26, reaches, n47).
-triple(n26, reaches, n48).
-triple(n26, reaches, n49).
-triple(n26, reaches, n50).
-triple(n26, reaches, n51).
-triple(n26, reaches, n52).
-triple(n26, reaches, n53).
-triple(n26, reaches, n54).
-triple(n26, reaches, n55).
-triple(n26, reaches, n56).
-triple(n26, reaches, n57).
-triple(n26, reaches, n58).
-triple(n26, reaches, n59).
-triple(n26, reaches, n60).
-triple(n26, reaches, n61).
-triple(n26, reaches, n62).
-triple(n26, reaches, n63).
-triple(n26, reaches, n64).
-triple(n26, reaches, n65).
-triple(n26, reaches, n66).
-triple(n26, reaches, n67).
-triple(n26, reaches, n68).
-triple(n26, reaches, n69).
-triple(n26, reaches, n70).
-triple(n27, link, n28).
-triple(n27, reaches, n28).
-triple(n27, reaches, n29).
-triple(n27, reaches, n30).
-triple(n27, reaches, n31).
-triple(n27, reaches, n32).
-triple(n27, reaches, n33).
-triple(n27, reaches, n34).
-triple(n27, reaches, n35).
-triple(n27, reaches, n36).
-triple(n27, reaches, n37).
-triple(n27, reaches, n38).
-triple(n27, reaches, n39).
-triple(n27, reaches, n40).
-triple(n27, reaches, n41).
-triple(n27, reaches, n42).
-triple(n27, reaches, n43).
-triple(n27, reaches, n44).
-triple(n27, reaches, n45).
-triple(n27, reaches, n46).
-triple(n27, reaches, n47).
-triple(n27, reaches, n48).
-triple(n27, reaches, n49).
-triple(n27, reaches, n50).
-triple(n27, reaches, n51).
-triple(n27, reaches, n52).
-triple(n27, reaches, n53).
-triple(n27, reaches, n54).
-triple(n27, reaches, n55).
-triple(n27, reaches, n56).
-triple(n27, reaches, n57).
-triple(n27, reaches, n58).
-triple(n27, reaches, n59).
-triple(n27, reaches, n60).
-triple(n27, reaches, n61).
-triple(n27, reaches, n62).
-triple(n27, reaches, n63).
-triple(n27, reaches, n64).
-triple(n27, reaches, n65).
-triple(n27, reaches, n66).
-triple(n27, reaches, n67).
-triple(n27, reaches, n68).
-triple(n27, reaches, n69).
-triple(n27, reaches, n70).
-triple(n28, link, n29).
-triple(n28, reaches, n29).
-triple(n28, reaches, n30).
-triple(n28, reaches, n31).
-triple(n28, reaches, n32).
-triple(n28, reaches, n33).
-triple(n28, reaches, n34).
-triple(n28, reaches, n35).
-triple(n28, reaches, n36).
-triple(n28, reaches, n37).
-triple(n28, reaches, n38).
-triple(n28, reaches, n39).
-triple(n28, reaches, n40).
-triple(n28, reaches, n41).
-triple(n28, reaches, n42).
-triple(n28, reaches, n43).
-triple(n28, reaches, n44).
-triple(n28, reaches, n45).
-triple(n28, reaches, n46).
-triple(n28, reaches, n47).
-triple(n28, reaches, n48).
-triple(n28, reaches, n49).
-triple(n28, reaches, n50).
-triple(n28, reaches, n51).
-triple(n28, reaches, n52).
-triple(n28, reaches, n53).
-triple(n28, reaches, n54).
-triple(n28, reaches, n55).
-triple(n28, reaches, n56).
-triple(n28, reaches, n57).
-triple(n28, reaches, n58).
-triple(n28, reaches, n59).
-triple(n28, reaches, n60).
-triple(n28, reaches, n61).
-triple(n28, reaches, n62).
-triple(n28, reaches, n63).
-triple(n28, reaches, n64).
-triple(n28, reaches, n65).
-triple(n28, reaches, n66).
-triple(n28, reaches, n67).
-triple(n28, reaches, n68).
-triple(n28, reaches, n69).
-triple(n28, reaches, n70).
-triple(n29, link, n30).
-triple(n29, reaches, n30).
-triple(n29, reaches, n31).
-triple(n29, reaches, n32).
-triple(n29, reaches, n33).
-triple(n29, reaches, n34).
-triple(n29, reaches, n35).
-triple(n29, reaches, n36).
-triple(n29, reaches, n37).
-triple(n29, reaches, n38).
-triple(n29, reaches, n39).
-triple(n29, reaches, n40).
-triple(n29, reaches, n41).
-triple(n29, reaches, n42).
-triple(n29, reaches, n43).
-triple(n29, reaches, n44).
-triple(n29, reaches, n45).
-triple(n29, reaches, n46).
-triple(n29, reaches, n47).
-triple(n29, reaches, n48).
-triple(n29, reaches, n49).
-triple(n29, reaches, n50).
-triple(n29, reaches, n51).
-triple(n29, reaches, n52).
-triple(n29, reaches, n53).
-triple(n29, reaches, n54).
-triple(n29, reaches, n55).
-triple(n29, reaches, n56).
-triple(n29, reaches, n57).
-triple(n29, reaches, n58).
-triple(n29, reaches, n59).
-triple(n29, reaches, n60).
-triple(n29, reaches, n61).
-triple(n29, reaches, n62).
-triple(n29, reaches, n63).
-triple(n29, reaches, n64).
-triple(n29, reaches, n65).
-triple(n29, reaches, n66).
-triple(n29, reaches, n67).
-triple(n29, reaches, n68).
-triple(n29, reaches, n69).
-triple(n29, reaches, n70).
-triple(n3, link, n4).
-triple(n3, reaches, n10).
-triple(n3, reaches, n11).
-triple(n3, reaches, n12).
-triple(n3, reaches, n13).
-triple(n3, reaches, n14).
-triple(n3, reaches, n15).
-triple(n3, reaches, n16).
-triple(n3, reaches, n17).
-triple(n3, reaches, n18).
-triple(n3, reaches, n19).
-triple(n3, reaches, n20).
-triple(n3, reaches, n21).
-triple(n3, reaches, n22).
-triple(n3, reaches, n23).
-triple(n3, reaches, n24).
-triple(n3, reaches, n25).
-triple(n3, reaches, n26).
-triple(n3, reaches, n27).
-triple(n3, reaches, n28).
-triple(n3, reaches, n29).
-triple(n3, reaches, n30).
-triple(n3, reaches, n31).
-triple(n3, reaches, n32).
-triple(n3, reaches, n33).
-triple(n3, reaches, n34).
-triple(n3, reaches, n35).
-triple(n3, reaches, n36).
-triple(n3, reaches, n37).
-triple(n3, reaches, n38).
-triple(n3, reaches, n39).
-triple(n3, reaches, n4).
-triple(n3, reaches, n40).
-triple(n3, reaches, n41).
-triple(n3, reaches, n42).
-triple(n3, reaches, n43).
-triple(n3, reaches, n44).
-triple(n3, reaches, n45).
-triple(n3, reaches, n46).
-triple(n3, reaches, n47).
-triple(n3, reaches, n48).
-triple(n3, reaches, n49).
-triple(n3, reaches, n5).
-triple(n3, reaches, n50).
-triple(n3, reaches, n51).
-triple(n3, reaches, n52).
-triple(n3, reaches, n53).
-triple(n3, reaches, n54).
-triple(n3, reaches, n55).
-triple(n3, reaches, n56).
-triple(n3, reaches, n57).
-triple(n3, reaches, n58).
-triple(n3, reaches, n59).
-triple(n3, reaches, n6).
-triple(n3, reaches, n60).
-triple(n3, reaches, n61).
-triple(n3, reaches, n62).
-triple(n3, reaches, n63).
-triple(n3, reaches, n64).
-triple(n3, reaches, n65).
-triple(n3, reaches, n66).
-triple(n3, reaches, n67).
-triple(n3, reaches, n68).
-triple(n3, reaches, n69).
-triple(n3, reaches, n7).
-triple(n3, reaches, n70).
-triple(n3, reaches, n8).
-triple(n3, reaches, n9).
-triple(n30, link, n31).
-triple(n30, reaches, n31).
-triple(n30, reaches, n32).
-triple(n30, reaches, n33).
-triple(n30, reaches, n34).
-triple(n30, reaches, n35).
-triple(n30, reaches, n36).
-triple(n30, reaches, n37).
-triple(n30, reaches, n38).
-triple(n30, reaches, n39).
-triple(n30, reaches, n40).
-triple(n30, reaches, n41).
-triple(n30, reaches, n42).
-triple(n30, reaches, n43).
-triple(n30, reaches, n44).
-triple(n30, reaches, n45).
-triple(n30, reaches, n46).
-triple(n30, reaches, n47).
-triple(n30, reaches, n48).
-triple(n30, reaches, n49).
-triple(n30, reaches, n50).
-triple(n30, reaches, n51).
-triple(n30, reaches, n52).
-triple(n30, reaches, n53).
-triple(n30, reaches, n54).
-triple(n30, reaches, n55).
-triple(n30, reaches, n56).
-triple(n30, reaches, n57).
-triple(n30, reaches, n58).
-triple(n30, reaches, n59).
-triple(n30, reaches, n60).
-triple(n30, reaches, n61).
-triple(n30, reaches, n62).
-triple(n30, reaches, n63).
-triple(n30, reaches, n64).
-triple(n30, reaches, n65).
-triple(n30, reaches, n66).
-triple(n30, reaches, n67).
-triple(n30, reaches, n68).
-triple(n30, reaches, n69).
-triple(n30, reaches, n70).
-triple(n31, link, n32).
-triple(n31, reaches, n32).
-triple(n31, reaches, n33).
-triple(n31, reaches, n34).
-triple(n31, reaches, n35).
-triple(n31, reaches, n36).
-triple(n31, reaches, n37).
-triple(n31, reaches, n38).
-triple(n31, reaches, n39).
-triple(n31, reaches, n40).
-triple(n31, reaches, n41).
-triple(n31, reaches, n42).
-triple(n31, reaches, n43).
-triple(n31, reaches, n44).
-triple(n31, reaches, n45).
-triple(n31, reaches, n46).
-triple(n31, reaches, n47).
-triple(n31, reaches, n48).
-triple(n31, reaches, n49).
-triple(n31, reaches, n50).
-triple(n31, reaches, n51).
-triple(n31, reaches, n52).
-triple(n31, reaches, n53).
-triple(n31, reaches, n54).
-triple(n31, reaches, n55).
-triple(n31, reaches, n56).
-triple(n31, reaches, n57).
-triple(n31, reaches, n58).
-triple(n31, reaches, n59).
-triple(n31, reaches, n60).
-triple(n31, reaches, n61).
-triple(n31, reaches, n62).
-triple(n31, reaches, n63).
-triple(n31, reaches, n64).
-triple(n31, reaches, n65).
-triple(n31, reaches, n66).
-triple(n31, reaches, n67).
-triple(n31, reaches, n68).
-triple(n31, reaches, n69).
-triple(n31, reaches, n70).
-triple(n32, link, n33).
-triple(n32, reaches, n33).
-triple(n32, reaches, n34).
-triple(n32, reaches, n35).
-triple(n32, reaches, n36).
-triple(n32, reaches, n37).
-triple(n32, reaches, n38).
-triple(n32, reaches, n39).
-triple(n32, reaches, n40).
-triple(n32, reaches, n41).
-triple(n32, reaches, n42).
-triple(n32, reaches, n43).
-triple(n32, reaches, n44).
-triple(n32, reaches, n45).
-triple(n32, reaches, n46).
-triple(n32, reaches, n47).
-triple(n32, reaches, n48).
-triple(n32, reaches, n49).
-triple(n32, reaches, n50).
-triple(n32, reaches, n51).
-triple(n32, reaches, n52).
-triple(n32, reaches, n53).
-triple(n32, reaches, n54).
-triple(n32, reaches, n55).
-triple(n32, reaches, n56).
-triple(n32, reaches, n57).
-triple(n32, reaches, n58).
-triple(n32, reaches, n59).
-triple(n32, reaches, n60).
-triple(n32, reaches, n61).
-triple(n32, reaches, n62).
-triple(n32, reaches, n63).
-triple(n32, reaches, n64).
-triple(n32, reaches, n65).
-triple(n32, reaches, n66).
-triple(n32, reaches, n67).
-triple(n32, reaches, n68).
-triple(n32, reaches, n69).
-triple(n32, reaches, n70).
-triple(n33, link, n34).
-triple(n33, reaches, n34).
-triple(n33, reaches, n35).
-triple(n33, reaches, n36).
-triple(n33, reaches, n37).
-triple(n33, reaches, n38).
-triple(n33, reaches, n39).
-triple(n33, reaches, n40).
-triple(n33, reaches, n41).
-triple(n33, reaches, n42).
-triple(n33, reaches, n43).
-triple(n33, reaches, n44).
-triple(n33, reaches, n45).
-triple(n33, reaches, n46).
-triple(n33, reaches, n47).
-triple(n33, reaches, n48).
-triple(n33, reaches, n49).
-triple(n33, reaches, n50).
-triple(n33, reaches, n51).
-triple(n33, reaches, n52).
-triple(n33, reaches, n53).
-triple(n33, reaches, n54).
-triple(n33, reaches, n55).
-triple(n33, reaches, n56).
-triple(n33, reaches, n57).
-triple(n33, reaches, n58).
-triple(n33, reaches, n59).
-triple(n33, reaches, n60).
-triple(n33, reaches, n61).
-triple(n33, reaches, n62).
-triple(n33, reaches, n63).
-triple(n33, reaches, n64).
-triple(n33, reaches, n65).
-triple(n33, reaches, n66).
-triple(n33, reaches, n67).
-triple(n33, reaches, n68).
-triple(n33, reaches, n69).
-triple(n33, reaches, n70).
-triple(n34, link, n35).
-triple(n34, reaches, n35).
-triple(n34, reaches, n36).
-triple(n34, reaches, n37).
-triple(n34, reaches, n38).
-triple(n34, reaches, n39).
-triple(n34, reaches, n40).
-triple(n34, reaches, n41).
-triple(n34, reaches, n42).
-triple(n34, reaches, n43).
-triple(n34, reaches, n44).
-triple(n34, reaches, n45).
-triple(n34, reaches, n46).
-triple(n34, reaches, n47).
-triple(n34, reaches, n48).
-triple(n34, reaches, n49).
-triple(n34, reaches, n50).
-triple(n34, reaches, n51).
-triple(n34, reaches, n52).
-triple(n34, reaches, n53).
-triple(n34, reaches, n54).
-triple(n34, reaches, n55).
-triple(n34, reaches, n56).
-triple(n34, reaches, n57).
-triple(n34, reaches, n58).
-triple(n34, reaches, n59).
-triple(n34, reaches, n60).
-triple(n34, reaches, n61).
-triple(n34, reaches, n62).
-triple(n34, reaches, n63).
-triple(n34, reaches, n64).
-triple(n34, reaches, n65).
-triple(n34, reaches, n66).
-triple(n34, reaches, n67).
-triple(n34, reaches, n68).
-triple(n34, reaches, n69).
-triple(n34, reaches, n70).
-triple(n35, link, n36).
-triple(n35, reaches, n36).
-triple(n35, reaches, n37).
-triple(n35, reaches, n38).
-triple(n35, reaches, n39).
-triple(n35, reaches, n40).
-triple(n35, reaches, n41).
-triple(n35, reaches, n42).
-triple(n35, reaches, n43).
-triple(n35, reaches, n44).
-triple(n35, reaches, n45).
-triple(n35, reaches, n46).
-triple(n35, reaches, n47).
-triple(n35, reaches, n48).
-triple(n35, reaches, n49).
-triple(n35, reaches, n50).
-triple(n35, reaches, n51).
-triple(n35, reaches, n52).
-triple(n35, reaches, n53).
-triple(n35, reaches, n54).
-triple(n35, reaches, n55).
-triple(n35, reaches, n56).
-triple(n35, reaches, n57).
-triple(n35, reaches, n58).
-triple(n35, reaches, n59).
-triple(n35, reaches, n60).
-triple(n35, reaches, n61).
-triple(n35, reaches, n62).
-triple(n35, reaches, n63).
-triple(n35, reaches, n64).
-triple(n35, reaches, n65).
-triple(n35, reaches, n66).
-triple(n35, reaches, n67).
-triple(n35, reaches, n68).
-triple(n35, reaches, n69).
-triple(n35, reaches, n70).
-triple(n36, link, n37).
-triple(n36, reaches, n37).
-triple(n36, reaches, n38).
-triple(n36, reaches, n39).
-triple(n36, reaches, n40).
-triple(n36, reaches, n41).
-triple(n36, reaches, n42).
-triple(n36, reaches, n43).
-triple(n36, reaches, n44).
-triple(n36, reaches, n45).
-triple(n36, reaches, n46).
-triple(n36, reaches, n47).
-triple(n36, reaches, n48).
-triple(n36, reaches, n49).
-triple(n36, reaches, n50).
-triple(n36, reaches, n51).
-triple(n36, reaches, n52).
-triple(n36, reaches, n53).
-triple(n36, reaches, n54).
-triple(n36, reaches, n55).
-triple(n36, reaches, n56).
-triple(n36, reaches, n57).
-triple(n36, reaches, n58).
-triple(n36, reaches, n59).
-triple(n36, reaches, n60).
-triple(n36, reaches, n61).
-triple(n36, reaches, n62).
-triple(n36, reaches, n63).
-triple(n36, reaches, n64).
-triple(n36, reaches, n65).
-triple(n36, reaches, n66).
-triple(n36, reaches, n67).
-triple(n36, reaches, n68).
-triple(n36, reaches, n69).
-triple(n36, reaches, n70).
-triple(n37, link, n38).
-triple(n37, reaches, n38).
-triple(n37, reaches, n39).
-triple(n37, reaches, n40).
-triple(n37, reaches, n41).
-triple(n37, reaches, n42).
-triple(n37, reaches, n43).
-triple(n37, reaches, n44).
-triple(n37, reaches, n45).
-triple(n37, reaches, n46).
-triple(n37, reaches, n47).
-triple(n37, reaches, n48).
-triple(n37, reaches, n49).
-triple(n37, reaches, n50).
-triple(n37, reaches, n51).
-triple(n37, reaches, n52).
-triple(n37, reaches, n53).
-triple(n37, reaches, n54).
-triple(n37, reaches, n55).
-triple(n37, reaches, n56).
-triple(n37, reaches, n57).
-triple(n37, reaches, n58).
-triple(n37, reaches, n59).
-triple(n37, reaches, n60).
-triple(n37, reaches, n61).
-triple(n37, reaches, n62).
-triple(n37, reaches, n63).
-triple(n37, reaches, n64).
-triple(n37, reaches, n65).
-triple(n37, reaches, n66).
-triple(n37, reaches, n67).
-triple(n37, reaches, n68).
-triple(n37, reaches, n69).
-triple(n37, reaches, n70).
-triple(n38, link, n39).
-triple(n38, reaches, n39).
-triple(n38, reaches, n40).
-triple(n38, reaches, n41).
-triple(n38, reaches, n42).
-triple(n38, reaches, n43).
-triple(n38, reaches, n44).
-triple(n38, reaches, n45).
-triple(n38, reaches, n46).
-triple(n38, reaches, n47).
-triple(n38, reaches, n48).
-triple(n38, reaches, n49).
-triple(n38, reaches, n50).
-triple(n38, reaches, n51).
-triple(n38, reaches, n52).
-triple(n38, reaches, n53).
-triple(n38, reaches, n54).
-triple(n38, reaches, n55).
-triple(n38, reaches, n56).
-triple(n38, reaches, n57).
-triple(n38, reaches, n58).
-triple(n38, reaches, n59).
-triple(n38, reaches, n60).
-triple(n38, reaches, n61).
-triple(n38, reaches, n62).
-triple(n38, reaches, n63).
-triple(n38, reaches, n64).
-triple(n38, reaches, n65).
-triple(n38, reaches, n66).
-triple(n38, reaches, n67).
-triple(n38, reaches, n68).
-triple(n38, reaches, n69).
-triple(n38, reaches, n70).
-triple(n39, link, n40).
-triple(n39, reaches, n40).
-triple(n39, reaches, n41).
-triple(n39, reaches, n42).
-triple(n39, reaches, n43).
-triple(n39, reaches, n44).
-triple(n39, reaches, n45).
-triple(n39, reaches, n46).
-triple(n39, reaches, n47).
-triple(n39, reaches, n48).
-triple(n39, reaches, n49).
-triple(n39, reaches, n50).
-triple(n39, reaches, n51).
-triple(n39, reaches, n52).
-triple(n39, reaches, n53).
-triple(n39, reaches, n54).
-triple(n39, reaches, n55).
-triple(n39, reaches, n56).
-triple(n39, reaches, n57).
-triple(n39, reaches, n58).
-triple(n39, reaches, n59).
-triple(n39, reaches, n60).
-triple(n39, reaches, n61).
-triple(n39, reaches, n62).
-triple(n39, reaches, n63).
-triple(n39, reaches, n64).
-triple(n39, reaches, n65).
-triple(n39, reaches, n66).
-triple(n39, reaches, n67).
-triple(n39, reaches, n68).
-triple(n39, reaches, n69).
-triple(n39, reaches, n70).
-triple(n4, link, n5).
-triple(n4, reaches, n10).
-triple(n4, reaches, n11).
-triple(n4, reaches, n12).
-triple(n4, reaches, n13).
-triple(n4, reaches, n14).
-triple(n4, reaches, n15).
-triple(n4, reaches, n16).
-triple(n4, reaches, n17).
-triple(n4, reaches, n18).
-triple(n4, reaches, n19).
-triple(n4, reaches, n20).
-triple(n4, reaches, n21).
-triple(n4, reaches, n22).
-triple(n4, reaches, n23).
-triple(n4, reaches, n24).
-triple(n4, reaches, n25).
-triple(n4, reaches, n26).
-triple(n4, reaches, n27).
-triple(n4, reaches, n28).
-triple(n4, reaches, n29).
-triple(n4, reaches, n30).
-triple(n4, reaches, n31).
-triple(n4, reaches, n32).
-triple(n4, reaches, n33).
-triple(n4, reaches, n34).
-triple(n4, reaches, n35).
-triple(n4, reaches, n36).
-triple(n4, reaches, n37).
-triple(n4, reaches, n38).
-triple(n4, reaches, n39).
-triple(n4, reaches, n40).
-triple(n4, reaches, n41).
-triple(n4, reaches, n42).
-triple(n4, reaches, n43).
-triple(n4, reaches, n44).
-triple(n4, reaches, n45).
-triple(n4, reaches, n46).
-triple(n4, reaches, n47).
-triple(n4, reaches, n48).
-triple(n4, reaches, n49).
-triple(n4, reaches, n5).
-triple(n4, reaches, n50).
-triple(n4, reaches, n51).
-triple(n4, reaches, n52).
-triple(n4, reaches, n53).
-triple(n4, reaches, n54).
-triple(n4, reaches, n55).
-triple(n4, reaches, n56).
-triple(n4, reaches, n57).
-triple(n4, reaches, n58).
-triple(n4, reaches, n59).
-triple(n4, reaches, n6).
-triple(n4, reaches, n60).
-triple(n4, reaches, n61).
-triple(n4, reaches, n62).
-triple(n4, reaches, n63).
-triple(n4, reaches, n64).
-triple(n4, reaches, n65).
-triple(n4, reaches, n66).
-triple(n4, reaches, n67).
-triple(n4, reaches, n68).
-triple(n4, reaches, n69).
-triple(n4, reaches, n7).
-triple(n4, reaches, n70).
-triple(n4, reaches, n8).
-triple(n4, reaches, n9).
-triple(n40, link, n41).
-triple(n40, reaches, n41).
-triple(n40, reaches, n42).
-triple(n40, reaches, n43).
-triple(n40, reaches, n44).
-triple(n40, reaches, n45).
-triple(n40, reaches, n46).
-triple(n40, reaches, n47).
-triple(n40, reaches, n48).
-triple(n40, reaches, n49).
-triple(n40, reaches, n50).
-triple(n40, reaches, n51).
-triple(n40, reaches, n52).
-triple(n40, reaches, n53).
-triple(n40, reaches, n54).
-triple(n40, reaches, n55).
-triple(n40, reaches, n56).
-triple(n40, reaches, n57).
-triple(n40, reaches, n58).
-triple(n40, reaches, n59).
-triple(n40, reaches, n60).
-triple(n40, reaches, n61).
-triple(n40, reaches, n62).
-triple(n40, reaches, n63).
-triple(n40, reaches, n64).
-triple(n40, reaches, n65).
-triple(n40, reaches, n66).
-triple(n40, reaches, n67).
-triple(n40, reaches, n68).
-triple(n40, reaches, n69).
-triple(n40, reaches, n70).
-triple(n41, link, n42).
-triple(n41, reaches, n42).
-triple(n41, reaches, n43).
-triple(n41, reaches, n44).
-triple(n41, reaches, n45).
-triple(n41, reaches, n46).
-triple(n41, reaches, n47).
-triple(n41, reaches, n48).
-triple(n41, reaches, n49).
-triple(n41, reaches, n50).
-triple(n41, reaches, n51).
-triple(n41, reaches, n52).
-triple(n41, reaches, n53).
-triple(n41, reaches, n54).
-triple(n41, reaches, n55).
-triple(n41, reaches, n56).
-triple(n41, reaches, n57).
-triple(n41, reaches, n58).
-triple(n41, reaches, n59).
-triple(n41, reaches, n60).
-triple(n41, reaches, n61).
-triple(n41, reaches, n62).
-triple(n41, reaches, n63).
-triple(n41, reaches, n64).
-triple(n41, reaches, n65).
-triple(n41, reaches, n66).
-triple(n41, reaches, n67).
-triple(n41, reaches, n68).
-triple(n41, reaches, n69).
-triple(n41, reaches, n70).
-triple(n42, link, n43).
-triple(n42, reaches, n43).
-triple(n42, reaches, n44).
-triple(n42, reaches, n45).
-triple(n42, reaches, n46).
-triple(n42, reaches, n47).
-triple(n42, reaches, n48).
-triple(n42, reaches, n49).
-triple(n42, reaches, n50).
-triple(n42, reaches, n51).
-triple(n42, reaches, n52).
-triple(n42, reaches, n53).
-triple(n42, reaches, n54).
-triple(n42, reaches, n55).
-triple(n42, reaches, n56).
-triple(n42, reaches, n57).
-triple(n42, reaches, n58).
-triple(n42, reaches, n59).
-triple(n42, reaches, n60).
-triple(n42, reaches, n61).
-triple(n42, reaches, n62).
-triple(n42, reaches, n63).
-triple(n42, reaches, n64).
-triple(n42, reaches, n65).
-triple(n42, reaches, n66).
-triple(n42, reaches, n67).
-triple(n42, reaches, n68).
-triple(n42, reaches, n69).
-triple(n42, reaches, n70).
-triple(n43, link, n44).
-triple(n43, reaches, n44).
-triple(n43, reaches, n45).
-triple(n43, reaches, n46).
-triple(n43, reaches, n47).
-triple(n43, reaches, n48).
-triple(n43, reaches, n49).
-triple(n43, reaches, n50).
-triple(n43, reaches, n51).
-triple(n43, reaches, n52).
-triple(n43, reaches, n53).
-triple(n43, reaches, n54).
-triple(n43, reaches, n55).
-triple(n43, reaches, n56).
-triple(n43, reaches, n57).
-triple(n43, reaches, n58).
-triple(n43, reaches, n59).
-triple(n43, reaches, n60).
-triple(n43, reaches, n61).
-triple(n43, reaches, n62).
-triple(n43, reaches, n63).
-triple(n43, reaches, n64).
-triple(n43, reaches, n65).
-triple(n43, reaches, n66).
-triple(n43, reaches, n67).
-triple(n43, reaches, n68).
-triple(n43, reaches, n69).
-triple(n43, reaches, n70).
-triple(n44, link, n45).
-triple(n44, reaches, n45).
-triple(n44, reaches, n46).
-triple(n44, reaches, n47).
-triple(n44, reaches, n48).
-triple(n44, reaches, n49).
-triple(n44, reaches, n50).
-triple(n44, reaches, n51).
-triple(n44, reaches, n52).
-triple(n44, reaches, n53).
-triple(n44, reaches, n54).
-triple(n44, reaches, n55).
-triple(n44, reaches, n56).
-triple(n44, reaches, n57).
-triple(n44, reaches, n58).
-triple(n44, reaches, n59).
-triple(n44, reaches, n60).
-triple(n44, reaches, n61).
-triple(n44, reaches, n62).
-triple(n44, reaches, n63).
-triple(n44, reaches, n64).
-triple(n44, reaches, n65).
-triple(n44, reaches, n66).
-triple(n44, reaches, n67).
-triple(n44, reaches, n68).
-triple(n44, reaches, n69).
-triple(n44, reaches, n70).
-triple(n45, link, n46).
-triple(n45, reaches, n46).
-triple(n45, reaches, n47).
-triple(n45, reaches, n48).
-triple(n45, reaches, n49).
-triple(n45, reaches, n50).
-triple(n45, reaches, n51).
-triple(n45, reaches, n52).
-triple(n45, reaches, n53).
-triple(n45, reaches, n54).
-triple(n45, reaches, n55).
-triple(n45, reaches, n56).
-triple(n45, reaches, n57).
-triple(n45, reaches, n58).
-triple(n45, reaches, n59).
-triple(n45, reaches, n60).
-triple(n45, reaches, n61).
-triple(n45, reaches, n62).
-triple(n45, reaches, n63).
-triple(n45, reaches, n64).
-triple(n45, reaches, n65).
-triple(n45, reaches, n66).
-triple(n45, reaches, n67).
-triple(n45, reaches, n68).
-triple(n45, reaches, n69).
-triple(n45, reaches, n70).
-triple(n46, link, n47).
-triple(n46, reaches, n47).
-triple(n46, reaches, n48).
-triple(n46, reaches, n49).
-triple(n46, reaches, n50).
-triple(n46, reaches, n51).
-triple(n46, reaches, n52).
-triple(n46, reaches, n53).
-triple(n46, reaches, n54).
-triple(n46, reaches, n55).
-triple(n46, reaches, n56).
-triple(n46, reaches, n57).
-triple(n46, reaches, n58).
-triple(n46, reaches, n59).
-triple(n46, reaches, n60).
-triple(n46, reaches, n61).
-triple(n46, reaches, n62).
-triple(n46, reaches, n63).
-triple(n46, reaches, n64).
-triple(n46, reaches, n65).
-triple(n46, reaches, n66).
-triple(n46, reaches, n67).
-triple(n46, reaches, n68).
-triple(n46, reaches, n69).
-triple(n46, reaches, n70).
-triple(n47, link, n48).
-triple(n47, reaches, n48).
-triple(n47, reaches, n49).
-triple(n47, reaches, n50).
-triple(n47, reaches, n51).
-triple(n47, reaches, n52).
-triple(n47, reaches, n53).
-triple(n47, reaches, n54).
-triple(n47, reaches, n55).
-triple(n47, reaches, n56).
-triple(n47, reaches, n57).
-triple(n47, reaches, n58).
-triple(n47, reaches, n59).
-triple(n47, reaches, n60).
-triple(n47, reaches, n61).
-triple(n47, reaches, n62).
-triple(n47, reaches, n63).
-triple(n47, reaches, n64).
-triple(n47, reaches, n65).
-triple(n47, reaches, n66).
-triple(n47, reaches, n67).
-triple(n47, reaches, n68).
-triple(n47, reaches, n69).
-triple(n47, reaches, n70).
-triple(n48, link, n49).
-triple(n48, reaches, n49).
-triple(n48, reaches, n50).
-triple(n48, reaches, n51).
-triple(n48, reaches, n52).
-triple(n48, reaches, n53).
-triple(n48, reaches, n54).
-triple(n48, reaches, n55).
-triple(n48, reaches, n56).
-triple(n48, reaches, n57).
-triple(n48, reaches, n58).
-triple(n48, reaches, n59).
-triple(n48, reaches, n60).
-triple(n48, reaches, n61).
-triple(n48, reaches, n62).
-triple(n48, reaches, n63).
-triple(n48, reaches, n64).
-triple(n48, reaches, n65).
-triple(n48, reaches, n66).
-triple(n48, reaches, n67).
-triple(n48, reaches, n68).
-triple(n48, reaches, n69).
-triple(n48, reaches, n70).
-triple(n49, link, n50).
-triple(n49, reaches, n50).
-triple(n49, reaches, n51).
-triple(n49, reaches, n52).
-triple(n49, reaches, n53).
-triple(n49, reaches, n54).
-triple(n49, reaches, n55).
-triple(n49, reaches, n56).
-triple(n49, reaches, n57).
-triple(n49, reaches, n58).
-triple(n49, reaches, n59).
-triple(n49, reaches, n60).
-triple(n49, reaches, n61).
-triple(n49, reaches, n62).
-triple(n49, reaches, n63).
-triple(n49, reaches, n64).
-triple(n49, reaches, n65).
-triple(n49, reaches, n66).
-triple(n49, reaches, n67).
-triple(n49, reaches, n68).
-triple(n49, reaches, n69).
-triple(n49, reaches, n70).
-triple(n5, link, n6).
-triple(n5, reaches, n10).
-triple(n5, reaches, n11).
-triple(n5, reaches, n12).
-triple(n5, reaches, n13).
-triple(n5, reaches, n14).
-triple(n5, reaches, n15).
-triple(n5, reaches, n16).
-triple(n5, reaches, n17).
-triple(n5, reaches, n18).
-triple(n5, reaches, n19).
-triple(n5, reaches, n20).
-triple(n5, reaches, n21).
-triple(n5, reaches, n22).
-triple(n5, reaches, n23).
-triple(n5, reaches, n24).
-triple(n5, reaches, n25).
-triple(n5, reaches, n26).
-triple(n5, reaches, n27).
-triple(n5, reaches, n28).
-triple(n5, reaches, n29).
-triple(n5, reaches, n30).
-triple(n5, reaches, n31).
-triple(n5, reaches, n32).
-triple(n5, reaches, n33).
-triple(n5, reaches, n34).
-triple(n5, reaches, n35).
-triple(n5, reaches, n36).
-triple(n5, reaches, n37).
-triple(n5, reaches, n38).
-triple(n5, reaches, n39).
-triple(n5, reaches, n40).
-triple(n5, reaches, n41).
-triple(n5, reaches, n42).
-triple(n5, reaches, n43).
-triple(n5, reaches, n44).
-triple(n5, reaches, n45).
-triple(n5, reaches, n46).
-triple(n5, reaches, n47).
-triple(n5, reaches, n48).
-triple(n5, reaches, n49).
-triple(n5, reaches, n50).
-triple(n5, reaches, n51).
-triple(n5, reaches, n52).
-triple(n5, reaches, n53).
-triple(n5, reaches, n54).
-triple(n5, reaches, n55).
-triple(n5, reaches, n56).
-triple(n5, reaches, n57).
-triple(n5, reaches, n58).
-triple(n5, reaches, n59).
-triple(n5, reaches, n6).
-triple(n5, reaches, n60).
-triple(n5, reaches, n61).
-triple(n5, reaches, n62).
-triple(n5, reaches, n63).
-triple(n5, reaches, n64).
-triple(n5, reaches, n65).
-triple(n5, reaches, n66).
-triple(n5, reaches, n67).
-triple(n5, reaches, n68).
-triple(n5, reaches, n69).
-triple(n5, reaches, n7).
-triple(n5, reaches, n70).
-triple(n5, reaches, n8).
-triple(n5, reaches, n9).
-triple(n50, link, n51).
-triple(n50, reaches, n51).
-triple(n50, reaches, n52).
-triple(n50, reaches, n53).
-triple(n50, reaches, n54).
-triple(n50, reaches, n55).
-triple(n50, reaches, n56).
-triple(n50, reaches, n57).
-triple(n50, reaches, n58).
-triple(n50, reaches, n59).
-triple(n50, reaches, n60).
-triple(n50, reaches, n61).
-triple(n50, reaches, n62).
-triple(n50, reaches, n63).
-triple(n50, reaches, n64).
-triple(n50, reaches, n65).
-triple(n50, reaches, n66).
-triple(n50, reaches, n67).
-triple(n50, reaches, n68).
-triple(n50, reaches, n69).
-triple(n50, reaches, n70).
-triple(n51, link, n52).
-triple(n51, reaches, n52).
-triple(n51, reaches, n53).
-triple(n51, reaches, n54).
-triple(n51, reaches, n55).
-triple(n51, reaches, n56).
-triple(n51, reaches, n57).
-triple(n51, reaches, n58).
-triple(n51, reaches, n59).
-triple(n51, reaches, n60).
-triple(n51, reaches, n61).
-triple(n51, reaches, n62).
-triple(n51, reaches, n63).
-triple(n51, reaches, n64).
-triple(n51, reaches, n65).
-triple(n51, reaches, n66).
-triple(n51, reaches, n67).
-triple(n51, reaches, n68).
-triple(n51, reaches, n69).
-triple(n51, reaches, n70).
-triple(n52, link, n53).
-triple(n52, reaches, n53).
-triple(n52, reaches, n54).
-triple(n52, reaches, n55).
-triple(n52, reaches, n56).
-triple(n52, reaches, n57).
-triple(n52, reaches, n58).
-triple(n52, reaches, n59).
-triple(n52, reaches, n60).
-triple(n52, reaches, n61).
-triple(n52, reaches, n62).
-triple(n52, reaches, n63).
-triple(n52, reaches, n64).
-triple(n52, reaches, n65).
-triple(n52, reaches, n66).
-triple(n52, reaches, n67).
-triple(n52, reaches, n68).
-triple(n52, reaches, n69).
-triple(n52, reaches, n70).
-triple(n53, link, n54).
-triple(n53, reaches, n54).
-triple(n53, reaches, n55).
-triple(n53, reaches, n56).
-triple(n53, reaches, n57).
-triple(n53, reaches, n58).
-triple(n53, reaches, n59).
-triple(n53, reaches, n60).
-triple(n53, reaches, n61).
-triple(n53, reaches, n62).
-triple(n53, reaches, n63).
-triple(n53, reaches, n64).
-triple(n53, reaches, n65).
-triple(n53, reaches, n66).
-triple(n53, reaches, n67).
-triple(n53, reaches, n68).
-triple(n53, reaches, n69).
-triple(n53, reaches, n70).
-triple(n54, link, n55).
-triple(n54, reaches, n55).
-triple(n54, reaches, n56).
-triple(n54, reaches, n57).
-triple(n54, reaches, n58).
-triple(n54, reaches, n59).
-triple(n54, reaches, n60).
-triple(n54, reaches, n61).
-triple(n54, reaches, n62).
-triple(n54, reaches, n63).
-triple(n54, reaches, n64).
-triple(n54, reaches, n65).
-triple(n54, reaches, n66).
-triple(n54, reaches, n67).
-triple(n54, reaches, n68).
-triple(n54, reaches, n69).
-triple(n54, reaches, n70).
-triple(n55, link, n56).
-triple(n55, reaches, n56).
-triple(n55, reaches, n57).
-triple(n55, reaches, n58).
-triple(n55, reaches, n59).
-triple(n55, reaches, n60).
-triple(n55, reaches, n61).
-triple(n55, reaches, n62).
-triple(n55, reaches, n63).
-triple(n55, reaches, n64).
-triple(n55, reaches, n65).
-triple(n55, reaches, n66).
-triple(n55, reaches, n67).
-triple(n55, reaches, n68).
-triple(n55, reaches, n69).
-triple(n55, reaches, n70).
-triple(n56, link, n57).
-triple(n56, reaches, n57).
-triple(n56, reaches, n58).
-triple(n56, reaches, n59).
-triple(n56, reaches, n60).
-triple(n56, reaches, n61).
-triple(n56, reaches, n62).
-triple(n56, reaches, n63).
-triple(n56, reaches, n64).
-triple(n56, reaches, n65).
-triple(n56, reaches, n66).
-triple(n56, reaches, n67).
-triple(n56, reaches, n68).
-triple(n56, reaches, n69).
-triple(n56, reaches, n70).
-triple(n57, link, n58).
-triple(n57, reaches, n58).
-triple(n57, reaches, n59).
-triple(n57, reaches, n60).
-triple(n57, reaches, n61).
-triple(n57, reaches, n62).
-triple(n57, reaches, n63).
-triple(n57, reaches, n64).
-triple(n57, reaches, n65).
-triple(n57, reaches, n66).
-triple(n57, reaches, n67).
-triple(n57, reaches, n68).
-triple(n57, reaches, n69).
-triple(n57, reaches, n70).
-triple(n58, link, n59).
-triple(n58, reaches, n59).
-triple(n58, reaches, n60).
-triple(n58, reaches, n61).
-triple(n58, reaches, n62).
-triple(n58, reaches, n63).
-triple(n58, reaches, n64).
-triple(n58, reaches, n65).
-triple(n58, reaches, n66).
-triple(n58, reaches, n67).
-triple(n58, reaches, n68).
-triple(n58, reaches, n69).
-triple(n58, reaches, n70).
-triple(n59, link, n60).
-triple(n59, reaches, n60).
-triple(n59, reaches, n61).
-triple(n59, reaches, n62).
-triple(n59, reaches, n63).
-triple(n59, reaches, n64).
-triple(n59, reaches, n65).
-triple(n59, reaches, n66).
-triple(n59, reaches, n67).
-triple(n59, reaches, n68).
-triple(n59, reaches, n69).
-triple(n59, reaches, n70).
-triple(n6, link, n7).
-triple(n6, reaches, n10).
-triple(n6, reaches, n11).
-triple(n6, reaches, n12).
-triple(n6, reaches, n13).
-triple(n6, reaches, n14).
-triple(n6, reaches, n15).
-triple(n6, reaches, n16).
-triple(n6, reaches, n17).
-triple(n6, reaches, n18).
-triple(n6, reaches, n19).
-triple(n6, reaches, n20).
-triple(n6, reaches, n21).
-triple(n6, reaches, n22).
-triple(n6, reaches, n23).
-triple(n6, reaches, n24).
-triple(n6, reaches, n25).
-triple(n6, reaches, n26).
-triple(n6, reaches, n27).
-triple(n6, reaches, n28).
-triple(n6, reaches, n29).
-triple(n6, reaches, n30).
-triple(n6, reaches, n31).
-triple(n6, reaches, n32).
-triple(n6, reaches, n33).
-triple(n6, reaches, n34).
-triple(n6, reaches, n35).
-triple(n6, reaches, n36).
-triple(n6, reaches, n37).
-triple(n6, reaches, n38).
-triple(n6, reaches, n39).
-triple(n6, reaches, n40).
-triple(n6, reaches, n41).
-triple(n6, reaches, n42).
-triple(n6, reaches, n43).
-triple(n6, reaches, n44).
-triple(n6, reaches, n45).
-triple(n6, reaches, n46).
-triple(n6, reaches, n47).
-triple(n6, reaches, n48).
-triple(n6, reaches, n49).
-triple(n6, reaches, n50).
-triple(n6, reaches, n51).
-triple(n6, reaches, n52).
-triple(n6, reaches, n53).
-triple(n6, reaches, n54).
-triple(n6, reaches, n55).
-triple(n6, reaches, n56).
-triple(n6, reaches, n57).
-triple(n6, reaches, n58).
-triple(n6, reaches, n59).
-triple(n6, reaches, n60).
-triple(n6, reaches, n61).
-triple(n6, reaches, n62).
-triple(n6, reaches, n63).
-triple(n6, reaches, n64).
-triple(n6, reaches, n65).
-triple(n6, reaches, n66).
-triple(n6, reaches, n67).
-triple(n6, reaches, n68).
-triple(n6, reaches, n69).
-triple(n6, reaches, n7).
-triple(n6, reaches, n70).
-triple(n6, reaches, n8).
-triple(n6, reaches, n9).
-triple(n60, link, n61).
-triple(n60, reaches, n61).
-triple(n60, reaches, n62).
-triple(n60, reaches, n63).
-triple(n60, reaches, n64).
-triple(n60, reaches, n65).
-triple(n60, reaches, n66).
-triple(n60, reaches, n67).
-triple(n60, reaches, n68).
-triple(n60, reaches, n69).
-triple(n60, reaches, n70).
-triple(n61, link, n62).
-triple(n61, reaches, n62).
-triple(n61, reaches, n63).
-triple(n61, reaches, n64).
-triple(n61, reaches, n65).
-triple(n61, reaches, n66).
-triple(n61, reaches, n67).
-triple(n61, reaches, n68).
-triple(n61, reaches, n69).
-triple(n61, reaches, n70).
-triple(n62, link, n63).
-triple(n62, reaches, n63).
-triple(n62, reaches, n64).
-triple(n62, reaches, n65).
-triple(n62, reaches, n66).
-triple(n62, reaches, n67).
-triple(n62, reaches, n68).
-triple(n62, reaches, n69).
-triple(n62, reaches, n70).
-triple(n63, link, n64).
-triple(n63, reaches, n64).
-triple(n63, reaches, n65).
-triple(n63, reaches, n66).
-triple(n63, reaches, n67).
-triple(n63, reaches, n68).
-triple(n63, reaches, n69).
-triple(n63, reaches, n70).
-triple(n64, link, n65).
-triple(n64, reaches, n65).
-triple(n64, reaches, n66).
-triple(n64, reaches, n67).
-triple(n64, reaches, n68).
-triple(n64, reaches, n69).
-triple(n64, reaches, n70).
-triple(n65, link, n66).
-triple(n65, reaches, n66).
-triple(n65, reaches, n67).
-triple(n65, reaches, n68).
-triple(n65, reaches, n69).
-triple(n65, reaches, n70).
-triple(n66, link, n67).
-triple(n66, reaches, n67).
-triple(n66, reaches, n68).
-triple(n66, reaches, n69).
-triple(n66, reaches, n70).
-triple(n67, link, n68).
-triple(n67, reaches, n68).
-triple(n67, reaches, n69).
-triple(n67, reaches, n70).
-triple(n68, link, n69).
-triple(n68, reaches, n69).
-triple(n68, reaches, n70).
-triple(n69, link, n70).
-triple(n69, reaches, n70).
-triple(n7, link, n8).
-triple(n7, reaches, n10).
-triple(n7, reaches, n11).
-triple(n7, reaches, n12).
-triple(n7, reaches, n13).
-triple(n7, reaches, n14).
-triple(n7, reaches, n15).
-triple(n7, reaches, n16).
-triple(n7, reaches, n17).
-triple(n7, reaches, n18).
-triple(n7, reaches, n19).
-triple(n7, reaches, n20).
-triple(n7, reaches, n21).
-triple(n7, reaches, n22).
-triple(n7, reaches, n23).
-triple(n7, reaches, n24).
-triple(n7, reaches, n25).
-triple(n7, reaches, n26).
-triple(n7, reaches, n27).
-triple(n7, reaches, n28).
-triple(n7, reaches, n29).
-triple(n7, reaches, n30).
-triple(n7, reaches, n31).
-triple(n7, reaches, n32).
-triple(n7, reaches, n33).
-triple(n7, reaches, n34).
-triple(n7, reaches, n35).
-triple(n7, reaches, n36).
-triple(n7, reaches, n37).
-triple(n7, reaches, n38).
-triple(n7, reaches, n39).
-triple(n7, reaches, n40).
-triple(n7, reaches, n41).
-triple(n7, reaches, n42).
-triple(n7, reaches, n43).
-triple(n7, reaches, n44).
-triple(n7, reaches, n45).
-triple(n7, reaches, n46).
-triple(n7, reaches, n47).
-triple(n7, reaches, n48).
-triple(n7, reaches, n49).
-triple(n7, reaches, n50).
-triple(n7, reaches, n51).
-triple(n7, reaches, n52).
-triple(n7, reaches, n53).
-triple(n7, reaches, n54).
-triple(n7, reaches, n55).
-triple(n7, reaches, n56).
-triple(n7, reaches, n57).
-triple(n7, reaches, n58).
-triple(n7, reaches, n59).
-triple(n7, reaches, n60).
-triple(n7, reaches, n61).
-triple(n7, reaches, n62).
-triple(n7, reaches, n63).
-triple(n7, reaches, n64).
-triple(n7, reaches, n65).
-triple(n7, reaches, n66).
-triple(n7, reaches, n67).
-triple(n7, reaches, n68).
-triple(n7, reaches, n69).
-triple(n7, reaches, n70).
-triple(n7, reaches, n8).
-triple(n7, reaches, n9).
-triple(n8, link, n9).
-triple(n8, reaches, n10).
-triple(n8, reaches, n11).
-triple(n8, reaches, n12).
-triple(n8, reaches, n13).
-triple(n8, reaches, n14).
-triple(n8, reaches, n15).
-triple(n8, reaches, n16).
-triple(n8, reaches, n17).
-triple(n8, reaches, n18).
-triple(n8, reaches, n19).
-triple(n8, reaches, n20).
-triple(n8, reaches, n21).
-triple(n8, reaches, n22).
-triple(n8, reaches, n23).
-triple(n8, reaches, n24).
-triple(n8, reaches, n25).
-triple(n8, reaches, n26).
-triple(n8, reaches, n27).
-triple(n8, reaches, n28).
-triple(n8, reaches, n29).
-triple(n8, reaches, n30).
-triple(n8, reaches, n31).
-triple(n8, reaches, n32).
-triple(n8, reaches, n33).
-triple(n8, reaches, n34).
-triple(n8, reaches, n35).
-triple(n8, reaches, n36).
-triple(n8, reaches, n37).
-triple(n8, reaches, n38).
-triple(n8, reaches, n39).
-triple(n8, reaches, n40).
-triple(n8, reaches, n41).
-triple(n8, reaches, n42).
-triple(n8, reaches, n43).
-triple(n8, reaches, n44).
-triple(n8, reaches, n45).
-triple(n8, reaches, n46).
-triple(n8, reaches, n47).
-triple(n8, reaches, n48).
-triple(n8, reaches, n49).
-triple(n8, reaches, n50).
-triple(n8, reaches, n51).
-triple(n8, reaches, n52).
-triple(n8, reaches, n53).
-triple(n8, reaches, n54).
-triple(n8, reaches, n55).
-triple(n8, reaches, n56).
-triple(n8, reaches, n57).
-triple(n8, reaches, n58).
-triple(n8, reaches, n59).
-triple(n8, reaches, n60).
-triple(n8, reaches, n61).
-triple(n8, reaches, n62).
-triple(n8, reaches, n63).
-triple(n8, reaches, n64).
-triple(n8, reaches, n65).
-triple(n8, reaches, n66).
-triple(n8, reaches, n67).
-triple(n8, reaches, n68).
-triple(n8, reaches, n69).
-triple(n8, reaches, n70).
-triple(n8, reaches, n9).
-triple(n9, link, n10).
-triple(n9, reaches, n10).
-triple(n9, reaches, n11).
-triple(n9, reaches, n12).
-triple(n9, reaches, n13).
-triple(n9, reaches, n14).
-triple(n9, reaches, n15).
-triple(n9, reaches, n16).
-triple(n9, reaches, n17).
-triple(n9, reaches, n18).
-triple(n9, reaches, n19).
-triple(n9, reaches, n20).
-triple(n9, reaches, n21).
-triple(n9, reaches, n22).
-triple(n9, reaches, n23).
-triple(n9, reaches, n24).
-triple(n9, reaches, n25).
-triple(n9, reaches, n26).
-triple(n9, reaches, n27).
-triple(n9, reaches, n28).
-triple(n9, reaches, n29).
-triple(n9, reaches, n30).
-triple(n9, reaches, n31).
-triple(n9, reaches, n32).
-triple(n9, reaches, n33).
-triple(n9, reaches, n34).
-triple(n9, reaches, n35).
-triple(n9, reaches, n36).
-triple(n9, reaches, n37).
-triple(n9, reaches, n38).
-triple(n9, reaches, n39).
-triple(n9, reaches, n40).
-triple(n9, reaches, n41).
-triple(n9, reaches, n42).
-triple(n9, reaches, n43).
-triple(n9, reaches, n44).
-triple(n9, reaches, n45).
-triple(n9, reaches, n46).
-triple(n9, reaches, n47).
-triple(n9, reaches, n48).
-triple(n9, reaches, n49).
-triple(n9, reaches, n50).
-triple(n9, reaches, n51).
-triple(n9, reaches, n52).
-triple(n9, reaches, n53).
-triple(n9, reaches, n54).
-triple(n9, reaches, n55).
-triple(n9, reaches, n56).
-triple(n9, reaches, n57).
-triple(n9, reaches, n58).
-triple(n9, reaches, n59).
-triple(n9, reaches, n60).
-triple(n9, reaches, n61).
-triple(n9, reaches, n62).
-triple(n9, reaches, n63).
-triple(n9, reaches, n64).
-triple(n9, reaches, n65).
-triple(n9, reaches, n66).
-triple(n9, reaches, n67).
-triple(n9, reaches, n68).
-triple(n9, reaches, n69).
-triple(n9, reaches, n70).
-triple(report, directLinks, 69).
-triple(report, expectedMaterializedTriples, 2492).
-triple(report, firstNode, n1).
-triple(report, lastNode, n70).
-triple(report, message, "Recursive closure from a tiny source: this is the C core hot path.").
-triple(report, nodes, 70).
-triple(report, reachablePairs, 2415).
-triple(test, is, true).
+directLinks(report, 69).
+expectedMaterializedRelations(report, 2492).
+is(test, true).
+lastNode(report, n70).
+link(n1, n2).
+link(n10, n11).
+link(n11, n12).
+link(n12, n13).
+link(n13, n14).
+link(n14, n15).
+link(n15, n16).
+link(n16, n17).
+link(n17, n18).
+link(n18, n19).
+link(n19, n20).
+link(n2, n3).
+link(n20, n21).
+link(n21, n22).
+link(n22, n23).
+link(n23, n24).
+link(n24, n25).
+link(n25, n26).
+link(n26, n27).
+link(n27, n28).
+link(n28, n29).
+link(n29, n30).
+link(n3, n4).
+link(n30, n31).
+link(n31, n32).
+link(n32, n33).
+link(n33, n34).
+link(n34, n35).
+link(n35, n36).
+link(n36, n37).
+link(n37, n38).
+link(n38, n39).
+link(n39, n40).
+link(n4, n5).
+link(n40, n41).
+link(n41, n42).
+link(n42, n43).
+link(n43, n44).
+link(n44, n45).
+link(n45, n46).
+link(n46, n47).
+link(n47, n48).
+link(n48, n49).
+link(n49, n50).
+link(n5, n6).
+link(n50, n51).
+link(n51, n52).
+link(n52, n53).
+link(n53, n54).
+link(n54, n55).
+link(n55, n56).
+link(n56, n57).
+link(n57, n58).
+link(n58, n59).
+link(n59, n60).
+link(n6, n7).
+link(n60, n61).
+link(n61, n62).
+link(n62, n63).
+link(n63, n64).
+link(n64, n65).
+link(n65, n66).
+link(n66, n67).
+link(n67, n68).
+link(n68, n69).
+link(n69, n70).
+link(n7, n8).
+link(n8, n9).
+link(n9, n10).
+nodes(report, 70).
+reachablePairs(report, 2415).
+reaches(n1, n10).
+reaches(n1, n11).
+reaches(n1, n12).
+reaches(n1, n13).
+reaches(n1, n14).
+reaches(n1, n15).
+reaches(n1, n16).
+reaches(n1, n17).
+reaches(n1, n18).
+reaches(n1, n19).
+reaches(n1, n2).
+reaches(n1, n20).
+reaches(n1, n21).
+reaches(n1, n22).
+reaches(n1, n23).
+reaches(n1, n24).
+reaches(n1, n25).
+reaches(n1, n26).
+reaches(n1, n27).
+reaches(n1, n28).
+reaches(n1, n29).
+reaches(n1, n3).
+reaches(n1, n30).
+reaches(n1, n31).
+reaches(n1, n32).
+reaches(n1, n33).
+reaches(n1, n34).
+reaches(n1, n35).
+reaches(n1, n36).
+reaches(n1, n37).
+reaches(n1, n38).
+reaches(n1, n39).
+reaches(n1, n4).
+reaches(n1, n40).
+reaches(n1, n41).
+reaches(n1, n42).
+reaches(n1, n43).
+reaches(n1, n44).
+reaches(n1, n45).
+reaches(n1, n46).
+reaches(n1, n47).
+reaches(n1, n48).
+reaches(n1, n49).
+reaches(n1, n5).
+reaches(n1, n50).
+reaches(n1, n51).
+reaches(n1, n52).
+reaches(n1, n53).
+reaches(n1, n54).
+reaches(n1, n55).
+reaches(n1, n56).
+reaches(n1, n57).
+reaches(n1, n58).
+reaches(n1, n59).
+reaches(n1, n6).
+reaches(n1, n60).
+reaches(n1, n61).
+reaches(n1, n62).
+reaches(n1, n63).
+reaches(n1, n64).
+reaches(n1, n65).
+reaches(n1, n66).
+reaches(n1, n67).
+reaches(n1, n68).
+reaches(n1, n69).
+reaches(n1, n7).
+reaches(n1, n70).
+reaches(n1, n8).
+reaches(n1, n9).
+reaches(n10, n11).
+reaches(n10, n12).
+reaches(n10, n13).
+reaches(n10, n14).
+reaches(n10, n15).
+reaches(n10, n16).
+reaches(n10, n17).
+reaches(n10, n18).
+reaches(n10, n19).
+reaches(n10, n20).
+reaches(n10, n21).
+reaches(n10, n22).
+reaches(n10, n23).
+reaches(n10, n24).
+reaches(n10, n25).
+reaches(n10, n26).
+reaches(n10, n27).
+reaches(n10, n28).
+reaches(n10, n29).
+reaches(n10, n30).
+reaches(n10, n31).
+reaches(n10, n32).
+reaches(n10, n33).
+reaches(n10, n34).
+reaches(n10, n35).
+reaches(n10, n36).
+reaches(n10, n37).
+reaches(n10, n38).
+reaches(n10, n39).
+reaches(n10, n40).
+reaches(n10, n41).
+reaches(n10, n42).
+reaches(n10, n43).
+reaches(n10, n44).
+reaches(n10, n45).
+reaches(n10, n46).
+reaches(n10, n47).
+reaches(n10, n48).
+reaches(n10, n49).
+reaches(n10, n50).
+reaches(n10, n51).
+reaches(n10, n52).
+reaches(n10, n53).
+reaches(n10, n54).
+reaches(n10, n55).
+reaches(n10, n56).
+reaches(n10, n57).
+reaches(n10, n58).
+reaches(n10, n59).
+reaches(n10, n60).
+reaches(n10, n61).
+reaches(n10, n62).
+reaches(n10, n63).
+reaches(n10, n64).
+reaches(n10, n65).
+reaches(n10, n66).
+reaches(n10, n67).
+reaches(n10, n68).
+reaches(n10, n69).
+reaches(n10, n70).
+reaches(n11, n12).
+reaches(n11, n13).
+reaches(n11, n14).
+reaches(n11, n15).
+reaches(n11, n16).
+reaches(n11, n17).
+reaches(n11, n18).
+reaches(n11, n19).
+reaches(n11, n20).
+reaches(n11, n21).
+reaches(n11, n22).
+reaches(n11, n23).
+reaches(n11, n24).
+reaches(n11, n25).
+reaches(n11, n26).
+reaches(n11, n27).
+reaches(n11, n28).
+reaches(n11, n29).
+reaches(n11, n30).
+reaches(n11, n31).
+reaches(n11, n32).
+reaches(n11, n33).
+reaches(n11, n34).
+reaches(n11, n35).
+reaches(n11, n36).
+reaches(n11, n37).
+reaches(n11, n38).
+reaches(n11, n39).
+reaches(n11, n40).
+reaches(n11, n41).
+reaches(n11, n42).
+reaches(n11, n43).
+reaches(n11, n44).
+reaches(n11, n45).
+reaches(n11, n46).
+reaches(n11, n47).
+reaches(n11, n48).
+reaches(n11, n49).
+reaches(n11, n50).
+reaches(n11, n51).
+reaches(n11, n52).
+reaches(n11, n53).
+reaches(n11, n54).
+reaches(n11, n55).
+reaches(n11, n56).
+reaches(n11, n57).
+reaches(n11, n58).
+reaches(n11, n59).
+reaches(n11, n60).
+reaches(n11, n61).
+reaches(n11, n62).
+reaches(n11, n63).
+reaches(n11, n64).
+reaches(n11, n65).
+reaches(n11, n66).
+reaches(n11, n67).
+reaches(n11, n68).
+reaches(n11, n69).
+reaches(n11, n70).
+reaches(n12, n13).
+reaches(n12, n14).
+reaches(n12, n15).
+reaches(n12, n16).
+reaches(n12, n17).
+reaches(n12, n18).
+reaches(n12, n19).
+reaches(n12, n20).
+reaches(n12, n21).
+reaches(n12, n22).
+reaches(n12, n23).
+reaches(n12, n24).
+reaches(n12, n25).
+reaches(n12, n26).
+reaches(n12, n27).
+reaches(n12, n28).
+reaches(n12, n29).
+reaches(n12, n30).
+reaches(n12, n31).
+reaches(n12, n32).
+reaches(n12, n33).
+reaches(n12, n34).
+reaches(n12, n35).
+reaches(n12, n36).
+reaches(n12, n37).
+reaches(n12, n38).
+reaches(n12, n39).
+reaches(n12, n40).
+reaches(n12, n41).
+reaches(n12, n42).
+reaches(n12, n43).
+reaches(n12, n44).
+reaches(n12, n45).
+reaches(n12, n46).
+reaches(n12, n47).
+reaches(n12, n48).
+reaches(n12, n49).
+reaches(n12, n50).
+reaches(n12, n51).
+reaches(n12, n52).
+reaches(n12, n53).
+reaches(n12, n54).
+reaches(n12, n55).
+reaches(n12, n56).
+reaches(n12, n57).
+reaches(n12, n58).
+reaches(n12, n59).
+reaches(n12, n60).
+reaches(n12, n61).
+reaches(n12, n62).
+reaches(n12, n63).
+reaches(n12, n64).
+reaches(n12, n65).
+reaches(n12, n66).
+reaches(n12, n67).
+reaches(n12, n68).
+reaches(n12, n69).
+reaches(n12, n70).
+reaches(n13, n14).
+reaches(n13, n15).
+reaches(n13, n16).
+reaches(n13, n17).
+reaches(n13, n18).
+reaches(n13, n19).
+reaches(n13, n20).
+reaches(n13, n21).
+reaches(n13, n22).
+reaches(n13, n23).
+reaches(n13, n24).
+reaches(n13, n25).
+reaches(n13, n26).
+reaches(n13, n27).
+reaches(n13, n28).
+reaches(n13, n29).
+reaches(n13, n30).
+reaches(n13, n31).
+reaches(n13, n32).
+reaches(n13, n33).
+reaches(n13, n34).
+reaches(n13, n35).
+reaches(n13, n36).
+reaches(n13, n37).
+reaches(n13, n38).
+reaches(n13, n39).
+reaches(n13, n40).
+reaches(n13, n41).
+reaches(n13, n42).
+reaches(n13, n43).
+reaches(n13, n44).
+reaches(n13, n45).
+reaches(n13, n46).
+reaches(n13, n47).
+reaches(n13, n48).
+reaches(n13, n49).
+reaches(n13, n50).
+reaches(n13, n51).
+reaches(n13, n52).
+reaches(n13, n53).
+reaches(n13, n54).
+reaches(n13, n55).
+reaches(n13, n56).
+reaches(n13, n57).
+reaches(n13, n58).
+reaches(n13, n59).
+reaches(n13, n60).
+reaches(n13, n61).
+reaches(n13, n62).
+reaches(n13, n63).
+reaches(n13, n64).
+reaches(n13, n65).
+reaches(n13, n66).
+reaches(n13, n67).
+reaches(n13, n68).
+reaches(n13, n69).
+reaches(n13, n70).
+reaches(n14, n15).
+reaches(n14, n16).
+reaches(n14, n17).
+reaches(n14, n18).
+reaches(n14, n19).
+reaches(n14, n20).
+reaches(n14, n21).
+reaches(n14, n22).
+reaches(n14, n23).
+reaches(n14, n24).
+reaches(n14, n25).
+reaches(n14, n26).
+reaches(n14, n27).
+reaches(n14, n28).
+reaches(n14, n29).
+reaches(n14, n30).
+reaches(n14, n31).
+reaches(n14, n32).
+reaches(n14, n33).
+reaches(n14, n34).
+reaches(n14, n35).
+reaches(n14, n36).
+reaches(n14, n37).
+reaches(n14, n38).
+reaches(n14, n39).
+reaches(n14, n40).
+reaches(n14, n41).
+reaches(n14, n42).
+reaches(n14, n43).
+reaches(n14, n44).
+reaches(n14, n45).
+reaches(n14, n46).
+reaches(n14, n47).
+reaches(n14, n48).
+reaches(n14, n49).
+reaches(n14, n50).
+reaches(n14, n51).
+reaches(n14, n52).
+reaches(n14, n53).
+reaches(n14, n54).
+reaches(n14, n55).
+reaches(n14, n56).
+reaches(n14, n57).
+reaches(n14, n58).
+reaches(n14, n59).
+reaches(n14, n60).
+reaches(n14, n61).
+reaches(n14, n62).
+reaches(n14, n63).
+reaches(n14, n64).
+reaches(n14, n65).
+reaches(n14, n66).
+reaches(n14, n67).
+reaches(n14, n68).
+reaches(n14, n69).
+reaches(n14, n70).
+reaches(n15, n16).
+reaches(n15, n17).
+reaches(n15, n18).
+reaches(n15, n19).
+reaches(n15, n20).
+reaches(n15, n21).
+reaches(n15, n22).
+reaches(n15, n23).
+reaches(n15, n24).
+reaches(n15, n25).
+reaches(n15, n26).
+reaches(n15, n27).
+reaches(n15, n28).
+reaches(n15, n29).
+reaches(n15, n30).
+reaches(n15, n31).
+reaches(n15, n32).
+reaches(n15, n33).
+reaches(n15, n34).
+reaches(n15, n35).
+reaches(n15, n36).
+reaches(n15, n37).
+reaches(n15, n38).
+reaches(n15, n39).
+reaches(n15, n40).
+reaches(n15, n41).
+reaches(n15, n42).
+reaches(n15, n43).
+reaches(n15, n44).
+reaches(n15, n45).
+reaches(n15, n46).
+reaches(n15, n47).
+reaches(n15, n48).
+reaches(n15, n49).
+reaches(n15, n50).
+reaches(n15, n51).
+reaches(n15, n52).
+reaches(n15, n53).
+reaches(n15, n54).
+reaches(n15, n55).
+reaches(n15, n56).
+reaches(n15, n57).
+reaches(n15, n58).
+reaches(n15, n59).
+reaches(n15, n60).
+reaches(n15, n61).
+reaches(n15, n62).
+reaches(n15, n63).
+reaches(n15, n64).
+reaches(n15, n65).
+reaches(n15, n66).
+reaches(n15, n67).
+reaches(n15, n68).
+reaches(n15, n69).
+reaches(n15, n70).
+reaches(n16, n17).
+reaches(n16, n18).
+reaches(n16, n19).
+reaches(n16, n20).
+reaches(n16, n21).
+reaches(n16, n22).
+reaches(n16, n23).
+reaches(n16, n24).
+reaches(n16, n25).
+reaches(n16, n26).
+reaches(n16, n27).
+reaches(n16, n28).
+reaches(n16, n29).
+reaches(n16, n30).
+reaches(n16, n31).
+reaches(n16, n32).
+reaches(n16, n33).
+reaches(n16, n34).
+reaches(n16, n35).
+reaches(n16, n36).
+reaches(n16, n37).
+reaches(n16, n38).
+reaches(n16, n39).
+reaches(n16, n40).
+reaches(n16, n41).
+reaches(n16, n42).
+reaches(n16, n43).
+reaches(n16, n44).
+reaches(n16, n45).
+reaches(n16, n46).
+reaches(n16, n47).
+reaches(n16, n48).
+reaches(n16, n49).
+reaches(n16, n50).
+reaches(n16, n51).
+reaches(n16, n52).
+reaches(n16, n53).
+reaches(n16, n54).
+reaches(n16, n55).
+reaches(n16, n56).
+reaches(n16, n57).
+reaches(n16, n58).
+reaches(n16, n59).
+reaches(n16, n60).
+reaches(n16, n61).
+reaches(n16, n62).
+reaches(n16, n63).
+reaches(n16, n64).
+reaches(n16, n65).
+reaches(n16, n66).
+reaches(n16, n67).
+reaches(n16, n68).
+reaches(n16, n69).
+reaches(n16, n70).
+reaches(n17, n18).
+reaches(n17, n19).
+reaches(n17, n20).
+reaches(n17, n21).
+reaches(n17, n22).
+reaches(n17, n23).
+reaches(n17, n24).
+reaches(n17, n25).
+reaches(n17, n26).
+reaches(n17, n27).
+reaches(n17, n28).
+reaches(n17, n29).
+reaches(n17, n30).
+reaches(n17, n31).
+reaches(n17, n32).
+reaches(n17, n33).
+reaches(n17, n34).
+reaches(n17, n35).
+reaches(n17, n36).
+reaches(n17, n37).
+reaches(n17, n38).
+reaches(n17, n39).
+reaches(n17, n40).
+reaches(n17, n41).
+reaches(n17, n42).
+reaches(n17, n43).
+reaches(n17, n44).
+reaches(n17, n45).
+reaches(n17, n46).
+reaches(n17, n47).
+reaches(n17, n48).
+reaches(n17, n49).
+reaches(n17, n50).
+reaches(n17, n51).
+reaches(n17, n52).
+reaches(n17, n53).
+reaches(n17, n54).
+reaches(n17, n55).
+reaches(n17, n56).
+reaches(n17, n57).
+reaches(n17, n58).
+reaches(n17, n59).
+reaches(n17, n60).
+reaches(n17, n61).
+reaches(n17, n62).
+reaches(n17, n63).
+reaches(n17, n64).
+reaches(n17, n65).
+reaches(n17, n66).
+reaches(n17, n67).
+reaches(n17, n68).
+reaches(n17, n69).
+reaches(n17, n70).
+reaches(n18, n19).
+reaches(n18, n20).
+reaches(n18, n21).
+reaches(n18, n22).
+reaches(n18, n23).
+reaches(n18, n24).
+reaches(n18, n25).
+reaches(n18, n26).
+reaches(n18, n27).
+reaches(n18, n28).
+reaches(n18, n29).
+reaches(n18, n30).
+reaches(n18, n31).
+reaches(n18, n32).
+reaches(n18, n33).
+reaches(n18, n34).
+reaches(n18, n35).
+reaches(n18, n36).
+reaches(n18, n37).
+reaches(n18, n38).
+reaches(n18, n39).
+reaches(n18, n40).
+reaches(n18, n41).
+reaches(n18, n42).
+reaches(n18, n43).
+reaches(n18, n44).
+reaches(n18, n45).
+reaches(n18, n46).
+reaches(n18, n47).
+reaches(n18, n48).
+reaches(n18, n49).
+reaches(n18, n50).
+reaches(n18, n51).
+reaches(n18, n52).
+reaches(n18, n53).
+reaches(n18, n54).
+reaches(n18, n55).
+reaches(n18, n56).
+reaches(n18, n57).
+reaches(n18, n58).
+reaches(n18, n59).
+reaches(n18, n60).
+reaches(n18, n61).
+reaches(n18, n62).
+reaches(n18, n63).
+reaches(n18, n64).
+reaches(n18, n65).
+reaches(n18, n66).
+reaches(n18, n67).
+reaches(n18, n68).
+reaches(n18, n69).
+reaches(n18, n70).
+reaches(n19, n20).
+reaches(n19, n21).
+reaches(n19, n22).
+reaches(n19, n23).
+reaches(n19, n24).
+reaches(n19, n25).
+reaches(n19, n26).
+reaches(n19, n27).
+reaches(n19, n28).
+reaches(n19, n29).
+reaches(n19, n30).
+reaches(n19, n31).
+reaches(n19, n32).
+reaches(n19, n33).
+reaches(n19, n34).
+reaches(n19, n35).
+reaches(n19, n36).
+reaches(n19, n37).
+reaches(n19, n38).
+reaches(n19, n39).
+reaches(n19, n40).
+reaches(n19, n41).
+reaches(n19, n42).
+reaches(n19, n43).
+reaches(n19, n44).
+reaches(n19, n45).
+reaches(n19, n46).
+reaches(n19, n47).
+reaches(n19, n48).
+reaches(n19, n49).
+reaches(n19, n50).
+reaches(n19, n51).
+reaches(n19, n52).
+reaches(n19, n53).
+reaches(n19, n54).
+reaches(n19, n55).
+reaches(n19, n56).
+reaches(n19, n57).
+reaches(n19, n58).
+reaches(n19, n59).
+reaches(n19, n60).
+reaches(n19, n61).
+reaches(n19, n62).
+reaches(n19, n63).
+reaches(n19, n64).
+reaches(n19, n65).
+reaches(n19, n66).
+reaches(n19, n67).
+reaches(n19, n68).
+reaches(n19, n69).
+reaches(n19, n70).
+reaches(n2, n10).
+reaches(n2, n11).
+reaches(n2, n12).
+reaches(n2, n13).
+reaches(n2, n14).
+reaches(n2, n15).
+reaches(n2, n16).
+reaches(n2, n17).
+reaches(n2, n18).
+reaches(n2, n19).
+reaches(n2, n20).
+reaches(n2, n21).
+reaches(n2, n22).
+reaches(n2, n23).
+reaches(n2, n24).
+reaches(n2, n25).
+reaches(n2, n26).
+reaches(n2, n27).
+reaches(n2, n28).
+reaches(n2, n29).
+reaches(n2, n3).
+reaches(n2, n30).
+reaches(n2, n31).
+reaches(n2, n32).
+reaches(n2, n33).
+reaches(n2, n34).
+reaches(n2, n35).
+reaches(n2, n36).
+reaches(n2, n37).
+reaches(n2, n38).
+reaches(n2, n39).
+reaches(n2, n4).
+reaches(n2, n40).
+reaches(n2, n41).
+reaches(n2, n42).
+reaches(n2, n43).
+reaches(n2, n44).
+reaches(n2, n45).
+reaches(n2, n46).
+reaches(n2, n47).
+reaches(n2, n48).
+reaches(n2, n49).
+reaches(n2, n5).
+reaches(n2, n50).
+reaches(n2, n51).
+reaches(n2, n52).
+reaches(n2, n53).
+reaches(n2, n54).
+reaches(n2, n55).
+reaches(n2, n56).
+reaches(n2, n57).
+reaches(n2, n58).
+reaches(n2, n59).
+reaches(n2, n6).
+reaches(n2, n60).
+reaches(n2, n61).
+reaches(n2, n62).
+reaches(n2, n63).
+reaches(n2, n64).
+reaches(n2, n65).
+reaches(n2, n66).
+reaches(n2, n67).
+reaches(n2, n68).
+reaches(n2, n69).
+reaches(n2, n7).
+reaches(n2, n70).
+reaches(n2, n8).
+reaches(n2, n9).
+reaches(n20, n21).
+reaches(n20, n22).
+reaches(n20, n23).
+reaches(n20, n24).
+reaches(n20, n25).
+reaches(n20, n26).
+reaches(n20, n27).
+reaches(n20, n28).
+reaches(n20, n29).
+reaches(n20, n30).
+reaches(n20, n31).
+reaches(n20, n32).
+reaches(n20, n33).
+reaches(n20, n34).
+reaches(n20, n35).
+reaches(n20, n36).
+reaches(n20, n37).
+reaches(n20, n38).
+reaches(n20, n39).
+reaches(n20, n40).
+reaches(n20, n41).
+reaches(n20, n42).
+reaches(n20, n43).
+reaches(n20, n44).
+reaches(n20, n45).
+reaches(n20, n46).
+reaches(n20, n47).
+reaches(n20, n48).
+reaches(n20, n49).
+reaches(n20, n50).
+reaches(n20, n51).
+reaches(n20, n52).
+reaches(n20, n53).
+reaches(n20, n54).
+reaches(n20, n55).
+reaches(n20, n56).
+reaches(n20, n57).
+reaches(n20, n58).
+reaches(n20, n59).
+reaches(n20, n60).
+reaches(n20, n61).
+reaches(n20, n62).
+reaches(n20, n63).
+reaches(n20, n64).
+reaches(n20, n65).
+reaches(n20, n66).
+reaches(n20, n67).
+reaches(n20, n68).
+reaches(n20, n69).
+reaches(n20, n70).
+reaches(n21, n22).
+reaches(n21, n23).
+reaches(n21, n24).
+reaches(n21, n25).
+reaches(n21, n26).
+reaches(n21, n27).
+reaches(n21, n28).
+reaches(n21, n29).
+reaches(n21, n30).
+reaches(n21, n31).
+reaches(n21, n32).
+reaches(n21, n33).
+reaches(n21, n34).
+reaches(n21, n35).
+reaches(n21, n36).
+reaches(n21, n37).
+reaches(n21, n38).
+reaches(n21, n39).
+reaches(n21, n40).
+reaches(n21, n41).
+reaches(n21, n42).
+reaches(n21, n43).
+reaches(n21, n44).
+reaches(n21, n45).
+reaches(n21, n46).
+reaches(n21, n47).
+reaches(n21, n48).
+reaches(n21, n49).
+reaches(n21, n50).
+reaches(n21, n51).
+reaches(n21, n52).
+reaches(n21, n53).
+reaches(n21, n54).
+reaches(n21, n55).
+reaches(n21, n56).
+reaches(n21, n57).
+reaches(n21, n58).
+reaches(n21, n59).
+reaches(n21, n60).
+reaches(n21, n61).
+reaches(n21, n62).
+reaches(n21, n63).
+reaches(n21, n64).
+reaches(n21, n65).
+reaches(n21, n66).
+reaches(n21, n67).
+reaches(n21, n68).
+reaches(n21, n69).
+reaches(n21, n70).
+reaches(n22, n23).
+reaches(n22, n24).
+reaches(n22, n25).
+reaches(n22, n26).
+reaches(n22, n27).
+reaches(n22, n28).
+reaches(n22, n29).
+reaches(n22, n30).
+reaches(n22, n31).
+reaches(n22, n32).
+reaches(n22, n33).
+reaches(n22, n34).
+reaches(n22, n35).
+reaches(n22, n36).
+reaches(n22, n37).
+reaches(n22, n38).
+reaches(n22, n39).
+reaches(n22, n40).
+reaches(n22, n41).
+reaches(n22, n42).
+reaches(n22, n43).
+reaches(n22, n44).
+reaches(n22, n45).
+reaches(n22, n46).
+reaches(n22, n47).
+reaches(n22, n48).
+reaches(n22, n49).
+reaches(n22, n50).
+reaches(n22, n51).
+reaches(n22, n52).
+reaches(n22, n53).
+reaches(n22, n54).
+reaches(n22, n55).
+reaches(n22, n56).
+reaches(n22, n57).
+reaches(n22, n58).
+reaches(n22, n59).
+reaches(n22, n60).
+reaches(n22, n61).
+reaches(n22, n62).
+reaches(n22, n63).
+reaches(n22, n64).
+reaches(n22, n65).
+reaches(n22, n66).
+reaches(n22, n67).
+reaches(n22, n68).
+reaches(n22, n69).
+reaches(n22, n70).
+reaches(n23, n24).
+reaches(n23, n25).
+reaches(n23, n26).
+reaches(n23, n27).
+reaches(n23, n28).
+reaches(n23, n29).
+reaches(n23, n30).
+reaches(n23, n31).
+reaches(n23, n32).
+reaches(n23, n33).
+reaches(n23, n34).
+reaches(n23, n35).
+reaches(n23, n36).
+reaches(n23, n37).
+reaches(n23, n38).
+reaches(n23, n39).
+reaches(n23, n40).
+reaches(n23, n41).
+reaches(n23, n42).
+reaches(n23, n43).
+reaches(n23, n44).
+reaches(n23, n45).
+reaches(n23, n46).
+reaches(n23, n47).
+reaches(n23, n48).
+reaches(n23, n49).
+reaches(n23, n50).
+reaches(n23, n51).
+reaches(n23, n52).
+reaches(n23, n53).
+reaches(n23, n54).
+reaches(n23, n55).
+reaches(n23, n56).
+reaches(n23, n57).
+reaches(n23, n58).
+reaches(n23, n59).
+reaches(n23, n60).
+reaches(n23, n61).
+reaches(n23, n62).
+reaches(n23, n63).
+reaches(n23, n64).
+reaches(n23, n65).
+reaches(n23, n66).
+reaches(n23, n67).
+reaches(n23, n68).
+reaches(n23, n69).
+reaches(n23, n70).
+reaches(n24, n25).
+reaches(n24, n26).
+reaches(n24, n27).
+reaches(n24, n28).
+reaches(n24, n29).
+reaches(n24, n30).
+reaches(n24, n31).
+reaches(n24, n32).
+reaches(n24, n33).
+reaches(n24, n34).
+reaches(n24, n35).
+reaches(n24, n36).
+reaches(n24, n37).
+reaches(n24, n38).
+reaches(n24, n39).
+reaches(n24, n40).
+reaches(n24, n41).
+reaches(n24, n42).
+reaches(n24, n43).
+reaches(n24, n44).
+reaches(n24, n45).
+reaches(n24, n46).
+reaches(n24, n47).
+reaches(n24, n48).
+reaches(n24, n49).
+reaches(n24, n50).
+reaches(n24, n51).
+reaches(n24, n52).
+reaches(n24, n53).
+reaches(n24, n54).
+reaches(n24, n55).
+reaches(n24, n56).
+reaches(n24, n57).
+reaches(n24, n58).
+reaches(n24, n59).
+reaches(n24, n60).
+reaches(n24, n61).
+reaches(n24, n62).
+reaches(n24, n63).
+reaches(n24, n64).
+reaches(n24, n65).
+reaches(n24, n66).
+reaches(n24, n67).
+reaches(n24, n68).
+reaches(n24, n69).
+reaches(n24, n70).
+reaches(n25, n26).
+reaches(n25, n27).
+reaches(n25, n28).
+reaches(n25, n29).
+reaches(n25, n30).
+reaches(n25, n31).
+reaches(n25, n32).
+reaches(n25, n33).
+reaches(n25, n34).
+reaches(n25, n35).
+reaches(n25, n36).
+reaches(n25, n37).
+reaches(n25, n38).
+reaches(n25, n39).
+reaches(n25, n40).
+reaches(n25, n41).
+reaches(n25, n42).
+reaches(n25, n43).
+reaches(n25, n44).
+reaches(n25, n45).
+reaches(n25, n46).
+reaches(n25, n47).
+reaches(n25, n48).
+reaches(n25, n49).
+reaches(n25, n50).
+reaches(n25, n51).
+reaches(n25, n52).
+reaches(n25, n53).
+reaches(n25, n54).
+reaches(n25, n55).
+reaches(n25, n56).
+reaches(n25, n57).
+reaches(n25, n58).
+reaches(n25, n59).
+reaches(n25, n60).
+reaches(n25, n61).
+reaches(n25, n62).
+reaches(n25, n63).
+reaches(n25, n64).
+reaches(n25, n65).
+reaches(n25, n66).
+reaches(n25, n67).
+reaches(n25, n68).
+reaches(n25, n69).
+reaches(n25, n70).
+reaches(n26, n27).
+reaches(n26, n28).
+reaches(n26, n29).
+reaches(n26, n30).
+reaches(n26, n31).
+reaches(n26, n32).
+reaches(n26, n33).
+reaches(n26, n34).
+reaches(n26, n35).
+reaches(n26, n36).
+reaches(n26, n37).
+reaches(n26, n38).
+reaches(n26, n39).
+reaches(n26, n40).
+reaches(n26, n41).
+reaches(n26, n42).
+reaches(n26, n43).
+reaches(n26, n44).
+reaches(n26, n45).
+reaches(n26, n46).
+reaches(n26, n47).
+reaches(n26, n48).
+reaches(n26, n49).
+reaches(n26, n50).
+reaches(n26, n51).
+reaches(n26, n52).
+reaches(n26, n53).
+reaches(n26, n54).
+reaches(n26, n55).
+reaches(n26, n56).
+reaches(n26, n57).
+reaches(n26, n58).
+reaches(n26, n59).
+reaches(n26, n60).
+reaches(n26, n61).
+reaches(n26, n62).
+reaches(n26, n63).
+reaches(n26, n64).
+reaches(n26, n65).
+reaches(n26, n66).
+reaches(n26, n67).
+reaches(n26, n68).
+reaches(n26, n69).
+reaches(n26, n70).
+reaches(n27, n28).
+reaches(n27, n29).
+reaches(n27, n30).
+reaches(n27, n31).
+reaches(n27, n32).
+reaches(n27, n33).
+reaches(n27, n34).
+reaches(n27, n35).
+reaches(n27, n36).
+reaches(n27, n37).
+reaches(n27, n38).
+reaches(n27, n39).
+reaches(n27, n40).
+reaches(n27, n41).
+reaches(n27, n42).
+reaches(n27, n43).
+reaches(n27, n44).
+reaches(n27, n45).
+reaches(n27, n46).
+reaches(n27, n47).
+reaches(n27, n48).
+reaches(n27, n49).
+reaches(n27, n50).
+reaches(n27, n51).
+reaches(n27, n52).
+reaches(n27, n53).
+reaches(n27, n54).
+reaches(n27, n55).
+reaches(n27, n56).
+reaches(n27, n57).
+reaches(n27, n58).
+reaches(n27, n59).
+reaches(n27, n60).
+reaches(n27, n61).
+reaches(n27, n62).
+reaches(n27, n63).
+reaches(n27, n64).
+reaches(n27, n65).
+reaches(n27, n66).
+reaches(n27, n67).
+reaches(n27, n68).
+reaches(n27, n69).
+reaches(n27, n70).
+reaches(n28, n29).
+reaches(n28, n30).
+reaches(n28, n31).
+reaches(n28, n32).
+reaches(n28, n33).
+reaches(n28, n34).
+reaches(n28, n35).
+reaches(n28, n36).
+reaches(n28, n37).
+reaches(n28, n38).
+reaches(n28, n39).
+reaches(n28, n40).
+reaches(n28, n41).
+reaches(n28, n42).
+reaches(n28, n43).
+reaches(n28, n44).
+reaches(n28, n45).
+reaches(n28, n46).
+reaches(n28, n47).
+reaches(n28, n48).
+reaches(n28, n49).
+reaches(n28, n50).
+reaches(n28, n51).
+reaches(n28, n52).
+reaches(n28, n53).
+reaches(n28, n54).
+reaches(n28, n55).
+reaches(n28, n56).
+reaches(n28, n57).
+reaches(n28, n58).
+reaches(n28, n59).
+reaches(n28, n60).
+reaches(n28, n61).
+reaches(n28, n62).
+reaches(n28, n63).
+reaches(n28, n64).
+reaches(n28, n65).
+reaches(n28, n66).
+reaches(n28, n67).
+reaches(n28, n68).
+reaches(n28, n69).
+reaches(n28, n70).
+reaches(n29, n30).
+reaches(n29, n31).
+reaches(n29, n32).
+reaches(n29, n33).
+reaches(n29, n34).
+reaches(n29, n35).
+reaches(n29, n36).
+reaches(n29, n37).
+reaches(n29, n38).
+reaches(n29, n39).
+reaches(n29, n40).
+reaches(n29, n41).
+reaches(n29, n42).
+reaches(n29, n43).
+reaches(n29, n44).
+reaches(n29, n45).
+reaches(n29, n46).
+reaches(n29, n47).
+reaches(n29, n48).
+reaches(n29, n49).
+reaches(n29, n50).
+reaches(n29, n51).
+reaches(n29, n52).
+reaches(n29, n53).
+reaches(n29, n54).
+reaches(n29, n55).
+reaches(n29, n56).
+reaches(n29, n57).
+reaches(n29, n58).
+reaches(n29, n59).
+reaches(n29, n60).
+reaches(n29, n61).
+reaches(n29, n62).
+reaches(n29, n63).
+reaches(n29, n64).
+reaches(n29, n65).
+reaches(n29, n66).
+reaches(n29, n67).
+reaches(n29, n68).
+reaches(n29, n69).
+reaches(n29, n70).
+reaches(n3, n10).
+reaches(n3, n11).
+reaches(n3, n12).
+reaches(n3, n13).
+reaches(n3, n14).
+reaches(n3, n15).
+reaches(n3, n16).
+reaches(n3, n17).
+reaches(n3, n18).
+reaches(n3, n19).
+reaches(n3, n20).
+reaches(n3, n21).
+reaches(n3, n22).
+reaches(n3, n23).
+reaches(n3, n24).
+reaches(n3, n25).
+reaches(n3, n26).
+reaches(n3, n27).
+reaches(n3, n28).
+reaches(n3, n29).
+reaches(n3, n30).
+reaches(n3, n31).
+reaches(n3, n32).
+reaches(n3, n33).
+reaches(n3, n34).
+reaches(n3, n35).
+reaches(n3, n36).
+reaches(n3, n37).
+reaches(n3, n38).
+reaches(n3, n39).
+reaches(n3, n4).
+reaches(n3, n40).
+reaches(n3, n41).
+reaches(n3, n42).
+reaches(n3, n43).
+reaches(n3, n44).
+reaches(n3, n45).
+reaches(n3, n46).
+reaches(n3, n47).
+reaches(n3, n48).
+reaches(n3, n49).
+reaches(n3, n5).
+reaches(n3, n50).
+reaches(n3, n51).
+reaches(n3, n52).
+reaches(n3, n53).
+reaches(n3, n54).
+reaches(n3, n55).
+reaches(n3, n56).
+reaches(n3, n57).
+reaches(n3, n58).
+reaches(n3, n59).
+reaches(n3, n6).
+reaches(n3, n60).
+reaches(n3, n61).
+reaches(n3, n62).
+reaches(n3, n63).
+reaches(n3, n64).
+reaches(n3, n65).
+reaches(n3, n66).
+reaches(n3, n67).
+reaches(n3, n68).
+reaches(n3, n69).
+reaches(n3, n7).
+reaches(n3, n70).
+reaches(n3, n8).
+reaches(n3, n9).
+reaches(n30, n31).
+reaches(n30, n32).
+reaches(n30, n33).
+reaches(n30, n34).
+reaches(n30, n35).
+reaches(n30, n36).
+reaches(n30, n37).
+reaches(n30, n38).
+reaches(n30, n39).
+reaches(n30, n40).
+reaches(n30, n41).
+reaches(n30, n42).
+reaches(n30, n43).
+reaches(n30, n44).
+reaches(n30, n45).
+reaches(n30, n46).
+reaches(n30, n47).
+reaches(n30, n48).
+reaches(n30, n49).
+reaches(n30, n50).
+reaches(n30, n51).
+reaches(n30, n52).
+reaches(n30, n53).
+reaches(n30, n54).
+reaches(n30, n55).
+reaches(n30, n56).
+reaches(n30, n57).
+reaches(n30, n58).
+reaches(n30, n59).
+reaches(n30, n60).
+reaches(n30, n61).
+reaches(n30, n62).
+reaches(n30, n63).
+reaches(n30, n64).
+reaches(n30, n65).
+reaches(n30, n66).
+reaches(n30, n67).
+reaches(n30, n68).
+reaches(n30, n69).
+reaches(n30, n70).
+reaches(n31, n32).
+reaches(n31, n33).
+reaches(n31, n34).
+reaches(n31, n35).
+reaches(n31, n36).
+reaches(n31, n37).
+reaches(n31, n38).
+reaches(n31, n39).
+reaches(n31, n40).
+reaches(n31, n41).
+reaches(n31, n42).
+reaches(n31, n43).
+reaches(n31, n44).
+reaches(n31, n45).
+reaches(n31, n46).
+reaches(n31, n47).
+reaches(n31, n48).
+reaches(n31, n49).
+reaches(n31, n50).
+reaches(n31, n51).
+reaches(n31, n52).
+reaches(n31, n53).
+reaches(n31, n54).
+reaches(n31, n55).
+reaches(n31, n56).
+reaches(n31, n57).
+reaches(n31, n58).
+reaches(n31, n59).
+reaches(n31, n60).
+reaches(n31, n61).
+reaches(n31, n62).
+reaches(n31, n63).
+reaches(n31, n64).
+reaches(n31, n65).
+reaches(n31, n66).
+reaches(n31, n67).
+reaches(n31, n68).
+reaches(n31, n69).
+reaches(n31, n70).
+reaches(n32, n33).
+reaches(n32, n34).
+reaches(n32, n35).
+reaches(n32, n36).
+reaches(n32, n37).
+reaches(n32, n38).
+reaches(n32, n39).
+reaches(n32, n40).
+reaches(n32, n41).
+reaches(n32, n42).
+reaches(n32, n43).
+reaches(n32, n44).
+reaches(n32, n45).
+reaches(n32, n46).
+reaches(n32, n47).
+reaches(n32, n48).
+reaches(n32, n49).
+reaches(n32, n50).
+reaches(n32, n51).
+reaches(n32, n52).
+reaches(n32, n53).
+reaches(n32, n54).
+reaches(n32, n55).
+reaches(n32, n56).
+reaches(n32, n57).
+reaches(n32, n58).
+reaches(n32, n59).
+reaches(n32, n60).
+reaches(n32, n61).
+reaches(n32, n62).
+reaches(n32, n63).
+reaches(n32, n64).
+reaches(n32, n65).
+reaches(n32, n66).
+reaches(n32, n67).
+reaches(n32, n68).
+reaches(n32, n69).
+reaches(n32, n70).
+reaches(n33, n34).
+reaches(n33, n35).
+reaches(n33, n36).
+reaches(n33, n37).
+reaches(n33, n38).
+reaches(n33, n39).
+reaches(n33, n40).
+reaches(n33, n41).
+reaches(n33, n42).
+reaches(n33, n43).
+reaches(n33, n44).
+reaches(n33, n45).
+reaches(n33, n46).
+reaches(n33, n47).
+reaches(n33, n48).
+reaches(n33, n49).
+reaches(n33, n50).
+reaches(n33, n51).
+reaches(n33, n52).
+reaches(n33, n53).
+reaches(n33, n54).
+reaches(n33, n55).
+reaches(n33, n56).
+reaches(n33, n57).
+reaches(n33, n58).
+reaches(n33, n59).
+reaches(n33, n60).
+reaches(n33, n61).
+reaches(n33, n62).
+reaches(n33, n63).
+reaches(n33, n64).
+reaches(n33, n65).
+reaches(n33, n66).
+reaches(n33, n67).
+reaches(n33, n68).
+reaches(n33, n69).
+reaches(n33, n70).
+reaches(n34, n35).
+reaches(n34, n36).
+reaches(n34, n37).
+reaches(n34, n38).
+reaches(n34, n39).
+reaches(n34, n40).
+reaches(n34, n41).
+reaches(n34, n42).
+reaches(n34, n43).
+reaches(n34, n44).
+reaches(n34, n45).
+reaches(n34, n46).
+reaches(n34, n47).
+reaches(n34, n48).
+reaches(n34, n49).
+reaches(n34, n50).
+reaches(n34, n51).
+reaches(n34, n52).
+reaches(n34, n53).
+reaches(n34, n54).
+reaches(n34, n55).
+reaches(n34, n56).
+reaches(n34, n57).
+reaches(n34, n58).
+reaches(n34, n59).
+reaches(n34, n60).
+reaches(n34, n61).
+reaches(n34, n62).
+reaches(n34, n63).
+reaches(n34, n64).
+reaches(n34, n65).
+reaches(n34, n66).
+reaches(n34, n67).
+reaches(n34, n68).
+reaches(n34, n69).
+reaches(n34, n70).
+reaches(n35, n36).
+reaches(n35, n37).
+reaches(n35, n38).
+reaches(n35, n39).
+reaches(n35, n40).
+reaches(n35, n41).
+reaches(n35, n42).
+reaches(n35, n43).
+reaches(n35, n44).
+reaches(n35, n45).
+reaches(n35, n46).
+reaches(n35, n47).
+reaches(n35, n48).
+reaches(n35, n49).
+reaches(n35, n50).
+reaches(n35, n51).
+reaches(n35, n52).
+reaches(n35, n53).
+reaches(n35, n54).
+reaches(n35, n55).
+reaches(n35, n56).
+reaches(n35, n57).
+reaches(n35, n58).
+reaches(n35, n59).
+reaches(n35, n60).
+reaches(n35, n61).
+reaches(n35, n62).
+reaches(n35, n63).
+reaches(n35, n64).
+reaches(n35, n65).
+reaches(n35, n66).
+reaches(n35, n67).
+reaches(n35, n68).
+reaches(n35, n69).
+reaches(n35, n70).
+reaches(n36, n37).
+reaches(n36, n38).
+reaches(n36, n39).
+reaches(n36, n40).
+reaches(n36, n41).
+reaches(n36, n42).
+reaches(n36, n43).
+reaches(n36, n44).
+reaches(n36, n45).
+reaches(n36, n46).
+reaches(n36, n47).
+reaches(n36, n48).
+reaches(n36, n49).
+reaches(n36, n50).
+reaches(n36, n51).
+reaches(n36, n52).
+reaches(n36, n53).
+reaches(n36, n54).
+reaches(n36, n55).
+reaches(n36, n56).
+reaches(n36, n57).
+reaches(n36, n58).
+reaches(n36, n59).
+reaches(n36, n60).
+reaches(n36, n61).
+reaches(n36, n62).
+reaches(n36, n63).
+reaches(n36, n64).
+reaches(n36, n65).
+reaches(n36, n66).
+reaches(n36, n67).
+reaches(n36, n68).
+reaches(n36, n69).
+reaches(n36, n70).
+reaches(n37, n38).
+reaches(n37, n39).
+reaches(n37, n40).
+reaches(n37, n41).
+reaches(n37, n42).
+reaches(n37, n43).
+reaches(n37, n44).
+reaches(n37, n45).
+reaches(n37, n46).
+reaches(n37, n47).
+reaches(n37, n48).
+reaches(n37, n49).
+reaches(n37, n50).
+reaches(n37, n51).
+reaches(n37, n52).
+reaches(n37, n53).
+reaches(n37, n54).
+reaches(n37, n55).
+reaches(n37, n56).
+reaches(n37, n57).
+reaches(n37, n58).
+reaches(n37, n59).
+reaches(n37, n60).
+reaches(n37, n61).
+reaches(n37, n62).
+reaches(n37, n63).
+reaches(n37, n64).
+reaches(n37, n65).
+reaches(n37, n66).
+reaches(n37, n67).
+reaches(n37, n68).
+reaches(n37, n69).
+reaches(n37, n70).
+reaches(n38, n39).
+reaches(n38, n40).
+reaches(n38, n41).
+reaches(n38, n42).
+reaches(n38, n43).
+reaches(n38, n44).
+reaches(n38, n45).
+reaches(n38, n46).
+reaches(n38, n47).
+reaches(n38, n48).
+reaches(n38, n49).
+reaches(n38, n50).
+reaches(n38, n51).
+reaches(n38, n52).
+reaches(n38, n53).
+reaches(n38, n54).
+reaches(n38, n55).
+reaches(n38, n56).
+reaches(n38, n57).
+reaches(n38, n58).
+reaches(n38, n59).
+reaches(n38, n60).
+reaches(n38, n61).
+reaches(n38, n62).
+reaches(n38, n63).
+reaches(n38, n64).
+reaches(n38, n65).
+reaches(n38, n66).
+reaches(n38, n67).
+reaches(n38, n68).
+reaches(n38, n69).
+reaches(n38, n70).
+reaches(n39, n40).
+reaches(n39, n41).
+reaches(n39, n42).
+reaches(n39, n43).
+reaches(n39, n44).
+reaches(n39, n45).
+reaches(n39, n46).
+reaches(n39, n47).
+reaches(n39, n48).
+reaches(n39, n49).
+reaches(n39, n50).
+reaches(n39, n51).
+reaches(n39, n52).
+reaches(n39, n53).
+reaches(n39, n54).
+reaches(n39, n55).
+reaches(n39, n56).
+reaches(n39, n57).
+reaches(n39, n58).
+reaches(n39, n59).
+reaches(n39, n60).
+reaches(n39, n61).
+reaches(n39, n62).
+reaches(n39, n63).
+reaches(n39, n64).
+reaches(n39, n65).
+reaches(n39, n66).
+reaches(n39, n67).
+reaches(n39, n68).
+reaches(n39, n69).
+reaches(n39, n70).
+reaches(n4, n10).
+reaches(n4, n11).
+reaches(n4, n12).
+reaches(n4, n13).
+reaches(n4, n14).
+reaches(n4, n15).
+reaches(n4, n16).
+reaches(n4, n17).
+reaches(n4, n18).
+reaches(n4, n19).
+reaches(n4, n20).
+reaches(n4, n21).
+reaches(n4, n22).
+reaches(n4, n23).
+reaches(n4, n24).
+reaches(n4, n25).
+reaches(n4, n26).
+reaches(n4, n27).
+reaches(n4, n28).
+reaches(n4, n29).
+reaches(n4, n30).
+reaches(n4, n31).
+reaches(n4, n32).
+reaches(n4, n33).
+reaches(n4, n34).
+reaches(n4, n35).
+reaches(n4, n36).
+reaches(n4, n37).
+reaches(n4, n38).
+reaches(n4, n39).
+reaches(n4, n40).
+reaches(n4, n41).
+reaches(n4, n42).
+reaches(n4, n43).
+reaches(n4, n44).
+reaches(n4, n45).
+reaches(n4, n46).
+reaches(n4, n47).
+reaches(n4, n48).
+reaches(n4, n49).
+reaches(n4, n5).
+reaches(n4, n50).
+reaches(n4, n51).
+reaches(n4, n52).
+reaches(n4, n53).
+reaches(n4, n54).
+reaches(n4, n55).
+reaches(n4, n56).
+reaches(n4, n57).
+reaches(n4, n58).
+reaches(n4, n59).
+reaches(n4, n6).
+reaches(n4, n60).
+reaches(n4, n61).
+reaches(n4, n62).
+reaches(n4, n63).
+reaches(n4, n64).
+reaches(n4, n65).
+reaches(n4, n66).
+reaches(n4, n67).
+reaches(n4, n68).
+reaches(n4, n69).
+reaches(n4, n7).
+reaches(n4, n70).
+reaches(n4, n8).
+reaches(n4, n9).
+reaches(n40, n41).
+reaches(n40, n42).
+reaches(n40, n43).
+reaches(n40, n44).
+reaches(n40, n45).
+reaches(n40, n46).
+reaches(n40, n47).
+reaches(n40, n48).
+reaches(n40, n49).
+reaches(n40, n50).
+reaches(n40, n51).
+reaches(n40, n52).
+reaches(n40, n53).
+reaches(n40, n54).
+reaches(n40, n55).
+reaches(n40, n56).
+reaches(n40, n57).
+reaches(n40, n58).
+reaches(n40, n59).
+reaches(n40, n60).
+reaches(n40, n61).
+reaches(n40, n62).
+reaches(n40, n63).
+reaches(n40, n64).
+reaches(n40, n65).
+reaches(n40, n66).
+reaches(n40, n67).
+reaches(n40, n68).
+reaches(n40, n69).
+reaches(n40, n70).
+reaches(n41, n42).
+reaches(n41, n43).
+reaches(n41, n44).
+reaches(n41, n45).
+reaches(n41, n46).
+reaches(n41, n47).
+reaches(n41, n48).
+reaches(n41, n49).
+reaches(n41, n50).
+reaches(n41, n51).
+reaches(n41, n52).
+reaches(n41, n53).
+reaches(n41, n54).
+reaches(n41, n55).
+reaches(n41, n56).
+reaches(n41, n57).
+reaches(n41, n58).
+reaches(n41, n59).
+reaches(n41, n60).
+reaches(n41, n61).
+reaches(n41, n62).
+reaches(n41, n63).
+reaches(n41, n64).
+reaches(n41, n65).
+reaches(n41, n66).
+reaches(n41, n67).
+reaches(n41, n68).
+reaches(n41, n69).
+reaches(n41, n70).
+reaches(n42, n43).
+reaches(n42, n44).
+reaches(n42, n45).
+reaches(n42, n46).
+reaches(n42, n47).
+reaches(n42, n48).
+reaches(n42, n49).
+reaches(n42, n50).
+reaches(n42, n51).
+reaches(n42, n52).
+reaches(n42, n53).
+reaches(n42, n54).
+reaches(n42, n55).
+reaches(n42, n56).
+reaches(n42, n57).
+reaches(n42, n58).
+reaches(n42, n59).
+reaches(n42, n60).
+reaches(n42, n61).
+reaches(n42, n62).
+reaches(n42, n63).
+reaches(n42, n64).
+reaches(n42, n65).
+reaches(n42, n66).
+reaches(n42, n67).
+reaches(n42, n68).
+reaches(n42, n69).
+reaches(n42, n70).
+reaches(n43, n44).
+reaches(n43, n45).
+reaches(n43, n46).
+reaches(n43, n47).
+reaches(n43, n48).
+reaches(n43, n49).
+reaches(n43, n50).
+reaches(n43, n51).
+reaches(n43, n52).
+reaches(n43, n53).
+reaches(n43, n54).
+reaches(n43, n55).
+reaches(n43, n56).
+reaches(n43, n57).
+reaches(n43, n58).
+reaches(n43, n59).
+reaches(n43, n60).
+reaches(n43, n61).
+reaches(n43, n62).
+reaches(n43, n63).
+reaches(n43, n64).
+reaches(n43, n65).
+reaches(n43, n66).
+reaches(n43, n67).
+reaches(n43, n68).
+reaches(n43, n69).
+reaches(n43, n70).
+reaches(n44, n45).
+reaches(n44, n46).
+reaches(n44, n47).
+reaches(n44, n48).
+reaches(n44, n49).
+reaches(n44, n50).
+reaches(n44, n51).
+reaches(n44, n52).
+reaches(n44, n53).
+reaches(n44, n54).
+reaches(n44, n55).
+reaches(n44, n56).
+reaches(n44, n57).
+reaches(n44, n58).
+reaches(n44, n59).
+reaches(n44, n60).
+reaches(n44, n61).
+reaches(n44, n62).
+reaches(n44, n63).
+reaches(n44, n64).
+reaches(n44, n65).
+reaches(n44, n66).
+reaches(n44, n67).
+reaches(n44, n68).
+reaches(n44, n69).
+reaches(n44, n70).
+reaches(n45, n46).
+reaches(n45, n47).
+reaches(n45, n48).
+reaches(n45, n49).
+reaches(n45, n50).
+reaches(n45, n51).
+reaches(n45, n52).
+reaches(n45, n53).
+reaches(n45, n54).
+reaches(n45, n55).
+reaches(n45, n56).
+reaches(n45, n57).
+reaches(n45, n58).
+reaches(n45, n59).
+reaches(n45, n60).
+reaches(n45, n61).
+reaches(n45, n62).
+reaches(n45, n63).
+reaches(n45, n64).
+reaches(n45, n65).
+reaches(n45, n66).
+reaches(n45, n67).
+reaches(n45, n68).
+reaches(n45, n69).
+reaches(n45, n70).
+reaches(n46, n47).
+reaches(n46, n48).
+reaches(n46, n49).
+reaches(n46, n50).
+reaches(n46, n51).
+reaches(n46, n52).
+reaches(n46, n53).
+reaches(n46, n54).
+reaches(n46, n55).
+reaches(n46, n56).
+reaches(n46, n57).
+reaches(n46, n58).
+reaches(n46, n59).
+reaches(n46, n60).
+reaches(n46, n61).
+reaches(n46, n62).
+reaches(n46, n63).
+reaches(n46, n64).
+reaches(n46, n65).
+reaches(n46, n66).
+reaches(n46, n67).
+reaches(n46, n68).
+reaches(n46, n69).
+reaches(n46, n70).
+reaches(n47, n48).
+reaches(n47, n49).
+reaches(n47, n50).
+reaches(n47, n51).
+reaches(n47, n52).
+reaches(n47, n53).
+reaches(n47, n54).
+reaches(n47, n55).
+reaches(n47, n56).
+reaches(n47, n57).
+reaches(n47, n58).
+reaches(n47, n59).
+reaches(n47, n60).
+reaches(n47, n61).
+reaches(n47, n62).
+reaches(n47, n63).
+reaches(n47, n64).
+reaches(n47, n65).
+reaches(n47, n66).
+reaches(n47, n67).
+reaches(n47, n68).
+reaches(n47, n69).
+reaches(n47, n70).
+reaches(n48, n49).
+reaches(n48, n50).
+reaches(n48, n51).
+reaches(n48, n52).
+reaches(n48, n53).
+reaches(n48, n54).
+reaches(n48, n55).
+reaches(n48, n56).
+reaches(n48, n57).
+reaches(n48, n58).
+reaches(n48, n59).
+reaches(n48, n60).
+reaches(n48, n61).
+reaches(n48, n62).
+reaches(n48, n63).
+reaches(n48, n64).
+reaches(n48, n65).
+reaches(n48, n66).
+reaches(n48, n67).
+reaches(n48, n68).
+reaches(n48, n69).
+reaches(n48, n70).
+reaches(n49, n50).
+reaches(n49, n51).
+reaches(n49, n52).
+reaches(n49, n53).
+reaches(n49, n54).
+reaches(n49, n55).
+reaches(n49, n56).
+reaches(n49, n57).
+reaches(n49, n58).
+reaches(n49, n59).
+reaches(n49, n60).
+reaches(n49, n61).
+reaches(n49, n62).
+reaches(n49, n63).
+reaches(n49, n64).
+reaches(n49, n65).
+reaches(n49, n66).
+reaches(n49, n67).
+reaches(n49, n68).
+reaches(n49, n69).
+reaches(n49, n70).
+reaches(n5, n10).
+reaches(n5, n11).
+reaches(n5, n12).
+reaches(n5, n13).
+reaches(n5, n14).
+reaches(n5, n15).
+reaches(n5, n16).
+reaches(n5, n17).
+reaches(n5, n18).
+reaches(n5, n19).
+reaches(n5, n20).
+reaches(n5, n21).
+reaches(n5, n22).
+reaches(n5, n23).
+reaches(n5, n24).
+reaches(n5, n25).
+reaches(n5, n26).
+reaches(n5, n27).
+reaches(n5, n28).
+reaches(n5, n29).
+reaches(n5, n30).
+reaches(n5, n31).
+reaches(n5, n32).
+reaches(n5, n33).
+reaches(n5, n34).
+reaches(n5, n35).
+reaches(n5, n36).
+reaches(n5, n37).
+reaches(n5, n38).
+reaches(n5, n39).
+reaches(n5, n40).
+reaches(n5, n41).
+reaches(n5, n42).
+reaches(n5, n43).
+reaches(n5, n44).
+reaches(n5, n45).
+reaches(n5, n46).
+reaches(n5, n47).
+reaches(n5, n48).
+reaches(n5, n49).
+reaches(n5, n50).
+reaches(n5, n51).
+reaches(n5, n52).
+reaches(n5, n53).
+reaches(n5, n54).
+reaches(n5, n55).
+reaches(n5, n56).
+reaches(n5, n57).
+reaches(n5, n58).
+reaches(n5, n59).
+reaches(n5, n6).
+reaches(n5, n60).
+reaches(n5, n61).
+reaches(n5, n62).
+reaches(n5, n63).
+reaches(n5, n64).
+reaches(n5, n65).
+reaches(n5, n66).
+reaches(n5, n67).
+reaches(n5, n68).
+reaches(n5, n69).
+reaches(n5, n7).
+reaches(n5, n70).
+reaches(n5, n8).
+reaches(n5, n9).
+reaches(n50, n51).
+reaches(n50, n52).
+reaches(n50, n53).
+reaches(n50, n54).
+reaches(n50, n55).
+reaches(n50, n56).
+reaches(n50, n57).
+reaches(n50, n58).
+reaches(n50, n59).
+reaches(n50, n60).
+reaches(n50, n61).
+reaches(n50, n62).
+reaches(n50, n63).
+reaches(n50, n64).
+reaches(n50, n65).
+reaches(n50, n66).
+reaches(n50, n67).
+reaches(n50, n68).
+reaches(n50, n69).
+reaches(n50, n70).
+reaches(n51, n52).
+reaches(n51, n53).
+reaches(n51, n54).
+reaches(n51, n55).
+reaches(n51, n56).
+reaches(n51, n57).
+reaches(n51, n58).
+reaches(n51, n59).
+reaches(n51, n60).
+reaches(n51, n61).
+reaches(n51, n62).
+reaches(n51, n63).
+reaches(n51, n64).
+reaches(n51, n65).
+reaches(n51, n66).
+reaches(n51, n67).
+reaches(n51, n68).
+reaches(n51, n69).
+reaches(n51, n70).
+reaches(n52, n53).
+reaches(n52, n54).
+reaches(n52, n55).
+reaches(n52, n56).
+reaches(n52, n57).
+reaches(n52, n58).
+reaches(n52, n59).
+reaches(n52, n60).
+reaches(n52, n61).
+reaches(n52, n62).
+reaches(n52, n63).
+reaches(n52, n64).
+reaches(n52, n65).
+reaches(n52, n66).
+reaches(n52, n67).
+reaches(n52, n68).
+reaches(n52, n69).
+reaches(n52, n70).
+reaches(n53, n54).
+reaches(n53, n55).
+reaches(n53, n56).
+reaches(n53, n57).
+reaches(n53, n58).
+reaches(n53, n59).
+reaches(n53, n60).
+reaches(n53, n61).
+reaches(n53, n62).
+reaches(n53, n63).
+reaches(n53, n64).
+reaches(n53, n65).
+reaches(n53, n66).
+reaches(n53, n67).
+reaches(n53, n68).
+reaches(n53, n69).
+reaches(n53, n70).
+reaches(n54, n55).
+reaches(n54, n56).
+reaches(n54, n57).
+reaches(n54, n58).
+reaches(n54, n59).
+reaches(n54, n60).
+reaches(n54, n61).
+reaches(n54, n62).
+reaches(n54, n63).
+reaches(n54, n64).
+reaches(n54, n65).
+reaches(n54, n66).
+reaches(n54, n67).
+reaches(n54, n68).
+reaches(n54, n69).
+reaches(n54, n70).
+reaches(n55, n56).
+reaches(n55, n57).
+reaches(n55, n58).
+reaches(n55, n59).
+reaches(n55, n60).
+reaches(n55, n61).
+reaches(n55, n62).
+reaches(n55, n63).
+reaches(n55, n64).
+reaches(n55, n65).
+reaches(n55, n66).
+reaches(n55, n67).
+reaches(n55, n68).
+reaches(n55, n69).
+reaches(n55, n70).
+reaches(n56, n57).
+reaches(n56, n58).
+reaches(n56, n59).
+reaches(n56, n60).
+reaches(n56, n61).
+reaches(n56, n62).
+reaches(n56, n63).
+reaches(n56, n64).
+reaches(n56, n65).
+reaches(n56, n66).
+reaches(n56, n67).
+reaches(n56, n68).
+reaches(n56, n69).
+reaches(n56, n70).
+reaches(n57, n58).
+reaches(n57, n59).
+reaches(n57, n60).
+reaches(n57, n61).
+reaches(n57, n62).
+reaches(n57, n63).
+reaches(n57, n64).
+reaches(n57, n65).
+reaches(n57, n66).
+reaches(n57, n67).
+reaches(n57, n68).
+reaches(n57, n69).
+reaches(n57, n70).
+reaches(n58, n59).
+reaches(n58, n60).
+reaches(n58, n61).
+reaches(n58, n62).
+reaches(n58, n63).
+reaches(n58, n64).
+reaches(n58, n65).
+reaches(n58, n66).
+reaches(n58, n67).
+reaches(n58, n68).
+reaches(n58, n69).
+reaches(n58, n70).
+reaches(n59, n60).
+reaches(n59, n61).
+reaches(n59, n62).
+reaches(n59, n63).
+reaches(n59, n64).
+reaches(n59, n65).
+reaches(n59, n66).
+reaches(n59, n67).
+reaches(n59, n68).
+reaches(n59, n69).
+reaches(n59, n70).
+reaches(n6, n10).
+reaches(n6, n11).
+reaches(n6, n12).
+reaches(n6, n13).
+reaches(n6, n14).
+reaches(n6, n15).
+reaches(n6, n16).
+reaches(n6, n17).
+reaches(n6, n18).
+reaches(n6, n19).
+reaches(n6, n20).
+reaches(n6, n21).
+reaches(n6, n22).
+reaches(n6, n23).
+reaches(n6, n24).
+reaches(n6, n25).
+reaches(n6, n26).
+reaches(n6, n27).
+reaches(n6, n28).
+reaches(n6, n29).
+reaches(n6, n30).
+reaches(n6, n31).
+reaches(n6, n32).
+reaches(n6, n33).
+reaches(n6, n34).
+reaches(n6, n35).
+reaches(n6, n36).
+reaches(n6, n37).
+reaches(n6, n38).
+reaches(n6, n39).
+reaches(n6, n40).
+reaches(n6, n41).
+reaches(n6, n42).
+reaches(n6, n43).
+reaches(n6, n44).
+reaches(n6, n45).
+reaches(n6, n46).
+reaches(n6, n47).
+reaches(n6, n48).
+reaches(n6, n49).
+reaches(n6, n50).
+reaches(n6, n51).
+reaches(n6, n52).
+reaches(n6, n53).
+reaches(n6, n54).
+reaches(n6, n55).
+reaches(n6, n56).
+reaches(n6, n57).
+reaches(n6, n58).
+reaches(n6, n59).
+reaches(n6, n60).
+reaches(n6, n61).
+reaches(n6, n62).
+reaches(n6, n63).
+reaches(n6, n64).
+reaches(n6, n65).
+reaches(n6, n66).
+reaches(n6, n67).
+reaches(n6, n68).
+reaches(n6, n69).
+reaches(n6, n7).
+reaches(n6, n70).
+reaches(n6, n8).
+reaches(n6, n9).
+reaches(n60, n61).
+reaches(n60, n62).
+reaches(n60, n63).
+reaches(n60, n64).
+reaches(n60, n65).
+reaches(n60, n66).
+reaches(n60, n67).
+reaches(n60, n68).
+reaches(n60, n69).
+reaches(n60, n70).
+reaches(n61, n62).
+reaches(n61, n63).
+reaches(n61, n64).
+reaches(n61, n65).
+reaches(n61, n66).
+reaches(n61, n67).
+reaches(n61, n68).
+reaches(n61, n69).
+reaches(n61, n70).
+reaches(n62, n63).
+reaches(n62, n64).
+reaches(n62, n65).
+reaches(n62, n66).
+reaches(n62, n67).
+reaches(n62, n68).
+reaches(n62, n69).
+reaches(n62, n70).
+reaches(n63, n64).
+reaches(n63, n65).
+reaches(n63, n66).
+reaches(n63, n67).
+reaches(n63, n68).
+reaches(n63, n69).
+reaches(n63, n70).
+reaches(n64, n65).
+reaches(n64, n66).
+reaches(n64, n67).
+reaches(n64, n68).
+reaches(n64, n69).
+reaches(n64, n70).
+reaches(n65, n66).
+reaches(n65, n67).
+reaches(n65, n68).
+reaches(n65, n69).
+reaches(n65, n70).
+reaches(n66, n67).
+reaches(n66, n68).
+reaches(n66, n69).
+reaches(n66, n70).
+reaches(n67, n68).
+reaches(n67, n69).
+reaches(n67, n70).
+reaches(n68, n69).
+reaches(n68, n70).
+reaches(n69, n70).
+reaches(n7, n10).
+reaches(n7, n11).
+reaches(n7, n12).
+reaches(n7, n13).
+reaches(n7, n14).
+reaches(n7, n15).
+reaches(n7, n16).
+reaches(n7, n17).
+reaches(n7, n18).
+reaches(n7, n19).
+reaches(n7, n20).
+reaches(n7, n21).
+reaches(n7, n22).
+reaches(n7, n23).
+reaches(n7, n24).
+reaches(n7, n25).
+reaches(n7, n26).
+reaches(n7, n27).
+reaches(n7, n28).
+reaches(n7, n29).
+reaches(n7, n30).
+reaches(n7, n31).
+reaches(n7, n32).
+reaches(n7, n33).
+reaches(n7, n34).
+reaches(n7, n35).
+reaches(n7, n36).
+reaches(n7, n37).
+reaches(n7, n38).
+reaches(n7, n39).
+reaches(n7, n40).
+reaches(n7, n41).
+reaches(n7, n42).
+reaches(n7, n43).
+reaches(n7, n44).
+reaches(n7, n45).
+reaches(n7, n46).
+reaches(n7, n47).
+reaches(n7, n48).
+reaches(n7, n49).
+reaches(n7, n50).
+reaches(n7, n51).
+reaches(n7, n52).
+reaches(n7, n53).
+reaches(n7, n54).
+reaches(n7, n55).
+reaches(n7, n56).
+reaches(n7, n57).
+reaches(n7, n58).
+reaches(n7, n59).
+reaches(n7, n60).
+reaches(n7, n61).
+reaches(n7, n62).
+reaches(n7, n63).
+reaches(n7, n64).
+reaches(n7, n65).
+reaches(n7, n66).
+reaches(n7, n67).
+reaches(n7, n68).
+reaches(n7, n69).
+reaches(n7, n70).
+reaches(n7, n8).
+reaches(n7, n9).
+reaches(n8, n10).
+reaches(n8, n11).
+reaches(n8, n12).
+reaches(n8, n13).
+reaches(n8, n14).
+reaches(n8, n15).
+reaches(n8, n16).
+reaches(n8, n17).
+reaches(n8, n18).
+reaches(n8, n19).
+reaches(n8, n20).
+reaches(n8, n21).
+reaches(n8, n22).
+reaches(n8, n23).
+reaches(n8, n24).
+reaches(n8, n25).
+reaches(n8, n26).
+reaches(n8, n27).
+reaches(n8, n28).
+reaches(n8, n29).
+reaches(n8, n30).
+reaches(n8, n31).
+reaches(n8, n32).
+reaches(n8, n33).
+reaches(n8, n34).
+reaches(n8, n35).
+reaches(n8, n36).
+reaches(n8, n37).
+reaches(n8, n38).
+reaches(n8, n39).
+reaches(n8, n40).
+reaches(n8, n41).
+reaches(n8, n42).
+reaches(n8, n43).
+reaches(n8, n44).
+reaches(n8, n45).
+reaches(n8, n46).
+reaches(n8, n47).
+reaches(n8, n48).
+reaches(n8, n49).
+reaches(n8, n50).
+reaches(n8, n51).
+reaches(n8, n52).
+reaches(n8, n53).
+reaches(n8, n54).
+reaches(n8, n55).
+reaches(n8, n56).
+reaches(n8, n57).
+reaches(n8, n58).
+reaches(n8, n59).
+reaches(n8, n60).
+reaches(n8, n61).
+reaches(n8, n62).
+reaches(n8, n63).
+reaches(n8, n64).
+reaches(n8, n65).
+reaches(n8, n66).
+reaches(n8, n67).
+reaches(n8, n68).
+reaches(n8, n69).
+reaches(n8, n70).
+reaches(n8, n9).
+reaches(n9, n10).
+reaches(n9, n11).
+reaches(n9, n12).
+reaches(n9, n13).
+reaches(n9, n14).
+reaches(n9, n15).
+reaches(n9, n16).
+reaches(n9, n17).
+reaches(n9, n18).
+reaches(n9, n19).
+reaches(n9, n20).
+reaches(n9, n21).
+reaches(n9, n22).
+reaches(n9, n23).
+reaches(n9, n24).
+reaches(n9, n25).
+reaches(n9, n26).
+reaches(n9, n27).
+reaches(n9, n28).
+reaches(n9, n29).
+reaches(n9, n30).
+reaches(n9, n31).
+reaches(n9, n32).
+reaches(n9, n33).
+reaches(n9, n34).
+reaches(n9, n35).
+reaches(n9, n36).
+reaches(n9, n37).
+reaches(n9, n38).
+reaches(n9, n39).
+reaches(n9, n40).
+reaches(n9, n41).
+reaches(n9, n42).
+reaches(n9, n43).
+reaches(n9, n44).
+reaches(n9, n45).
+reaches(n9, n46).
+reaches(n9, n47).
+reaches(n9, n48).
+reaches(n9, n49).
+reaches(n9, n50).
+reaches(n9, n51).
+reaches(n9, n52).
+reaches(n9, n53).
+reaches(n9, n54).
+reaches(n9, n55).
+reaches(n9, n56).
+reaches(n9, n57).
+reaches(n9, n58).
+reaches(n9, n59).
+reaches(n9, n60).
+reaches(n9, n61).
+reaches(n9, n62).
+reaches(n9, n63).
+reaches(n9, n64).
+reaches(n9, n65).
+reaches(n9, n66).
+reaches(n9, n67).
+reaches(n9, n68).
+reaches(n9, n69).
+reaches(n9, n70).

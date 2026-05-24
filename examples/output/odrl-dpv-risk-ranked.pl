@@ -1,152 +1,120 @@
-triple(agreement1, dct_title, "Example Agreement").
-triple(agreement1, policyGraph, policyGraph1).
-triple(clauseC1, clauseId, "C1").
-triple(clauseC1, text, "Provider may remove the user account (and associated data) at its discretion.").
-triple(clauseC2, clauseId, "C2").
-triple(clauseC2, text, "Provider may change terms by informing users at least 3 days in advance.").
-triple(clauseC3, clauseId, "C3").
-triple(clauseC3, text, "Provider may share user data with partners for business purposes.").
-triple(clauseC4, clauseId, "C4").
-triple(clauseC4, text, "Users are not permitted to export their data.").
-triple(consumerExample, dct_title, "Example consumer profile").
-triple(m11, dct_description, "Add a notice constraint (minimum noticeDays) before account removal.").
-triple(m11, dpv_mitigatesRisk, risk1).
-triple(m11, rdf_type, dpv_RiskMitigationMeasure).
-triple(m12, dct_description, "Increase minimum noticeDays in the inform duty to meet the consumer requirement.").
-triple(m12, dpv_mitigatesRisk, risk2).
-triple(m12, rdf_type, dpv_RiskMitigationMeasure).
-triple(m13, dct_description, "Add an explicit consent constraint before data sharing.").
-triple(m13, dpv_mitigatesRisk, risk3).
-triple(m13, rdf_type, dpv_RiskMitigationMeasure).
-triple(m14, dct_description, "Add a permission allowing data export (or remove the prohibition) to support portability.").
-triple(m14, dpv_mitigatesRisk, risk4).
-triple(m14, rdf_type, dpv_RiskMitigationMeasure).
-triple(m21, dct_description, "Add a duty to inform the consumer prior to account removal.").
-triple(m21, dpv_mitigatesRisk, risk1).
-triple(m21, rdf_type, dpv_RiskMitigationMeasure).
-triple(policyGraph1, contains, triple(permChangeTerms, clause, clauseC2)).
-triple(policyGraph1, contains, triple(permChangeTerms, noticeDays, 3)).
-triple(policyGraph1, contains, triple(permChangeTerms, odrl_action, tosl_changeTerms)).
-triple(policyGraph1, contains, triple(permChangeTerms, odrl_assignee, consumerExample)).
-triple(policyGraph1, contains, triple(permChangeTerms, odrl_assigner, provider)).
-triple(policyGraph1, contains, triple(permChangeTerms, odrl_duty, odrl_inform)).
-triple(policyGraph1, contains, triple(permChangeTerms, odrl_target, agreementText)).
-triple(policyGraph1, contains, triple(permDeleteAccount, clause, clauseC1)).
-triple(policyGraph1, contains, triple(permDeleteAccount, odrl_action, tosl_removeAccount)).
-triple(policyGraph1, contains, triple(permDeleteAccount, odrl_assignee, consumerExample)).
-triple(policyGraph1, contains, triple(permDeleteAccount, odrl_assigner, provider)).
-triple(policyGraph1, contains, triple(permDeleteAccount, odrl_target, userAccount)).
-triple(policyGraph1, contains, triple(permShareData, clause, clauseC3)).
-triple(policyGraph1, contains, triple(permShareData, odrl_action, tosl_shareData)).
-triple(policyGraph1, contains, triple(permShareData, odrl_assignee, consumerExample)).
-triple(policyGraph1, contains, triple(permShareData, odrl_assigner, provider)).
-triple(policyGraph1, contains, triple(permShareData, odrl_target, userData)).
-triple(policyGraph1, contains, triple(policy1, odrl_appliesTo, agreement1)).
-triple(policyGraph1, contains, triple(policy1, odrl_permission, permChangeTerms)).
-triple(policyGraph1, contains, triple(policy1, odrl_permission, permDeleteAccount)).
-triple(policyGraph1, contains, triple(policy1, odrl_permission, permShareData)).
-triple(policyGraph1, contains, triple(policy1, odrl_prohibition, prohibitExportData)).
-triple(policyGraph1, contains, triple(policy1, rdf_type, odrl_Policy)).
-triple(policyGraph1, contains, triple(prohibitExportData, clause, clauseC4)).
-triple(policyGraph1, contains, triple(prohibitExportData, odrl_action, tosl_exportData)).
-triple(policyGraph1, contains, triple(prohibitExportData, odrl_assignee, consumerExample)).
-triple(policyGraph1, contains, triple(prohibitExportData, odrl_assigner, provider)).
-triple(policyGraph1, contains, triple(prohibitExportData, odrl_target, userData)).
-triple(policyGraph1, rdf_type, policyGraph).
-triple(processContext1, dct_title, "Service operation under Agreement1").
-triple(processContext1, dpv_hasRisk, risk1).
-triple(processContext1, dpv_hasRisk, risk2).
-triple(processContext1, dpv_hasRisk, risk3).
-triple(processContext1, dpv_hasRisk, risk4).
-triple(report, firstRisk, risk1).
-triple(report, profile, consumerExample).
-triple(report, source, agreement1).
-triple(risk1, aboutClause, clauseC1).
-triple(risk1, dct_description, "Risk: account/data removal is permitted without notice safeguards (no notice constraint and no duty to inform). Clause C1: Provider may remove the user account (and associated data) at its discretion.").
-triple(risk1, dct_source, permDeleteAccount).
-triple(risk1, dpv_hasConsequence, risk_CustomerConfidenceLoss).
-triple(risk1, dpv_hasConsequence, risk_DataLoss).
-triple(risk1, dpv_hasConsequence, risk_DataUnavailable).
-triple(risk1, dpv_hasImpact, risk_FinancialLoss).
-triple(risk1, dpv_hasImpact, risk_NonMaterialDamage).
-triple(risk1, dpv_hasRiskLevel, risk_HighRisk).
-triple(risk1, dpv_hasSeverity, risk_HighSeverity).
-triple(risk1, dpv_isMitigatedByMeasure, m11).
-triple(risk1, dpv_isMitigatedByMeasure, m21).
-triple(risk1, rdf_type, dpv_Risk).
-triple(risk1, rdf_type, risk_DataErasureError).
-triple(risk1, rdf_type, risk_DataLoss).
-triple(risk1, rdf_type, risk_DataUnavailable).
-triple(risk1, rdf_type, risk_UnwantedDataDeletion).
-triple(risk1, reportKey, key(900, "C1")).
-triple(risk1, risk_hasRiskSource, src1).
-triple(risk1, score, 100).
-triple(risk1, scoreRaw, 110).
-triple(risk1, violatesNeed, need_DataCannotBeRemoved).
-triple(risk2, aboutClause, clauseC2).
-triple(risk2, dct_description, "Risk: terms may change with notice (3 days) below consumer requirement (14 days). Clause C2: Provider may change terms by informing users at least 3 days in advance.").
-triple(risk2, dct_source, permChangeTerms).
-triple(risk2, dpv_hasConsequence, risk_CustomerConfidenceLoss).
-triple(risk2, dpv_hasImpact, risk_NonMaterialDamage).
-triple(risk2, dpv_hasRiskLevel, risk_HighRisk).
-triple(risk2, dpv_hasSeverity, risk_HighSeverity).
-triple(risk2, dpv_isMitigatedByMeasure, m12).
-triple(risk2, rdf_type, dpv_Risk).
-triple(risk2, rdf_type, risk_CustomerConfidenceLoss).
-triple(risk2, rdf_type, risk_PolicyRisk).
-triple(risk2, reportKey, key(915, "C2")).
-triple(risk2, risk_hasRiskSource, src2).
-triple(risk2, score, 85).
-triple(risk2, scoreRaw, 85).
-triple(risk2, violatesNeed, need_ChangeOnlyWithPriorNotice).
-triple(risk3, aboutClause, clauseC3).
-triple(risk3, dct_description, "Risk: user data sharing is permitted without an explicit consent constraint. Clause C3: Provider may share user data with partners for business purposes.").
-triple(risk3, dct_source, permShareData).
-triple(risk3, dpv_hasConsequence, risk_CustomerConfidenceLoss).
-triple(risk3, dpv_hasImpact, risk_FinancialLoss).
-triple(risk3, dpv_hasImpact, risk_NonMaterialDamage).
-triple(risk3, dpv_hasRiskLevel, risk_HighRisk).
-triple(risk3, dpv_hasSeverity, risk_HighSeverity).
-triple(risk3, dpv_isMitigatedByMeasure, m13).
-triple(risk3, rdf_type, dpv_Risk).
-triple(risk3, rdf_type, risk_CustomerConfidenceLoss).
-triple(risk3, rdf_type, risk_UnwantedDisclosureData).
-triple(risk3, reportKey, key(903, "C3")).
-triple(risk3, risk_hasRiskSource, src3).
-triple(risk3, score, 97).
-triple(risk3, scoreRaw, 97).
-triple(risk3, violatesNeed, need_NoSharingWithoutConsent).
-triple(risk4, aboutClause, clauseC4).
-triple(risk4, dct_description, "Risk: portability is restricted because exporting user data is prohibited. Clause C4: Users are not permitted to export their data.").
-triple(risk4, dct_source, prohibitExportData).
-triple(risk4, dpv_hasConsequence, risk_CustomerConfidenceLoss).
-triple(risk4, dpv_hasImpact, risk_NonMaterialDamage).
-triple(risk4, dpv_hasRiskLevel, risk_ModerateRisk).
-triple(risk4, dpv_hasSeverity, risk_ModerateSeverity).
-triple(risk4, dpv_isMitigatedByMeasure, m14).
-triple(risk4, rdf_type, dpv_Risk).
-triple(risk4, rdf_type, risk_CustomerConfidenceLoss).
-triple(risk4, rdf_type, risk_PolicyRisk).
-triple(risk4, reportKey, key(930, "C4")).
-triple(risk4, risk_hasRiskSource, src4).
-triple(risk4, score, 70).
-triple(risk4, scoreRaw, 70).
-triple(risk4, violatesNeed, need_DataPortability).
-triple(riskRanking, before, pair(risk1, risk2)).
-triple(riskRanking, before, pair(risk1, risk3)).
-triple(riskRanking, before, pair(risk1, risk4)).
-triple(riskRanking, before, pair(risk2, risk4)).
-triple(riskRanking, before, pair(risk3, risk2)).
-triple(riskRanking, before, pair(risk3, risk4)).
-triple(src1, dct_source, permDeleteAccount).
-triple(src1, rdf_type, risk_LegalComplianceRisk).
-triple(src1, rdf_type, risk_RiskSource).
-triple(src2, dct_source, permChangeTerms).
-triple(src2, rdf_type, risk_PolicyRisk).
-triple(src2, rdf_type, risk_RiskSource).
-triple(src3, dct_source, permShareData).
-triple(src3, rdf_type, risk_PolicyRisk).
-triple(src3, rdf_type, risk_RiskSource).
-triple(src4, dct_source, prohibitExportData).
-triple(src4, rdf_type, risk_PolicyRisk).
-triple(src4, rdf_type, risk_RiskSource).
+aboutClause(risk1, clauseC1).
+aboutClause(risk2, clauseC2).
+aboutClause(risk3, clauseC3).
+aboutClause(risk4, clauseC4).
+before(riskRanking, pair(risk1, risk2)).
+before(riskRanking, pair(risk1, risk3)).
+before(riskRanking, pair(risk1, risk4)).
+before(riskRanking, pair(risk2, risk4)).
+before(riskRanking, pair(risk3, risk2)).
+before(riskRanking, pair(risk3, risk4)).
+clauseId(clauseC1, "C1").
+clauseId(clauseC2, "C2").
+clauseId(clauseC3, "C3").
+clauseId(clauseC4, "C4").
+dct_description(m11, "Add a notice constraint (minimum noticeDays) before account removal.").
+dct_description(m12, "Increase minimum noticeDays in the inform duty to meet the consumer requirement.").
+dct_description(m13, "Add an explicit consent constraint before data sharing.").
+dct_description(m14, "Add a permission allowing data export (or remove the prohibition) to support portability.").
+dct_description(m21, "Add a duty to inform the consumer prior to account removal.").
+dct_description(risk1, "Risk: account/data removal is permitted without notice safeguards (no notice constraint and no duty to inform). Clause C1: Provider may remove the user account (and associated data) at its discretion.").
+dct_description(risk2, "Risk: terms may change with notice (3 days) below consumer requirement (14 days). Clause C2: Provider may change terms by informing users at least 3 days in advance.").
+dct_description(risk3, "Risk: user data sharing is permitted without an explicit consent constraint. Clause C3: Provider may share user data with partners for business purposes.").
+dct_description(risk4, "Risk: portability is restricted because exporting user data is prohibited. Clause C4: Users are not permitted to export their data.").
+dct_source(risk1, permDeleteAccount).
+dct_source(risk2, permChangeTerms).
+dct_source(risk3, permShareData).
+dct_source(risk4, prohibitExportData).
+dct_source(src1, permDeleteAccount).
+dct_source(src2, permChangeTerms).
+dct_source(src3, permShareData).
+dct_source(src4, prohibitExportData).
+dct_title(agreement1, "Example Agreement").
+dct_title(consumerExample, "Example consumer profile").
+dct_title(processContext1, "Service operation under Agreement1").
+dpv_hasConsequence(risk1, risk_CustomerConfidenceLoss).
+dpv_hasConsequence(risk1, risk_DataLoss).
+dpv_hasConsequence(risk1, risk_DataUnavailable).
+dpv_hasConsequence(risk2, risk_CustomerConfidenceLoss).
+dpv_hasConsequence(risk3, risk_CustomerConfidenceLoss).
+dpv_hasConsequence(risk4, risk_CustomerConfidenceLoss).
+dpv_hasImpact(risk1, risk_FinancialLoss).
+dpv_hasImpact(risk1, risk_NonMaterialDamage).
+dpv_hasImpact(risk2, risk_NonMaterialDamage).
+dpv_hasImpact(risk3, risk_FinancialLoss).
+dpv_hasImpact(risk3, risk_NonMaterialDamage).
+dpv_hasImpact(risk4, risk_NonMaterialDamage).
+dpv_hasRisk(processContext1, risk1).
+dpv_hasRisk(processContext1, risk2).
+dpv_hasRisk(processContext1, risk3).
+dpv_hasRisk(processContext1, risk4).
+dpv_hasRiskLevel(risk1, risk_HighRisk).
+dpv_hasRiskLevel(risk2, risk_HighRisk).
+dpv_hasRiskLevel(risk3, risk_HighRisk).
+dpv_hasRiskLevel(risk4, risk_ModerateRisk).
+dpv_hasSeverity(risk1, risk_HighSeverity).
+dpv_hasSeverity(risk2, risk_HighSeverity).
+dpv_hasSeverity(risk3, risk_HighSeverity).
+dpv_hasSeverity(risk4, risk_ModerateSeverity).
+dpv_isMitigatedByMeasure(risk1, m11).
+dpv_isMitigatedByMeasure(risk1, m21).
+dpv_isMitigatedByMeasure(risk2, m12).
+dpv_isMitigatedByMeasure(risk3, m13).
+dpv_isMitigatedByMeasure(risk4, m14).
+dpv_mitigatesRisk(m11, risk1).
+dpv_mitigatesRisk(m12, risk2).
+dpv_mitigatesRisk(m13, risk3).
+dpv_mitigatesRisk(m14, risk4).
+dpv_mitigatesRisk(m21, risk1).
+firstRisk(report, risk1).
+reportKey(risk1, key(900, "C1")).
+reportKey(risk2, key(915, "C2")).
+reportKey(risk3, key(903, "C3")).
+reportKey(risk4, key(930, "C4")).
+risk_hasRiskSource(risk1, src1).
+risk_hasRiskSource(risk2, src2).
+risk_hasRiskSource(risk3, src3).
+risk_hasRiskSource(risk4, src4).
+score(risk1, 100).
+score(risk2, 85).
+score(risk3, 97).
+score(risk4, 70).
+scoreRaw(risk1, 110).
+scoreRaw(risk2, 85).
+scoreRaw(risk3, 97).
+scoreRaw(risk4, 70).
+text(clauseC1, "Provider may remove the user account (and associated data) at its discretion.").
+text(clauseC2, "Provider may change terms by informing users at least 3 days in advance.").
+text(clauseC3, "Provider may share user data with partners for business purposes.").
+text(clauseC4, "Users are not permitted to export their data.").
+type(m11, dpv_RiskMitigationMeasure).
+type(m12, dpv_RiskMitigationMeasure).
+type(m13, dpv_RiskMitigationMeasure).
+type(m14, dpv_RiskMitigationMeasure).
+type(m21, dpv_RiskMitigationMeasure).
+type(risk1, dpv_Risk).
+type(risk1, risk_DataErasureError).
+type(risk1, risk_DataLoss).
+type(risk1, risk_DataUnavailable).
+type(risk1, risk_UnwantedDataDeletion).
+type(risk2, dpv_Risk).
+type(risk2, risk_CustomerConfidenceLoss).
+type(risk2, risk_PolicyRisk).
+type(risk3, dpv_Risk).
+type(risk3, risk_CustomerConfidenceLoss).
+type(risk3, risk_UnwantedDisclosureData).
+type(risk4, dpv_Risk).
+type(risk4, risk_CustomerConfidenceLoss).
+type(risk4, risk_PolicyRisk).
+type(src1, risk_LegalComplianceRisk).
+type(src1, risk_RiskSource).
+type(src2, risk_PolicyRisk).
+type(src2, risk_RiskSource).
+type(src3, risk_PolicyRisk).
+type(src3, risk_RiskSource).
+type(src4, risk_PolicyRisk).
+type(src4, risk_RiskSource).
+violatesNeed(risk1, need_DataCannotBeRemoved).
+violatesNeed(risk2, need_ChangeOnlyWithPriorNotice).
+violatesNeed(risk3, need_NoSharingWithoutConsent).
+violatesNeed(risk4, need_DataPortability).

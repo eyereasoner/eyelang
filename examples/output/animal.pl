@@ -1,4 +1,4 @@
-triple(animalExample, succeeds, true).
-triple(human, subclassOf, animal).
-triple(joe, type, animal).
-triple(joe, type, human).
+subclassOf(human, animal).
+succeeds(animalExample, true).
+type(joe, animal).
+type(joe, human).

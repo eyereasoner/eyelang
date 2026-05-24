@@ -1,6 +1,12 @@
 % EYE-inspired epidemic policy choice.
 % Policies are evaluated by estimated reproduction risk and social cost.
 
+materialize(riskScore, 2).
+materialize(cost, 2).
+materialize(status, 2).
+materialize(recommendedPolicy, 2).
+materialize(reason, 2).
+
 policy(no_mandate).
 policy(vaccination_campaign).
 policy(indoor_masks).
@@ -48,9 +54,8 @@ recommended(vaccination_and_masks) :-
   status(vaccination_campaign, insufficient_control),
   status(indoor_masks, insufficient_control).
 
-triple(P, riskScore, R) :- risk_score(P, R).
-triple(P, cost, C) :- policy_cost(P, C).
-triple(P, status, S) :- status(P, S).
-triple(epidemic_policy, recommendedPolicy, P) :- recommended(P).
-triple(epidemic_policy, reason, "combined vaccination and indoor masks are the only policy below the outbreak threshold") :-
+riskScore(P, R) :- risk_score(P, R).
+cost(P, C) :- policy_cost(P, C).
+recommendedPolicy(epidemic_policy, P) :- recommended(P).
+reason(epidemic_policy, "combined vaccination and indoor masks are the only policy below the outbreak threshold") :-
   recommended(vaccination_and_masks).

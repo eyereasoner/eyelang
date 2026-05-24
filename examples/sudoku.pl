@@ -5,25 +5,33 @@
 % accepts any standard 81-character puzzle string, with 0 or . for blanks, and
 % returns a completed 9x9 grid.  The built-in is not tied to this puzzle.
 
-triple(case, name, "sudoku").
-triple(case, puzzleName, classic).
-triple(case, puzzle, "100007090030020008009600500005300900010080002600004000300000010040000007007000300").
+materialize(name, 2).
+materialize(puzzleName, 2).
+materialize(puzzle, 2).
+materialize(solution, 2).
+materialize(status, 2).
+materialize(firstRow, 2).
+materialize(solvedBy, 2).
+
+name(case, "sudoku").
+puzzleName(case, classic).
+puzzle(case, "100007090030020008009600500005300900010080002600004000300000010040000007007000300").
 
 solution(Name, Solution) :-
-  triple(case, puzzleName, Name),
-  triple(case, puzzle, Puzzle),
+  puzzleName(case, Name),
+  puzzle(case, Puzzle),
   once(sudoku(Puzzle, Solution)).
 
-triple(case, solution, Solution) :-
-  triple(case, puzzleName, Name),
+solution(case, Solution) :-
+  puzzleName(case, Name),
   solution(Name, Solution).
 
-triple(case, status, ok) :-
-  triple(case, puzzleName, Name),
+status(case, ok) :-
+  puzzleName(case, Name),
   solution(Name, _Solution).
 
-triple(case, firstRow, Row) :-
-  triple(case, puzzleName, Name),
+firstRow(case, Row) :-
+  puzzleName(case, Name),
   solution(Name, [Row|_Rows]).
 
-triple(case, solvedBy, generic_sudoku_builtin).
+solvedBy(case, generic_sudoku_builtin).

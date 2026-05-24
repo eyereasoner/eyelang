@@ -4,6 +4,11 @@
 % are sorted lists of on(Block, Support) facts so equality and visited-state
 % checks are purely structural.
 
+materialize(status, 2).
+materialize(plan, 2).
+materialize(finalState, 2).
+materialize(blockCount, 2).
+
 initial([on(a, table), on(b, a), on(c, b), on(d, c), on(e, d)]).
 goal([on(a, table), on(b, a), on(c, table), on(d, c), on(e, d)]).
 
@@ -53,15 +58,15 @@ five_move_plan(Moves, Final) :-
   sort(Goal, SortedGoal),
   plan(SortedStart, SortedGoal, 5, [SortedStart], Moves, Final).
 
-triple(blocks_world, status, planned) :-
+status(blocks_world, planned) :-
   once(five_move_plan(_Moves, _Final)).
 
-triple(blocks_world, plan, Moves) :-
+plan(blocks_world, Moves) :-
   once(five_move_plan(Moves, _Final)).
 
-triple(blocks_world, finalState, Final) :-
+finalState(blocks_world, Final) :-
   once(five_move_plan(_Moves, Final)).
 
-triple(blocks_world, blockCount, Count) :-
+blockCount(blocks_world, Count) :-
   findall(Block, block(Block), Blocks),
   length(Blocks, Count).

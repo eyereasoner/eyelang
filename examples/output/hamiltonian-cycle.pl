@@ -1,4 +1,4 @@
-triple(hamiltonian_cycle, cycleCountFromA, 72).
-triple(hamiltonian_cycle, status, exists).
-triple(hamiltonian_cycle, vertexCount, 8).
-triple(hamiltonian_cycle, witness, [a, b, c, d, e, f, g, h, a]).
+cycleCountFromA(hamiltonian_cycle, 72).
+status(hamiltonian_cycle, exists).
+vertexCount(hamiltonian_cycle, 8).
+witness(hamiltonian_cycle, [a, b, c, d, e, f, g, h, a]).

@@ -1,6 +1,6 @@
-triple(case_alpha, status, gdpr_compliant).
-triple(case_beta, reason, missing_access_logging).
-triple(case_beta, reason, missing_legal_basis).
-triple(case_beta, reason, not_minimized).
-triple(case_beta, reason, transfer_without_adequacy).
-triple(case_beta, status, gdpr_noncompliant).
+reason(case_beta, missing_access_logging).
+reason(case_beta, missing_legal_basis).
+reason(case_beta, not_minimized).
+reason(case_beta, transfer_without_adequacy).
+status(case_alpha, gdpr_compliant).
+status(case_beta, gdpr_noncompliant).

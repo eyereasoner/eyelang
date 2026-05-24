@@ -1,4 +1,6 @@
 % Memoize bounded paths because surviving-plan metrics reuse route prefixes.
+materialize(gps_plan, 2).
+
 memoize(path, 9).
 
 % Bounded drone corridor planner adapted from Eyeling drone-corridor-planner.n3.
@@ -42,5 +44,5 @@ surviving_plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLe
   gt(Belief, 0.94),
   lt(Cost, 0.03).
 
-triple(d1, gps_plan, plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft)) :-
+gps_plan(d1, plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft)) :-
   surviving_plan(Actions, Duration, Cost, Belief, Comfort, Battery, Permit, FuelLeft).

@@ -5,6 +5,9 @@
 % has_bananas].  The query searches bounded move lists and derives successful
 % plans.
 
+materialize(plan, 2).
+materialize(solved, 2).
+
 memoize(reachable, 3).
 
 plan(Moves) :-
@@ -35,5 +38,5 @@ legal_move([B, M, L, n, H], go(X), [B, X, L, n, H]) :-
   member(X, [loc1, loc2, loc3]),
   neq(X, M).
 
-triple(monkeyBananas, plan, Moves) :- plan(Moves).
-triple(monkeyBananas, solved, true) :- plan(_Moves).
+plan(monkeyBananas, Moves) :- plan(Moves).
+solved(monkeyBananas, true) :- plan(_Moves).

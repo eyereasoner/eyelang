@@ -2,6 +2,12 @@
 % Cows are classified from maintenance, milk requirement, and ration supply.
 
 % cow(Cow, BodyWeightKg, MilkKgPerDay, RationEnergyMcalPerKgDM, IntakeKgDM).
+materialize(energyBalance_Mcal, 2).
+materialize(rationSupportedMilk_kg, 2).
+materialize(status, 2).
+materialize(reason, 2).
+materialize(strongestDeficit, 2).
+
 cow(early_lactation, 650, 38, 6.4, 22).
 cow(mid_lactation, 610, 24, 6.5, 26).
 cow(late_lactation, 580, 16, 6.7, 25).
@@ -48,10 +54,9 @@ status(C, positive_energy_balance) :-
   energy_balance(C, B),
   gt(B, 5.0).
 
-triple(C, energyBalance_Mcal, B) :- energy_balance(C, B).
-triple(C, rationSupportedMilk_kg, M) :- ration_supported_milk(C, M).
-triple(C, status, S) :- status(C, S).
-triple(dairy_energy_balance, reason, "ration supply minus maintenance and milk energy requirement determines the class").
-triple(dairy_energy_balance, strongestDeficit, early_lactation) :-
+energyBalance_Mcal(C, B) :- energy_balance(C, B).
+rationSupportedMilk_kg(C, M) :- ration_supported_milk(C, M).
+reason(dairy_energy_balance, "ration supply minus maintenance and milk energy requirement determines the class").
+strongestDeficit(dairy_energy_balance, early_lactation) :-
   status(early_lactation, negative_energy_balance),
   status(late_lactation, positive_energy_balance).

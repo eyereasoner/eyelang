@@ -4,9 +4,11 @@
 % from EYE and the EYE query shape:
 %   D0 R D1, D1 R D2, ..., D9 R D0 -> R cycle (D0 ... D9 D0).
 %
-% The expected output contains 1518 distinct cycle triples, matching
+% The expected output contains 1518 distinct cycle relations, matching
 % EYE reasoning/basic-monadic/10tt_answer.n3 in cardinality and content
-% after translating N3 triples to Eyelog triple/3 terms.
+% after translating N3 statements to Eyelog relation terms.
+
+materialize(cycle, 2).
 
 edge(i30, i12, i33).
 edge(i61, i29, i42).
@@ -10021,5 +10023,5 @@ cycle10(R, [D0,D1,D2,D3,D4,D5,D6,D7,D8,D9,D0]) :-
   edge(D8, R, D9),
   edge(D9, R, D0).
 
-triple(R, cycle, Cycle) :-
+cycle(R, Cycle) :-
   cycle10(R, Cycle).

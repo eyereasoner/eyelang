@@ -1,4 +1,4 @@
-triple(api_cache, averageLatency_ms, 15.5).
-triple(api_cache, hitRate, 0.85999999999999999).
-triple(api_cache, reason, "hit rate is above target and average latency is below limit").
-triple(api_cache, status, cache_effective).
+averageLatency_ms(api_cache, 15.5).
+hitRate(api_cache, 0.85999999999999999).
+reason(api_cache, "hit rate is above target and average latency is below limit").
+status(api_cache, cache_effective).

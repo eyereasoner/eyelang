@@ -4,6 +4,13 @@
 %   Km_effective = Km * (1 + Inhibitor / Ki)
 %   rate = Vmax * Substrate / (Km_effective + Substrate)
 
+materialize(effectiveKm_uM, 2).
+materialize(uninhibitedRate_uM_s, 2).
+materialize(inhibitedRate_uM_s, 2).
+materialize(inhibitionFraction, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 assay(assay1, vmax_uM_s, 120.0).
 assay(assay1, substrate_uM, 50.0).
 assay(assay1, km_uM, 30.0).
@@ -49,20 +56,20 @@ significant_inhibition(Assay) :-
   threshold(Assay, significant_inhibition_fraction, Limit),
   gt(Fraction, Limit).
 
-triple(Assay, effectiveKm_uM, EffectiveKm) :-
+effectiveKm_uM(Assay, EffectiveKm) :-
   effective_km(Assay, EffectiveKm).
 
-triple(Assay, uninhibitedRate_uM_s, Rate) :-
+uninhibitedRate_uM_s(Assay, Rate) :-
   uninhibited_rate(Assay, Rate).
 
-triple(Assay, inhibitedRate_uM_s, Rate) :-
+inhibitedRate_uM_s(Assay, Rate) :-
   inhibited_rate(Assay, Rate).
 
-triple(Assay, inhibitionFraction, Fraction) :-
+inhibitionFraction(Assay, Fraction) :-
   inhibition_fraction(Assay, Fraction).
 
-triple(Assay, status, significant_inhibition) :-
+status(Assay, significant_inhibition) :-
   significant_inhibition(Assay).
 
-triple(Assay, reason, "competitive inhibitor raises effective Km and lowers reaction rate") :-
+reason(Assay, "competitive inhibitor raises effective Km and lowers reaction rate") :-
   significant_inhibition(Assay).

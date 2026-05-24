@@ -3,6 +3,10 @@
 % a subject with both defaults is reported as conflicted rather than forced to
 % choose one extension.
 
+materialize(defaultSupports, 2).
+materialize(conflict, 2).
+materialize(status, 2).
+
 kind(nixon, quaker).
 kind(nixon, republican).
 
@@ -20,11 +24,11 @@ conflicted(Person, A, B) :-
   supports_default(Person, B),
   contrary(A, B).
 
-triple(Person, defaultSupports, Conclusion) :-
+defaultSupports(Person, Conclusion) :-
   supports_default(Person, Conclusion).
 
-triple(Person, conflict, conflict(A, B)) :-
+conflict(Person, conflict(A, B)) :-
   conflicted(Person, A, B).
 
-triple(Person, status, conflicted_default_case) :-
+status(Person, conflicted_default_case) :-
   conflicted(Person, _A, _B).

@@ -1,1 +1,1 @@
-triple(root, result, 12).
+result(root, 12).

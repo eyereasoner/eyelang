@@ -1,5 +1,8 @@
 % GDPR-style compliance check: purpose, basis, minimisation, safeguards, and export.
 
+materialize(status, 2).
+materialize(reason, 2).
+
 processing(case_alpha).
 processing(case_beta).
 
@@ -55,6 +58,6 @@ noncompliance_reason(Case, transfer_without_adequacy) :-
   third_country_transfer(Case),
   not(adequacy_decision(Case)).
 
-triple(Case, status, gdpr_compliant) :- compliant(Case).
-triple(Case, status, gdpr_noncompliant) :- noncompliance_reason(Case, _Reason).
-triple(Case, reason, Reason) :- noncompliance_reason(Case, Reason).
+status(Case, gdpr_compliant) :- compliant(Case).
+status(Case, gdpr_noncompliant) :- noncompliance_reason(Case, _Reason).
+reason(Case, Reason) :- noncompliance_reason(Case, Reason).

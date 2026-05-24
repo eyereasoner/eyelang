@@ -1,5 +1,9 @@
 % Deontic logic: obligations, prohibitions, compensations, and violations.
 
+materialize(violation, 2).
+materialize(compensation, 2).
+materialize(status, 2).
+
 actor(alice).
 action(share_record).
 action(delete_unneeded_copy).
@@ -34,11 +38,9 @@ uncompensated_violation(Actor, prohibited_action(Action)) :-
   violation(Actor, prohibited_action(Action)),
   not(compensated_violation(Actor, Action, _Compensation)).
 
-triple(Actor, violation, Violation) :-
-  violation(Actor, Violation).
 
-triple(Actor, compensation, compensation(Action, Compensation)) :-
+compensation(Actor, compensation(Action, Compensation)) :-
   compensated_violation(Actor, Action, Compensation).
 
-triple(Actor, status, requires_review) :-
+status(Actor, requires_review) :-
   uncompensated_violation(Actor, _Violation).

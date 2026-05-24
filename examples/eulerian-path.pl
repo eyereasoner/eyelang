@@ -1,6 +1,11 @@
 % Eyelet-inspired Eulerian path example using findall/3 and sort/2.
 % The graph is undirected; edges are represented by identifiers so each edge is used once.
 
+materialize(oddVertices, 2).
+materialize(path, 2).
+materialize(edgeCount, 2).
+materialize(reason, 2).
+
 edge(e12, v1, v2).
 edge(e13, v1, v3).
 edge(e15, v1, v5).
@@ -61,14 +66,14 @@ dfs_euler(Current, Visited, Remaining, Path) :-
   select(Edge, Remaining, NewRemaining),
   dfs_euler(Next, [Next | Visited], NewRemaining, Path).
 
-triple(eulerian_path_case, oddVertices, Odds) :-
+oddVertices(eulerian_path_case, Odds) :-
   odd_vertices(Odds).
 
-triple(eulerian_path_case, path, Path) :-
+path(eulerian_path_case, Path) :-
   once(eulerian_path(Path)).
 
-triple(eulerian_path_case, edgeCount, Count) :-
+edgeCount(eulerian_path_case, Count) :-
   all_edges(Edges),
   length(Edges, Count).
 
-triple(eulerian_path_case, reason, "findall collects graph structure and sort canonicalizes vertices and edges").
+reason(eulerian_path_case, "findall collects graph structure and sort canonicalizes vertices and edges").

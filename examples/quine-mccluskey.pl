@@ -1,6 +1,11 @@
 % Eyelet-inspired Quine-McCluskey minimization using findall/3 and sort/2.
 % Problem: f(A,B,C,D) = Sigma m(1,3,7,11,15) + d(0,2,5).
 
+materialize(primeImplicants, 2).
+materialize(minimalCover, 2).
+materialize(equation, 2).
+materialize(reason, 2).
+
 minterm(1).
 minterm(3).
 minterm(7).
@@ -112,13 +117,13 @@ minimal_cover(Cover) :-
   findall(C, cover_candidate(C), Raw),
   sort(Raw, [Cover | _Alternatives]).
 
-triple(quine_mccluskey, primeImplicants, Primes) :-
+primeImplicants(quine_mccluskey, Primes) :-
   prime_implicants(Primes).
 
-triple(quine_mccluskey, minimalCover, Cover) :-
+minimalCover(quine_mccluskey, Cover) :-
   minimal_cover(Cover).
 
-triple(quine_mccluskey, equation, "f = ~A~B + CD") :-
+equation(quine_mccluskey, "f = ~A~B + CD") :-
   minimal_cover([[0, 0, x, x], [x, x, 1, 1]]).
 
-triple(quine_mccluskey, reason, "findall builds implicant sets and sort removes duplicates before cover selection").
+reason(quine_mccluskey, "findall builds implicant sets and sort removes duplicates before cover selection").

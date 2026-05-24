@@ -1,6 +1,11 @@
 % EYE-inspired electric-vehicle range worlds.
 % Four simple worlds estimate whether trips fit the available battery.
 
+materialize(safeInWorld, 2).
+materialize(riskyInWorld, 2).
+materialize(reason, 2).
+materialize(status, 2).
+
 trip(city_errand).
 trip(winter_highway).
 trip(heavy_delivery).
@@ -57,17 +62,17 @@ risky_in_world(T, W) :-
   required_energy(T, W, Required),
   gt(Required, Battery).
 
-triple(T, safeInWorld, W) :- safe_in_world(T, W).
-triple(T, riskyInWorld, W) :- risky_in_world(T, W).
-triple(winter_highway, reason, "cold fast payload trip exceeds battery in physics-aware worlds") :-
+safeInWorld(T, W) :- safe_in_world(T, W).
+riskyInWorld(T, W) :- risky_in_world(T, W).
+reason(winter_highway, "cold fast payload trip exceeds battery in physics-aware worlds") :-
   risky_in_world(winter_highway, w0),
   risky_in_world(winter_highway, w2),
   risky_in_world(winter_highway, w3),
   safe_in_world(winter_highway, w1).
-triple(heavy_delivery, reason, "safety buffer turns a physics-safe delivery into a cautious risk") :-
+reason(heavy_delivery, "safety buffer turns a physics-safe delivery into a cautious risk") :-
   safe_in_world(heavy_delivery, w0),
   risky_in_world(heavy_delivery, w3).
-triple(ev_range_worlds, status, expected_world_pattern) :-
+status(ev_range_worlds, expected_world_pattern) :-
   safe_in_world(city_errand, w3),
   risky_in_world(winter_highway, w0),
   risky_in_world(heavy_delivery, w3),

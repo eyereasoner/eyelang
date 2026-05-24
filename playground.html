@@ -271,7 +271,7 @@
         </div>
         <div class="query-row">
           <label for="queryInput">Optional <code>--query</code> goal</label>
-          <input id="queryInput" type="text" placeholder="triple(pat, ancestor, X)" spellcheck="false">
+          <input id="queryInput" type="text" placeholder="ancestor(pat, X)" spellcheck="false">
         </div>
         <div class="toolbar">
           <button id="runButton" class="primary" type="button">Run Eyelog</button>
@@ -280,7 +280,7 @@
           <button id="clearSavedButton" type="button">Clear autosave</button>
           <span id="status" class="status" role="status">Idle.</span>
         </div>
-        <p class="small">The playground concatenates loaded background programs before the editor contents. Output without a query is the sorted set of derived <code>triple/3</code> facts, matching the CLI default.</p>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Output without a query is the sorted set of new derived relation facts, matching the CLI default.</p>
       </div>
     </section>
 
@@ -415,7 +415,7 @@
   "wolf-goat-cabbage",
   "zebra",
 ];
-    const DEFAULT_PROGRAM = "% Socrates is mortal.\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\ntriple(X, type, T) :-\n  type(X, T).\n\ntriple(test, is, true) :-\n  type(socrates, mortal).";
+    const DEFAULT_PROGRAM = "% Socrates is mortal.\n\nmaterialize(type, 2).\nmaterialize(is, 2).\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\nis(test, true) :-\n  type(socrates, mortal).";
     const STORAGE_KEY = 'eyelog.playground.v2';
 
     const programInput = document.getElementById('programInput');

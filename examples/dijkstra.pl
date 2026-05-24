@@ -5,21 +5,24 @@
 % The input weighted graph is quoted as ... data and projected locally,
 % so the route network is not asserted as ambient edge facts.
 
+materialize(edge, 2).
+materialize(path, 2).
+
 weighted_graph(dijkstraGraph, (
-  triple(a, edge, arc(b, 4)),
-  triple(a, edge, arc(c, 2)),
-  triple(b, edge, arc(c, 1)),
-  triple(b, edge, arc(d, 5)),
-  triple(c, edge, arc(d, 8)),
-  triple(c, edge, arc(e, 10)),
-  triple(d, edge, arc(e, 2)),
-  triple(d, edge, arc(f, 6)),
-  triple(e, edge, arc(f, 3))
+  edge(a, arc(b, 4)),
+  edge(a, arc(c, 2)),
+  edge(b, arc(c, 1)),
+  edge(b, arc(d, 5)),
+  edge(c, arc(d, 8)),
+  edge(c, arc(e, 10)),
+  edge(d, arc(e, 2)),
+  edge(d, arc(f, 6)),
+  edge(e, arc(f, 3))
 )).
 
 base_link(A, B, Cost) :-
   weighted_graph(dijkstraGraph, Formula),
-  formula_triple(Formula, A, edge, arc(B, Cost)).
+  formula_binary(Formula, A, edge, arc(B, Cost)).
 
 link(A, B, Cost) :- base_link(A, B, Cost).
 link(B, A, Cost) :- base_link(A, B, Cost).
@@ -32,9 +35,9 @@ path(Node, Goal, Visited, [Node|Path], Cost) :-
   add(StepCost, RestCost, Cost).
 
 % Derived reverse links, mirroring the rule output in the Eyeling example.
-triple([B, A], edge, Cost) :-
+edge([B, A], Cost) :-
   base_link(A, B, Cost).
 
-triple([a, f], path, [Path, Cost]) :-
+path([a, f], [Path, Cost]) :-
   path(a, f, [a], Path, Cost),
   le(Cost, 16).

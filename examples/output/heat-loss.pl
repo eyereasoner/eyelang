@@ -1,5 +1,5 @@
-triple(wall1, heatLoss_W, 1200.0).
-triple(wall1, status, high_heat_loss).
-triple(wall1, temperatureDifference_K, 25.0).
-triple(wall1, thermalResistance_K_W, 0.020833333333333332).
-triple(wall1, type, conduction_heat_loss).
+heatLoss_W(wall1, 1200.0).
+status(wall1, high_heat_loss).
+temperatureDifference_K(wall1, 25.0).
+thermalResistance_K_W(wall1, 0.020833333333333332).
+type(wall1, conduction_heat_loss).

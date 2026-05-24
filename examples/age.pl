@@ -3,18 +3,23 @@
 % Is the age of a person above some duration?
 
 % Person data.
-triple(patH, birthDay, "1944-08-21").
-triple(check, duration, "P80Y").
+materialize(birthDay, 2).
+materialize(duration, 2).
+materialize(ageAbove, 2).
+materialize(is, 2).
+
+birthDay(patH, "1944-08-21").
+duration(check, "P80Y").
 
 % A person is above a duration if the local date minus the birthday is greater
 % than that duration.
-triple(S, ageAbove, A) :-
-  triple(S, birthDay, B),
-  triple(check, duration, A),
+ageAbove(S, A) :-
+  birthDay(S, B),
+  duration(check, A),
   local_time(D),
   difference(D, B, F),
   gt(F, A).
 
 % Test mirroring the Eyeling example.
-triple(test, is, true) :-
-  triple(S, ageAbove, "P80Y").
+is(test, true) :-
+  ageAbove(S, "P80Y").

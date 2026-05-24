@@ -1,5 +1,15 @@
-% Memoize route costs: selected paths, route triples, and trust checks reuse
+% Memoize route costs: selected paths, route relations, and trust checks reuse
 % the same path-list reductions.
+materialize(route, 2).
+materialize(rawCost, 2).
+materialize(riskSum, 2).
+materialize(score, 2).
+materialize(edgeCount, 2).
+materialize(selectedPath, 2).
+materialize(trustGate, 2).
+materialize(notes, 2).
+materialize(selects, 2).
+
 memoize(route_cost, 4).
 
 % Risk-adjusted route selection adapted from Eyeling dijkstra-risk-path.n3.
@@ -7,20 +17,20 @@ memoize(route_cost, 4).
 % Segments live in a quoted formula term, while candidate paths remain lists.
 
 route_network(riskNetwork, (
-  triple(depotA, segment, segment(depotB, 4.0, 0.2)),
-  triple(depotB, segment, segment(labD, 4.0, 0.3)),
-  triple(depotA, segment, segment(depotC, 3.0, 0.9)),
-  triple(depotC, segment, segment(labD, 6.0, 0.3)),
-  triple(depotC, segment, segment(depotB, 0.5, 0.5)),
-  triple(depotB, segment, segment(depotC, 1.0, 0.5)),
-  triple(depotA, segment, segment(relay, 5.0, 0.2)),
-  triple(relay, segment, segment(labD, 5.0, 0.2)),
-  triple(depotA, segment, segment(labD, 14.0, 0.05))
+  segment(depotA, segment(depotB, 4.0, 0.2)),
+  segment(depotB, segment(labD, 4.0, 0.3)),
+  segment(depotA, segment(depotC, 3.0, 0.9)),
+  segment(depotC, segment(labD, 6.0, 0.3)),
+  segment(depotC, segment(depotB, 0.5, 0.5)),
+  segment(depotB, segment(depotC, 1.0, 0.5)),
+  segment(depotA, segment(relay, 5.0, 0.2)),
+  segment(relay, segment(labD, 5.0, 0.2)),
+  segment(depotA, segment(labD, 14.0, 0.05))
 )).
 
 route_segment(From, To, Raw, Risk) :-
   route_network(riskNetwork, Formula),
-  formula_triple(Formula, From, segment, segment(To, Raw, Risk)).
+  formula_binary(Formula, From, segment, segment(To, Raw, Risk)).
 
 candidate(pathB, [depotA, depotB, labD]).
 candidate(pathC, [depotA, depotC, labD]).
@@ -62,12 +72,12 @@ risk_outweighs_raw_cost(true) :-
   lt(ViaRaw, BestRaw),
   lt(BestScore, ViaScore).
 
-triple(Path, route, Route) :- path_metrics(Path, Route, _Raw, _Risk, _Score, _Edges).
-triple(Path, rawCost, Raw) :- path_metrics(Path, _Route, Raw, _Risk, _Score, _Edges).
-triple(Path, riskSum, Risk) :- path_metrics(Path, _Route, _Raw, Risk, _Score, _Edges).
-triple(Path, score, Score) :- path_metrics(Path, _Route, _Raw, _Risk, Score, _Edges).
-triple(Path, edgeCount, Edges) :- path_metrics(Path, _Route, _Raw, _Risk, _Score, Edges).
-triple(case, selectedPath, Path) :- best_path(Path).
-triple(case, trustGate, noEnumeratedPathIsLower) :- best_path(_Path).
-triple(case, notes, riskCanOutweighRawCost) :- risk_outweighs_raw_cost(true).
-triple(dijkstraRiskPath, selects, Path) :- best_path(Path), risk_outweighs_raw_cost(true).
+route(Path, Route) :- path_metrics(Path, Route, _Raw, _Risk, _Score, _Edges).
+rawCost(Path, Raw) :- path_metrics(Path, _Route, Raw, _Risk, _Score, _Edges).
+riskSum(Path, Risk) :- path_metrics(Path, _Route, _Raw, Risk, _Score, _Edges).
+score(Path, Score) :- path_metrics(Path, _Route, _Raw, _Risk, Score, _Edges).
+edgeCount(Path, Edges) :- path_metrics(Path, _Route, _Raw, _Risk, _Score, Edges).
+selectedPath(case, Path) :- best_path(Path).
+trustGate(case, noEnumeratedPathIsLower) :- best_path(_Path).
+notes(case, riskCanOutweighRawCost) :- risk_outweighs_raw_cost(true).
+selects(dijkstraRiskPath, Path) :- best_path(Path), risk_outweighs_raw_cost(true).

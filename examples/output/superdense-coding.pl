@@ -1,6 +1,6 @@
-triple(message(0), decodesAs, 0).
-triple(message(1), decodesAs, 1).
-triple(message(2), decodesAs, 2).
-triple(message(3), decodesAs, 3).
-triple(protocol, cancelsCrossTalk, true).
-triple(protocol, preservesMessage, true).
+cancelsCrossTalk(protocol, true).
+decodesAs(message(0), 0).
+decodesAs(message(1), 1).
+decodesAs(message(2), 2).
+decodesAs(message(3), 3).
+preservesMessage(protocol, true).

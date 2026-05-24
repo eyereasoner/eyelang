@@ -1,3 +1,3 @@
-triple(reachability_case, not_reachable, path(b, e)).
-triple(reachability_case, reachable, path(a, f)).
-triple(reachability_case, reachable, path(c, g)).
+not_reachable(reachability_case, path(b, e)).
+reachable(reachability_case, path(a, f)).
+reachable(reachability_case, path(c, g)).

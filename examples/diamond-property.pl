@@ -4,6 +4,10 @@
 % source can be joined again.  This compact Eyelog version keeps the same
 % diamond idea and also checks that it is preserved by reflexive closure.
 
+materialize(holdsFor, 2).
+materialize(commonSuccessor, 2).
+materialize(preservedUnderReflexiveClosure, 2).
+
 node(a).
 node(b).
 node(c).
@@ -26,6 +30,6 @@ diamond(Rel, A, B, C, D) :-
 step(r, X, Y) :- r(X, Y).
 step(re, X, Y) :- re(X, Y).
 
-triple(diamondProperty, holdsFor, Rel) :- diamond(Rel, a, b, c, d).
-triple(diamondProperty, commonSuccessor, D) :- diamond(r, a, b, c, D).
-triple(diamondProperty, preservedUnderReflexiveClosure, true) :- diamond(re, a, b, c, d).
+holdsFor(diamondProperty, Rel) :- diamond(Rel, a, b, c, d).
+commonSuccessor(diamondProperty, D) :- diamond(r, a, b, c, D).
+preservedUnderReflexiveClosure(diamondProperty, true) :- diamond(re, a, b, c, d).

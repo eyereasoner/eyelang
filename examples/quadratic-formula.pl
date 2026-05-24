@@ -3,6 +3,9 @@
 % Each equation is represented as a*x^2 + b*x + c = 0.  The example uses
 % Eyelog arithmetic predicates to derive the discriminant and the two roots.
 
+materialize(discriminant, 2).
+materialize(root, 2).
+
 equation(eq1, 1.0, -5.0, 6.0).
 equation(eq2, 2.0, -4.0, -6.0).
 
@@ -40,11 +43,9 @@ root_minus(Case, Root) :-
   sub(NB, S, Numerator),
   div(Numerator, Den, Root).
 
-triple(Case, discriminant, D) :-
-  discriminant(Case, D).
 
-triple(Case, root, Root) :-
+root(Case, Root) :-
   root_plus(Case, Root).
 
-triple(Case, root, Root) :-
+root(Case, Root) :-
   root_minus(Case, Root).

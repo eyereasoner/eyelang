@@ -1,5 +1,7 @@
 % Memoize the fast-doubling helper: several requested Fibonacci numbers reuse
 % the same half-size subproblems.
+materialize(fibonacci, 2).
+
 memoize(fib_pair, 3).
 
 % BigInt Fibonacci via fast doubling, implemented in Prolog using generic
@@ -43,6 +45,6 @@ fib_pair(N, F, G) :-
   eq(F, D),
   eq(G, Next).
 
-triple(N, fibonacci, Value) :-
+fibonacci(N, Value) :-
   fib_case(N),
   fib(N, Value).

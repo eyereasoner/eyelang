@@ -7,6 +7,9 @@
 
 % --- small list helpers -----------------------------------------------------
 
+materialize(result, 2).
+materialize(checksConsistentWithTreallaReference, 2).
+
 nth0(0, [H|_T], H).
 nth0(N, [_H|T], V) :-
   gt(N, 0),
@@ -263,31 +266,31 @@ case(sum_small, matrix_sum, [[[1, 2], [3, 4], [5, 6]], [[1, 2], [3, 4], [5, 6]]]
 case(chol3, cholesky_decomposition, [[25, 15, -5], [15, 18, 0], [-5, 0, 11]]).
 case(chol4, cholesky_decomposition, [[18, 22, 54, 42], [22, 70, 86, 62], [54, 86, 174, 134], [42, 62, 134, 106]]).
 
-triple(Case, result, determinant(Matrix, Det)) :-
+result(Case, determinant(Matrix, Det)) :-
   case(Case, determinant, Matrix),
   determinant(Matrix, Det).
 
-triple(Case, result, matrix_inversion(Matrix, Inverse)) :-
+result(Case, matrix_inversion(Matrix, Inverse)) :-
   case(Case, matrix_inversion, Matrix),
   matrix_inversion(Matrix, Inverse).
 
-triple(Case, result, matrix_inv_triang(Matrix, Inverse)) :-
+result(Case, matrix_inv_triang(Matrix, Inverse)) :-
   case(Case, matrix_inv_triang, Matrix),
   matrix_inv_triang(Matrix, Inverse).
 
-triple(Case, result, matrix_multiply(Inputs, Product)) :-
+result(Case, matrix_multiply(Inputs, Product)) :-
   case(Case, matrix_multiply, Inputs),
   matrix_multiply(Inputs, Product).
 
-triple(Case, result, matrix_sum(Inputs, Sum)) :-
+result(Case, matrix_sum(Inputs, Sum)) :-
   case(Case, matrix_sum, Inputs),
   matrix_sum(Inputs, Sum).
 
-triple(Case, result, cholesky_decomposition(Matrix, L)) :-
+result(Case, cholesky_decomposition(Matrix, L)) :-
   case(Case, cholesky_decomposition, Matrix),
   cholesky_decomposition(Matrix, L).
 
-triple(matrix, checksConsistentWithTreallaReference, true) :-
+checksConsistentWithTreallaReference(matrix, true) :-
   determinant([[2, -1, 0], [-1, 2, -1], [0, -1, 2]], Det),
   gt(Det, 3.9999),
   lt(Det, 4.0001),

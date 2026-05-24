@@ -237,7 +237,7 @@ static Token next_token(Parser *parser) {
     return token;
   }
 
-  if (c == ':') die("colon names are no longer supported; use name or prefix_name");
+  if (c == ':') die("colon names are not supported; use name or prefix_name");
 
   if (c == '"' || c == '\'') {
     char quote = take(parser);
@@ -2845,32 +2845,49 @@ static bool is_formula_comma(Term *term) {
   return term->type == TERM_COMPOUND && strcmp(term->name, ",") == 0 && term->arity == 2;
 }
 
-static bool is_formula_triple(Term *term) {
-  return term->type == TERM_COMPOUND && strcmp(term->name, "triple") == 0 && term->arity == 3;
-}
-
-static void emit_formula_triples(Term *formula, Term *subject, Term *predicate, Term *object,
-                                 Env *env, SolutionCallback callback, void *user_data) {
+static void emit_formula_atoms(Term *formula, Term *atom,
+                               Env *env, SolutionCallback callback, void *user_data) {
   formula = deref(formula, env);
 
   if (is_formula_comma(formula)) {
-    emit_formula_triples(formula->args[0], subject, predicate, object, env, callback, user_data);
-    emit_formula_triples(formula->args[1], subject, predicate, object, env, callback, user_data);
+    emit_formula_atoms(formula->args[0], atom, env, callback, user_data);
+    emit_formula_atoms(formula->args[1], atom, env, callback, user_data);
     return;
   }
 
-  if (!is_formula_triple(formula)) return;
+  if (formula->type != TERM_COMPOUND) return;
+
+  Env next = clone_env(env);
+  if (unify(atom, formula, &next)) call_once(&next, callback, user_data);
+}
+
+static bool builtin_formula_atom(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  emit_formula_atoms(goal->args[0], goal->args[1], env, callback, user_data);
+  return true;
+}
+
+static void emit_formula_binary(Term *formula, Term *subject, Term *predicate, Term *object,
+                                Env *env, SolutionCallback callback, void *user_data) {
+  formula = deref(formula, env);
+
+  if (is_formula_comma(formula)) {
+    emit_formula_binary(formula->args[0], subject, predicate, object, env, callback, user_data);
+    emit_formula_binary(formula->args[1], subject, predicate, object, env, callback, user_data);
+    return;
+  }
+
+  if (formula->type != TERM_COMPOUND || formula->arity != 2) return;
 
   Env next = clone_env(env);
   if (unify(subject, formula->args[0], &next) &&
-      unify(predicate, formula->args[1], &next) &&
-      unify(object, formula->args[2], &next)) {
+      unify(predicate, atom_term(formula->name), &next) &&
+      unify(object, formula->args[1], &next)) {
     call_once(&next, callback, user_data);
   }
 }
 
-static bool builtin_formula_triple(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
-  emit_formula_triples(goal->args[0], goal->args[1], goal->args[2], goal->args[3], env, callback, user_data);
+static bool builtin_formula_binary(Term *goal, Env *env, SolutionCallback callback, void *user_data) {
+  emit_formula_binary(goal->args[0], goal->args[1], goal->args[2], goal->args[3], env, callback, user_data);
   return true;
 }
 
@@ -3280,8 +3297,12 @@ static bool try_builtin(Solver *solver, Term *goal, Env *env,
     return builtin_sort(goal, env, callback, user_data);
   }
 
-  if (strcmp(name, "formula_triple") == 0 && arity == 4) {
-    return builtin_formula_triple(goal, env, callback, user_data);
+  if (strcmp(name, "formula_atom") == 0 && arity == 2) {
+    return builtin_formula_atom(goal, env, callback, user_data);
+  }
+
+  if (strcmp(name, "formula_binary") == 0 && arity == 4) {
+    return builtin_formula_binary(goal, env, callback, user_data);
   }
 
   if (strcmp(name, "reverse") == 0 && arity == 2) {
@@ -3575,12 +3596,14 @@ static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
 }
 
 /* ------------------------------------------------------------------------- */
-/* Default triple/3 materialization output                                   */
+/* Default derived relation materialization output                          */
 /*                                                                           */
-/* Eyelog materializes distinct triple/3 consequences by Prolog-like Horn-   */
+/* Eyelog materializes distinct derived consequences by Prolog-like Horn-    */
 /* clause search, with duplicate suppression here and an active-call variant */
 /* guard in the solver to prevent common cyclic closures from looping.       */
-/* This is not a full bottom-up saturation engine.                           */
+/* The default CLI output excludes source facts and prints only ground        */
+/* binary p(S, O) conclusions reached through rules. Programs may declare    */
+/* materialize(Name, Arity) facts to restrict default output to named groups. */
 /* ------------------------------------------------------------------------- */
 
 typedef struct {
@@ -3661,6 +3684,7 @@ static int compare_lines(const void *left, const void *right) {
 
 typedef struct {
   Lines *lines;
+  Lines *facts;
   Term *goal;
   Program *program;
   bool explain;
@@ -3671,17 +3695,21 @@ static Term *resolved_copy(Term *term, Env *env);
 
 static void collect_printed_goal(Env *env, void *user_data) {
   PrintContext *ctx = user_data;
-  char *text = term_to_string(ctx->goal, env, true);
+  Term *resolved = resolved_copy(ctx->goal, env);
+  if (!term_is_ground(resolved)) return;
+
+  Env empty = { 0 };
+  char *text = term_to_string(resolved, &empty, true);
 
   StringBuilder line;
   sb_init(&line);
   sb_append(&line, text);
   sb_append(&line, ".\n");
-  bool added = add_line(ctx->lines, line.data);
+
+  bool is_source_fact = ctx->facts && lines_contains(ctx->facts, line.data);
+  bool added = !is_source_fact && add_line(ctx->lines, line.data);
   if (ctx->explain && added) {
     fputs(line.data, stdout);
-    Term *resolved = resolved_copy(ctx->goal, env);
-    Env empty = { 0 };
     puts("% why");
     if (!explain_goal(ctx->program, resolved, &empty, 0, 256)) {
       puts("% no proof found by the experimental proof printer");
@@ -3692,16 +3720,95 @@ static void collect_printed_goal(Env *env, void *user_data) {
   free(line.data);
 }
 
-static void print_default_output(Program *program, bool explain) {
-  Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
-  Term *args[3] = { new_term(TERM_VAR, "S"), new_term(TERM_VAR, "P"), new_term(TERM_VAR, "O") };
-  Term *goal = new_compound("triple", 3, args);
-  Term *goals[1] = { goal };
-  Env env = { 0 };
-  Lines lines = { 0 };
-  PrintContext ctx = { &lines, goal, program, explain };
+static bool group_has_rule(Program *program, PredicateGroup *group) {
+  for (int i = 0; i < group->len; i++) {
+    if (program->clauses[group->clause_indexes[i]].body_len > 0) return true;
+  }
+  return false;
+}
 
-  solve_goals(&solver, goals, 1, &env, 0, collect_printed_goal, &ctx);
+static bool materialize_declaration_matches(Clause *clause, PredicateGroup *group) {
+  if (clause->body_len != 0 || clause->head->type != TERM_COMPOUND) return false;
+  if (strcmp(clause->head->name, "materialize") != 0 || clause->head->arity != 2) return false;
+  Term *name = clause->head->args[0];
+  Term *arity = clause->head->args[1];
+  if (name->type != TERM_ATOM || arity->type != TERM_NUMBER) return false;
+
+  char *end = NULL;
+  errno = 0;
+  long value = strtol(arity->name, &end, 10);
+  if (errno != 0 || !end || *end != '\0') return false;
+  return value == group->arity && strcmp(name->name, group->name) == 0;
+}
+
+static bool program_has_materialize_declarations(Program *program) {
+  for (int i = 0; i < program->len; i++) {
+    Clause *clause = &program->clauses[i];
+    if (clause->body_len == 0 && clause->head->type == TERM_COMPOUND &&
+        strcmp(clause->head->name, "materialize") == 0 && clause->head->arity == 2) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool group_is_declared_materialized(Program *program, PredicateGroup *group) {
+  for (int i = 0; i < program->len; i++) {
+    if (materialize_declaration_matches(&program->clauses[i], group)) return true;
+  }
+  return false;
+}
+
+static void collect_source_facts(Program *program, Lines *facts) {
+  Env empty = { 0 };
+  for (int i = 0; i < program->len; i++) {
+    Clause *clause = &program->clauses[i];
+    if (clause->body_len != 0 || clause->head->type != TERM_COMPOUND) continue;
+    char *text = term_to_string(clause->head, &empty, true);
+    StringBuilder line;
+    sb_init(&line);
+    sb_append(&line, text);
+    sb_append(&line, ".\n");
+    add_line(facts, line.data);
+    free(text);
+    free(line.data);
+  }
+}
+
+static Term *generic_goal_for_group(PredicateGroup *group) {
+  Term **args = xmalloc(sizeof(Term *) * (group->arity ? group->arity : 1));
+  for (int i = 0; i < group->arity; i++) {
+    char name[32];
+    snprintf(name, sizeof(name), "X%d", i);
+    args[i] = new_term(TERM_VAR, name);
+  }
+  return new_compound(group->name, group->arity, args);
+}
+
+static void print_default_output(Program *program, bool explain) {
+  Lines facts = { 0 };
+  Lines lines = { 0 };
+  bool has_materialize = program_has_materialize_declarations(program);
+  collect_source_facts(program, &facts);
+
+  for (int i = 0; i < program->group_len; i++) {
+    PredicateGroup *group = &program->groups[i];
+    if (has_materialize) {
+      if (!group_is_declared_materialized(program, group)) continue;
+    } else if (group->arity != 2) {
+      continue;
+    }
+    if (!group_has_rule(program, group)) continue;
+
+    Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
+    Term *goal = generic_goal_for_group(group);
+    Term *goals[1] = { goal };
+    Env env = { 0 };
+    PrintContext ctx = { &lines, &facts, goal, program, explain };
+
+    solve_goals(&solver, goals, 1, &env, 0, collect_printed_goal, &ctx);
+  }
+
   if (!explain) {
     qsort(lines.items, lines.len, sizeof(char *), compare_lines);
     for (int i = 0; i < lines.len; i++) fputs(lines.items[i], stdout);
@@ -3713,7 +3820,7 @@ static void print_default_output(Program *program, bool explain) {
 /* ------------------------------------------------------------------------- */
 
 static void print_usage(FILE *stream) {
-  fprintf(stream, "usage: eyelog [--version] [--explain] [--query GOAL] [file-or-url.pl|- ...]\n\nOptions:\n  --version       show version\n  --query GOAL    run GOAL instead of materializing triple/3\n  --explain       include explanations for derived answers/triples\n");
+  fprintf(stream, "usage: eyelog [--version] [--explain] [--query GOAL] [file-or-url.pl|- ...]\n\nOptions:\n  --version       show version\n  --query GOAL    run GOAL instead of materializing new binary derivations\n  --explain       include explanations for query answers or derived output\n");
 }
 
 static void print_version(void) {
@@ -3735,9 +3842,9 @@ static Term *parse_query_goal(const char *query) {
 /* Experimental explanation output                                           */
 /*                                                                           */
 /* --explain deliberately starts small: it prints a valid proof tree for each */
-/* query answer by replaying the resolved query against the program. It does  */
-/* not yet expose the solver's internal search trace, memo table, or all      */
-/* alternative derivations.                                                   */
+/* query answer or derived default answer by replaying the resolved goal      */
+/* against the program. It does not yet expose the solver's internal search   */
+/* trace, memo table, or all alternative derivations.                         */
 /* ------------------------------------------------------------------------- */
 
 typedef struct {

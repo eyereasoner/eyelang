@@ -1,5 +1,11 @@
 % Fast exponentiation examples adapted from Eyeling fastpow.n3.
 
+materialize(pow, 2).
+materialize(powSlow, 2).
+materialize(powMod1e6, 2).
+materialize(tower, 2).
+materialize(towerMod1e6, 2).
+
 pow(_Base, 0, 1).
 pow(Base, Exp, Value) :-
   gt(Exp, 0),
@@ -34,9 +40,9 @@ pow_mod(Base, Exp, Mod, Value) :-
 tower(2, 4, 65536).
 tower_mod(2, 5, 1000000, 156736).
 
-triple([2, 10], pow, Value) :- pow(2, 10, Value).
-triple([2, 10], powSlow, Value) :- pow(2, 10, Value).
-triple([2, 10000], powMod1e6, Value) :- pow_mod(2, 10000, 1000000, Value).
-triple([3, 10000], powMod1e6, Value) :- pow_mod(3, 10000, 1000000, Value).
-triple([2, 4], tower, Value) :- tower(2, 4, Value).
-triple([2, 5], towerMod1e6, Value) :- tower_mod(2, 5, 1000000, Value).
+pow([2, 10], Value) :- pow(2, 10, Value).
+powSlow([2, 10], Value) :- pow(2, 10, Value).
+powMod1e6([2, 10000], Value) :- pow_mod(2, 10000, 1000000, Value).
+powMod1e6([3, 10000], Value) :- pow_mod(3, 10000, 1000000, Value).
+tower([2, 4], Value) :- tower(2, 4, Value).
+towerMod1e6([2, 5], Value) :- tower_mod(2, 5, 1000000, Value).

@@ -3,6 +3,12 @@
 % Four simplified worlds classify candidate transit signals using either Bayes,
 % sensitivity-only reasoning, a heuristic threshold, or a stricter Bayesian rule.
 
+materialize(ppvPlanetGivenDetection, 2).
+materialize(confirmsInWorld, 2).
+materialize(rejectsInWorld, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 candidate(rare_wide_orbit, 0.001, 0.99, 0.99).
 candidate(mstar_short_period, 0.20, 0.99, 0.99).
 candidate(common_hot_neptune_good, 0.25, 0.95, 0.97).
@@ -72,8 +78,8 @@ pattern_matches(report) :-
   confirms_in_world(common_hot_neptune_low_spec, w1),
   rejects_in_world(common_hot_neptune_low_spec, w0), rejects_in_world(common_hot_neptune_low_spec, w2), rejects_in_world(common_hot_neptune_low_spec, w3).
 
-triple(Candidate, ppvPlanetGivenDetection, PPV) :- ppv_planet(Candidate, PPV).
-triple(Candidate, confirmsInWorld, World) :- confirms_in_world(Candidate, World).
-triple(Candidate, rejectsInWorld, World) :- rejects_in_world(Candidate, World).
-triple(exoplanet_validation_worlds, status, expected_world_pattern) :- pattern_matches(report).
-triple(exoplanet_validation_worlds, reason, "Bayesian worlds account for occurrence and false positives while the naive world trusts sensitivity alone") :- pattern_matches(report).
+ppvPlanetGivenDetection(Candidate, PPV) :- ppv_planet(Candidate, PPV).
+confirmsInWorld(Candidate, World) :- confirms_in_world(Candidate, World).
+rejectsInWorld(Candidate, World) :- rejects_in_world(Candidate, World).
+status(exoplanet_validation_worlds, expected_world_pattern) :- pattern_matches(report).
+reason(exoplanet_validation_worlds, "Bayesian worlds account for occurrence and false positives while the naive world trusts sensitivity alone") :- pattern_matches(report).

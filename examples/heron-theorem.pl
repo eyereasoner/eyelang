@@ -1,5 +1,10 @@
 % Heron's theorem: area = sqrt(s(s-a)(s-b)(s-c)).
 
+materialize(semiperimeter, 2).
+materialize(heronProduct, 2).
+materialize(area, 2).
+materialize(status, 2).
+
 triangle(field_plot, 13, 14, 15).
 
 semiperimeter(Triangle, S) :-
@@ -22,7 +27,5 @@ area(Triangle, Area) :-
   heron_product(Triangle, Product),
   pow(Product, 0.5, Area).
 
-triple(Triangle, semiperimeter, S) :- semiperimeter(Triangle, S).
-triple(Triangle, heronProduct, P) :- heron_product(Triangle, P).
-triple(Triangle, area, A) :- area(Triangle, A).
-triple(Triangle, status, valid_survey_triangle) :- area(Triangle, A), gt(A, 0).
+heronProduct(Triangle, P) :- heron_product(Triangle, P).
+status(Triangle, valid_survey_triangle) :- area(Triangle, A), gt(A, 0).

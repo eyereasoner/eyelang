@@ -1,6 +1,10 @@
 % Adapted from Eyeling's easter.n3.
 % Gregorian computus for a sample decade, with independent range/window checks.
 
+materialize(easterDate, 2).
+materialize(computusRemainders, 2).
+materialize(legalGregorianWindow, 2).
+
 case(y2026, 2026).
 case(y2027, 2027).
 case(y2028, 2028).
@@ -68,12 +72,12 @@ checks_pass(Case) :-
   month_name(Month, _Name),
   legal_easter_date(Month, Day).
 
-triple(Case, easterDate, date(Year, MonthName, Day)) :-
+easterDate(Case, date(Year, MonthName, Day)) :-
   computus(Case, Year, Month, Day, _J, _K, _Q, _R, _V, _Z),
   month_name(Month, MonthName).
 
-triple(Case, computusRemainders, remainders(J, R, V)) :-
+computusRemainders(Case, remainders(J, R, V)) :-
   computus(Case, _Year, _Month, _Day, J, _K, _Q, R, V, _Z).
 
-triple(Case, legalGregorianWindow, true) :-
+legalGregorianWindow(Case, true) :-
   checks_pass(Case).

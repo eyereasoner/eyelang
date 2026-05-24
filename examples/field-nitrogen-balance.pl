@@ -2,6 +2,14 @@
 % Fields are classified from soil N, fertilizer N, losses, and crop demand.
 
 % field(Field, SoilN, FertilizerN, LossFraction, CropDemandN).
+materialize(availableN_kg_ha, 2).
+materialize(deficitN_kg_ha, 2).
+materialize(surplusN_kg_ha, 2).
+materialize(leachingIndex, 2).
+materialize(status, 2).
+materialize(highestLeachingRisk, 2).
+materialize(reason, 2).
+
 field(low_input, 25, 40, 0.10, 110).
 field(balanced_loam, 45, 80, 0.12, 110).
 field(sandy_high, 30, 150, 0.35, 105).
@@ -48,13 +56,12 @@ status(F, under_supplied) :- deficit_n(F, D), gt(D, 10.0).
 status(F, balanced) :- deficit_n(F, D), surplus_n(F, S), le(D, 10.0), le(S, 10.0).
 status(F, over_supplied) :- surplus_n(F, S), gt(S, 10.0).
 
-triple(F, availableN_kg_ha, A) :- available_n(F, A).
-triple(F, deficitN_kg_ha, D) :- deficit_n(F, D).
-triple(F, surplusN_kg_ha, S) :- surplus_n(F, S).
-triple(F, leachingIndex, I) :- leaching_index(F, I).
-triple(F, status, S) :- status(F, S).
-triple(field_nitrogen_balance, highestLeachingRisk, sandy_high) :-
+availableN_kg_ha(F, A) :- available_n(F, A).
+deficitN_kg_ha(F, D) :- deficit_n(F, D).
+surplusN_kg_ha(F, S) :- surplus_n(F, S).
+leachingIndex(F, I) :- leaching_index(F, I).
+highestLeachingRisk(field_nitrogen_balance, sandy_high) :-
   leaching_index(sandy_high, Sandy),
   leaching_index(clay_surplus, Clay),
   gt(Sandy, Clay).
-triple(field_nitrogen_balance, reason, "available nitrogen is total input retained after losses compared with crop demand").
+reason(field_nitrogen_balance, "available nitrogen is total input retained after losses compared with crop demand").

@@ -1,5 +1,17 @@
 % Memoize route paths because the same candidate routes are checked repeatedly
-% for explanation and verification triples.
+% for explanation and verification relations.
+materialize(recommendedRoute, 2).
+materialize(outcome, 2).
+materialize(statement, 3).
+materialize(label, 2).
+materialize(actionSequence, 2).
+materialize(durationSeconds, 2).
+materialize(cost, 2).
+materialize(belief, 2).
+materialize(comfort, 2).
+materialize(selectedRoute, 2).
+materialize(comparison, 2).
+
 memoize(path, 7).
 memoize(traveller_path, 6).
 
@@ -10,26 +22,26 @@ memoize(traveller_path, 6).
 % routes from Gent to Oostende, and produce a compact explanation report.
 
 case_graph(caseGraph, (
-  triple(i1, location, gent),
-  triple(question, text, "Which route should we take from Gent to Oostende?"),
-  triple(routeDirect, label, "Gent -> Brugge -> Oostende"),
-  triple(routeViaKortrijk, label, "Gent -> Kortrijk -> Brugge -> Oostende")
+  location(i1, gent),
+  text(question, "Which route should we take from Gent to Oostende?"),
+  label(routeDirect, "Gent -> Brugge -> Oostende"),
+  label(routeViaKortrijk, "Gent -> Kortrijk -> Brugge -> Oostende")
 )).
 
 map_graph(mapBE, (
-  triple(mapBE, gps_description, description(triple(S, location, gent), true, triple(S, location, brugge), drive_gent_brugge, 1500.0, 0.006, 0.96, 0.99)),
-  triple(mapBE, gps_description, description(triple(S, location, gent), true, triple(S, location, kortrijk), drive_gent_kortrijk, 1600.0, 0.007, 0.96, 0.99)),
-  triple(mapBE, gps_description, description(triple(S, location, kortrijk), true, triple(S, location, brugge), drive_kortrijk_brugge, 1600.0, 0.007, 0.96, 0.99)),
-  triple(mapBE, gps_description, description(triple(S, location, brugge), true, triple(S, location, oostende), drive_brugge_oostende, 900.0, 0.004, 0.98, 1.0))
+  gps_description(mapBE, description(location(S, gent), true, location(S, brugge), drive_gent_brugge, 1500.0, 0.006, 0.96, 0.99)),
+  gps_description(mapBE, description(location(S, gent), true, location(S, kortrijk), drive_gent_kortrijk, 1600.0, 0.007, 0.96, 0.99)),
+  gps_description(mapBE, description(location(S, kortrijk), true, location(S, brugge), drive_kortrijk_brugge, 1600.0, 0.007, 0.96, 0.99)),
+  gps_description(mapBE, description(location(S, brugge), true, location(S, oostende), drive_brugge_oostende, 900.0, 0.004, 0.98, 1.0))
 )).
 
-case_triple(S, P, O) :-
+case_statement(S, P, O) :-
   case_graph(caseGraph, Formula),
-  formula_triple(Formula, S, P, O).
+  formula_binary(Formula, S, P, O).
 
 map_description(From, To, Action, Duration, Cost, Belief, Comfort) :-
   map_graph(mapBE, Formula),
-  formula_triple(Formula, mapBE, gps_description, description(From, true, To, Action, Duration, Cost, Belief, Comfort)).
+  formula_binary(Formula, mapBE, gps_description, description(From, true, To, Action, Duration, Cost, Belief, Comfort)).
 
 path(From, To, [Action], Duration, Cost, Belief, Comfort) :-
   map_description(From, To, Action, Duration, Cost, Belief, Comfort).
@@ -43,8 +55,8 @@ path(From, To, Actions, Duration, Cost, Belief, Comfort) :-
   mul(B1, B2, Belief),
   mul(F1, F2, Comfort).
 
-traveller_start(i1, triple(i1, location, gent)).
-traveller_goal(i1, triple(i1, location, oostende)).
+traveller_start(i1, location(i1, gent)).
+traveller_goal(i1, location(i1, oostende)).
 
 traveller_path(Traveller, Actions, Duration, Cost, Belief, Comfort) :-
   traveller_start(Traveller, From),
@@ -90,47 +102,47 @@ check(c5, true) :-
   gt(B1, B2),
   gt(F1, F2).
 
-triple(decision, recommendedRoute, Route) :-
+recommendedRoute(decision, Route) :-
   recommended_route(Route).
 
-triple(decision, outcome, Outcome) :-
+outcome(decision, Outcome) :-
   recommended_route(Route),
   outcome(Route, Outcome).
 
-triple(check, Check, true) :-
+statement(check, Check, true) :-
   check(Check, true).
 
 route_actions(routeDirect, [drive_gent_brugge, drive_brugge_oostende]).
 route_actions(routeViaKortrijk, [drive_gent_kortrijk, drive_kortrijk_brugge, drive_brugge_oostende]).
 
-% Derived route and report triples.  These are consequences of the route search
+% Derived route and report relations.  These are consequences of the route search
 % and comparison, not pre-written markdown output.
-triple(Route, label, Label) :-
-  case_triple(Route, label, Label),
+label(Route, Label) :-
+  case_statement(Route, label, Label),
   route_metrics(Route, _Duration, _Cost, _Belief, _Comfort).
 
-triple(Route, actionSequence, Actions) :-
+actionSequence(Route, Actions) :-
   route_actions(Route, Actions),
   route_metrics(Route, _Duration, _Cost, _Belief, _Comfort).
 
-triple(Route, durationSeconds, Duration) :-
+durationSeconds(Route, Duration) :-
   route_metrics(Route, Duration, _Cost, _Belief, _Comfort).
 
-triple(Route, cost, Cost) :-
+cost(Route, Cost) :-
   route_metrics(Route, _Duration, Cost, _Belief, _Comfort).
 
-triple(Route, belief, Belief) :-
+belief(Route, Belief) :-
   route_metrics(Route, _Duration, _Cost, Belief, _Comfort).
 
-triple(Route, comfort, Comfort) :-
+comfort(Route, Comfort) :-
   route_metrics(Route, _Duration, _Cost, _Belief, Comfort).
 
-triple(report, selectedRoute, route(Route, Actions, Duration, Cost, Belief, Comfort)) :-
+selectedRoute(report, route(Route, Actions, Duration, Cost, Belief, Comfort)) :-
   recommended_route(Route),
   route_actions(Route, Actions),
   route_metrics(Route, Duration, Cost, Belief, Comfort).
 
-triple(report, comparison, dominates(routeDirect, routeViaKortrijk)) :-
+comparison(report, dominates(routeDirect, routeViaKortrijk)) :-
   recommended_route(routeDirect),
   check(c3, true),
   check(c4, true),

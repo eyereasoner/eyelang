@@ -1,4 +1,4 @@
-triple(diamondProperty, commonSuccessor, d).
-triple(diamondProperty, holdsFor, r).
-triple(diamondProperty, holdsFor, re).
-triple(diamondProperty, preservedUnderReflexiveClosure, true).
+commonSuccessor(diamondProperty, d).
+holdsFor(diamondProperty, r).
+holdsFor(diamondProperty, re).
+preservedUnderReflexiveClosure(diamondProperty, true).

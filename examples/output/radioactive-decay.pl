@@ -1,5 +1,5 @@
-triple(iodine_sample, decayedActivity_Bq, 60.0).
-triple(iodine_sample, halfLivesElapsed, 2.0).
-triple(iodine_sample, reason, "two half-lives leave one quarter of the initial activity").
-triple(iodine_sample, remainingActivity_Bq, 20.0).
-triple(iodine_sample, status, low_activity).
+decayedActivity_Bq(iodine_sample, 60.0).
+halfLivesElapsed(iodine_sample, 2.0).
+reason(iodine_sample, "two half-lives leave one quarter of the initial activity").
+remainingActivity_Bq(iodine_sample, 20.0).
+status(iodine_sample, low_activity).

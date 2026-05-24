@@ -1,4 +1,4 @@
-triple(field_plot, area, 84.0).
-triple(field_plot, heronProduct, 7056).
-triple(field_plot, semiperimeter, 21).
-triple(field_plot, status, valid_survey_triangle).
+area(field_plot, 84.0).
+heronProduct(field_plot, 7056).
+semiperimeter(field_plot, 21).
+status(field_plot, valid_survey_triangle).

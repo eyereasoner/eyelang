@@ -1,302 +1,301 @@
-triple(ind, a, i1).
-triple(ind, a, i10).
-triple(ind, a, i100).
-triple(ind, a, i11).
-triple(ind, a, i12).
-triple(ind, a, i13).
-triple(ind, a, i14).
-triple(ind, a, i15).
-triple(ind, a, i16).
-triple(ind, a, i17).
-triple(ind, a, i18).
-triple(ind, a, i19).
-triple(ind, a, i2).
-triple(ind, a, i20).
-triple(ind, a, i21).
-triple(ind, a, i22).
-triple(ind, a, i23).
-triple(ind, a, i24).
-triple(ind, a, i25).
-triple(ind, a, i26).
-triple(ind, a, i27).
-triple(ind, a, i28).
-triple(ind, a, i29).
-triple(ind, a, i3).
-triple(ind, a, i30).
-triple(ind, a, i31).
-triple(ind, a, i32).
-triple(ind, a, i33).
-triple(ind, a, i34).
-triple(ind, a, i35).
-triple(ind, a, i36).
-triple(ind, a, i37).
-triple(ind, a, i38).
-triple(ind, a, i39).
-triple(ind, a, i4).
-triple(ind, a, i40).
-triple(ind, a, i41).
-triple(ind, a, i42).
-triple(ind, a, i43).
-triple(ind, a, i44).
-triple(ind, a, i45).
-triple(ind, a, i46).
-triple(ind, a, i47).
-triple(ind, a, i48).
-triple(ind, a, i49).
-triple(ind, a, i5).
-triple(ind, a, i50).
-triple(ind, a, i51).
-triple(ind, a, i52).
-triple(ind, a, i53).
-triple(ind, a, i54).
-triple(ind, a, i55).
-triple(ind, a, i56).
-triple(ind, a, i57).
-triple(ind, a, i58).
-triple(ind, a, i59).
-triple(ind, a, i6).
-triple(ind, a, i60).
-triple(ind, a, i61).
-triple(ind, a, i62).
-triple(ind, a, i63).
-triple(ind, a, i64).
-triple(ind, a, i65).
-triple(ind, a, i66).
-triple(ind, a, i67).
-triple(ind, a, i68).
-triple(ind, a, i69).
-triple(ind, a, i7).
-triple(ind, a, i70).
-triple(ind, a, i71).
-triple(ind, a, i72).
-triple(ind, a, i73).
-triple(ind, a, i74).
-triple(ind, a, i75).
-triple(ind, a, i76).
-triple(ind, a, i77).
-triple(ind, a, i78).
-triple(ind, a, i79).
-triple(ind, a, i8).
-triple(ind, a, i80).
-triple(ind, a, i81).
-triple(ind, a, i82).
-triple(ind, a, i83).
-triple(ind, a, i84).
-triple(ind, a, i85).
-triple(ind, a, i86).
-triple(ind, a, i87).
-triple(ind, a, i88).
-triple(ind, a, i89).
-triple(ind, a, i9).
-triple(ind, a, i90).
-triple(ind, a, i91).
-triple(ind, a, i92).
-triple(ind, a, i93).
-triple(ind, a, i94).
-triple(ind, a, i95).
-triple(ind, a, i96).
-triple(ind, a, i97).
-triple(ind, a, i98).
-triple(ind, a, i99).
-triple(ind, a, j1).
-triple(ind, a, j10).
-triple(ind, a, j100).
-triple(ind, a, j11).
-triple(ind, a, j12).
-triple(ind, a, j13).
-triple(ind, a, j14).
-triple(ind, a, j15).
-triple(ind, a, j16).
-triple(ind, a, j17).
-triple(ind, a, j18).
-triple(ind, a, j19).
-triple(ind, a, j2).
-triple(ind, a, j20).
-triple(ind, a, j21).
-triple(ind, a, j22).
-triple(ind, a, j23).
-triple(ind, a, j24).
-triple(ind, a, j25).
-triple(ind, a, j26).
-triple(ind, a, j27).
-triple(ind, a, j28).
-triple(ind, a, j29).
-triple(ind, a, j3).
-triple(ind, a, j30).
-triple(ind, a, j31).
-triple(ind, a, j32).
-triple(ind, a, j33).
-triple(ind, a, j34).
-triple(ind, a, j35).
-triple(ind, a, j36).
-triple(ind, a, j37).
-triple(ind, a, j38).
-triple(ind, a, j39).
-triple(ind, a, j4).
-triple(ind, a, j40).
-triple(ind, a, j41).
-triple(ind, a, j42).
-triple(ind, a, j43).
-triple(ind, a, j44).
-triple(ind, a, j45).
-triple(ind, a, j46).
-triple(ind, a, j47).
-triple(ind, a, j48).
-triple(ind, a, j49).
-triple(ind, a, j5).
-triple(ind, a, j50).
-triple(ind, a, j51).
-triple(ind, a, j52).
-triple(ind, a, j53).
-triple(ind, a, j54).
-triple(ind, a, j55).
-triple(ind, a, j56).
-triple(ind, a, j57).
-triple(ind, a, j58).
-triple(ind, a, j59).
-triple(ind, a, j6).
-triple(ind, a, j60).
-triple(ind, a, j61).
-triple(ind, a, j62).
-triple(ind, a, j63).
-triple(ind, a, j64).
-triple(ind, a, j65).
-triple(ind, a, j66).
-triple(ind, a, j67).
-triple(ind, a, j68).
-triple(ind, a, j69).
-triple(ind, a, j7).
-triple(ind, a, j70).
-triple(ind, a, j71).
-triple(ind, a, j72).
-triple(ind, a, j73).
-triple(ind, a, j74).
-triple(ind, a, j75).
-triple(ind, a, j76).
-triple(ind, a, j77).
-triple(ind, a, j78).
-triple(ind, a, j79).
-triple(ind, a, j8).
-triple(ind, a, j80).
-triple(ind, a, j81).
-triple(ind, a, j82).
-triple(ind, a, j83).
-triple(ind, a, j84).
-triple(ind, a, j85).
-triple(ind, a, j86).
-triple(ind, a, j87).
-triple(ind, a, j88).
-triple(ind, a, j89).
-triple(ind, a, j9).
-triple(ind, a, j90).
-triple(ind, a, j91).
-triple(ind, a, j92).
-triple(ind, a, j93).
-triple(ind, a, j94).
-triple(ind, a, j95).
-triple(ind, a, j96).
-triple(ind, a, j97).
-triple(ind, a, j98).
-triple(ind, a, j99).
-triple(ind, a, n0).
-triple(ind, a, n1).
-triple(ind, a, n10).
-triple(ind, a, n100).
-triple(ind, a, n11).
-triple(ind, a, n12).
-triple(ind, a, n13).
-triple(ind, a, n14).
-triple(ind, a, n15).
-triple(ind, a, n16).
-triple(ind, a, n17).
-triple(ind, a, n18).
-triple(ind, a, n19).
-triple(ind, a, n2).
-triple(ind, a, n20).
-triple(ind, a, n21).
-triple(ind, a, n22).
-triple(ind, a, n23).
-triple(ind, a, n24).
-triple(ind, a, n25).
-triple(ind, a, n26).
-triple(ind, a, n27).
-triple(ind, a, n28).
-triple(ind, a, n29).
-triple(ind, a, n3).
-triple(ind, a, n30).
-triple(ind, a, n31).
-triple(ind, a, n32).
-triple(ind, a, n33).
-triple(ind, a, n34).
-triple(ind, a, n35).
-triple(ind, a, n36).
-triple(ind, a, n37).
-triple(ind, a, n38).
-triple(ind, a, n39).
-triple(ind, a, n4).
-triple(ind, a, n40).
-triple(ind, a, n41).
-triple(ind, a, n42).
-triple(ind, a, n43).
-triple(ind, a, n44).
-triple(ind, a, n45).
-triple(ind, a, n46).
-triple(ind, a, n47).
-triple(ind, a, n48).
-triple(ind, a, n49).
-triple(ind, a, n5).
-triple(ind, a, n50).
-triple(ind, a, n51).
-triple(ind, a, n52).
-triple(ind, a, n53).
-triple(ind, a, n54).
-triple(ind, a, n55).
-triple(ind, a, n56).
-triple(ind, a, n57).
-triple(ind, a, n58).
-triple(ind, a, n59).
-triple(ind, a, n6).
-triple(ind, a, n60).
-triple(ind, a, n61).
-triple(ind, a, n62).
-triple(ind, a, n63).
-triple(ind, a, n64).
-triple(ind, a, n65).
-triple(ind, a, n66).
-triple(ind, a, n67).
-triple(ind, a, n68).
-triple(ind, a, n69).
-triple(ind, a, n7).
-triple(ind, a, n70).
-triple(ind, a, n71).
-triple(ind, a, n72).
-triple(ind, a, n73).
-triple(ind, a, n74).
-triple(ind, a, n75).
-triple(ind, a, n76).
-triple(ind, a, n77).
-triple(ind, a, n78).
-triple(ind, a, n79).
-triple(ind, a, n8).
-triple(ind, a, n80).
-triple(ind, a, n81).
-triple(ind, a, n82).
-triple(ind, a, n83).
-triple(ind, a, n84).
-triple(ind, a, n85).
-triple(ind, a, n86).
-triple(ind, a, n87).
-triple(ind, a, n88).
-triple(ind, a, n89).
-triple(ind, a, n9).
-triple(ind, a, n90).
-triple(ind, a, n91).
-triple(ind, a, n92).
-triple(ind, a, n93).
-triple(ind, a, n94).
-triple(ind, a, n95).
-triple(ind, a, n96).
-triple(ind, a, n97).
-triple(ind, a, n98).
-triple(ind, a, n99).
-triple(test, is, true).
+a(ind, i1).
+a(ind, i10).
+a(ind, i100).
+a(ind, i11).
+a(ind, i12).
+a(ind, i13).
+a(ind, i14).
+a(ind, i15).
+a(ind, i16).
+a(ind, i17).
+a(ind, i18).
+a(ind, i19).
+a(ind, i2).
+a(ind, i20).
+a(ind, i21).
+a(ind, i22).
+a(ind, i23).
+a(ind, i24).
+a(ind, i25).
+a(ind, i26).
+a(ind, i27).
+a(ind, i28).
+a(ind, i29).
+a(ind, i3).
+a(ind, i30).
+a(ind, i31).
+a(ind, i32).
+a(ind, i33).
+a(ind, i34).
+a(ind, i35).
+a(ind, i36).
+a(ind, i37).
+a(ind, i38).
+a(ind, i39).
+a(ind, i4).
+a(ind, i40).
+a(ind, i41).
+a(ind, i42).
+a(ind, i43).
+a(ind, i44).
+a(ind, i45).
+a(ind, i46).
+a(ind, i47).
+a(ind, i48).
+a(ind, i49).
+a(ind, i5).
+a(ind, i50).
+a(ind, i51).
+a(ind, i52).
+a(ind, i53).
+a(ind, i54).
+a(ind, i55).
+a(ind, i56).
+a(ind, i57).
+a(ind, i58).
+a(ind, i59).
+a(ind, i6).
+a(ind, i60).
+a(ind, i61).
+a(ind, i62).
+a(ind, i63).
+a(ind, i64).
+a(ind, i65).
+a(ind, i66).
+a(ind, i67).
+a(ind, i68).
+a(ind, i69).
+a(ind, i7).
+a(ind, i70).
+a(ind, i71).
+a(ind, i72).
+a(ind, i73).
+a(ind, i74).
+a(ind, i75).
+a(ind, i76).
+a(ind, i77).
+a(ind, i78).
+a(ind, i79).
+a(ind, i8).
+a(ind, i80).
+a(ind, i81).
+a(ind, i82).
+a(ind, i83).
+a(ind, i84).
+a(ind, i85).
+a(ind, i86).
+a(ind, i87).
+a(ind, i88).
+a(ind, i89).
+a(ind, i9).
+a(ind, i90).
+a(ind, i91).
+a(ind, i92).
+a(ind, i93).
+a(ind, i94).
+a(ind, i95).
+a(ind, i96).
+a(ind, i97).
+a(ind, i98).
+a(ind, i99).
+a(ind, j1).
+a(ind, j10).
+a(ind, j100).
+a(ind, j11).
+a(ind, j12).
+a(ind, j13).
+a(ind, j14).
+a(ind, j15).
+a(ind, j16).
+a(ind, j17).
+a(ind, j18).
+a(ind, j19).
+a(ind, j2).
+a(ind, j20).
+a(ind, j21).
+a(ind, j22).
+a(ind, j23).
+a(ind, j24).
+a(ind, j25).
+a(ind, j26).
+a(ind, j27).
+a(ind, j28).
+a(ind, j29).
+a(ind, j3).
+a(ind, j30).
+a(ind, j31).
+a(ind, j32).
+a(ind, j33).
+a(ind, j34).
+a(ind, j35).
+a(ind, j36).
+a(ind, j37).
+a(ind, j38).
+a(ind, j39).
+a(ind, j4).
+a(ind, j40).
+a(ind, j41).
+a(ind, j42).
+a(ind, j43).
+a(ind, j44).
+a(ind, j45).
+a(ind, j46).
+a(ind, j47).
+a(ind, j48).
+a(ind, j49).
+a(ind, j5).
+a(ind, j50).
+a(ind, j51).
+a(ind, j52).
+a(ind, j53).
+a(ind, j54).
+a(ind, j55).
+a(ind, j56).
+a(ind, j57).
+a(ind, j58).
+a(ind, j59).
+a(ind, j6).
+a(ind, j60).
+a(ind, j61).
+a(ind, j62).
+a(ind, j63).
+a(ind, j64).
+a(ind, j65).
+a(ind, j66).
+a(ind, j67).
+a(ind, j68).
+a(ind, j69).
+a(ind, j7).
+a(ind, j70).
+a(ind, j71).
+a(ind, j72).
+a(ind, j73).
+a(ind, j74).
+a(ind, j75).
+a(ind, j76).
+a(ind, j77).
+a(ind, j78).
+a(ind, j79).
+a(ind, j8).
+a(ind, j80).
+a(ind, j81).
+a(ind, j82).
+a(ind, j83).
+a(ind, j84).
+a(ind, j85).
+a(ind, j86).
+a(ind, j87).
+a(ind, j88).
+a(ind, j89).
+a(ind, j9).
+a(ind, j90).
+a(ind, j91).
+a(ind, j92).
+a(ind, j93).
+a(ind, j94).
+a(ind, j95).
+a(ind, j96).
+a(ind, j97).
+a(ind, j98).
+a(ind, j99).
+a(ind, n1).
+a(ind, n10).
+a(ind, n100).
+a(ind, n11).
+a(ind, n12).
+a(ind, n13).
+a(ind, n14).
+a(ind, n15).
+a(ind, n16).
+a(ind, n17).
+a(ind, n18).
+a(ind, n19).
+a(ind, n2).
+a(ind, n20).
+a(ind, n21).
+a(ind, n22).
+a(ind, n23).
+a(ind, n24).
+a(ind, n25).
+a(ind, n26).
+a(ind, n27).
+a(ind, n28).
+a(ind, n29).
+a(ind, n3).
+a(ind, n30).
+a(ind, n31).
+a(ind, n32).
+a(ind, n33).
+a(ind, n34).
+a(ind, n35).
+a(ind, n36).
+a(ind, n37).
+a(ind, n38).
+a(ind, n39).
+a(ind, n4).
+a(ind, n40).
+a(ind, n41).
+a(ind, n42).
+a(ind, n43).
+a(ind, n44).
+a(ind, n45).
+a(ind, n46).
+a(ind, n47).
+a(ind, n48).
+a(ind, n49).
+a(ind, n5).
+a(ind, n50).
+a(ind, n51).
+a(ind, n52).
+a(ind, n53).
+a(ind, n54).
+a(ind, n55).
+a(ind, n56).
+a(ind, n57).
+a(ind, n58).
+a(ind, n59).
+a(ind, n6).
+a(ind, n60).
+a(ind, n61).
+a(ind, n62).
+a(ind, n63).
+a(ind, n64).
+a(ind, n65).
+a(ind, n66).
+a(ind, n67).
+a(ind, n68).
+a(ind, n69).
+a(ind, n7).
+a(ind, n70).
+a(ind, n71).
+a(ind, n72).
+a(ind, n73).
+a(ind, n74).
+a(ind, n75).
+a(ind, n76).
+a(ind, n77).
+a(ind, n78).
+a(ind, n79).
+a(ind, n8).
+a(ind, n80).
+a(ind, n81).
+a(ind, n82).
+a(ind, n83).
+a(ind, n84).
+a(ind, n85).
+a(ind, n86).
+a(ind, n87).
+a(ind, n88).
+a(ind, n89).
+a(ind, n9).
+a(ind, n90).
+a(ind, n91).
+a(ind, n92).
+a(ind, n93).
+a(ind, n94).
+a(ind, n95).
+a(ind, n96).
+a(ind, n97).
+a(ind, n98).
+a(ind, n99).
+is(test, true).

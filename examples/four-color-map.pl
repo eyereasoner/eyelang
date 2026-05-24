@@ -4,6 +4,10 @@
 % four colours. This Eyelog version keeps the same map/assignment shape and adds
 % a rule-level validation layer that rejects equal colours across borders.
 
+materialize(color, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 country(belgium). country(netherlands). country(luxemburg). country(france).
 country(germany). country(italy). country(denmark). country(ireland).
 country(greece). country(spain). country(portugal). country(austria).
@@ -109,12 +113,12 @@ colouring([
   [bulgaria, green], [romania, red], [croatia, red]
 ]).
 
-triple(map_eu, color, Colours) :-
+color(map_eu, Colours) :-
   map_valid(map_eu),
   colouring(Colours).
 
-triple(map_eu, status, valid_four_colour_assignment) :-
+status(map_eu, valid_four_colour_assignment) :-
   map_valid(map_eu).
 
-triple(map_eu, reason, "no neighbouring countries share a colour") :-
+reason(map_eu, "no neighbouring countries share a colour") :-
   map_valid(map_eu).

@@ -1,6 +1,10 @@
 % Eyelet-inspired combinations example using findall/3 and sort/2.
 % The source-level select/3 relation remains an ordinary Eyelog rule.
 
+materialize(combinations, 2).
+materialize(count, 2).
+materialize(reason, 2).
+
 select(Item, [Item | Rest], Rest).
 select(Item, [Head | Tail], [Head | Rest]) :-
   select(Item, Tail, Rest).
@@ -17,11 +21,11 @@ unique_combinations(K, Items, Unique) :-
   findall(C, combination(K, Items, C), All),
   sort(All, Unique).
 
-triple(combinations_5_choose_3, combinations, Unique) :-
+combinations(combinations_5_choose_3, Unique) :-
   unique_combinations(3, [1, 2, 3, 4, 5], Unique).
 
-triple(combinations_5_choose_3, count, Count) :-
+count(combinations_5_choose_3, Count) :-
   unique_combinations(3, [1, 2, 3, 4, 5], Unique),
   length(Unique, Count).
 
-triple(combinations_5_choose_3, reason, "findall gathers generated combinations and sort removes duplicates").
+reason(combinations_5_choose_3, "findall gathers generated combinations and sort removes duplicates").

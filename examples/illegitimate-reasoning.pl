@@ -2,11 +2,19 @@
 %
 % The input facts describe arguments and their surface reasoning pattern. Helper
 % predicates identify common invalid inference forms. The output layer emits only
-% concise report triples: the argument is illegitimate, which fallacy was found,
+% concise report relations: the argument is illegitimate, which fallacy was found,
 % the challenged conclusion, and a short reason why.
 
 % Affirming the consequent:
 %   If it rained, the street is wet. The street is wet. Therefore it rained.
+materialize(type, 2).
+materialize(fallacy, 2).
+materialize(conclusion, 2).
+materialize(reason, 2).
+materialize(sampleSize, 2).
+materialize(requiredSampleSize, 2).
+materialize(omittedAlternative, 2).
+
 argument(arg_affirming_consequent).
 implication(arg_affirming_consequent, rain, street_wet).
 observed(arg_affirming_consequent, street_wet).
@@ -69,10 +77,9 @@ reason(arg_denying_antecedent, "denying the antecedent does not disprove the con
 reason(arg_hasty_generalization, "sample size is below the threshold for a universal conclusion").
 reason(arg_false_dilemma, "a relevant alternative is omitted").
 
-triple(A, type, illegitimate_reasoning) :- fallacy(A, _).
-triple(A, fallacy, F) :- fallacy(A, F).
-triple(A, conclusion, C) :- fallacy(A, _), concludes(A, C).
-triple(A, reason, R) :- fallacy(A, _), reason(A, R).
-triple(A, sampleSize, N) :- fallacy(A, hasty_generalization), sample_size(A, N).
-triple(A, requiredSampleSize, Min) :- fallacy(A, hasty_generalization), required_sample_size(A, Min).
-triple(A, omittedAlternative, Alt) :- fallacy(A, false_dilemma), omitted_alternative(A, Alt).
+type(A, illegitimate_reasoning) :- fallacy(A, _).
+conclusion(A, C) :- fallacy(A, _), concludes(A, C).
+reason(A, R) :- fallacy(A, _), reason(A, R).
+sampleSize(A, N) :- fallacy(A, hasty_generalization), sample_size(A, N).
+requiredSampleSize(A, Min) :- fallacy(A, hasty_generalization), required_sample_size(A, Min).
+omittedAlternative(A, Alt) :- fallacy(A, false_dilemma), omitted_alternative(A, Alt).

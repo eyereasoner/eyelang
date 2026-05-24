@@ -2,9 +2,35 @@
 % Eyeling keeps the ODRL rules inside an N3 quoted policy formula and prints a
 % Markdown report.  This Eyelog translation also keeps the
 % policy as a formula-valued term, projects local predicates from that formula for
-% reasoning, and materializes the derived DPV risks as triple/3 output.
+% reasoning, and materializes the derived DPV risks as relation output.
 
 % Consumer profile and needs.
+materialize(dct_title, 2).
+materialize(dpv_hasRisk, 2).
+materialize(type, 2).
+materialize(policyGraph, 2).
+materialize(contains, 2).
+materialize(source, 2).
+materialize(profile, 2).
+materialize(firstRisk, 2).
+materialize(before, 2).
+materialize(dct_source, 2).
+materialize(risk_hasRiskSource, 2).
+materialize(dpv_hasConsequence, 2).
+materialize(dpv_hasImpact, 2).
+materialize(aboutClause, 2).
+materialize(violatesNeed, 2).
+materialize(scoreRaw, 2).
+materialize(score, 2).
+materialize(dpv_hasSeverity, 2).
+materialize(dpv_hasRiskLevel, 2).
+materialize(dct_description, 2).
+materialize(reportKey, 2).
+materialize(dpv_isMitigatedByMeasure, 2).
+materialize(dpv_mitigatesRisk, 2).
+materialize(clauseId, 2).
+materialize(text, 2).
+
 consumer(consumerExample).
 title(consumerExample, "Example consumer profile").
 has_need(consumerExample, need_DataCannotBeRemoved).
@@ -30,59 +56,59 @@ title(processContext1, "Service operation under Agreement1").
 
 % The ODRL policy is kept as a graph value.  The clauses below are not asserted
 % globally as permission/2, prohibition/2, action/2, ... facts; they are
-% triple/3 terms inside policyGraph1.  The local projection predicates below read from the
+% binary terms inside policyGraph1.  The local projection predicates below read from the
 % formula when evaluating this agreement.  This mirrors N3 quoted formulae and avoids
-% making policy triples true outside the formula that contains them.
+% making policy statements true outside the formula that contains them.
 policy_graph(policyGraph1, (
-  triple(policy1, rdf_type, odrl_Policy),
-  triple(policy1, odrl_appliesTo, agreement1),
-  triple(policy1, odrl_permission, permDeleteAccount),
-  triple(policy1, odrl_permission, permChangeTerms),
-  triple(policy1, odrl_permission, permShareData),
-  triple(policy1, odrl_prohibition, prohibitExportData),
+  type(policy1, odrl_Policy),
+  odrl_appliesTo(policy1, agreement1),
+  odrl_permission(policy1, permDeleteAccount),
+  odrl_permission(policy1, permChangeTerms),
+  odrl_permission(policy1, permShareData),
+  odrl_prohibition(policy1, prohibitExportData),
 
-  triple(permDeleteAccount, odrl_assigner, provider),
-  triple(permDeleteAccount, odrl_assignee, consumerExample),
-  triple(permDeleteAccount, odrl_action, tosl_removeAccount),
-  triple(permDeleteAccount, odrl_target, userAccount),
-  triple(permDeleteAccount, clause, clauseC1),
+  odrl_assigner(permDeleteAccount, provider),
+  odrl_assignee(permDeleteAccount, consumerExample),
+  odrl_action(permDeleteAccount, tosl_removeAccount),
+  odrl_target(permDeleteAccount, userAccount),
+  clause(permDeleteAccount, clauseC1),
 
-  triple(permChangeTerms, odrl_assigner, provider),
-  triple(permChangeTerms, odrl_assignee, consumerExample),
-  triple(permChangeTerms, odrl_action, tosl_changeTerms),
-  triple(permChangeTerms, odrl_target, agreementText),
-  triple(permChangeTerms, clause, clauseC2),
-  triple(permChangeTerms, odrl_duty, odrl_inform),
-  triple(permChangeTerms, noticeDays, 3),
+  odrl_assigner(permChangeTerms, provider),
+  odrl_assignee(permChangeTerms, consumerExample),
+  odrl_action(permChangeTerms, tosl_changeTerms),
+  odrl_target(permChangeTerms, agreementText),
+  clause(permChangeTerms, clauseC2),
+  odrl_duty(permChangeTerms, odrl_inform),
+  noticeDays(permChangeTerms, 3),
 
-  triple(permShareData, odrl_assigner, provider),
-  triple(permShareData, odrl_assignee, consumerExample),
-  triple(permShareData, odrl_action, tosl_shareData),
-  triple(permShareData, odrl_target, userData),
-  triple(permShareData, clause, clauseC3),
+  odrl_assigner(permShareData, provider),
+  odrl_assignee(permShareData, consumerExample),
+  odrl_action(permShareData, tosl_shareData),
+  odrl_target(permShareData, userData),
+  clause(permShareData, clauseC3),
 
-  triple(prohibitExportData, odrl_assigner, provider),
-  triple(prohibitExportData, odrl_assignee, consumerExample),
-  triple(prohibitExportData, odrl_action, tosl_exportData),
-  triple(prohibitExportData, odrl_target, userData),
-  triple(prohibitExportData, clause, clauseC4)
+  odrl_assigner(prohibitExportData, provider),
+  odrl_assignee(prohibitExportData, consumerExample),
+  odrl_action(prohibitExportData, tosl_exportData),
+  odrl_target(prohibitExportData, userData),
+  clause(prohibitExportData, clauseC4)
 )).
 
-policy_triple(Subject, Predicate, Object) :-
+policy_statement(Subject, Predicate, Object) :-
   policy_graph(_Graph, Formula),
-  formula_triple(Formula, Subject, Predicate, Object).
+  formula_binary(Formula, Subject, Predicate, Object).
 
-policy(Policy, Agreement) :- policy_triple(Policy, odrl_appliesTo, Agreement).
-permission(Policy, Rule) :- policy_triple(Policy, odrl_permission, Rule).
-prohibition(Policy, Rule) :- policy_triple(Policy, odrl_prohibition, Rule).
-assigner(Rule, Party) :- policy_triple(Rule, odrl_assigner, Party).
-assignee(Rule, Party) :- policy_triple(Rule, odrl_assignee, Party).
-action(Rule, Action) :- policy_triple(Rule, odrl_action, Action).
-target(Rule, Target) :- policy_triple(Rule, odrl_target, Target).
-clause(Rule, Clause) :- policy_triple(Rule, clause, Clause).
-duty(Rule, Duty) :- policy_triple(Rule, odrl_duty, Duty).
-notice_days(Rule, Days) :- policy_triple(Rule, noticeDays, Days).
-consent_constraint(Rule, Value) :- policy_triple(Rule, consentConstraint, Value).
+policy(Policy, Agreement) :- policy_statement(Policy, odrl_appliesTo, Agreement).
+permission(Policy, Rule) :- policy_statement(Policy, odrl_permission, Rule).
+prohibition(Policy, Rule) :- policy_statement(Policy, odrl_prohibition, Rule).
+assigner(Rule, Party) :- policy_statement(Rule, odrl_assigner, Party).
+assignee(Rule, Party) :- policy_statement(Rule, odrl_assignee, Party).
+action(Rule, Action) :- policy_statement(Rule, odrl_action, Action).
+target(Rule, Target) :- policy_statement(Rule, odrl_target, Target).
+clause(Rule, Clause) :- policy_statement(Rule, clause, Clause).
+duty(Rule, Duty) :- policy_statement(Rule, odrl_duty, Duty).
+notice_days(Rule, Days) :- policy_statement(Rule, noticeDays, Days).
+consent_constraint(Rule, Value) :- policy_statement(Rule, consentConstraint, Value).
 
 clause_id(clauseC1, "C1").
 clause_text(clauseC1, "Provider may remove the user account (and associated data) at its discretion.").
@@ -254,39 +280,38 @@ ranked_before(Left, Right) :-
   lt(LeftClause, RightClause).
 
 % Output layer.
-triple(agreement1, dct_title, Title) :- title(agreement1, Title).
-triple(consumerExample, dct_title, Title) :- title(consumerExample, Title).
-triple(processContext1, dct_title, Title) :- title(processContext1, Title).
-triple(processContext1, dpv_hasRisk, Risk) :- risk(Risk).
-triple(policyGraph1, rdf_type, policyGraph).
-triple(agreement1, policyGraph, policyGraph1).
-triple(policyGraph1, contains, triple(Subject, Predicate, Object)) :-
-  policy_triple(Subject, Predicate, Object).
-triple(report, source, agreement1).
-triple(report, profile, consumerExample).
-triple(report, firstRisk, Risk) :- risk(Risk), not(ranked_before(_Other, Risk)).
-triple(riskRanking, before, pair(Left, Right)) :- ranked_before(Left, Right).
+dct_title(agreement1, Title) :- title(agreement1, Title).
+dct_title(consumerExample, Title) :- title(consumerExample, Title).
+dct_title(processContext1, Title) :- title(processContext1, Title).
+dpv_hasRisk(processContext1, Risk) :- risk(Risk).
+type(policyGraph1, policyGraph).
+policyGraph(agreement1, policyGraph1).
+contains(policyGraph1, statement(Subject, Predicate, Object)) :-
+  policy_statement(Subject, Predicate, Object).
+source(report, agreement1).
+profile(report, consumerExample).
+firstRisk(report, Risk) :- risk(Risk), not(ranked_before(_Other, Risk)).
+before(riskRanking, pair(Left, Right)) :- ranked_before(Left, Right).
 
-triple(Risk, rdf_type, dpv_Risk) :- risk(Risk).
-triple(Risk, rdf_type, Class) :- risk(Risk), risk_class(Risk, Class).
-triple(Risk, dct_source, Source) :- risk(Risk), risk_source(Risk, Src), risk_source_of(Src, Source).
-triple(Risk, risk_hasRiskSource, Src) :- risk(Risk), risk_source(Risk, Src).
-triple(Src, rdf_type, risk_RiskSource) :- risk_source(_Risk, Src).
-triple(Src, rdf_type, Class) :- risk_source_class(Src, Class).
-triple(Src, dct_source, Source) :- risk_source_of(Src, Source).
-triple(Risk, dpv_hasConsequence, Consequence) :- risk(Risk), risk_consequence(Risk, Consequence).
-triple(Risk, dpv_hasImpact, Impact) :- risk(Risk), risk_impact(Risk, Impact).
-triple(Risk, aboutClause, Clause) :- risk(Risk), about_clause(Risk, Clause).
-triple(Risk, violatesNeed, Need) :- risk(Risk), violates_need(Risk, Need).
-triple(Risk, scoreRaw, Raw) :- score_raw(Risk, Raw).
-triple(Risk, score, Score) :- score(Risk, Score).
-triple(Risk, dpv_hasSeverity, Severity) :- severity(Risk, Severity).
-triple(Risk, dpv_hasRiskLevel, Level) :- risk_level(Risk, Level).
-triple(Risk, dct_description, Text) :- risk(Risk), risk_description(Risk, Text).
-triple(Risk, reportKey, Key) :- report_key(Risk, Key).
-triple(Risk, dpv_isMitigatedByMeasure, Measure) :- mitigation(Risk, Measure, _Text).
-triple(Measure, rdf_type, dpv_RiskMitigationMeasure) :- mitigation(_Risk, Measure, _Text).
-triple(Measure, dpv_mitigatesRisk, Risk) :- mitigation(Risk, Measure, _Text).
-triple(Measure, dct_description, Text) :- mitigation(_Risk, Measure, Text).
-triple(Clause, clauseId, Id) :- clause_id(Clause, Id).
-triple(Clause, text, Text) :- clause_text(Clause, Text).
+type(Risk, dpv_Risk) :- risk(Risk).
+type(Risk, Class) :- risk(Risk), risk_class(Risk, Class).
+dct_source(Risk, Source) :- risk(Risk), risk_source(Risk, Src), risk_source_of(Src, Source).
+risk_hasRiskSource(Risk, Src) :- risk(Risk), risk_source(Risk, Src).
+type(Src, risk_RiskSource) :- risk_source(_Risk, Src).
+type(Src, Class) :- risk_source_class(Src, Class).
+dct_source(Src, Source) :- risk_source_of(Src, Source).
+dpv_hasConsequence(Risk, Consequence) :- risk(Risk), risk_consequence(Risk, Consequence).
+dpv_hasImpact(Risk, Impact) :- risk(Risk), risk_impact(Risk, Impact).
+aboutClause(Risk, Clause) :- risk(Risk), about_clause(Risk, Clause).
+violatesNeed(Risk, Need) :- risk(Risk), violates_need(Risk, Need).
+scoreRaw(Risk, Raw) :- score_raw(Risk, Raw).
+dpv_hasSeverity(Risk, Severity) :- severity(Risk, Severity).
+dpv_hasRiskLevel(Risk, Level) :- risk_level(Risk, Level).
+dct_description(Risk, Text) :- risk(Risk), risk_description(Risk, Text).
+reportKey(Risk, Key) :- report_key(Risk, Key).
+dpv_isMitigatedByMeasure(Risk, Measure) :- mitigation(Risk, Measure, _Text).
+type(Measure, dpv_RiskMitigationMeasure) :- mitigation(_Risk, Measure, _Text).
+dpv_mitigatesRisk(Measure, Risk) :- mitigation(Risk, Measure, _Text).
+dct_description(Measure, Text) :- mitigation(_Risk, Measure, Text).
+clauseId(Clause, Id) :- clause_id(Clause, Id).
+text(Clause, Text) :- clause_text(Clause, Text).

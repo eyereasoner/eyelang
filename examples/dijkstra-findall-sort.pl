@@ -1,5 +1,9 @@
 % Eyelet-inspired Dijkstra example using findall/3 and sort/2.
-% Adapted to Eyelog's explicit built-ins and triple/3 report style.
+% Adapted to Eyelog's explicit built-ins and relation report style.
+
+materialize(shortestPath, 2).
+materialize(cost, 2).
+materialize(reason, 2).
 
 edge(a, b, 4).
 edge(a, c, 2).
@@ -25,10 +29,10 @@ dijkstra_queue([[Cost, Node | Path] | Queue], Goal, Visited, ResultPath, ResultC
   sort(NewQueue, SortedQueue),
   dijkstra_queue(SortedQueue, Goal, [Node | Visited], ResultPath, ResultCost).
 
-triple(dijkstra_findall_sort, shortestPath, Path) :-
+shortestPath(dijkstra_findall_sort, Path) :-
   once(dijkstra(a, f, Path, _Cost)).
 
-triple(dijkstra_findall_sort, cost, Cost) :-
+cost(dijkstra_findall_sort, Cost) :-
   once(dijkstra(a, f, _Path, Cost)).
 
-triple(dijkstra_findall_sort, reason, "frontier candidates are collected with findall and ordered with sort").
+reason(dijkstra_findall_sort, "frontier candidates are collected with findall and ordered with sort").

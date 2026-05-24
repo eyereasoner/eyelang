@@ -1,22 +1,21 @@
-triple(balanced_loam, availableN_kg_ha, 110.0).
-triple(balanced_loam, deficitN_kg_ha, 0.0).
-triple(balanced_loam, leachingIndex, 0.0).
-triple(balanced_loam, status, balanced).
-triple(balanced_loam, surplusN_kg_ha, 0.0).
-triple(clay_surplus, availableN_kg_ha, 147.20000000000002).
-triple(clay_surplus, deficitN_kg_ha, 0.0).
-triple(clay_surplus, leachingIndex, 2.1760000000000015).
-triple(clay_surplus, status, over_supplied).
-triple(clay_surplus, surplusN_kg_ha, 27.200000000000017).
-triple(field_nitrogen_balance, highestLeachingRisk, sandy_high).
-triple(field_nitrogen_balance, reason, "available nitrogen is total input retained after losses compared with crop demand").
-triple(low_input, availableN_kg_ha, 58.5).
-triple(low_input, deficitN_kg_ha, 51.5).
-triple(low_input, leachingIndex, 0.0).
-triple(low_input, status, under_supplied).
-triple(low_input, surplusN_kg_ha, 0.0).
-triple(sandy_high, availableN_kg_ha, 117.0).
-triple(sandy_high, deficitN_kg_ha, 0.0).
-triple(sandy_high, leachingIndex, 4.1999999999999993).
-triple(sandy_high, status, over_supplied).
-triple(sandy_high, surplusN_kg_ha, 12.0).
+availableN_kg_ha(balanced_loam, 110.0).
+availableN_kg_ha(clay_surplus, 147.20000000000002).
+availableN_kg_ha(low_input, 58.5).
+availableN_kg_ha(sandy_high, 117.0).
+deficitN_kg_ha(balanced_loam, 0.0).
+deficitN_kg_ha(clay_surplus, 0.0).
+deficitN_kg_ha(low_input, 51.5).
+deficitN_kg_ha(sandy_high, 0.0).
+highestLeachingRisk(field_nitrogen_balance, sandy_high).
+leachingIndex(balanced_loam, 0.0).
+leachingIndex(clay_surplus, 2.1760000000000015).
+leachingIndex(low_input, 0.0).
+leachingIndex(sandy_high, 4.1999999999999993).
+status(balanced_loam, balanced).
+status(clay_surplus, over_supplied).
+status(low_input, under_supplied).
+status(sandy_high, over_supplied).
+surplusN_kg_ha(balanced_loam, 0.0).
+surplusN_kg_ha(clay_surplus, 27.200000000000017).
+surplusN_kg_ha(low_input, 0.0).
+surplusN_kg_ha(sandy_high, 12.0).

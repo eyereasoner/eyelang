@@ -5,6 +5,10 @@
 % The solver then chooses one candidate per row and checks the exact-cover
 % constraints for all columns and 3x3 boxes.
 
+materialize(status, 2).
+materialize(solution, 2).
+materialize(firstRow, 2).
+
 cover9(Cells) :-
   sort(Cells, [1, 2, 3, 4, 5, 6, 7, 8, 9]).
 
@@ -96,11 +100,11 @@ sudoku9([
   cover9([G4, G5, G6, H4, H5, H6, I4, I5, I6]),
   cover9([G7, G8, G9, H7, H8, H9, I7, I8, I9]).
 
-triple(exact_cover_sudoku, status, solved) :-
+status(exact_cover_sudoku, solved) :-
   once(sudoku9(_Grid)).
 
-triple(exact_cover_sudoku, solution, Grid) :-
+solution(exact_cover_sudoku, Grid) :-
   once(sudoku9(Grid)).
 
-triple(exact_cover_sudoku, firstRow, Row) :-
+firstRow(exact_cover_sudoku, Row) :-
   once(sudoku9([Row|_Rows])).

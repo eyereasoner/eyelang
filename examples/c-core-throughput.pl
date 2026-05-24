@@ -1,9 +1,9 @@
 % C-core throughput demonstration.
 %
-% This intentionally small program materializes many generated triples from a
+% This intentionally small program materializes many generated relations from a
 % compact rule set. It exercises the hot path that makes Eyelog a good fit for
 % C: range generation, atom construction, integer arithmetic, unification,
-% duplicate suppression, and formatted RDF-shaped output.
+% duplicate suppression, and formatted relation-style output.
 %
 % Run a local timing check with:
 %
@@ -14,6 +14,18 @@
 % The default scale is test-friendly. Increase throughput_rows/1 to 100000 for
 % a larger local run.
 
+materialize(type, 2).
+materialize(ordinal, 2).
+materialize(square, 2).
+materialize(checksum97, 2).
+materialize(rows, 2).
+materialize(relationsPerRow, 2).
+materialize(expectedMaterializedRelations, 2).
+materialize(firstRow, 2).
+materialize(lastRow, 2).
+materialize(message, 2).
+materialize(is, 2).
+
 throughput_rows(10000).
 
 generated_row(N, Id) :-
@@ -21,40 +33,40 @@ generated_row(N, Id) :-
   between(1, Max, N),
   atom_concat(row, N, Id).
 
-triple(Id, rdf_type, generatedRow) :-
+type(Id, generatedRow) :-
   generated_row(_, Id).
 
-triple(Id, ordinal, N) :-
+ordinal(Id, N) :-
   generated_row(N, Id).
 
-triple(Id, square, Square) :-
+square(Id, Square) :-
   generated_row(N, Id),
   mul(N, N, Square).
 
-triple(Id, checksum97, Checksum) :-
+checksum97(Id, Checksum) :-
   generated_row(N, Id),
   mul(N, N, Square),
   mod(Square, 97, Checksum).
 
-triple(report, rows, Max) :-
+rows(report, Max) :-
   throughput_rows(Max).
 
-triple(report, triplesPerRow, 4).
+relationsPerRow(report, 4).
 
-triple(report, expectedMaterializedTriples, Total) :-
+expectedMaterializedRelations(report, Total) :-
   throughput_rows(Max),
-  mul(Max, 4, RowTriples),
-  add(RowTriples, 7, Total).
+  mul(Max, 4, RowRelations),
+  add(RowRelations, 7, Total).
 
-triple(report, firstRow, row1).
+firstRow(report, row1).
 
-triple(report, lastRow, Last) :-
+lastRow(report, Last) :-
   throughput_rows(Max),
   atom_concat(row, Max, Last).
 
-triple(report, message, "Tiny source, many derived triples: this is the C core hot path.").
+message(report, "Tiny source, many derived relations: this is the C core hot path.").
 
-triple(test, is, true) :-
+is(test, true) :-
   throughput_rows(Max),
   atom_concat(row, Max, Last),
-  triple(Last, checksum97, _Checksum).
+  checksum97(Last, _Checksum).

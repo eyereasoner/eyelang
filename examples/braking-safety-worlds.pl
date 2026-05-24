@@ -3,6 +3,11 @@
 % Four simplified models classify the same road scenarios. The example is not a
 % real safety calculator; it demonstrates rule-level model comparison.
 
+materialize(safeInWorld, 2).
+materialize(riskyInWorld, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 scenario(city_dry, 13.9, 0.8, 40.0).
 scenario(highway_dry_short_gap, 27.8, 0.8, 60.0).
 scenario(city_wet, 13.9, 0.4, 40.0).
@@ -55,7 +60,7 @@ pattern_matches(report) :-
   safe_in_world(city_wet, w0), safe_in_world(city_wet, w1), safe_in_world(city_wet, w2), risky_in_world(city_wet, w3),
   risky_in_world(city_ice, w0), risky_in_world(city_ice, w1), risky_in_world(city_ice, w3), safe_in_world(city_ice, w2).
 
-triple(Scenario, safeInWorld, World) :- safe_in_world(Scenario, World).
-triple(Scenario, riskyInWorld, World) :- risky_in_world(Scenario, World).
-triple(braking_safety_worlds, status, expected_world_pattern) :- pattern_matches(report).
-triple(braking_safety_worlds, reason, "simplified and naive worlds can be optimistic while the cautious world tightens the reference model") :- pattern_matches(report).
+safeInWorld(Scenario, World) :- safe_in_world(Scenario, World).
+riskyInWorld(Scenario, World) :- risky_in_world(Scenario, World).
+status(braking_safety_worlds, expected_world_pattern) :- pattern_matches(report).
+reason(braking_safety_worlds, "simplified and naive worlds can be optimistic while the cautious world tightens the reference model") :- pattern_matches(report).

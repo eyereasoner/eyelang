@@ -2,10 +2,9 @@
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1242549108-blue.svg)](https://doi.org/10.5281/zenodo.20342331)
 
-`eyelog` is a C Prolog-style rule engine with an RDF bridge through `triple(S, P, O)`.
-It materializes distinct `triple/3` consequences by Horn-clause search, with duplicate suppression and guarded recursion for common cyclic closures. The CLI can also print `--explain` proof trees for query answers or materialized triples.
+`eyelog` is a small C rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search.
 
-Its inherent potential comes from the small, general Horn-clause core: unification, goal-directed proof search, and `triple/3` materialization provide a compact foundation on which RDF reasoning, graph algorithms, transformations, and higher-level rule languages can be built. The theoretical underpinning is deliberately simple and well understood, making `eyelog` a lightweight logic kernel rather than a large specialized reasoner.
+Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)` and prints them as Prolog facts. Source facts are not repeated. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
 
 Current version: see [`VERSION`](VERSION).
 
@@ -19,32 +18,44 @@ Build the native command-line executable:
 make cli
 ```
 
-Run examples, queries, multiple inputs, stdin, or a URL:
+Run examples, explicit queries, multiple inputs, stdin, or a URL:
 
 ```sh
-bin/eyelog examples/delfour.pl
-bin/eyelog --query 'triple(pat, ancestor, X)' examples/ancestor.pl
+bin/eyelog examples/ancestor.pl
+bin/eyelog --query 'ancestor(pat, X)' examples/ancestor.pl
 bin/eyelog --explain examples/socrates.pl
-bin/eyelog --explain --query 'type(S, mortal)' examples/socrates.pl
+bin/eyelog --explain --query 'type(socrates, mortal)' examples/socrates.pl
 bin/eyelog facts.pl rules.pl
-printf 'triple(stdin, works, true).\n' | bin/eyelog -
+printf 'works(stdin, true) :- eq(ok, ok).
+' | bin/eyelog -
 bin/eyelog https://raw.githubusercontent.com/eyereasoner/eyelog/refs/heads/main/examples/ancestor.pl
 ```
 
-The default `make` / `make all` builds both the native CLI and browser assets, so it also requires Emscripten's `emcc`.
+The default `make` / `make all` builds both the native CLI and browser assets, so it also requires Emscripten's `emcc`. Use `make cli` when you only need the native executable.
 
-## Browser playground
+## Small example
 
-Build and serve the local playground:
+```prolog
+parent(pat, jan).
+parent(jan, emma).
 
-```sh
-make browser
-make serve
+ancestor(X, Y) :-
+  parent(X, Y).
+
+ancestor(X, Z) :-
+  parent(X, Y),
+  ancestor(Y, Z).
 ```
 
-Then open <http://localhost:8000/playground.html>.
+Running `bin/eyelog file.pl` prints only new derived binary facts:
+
+```prolog
+ancestor(jan, emma).
+ancestor(pat, emma).
+ancestor(pat, jan).
+```
 
 ## Read further
 
 Read the [language specification](SPEC.md) for the normative Prolog-like language definition.
-Read further in the [HANDBOOK](HANDBOOK.md) for examples, browser use, indexing, tests, release workflow, and GitHub Pages deployment.
+Read the [handbook](HANDBOOK.md) for examples, browser use, tests, release workflow, performance notes, and the relation-style output model.

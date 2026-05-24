@@ -1,154 +1,154 @@
-triple(a, before, b).
-triple(a, before, i).
-triple(a, before, j).
-triple(a, before, k).
-triple(a, duration, 2).
-triple(a, during, h).
-triple(a, end, 12).
-triple(a, equals, a).
-triple(a, equals, e).
-triple(a, finishedBy, g).
-triple(a, meets, c).
-triple(a, overlaps, d).
-triple(a, start, 10).
-triple(a, startedBy, f).
-triple(b, after, a).
-triple(b, after, e).
-triple(b, after, f).
-triple(b, after, g).
-triple(b, before, i).
-triple(b, duration, 2).
-triple(b, during, h).
-triple(b, end, 15).
-triple(b, equals, b).
-triple(b, meets, j).
-triple(b, metBy, d).
-triple(b, overlappedBy, c).
-triple(b, start, 13).
-triple(b, startedBy, k).
-triple(c, after, f).
-triple(c, before, i).
-triple(c, before, j).
-triple(c, duration, 2).
-triple(c, during, h).
-triple(c, end, 14).
-triple(c, equals, c).
-triple(c, finishedBy, k).
-triple(c, metBy, a).
-triple(c, metBy, e).
-triple(c, metBy, g).
-triple(c, overlappedBy, d).
-triple(c, overlaps, b).
-triple(c, start, 12).
-triple(d, before, i).
-triple(d, before, j).
-triple(d, duration, 2).
-triple(d, during, h).
-triple(d, end, 13).
-triple(d, equals, d).
-triple(d, meets, b).
-triple(d, meets, k).
-triple(d, metBy, f).
-triple(d, overlappedBy, a).
-triple(d, overlappedBy, e).
-triple(d, overlaps, c).
-triple(d, start, 11).
-triple(d, startedBy, g).
-triple(e, before, b).
-triple(e, before, i).
-triple(e, before, j).
-triple(e, before, k).
-triple(e, duration, 2).
-triple(e, during, h).
-triple(e, end, 12).
-triple(e, equals, a).
-triple(e, equals, e).
-triple(e, finishedBy, g).
-triple(e, meets, c).
-triple(e, overlaps, d).
-triple(e, start, 10).
-triple(e, startedBy, f).
-triple(f, before, b).
-triple(f, before, c).
-triple(f, before, i).
-triple(f, before, j).
-triple(f, before, k).
-triple(f, duration, 1).
-triple(f, during, h).
-triple(f, end, 11).
-triple(f, equals, f).
-triple(f, meets, d).
-triple(f, meets, g).
-triple(f, start, 10).
-triple(f, starts, a).
-triple(f, starts, e).
-triple(g, before, b).
-triple(g, before, i).
-triple(g, before, j).
-triple(g, before, k).
-triple(g, duration, 1).
-triple(g, during, h).
-triple(g, end, 12).
-triple(g, equals, g).
-triple(g, finishes, a).
-triple(g, finishes, e).
-triple(g, meets, c).
-triple(g, metBy, f).
-triple(g, start, 11).
-triple(g, starts, d).
-triple(h, contains, a).
-triple(h, contains, b).
-triple(h, contains, c).
-triple(h, contains, d).
-triple(h, contains, e).
-triple(h, contains, f).
-triple(h, contains, g).
-triple(h, contains, k).
-triple(h, duration, 7).
-triple(h, end, 16).
-triple(h, equals, h).
-triple(h, finishedBy, j).
-triple(h, meets, i).
-triple(h, start, 9).
-triple(i, after, a).
-triple(i, after, b).
-triple(i, after, c).
-triple(i, after, d).
-triple(i, after, e).
-triple(i, after, f).
-triple(i, after, g).
-triple(i, after, k).
-triple(i, duration, 2).
-triple(i, end, 18).
-triple(i, equals, i).
-triple(i, metBy, h).
-triple(i, metBy, j).
-triple(i, start, 16).
-triple(j, after, a).
-triple(j, after, c).
-triple(j, after, d).
-triple(j, after, e).
-triple(j, after, f).
-triple(j, after, g).
-triple(j, after, k).
-triple(j, duration, 1).
-triple(j, end, 16).
-triple(j, equals, j).
-triple(j, finishes, h).
-triple(j, meets, i).
-triple(j, metBy, b).
-triple(j, start, 15).
-triple(k, after, a).
-triple(k, after, e).
-triple(k, after, f).
-triple(k, after, g).
-triple(k, before, i).
-triple(k, before, j).
-triple(k, duration, 1).
-triple(k, during, h).
-triple(k, end, 14).
-triple(k, equals, k).
-triple(k, finishes, c).
-triple(k, metBy, d).
-triple(k, start, 13).
-triple(k, starts, b).
+duration(a, 2).
+duration(b, 2).
+duration(c, 2).
+duration(d, 2).
+duration(e, 2).
+duration(f, 1).
+duration(g, 1).
+duration(h, 7).
+duration(i, 2).
+duration(j, 1).
+duration(k, 1).
+end(a, 12).
+end(b, 15).
+end(c, 14).
+end(d, 13).
+end(e, 12).
+end(f, 11).
+end(g, 12).
+end(h, 16).
+end(i, 18).
+end(j, 16).
+end(k, 14).
+start(a, 10).
+start(b, 13).
+start(c, 12).
+start(d, 11).
+start(e, 10).
+start(f, 10).
+start(g, 11).
+start(h, 9).
+start(i, 16).
+start(j, 15).
+start(k, 13).
+statement(a, before, b).
+statement(a, before, i).
+statement(a, before, j).
+statement(a, before, k).
+statement(a, during, h).
+statement(a, equals, a).
+statement(a, equals, e).
+statement(a, finishedBy, g).
+statement(a, meets, c).
+statement(a, overlaps, d).
+statement(a, startedBy, f).
+statement(b, after, a).
+statement(b, after, e).
+statement(b, after, f).
+statement(b, after, g).
+statement(b, before, i).
+statement(b, during, h).
+statement(b, equals, b).
+statement(b, meets, j).
+statement(b, metBy, d).
+statement(b, overlappedBy, c).
+statement(b, startedBy, k).
+statement(c, after, f).
+statement(c, before, i).
+statement(c, before, j).
+statement(c, during, h).
+statement(c, equals, c).
+statement(c, finishedBy, k).
+statement(c, metBy, a).
+statement(c, metBy, e).
+statement(c, metBy, g).
+statement(c, overlappedBy, d).
+statement(c, overlaps, b).
+statement(d, before, i).
+statement(d, before, j).
+statement(d, during, h).
+statement(d, equals, d).
+statement(d, meets, b).
+statement(d, meets, k).
+statement(d, metBy, f).
+statement(d, overlappedBy, a).
+statement(d, overlappedBy, e).
+statement(d, overlaps, c).
+statement(d, startedBy, g).
+statement(e, before, b).
+statement(e, before, i).
+statement(e, before, j).
+statement(e, before, k).
+statement(e, during, h).
+statement(e, equals, a).
+statement(e, equals, e).
+statement(e, finishedBy, g).
+statement(e, meets, c).
+statement(e, overlaps, d).
+statement(e, startedBy, f).
+statement(f, before, b).
+statement(f, before, c).
+statement(f, before, i).
+statement(f, before, j).
+statement(f, before, k).
+statement(f, during, h).
+statement(f, equals, f).
+statement(f, meets, d).
+statement(f, meets, g).
+statement(f, starts, a).
+statement(f, starts, e).
+statement(g, before, b).
+statement(g, before, i).
+statement(g, before, j).
+statement(g, before, k).
+statement(g, during, h).
+statement(g, equals, g).
+statement(g, finishes, a).
+statement(g, finishes, e).
+statement(g, meets, c).
+statement(g, metBy, f).
+statement(g, starts, d).
+statement(h, contains, a).
+statement(h, contains, b).
+statement(h, contains, c).
+statement(h, contains, d).
+statement(h, contains, e).
+statement(h, contains, f).
+statement(h, contains, g).
+statement(h, contains, k).
+statement(h, equals, h).
+statement(h, finishedBy, j).
+statement(h, meets, i).
+statement(i, after, a).
+statement(i, after, b).
+statement(i, after, c).
+statement(i, after, d).
+statement(i, after, e).
+statement(i, after, f).
+statement(i, after, g).
+statement(i, after, k).
+statement(i, equals, i).
+statement(i, metBy, h).
+statement(i, metBy, j).
+statement(j, after, a).
+statement(j, after, c).
+statement(j, after, d).
+statement(j, after, e).
+statement(j, after, f).
+statement(j, after, g).
+statement(j, after, k).
+statement(j, equals, j).
+statement(j, finishes, h).
+statement(j, meets, i).
+statement(j, metBy, b).
+statement(k, after, a).
+statement(k, after, e).
+statement(k, after, f).
+statement(k, after, g).
+statement(k, before, i).
+statement(k, before, j).
+statement(k, during, h).
+statement(k, equals, k).
+statement(k, finishes, c).
+statement(k, metBy, d).
+statement(k, starts, b).

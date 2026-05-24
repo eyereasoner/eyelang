@@ -4,6 +4,10 @@
 % Cigarette).  The answer is the classic one: the Norwegian drinks water and the
 % Japanese owns the zebra.
 
+materialize(waterDrinker, 2).
+materialize(zebraOwner, 2).
+materialize(solved, 2).
+
 zebra(WaterDrinker, ZebraOwner) :-
   eq(Houses, [_, _, _, _, _]),
   first(Houses, house(_, norwegian, _, _, _)),
@@ -32,6 +36,6 @@ adjacent(A, B, List) :- next_to(B, A, List).
 next_to(X, Y, [X, Y|_]).
 next_to(X, Y, [_|Zs]) :- next_to(X, Y, Zs).
 
-triple(zebraPuzzle, waterDrinker, WaterDrinker) :- zebra(WaterDrinker, _ZebraOwner).
-triple(zebraPuzzle, zebraOwner, ZebraOwner) :- zebra(_WaterDrinker, ZebraOwner).
-triple(zebraPuzzle, solved, true) :- zebra(norwegian, japanese).
+waterDrinker(zebraPuzzle, WaterDrinker) :- zebra(WaterDrinker, _ZebraOwner).
+zebraOwner(zebraPuzzle, ZebraOwner) :- zebra(_WaterDrinker, ZebraOwner).
+solved(zebraPuzzle, true) :- zebra(norwegian, japanese).

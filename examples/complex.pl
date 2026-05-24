@@ -1,7 +1,9 @@
 % Complex numbers, adapted from Eyeling complex.n3.
 %
 % Complex values are represented as two-item lists [Real, Imaginary], matching
-% the pair-shaped RDF lists used by the Eyeling source.
+% the pair-shaped pair lists used by the Eyeling source.
+
+materialize(is, 2).
 
 pi(3.141592653589793).
 e(2.718281828459045).
@@ -100,13 +102,13 @@ complex_dial(X, Y, T, Tp) :-
   mul(Pi, 2, Z1),
   sub(Z1, T, Tp).
 
-triple(test, is, (
-  triple(input(exponentiation, [-1, 0], [0.5, 0]), complex_exponentiation, C1),
-  triple(input(exponentiation, [2.718281828459045, 0], [0, 3.141592653589793]), complex_exponentiation, C2),
-  triple(input(exponentiation, [0, 1], [0, 1]), complex_exponentiation, C3),
-  triple(input(exponentiation, [2.718281828459045, 0], [-1.57079632679, 0]), complex_exponentiation, C4),
-  triple(input(asin, [2, 0]), complex_asin, C5),
-  triple(input(acos, [2, 0]), complex_acos, C6)
+is(test, (
+  complex_exponentiation(input(exponentiation, [-1, 0], [0.5, 0]), C1),
+  complex_exponentiation(input(exponentiation, [2.718281828459045, 0], [0, 3.141592653589793]), C2),
+  complex_exponentiation(input(exponentiation, [0, 1], [0, 1]), C3),
+  complex_exponentiation(input(exponentiation, [2.718281828459045, 0], [-1.57079632679, 0]), C4),
+  complex_asin(input(asin, [2, 0]), C5),
+  complex_acos(input(acos, [2, 0]), C6)
 )) :-
   complex_exponentiation([-1, 0], [0.5, 0], C1),
   complex_exponentiation([2.718281828459045, 0], [0, 3.141592653589793], C2),

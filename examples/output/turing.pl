@@ -1,12 +1,12 @@
-triple(case1, addsOne, true).
-triple(case1, input, [1, 0, 1, 0, 0, 1]).
-triple(case1, output, [1, 0, 1, 0, 1, 0, #]).
-triple(case2, addsOne, true).
-triple(case2, input, [1, 0, 1, 1, 1, 1]).
-triple(case2, output, [1, 1, 0, 0, 0, 0, #]).
-triple(case3, addsOne, true).
-triple(case3, input, [1, 1, 1, 1, 1, 1]).
-triple(case3, output, [1, 0, 0, 0, 0, 0, 0, #]).
-triple(case4, addsOne, true).
-triple(case4, input, []).
-triple(case4, output, [1, #]).
+addsOne(case1, true).
+addsOne(case2, true).
+addsOne(case3, true).
+addsOne(case4, true).
+input(case1, [1, 0, 1, 0, 0, 1]).
+input(case2, [1, 0, 1, 1, 1, 1]).
+input(case3, [1, 1, 1, 1, 1, 1]).
+input(case4, []).
+output(case1, [1, 0, 1, 0, 1, 0, #]).
+output(case2, [1, 1, 0, 0, 0, 0, #]).
+output(case3, [1, 0, 0, 0, 0, 0, 0, #]).
+output(case4, [1, #]).

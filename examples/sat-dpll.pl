@@ -5,6 +5,13 @@
 % larger instance has eight variables and twelve clauses, so it is still small
 % enough for full model collection but no longer a toy four-variable search.
 
+materialize(status, 2).
+materialize(witness, 2).
+materialize(modelCount, 2).
+materialize(variableCount, 2).
+materialize(clauseCount, 2).
+materialize(reason, 2).
+
 problem(sat_instance,
   [a, b, c, d, e, f, g, h],
   [
@@ -50,22 +57,22 @@ model(Name, Assignment) :-
   assignment(Variables, Assignment),
   cnf_true(Clauses, Assignment).
 
-triple(sat_instance, status, satisfiable) :-
+status(sat_instance, satisfiable) :-
   once(model(sat_instance, _Assignment)).
 
-triple(sat_instance, witness, Assignment) :-
+witness(sat_instance, Assignment) :-
   once(model(sat_instance, Assignment)).
 
-triple(sat_instance, modelCount, Count) :-
+modelCount(sat_instance, Count) :-
   findall(Assignment, model(sat_instance, Assignment), Models),
   length(Models, Count).
 
-triple(sat_instance, variableCount, Count) :-
+variableCount(sat_instance, Count) :-
   problem(sat_instance, Variables, _Clauses),
   length(Variables, Count).
 
-triple(sat_instance, clauseCount, Count) :-
+clauseCount(sat_instance, Count) :-
   problem(sat_instance, _Variables, Clauses),
   length(Clauses, Count).
 
-triple(sat_instance, reason, "finite 8-variable CNF search succeeds without cut").
+reason(sat_instance, "finite 8-variable CNF search succeeds without cut").

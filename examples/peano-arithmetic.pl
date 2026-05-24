@@ -3,6 +3,8 @@
 % The EYE example defines add, multiply and factorial over Peano numerals.
 % Its query computes (1 * 2 + 3)! and emits the factorial of 5.
 
+materialize(factorial, 2).
+
 peano_add(A, 0, A).
 peano_add(A, s(B), s(C)) :-
   peano_add(A, B, C).
@@ -20,7 +22,7 @@ fac(s(A), B, C) :-
   peano_multiply(B, s(A), D),
   fac(A, D, C).
 
-triple(B, factorial, C) :-
+factorial(B, C) :-
   peano_multiply(s(0), s(s(0)), A),
   peano_add(A, s(s(s(0))), B),
   factorial(B, C).

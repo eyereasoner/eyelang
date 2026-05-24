@@ -1,6 +1,6 @@
-triple(campus_interval_17, batteryDispatch_kW, 240.0).
-triple(campus_interval_17, gridImport_kW, 110.0).
-triple(campus_interval_17, reason, "battery dispatch covers the deficit while preserving reserve and grid contract limits").
-triple(campus_interval_17, renewablePower_kW, 270.0).
-triple(campus_interval_17, reserveAfterDispatch_kW, 80.0).
-triple(campus_interval_17, status, stable_dispatch).
+batteryDispatch_kW(campus_interval_17, 240.0).
+gridImport_kW(campus_interval_17, 110.0).
+reason(campus_interval_17, "battery dispatch covers the deficit while preserving reserve and grid contract limits").
+renewablePower_kW(campus_interval_17, 270.0).
+reserveAfterDispatch_kW(campus_interval_17, 80.0).
+status(campus_interval_17, stable_dispatch).

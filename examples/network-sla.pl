@@ -3,6 +3,11 @@
 % The path latency is the sum of link delays plus jitter. The path is compliant
 % when the resulting end-to-end latency stays below the SLA limit.
 
+materialize(endToEndLatency_ms, 2).
+materialize(slaLimit_ms, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 path(edge_path, [link_a, link_b, link_c]).
 link_latency(link_a, 12.0).
 link_latency(link_b, 18.0).
@@ -27,14 +32,14 @@ sla_compliant(Path) :-
   sla(Path, maximum_latency_ms, Maximum),
   lt(Latency, Maximum).
 
-triple(Path, endToEndLatency_ms, Latency) :-
+endToEndLatency_ms(Path, Latency) :-
   end_to_end_latency(Path, Latency).
 
-triple(Path, slaLimit_ms, Maximum) :-
+slaLimit_ms(Path, Maximum) :-
   sla(Path, maximum_latency_ms, Maximum).
 
-triple(Path, status, sla_compliant) :-
+status(Path, sla_compliant) :-
   sla_compliant(Path).
 
-triple(Path, reason, "path latency including jitter is below the SLA limit") :-
+reason(Path, "path latency including jitter is below the SLA limit") :-
   sla_compliant(Path).

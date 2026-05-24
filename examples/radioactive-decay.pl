@@ -2,6 +2,12 @@
 %
 % Activity remaining after elapsed time is initial_activity * 0.5^(t/half_life).
 
+materialize(halfLivesElapsed, 2).
+materialize(remainingActivity_Bq, 2).
+materialize(decayedActivity_Bq, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 sample(iodine_sample, initial_activity_bq, 80.0).
 sample(iodine_sample, half_life_h, 8.0).
 sample(iodine_sample, elapsed_h, 16.0).
@@ -31,17 +37,17 @@ low_activity(Sample) :-
   threshold(Sample, low_activity_bq, Limit),
   lt(Remaining, Limit).
 
-triple(Sample, halfLivesElapsed, Count) :-
+halfLivesElapsed(Sample, Count) :-
   half_lives(Sample, Count).
 
-triple(Sample, remainingActivity_Bq, Remaining) :-
+remainingActivity_Bq(Sample, Remaining) :-
   remaining_activity(Sample, Remaining).
 
-triple(Sample, decayedActivity_Bq, Decayed) :-
+decayedActivity_Bq(Sample, Decayed) :-
   decayed_activity(Sample, Decayed).
 
-triple(Sample, status, low_activity) :-
+status(Sample, low_activity) :-
   low_activity(Sample).
 
-triple(Sample, reason, "two half-lives leave one quarter of the initial activity") :-
+reason(Sample, "two half-lives leave one quarter of the initial activity") :-
   low_activity(Sample).

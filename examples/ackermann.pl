@@ -2,6 +2,8 @@
 % The two-argument entry point follows the Eyeling encoding:
 %   ackermann(X, Y) = hyper(X, Y + 3, 2) - 3.
 
+materialize(ackermann, 2).
+
 ackermann(X, Y, A) :-
   add(Y, 3, B),
   hyper(X, B, 2, C),
@@ -36,6 +38,6 @@ ack_case(4, 1).
 ack_case(4, 2).
 ack_case(5, 0).
 
-triple([X, Y], ackermann, A) :-
+ackermann([X, Y], A) :-
   ack_case(X, Y),
   ackermann(X, Y, A).

@@ -4,6 +4,11 @@
 % Each case derives gcd(a,b), coefficients s,t, and validation checks for
 % a*s + b*t = gcd(a,b) and divisibility.
 
+materialize(gcd, 2).
+materialize(bezoutCoefficients, 2).
+materialize(check, 2).
+materialize(status, 2).
+
 case(c1, 48, 18).
 case(c2, 101, 462).
 case(c3, 0, 5).
@@ -58,9 +63,9 @@ nonnegative_ok(Case) :-
   answer(Case, Gcd, S, T),
   ge(Gcd, 0).
 
-triple(Case, gcd, Gcd) :- answer(Case, Gcd, S, T).
-triple(Case, bezoutCoefficients, [S, T]) :- answer(Case, Gcd, S, T).
-triple(Case, check, bezout_identity) :- bezout_ok(Case).
-triple(Case, check, divides_inputs) :- divides_ok(Case).
-triple(Case, check, nonnegative_gcd) :- nonnegative_ok(Case).
-triple(Case, status, done) :- answer(Case, Gcd, S, T), bezout_ok(Case), divides_ok(Case), nonnegative_ok(Case).
+gcd(Case, Gcd) :- answer(Case, Gcd, S, T).
+bezoutCoefficients(Case, [S, T]) :- answer(Case, Gcd, S, T).
+check(Case, bezout_identity) :- bezout_ok(Case).
+check(Case, divides_inputs) :- divides_ok(Case).
+check(Case, nonnegative_gcd) :- nonnegative_ok(Case).
+status(Case, done) :- answer(Case, Gcd, S, T), bezout_ok(Case), divides_ok(Case), nonnegative_ok(Case).

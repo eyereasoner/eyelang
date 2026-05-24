@@ -1,6 +1,6 @@
-triple(eq1, discriminant, 1.0).
-triple(eq1, root, 2.0).
-triple(eq1, root, 3.0).
-triple(eq2, discriminant, 64.0).
-triple(eq2, root, -1.0).
-triple(eq2, root, 3.0).
+discriminant(eq1, 1.0).
+discriminant(eq2, 64.0).
+root(eq1, 2.0).
+root(eq1, 3.0).
+root(eq2, -1.0).
+root(eq2, 3.0).

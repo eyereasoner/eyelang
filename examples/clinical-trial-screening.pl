@@ -2,7 +2,11 @@
 %
 % The program models a small diabetes trial screening workflow. Helper
 % predicates keep the inclusion/exclusion logic separate from the concise
-% public `triple/3` report.
+% public relation report.
+
+materialize(type, 2).
+materialize(status, 2).
+materialize(reason, 2).
 
 patient(p001).
 patient(p002).
@@ -62,24 +66,24 @@ screen_fail(Patient) :- exclusion_renal(Patient).
 screen_fail(Patient) :- exclusion_pregnancy(Patient).
 screen_fail(Patient) :- patient(Patient), not(inclusion_hba1c(Patient)).
 
-triple(Patient, type, trial_candidate) :-
+type(Patient, trial_candidate) :-
   screen_eligible(Patient).
 
-triple(Patient, status, eligible) :-
+status(Patient, eligible) :-
   screen_eligible(Patient).
 
-triple(Patient, reason, "meets inclusion criteria and no listed exclusion") :-
+reason(Patient, "meets inclusion criteria and no listed exclusion") :-
   screen_eligible(Patient).
 
-triple(Patient, status, screen_fail) :-
+status(Patient, screen_fail) :-
   screen_fail(Patient).
 
-triple(Patient, reason, "eGFR below renal safety threshold") :-
+reason(Patient, "eGFR below renal safety threshold") :-
   exclusion_renal(Patient).
 
-triple(Patient, reason, "pregnancy exclusion applies") :-
+reason(Patient, "pregnancy exclusion applies") :-
   exclusion_pregnancy(Patient).
 
-triple(Patient, reason, "HbA1c is outside protocol range") :-
+reason(Patient, "HbA1c is outside protocol range") :-
   patient(Patient),
   not(inclusion_hba1c(Patient)).

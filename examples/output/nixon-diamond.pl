@@ -1,5 +1,5 @@
-triple(nixon, conflict, conflict(hawk, pacifist)).
-triple(nixon, conflict, conflict(pacifist, hawk)).
-triple(nixon, defaultSupports, hawk).
-triple(nixon, defaultSupports, pacifist).
-triple(nixon, status, conflicted_default_case).
+conflict(nixon, conflict(hawk, pacifist)).
+conflict(nixon, conflict(pacifist, hawk)).
+defaultSupports(nixon, hawk).
+defaultSupports(nixon, pacifist).
+status(nixon, conflicted_default_case).

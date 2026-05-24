@@ -3,6 +3,13 @@
 % The received word has one corrupted bit. Syndrome bits identify the bad
 % position, then the corrected codeword and decoded payload are derived.
 
+materialize(syndrome, 2).
+materialize(errorBit, 2).
+materialize(correctedCodeword, 2).
+materialize(decodedPayload, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 received_bit(packet1, 1, 1).
 received_bit(packet1, 2, 0).
 received_bit(packet1, 3, 1).
@@ -75,23 +82,21 @@ decoded_payload(Code, [D1, D2, D3, D4]) :-
   corrected_bit(Code, 6, D3),
   corrected_bit(Code, 7, D4).
 
-triple(Code, syndrome, Syndrome) :-
-  syndrome(Code, Syndrome).
 
-triple(Code, errorBit, Position) :-
+errorBit(Code, Position) :-
   syndrome(Code, Position),
   gt(Position, 0).
 
-triple(Code, correctedCodeword, Codeword) :-
+correctedCodeword(Code, Codeword) :-
   corrected_codeword(Code, Codeword).
 
-triple(Code, decodedPayload, Payload) :-
+decodedPayload(Code, Payload) :-
   decoded_payload(Code, Payload).
 
-triple(Code, status, single_bit_corrected) :-
+status(Code, single_bit_corrected) :-
   syndrome(Code, Position),
   gt(Position, 0).
 
-triple(Code, reason, "Hamming syndrome identifies the flipped bit position") :-
+reason(Code, "Hamming syndrome identifies the flipped bit position") :-
   syndrome(Code, Position),
   gt(Position, 0).

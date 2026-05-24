@@ -5,6 +5,9 @@
 % bank w or east bank e.  The recursive search keeps a visited list so Eyelog
 % explores the finite state space without looping.
 
+materialize(solution, 2).
+materialize(solved, 2).
+
 memoize(solve, 4).
 
 solution(Moves) :-
@@ -43,8 +46,8 @@ safe([Man, Wolf, Goat, Cabbage]) :-
 one_eq(X, X, _).
 one_eq(X, _, X).
 
-triple(puzzle, solution, Moves) :-
+solution(puzzle, Moves) :-
   solution(Moves).
 
-triple(puzzle, solved, true) :-
+solved(puzzle, true) :-
   solution(_Moves).

@@ -1,11 +1,14 @@
-% Basic recursive RDF bridge example.
-triple(pat, parent, jan).
-triple(jan, parent, lies).
-triple(lies, parent, emma).
+% Basic recursive relation example.
+materialize(parent, 2).
+materialize(ancestor, 2).
 
-triple(X, ancestor, Y) :-
-  triple(X, parent, Y).
+parent(pat, jan).
+parent(jan, lies).
+parent(lies, emma).
 
-triple(X, ancestor, Z) :-
-  triple(X, parent, Y),
-  triple(Y, ancestor, Z).
+ancestor(X, Y) :-
+  parent(X, Y).
+
+ancestor(X, Z) :-
+  parent(X, Y),
+  ancestor(Y, Z).

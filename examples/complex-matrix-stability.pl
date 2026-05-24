@@ -3,6 +3,12 @@
 % trace < 0 and determinant > 0.  A negative discriminant indicates a
 % complex-conjugate eigenvalue pair.
 
+materialize(trace, 2).
+materialize(determinant, 2).
+materialize(discriminant, 2).
+materialize(eigenShape, 2).
+materialize(status, 2).
+
 matrix(controller_loop, -0.7, 1.2, -0.4, -0.5).
 
 trace(Matrix, Trace) :-
@@ -32,8 +38,5 @@ complex_pair(Matrix) :-
   discriminant(Matrix, Disc),
   lt(Disc, 0).
 
-triple(Matrix, trace, T) :- trace(Matrix, T).
-triple(Matrix, determinant, D) :- determinant(Matrix, D).
-triple(Matrix, discriminant, D) :- discriminant(Matrix, D).
-triple(Matrix, eigenShape, complex_conjugate_pair) :- complex_pair(Matrix).
-triple(Matrix, status, asymptotically_stable) :- stable(Matrix).
+eigenShape(Matrix, complex_conjugate_pair) :- complex_pair(Matrix).
+status(Matrix, asymptotically_stable) :- stable(Matrix).

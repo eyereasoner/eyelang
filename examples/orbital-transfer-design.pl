@@ -4,6 +4,14 @@
 % mission constraints. Distances are in kilometres, speeds in kilometres per
 % second, and time in days.
 
+materialize(transferSemiMajorAxis_km, 2).
+materialize(departureDeltaV_km_s, 2).
+materialize(arrivalDeltaV_km_s, 2).
+materialize(totalDeltaV_km_s, 2).
+materialize(transferTime_days, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 mission(mars_hohmann, centralBodyMu_km3_s2, 132712440018.0).
 mission(mars_hohmann, departureOrbitRadius_km, 149597870.7).
 mission(mars_hohmann, arrivalOrbitRadius_km, 227939200.0).
@@ -80,23 +88,23 @@ within_delta_v_budget(Mission) :-
   mission(Mission, deltaVBudget_km_s, Budget),
   le(Total, Budget).
 
-triple(Mission, transferSemiMajorAxis_km, Axis) :-
+transferSemiMajorAxis_km(Mission, Axis) :-
   semi_major_axis(Mission, Axis).
 
-triple(Mission, departureDeltaV_km_s, DeltaV) :-
+departureDeltaV_km_s(Mission, DeltaV) :-
   departure_delta_v(Mission, DeltaV).
 
-triple(Mission, arrivalDeltaV_km_s, DeltaV) :-
+arrivalDeltaV_km_s(Mission, DeltaV) :-
   arrival_delta_v(Mission, DeltaV).
 
-triple(Mission, totalDeltaV_km_s, Total) :-
+totalDeltaV_km_s(Mission, Total) :-
   total_delta_v(Mission, Total).
 
-triple(Mission, transferTime_days, Days) :-
+transferTime_days(Mission, Days) :-
   transfer_time_days(Mission, Days).
 
-triple(Mission, status, feasible_reference_transfer) :-
+status(Mission, feasible_reference_transfer) :-
   within_delta_v_budget(Mission).
 
-triple(Mission, reason, "total Hohmann transfer delta-v is within the mission budget") :-
+reason(Mission, "total Hohmann transfer delta-v is within the mission budget") :-
   within_delta_v_budget(Mission).

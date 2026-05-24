@@ -3,6 +3,10 @@
 % A simple gas cell uses P*V = n*R*T.  The constants are chosen so that the
 % computed pressure is exactly near one atmosphere in this small example.
 
+materialize(pressure_Pa, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 gas_cell(cell1, 1.0, 8.0, 300.0, 0.024).
 pressure_limit(cell1, low_Pa, 95000.0).
 pressure_limit(cell1, high_Pa, 105000.0).
@@ -20,11 +24,11 @@ near_atmospheric(Cell) :-
   gt(Pressure, Low),
   lt(Pressure, High).
 
-triple(Cell, pressure_Pa, Pressure) :-
+pressure_Pa(Cell, Pressure) :-
   pressure(Cell, Pressure).
 
-triple(Cell, status, near_atmospheric) :-
+status(Cell, near_atmospheric) :-
   near_atmospheric(Cell).
 
-triple(Cell, reason, "pressure is inside the one-atmosphere tolerance band") :-
+reason(Cell, "pressure is inside the one-atmosphere tolerance band") :-
   near_atmospheric(Cell).

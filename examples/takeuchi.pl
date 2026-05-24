@@ -4,6 +4,9 @@
 % memoize declaration makes shared subcalls explicit while keeping the program
 % ordinary Eyelog rules.
 
+materialize(takeuchiInput, 2).
+materialize(takeuchiResult, 2).
+
 memoize(tak, 4).
 
 tak(X, Y, Z, Z) :-
@@ -22,9 +25,9 @@ tak(X, Y, Z, A) :-
 case(classic, 34, 13, 8).
 case(smaller, 12, 6, 0).
 
-triple(Case, takeuchiInput, [X, Y, Z]) :-
+takeuchiInput(Case, [X, Y, Z]) :-
   case(Case, X, Y, Z).
 
-triple(Case, takeuchiResult, A) :-
+takeuchiResult(Case, A) :-
   case(Case, X, Y, Z),
   tak(X, Y, Z, A).

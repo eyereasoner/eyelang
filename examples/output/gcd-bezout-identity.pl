@@ -1,36 +1,36 @@
-triple(c1, bezoutCoefficients, [-1, 3]).
-triple(c1, check, bezout_identity).
-triple(c1, check, divides_inputs).
-triple(c1, check, nonnegative_gcd).
-triple(c1, gcd, 6).
-triple(c1, status, done).
-triple(c2, bezoutCoefficients, [215, -47]).
-triple(c2, check, bezout_identity).
-triple(c2, check, divides_inputs).
-triple(c2, check, nonnegative_gcd).
-triple(c2, gcd, 1).
-triple(c2, status, done).
-triple(c3, bezoutCoefficients, [0, 1]).
-triple(c3, check, bezout_identity).
-triple(c3, check, divides_inputs).
-triple(c3, check, nonnegative_gcd).
-triple(c3, gcd, 5).
-triple(c3, status, done).
-triple(c4, bezoutCoefficients, [5, -7]).
-triple(c4, check, bezout_identity).
-triple(c4, check, divides_inputs).
-triple(c4, check, nonnegative_gcd).
-triple(c4, gcd, 6).
-triple(c4, status, done).
-triple(c5, bezoutCoefficients, [1, 1]).
-triple(c5, check, bezout_identity).
-triple(c5, check, divides_inputs).
-triple(c5, check, nonnegative_gcd).
-triple(c5, gcd, 9).
-triple(c5, status, done).
-triple(c6, bezoutCoefficients, [-649, 10155]).
-triple(c6, check, bezout_identity).
-triple(c6, check, divides_inputs).
-triple(c6, check, nonnegative_gcd).
-triple(c6, gcd, 6).
-triple(c6, status, done).
+bezoutCoefficients(c1, [-1, 3]).
+bezoutCoefficients(c2, [215, -47]).
+bezoutCoefficients(c3, [0, 1]).
+bezoutCoefficients(c4, [5, -7]).
+bezoutCoefficients(c5, [1, 1]).
+bezoutCoefficients(c6, [-649, 10155]).
+check(c1, bezout_identity).
+check(c1, divides_inputs).
+check(c1, nonnegative_gcd).
+check(c2, bezout_identity).
+check(c2, divides_inputs).
+check(c2, nonnegative_gcd).
+check(c3, bezout_identity).
+check(c3, divides_inputs).
+check(c3, nonnegative_gcd).
+check(c4, bezout_identity).
+check(c4, divides_inputs).
+check(c4, nonnegative_gcd).
+check(c5, bezout_identity).
+check(c5, divides_inputs).
+check(c5, nonnegative_gcd).
+check(c6, bezout_identity).
+check(c6, divides_inputs).
+check(c6, nonnegative_gcd).
+gcd(c1, 6).
+gcd(c2, 1).
+gcd(c3, 5).
+gcd(c4, 6).
+gcd(c5, 9).
+gcd(c6, 6).
+status(c1, done).
+status(c2, done).
+status(c3, done).
+status(c4, done).
+status(c5, done).
+status(c6, done).

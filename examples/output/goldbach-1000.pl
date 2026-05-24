@@ -1,667 +1,667 @@
-triple(10, goldbachOk, true).
-triple(100, goldbachOk, true).
-triple(1000, goldbachOk, true).
-triple(101, isPrime, true).
-triple(102, goldbachOk, true).
-triple(103, isPrime, true).
-triple(104, goldbachOk, true).
-triple(106, goldbachOk, true).
-triple(107, isPrime, true).
-triple(108, goldbachOk, true).
-triple(109, isPrime, true).
-triple(11, isPrime, true).
-triple(110, goldbachOk, true).
-triple(112, goldbachOk, true).
-triple(113, isPrime, true).
-triple(114, goldbachOk, true).
-triple(116, goldbachOk, true).
-triple(118, goldbachOk, true).
-triple(12, goldbachOk, true).
-triple(120, goldbachOk, true).
-triple(122, goldbachOk, true).
-triple(124, goldbachOk, true).
-triple(126, goldbachOk, true).
-triple(127, isPrime, true).
-triple(128, goldbachOk, true).
-triple(13, isPrime, true).
-triple(130, goldbachOk, true).
-triple(131, isPrime, true).
-triple(132, goldbachOk, true).
-triple(134, goldbachOk, true).
-triple(136, goldbachOk, true).
-triple(137, isPrime, true).
-triple(138, goldbachOk, true).
-triple(139, isPrime, true).
-triple(14, goldbachOk, true).
-triple(140, goldbachOk, true).
-triple(142, goldbachOk, true).
-triple(144, goldbachOk, true).
-triple(146, goldbachOk, true).
-triple(148, goldbachOk, true).
-triple(149, isPrime, true).
-triple(150, goldbachOk, true).
-triple(151, isPrime, true).
-triple(152, goldbachOk, true).
-triple(154, goldbachOk, true).
-triple(156, goldbachOk, true).
-triple(157, isPrime, true).
-triple(158, goldbachOk, true).
-triple(16, goldbachOk, true).
-triple(160, goldbachOk, true).
-triple(162, goldbachOk, true).
-triple(163, isPrime, true).
-triple(164, goldbachOk, true).
-triple(166, goldbachOk, true).
-triple(167, isPrime, true).
-triple(168, goldbachOk, true).
-triple(17, isPrime, true).
-triple(170, goldbachOk, true).
-triple(172, goldbachOk, true).
-triple(173, isPrime, true).
-triple(174, goldbachOk, true).
-triple(176, goldbachOk, true).
-triple(178, goldbachOk, true).
-triple(179, isPrime, true).
-triple(18, goldbachOk, true).
-triple(180, goldbachOk, true).
-triple(181, isPrime, true).
-triple(182, goldbachOk, true).
-triple(184, goldbachOk, true).
-triple(186, goldbachOk, true).
-triple(188, goldbachOk, true).
-triple(19, isPrime, true).
-triple(190, goldbachOk, true).
-triple(191, isPrime, true).
-triple(192, goldbachOk, true).
-triple(193, isPrime, true).
-triple(194, goldbachOk, true).
-triple(196, goldbachOk, true).
-triple(197, isPrime, true).
-triple(198, goldbachOk, true).
-triple(199, isPrime, true).
-triple(2, isPrime, true).
-triple(20, goldbachOk, true).
-triple(200, goldbachOk, true).
-triple(202, goldbachOk, true).
-triple(204, goldbachOk, true).
-triple(206, goldbachOk, true).
-triple(208, goldbachOk, true).
-triple(210, goldbachOk, true).
-triple(211, isPrime, true).
-triple(212, goldbachOk, true).
-triple(214, goldbachOk, true).
-triple(216, goldbachOk, true).
-triple(218, goldbachOk, true).
-triple(22, goldbachOk, true).
-triple(220, goldbachOk, true).
-triple(222, goldbachOk, true).
-triple(223, isPrime, true).
-triple(224, goldbachOk, true).
-triple(226, goldbachOk, true).
-triple(227, isPrime, true).
-triple(228, goldbachOk, true).
-triple(229, isPrime, true).
-triple(23, isPrime, true).
-triple(230, goldbachOk, true).
-triple(232, goldbachOk, true).
-triple(233, isPrime, true).
-triple(234, goldbachOk, true).
-triple(236, goldbachOk, true).
-triple(238, goldbachOk, true).
-triple(239, isPrime, true).
-triple(24, goldbachOk, true).
-triple(240, goldbachOk, true).
-triple(241, isPrime, true).
-triple(242, goldbachOk, true).
-triple(244, goldbachOk, true).
-triple(246, goldbachOk, true).
-triple(248, goldbachOk, true).
-triple(250, goldbachOk, true).
-triple(251, isPrime, true).
-triple(252, goldbachOk, true).
-triple(254, goldbachOk, true).
-triple(256, goldbachOk, true).
-triple(257, isPrime, true).
-triple(258, goldbachOk, true).
-triple(26, goldbachOk, true).
-triple(260, goldbachOk, true).
-triple(262, goldbachOk, true).
-triple(263, isPrime, true).
-triple(264, goldbachOk, true).
-triple(266, goldbachOk, true).
-triple(268, goldbachOk, true).
-triple(269, isPrime, true).
-triple(270, goldbachOk, true).
-triple(271, isPrime, true).
-triple(272, goldbachOk, true).
-triple(274, goldbachOk, true).
-triple(276, goldbachOk, true).
-triple(277, isPrime, true).
-triple(278, goldbachOk, true).
-triple(28, goldbachOk, true).
-triple(280, goldbachOk, true).
-triple(281, isPrime, true).
-triple(282, goldbachOk, true).
-triple(283, isPrime, true).
-triple(284, goldbachOk, true).
-triple(286, goldbachOk, true).
-triple(288, goldbachOk, true).
-triple(29, isPrime, true).
-triple(290, goldbachOk, true).
-triple(292, goldbachOk, true).
-triple(293, isPrime, true).
-triple(294, goldbachOk, true).
-triple(296, goldbachOk, true).
-triple(298, goldbachOk, true).
-triple(3, isPrime, true).
-triple(30, goldbachOk, true).
-triple(300, goldbachOk, true).
-triple(302, goldbachOk, true).
-triple(304, goldbachOk, true).
-triple(306, goldbachOk, true).
-triple(307, isPrime, true).
-triple(308, goldbachOk, true).
-triple(31, isPrime, true).
-triple(310, goldbachOk, true).
-triple(311, isPrime, true).
-triple(312, goldbachOk, true).
-triple(313, isPrime, true).
-triple(314, goldbachOk, true).
-triple(316, goldbachOk, true).
-triple(317, isPrime, true).
-triple(318, goldbachOk, true).
-triple(32, goldbachOk, true).
-triple(320, goldbachOk, true).
-triple(322, goldbachOk, true).
-triple(324, goldbachOk, true).
-triple(326, goldbachOk, true).
-triple(328, goldbachOk, true).
-triple(330, goldbachOk, true).
-triple(331, isPrime, true).
-triple(332, goldbachOk, true).
-triple(334, goldbachOk, true).
-triple(336, goldbachOk, true).
-triple(337, isPrime, true).
-triple(338, goldbachOk, true).
-triple(34, goldbachOk, true).
-triple(340, goldbachOk, true).
-triple(342, goldbachOk, true).
-triple(344, goldbachOk, true).
-triple(346, goldbachOk, true).
-triple(347, isPrime, true).
-triple(348, goldbachOk, true).
-triple(349, isPrime, true).
-triple(350, goldbachOk, true).
-triple(352, goldbachOk, true).
-triple(353, isPrime, true).
-triple(354, goldbachOk, true).
-triple(356, goldbachOk, true).
-triple(358, goldbachOk, true).
-triple(359, isPrime, true).
-triple(36, goldbachOk, true).
-triple(360, goldbachOk, true).
-triple(362, goldbachOk, true).
-triple(364, goldbachOk, true).
-triple(366, goldbachOk, true).
-triple(367, isPrime, true).
-triple(368, goldbachOk, true).
-triple(37, isPrime, true).
-triple(370, goldbachOk, true).
-triple(372, goldbachOk, true).
-triple(373, isPrime, true).
-triple(374, goldbachOk, true).
-triple(376, goldbachOk, true).
-triple(378, goldbachOk, true).
-triple(379, isPrime, true).
-triple(38, goldbachOk, true).
-triple(380, goldbachOk, true).
-triple(382, goldbachOk, true).
-triple(383, isPrime, true).
-triple(384, goldbachOk, true).
-triple(386, goldbachOk, true).
-triple(388, goldbachOk, true).
-triple(389, isPrime, true).
-triple(390, goldbachOk, true).
-triple(392, goldbachOk, true).
-triple(394, goldbachOk, true).
-triple(396, goldbachOk, true).
-triple(397, isPrime, true).
-triple(398, goldbachOk, true).
-triple(4, goldbachOk, true).
-triple(40, goldbachOk, true).
-triple(400, goldbachOk, true).
-triple(401, isPrime, true).
-triple(402, goldbachOk, true).
-triple(404, goldbachOk, true).
-triple(406, goldbachOk, true).
-triple(408, goldbachOk, true).
-triple(409, isPrime, true).
-triple(41, isPrime, true).
-triple(410, goldbachOk, true).
-triple(412, goldbachOk, true).
-triple(414, goldbachOk, true).
-triple(416, goldbachOk, true).
-triple(418, goldbachOk, true).
-triple(419, isPrime, true).
-triple(42, goldbachOk, true).
-triple(420, goldbachOk, true).
-triple(421, isPrime, true).
-triple(422, goldbachOk, true).
-triple(424, goldbachOk, true).
-triple(426, goldbachOk, true).
-triple(428, goldbachOk, true).
-triple(43, isPrime, true).
-triple(430, goldbachOk, true).
-triple(431, isPrime, true).
-triple(432, goldbachOk, true).
-triple(433, isPrime, true).
-triple(434, goldbachOk, true).
-triple(436, goldbachOk, true).
-triple(438, goldbachOk, true).
-triple(439, isPrime, true).
-triple(44, goldbachOk, true).
-triple(440, goldbachOk, true).
-triple(442, goldbachOk, true).
-triple(443, isPrime, true).
-triple(444, goldbachOk, true).
-triple(446, goldbachOk, true).
-triple(448, goldbachOk, true).
-triple(449, isPrime, true).
-triple(450, goldbachOk, true).
-triple(452, goldbachOk, true).
-triple(454, goldbachOk, true).
-triple(456, goldbachOk, true).
-triple(457, isPrime, true).
-triple(458, goldbachOk, true).
-triple(46, goldbachOk, true).
-triple(460, goldbachOk, true).
-triple(461, isPrime, true).
-triple(462, goldbachOk, true).
-triple(463, isPrime, true).
-triple(464, goldbachOk, true).
-triple(466, goldbachOk, true).
-triple(467, isPrime, true).
-triple(468, goldbachOk, true).
-triple(47, isPrime, true).
-triple(470, goldbachOk, true).
-triple(472, goldbachOk, true).
-triple(474, goldbachOk, true).
-triple(476, goldbachOk, true).
-triple(478, goldbachOk, true).
-triple(479, isPrime, true).
-triple(48, goldbachOk, true).
-triple(480, goldbachOk, true).
-triple(482, goldbachOk, true).
-triple(484, goldbachOk, true).
-triple(486, goldbachOk, true).
-triple(487, isPrime, true).
-triple(488, goldbachOk, true).
-triple(490, goldbachOk, true).
-triple(491, isPrime, true).
-triple(492, goldbachOk, true).
-triple(494, goldbachOk, true).
-triple(496, goldbachOk, true).
-triple(498, goldbachOk, true).
-triple(499, isPrime, true).
-triple(5, isPrime, true).
-triple(50, goldbachOk, true).
-triple(500, goldbachOk, true).
-triple(502, goldbachOk, true).
-triple(503, isPrime, true).
-triple(504, goldbachOk, true).
-triple(506, goldbachOk, true).
-triple(508, goldbachOk, true).
-triple(509, isPrime, true).
-triple(510, goldbachOk, true).
-triple(512, goldbachOk, true).
-triple(514, goldbachOk, true).
-triple(516, goldbachOk, true).
-triple(518, goldbachOk, true).
-triple(52, goldbachOk, true).
-triple(520, goldbachOk, true).
-triple(521, isPrime, true).
-triple(522, goldbachOk, true).
-triple(523, isPrime, true).
-triple(524, goldbachOk, true).
-triple(526, goldbachOk, true).
-triple(528, goldbachOk, true).
-triple(53, isPrime, true).
-triple(530, goldbachOk, true).
-triple(532, goldbachOk, true).
-triple(534, goldbachOk, true).
-triple(536, goldbachOk, true).
-triple(538, goldbachOk, true).
-triple(54, goldbachOk, true).
-triple(540, goldbachOk, true).
-triple(541, isPrime, true).
-triple(542, goldbachOk, true).
-triple(544, goldbachOk, true).
-triple(546, goldbachOk, true).
-triple(547, isPrime, true).
-triple(548, goldbachOk, true).
-triple(550, goldbachOk, true).
-triple(552, goldbachOk, true).
-triple(554, goldbachOk, true).
-triple(556, goldbachOk, true).
-triple(557, isPrime, true).
-triple(558, goldbachOk, true).
-triple(56, goldbachOk, true).
-triple(560, goldbachOk, true).
-triple(562, goldbachOk, true).
-triple(563, isPrime, true).
-triple(564, goldbachOk, true).
-triple(566, goldbachOk, true).
-triple(568, goldbachOk, true).
-triple(569, isPrime, true).
-triple(570, goldbachOk, true).
-triple(571, isPrime, true).
-triple(572, goldbachOk, true).
-triple(574, goldbachOk, true).
-triple(576, goldbachOk, true).
-triple(577, isPrime, true).
-triple(578, goldbachOk, true).
-triple(58, goldbachOk, true).
-triple(580, goldbachOk, true).
-triple(582, goldbachOk, true).
-triple(584, goldbachOk, true).
-triple(586, goldbachOk, true).
-triple(587, isPrime, true).
-triple(588, goldbachOk, true).
-triple(59, isPrime, true).
-triple(590, goldbachOk, true).
-triple(592, goldbachOk, true).
-triple(593, isPrime, true).
-triple(594, goldbachOk, true).
-triple(596, goldbachOk, true).
-triple(598, goldbachOk, true).
-triple(599, isPrime, true).
-triple(6, goldbachOk, true).
-triple(60, goldbachOk, true).
-triple(600, goldbachOk, true).
-triple(601, isPrime, true).
-triple(602, goldbachOk, true).
-triple(604, goldbachOk, true).
-triple(606, goldbachOk, true).
-triple(607, isPrime, true).
-triple(608, goldbachOk, true).
-triple(61, isPrime, true).
-triple(610, goldbachOk, true).
-triple(612, goldbachOk, true).
-triple(613, isPrime, true).
-triple(614, goldbachOk, true).
-triple(616, goldbachOk, true).
-triple(617, isPrime, true).
-triple(618, goldbachOk, true).
-triple(619, isPrime, true).
-triple(62, goldbachOk, true).
-triple(620, goldbachOk, true).
-triple(622, goldbachOk, true).
-triple(624, goldbachOk, true).
-triple(626, goldbachOk, true).
-triple(628, goldbachOk, true).
-triple(630, goldbachOk, true).
-triple(631, isPrime, true).
-triple(632, goldbachOk, true).
-triple(634, goldbachOk, true).
-triple(636, goldbachOk, true).
-triple(638, goldbachOk, true).
-triple(64, goldbachOk, true).
-triple(640, goldbachOk, true).
-triple(641, isPrime, true).
-triple(642, goldbachOk, true).
-triple(643, isPrime, true).
-triple(644, goldbachOk, true).
-triple(646, goldbachOk, true).
-triple(647, isPrime, true).
-triple(648, goldbachOk, true).
-triple(650, goldbachOk, true).
-triple(652, goldbachOk, true).
-triple(653, isPrime, true).
-triple(654, goldbachOk, true).
-triple(656, goldbachOk, true).
-triple(658, goldbachOk, true).
-triple(659, isPrime, true).
-triple(66, goldbachOk, true).
-triple(660, goldbachOk, true).
-triple(661, isPrime, true).
-triple(662, goldbachOk, true).
-triple(664, goldbachOk, true).
-triple(666, goldbachOk, true).
-triple(668, goldbachOk, true).
-triple(67, isPrime, true).
-triple(670, goldbachOk, true).
-triple(672, goldbachOk, true).
-triple(673, isPrime, true).
-triple(674, goldbachOk, true).
-triple(676, goldbachOk, true).
-triple(677, isPrime, true).
-triple(678, goldbachOk, true).
-triple(68, goldbachOk, true).
-triple(680, goldbachOk, true).
-triple(682, goldbachOk, true).
-triple(683, isPrime, true).
-triple(684, goldbachOk, true).
-triple(686, goldbachOk, true).
-triple(688, goldbachOk, true).
-triple(690, goldbachOk, true).
-triple(691, isPrime, true).
-triple(692, goldbachOk, true).
-triple(694, goldbachOk, true).
-triple(696, goldbachOk, true).
-triple(698, goldbachOk, true).
-triple(7, isPrime, true).
-triple(70, goldbachOk, true).
-triple(700, goldbachOk, true).
-triple(701, isPrime, true).
-triple(702, goldbachOk, true).
-triple(704, goldbachOk, true).
-triple(706, goldbachOk, true).
-triple(708, goldbachOk, true).
-triple(709, isPrime, true).
-triple(71, isPrime, true).
-triple(710, goldbachOk, true).
-triple(712, goldbachOk, true).
-triple(714, goldbachOk, true).
-triple(716, goldbachOk, true).
-triple(718, goldbachOk, true).
-triple(719, isPrime, true).
-triple(72, goldbachOk, true).
-triple(720, goldbachOk, true).
-triple(722, goldbachOk, true).
-triple(724, goldbachOk, true).
-triple(726, goldbachOk, true).
-triple(727, isPrime, true).
-triple(728, goldbachOk, true).
-triple(73, isPrime, true).
-triple(730, goldbachOk, true).
-triple(732, goldbachOk, true).
-triple(733, isPrime, true).
-triple(734, goldbachOk, true).
-triple(736, goldbachOk, true).
-triple(738, goldbachOk, true).
-triple(739, isPrime, true).
-triple(74, goldbachOk, true).
-triple(740, goldbachOk, true).
-triple(742, goldbachOk, true).
-triple(743, isPrime, true).
-triple(744, goldbachOk, true).
-triple(746, goldbachOk, true).
-triple(748, goldbachOk, true).
-triple(750, goldbachOk, true).
-triple(751, isPrime, true).
-triple(752, goldbachOk, true).
-triple(754, goldbachOk, true).
-triple(756, goldbachOk, true).
-triple(757, isPrime, true).
-triple(758, goldbachOk, true).
-triple(76, goldbachOk, true).
-triple(760, goldbachOk, true).
-triple(761, isPrime, true).
-triple(762, goldbachOk, true).
-triple(764, goldbachOk, true).
-triple(766, goldbachOk, true).
-triple(768, goldbachOk, true).
-triple(769, isPrime, true).
-triple(770, goldbachOk, true).
-triple(772, goldbachOk, true).
-triple(773, isPrime, true).
-triple(774, goldbachOk, true).
-triple(776, goldbachOk, true).
-triple(778, goldbachOk, true).
-triple(78, goldbachOk, true).
-triple(780, goldbachOk, true).
-triple(782, goldbachOk, true).
-triple(784, goldbachOk, true).
-triple(786, goldbachOk, true).
-triple(787, isPrime, true).
-triple(788, goldbachOk, true).
-triple(79, isPrime, true).
-triple(790, goldbachOk, true).
-triple(792, goldbachOk, true).
-triple(794, goldbachOk, true).
-triple(796, goldbachOk, true).
-triple(797, isPrime, true).
-triple(798, goldbachOk, true).
-triple(8, goldbachOk, true).
-triple(80, goldbachOk, true).
-triple(800, goldbachOk, true).
-triple(802, goldbachOk, true).
-triple(804, goldbachOk, true).
-triple(806, goldbachOk, true).
-triple(808, goldbachOk, true).
-triple(809, isPrime, true).
-triple(810, goldbachOk, true).
-triple(811, isPrime, true).
-triple(812, goldbachOk, true).
-triple(814, goldbachOk, true).
-triple(816, goldbachOk, true).
-triple(818, goldbachOk, true).
-triple(82, goldbachOk, true).
-triple(820, goldbachOk, true).
-triple(821, isPrime, true).
-triple(822, goldbachOk, true).
-triple(823, isPrime, true).
-triple(824, goldbachOk, true).
-triple(826, goldbachOk, true).
-triple(827, isPrime, true).
-triple(828, goldbachOk, true).
-triple(829, isPrime, true).
-triple(83, isPrime, true).
-triple(830, goldbachOk, true).
-triple(832, goldbachOk, true).
-triple(834, goldbachOk, true).
-triple(836, goldbachOk, true).
-triple(838, goldbachOk, true).
-triple(839, isPrime, true).
-triple(84, goldbachOk, true).
-triple(840, goldbachOk, true).
-triple(842, goldbachOk, true).
-triple(844, goldbachOk, true).
-triple(846, goldbachOk, true).
-triple(848, goldbachOk, true).
-triple(850, goldbachOk, true).
-triple(852, goldbachOk, true).
-triple(853, isPrime, true).
-triple(854, goldbachOk, true).
-triple(856, goldbachOk, true).
-triple(857, isPrime, true).
-triple(858, goldbachOk, true).
-triple(859, isPrime, true).
-triple(86, goldbachOk, true).
-triple(860, goldbachOk, true).
-triple(862, goldbachOk, true).
-triple(863, isPrime, true).
-triple(864, goldbachOk, true).
-triple(866, goldbachOk, true).
-triple(868, goldbachOk, true).
-triple(870, goldbachOk, true).
-triple(872, goldbachOk, true).
-triple(874, goldbachOk, true).
-triple(876, goldbachOk, true).
-triple(877, isPrime, true).
-triple(878, goldbachOk, true).
-triple(88, goldbachOk, true).
-triple(880, goldbachOk, true).
-triple(881, isPrime, true).
-triple(882, goldbachOk, true).
-triple(883, isPrime, true).
-triple(884, goldbachOk, true).
-triple(886, goldbachOk, true).
-triple(887, isPrime, true).
-triple(888, goldbachOk, true).
-triple(89, isPrime, true).
-triple(890, goldbachOk, true).
-triple(892, goldbachOk, true).
-triple(894, goldbachOk, true).
-triple(896, goldbachOk, true).
-triple(898, goldbachOk, true).
-triple(90, goldbachOk, true).
-triple(900, goldbachOk, true).
-triple(902, goldbachOk, true).
-triple(904, goldbachOk, true).
-triple(906, goldbachOk, true).
-triple(907, isPrime, true).
-triple(908, goldbachOk, true).
-triple(910, goldbachOk, true).
-triple(911, isPrime, true).
-triple(912, goldbachOk, true).
-triple(914, goldbachOk, true).
-triple(916, goldbachOk, true).
-triple(918, goldbachOk, true).
-triple(919, isPrime, true).
-triple(92, goldbachOk, true).
-triple(920, goldbachOk, true).
-triple(922, goldbachOk, true).
-triple(924, goldbachOk, true).
-triple(926, goldbachOk, true).
-triple(928, goldbachOk, true).
-triple(929, isPrime, true).
-triple(930, goldbachOk, true).
-triple(932, goldbachOk, true).
-triple(934, goldbachOk, true).
-triple(936, goldbachOk, true).
-triple(937, isPrime, true).
-triple(938, goldbachOk, true).
-triple(94, goldbachOk, true).
-triple(940, goldbachOk, true).
-triple(941, isPrime, true).
-triple(942, goldbachOk, true).
-triple(944, goldbachOk, true).
-triple(946, goldbachOk, true).
-triple(947, isPrime, true).
-triple(948, goldbachOk, true).
-triple(950, goldbachOk, true).
-triple(952, goldbachOk, true).
-triple(953, isPrime, true).
-triple(954, goldbachOk, true).
-triple(956, goldbachOk, true).
-triple(958, goldbachOk, true).
-triple(96, goldbachOk, true).
-triple(960, goldbachOk, true).
-triple(962, goldbachOk, true).
-triple(964, goldbachOk, true).
-triple(966, goldbachOk, true).
-triple(967, isPrime, true).
-triple(968, goldbachOk, true).
-triple(97, isPrime, true).
-triple(970, goldbachOk, true).
-triple(971, isPrime, true).
-triple(972, goldbachOk, true).
-triple(974, goldbachOk, true).
-triple(976, goldbachOk, true).
-triple(977, isPrime, true).
-triple(978, goldbachOk, true).
-triple(98, goldbachOk, true).
-triple(980, goldbachOk, true).
-triple(982, goldbachOk, true).
-triple(983, isPrime, true).
-triple(984, goldbachOk, true).
-triple(986, goldbachOk, true).
-triple(988, goldbachOk, true).
-triple(990, goldbachOk, true).
-triple(991, isPrime, true).
-triple(992, goldbachOk, true).
-triple(994, goldbachOk, true).
-triple(996, goldbachOk, true).
-triple(997, isPrime, true).
-triple(998, goldbachOk, true).
+goldbachOk(10, true).
+goldbachOk(100, true).
+goldbachOk(1000, true).
+goldbachOk(102, true).
+goldbachOk(104, true).
+goldbachOk(106, true).
+goldbachOk(108, true).
+goldbachOk(110, true).
+goldbachOk(112, true).
+goldbachOk(114, true).
+goldbachOk(116, true).
+goldbachOk(118, true).
+goldbachOk(12, true).
+goldbachOk(120, true).
+goldbachOk(122, true).
+goldbachOk(124, true).
+goldbachOk(126, true).
+goldbachOk(128, true).
+goldbachOk(130, true).
+goldbachOk(132, true).
+goldbachOk(134, true).
+goldbachOk(136, true).
+goldbachOk(138, true).
+goldbachOk(14, true).
+goldbachOk(140, true).
+goldbachOk(142, true).
+goldbachOk(144, true).
+goldbachOk(146, true).
+goldbachOk(148, true).
+goldbachOk(150, true).
+goldbachOk(152, true).
+goldbachOk(154, true).
+goldbachOk(156, true).
+goldbachOk(158, true).
+goldbachOk(16, true).
+goldbachOk(160, true).
+goldbachOk(162, true).
+goldbachOk(164, true).
+goldbachOk(166, true).
+goldbachOk(168, true).
+goldbachOk(170, true).
+goldbachOk(172, true).
+goldbachOk(174, true).
+goldbachOk(176, true).
+goldbachOk(178, true).
+goldbachOk(18, true).
+goldbachOk(180, true).
+goldbachOk(182, true).
+goldbachOk(184, true).
+goldbachOk(186, true).
+goldbachOk(188, true).
+goldbachOk(190, true).
+goldbachOk(192, true).
+goldbachOk(194, true).
+goldbachOk(196, true).
+goldbachOk(198, true).
+goldbachOk(20, true).
+goldbachOk(200, true).
+goldbachOk(202, true).
+goldbachOk(204, true).
+goldbachOk(206, true).
+goldbachOk(208, true).
+goldbachOk(210, true).
+goldbachOk(212, true).
+goldbachOk(214, true).
+goldbachOk(216, true).
+goldbachOk(218, true).
+goldbachOk(22, true).
+goldbachOk(220, true).
+goldbachOk(222, true).
+goldbachOk(224, true).
+goldbachOk(226, true).
+goldbachOk(228, true).
+goldbachOk(230, true).
+goldbachOk(232, true).
+goldbachOk(234, true).
+goldbachOk(236, true).
+goldbachOk(238, true).
+goldbachOk(24, true).
+goldbachOk(240, true).
+goldbachOk(242, true).
+goldbachOk(244, true).
+goldbachOk(246, true).
+goldbachOk(248, true).
+goldbachOk(250, true).
+goldbachOk(252, true).
+goldbachOk(254, true).
+goldbachOk(256, true).
+goldbachOk(258, true).
+goldbachOk(26, true).
+goldbachOk(260, true).
+goldbachOk(262, true).
+goldbachOk(264, true).
+goldbachOk(266, true).
+goldbachOk(268, true).
+goldbachOk(270, true).
+goldbachOk(272, true).
+goldbachOk(274, true).
+goldbachOk(276, true).
+goldbachOk(278, true).
+goldbachOk(28, true).
+goldbachOk(280, true).
+goldbachOk(282, true).
+goldbachOk(284, true).
+goldbachOk(286, true).
+goldbachOk(288, true).
+goldbachOk(290, true).
+goldbachOk(292, true).
+goldbachOk(294, true).
+goldbachOk(296, true).
+goldbachOk(298, true).
+goldbachOk(30, true).
+goldbachOk(300, true).
+goldbachOk(302, true).
+goldbachOk(304, true).
+goldbachOk(306, true).
+goldbachOk(308, true).
+goldbachOk(310, true).
+goldbachOk(312, true).
+goldbachOk(314, true).
+goldbachOk(316, true).
+goldbachOk(318, true).
+goldbachOk(32, true).
+goldbachOk(320, true).
+goldbachOk(322, true).
+goldbachOk(324, true).
+goldbachOk(326, true).
+goldbachOk(328, true).
+goldbachOk(330, true).
+goldbachOk(332, true).
+goldbachOk(334, true).
+goldbachOk(336, true).
+goldbachOk(338, true).
+goldbachOk(34, true).
+goldbachOk(340, true).
+goldbachOk(342, true).
+goldbachOk(344, true).
+goldbachOk(346, true).
+goldbachOk(348, true).
+goldbachOk(350, true).
+goldbachOk(352, true).
+goldbachOk(354, true).
+goldbachOk(356, true).
+goldbachOk(358, true).
+goldbachOk(36, true).
+goldbachOk(360, true).
+goldbachOk(362, true).
+goldbachOk(364, true).
+goldbachOk(366, true).
+goldbachOk(368, true).
+goldbachOk(370, true).
+goldbachOk(372, true).
+goldbachOk(374, true).
+goldbachOk(376, true).
+goldbachOk(378, true).
+goldbachOk(38, true).
+goldbachOk(380, true).
+goldbachOk(382, true).
+goldbachOk(384, true).
+goldbachOk(386, true).
+goldbachOk(388, true).
+goldbachOk(390, true).
+goldbachOk(392, true).
+goldbachOk(394, true).
+goldbachOk(396, true).
+goldbachOk(398, true).
+goldbachOk(4, true).
+goldbachOk(40, true).
+goldbachOk(400, true).
+goldbachOk(402, true).
+goldbachOk(404, true).
+goldbachOk(406, true).
+goldbachOk(408, true).
+goldbachOk(410, true).
+goldbachOk(412, true).
+goldbachOk(414, true).
+goldbachOk(416, true).
+goldbachOk(418, true).
+goldbachOk(42, true).
+goldbachOk(420, true).
+goldbachOk(422, true).
+goldbachOk(424, true).
+goldbachOk(426, true).
+goldbachOk(428, true).
+goldbachOk(430, true).
+goldbachOk(432, true).
+goldbachOk(434, true).
+goldbachOk(436, true).
+goldbachOk(438, true).
+goldbachOk(44, true).
+goldbachOk(440, true).
+goldbachOk(442, true).
+goldbachOk(444, true).
+goldbachOk(446, true).
+goldbachOk(448, true).
+goldbachOk(450, true).
+goldbachOk(452, true).
+goldbachOk(454, true).
+goldbachOk(456, true).
+goldbachOk(458, true).
+goldbachOk(46, true).
+goldbachOk(460, true).
+goldbachOk(462, true).
+goldbachOk(464, true).
+goldbachOk(466, true).
+goldbachOk(468, true).
+goldbachOk(470, true).
+goldbachOk(472, true).
+goldbachOk(474, true).
+goldbachOk(476, true).
+goldbachOk(478, true).
+goldbachOk(48, true).
+goldbachOk(480, true).
+goldbachOk(482, true).
+goldbachOk(484, true).
+goldbachOk(486, true).
+goldbachOk(488, true).
+goldbachOk(490, true).
+goldbachOk(492, true).
+goldbachOk(494, true).
+goldbachOk(496, true).
+goldbachOk(498, true).
+goldbachOk(50, true).
+goldbachOk(500, true).
+goldbachOk(502, true).
+goldbachOk(504, true).
+goldbachOk(506, true).
+goldbachOk(508, true).
+goldbachOk(510, true).
+goldbachOk(512, true).
+goldbachOk(514, true).
+goldbachOk(516, true).
+goldbachOk(518, true).
+goldbachOk(52, true).
+goldbachOk(520, true).
+goldbachOk(522, true).
+goldbachOk(524, true).
+goldbachOk(526, true).
+goldbachOk(528, true).
+goldbachOk(530, true).
+goldbachOk(532, true).
+goldbachOk(534, true).
+goldbachOk(536, true).
+goldbachOk(538, true).
+goldbachOk(54, true).
+goldbachOk(540, true).
+goldbachOk(542, true).
+goldbachOk(544, true).
+goldbachOk(546, true).
+goldbachOk(548, true).
+goldbachOk(550, true).
+goldbachOk(552, true).
+goldbachOk(554, true).
+goldbachOk(556, true).
+goldbachOk(558, true).
+goldbachOk(56, true).
+goldbachOk(560, true).
+goldbachOk(562, true).
+goldbachOk(564, true).
+goldbachOk(566, true).
+goldbachOk(568, true).
+goldbachOk(570, true).
+goldbachOk(572, true).
+goldbachOk(574, true).
+goldbachOk(576, true).
+goldbachOk(578, true).
+goldbachOk(58, true).
+goldbachOk(580, true).
+goldbachOk(582, true).
+goldbachOk(584, true).
+goldbachOk(586, true).
+goldbachOk(588, true).
+goldbachOk(590, true).
+goldbachOk(592, true).
+goldbachOk(594, true).
+goldbachOk(596, true).
+goldbachOk(598, true).
+goldbachOk(6, true).
+goldbachOk(60, true).
+goldbachOk(600, true).
+goldbachOk(602, true).
+goldbachOk(604, true).
+goldbachOk(606, true).
+goldbachOk(608, true).
+goldbachOk(610, true).
+goldbachOk(612, true).
+goldbachOk(614, true).
+goldbachOk(616, true).
+goldbachOk(618, true).
+goldbachOk(62, true).
+goldbachOk(620, true).
+goldbachOk(622, true).
+goldbachOk(624, true).
+goldbachOk(626, true).
+goldbachOk(628, true).
+goldbachOk(630, true).
+goldbachOk(632, true).
+goldbachOk(634, true).
+goldbachOk(636, true).
+goldbachOk(638, true).
+goldbachOk(64, true).
+goldbachOk(640, true).
+goldbachOk(642, true).
+goldbachOk(644, true).
+goldbachOk(646, true).
+goldbachOk(648, true).
+goldbachOk(650, true).
+goldbachOk(652, true).
+goldbachOk(654, true).
+goldbachOk(656, true).
+goldbachOk(658, true).
+goldbachOk(66, true).
+goldbachOk(660, true).
+goldbachOk(662, true).
+goldbachOk(664, true).
+goldbachOk(666, true).
+goldbachOk(668, true).
+goldbachOk(670, true).
+goldbachOk(672, true).
+goldbachOk(674, true).
+goldbachOk(676, true).
+goldbachOk(678, true).
+goldbachOk(68, true).
+goldbachOk(680, true).
+goldbachOk(682, true).
+goldbachOk(684, true).
+goldbachOk(686, true).
+goldbachOk(688, true).
+goldbachOk(690, true).
+goldbachOk(692, true).
+goldbachOk(694, true).
+goldbachOk(696, true).
+goldbachOk(698, true).
+goldbachOk(70, true).
+goldbachOk(700, true).
+goldbachOk(702, true).
+goldbachOk(704, true).
+goldbachOk(706, true).
+goldbachOk(708, true).
+goldbachOk(710, true).
+goldbachOk(712, true).
+goldbachOk(714, true).
+goldbachOk(716, true).
+goldbachOk(718, true).
+goldbachOk(72, true).
+goldbachOk(720, true).
+goldbachOk(722, true).
+goldbachOk(724, true).
+goldbachOk(726, true).
+goldbachOk(728, true).
+goldbachOk(730, true).
+goldbachOk(732, true).
+goldbachOk(734, true).
+goldbachOk(736, true).
+goldbachOk(738, true).
+goldbachOk(74, true).
+goldbachOk(740, true).
+goldbachOk(742, true).
+goldbachOk(744, true).
+goldbachOk(746, true).
+goldbachOk(748, true).
+goldbachOk(750, true).
+goldbachOk(752, true).
+goldbachOk(754, true).
+goldbachOk(756, true).
+goldbachOk(758, true).
+goldbachOk(76, true).
+goldbachOk(760, true).
+goldbachOk(762, true).
+goldbachOk(764, true).
+goldbachOk(766, true).
+goldbachOk(768, true).
+goldbachOk(770, true).
+goldbachOk(772, true).
+goldbachOk(774, true).
+goldbachOk(776, true).
+goldbachOk(778, true).
+goldbachOk(78, true).
+goldbachOk(780, true).
+goldbachOk(782, true).
+goldbachOk(784, true).
+goldbachOk(786, true).
+goldbachOk(788, true).
+goldbachOk(790, true).
+goldbachOk(792, true).
+goldbachOk(794, true).
+goldbachOk(796, true).
+goldbachOk(798, true).
+goldbachOk(8, true).
+goldbachOk(80, true).
+goldbachOk(800, true).
+goldbachOk(802, true).
+goldbachOk(804, true).
+goldbachOk(806, true).
+goldbachOk(808, true).
+goldbachOk(810, true).
+goldbachOk(812, true).
+goldbachOk(814, true).
+goldbachOk(816, true).
+goldbachOk(818, true).
+goldbachOk(82, true).
+goldbachOk(820, true).
+goldbachOk(822, true).
+goldbachOk(824, true).
+goldbachOk(826, true).
+goldbachOk(828, true).
+goldbachOk(830, true).
+goldbachOk(832, true).
+goldbachOk(834, true).
+goldbachOk(836, true).
+goldbachOk(838, true).
+goldbachOk(84, true).
+goldbachOk(840, true).
+goldbachOk(842, true).
+goldbachOk(844, true).
+goldbachOk(846, true).
+goldbachOk(848, true).
+goldbachOk(850, true).
+goldbachOk(852, true).
+goldbachOk(854, true).
+goldbachOk(856, true).
+goldbachOk(858, true).
+goldbachOk(86, true).
+goldbachOk(860, true).
+goldbachOk(862, true).
+goldbachOk(864, true).
+goldbachOk(866, true).
+goldbachOk(868, true).
+goldbachOk(870, true).
+goldbachOk(872, true).
+goldbachOk(874, true).
+goldbachOk(876, true).
+goldbachOk(878, true).
+goldbachOk(88, true).
+goldbachOk(880, true).
+goldbachOk(882, true).
+goldbachOk(884, true).
+goldbachOk(886, true).
+goldbachOk(888, true).
+goldbachOk(890, true).
+goldbachOk(892, true).
+goldbachOk(894, true).
+goldbachOk(896, true).
+goldbachOk(898, true).
+goldbachOk(90, true).
+goldbachOk(900, true).
+goldbachOk(902, true).
+goldbachOk(904, true).
+goldbachOk(906, true).
+goldbachOk(908, true).
+goldbachOk(910, true).
+goldbachOk(912, true).
+goldbachOk(914, true).
+goldbachOk(916, true).
+goldbachOk(918, true).
+goldbachOk(92, true).
+goldbachOk(920, true).
+goldbachOk(922, true).
+goldbachOk(924, true).
+goldbachOk(926, true).
+goldbachOk(928, true).
+goldbachOk(930, true).
+goldbachOk(932, true).
+goldbachOk(934, true).
+goldbachOk(936, true).
+goldbachOk(938, true).
+goldbachOk(94, true).
+goldbachOk(940, true).
+goldbachOk(942, true).
+goldbachOk(944, true).
+goldbachOk(946, true).
+goldbachOk(948, true).
+goldbachOk(950, true).
+goldbachOk(952, true).
+goldbachOk(954, true).
+goldbachOk(956, true).
+goldbachOk(958, true).
+goldbachOk(96, true).
+goldbachOk(960, true).
+goldbachOk(962, true).
+goldbachOk(964, true).
+goldbachOk(966, true).
+goldbachOk(968, true).
+goldbachOk(970, true).
+goldbachOk(972, true).
+goldbachOk(974, true).
+goldbachOk(976, true).
+goldbachOk(978, true).
+goldbachOk(98, true).
+goldbachOk(980, true).
+goldbachOk(982, true).
+goldbachOk(984, true).
+goldbachOk(986, true).
+goldbachOk(988, true).
+goldbachOk(990, true).
+goldbachOk(992, true).
+goldbachOk(994, true).
+goldbachOk(996, true).
+goldbachOk(998, true).
+isPrime(101, true).
+isPrime(103, true).
+isPrime(107, true).
+isPrime(109, true).
+isPrime(11, true).
+isPrime(113, true).
+isPrime(127, true).
+isPrime(13, true).
+isPrime(131, true).
+isPrime(137, true).
+isPrime(139, true).
+isPrime(149, true).
+isPrime(151, true).
+isPrime(157, true).
+isPrime(163, true).
+isPrime(167, true).
+isPrime(17, true).
+isPrime(173, true).
+isPrime(179, true).
+isPrime(181, true).
+isPrime(19, true).
+isPrime(191, true).
+isPrime(193, true).
+isPrime(197, true).
+isPrime(199, true).
+isPrime(2, true).
+isPrime(211, true).
+isPrime(223, true).
+isPrime(227, true).
+isPrime(229, true).
+isPrime(23, true).
+isPrime(233, true).
+isPrime(239, true).
+isPrime(241, true).
+isPrime(251, true).
+isPrime(257, true).
+isPrime(263, true).
+isPrime(269, true).
+isPrime(271, true).
+isPrime(277, true).
+isPrime(281, true).
+isPrime(283, true).
+isPrime(29, true).
+isPrime(293, true).
+isPrime(3, true).
+isPrime(307, true).
+isPrime(31, true).
+isPrime(311, true).
+isPrime(313, true).
+isPrime(317, true).
+isPrime(331, true).
+isPrime(337, true).
+isPrime(347, true).
+isPrime(349, true).
+isPrime(353, true).
+isPrime(359, true).
+isPrime(367, true).
+isPrime(37, true).
+isPrime(373, true).
+isPrime(379, true).
+isPrime(383, true).
+isPrime(389, true).
+isPrime(397, true).
+isPrime(401, true).
+isPrime(409, true).
+isPrime(41, true).
+isPrime(419, true).
+isPrime(421, true).
+isPrime(43, true).
+isPrime(431, true).
+isPrime(433, true).
+isPrime(439, true).
+isPrime(443, true).
+isPrime(449, true).
+isPrime(457, true).
+isPrime(461, true).
+isPrime(463, true).
+isPrime(467, true).
+isPrime(47, true).
+isPrime(479, true).
+isPrime(487, true).
+isPrime(491, true).
+isPrime(499, true).
+isPrime(5, true).
+isPrime(503, true).
+isPrime(509, true).
+isPrime(521, true).
+isPrime(523, true).
+isPrime(53, true).
+isPrime(541, true).
+isPrime(547, true).
+isPrime(557, true).
+isPrime(563, true).
+isPrime(569, true).
+isPrime(571, true).
+isPrime(577, true).
+isPrime(587, true).
+isPrime(59, true).
+isPrime(593, true).
+isPrime(599, true).
+isPrime(601, true).
+isPrime(607, true).
+isPrime(61, true).
+isPrime(613, true).
+isPrime(617, true).
+isPrime(619, true).
+isPrime(631, true).
+isPrime(641, true).
+isPrime(643, true).
+isPrime(647, true).
+isPrime(653, true).
+isPrime(659, true).
+isPrime(661, true).
+isPrime(67, true).
+isPrime(673, true).
+isPrime(677, true).
+isPrime(683, true).
+isPrime(691, true).
+isPrime(7, true).
+isPrime(701, true).
+isPrime(709, true).
+isPrime(71, true).
+isPrime(719, true).
+isPrime(727, true).
+isPrime(73, true).
+isPrime(733, true).
+isPrime(739, true).
+isPrime(743, true).
+isPrime(751, true).
+isPrime(757, true).
+isPrime(761, true).
+isPrime(769, true).
+isPrime(773, true).
+isPrime(787, true).
+isPrime(79, true).
+isPrime(797, true).
+isPrime(809, true).
+isPrime(811, true).
+isPrime(821, true).
+isPrime(823, true).
+isPrime(827, true).
+isPrime(829, true).
+isPrime(83, true).
+isPrime(839, true).
+isPrime(853, true).
+isPrime(857, true).
+isPrime(859, true).
+isPrime(863, true).
+isPrime(877, true).
+isPrime(881, true).
+isPrime(883, true).
+isPrime(887, true).
+isPrime(89, true).
+isPrime(907, true).
+isPrime(911, true).
+isPrime(919, true).
+isPrime(929, true).
+isPrime(937, true).
+isPrime(941, true).
+isPrime(947, true).
+isPrime(953, true).
+isPrime(967, true).
+isPrime(97, true).
+isPrime(971, true).
+isPrime(977, true).
+isPrime(983, true).
+isPrime(991, true).
+isPrime(997, true).

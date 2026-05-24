@@ -7,191 +7,223 @@
 % For reproducibility and documentation only; not medical advice.
 
 % Editable metric input.
-triple(input, unitSystem, metric).
-triple(input, weight, 72.0).
-triple(input, height, 178.0).
+materialize(unitSystem, 2).
+materialize(weight, 2).
+materialize(height, 2).
+materialize(weightKg, 2).
+materialize(heightM, 2).
+materialize(units, 2).
+materialize(heightSquared, 2).
+materialize(bmi, 2).
+materialize(bmiRoundedInt, 2).
+materialize(healthyMinKg, 2).
+materialize(healthyMaxKg, 2).
+materialize(healthyMinKgRoundedInt, 2).
+materialize(healthyMaxKgRoundedInt, 2).
+materialize(category, 2).
+materialize(heightCm, 2).
+materialize(formula, 2).
+materialize(calculation, 2).
+materialize(categoryRule, 2).
+materialize(unitsExplanation, 2).
+materialize(c1, 2).
+materialize(c2, 2).
+materialize(c3, 2).
+materialize(c4, 2).
+materialize(c5, 2).
+materialize(c6, 2).
+materialize(c7, 2).
+materialize(c8, 2).
+materialize(c9, 2).
+materialize(result, 2).
+materialize(healthyWeightRangeKg, 2).
+materialize(checkPassed, 2).
+
+unitSystem(input, metric).
+weight(input, 72.0).
+height(input, 178.0).
 
 % US alternative:
-% triple(input, unitSystem, us).
-% triple(input, weight, 158.73).
-% triple(input, height, 70.08).
+% unitSystem(input, us).
+% weight(input, 158.73).
+% height(input, 70.08).
 
 % Normalization and BMI calculation.
-triple(case, weightKg, W) :-
-  triple(input, unitSystem, metric),
-  triple(input, weight, W).
+weightKg(case, W) :-
+  unitSystem(input, metric),
+  weight(input, W).
 
-triple(case, heightM, M) :-
-  triple(input, unitSystem, metric),
-  triple(input, height, H),
+heightM(case, M) :-
+  unitSystem(input, metric),
+  height(input, H),
   div(H, 100.0, M).
 
-triple(reason, units, "Inputs were already metric, so kilograms stay kilograms and centimeters are divided by 100 to obtain meters.") :-
-  triple(input, unitSystem, metric).
+units(reason, "Inputs were already metric, so kilograms stay kilograms and centimeters are divided by 100 to obtain meters.") :-
+  unitSystem(input, metric).
 
-triple(case, weightKg, Kg) :-
-  triple(input, unitSystem, us),
-  triple(input, weight, W),
+weightKg(case, Kg) :-
+  unitSystem(input, us),
+  weight(input, W),
   mul(W, 0.45359237, Kg).
 
-triple(case, heightM, M) :-
-  triple(input, unitSystem, us),
-  triple(input, height, H),
+heightM(case, M) :-
+  unitSystem(input, us),
+  height(input, H),
   mul(H, 0.0254, M).
 
-triple(reason, units, "US inputs were converted to SI units: pounds to kilograms and inches to meters.") :-
-  triple(input, unitSystem, us).
+units(reason, "US inputs were converted to SI units: pounds to kilograms and inches to meters.") :-
+  unitSystem(input, us).
 
-triple(case, heightSquared, M2) :-
-  triple(case, heightM, M),
+heightSquared(case, M2) :-
+  heightM(case, M),
   mul(M, M, M2).
 
-triple(case, bmi, Bmi) :-
-  triple(case, weightKg, Kg),
-  triple(case, heightSquared, M2),
+bmi(case, Bmi) :-
+  weightKg(case, Kg),
+  heightSquared(case, M2),
   div(Kg, M2, Bmi).
 
-triple(case, bmiRoundedInt, BmiRoundedInt) :-
-  triple(case, bmi, Bmi),
+bmiRoundedInt(case, BmiRoundedInt) :-
+  bmi(case, Bmi),
   mul(Bmi, 100.0, BmiX100),
   rounded(BmiX100, BmiRoundedInt).
 
-triple(case, healthyMinKg, HealthyMin) :-
-  triple(case, heightSquared, M2),
+healthyMinKg(case, HealthyMin) :-
+  heightSquared(case, M2),
   mul(18.5, M2, HealthyMin).
 
-triple(case, healthyMaxKg, HealthyMax) :-
-  triple(case, heightSquared, M2),
+healthyMaxKg(case, HealthyMax) :-
+  heightSquared(case, M2),
   mul(24.9, M2, HealthyMax).
 
-triple(case, healthyMinKgRoundedInt, MinRoundedInt) :-
-  triple(case, healthyMinKg, HealthyMin),
+healthyMinKgRoundedInt(case, MinRoundedInt) :-
+  healthyMinKg(case, HealthyMin),
   mul(HealthyMin, 10.0, MinX10),
   rounded(MinX10, MinRoundedInt).
 
-triple(case, healthyMaxKgRoundedInt, MaxRoundedInt) :-
-  triple(case, healthyMaxKg, HealthyMax),
+healthyMaxKgRoundedInt(case, MaxRoundedInt) :-
+  healthyMaxKg(case, HealthyMax),
   mul(HealthyMax, 10.0, MaxX10),
   rounded(MaxX10, MaxRoundedInt).
 
 % WHO adult categories, using half-open intervals.
-triple(decision, category, "Underweight") :-
-  triple(case, bmi, Bmi),
+category(decision, "Underweight") :-
+  bmi(case, Bmi),
   lt(Bmi, 18.5).
 
-triple(decision, category, "Normal") :-
-  triple(case, bmi, Bmi),
+category(decision, "Normal") :-
+  bmi(case, Bmi),
   ge(Bmi, 18.5),
   lt(Bmi, 25.0).
 
-triple(decision, category, "Overweight") :-
-  triple(case, bmi, Bmi),
+category(decision, "Overweight") :-
+  bmi(case, Bmi),
   ge(Bmi, 25.0),
   lt(Bmi, 30.0).
 
-triple(decision, category, "Obesity I") :-
-  triple(case, bmi, Bmi),
+category(decision, "Obesity I") :-
+  bmi(case, Bmi),
   ge(Bmi, 30.0),
   lt(Bmi, 35.0).
 
-triple(decision, category, "Obesity II") :-
-  triple(case, bmi, Bmi),
+category(decision, "Obesity II") :-
+  bmi(case, Bmi),
   ge(Bmi, 35.0),
   lt(Bmi, 40.0).
 
-triple(decision, category, "Obesity III") :-
-  triple(case, bmi, Bmi),
+category(decision, "Obesity III") :-
+  bmi(case, Bmi),
   ge(Bmi, 40.0).
 
 % Answer and reason why.
-triple(answer, bmi, 22.72) :-
-  triple(case, bmiRoundedInt, 2272).
+bmi(answer, 22.72) :-
+  bmiRoundedInt(case, 2272).
 
-triple(answer, category, Category) :-
-  triple(decision, category, Category).
+category(answer, Category) :-
+  category(decision, Category).
 
-triple(answer, healthyMinKg, 58.6) :-
-  triple(case, healthyMinKgRoundedInt, 586).
+healthyMinKg(answer, 58.6) :-
+  healthyMinKgRoundedInt(case, 586).
 
-triple(answer, healthyMaxKg, 78.9) :-
-  triple(case, healthyMaxKgRoundedInt, 789).
+healthyMaxKg(answer, 78.9) :-
+  healthyMaxKgRoundedInt(case, 789).
 
-triple(answer, heightCm, CmRounded) :-
-  triple(case, heightM, M),
+heightCm(answer, CmRounded) :-
+  heightM(case, M),
   mul(M, 100.0, Cm),
   rounded(Cm, CmRounded).
 
-triple(reason, formula, "BMI is defined as weight in kilograms divided by height in meters squared.") :-
-  triple(case, bmi, _Bmi).
+formula(reason, "BMI is defined as weight in kilograms divided by height in meters squared.") :-
+  bmi(case, _Bmi).
 
-triple(reason, calculation, "The normalized weight and height were used to compute BMI, then the result was mapped to the WHO adult category table.") :-
-  triple(decision, category, _Category).
+calculation(reason, "The normalized weight and height were used to compute BMI, then the result was mapped to the WHO adult category table.") :-
+  category(decision, _Category).
 
-triple(reason, categoryRule, Category) :-
-  triple(decision, category, Category).
+categoryRule(reason, Category) :-
+  category(decision, Category).
 
-triple(reason, unitsExplanation, Units) :-
-  triple(reason, units, Units).
+unitsExplanation(reason, Units) :-
+  units(reason, Units).
 
 % Independent checks.
-triple(check, c1, "OK - the input was normalized into positive SI values.") :-
-  triple(case, weightKg, Kg),
-  triple(case, heightM, M),
+c1(check, "OK - the input was normalized into positive SI values.") :-
+  weightKg(case, Kg),
+  heightM(case, M),
   gt(Kg, 0),
   gt(M, 0).
 
-triple(check, c2, "OK - height squared was reconstructed from the normalized height.") :-
-  triple(case, heightM, M),
-  triple(case, heightSquared, M2),
+c2(check, "OK - height squared was reconstructed from the normalized height.") :-
+  heightM(case, M),
+  heightSquared(case, M2),
   mul(M, M, M2).
 
-triple(check, c3, "OK - the BMI value matches the BMI = kg / m² formula.") :-
-  triple(case, weightKg, Kg),
-  triple(case, heightSquared, M2),
-  triple(case, bmi, Bmi),
+c3(check, "OK - the BMI value matches the BMI = kg / m² formula.") :-
+  weightKg(case, Kg),
+  heightSquared(case, M2),
+  bmi(case, Bmi),
   div(Kg, M2, Bmi).
 
-triple(check, c4, "OK - a BMI of 18.49 stays below the normal-weight threshold.") :-
+c4(check, "OK - a BMI of 18.49 stays below the normal-weight threshold.") :-
   lt(18.49, 18.5).
 
-triple(check, c5, "OK - the lower boundary is half-open: BMI 18.5 is classified as Normal.") :-
+c5(check, "OK - the lower boundary is half-open: BMI 18.5 is classified as Normal.") :-
   ge(18.5, 18.5),
   lt(18.5, 25.0).
 
-triple(check, c6, "OK - BMI 25.0 starts the Overweight category.") :-
+c6(check, "OK - BMI 25.0 starts the Overweight category.") :-
   ge(25.0, 25.0),
   lt(25.0, 30.0).
 
-triple(check, c7, "OK - BMI 30.0 starts the Obesity I category.") :-
+c7(check, "OK - BMI 30.0 starts the Obesity I category.") :-
   ge(30.0, 30.0),
   lt(30.0, 35.0).
 
-triple(check, c8, "OK - classification behavior is monotonic across representative BMI values.") :-
+c8(check, "OK - classification behavior is monotonic across representative BMI values.") :-
   ge(22.0, 18.5),
   lt(22.0, 25.0),
   ge(27.0, 25.0),
   lt(27.0, 30.0),
   ge(41.0, 40.0).
 
-triple(check, c9, "OK - the healthy-weight band was reconstructed from BMI 18.5 to 24.9 at the same height.") :-
-  triple(case, heightSquared, M2),
-  triple(case, healthyMinKg, Min),
-  triple(case, healthyMaxKg, Max),
+c9(check, "OK - the healthy-weight band was reconstructed from BMI 18.5 to 24.9 at the same height.") :-
+  heightSquared(case, M2),
+  healthyMinKg(case, Min),
+  healthyMaxKg(case, Max),
   mul(18.5, M2, Min),
   mul(24.9, M2, Max).
 
-% Derived report summary.  These triples are consequences of the calculation
+% Derived report summary.  These relations are consequences of the calculation
 % and checks, not pre-written report lines.
-triple(report, result, bmi(Bmi, Category)) :-
-  triple(answer, bmi, Bmi),
-  triple(answer, category, Category).
+result(report, bmi(Bmi, Category)) :-
+  bmi(answer, Bmi),
+  category(answer, Category).
 
-triple(report, healthyWeightRangeKg, range(Min, Max)) :-
-  triple(answer, healthyMinKg, Min),
-  triple(answer, healthyMaxKg, Max).
+healthyWeightRangeKg(report, range(Min, Max)) :-
+  healthyMinKg(answer, Min),
+  healthyMaxKg(answer, Max).
 
-triple(report, heightCm, Height) :-
-  triple(answer, heightCm, Height).
+heightCm(report, Height) :-
+  heightCm(answer, Height).
 
-triple(report, checkPassed, Check) :-
-  triple(check, Check, _Message).
+checkPassed(report, Check) :-
+  statement(check, Check, _Message).

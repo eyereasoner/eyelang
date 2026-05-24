@@ -3,6 +3,10 @@
 % The rules compute process capability indices from measurement summaries and
 % classify production lines using a practical Cpk threshold.
 
+materialize(cpk, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 run(line7_shift_a).
 run(line8_shift_b).
 
@@ -52,17 +56,15 @@ needs_adjustment(Run) :-
   capability_threshold(cpk, Threshold),
   lt(Cpk, Threshold).
 
-triple(Run, cpk, Cpk) :-
-  cpk(Run, Cpk).
 
-triple(Run, status, capable_process) :-
+status(Run, capable_process) :-
   capable(Run).
 
-triple(Run, status, needs_process_adjustment) :-
+status(Run, needs_process_adjustment) :-
   needs_adjustment(Run).
 
-triple(Run, reason, "Cpk meets the production capability threshold") :-
+reason(Run, "Cpk meets the production capability threshold") :-
   capable(Run).
 
-triple(Run, reason, "Cpk is below the production capability threshold") :-
+reason(Run, "Cpk is below the production capability threshold") :-
   needs_adjustment(Run).

@@ -1,1518 +1,1518 @@
-triple(i0, cycle, [i12, i66, i9, i12, i66, i9, i12, i9, i12, i9, i12]).
-triple(i0, cycle, [i12, i66, i9, i12, i9, i12, i66, i9, i12, i9, i12]).
-triple(i0, cycle, [i12, i66, i9, i12, i9, i12, i9, i12, i66, i9, i12]).
-triple(i0, cycle, [i12, i9, i12, i66, i9, i12, i66, i9, i12, i9, i12]).
-triple(i0, cycle, [i12, i9, i12, i66, i9, i12, i9, i12, i66, i9, i12]).
-triple(i0, cycle, [i12, i9, i12, i9, i12, i66, i9, i12, i66, i9, i12]).
-triple(i0, cycle, [i12, i9, i12, i9, i12, i9, i12, i9, i12, i9, i12]).
-triple(i0, cycle, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
-triple(i0, cycle, [i66, i9, i12, i66, i9, i12, i9, i12, i9, i12, i66]).
-triple(i0, cycle, [i66, i9, i12, i9, i12, i66, i9, i12, i9, i12, i66]).
-triple(i0, cycle, [i66, i9, i12, i9, i12, i9, i12, i66, i9, i12, i66]).
-triple(i0, cycle, [i75, i84, i75, i84, i75, i84, i75, i84, i75, i84, i75]).
-triple(i0, cycle, [i84, i75, i84, i75, i84, i75, i84, i75, i84, i75, i84]).
-triple(i0, cycle, [i9, i12, i66, i9, i12, i66, i9, i12, i9, i12, i9]).
-triple(i0, cycle, [i9, i12, i66, i9, i12, i9, i12, i66, i9, i12, i9]).
-triple(i0, cycle, [i9, i12, i66, i9, i12, i9, i12, i9, i12, i66, i9]).
-triple(i0, cycle, [i9, i12, i9, i12, i66, i9, i12, i66, i9, i12, i9]).
-triple(i0, cycle, [i9, i12, i9, i12, i66, i9, i12, i9, i12, i66, i9]).
-triple(i0, cycle, [i9, i12, i9, i12, i9, i12, i66, i9, i12, i66, i9]).
-triple(i0, cycle, [i9, i12, i9, i12, i9, i12, i9, i12, i9, i12, i9]).
-triple(i10, cycle, [i15, i78, i60, i33, i87, i15, i78, i60, i33, i87, i15]).
-triple(i10, cycle, [i33, i87, i15, i78, i60, i33, i87, i15, i78, i60, i33]).
-triple(i10, cycle, [i60, i33, i87, i15, i78, i60, i33, i87, i15, i78, i60]).
-triple(i10, cycle, [i78, i60, i33, i87, i15, i78, i60, i33, i87, i15, i78]).
-triple(i10, cycle, [i87, i15, i78, i60, i33, i87, i15, i78, i60, i33, i87]).
-triple(i11, cycle, [i15, i30, i78, i45, i51, i15, i30, i78, i45, i51, i15]).
-triple(i11, cycle, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
-triple(i11, cycle, [i30, i78, i45, i51, i15, i30, i78, i45, i51, i15, i30]).
-triple(i11, cycle, [i39, i39, i39, i39, i39, i39, i39, i39, i39, i39, i39]).
-triple(i11, cycle, [i45, i51, i15, i30, i78, i45, i51, i15, i30, i78, i45]).
-triple(i11, cycle, [i51, i15, i30, i78, i45, i51, i15, i30, i78, i45, i51]).
-triple(i11, cycle, [i78, i45, i51, i15, i30, i78, i45, i51, i15, i30, i78]).
-triple(i12, cycle, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45]).
-triple(i12, cycle, [i66, i66, i66, i66, i66, i66, i66, i66, i66, i66, i66]).
-triple(i13, cycle, [i12, i60, i12, i60, i12, i60, i12, i60, i12, i60, i12]).
-triple(i13, cycle, [i45, i48, i78, i81, i87, i45, i48, i78, i81, i87, i45]).
-triple(i13, cycle, [i48, i78, i81, i87, i45, i48, i78, i81, i87, i45, i48]).
-triple(i13, cycle, [i60, i12, i60, i12, i60, i12, i60, i12, i60, i12, i60]).
-triple(i13, cycle, [i78, i81, i87, i45, i48, i78, i81, i87, i45, i48, i78]).
-triple(i13, cycle, [i81, i87, i45, i48, i78, i81, i87, i45, i48, i78, i81]).
-triple(i13, cycle, [i87, i45, i48, i78, i81, i87, i45, i48, i78, i81, i87]).
-triple(i15, cycle, [i36, i96, i36, i96, i36, i96, i36, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i36, i96, i36, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i36, i96, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i36, i96, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i36, i96, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i36, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i36, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i36, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i96, i36, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i96, i36, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i96, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i96, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i36, i96, i96, i96, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i36, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i36, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i36, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i96, i36, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i96, i36, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i96, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i96, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i36, i96, i96, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i36, i96, i36, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i36, i96, i36, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i36, i96, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i36, i96, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i36, i96, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i36, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i36, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i36, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i96, i36, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i96, i36, i96, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i96, i96, i36, i96, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i96, i96, i96, i36, i96, i36]).
-triple(i15, cycle, [i36, i96, i96, i96, i96, i96, i96, i96, i96, i96, i36]).
-triple(i15, cycle, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i36, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i36, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i36, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i36, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i36, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i36, i96, i96, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i36, i96, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i36, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i36, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i36, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i36, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i36, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i36, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i36, i96, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i36, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i36, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i36, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i36, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i36, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i36, i96, i96, i96, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i36, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i36, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i36, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i36, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i36, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i36, i96, i96, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i36, i96, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i36, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i36, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i36, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i36, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i36, i96, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i36, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i36, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i36, i96, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i96, i36, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i96, i36, i96, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i96, i96, i36, i96, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i36, i96]).
-triple(i15, cycle, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
-triple(i16, cycle, [i21, i42, i45, i93, i39, i45, i93, i45, i93, i63, i21]).
-triple(i16, cycle, [i21, i42, i45, i93, i45, i93, i39, i45, i93, i63, i21]).
-triple(i16, cycle, [i21, i42, i45, i93, i63, i21, i42, i45, i93, i63, i21]).
-triple(i16, cycle, [i27, i93, i39, i42, i45, i93, i45, i93, i39, i87, i27]).
-triple(i16, cycle, [i27, i93, i39, i45, i93, i39, i45, i93, i39, i87, i27]).
-triple(i16, cycle, [i27, i93, i39, i87, i27, i93, i45, i93, i39, i87, i27]).
-triple(i16, cycle, [i27, i93, i45, i93, i39, i42, i45, i93, i39, i87, i27]).
-triple(i16, cycle, [i27, i93, i45, i93, i39, i87, i27, i93, i39, i87, i27]).
-triple(i16, cycle, [i27, i93, i45, i93, i45, i93, i45, i93, i39, i87, i27]).
-triple(i16, cycle, [i39, i42, i45, i93, i39, i42, i45, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i42, i45, i93, i39, i45, i93, i39, i45, i93, i39]).
-triple(i16, cycle, [i39, i42, i45, i93, i39, i87, i27, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i42, i45, i93, i45, i93, i39, i42, i45, i93, i39]).
-triple(i16, cycle, [i39, i42, i45, i93, i45, i93, i39, i87, i27, i93, i39]).
-triple(i16, cycle, [i39, i42, i45, i93, i45, i93, i45, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i39, i42, i45, i93, i39, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i39, i45, i93, i39, i42, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i39, i45, i93, i39, i87, i27, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i39, i45, i93, i45, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i39, i87, i27, i93, i39, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i45, i93, i39, i45, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i45, i93, i45, i93, i39, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i45, i93, i63, i21, i42, i45, i93, i39]).
-triple(i16, cycle, [i39, i45, i93, i63, i21, i42, i45, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i87, i27, i93, i39, i42, i45, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i87, i27, i93, i39, i45, i93, i39, i45, i93, i39]).
-triple(i16, cycle, [i39, i87, i27, i93, i39, i87, i27, i93, i45, i93, i39]).
-triple(i16, cycle, [i39, i87, i27, i93, i45, i93, i39, i42, i45, i93, i39]).
-triple(i16, cycle, [i39, i87, i27, i93, i45, i93, i39, i87, i27, i93, i39]).
-triple(i16, cycle, [i39, i87, i27, i93, i45, i93, i45, i93, i45, i93, i39]).
-triple(i16, cycle, [i42, i45, i93, i39, i42, i45, i93, i45, i93, i39, i42]).
-triple(i16, cycle, [i42, i45, i93, i39, i45, i93, i39, i45, i93, i39, i42]).
-triple(i16, cycle, [i42, i45, i93, i39, i45, i93, i45, i93, i63, i21, i42]).
-triple(i16, cycle, [i42, i45, i93, i39, i87, i27, i93, i45, i93, i39, i42]).
-triple(i16, cycle, [i42, i45, i93, i45, i93, i39, i42, i45, i93, i39, i42]).
-triple(i16, cycle, [i42, i45, i93, i45, i93, i39, i45, i93, i63, i21, i42]).
-triple(i16, cycle, [i42, i45, i93, i45, i93, i39, i87, i27, i93, i39, i42]).
-triple(i16, cycle, [i42, i45, i93, i45, i93, i45, i93, i45, i93, i39, i42]).
-triple(i16, cycle, [i42, i45, i93, i63, i21, i42, i45, i93, i63, i21, i42]).
-triple(i16, cycle, [i45, i93, i39, i42, i45, i93, i39, i42, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i42, i45, i93, i39, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i39, i42, i45, i93, i39, i87, i27, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i42, i45, i93, i45, i93, i39, i42, i45]).
-triple(i16, cycle, [i45, i93, i39, i42, i45, i93, i45, i93, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i39, i42, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i39, i45, i93, i39, i42, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i39, i45, i93, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i39, i87, i27, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i45, i93, i39, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i45, i93, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i45, i93, i63, i21, i42, i45]).
-triple(i16, cycle, [i45, i93, i39, i45, i93, i63, i21, i42, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i87, i27, i93, i39, i42, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i87, i27, i93, i39, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i39, i87, i27, i93, i39, i87, i27, i93, i45]).
-triple(i16, cycle, [i45, i93, i39, i87, i27, i93, i45, i93, i39, i42, i45]).
-triple(i16, cycle, [i45, i93, i39, i87, i27, i93, i45, i93, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i39, i42, i45, i93, i39, i42, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i39, i42, i45, i93, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i39, i45, i93, i39, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i39, i45, i93, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i39, i45, i93, i63, i21, i42, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i39, i87, i27, i93, i39, i42, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i39, i87, i27, i93, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i45, i93, i39, i42, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i45, i93, i39, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i45, i93, i39, i87, i27, i93, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i45, i93, i45, i93, i39, i42, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i45, i93, i45, i93, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i45, i93, i63, i21, i42, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i63, i21, i42, i45, i93, i39, i45, i93, i45]).
-triple(i16, cycle, [i45, i93, i63, i21, i42, i45, i93, i45, i93, i39, i45]).
-triple(i16, cycle, [i45, i93, i63, i21, i42, i45, i93, i63, i21, i42, i45]).
-triple(i16, cycle, [i63, i21, i42, i45, i93, i39, i45, i93, i45, i93, i63]).
-triple(i16, cycle, [i63, i21, i42, i45, i93, i45, i93, i39, i45, i93, i63]).
-triple(i16, cycle, [i63, i21, i42, i45, i93, i63, i21, i42, i45, i93, i63]).
-triple(i16, cycle, [i87, i27, i93, i39, i42, i45, i93, i45, i93, i39, i87]).
-triple(i16, cycle, [i87, i27, i93, i39, i45, i93, i39, i45, i93, i39, i87]).
-triple(i16, cycle, [i87, i27, i93, i39, i87, i27, i93, i45, i93, i39, i87]).
-triple(i16, cycle, [i87, i27, i93, i45, i93, i39, i42, i45, i93, i39, i87]).
-triple(i16, cycle, [i87, i27, i93, i45, i93, i39, i87, i27, i93, i39, i87]).
-triple(i16, cycle, [i87, i27, i93, i45, i93, i45, i93, i45, i93, i39, i87]).
-triple(i16, cycle, [i93, i39, i42, i45, i93, i39, i42, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i42, i45, i93, i39, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i39, i42, i45, i93, i39, i87, i27, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i42, i45, i93, i45, i93, i39, i42, i45, i93]).
-triple(i16, cycle, [i93, i39, i42, i45, i93, i45, i93, i39, i87, i27, i93]).
-triple(i16, cycle, [i93, i39, i42, i45, i93, i45, i93, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i39, i42, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i39, i45, i93, i39, i42, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i39, i45, i93, i39, i87, i27, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i39, i45, i93, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i39, i87, i27, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i45, i93, i39, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i45, i93, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i45, i93, i63, i21, i42, i45, i93]).
-triple(i16, cycle, [i93, i39, i45, i93, i63, i21, i42, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i87, i27, i93, i39, i42, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i87, i27, i93, i39, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i39, i87, i27, i93, i39, i87, i27, i93, i45, i93]).
-triple(i16, cycle, [i93, i39, i87, i27, i93, i45, i93, i39, i42, i45, i93]).
-triple(i16, cycle, [i93, i39, i87, i27, i93, i45, i93, i39, i87, i27, i93]).
-triple(i16, cycle, [i93, i39, i87, i27, i93, i45, i93, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i42, i45, i93, i39, i42, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i42, i45, i93, i39, i87, i27, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i42, i45, i93, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i45, i93, i39, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i45, i93, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i45, i93, i63, i21, i42, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i87, i27, i93, i39, i42, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i87, i27, i93, i39, i87, i27, i93]).
-triple(i16, cycle, [i93, i45, i93, i39, i87, i27, i93, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i45, i93, i39, i42, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i45, i93, i39, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i45, i93, i39, i87, i27, i93, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i45, i93, i45, i93, i39, i42, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i45, i93, i45, i93, i39, i87, i27, i93]).
-triple(i16, cycle, [i93, i45, i93, i45, i93, i45, i93, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i45, i93, i63, i21, i42, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i63, i21, i42, i45, i93, i39, i45, i93, i45, i93]).
-triple(i16, cycle, [i93, i63, i21, i42, i45, i93, i45, i93, i39, i45, i93]).
-triple(i16, cycle, [i93, i63, i21, i42, i45, i93, i63, i21, i42, i45, i93]).
-triple(i17, cycle, [i0, i30, i33, i63, i42, i54, i0, i30, i33, i75, i0]).
-triple(i17, cycle, [i0, i30, i33, i75, i0, i30, i33, i63, i42, i54, i0]).
-triple(i17, cycle, [i0, i30, i33, i75, i30, i33, i75, i30, i33, i75, i0]).
-triple(i17, cycle, [i30, i33, i63, i42, i54, i0, i30, i33, i75, i0, i30]).
-triple(i17, cycle, [i30, i33, i75, i0, i30, i33, i63, i42, i54, i0, i30]).
-triple(i17, cycle, [i30, i33, i75, i0, i30, i33, i75, i30, i33, i75, i30]).
-triple(i17, cycle, [i30, i33, i75, i30, i33, i75, i0, i30, i33, i75, i30]).
-triple(i17, cycle, [i30, i33, i75, i30, i33, i75, i30, i33, i75, i0, i30]).
-triple(i17, cycle, [i33, i63, i42, i54, i0, i30, i33, i75, i0, i30, i33]).
-triple(i17, cycle, [i33, i75, i0, i30, i33, i63, i42, i54, i0, i30, i33]).
-triple(i17, cycle, [i33, i75, i0, i30, i33, i75, i30, i33, i75, i30, i33]).
-triple(i17, cycle, [i33, i75, i30, i33, i75, i0, i30, i33, i75, i30, i33]).
-triple(i17, cycle, [i33, i75, i30, i33, i75, i30, i33, i75, i0, i30, i33]).
-triple(i17, cycle, [i42, i54, i0, i30, i33, i75, i0, i30, i33, i63, i42]).
-triple(i17, cycle, [i54, i0, i30, i33, i75, i0, i30, i33, i63, i42, i54]).
-triple(i17, cycle, [i63, i42, i54, i0, i30, i33, i75, i0, i30, i33, i63]).
-triple(i17, cycle, [i75, i0, i30, i33, i63, i42, i54, i0, i30, i33, i75]).
-triple(i17, cycle, [i75, i0, i30, i33, i75, i30, i33, i75, i30, i33, i75]).
-triple(i17, cycle, [i75, i30, i33, i75, i0, i30, i33, i75, i30, i33, i75]).
-triple(i17, cycle, [i75, i30, i33, i75, i30, i33, i75, i0, i30, i33, i75]).
-triple(i18, cycle, [i75, i75, i75, i75, i75, i75, i75, i75, i75, i75, i75]).
-triple(i19, cycle, [i12, i93, i66, i36, i21, i21, i21, i21, i87, i33, i12]).
-triple(i19, cycle, [i12, i93, i66, i36, i21, i87, i69, i36, i72, i33, i12]).
-triple(i19, cycle, [i12, i93, i66, i36, i72, i66, i36, i21, i87, i33, i12]).
-triple(i19, cycle, [i21, i21, i21, i21, i21, i21, i21, i21, i21, i21, i21]).
-triple(i19, cycle, [i21, i21, i21, i21, i21, i21, i21, i87, i69, i36, i21]).
-triple(i19, cycle, [i21, i21, i21, i21, i21, i21, i87, i69, i36, i21, i21]).
-triple(i19, cycle, [i21, i21, i21, i21, i21, i87, i69, i36, i21, i21, i21]).
-triple(i19, cycle, [i21, i21, i21, i21, i87, i33, i12, i93, i66, i36, i21]).
-triple(i19, cycle, [i21, i21, i21, i21, i87, i69, i36, i21, i21, i21, i21]).
-triple(i19, cycle, [i21, i21, i21, i21, i87, i69, i36, i72, i66, i36, i21]).
-triple(i19, cycle, [i21, i21, i21, i87, i33, i12, i93, i66, i36, i21, i21]).
-triple(i19, cycle, [i21, i21, i21, i87, i69, i36, i21, i21, i21, i21, i21]).
-triple(i19, cycle, [i21, i21, i21, i87, i69, i36, i21, i87, i69, i36, i21]).
-triple(i19, cycle, [i21, i21, i21, i87, i69, i36, i72, i66, i36, i21, i21]).
-triple(i19, cycle, [i21, i21, i87, i33, i12, i93, i66, i36, i21, i21, i21]).
-triple(i19, cycle, [i21, i21, i87, i69, i36, i21, i21, i21, i21, i21, i21]).
-triple(i19, cycle, [i21, i21, i87, i69, i36, i21, i21, i87, i69, i36, i21]).
-triple(i19, cycle, [i21, i21, i87, i69, i36, i21, i87, i69, i36, i21, i21]).
-triple(i19, cycle, [i21, i21, i87, i69, i36, i72, i66, i36, i21, i21, i21]).
-triple(i19, cycle, [i21, i87, i33, i12, i93, i66, i36, i21, i21, i21, i21]).
-triple(i19, cycle, [i21, i87, i33, i12, i93, i66, i36, i72, i66, i36, i21]).
-triple(i19, cycle, [i21, i87, i69, i36, i21, i21, i21, i21, i21, i21, i21]).
-triple(i19, cycle, [i21, i87, i69, i36, i21, i21, i21, i87, i69, i36, i21]).
-triple(i19, cycle, [i21, i87, i69, i36, i21, i21, i87, i69, i36, i21, i21]).
-triple(i19, cycle, [i21, i87, i69, i36, i21, i87, i69, i36, i21, i21, i21]).
-triple(i19, cycle, [i21, i87, i69, i36, i72, i33, i12, i93, i66, i36, i21]).
-triple(i19, cycle, [i21, i87, i69, i36, i72, i66, i36, i21, i21, i21, i21]).
-triple(i19, cycle, [i21, i87, i69, i36, i72, i66, i36, i72, i66, i36, i21]).
-triple(i19, cycle, [i33, i12, i93, i66, i36, i21, i21, i21, i21, i87, i33]).
-triple(i19, cycle, [i33, i12, i93, i66, i36, i21, i87, i69, i36, i72, i33]).
-triple(i19, cycle, [i33, i12, i93, i66, i36, i72, i66, i36, i21, i87, i33]).
-triple(i19, cycle, [i36, i21, i21, i21, i21, i21, i21, i21, i87, i69, i36]).
-triple(i19, cycle, [i36, i21, i21, i21, i21, i87, i33, i12, i93, i66, i36]).
-triple(i19, cycle, [i36, i21, i21, i21, i21, i87, i69, i36, i72, i66, i36]).
-triple(i19, cycle, [i36, i21, i21, i21, i87, i69, i36, i21, i87, i69, i36]).
-triple(i19, cycle, [i36, i21, i21, i87, i69, i36, i21, i21, i87, i69, i36]).
-triple(i19, cycle, [i36, i21, i87, i33, i12, i93, i66, i36, i72, i66, i36]).
-triple(i19, cycle, [i36, i21, i87, i69, i36, i21, i21, i21, i87, i69, i36]).
-triple(i19, cycle, [i36, i21, i87, i69, i36, i72, i33, i12, i93, i66, i36]).
-triple(i19, cycle, [i36, i21, i87, i69, i36, i72, i66, i36, i72, i66, i36]).
-triple(i19, cycle, [i36, i72, i33, i12, i93, i66, i36, i21, i87, i69, i36]).
-triple(i19, cycle, [i36, i72, i66, i36, i21, i21, i21, i21, i87, i69, i36]).
-triple(i19, cycle, [i36, i72, i66, i36, i21, i87, i33, i12, i93, i66, i36]).
-triple(i19, cycle, [i36, i72, i66, i36, i21, i87, i69, i36, i72, i66, i36]).
-triple(i19, cycle, [i36, i72, i66, i36, i72, i66, i36, i21, i87, i69, i36]).
-triple(i19, cycle, [i66, i36, i21, i21, i21, i21, i87, i33, i12, i93, i66]).
-triple(i19, cycle, [i66, i36, i21, i21, i21, i21, i87, i69, i36, i72, i66]).
-triple(i19, cycle, [i66, i36, i21, i87, i33, i12, i93, i66, i36, i72, i66]).
-triple(i19, cycle, [i66, i36, i21, i87, i69, i36, i72, i33, i12, i93, i66]).
-triple(i19, cycle, [i66, i36, i21, i87, i69, i36, i72, i66, i36, i72, i66]).
-triple(i19, cycle, [i66, i36, i72, i66, i36, i21, i87, i33, i12, i93, i66]).
-triple(i19, cycle, [i66, i36, i72, i66, i36, i21, i87, i69, i36, i72, i66]).
-triple(i19, cycle, [i69, i36, i21, i21, i21, i21, i21, i21, i21, i87, i69]).
-triple(i19, cycle, [i69, i36, i21, i21, i21, i87, i69, i36, i21, i87, i69]).
-triple(i19, cycle, [i69, i36, i21, i21, i87, i69, i36, i21, i21, i87, i69]).
-triple(i19, cycle, [i69, i36, i21, i87, i69, i36, i21, i21, i21, i87, i69]).
-triple(i19, cycle, [i69, i36, i72, i33, i12, i93, i66, i36, i21, i87, i69]).
-triple(i19, cycle, [i69, i36, i72, i66, i36, i21, i21, i21, i21, i87, i69]).
-triple(i19, cycle, [i69, i36, i72, i66, i36, i72, i66, i36, i21, i87, i69]).
-triple(i19, cycle, [i72, i33, i12, i93, i66, i36, i21, i87, i69, i36, i72]).
-triple(i19, cycle, [i72, i66, i36, i21, i21, i21, i21, i87, i69, i36, i72]).
-triple(i19, cycle, [i72, i66, i36, i21, i87, i33, i12, i93, i66, i36, i72]).
-triple(i19, cycle, [i72, i66, i36, i21, i87, i69, i36, i72, i66, i36, i72]).
-triple(i19, cycle, [i72, i66, i36, i72, i66, i36, i21, i87, i69, i36, i72]).
-triple(i19, cycle, [i87, i33, i12, i93, i66, i36, i21, i21, i21, i21, i87]).
-triple(i19, cycle, [i87, i33, i12, i93, i66, i36, i72, i66, i36, i21, i87]).
-triple(i19, cycle, [i87, i69, i36, i21, i21, i21, i21, i21, i21, i21, i87]).
-triple(i19, cycle, [i87, i69, i36, i21, i21, i21, i87, i69, i36, i21, i87]).
-triple(i19, cycle, [i87, i69, i36, i21, i21, i87, i69, i36, i21, i21, i87]).
-triple(i19, cycle, [i87, i69, i36, i21, i87, i69, i36, i21, i21, i21, i87]).
-triple(i19, cycle, [i87, i69, i36, i72, i33, i12, i93, i66, i36, i21, i87]).
-triple(i19, cycle, [i87, i69, i36, i72, i66, i36, i21, i21, i21, i21, i87]).
-triple(i19, cycle, [i87, i69, i36, i72, i66, i36, i72, i66, i36, i21, i87]).
-triple(i19, cycle, [i93, i66, i36, i21, i21, i21, i21, i87, i33, i12, i93]).
-triple(i19, cycle, [i93, i66, i36, i21, i87, i69, i36, i72, i33, i12, i93]).
-triple(i19, cycle, [i93, i66, i36, i72, i66, i36, i21, i87, i33, i12, i93]).
-triple(i2, cycle, [i27, i66, i27, i66, i27, i66, i27, i66, i27, i66, i27]).
-triple(i2, cycle, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
-triple(i2, cycle, [i66, i27, i66, i27, i66, i27, i66, i27, i66, i27, i66]).
-triple(i21, cycle, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
-triple(i24, cycle, [i24, i33, i24, i33, i24, i33, i24, i33, i24, i33, i24]).
-triple(i24, cycle, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
-triple(i24, cycle, [i33, i24, i33, i24, i33, i24, i33, i24, i33, i24, i33]).
-triple(i24, cycle, [i57, i57, i57, i57, i57, i57, i57, i57, i57, i57, i57]).
-triple(i24, cycle, [i60, i87, i60, i87, i60, i87, i60, i87, i60, i87, i60]).
-triple(i24, cycle, [i78, i78, i78, i78, i78, i78, i78, i78, i78, i78, i78]).
-triple(i24, cycle, [i87, i60, i87, i60, i87, i60, i87, i60, i87, i60, i87]).
-triple(i25, cycle, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
-triple(i27, cycle, [i21, i72, i21, i72, i21, i72, i21, i72, i21, i72, i21]).
-triple(i27, cycle, [i39, i84, i39, i84, i39, i84, i39, i84, i39, i84, i39]).
-triple(i27, cycle, [i72, i21, i72, i21, i72, i21, i72, i21, i72, i21, i72]).
-triple(i27, cycle, [i84, i39, i84, i39, i84, i39, i84, i39, i84, i39, i84]).
-triple(i28, cycle, [i15, i36, i6, i87, i81, i15, i36, i6, i87, i81, i15]).
-triple(i28, cycle, [i18, i78, i18, i78, i18, i78, i18, i78, i18, i78, i18]).
-triple(i28, cycle, [i36, i6, i87, i81, i15, i36, i6, i87, i81, i15, i36]).
-triple(i28, cycle, [i6, i87, i81, i15, i36, i6, i87, i81, i15, i36, i6]).
-triple(i28, cycle, [i78, i18, i78, i18, i78, i18, i78, i18, i78, i18, i78]).
-triple(i28, cycle, [i81, i15, i36, i6, i87, i81, i15, i36, i6, i87, i81]).
-triple(i28, cycle, [i87, i81, i15, i36, i6, i87, i81, i15, i36, i6, i87]).
-triple(i29, cycle, [i12, i12, i12, i12, i12, i12, i12, i12, i12, i12, i12]).
-triple(i29, cycle, [i39, i39, i39, i39, i39, i39, i39, i39, i39, i39, i39]).
-triple(i3, cycle, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
-triple(i31, cycle, [i15, i3, i15, i3, i15, i3, i15, i3, i15, i3, i15]).
-triple(i31, cycle, [i3, i15, i3, i15, i3, i15, i3, i15, i3, i15, i3]).
-triple(i31, cycle, [i66, i66, i66, i66, i66, i66, i66, i66, i66, i66, i66]).
-triple(i32, cycle, [i0, i33, i15, i60, i63, i0, i33, i15, i60, i63, i0]).
-triple(i32, cycle, [i15, i60, i63, i0, i33, i15, i60, i63, i0, i33, i15]).
-triple(i32, cycle, [i33, i15, i60, i63, i0, i33, i15, i60, i63, i0, i33]).
-triple(i32, cycle, [i6, i90, i6, i90, i6, i90, i6, i90, i6, i90, i6]).
-triple(i32, cycle, [i60, i63, i0, i33, i15, i60, i63, i0, i33, i15, i60]).
-triple(i32, cycle, [i63, i0, i33, i15, i60, i63, i0, i33, i15, i60, i63]).
-triple(i32, cycle, [i90, i6, i90, i6, i90, i6, i90, i6, i90, i6, i90]).
-triple(i33, cycle, [i69, i69, i69, i69, i69, i69, i69, i69, i69, i69, i69]).
-triple(i34, cycle, [i0, i30, i0, i30, i0, i30, i0, i30, i0, i30, i0]).
-triple(i34, cycle, [i18, i18, i18, i18, i18, i18, i18, i18, i18, i18, i18]).
-triple(i34, cycle, [i24, i24, i24, i24, i24, i24, i24, i24, i24, i24, i24]).
-triple(i34, cycle, [i30, i0, i30, i0, i30, i0, i30, i0, i30, i0, i30]).
-triple(i34, cycle, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
-triple(i34, cycle, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
-triple(i35, cycle, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45]).
-triple(i36, cycle, [i24, i84, i51, i36, i24, i84, i51, i36, i93, i36, i24]).
-triple(i36, cycle, [i24, i84, i51, i36, i72, i24, i84, i51, i36, i72, i24]).
-triple(i36, cycle, [i24, i84, i51, i36, i93, i36, i24, i84, i51, i36, i24]).
-triple(i36, cycle, [i24, i84, i51, i36, i93, i36, i93, i36, i93, i36, i24]).
-triple(i36, cycle, [i36, i24, i84, i51, i36, i24, i84, i51, i36, i93, i36]).
-triple(i36, cycle, [i36, i24, i84, i51, i36, i93, i36, i24, i84, i51, i36]).
-triple(i36, cycle, [i36, i24, i84, i51, i36, i93, i36, i93, i36, i93, i36]).
-triple(i36, cycle, [i36, i72, i24, i84, i51, i36, i72, i24, i84, i51, i36]).
-triple(i36, cycle, [i36, i93, i36, i24, i84, i51, i36, i24, i84, i51, i36]).
-triple(i36, cycle, [i36, i93, i36, i24, i84, i51, i36, i93, i36, i93, i36]).
-triple(i36, cycle, [i36, i93, i36, i93, i36, i24, i84, i51, i36, i93, i36]).
-triple(i36, cycle, [i36, i93, i36, i93, i36, i93, i36, i24, i84, i51, i36]).
-triple(i36, cycle, [i36, i93, i36, i93, i36, i93, i36, i93, i36, i93, i36]).
-triple(i36, cycle, [i51, i36, i24, i84, i51, i36, i93, i36, i24, i84, i51]).
-triple(i36, cycle, [i51, i36, i72, i24, i84, i51, i36, i72, i24, i84, i51]).
-triple(i36, cycle, [i51, i36, i93, i36, i24, i84, i51, i36, i24, i84, i51]).
-triple(i36, cycle, [i51, i36, i93, i36, i93, i36, i93, i36, i24, i84, i51]).
-triple(i36, cycle, [i72, i24, i84, i51, i36, i72, i24, i84, i51, i36, i72]).
-triple(i36, cycle, [i84, i51, i36, i24, i84, i51, i36, i93, i36, i24, i84]).
-triple(i36, cycle, [i84, i51, i36, i72, i24, i84, i51, i36, i72, i24, i84]).
-triple(i36, cycle, [i84, i51, i36, i93, i36, i24, i84, i51, i36, i24, i84]).
-triple(i36, cycle, [i84, i51, i36, i93, i36, i93, i36, i93, i36, i24, i84]).
-triple(i36, cycle, [i93, i36, i24, i84, i51, i36, i24, i84, i51, i36, i93]).
-triple(i36, cycle, [i93, i36, i24, i84, i51, i36, i93, i36, i93, i36, i93]).
-triple(i36, cycle, [i93, i36, i93, i36, i24, i84, i51, i36, i93, i36, i93]).
-triple(i36, cycle, [i93, i36, i93, i36, i93, i36, i24, i84, i51, i36, i93]).
-triple(i36, cycle, [i93, i36, i93, i36, i93, i36, i93, i36, i93, i36, i93]).
-triple(i37, cycle, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
-triple(i39, cycle, [i90, i90, i90, i90, i90, i90, i90, i90, i90, i90, i90]).
-triple(i39, cycle, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
-triple(i4, cycle, [i57, i57, i57, i57, i57, i57, i57, i57, i57, i57, i57]).
-triple(i4, cycle, [i69, i69, i69, i69, i69, i69, i69, i69, i69, i69, i69]).
-triple(i42, cycle, [i72, i75, i72, i75, i72, i75, i72, i75, i72, i75, i72]).
-triple(i42, cycle, [i75, i72, i75, i72, i75, i72, i75, i72, i75, i72, i75]).
-triple(i42, cycle, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
-triple(i42, cycle, [i87, i87, i87, i87, i87, i87, i87, i87, i87, i87, i87]).
-triple(i42, cycle, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
-triple(i43, cycle, [i18, i18, i18, i18, i18, i18, i18, i18, i18, i18, i18]).
-triple(i43, cycle, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
-triple(i44, cycle, [i27, i54, i51, i63, i48, i27, i54, i51, i63, i48, i27]).
-triple(i44, cycle, [i48, i27, i54, i51, i63, i48, i27, i54, i51, i63, i48]).
-triple(i44, cycle, [i51, i63, i48, i27, i54, i51, i63, i48, i27, i54, i51]).
-triple(i44, cycle, [i54, i51, i63, i48, i27, i54, i51, i63, i48, i27, i54]).
-triple(i44, cycle, [i63, i48, i27, i54, i51, i63, i48, i27, i54, i51, i63]).
-triple(i45, cycle, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
-triple(i48, cycle, [i69, i69, i69, i69, i69, i69, i69, i69, i69, i69, i69]).
-triple(i48, cycle, [i72, i90, i72, i90, i72, i90, i72, i90, i72, i90, i72]).
-triple(i48, cycle, [i90, i72, i90, i72, i90, i72, i90, i72, i90, i72, i90]).
-triple(i5, cycle, [i0, i63, i81, i15, i60, i15, i60, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i81, i15, i60, i15, i81, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i81, i15, i81, i15, i60, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i81, i15, i81, i15, i81, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i9, i0, i63, i9, i93, i9, i93, i9, i0]).
-triple(i5, cycle, [i0, i63, i9, i0, i81, i15, i60, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i9, i0, i81, i15, i81, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i9, i93, i81, i15, i60, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i9, i93, i81, i15, i81, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i9, i93, i9, i0, i63, i9, i93, i9, i0]).
-triple(i5, cycle, [i0, i63, i9, i93, i9, i0, i81, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i9, i93, i9, i93, i81, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i63, i9, i93, i9, i93, i9, i0, i63, i9, i0]).
-triple(i5, cycle, [i0, i81, i15, i60, i15, i60, i48, i0, i63, i9, i0]).
-triple(i5, cycle, [i0, i81, i15, i60, i48, i0, i63, i9, i93, i9, i0]).
-triple(i5, cycle, [i0, i81, i15, i60, i48, i0, i81, i15, i60, i48, i0]).
-triple(i5, cycle, [i0, i81, i15, i81, i15, i60, i48, i0, i63, i9, i0]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i60, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i60, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i60, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i60, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i60, i48, i0, i63, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i81, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i81, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i81, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i15, i81, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i48, i0, i63, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i48, i0, i63, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i48, i0, i63, i9, i0, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i60, i48, i0, i63, i9, i93, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i60, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i60, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i60, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i60, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i60, i48, i0, i63, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i81, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i81, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i81, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i15, i81, i15, i81, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i81, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i81, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i81, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i81, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i9, i0, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i9, i0, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i9, i93, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i9, i93, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i9, i93, i9, i0, i81, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i63, i9, i93, i9, i93, i81, i15]).
-triple(i5, cycle, [i15, i60, i48, i0, i81, i15, i60, i48, i0, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i60, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i60, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i60, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i60, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i60, i48, i0, i63, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i81, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i81, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i81, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i15, i81, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i48, i0, i63, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i48, i0, i63, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i48, i0, i63, i9, i0, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i60, i48, i0, i63, i9, i93, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i60, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i60, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i60, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i60, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i60, i48, i0, i63, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i81, i15, i60, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i81, i15, i60, i15, i81, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i81, i15, i81, i15, i60, i15]).
-triple(i5, cycle, [i15, i81, i15, i81, i15, i81, i15, i81, i15, i81, i15]).
-triple(i5, cycle, [i48, i0, i63, i81, i15, i60, i15, i60, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i81, i15, i60, i15, i81, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i81, i15, i81, i15, i60, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i81, i15, i81, i15, i81, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i9, i0, i81, i15, i60, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i9, i0, i81, i15, i81, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i9, i93, i81, i15, i60, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i9, i93, i81, i15, i81, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i9, i93, i9, i0, i81, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i63, i9, i93, i9, i93, i81, i15, i60, i48]).
-triple(i5, cycle, [i48, i0, i81, i15, i60, i48, i0, i81, i15, i60, i48]).
-triple(i5, cycle, [i60, i15, i60, i15, i60, i15, i60, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i60, i15, i60, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i60, i15, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i60, i15, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i60, i48, i0, i63, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i81, i15, i60, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i81, i15, i60, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i81, i15, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i15, i81, i15, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i48, i0, i63, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i48, i0, i63, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i48, i0, i63, i9, i0, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i60, i48, i0, i63, i9, i93, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i60, i15, i60, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i60, i15, i60, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i60, i15, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i60, i15, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i60, i48, i0, i63, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i81, i15, i60, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i81, i15, i60, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i81, i15, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i15, i81, i15, i81, i15, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i81, i15, i60, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i81, i15, i60, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i81, i15, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i81, i15, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i9, i0, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i9, i0, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i9, i93, i81, i15, i60, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i9, i93, i81, i15, i81, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i9, i93, i9, i0, i81, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i63, i9, i93, i9, i93, i81, i15, i60]).
-triple(i5, cycle, [i60, i48, i0, i81, i15, i60, i48, i0, i81, i15, i60]).
-triple(i5, cycle, [i63, i81, i15, i60, i15, i60, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i81, i15, i60, i15, i81, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i81, i15, i81, i15, i60, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i81, i15, i81, i15, i81, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i9, i0, i63, i9, i93, i9, i93, i9, i0, i63]).
-triple(i5, cycle, [i63, i9, i0, i81, i15, i60, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i9, i0, i81, i15, i81, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i9, i93, i81, i15, i60, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i9, i93, i81, i15, i81, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i9, i93, i9, i0, i63, i9, i93, i9, i0, i63]).
-triple(i5, cycle, [i63, i9, i93, i9, i0, i81, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i9, i93, i9, i93, i81, i15, i60, i48, i0, i63]).
-triple(i5, cycle, [i63, i9, i93, i9, i93, i9, i0, i63, i9, i0, i63]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i15, i60, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i15, i60, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i15, i60, i48, i0, i63, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i15, i81, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i15, i81, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i48, i0, i63, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i48, i0, i63, i9, i0, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i60, i48, i0, i63, i9, i93, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i81, i15, i60, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i81, i15, i60, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i81, i15, i60, i48, i0, i63, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i81, i15, i81, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i15, i81, i15, i81, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i48, i0, i63, i81, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i48, i0, i63, i81, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i48, i0, i63, i9, i0, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i48, i0, i63, i9, i93, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i60, i48, i0, i63, i9, i93, i9, i0, i81]).
-triple(i5, cycle, [i81, i15, i60, i48, i0, i63, i9, i93, i9, i93, i81]).
-triple(i5, cycle, [i81, i15, i60, i48, i0, i81, i15, i60, i48, i0, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i15, i60, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i15, i60, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i15, i60, i48, i0, i63, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i15, i81, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i15, i81, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i48, i0, i63, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i48, i0, i63, i9, i0, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i60, i48, i0, i63, i9, i93, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i81, i15, i60, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i81, i15, i60, i15, i81, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i81, i15, i60, i48, i0, i63, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i81, i15, i81, i15, i60, i15, i81]).
-triple(i5, cycle, [i81, i15, i81, i15, i81, i15, i81, i15, i81, i15, i81]).
-triple(i5, cycle, [i9, i0, i63, i9, i0, i63, i9, i93, i9, i93, i9]).
-triple(i5, cycle, [i9, i0, i63, i9, i93, i9, i0, i63, i9, i93, i9]).
-triple(i5, cycle, [i9, i0, i63, i9, i93, i9, i93, i9, i0, i63, i9]).
-triple(i5, cycle, [i9, i0, i81, i15, i60, i15, i60, i48, i0, i63, i9]).
-triple(i5, cycle, [i9, i0, i81, i15, i60, i48, i0, i63, i9, i93, i9]).
-triple(i5, cycle, [i9, i0, i81, i15, i81, i15, i60, i48, i0, i63, i9]).
-triple(i5, cycle, [i9, i93, i81, i15, i60, i15, i60, i48, i0, i63, i9]).
-triple(i5, cycle, [i9, i93, i81, i15, i60, i48, i0, i63, i9, i93, i9]).
-triple(i5, cycle, [i9, i93, i81, i15, i81, i15, i60, i48, i0, i63, i9]).
-triple(i5, cycle, [i9, i93, i9, i0, i63, i9, i0, i63, i9, i93, i9]).
-triple(i5, cycle, [i9, i93, i9, i0, i63, i9, i93, i9, i0, i63, i9]).
-triple(i5, cycle, [i9, i93, i9, i0, i81, i15, i60, i48, i0, i63, i9]).
-triple(i5, cycle, [i9, i93, i9, i93, i81, i15, i60, i48, i0, i63, i9]).
-triple(i5, cycle, [i9, i93, i9, i93, i9, i0, i63, i9, i0, i63, i9]).
-triple(i5, cycle, [i9, i93, i9, i93, i9, i93, i9, i93, i9, i93, i9]).
-triple(i5, cycle, [i93, i81, i15, i60, i15, i60, i48, i0, i63, i9, i93]).
-triple(i5, cycle, [i93, i81, i15, i60, i48, i0, i63, i9, i93, i9, i93]).
-triple(i5, cycle, [i93, i81, i15, i81, i15, i60, i48, i0, i63, i9, i93]).
-triple(i5, cycle, [i93, i9, i0, i63, i9, i0, i63, i9, i93, i9, i93]).
-triple(i5, cycle, [i93, i9, i0, i63, i9, i93, i9, i0, i63, i9, i93]).
-triple(i5, cycle, [i93, i9, i0, i81, i15, i60, i48, i0, i63, i9, i93]).
-triple(i5, cycle, [i93, i9, i93, i81, i15, i60, i48, i0, i63, i9, i93]).
-triple(i5, cycle, [i93, i9, i93, i9, i0, i63, i9, i0, i63, i9, i93]).
-triple(i5, cycle, [i93, i9, i93, i9, i93, i9, i93, i9, i93, i9, i93]).
-triple(i50, cycle, [i12, i27, i15, i12, i27, i30, i39, i48, i27, i15, i12]).
-triple(i50, cycle, [i12, i27, i15, i21, i72, i78, i87, i48, i27, i15, i12]).
-triple(i50, cycle, [i12, i27, i30, i39, i33, i9, i33, i9, i27, i15, i12]).
-triple(i50, cycle, [i12, i27, i30, i39, i48, i27, i15, i12, i27, i15, i12]).
-triple(i50, cycle, [i12, i57, i69, i66, i51, i57, i69, i66, i51, i84, i12]).
-triple(i50, cycle, [i15, i12, i27, i15, i12, i27, i30, i39, i48, i27, i15]).
-triple(i50, cycle, [i15, i12, i27, i15, i21, i72, i78, i87, i48, i27, i15]).
-triple(i50, cycle, [i15, i12, i27, i30, i39, i33, i9, i33, i9, i27, i15]).
-triple(i50, cycle, [i15, i12, i27, i30, i39, i48, i27, i15, i12, i27, i15]).
-triple(i50, cycle, [i15, i21, i72, i78, i87, i48, i27, i15, i12, i27, i15]).
-triple(i50, cycle, [i15, i30, i39, i33, i9, i27, i30, i39, i48, i27, i15]).
-triple(i50, cycle, [i15, i30, i39, i33, i9, i33, i9, i33, i9, i27, i15]).
-triple(i50, cycle, [i15, i30, i39, i48, i27, i15, i30, i39, i48, i27, i15]).
-triple(i50, cycle, [i15, i30, i39, i48, i27, i30, i39, i33, i9, i27, i15]).
-triple(i50, cycle, [i21, i72, i78, i87, i48, i27, i15, i12, i27, i15, i21]).
-triple(i50, cycle, [i27, i15, i12, i27, i15, i12, i27, i30, i39, i48, i27]).
-triple(i50, cycle, [i27, i15, i12, i27, i15, i21, i72, i78, i87, i48, i27]).
-triple(i50, cycle, [i27, i15, i12, i27, i30, i39, i33, i9, i33, i9, i27]).
-triple(i50, cycle, [i27, i15, i12, i27, i30, i39, i48, i27, i15, i12, i27]).
-triple(i50, cycle, [i27, i15, i21, i72, i78, i87, i48, i27, i15, i12, i27]).
-triple(i50, cycle, [i27, i15, i30, i39, i33, i9, i27, i30, i39, i48, i27]).
-triple(i50, cycle, [i27, i15, i30, i39, i33, i9, i33, i9, i33, i9, i27]).
-triple(i50, cycle, [i27, i15, i30, i39, i48, i27, i15, i30, i39, i48, i27]).
-triple(i50, cycle, [i27, i15, i30, i39, i48, i27, i30, i39, i33, i9, i27]).
-triple(i50, cycle, [i27, i30, i39, i33, i9, i27, i15, i30, i39, i48, i27]).
-triple(i50, cycle, [i27, i30, i39, i33, i9, i27, i30, i39, i33, i9, i27]).
-triple(i50, cycle, [i27, i30, i39, i33, i9, i33, i9, i27, i15, i12, i27]).
-triple(i50, cycle, [i27, i30, i39, i48, i27, i15, i12, i27, i15, i12, i27]).
-triple(i50, cycle, [i27, i30, i39, i48, i27, i15, i30, i39, i33, i9, i27]).
-triple(i50, cycle, [i30, i39, i33, i9, i27, i15, i30, i39, i48, i27, i30]).
-triple(i50, cycle, [i30, i39, i33, i9, i27, i30, i39, i33, i9, i27, i30]).
-triple(i50, cycle, [i30, i39, i33, i9, i27, i30, i39, i48, i27, i15, i30]).
-triple(i50, cycle, [i30, i39, i33, i9, i33, i9, i27, i15, i12, i27, i30]).
-triple(i50, cycle, [i30, i39, i33, i9, i33, i9, i33, i9, i27, i15, i30]).
-triple(i50, cycle, [i30, i39, i48, i27, i15, i12, i27, i15, i12, i27, i30]).
-triple(i50, cycle, [i30, i39, i48, i27, i15, i30, i39, i33, i9, i27, i30]).
-triple(i50, cycle, [i30, i39, i48, i27, i15, i30, i39, i48, i27, i15, i30]).
-triple(i50, cycle, [i30, i39, i48, i27, i30, i39, i33, i9, i27, i15, i30]).
-triple(i50, cycle, [i33, i9, i27, i15, i12, i27, i30, i39, i33, i9, i33]).
-triple(i50, cycle, [i33, i9, i27, i15, i30, i39, i33, i9, i33, i9, i33]).
-triple(i50, cycle, [i33, i9, i27, i15, i30, i39, i48, i27, i30, i39, i33]).
-triple(i50, cycle, [i33, i9, i27, i30, i39, i33, i9, i27, i30, i39, i33]).
-triple(i50, cycle, [i33, i9, i27, i30, i39, i48, i27, i15, i30, i39, i33]).
-triple(i50, cycle, [i33, i9, i33, i9, i27, i15, i12, i27, i30, i39, i33]).
-triple(i50, cycle, [i33, i9, i33, i9, i27, i15, i30, i39, i33, i9, i33]).
-triple(i50, cycle, [i33, i9, i33, i9, i33, i9, i27, i15, i30, i39, i33]).
-triple(i50, cycle, [i33, i9, i33, i9, i33, i9, i33, i9, i33, i9, i33]).
-triple(i50, cycle, [i36, i36, i36, i36, i36, i36, i36, i36, i36, i36, i36]).
-triple(i50, cycle, [i39, i33, i9, i27, i15, i30, i39, i48, i27, i30, i39]).
-triple(i50, cycle, [i39, i33, i9, i27, i30, i39, i33, i9, i27, i30, i39]).
-triple(i50, cycle, [i39, i33, i9, i27, i30, i39, i48, i27, i15, i30, i39]).
-triple(i50, cycle, [i39, i33, i9, i33, i9, i27, i15, i12, i27, i30, i39]).
-triple(i50, cycle, [i39, i33, i9, i33, i9, i33, i9, i27, i15, i30, i39]).
-triple(i50, cycle, [i39, i48, i27, i15, i12, i27, i15, i12, i27, i30, i39]).
-triple(i50, cycle, [i39, i48, i27, i15, i30, i39, i33, i9, i27, i30, i39]).
-triple(i50, cycle, [i39, i48, i27, i15, i30, i39, i48, i27, i15, i30, i39]).
-triple(i50, cycle, [i39, i48, i27, i30, i39, i33, i9, i27, i15, i30, i39]).
-triple(i50, cycle, [i48, i27, i15, i12, i27, i15, i12, i27, i30, i39, i48]).
-triple(i50, cycle, [i48, i27, i15, i12, i27, i15, i21, i72, i78, i87, i48]).
-triple(i50, cycle, [i48, i27, i15, i30, i39, i33, i9, i27, i30, i39, i48]).
-triple(i50, cycle, [i48, i27, i15, i30, i39, i48, i27, i15, i30, i39, i48]).
-triple(i50, cycle, [i48, i27, i30, i39, i33, i9, i27, i15, i30, i39, i48]).
-triple(i50, cycle, [i51, i57, i69, i66, i51, i84, i12, i57, i69, i66, i51]).
-triple(i50, cycle, [i51, i57, i69, i66, i57, i69, i66, i57, i69, i66, i51]).
-triple(i50, cycle, [i51, i84, i12, i57, i69, i66, i51, i57, i69, i66, i51]).
-triple(i50, cycle, [i51, i84, i72, i69, i66, i51, i84, i72, i69, i66, i51]).
-triple(i50, cycle, [i51, i84, i72, i78, i87, i99, i54, i72, i69, i66, i51]).
-triple(i50, cycle, [i51, i84, i72, i78, i87, i99, i66, i57, i69, i66, i51]).
-triple(i50, cycle, [i54, i72, i69, i66, i51, i84, i72, i78, i87, i99, i54]).
-triple(i50, cycle, [i54, i72, i78, i87, i99, i54, i72, i78, i87, i99, i54]).
-triple(i50, cycle, [i57, i69, i66, i51, i57, i69, i66, i51, i84, i12, i57]).
-triple(i50, cycle, [i57, i69, i66, i51, i57, i69, i66, i57, i69, i66, i57]).
-triple(i50, cycle, [i57, i69, i66, i51, i84, i12, i57, i69, i66, i51, i57]).
-triple(i50, cycle, [i57, i69, i66, i51, i84, i72, i78, i87, i99, i66, i57]).
-triple(i50, cycle, [i57, i69, i66, i57, i69, i66, i51, i57, i69, i66, i57]).
-triple(i50, cycle, [i57, i69, i66, i57, i69, i66, i57, i69, i66, i51, i57]).
-triple(i50, cycle, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
-triple(i50, cycle, [i66, i51, i57, i69, i66, i51, i84, i12, i57, i69, i66]).
-triple(i50, cycle, [i66, i51, i57, i69, i66, i57, i69, i66, i57, i69, i66]).
-triple(i50, cycle, [i66, i51, i84, i12, i57, i69, i66, i51, i57, i69, i66]).
-triple(i50, cycle, [i66, i51, i84, i72, i69, i66, i51, i84, i72, i69, i66]).
-triple(i50, cycle, [i66, i51, i84, i72, i78, i87, i99, i54, i72, i69, i66]).
-triple(i50, cycle, [i66, i51, i84, i72, i78, i87, i99, i66, i57, i69, i66]).
-triple(i50, cycle, [i66, i57, i69, i66, i51, i57, i69, i66, i57, i69, i66]).
-triple(i50, cycle, [i66, i57, i69, i66, i51, i84, i72, i78, i87, i99, i66]).
-triple(i50, cycle, [i66, i57, i69, i66, i57, i69, i66, i51, i57, i69, i66]).
-triple(i50, cycle, [i69, i66, i51, i57, i69, i66, i51, i84, i12, i57, i69]).
-triple(i50, cycle, [i69, i66, i51, i57, i69, i66, i57, i69, i66, i57, i69]).
-triple(i50, cycle, [i69, i66, i51, i84, i12, i57, i69, i66, i51, i57, i69]).
-triple(i50, cycle, [i69, i66, i51, i84, i72, i69, i66, i51, i84, i72, i69]).
-triple(i50, cycle, [i69, i66, i51, i84, i72, i78, i87, i99, i54, i72, i69]).
-triple(i50, cycle, [i69, i66, i51, i84, i72, i78, i87, i99, i66, i57, i69]).
-triple(i50, cycle, [i69, i66, i57, i69, i66, i51, i57, i69, i66, i57, i69]).
-triple(i50, cycle, [i69, i66, i57, i69, i66, i57, i69, i66, i51, i57, i69]).
-triple(i50, cycle, [i72, i69, i66, i51, i84, i72, i69, i66, i51, i84, i72]).
-triple(i50, cycle, [i72, i69, i66, i51, i84, i72, i78, i87, i99, i54, i72]).
-triple(i50, cycle, [i72, i78, i87, i48, i27, i15, i12, i27, i15, i21, i72]).
-triple(i50, cycle, [i72, i78, i87, i99, i54, i72, i69, i66, i51, i84, i72]).
-triple(i50, cycle, [i72, i78, i87, i99, i54, i72, i78, i87, i99, i54, i72]).
-triple(i50, cycle, [i72, i78, i87, i99, i66, i57, i69, i66, i51, i84, i72]).
-triple(i50, cycle, [i78, i87, i48, i27, i15, i12, i27, i15, i21, i72, i78]).
-triple(i50, cycle, [i78, i87, i99, i54, i72, i69, i66, i51, i84, i72, i78]).
-triple(i50, cycle, [i78, i87, i99, i54, i72, i78, i87, i99, i54, i72, i78]).
-triple(i50, cycle, [i78, i87, i99, i66, i57, i69, i66, i51, i84, i72, i78]).
-triple(i50, cycle, [i84, i12, i57, i69, i66, i51, i57, i69, i66, i51, i84]).
-triple(i50, cycle, [i84, i72, i69, i66, i51, i84, i72, i69, i66, i51, i84]).
-triple(i50, cycle, [i84, i72, i78, i87, i99, i54, i72, i69, i66, i51, i84]).
-triple(i50, cycle, [i84, i72, i78, i87, i99, i66, i57, i69, i66, i51, i84]).
-triple(i50, cycle, [i87, i48, i27, i15, i12, i27, i15, i21, i72, i78, i87]).
-triple(i50, cycle, [i87, i99, i54, i72, i69, i66, i51, i84, i72, i78, i87]).
-triple(i50, cycle, [i87, i99, i54, i72, i78, i87, i99, i54, i72, i78, i87]).
-triple(i50, cycle, [i87, i99, i66, i57, i69, i66, i51, i84, i72, i78, i87]).
-triple(i50, cycle, [i9, i27, i15, i12, i27, i30, i39, i33, i9, i33, i9]).
-triple(i50, cycle, [i9, i27, i15, i30, i39, i33, i9, i33, i9, i33, i9]).
-triple(i50, cycle, [i9, i27, i15, i30, i39, i48, i27, i30, i39, i33, i9]).
-triple(i50, cycle, [i9, i27, i30, i39, i33, i9, i27, i30, i39, i33, i9]).
-triple(i50, cycle, [i9, i27, i30, i39, i48, i27, i15, i30, i39, i33, i9]).
-triple(i50, cycle, [i9, i33, i9, i27, i15, i12, i27, i30, i39, i33, i9]).
-triple(i50, cycle, [i9, i33, i9, i27, i15, i30, i39, i33, i9, i33, i9]).
-triple(i50, cycle, [i9, i33, i9, i33, i9, i27, i15, i30, i39, i33, i9]).
-triple(i50, cycle, [i9, i33, i9, i33, i9, i33, i9, i33, i9, i33, i9]).
-triple(i50, cycle, [i99, i54, i72, i69, i66, i51, i84, i72, i78, i87, i99]).
-triple(i50, cycle, [i99, i54, i72, i78, i87, i99, i54, i72, i78, i87, i99]).
-triple(i50, cycle, [i99, i66, i57, i69, i66, i51, i84, i72, i78, i87, i99]).
-triple(i52, cycle, [i21, i78, i21, i78, i21, i78, i21, i78, i21, i78, i21]).
-triple(i52, cycle, [i78, i21, i78, i21, i78, i21, i78, i21, i78, i21, i78]).
-triple(i53, cycle, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).
-triple(i53, cycle, [i21, i75, i78, i96, i6, i21, i75, i78, i96, i6, i21]).
-triple(i53, cycle, [i6, i21, i75, i78, i96, i6, i21, i75, i78, i96, i6]).
-triple(i53, cycle, [i75, i78, i96, i6, i21, i75, i78, i96, i6, i21, i75]).
-triple(i53, cycle, [i78, i96, i6, i21, i75, i78, i96, i6, i21, i75, i78]).
-triple(i53, cycle, [i96, i6, i21, i75, i78, i96, i6, i21, i75, i78, i96]).
-triple(i54, cycle, [i33, i96, i9, i51, i66, i33, i96, i9, i51, i66, i33]).
-triple(i54, cycle, [i51, i66, i33, i96, i9, i51, i66, i33, i96, i9, i51]).
-triple(i54, cycle, [i66, i33, i96, i9, i51, i66, i33, i96, i9, i51, i66]).
-triple(i54, cycle, [i9, i51, i66, i33, i96, i9, i51, i66, i33, i96, i9]).
-triple(i54, cycle, [i96, i9, i51, i66, i33, i96, i9, i51, i66, i33, i96]).
-triple(i55, cycle, [i33, i33, i33, i33, i33, i33, i33, i33, i33, i33, i33]).
-triple(i55, cycle, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
-triple(i56, cycle, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
-triple(i56, cycle, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
-triple(i57, cycle, [i48, i69, i48, i69, i48, i69, i48, i69, i48, i69, i48]).
-triple(i57, cycle, [i51, i84, i51, i84, i51, i84, i51, i84, i51, i84, i51]).
-triple(i57, cycle, [i69, i48, i69, i48, i69, i48, i69, i48, i69, i48, i69]).
-triple(i57, cycle, [i84, i51, i84, i51, i84, i51, i84, i51, i84, i51, i84]).
-triple(i58, cycle, [i18, i18, i18, i18, i18, i18, i18, i18, i18, i18, i18]).
-triple(i58, cycle, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
-triple(i59, cycle, [i48, i48, i48, i48, i48, i48, i48, i48, i48, i48, i48]).
-triple(i6, cycle, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
-triple(i6, cycle, [i75, i75, i75, i75, i75, i75, i75, i75, i75, i75, i75]).
-triple(i60, cycle, [i12, i63, i93, i27, i39, i48, i42, i45, i99, i33, i12]).
-triple(i60, cycle, [i27, i39, i48, i42, i45, i99, i33, i12, i63, i93, i27]).
-triple(i60, cycle, [i33, i12, i63, i93, i27, i39, i48, i42, i45, i99, i33]).
-triple(i60, cycle, [i39, i48, i42, i45, i99, i33, i12, i63, i93, i27, i39]).
-triple(i60, cycle, [i42, i45, i99, i33, i12, i63, i93, i27, i39, i48, i42]).
-triple(i60, cycle, [i45, i99, i33, i12, i63, i93, i27, i39, i48, i42, i45]).
-triple(i60, cycle, [i48, i42, i45, i99, i33, i12, i63, i93, i27, i39, i48]).
-triple(i60, cycle, [i63, i93, i27, i39, i48, i42, i45, i99, i33, i12, i63]).
-triple(i60, cycle, [i93, i27, i39, i48, i42, i45, i99, i33, i12, i63, i93]).
-triple(i60, cycle, [i99, i33, i12, i63, i93, i27, i39, i48, i42, i45, i99]).
-triple(i62, cycle, [i24, i81, i24, i81, i24, i81, i24, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i24, i81, i24, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i24, i81, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i24, i81, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i24, i81, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i24, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i24, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i24, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i81, i24, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i81, i24, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i81, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i81, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i24, i81, i81, i81, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i24, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i24, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i24, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i81, i24, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i81, i24, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i81, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i81, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i24, i81, i81, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i24, i81, i24, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i24, i81, i24, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i24, i81, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i24, i81, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i24, i81, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i24, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i24, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i24, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i81, i24, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i81, i24, i81, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i81, i81, i24, i81, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i81, i81, i81, i24, i81, i24]).
-triple(i62, cycle, [i24, i81, i81, i81, i81, i81, i81, i81, i81, i81, i24]).
-triple(i62, cycle, [i63, i63, i63, i63, i63, i63, i63, i63, i63, i63, i63]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i24, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i24, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i24, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i24, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i24, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i24, i81, i81, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i24, i81, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i24, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i24, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i24, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i24, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i24, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i24, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i24, i81, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i24, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i24, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i24, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i24, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i24, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i24, i81, i81, i81, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i24, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i24, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i24, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i24, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i24, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i24, i81, i81, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i24, i81, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i24, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i24, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i24, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i24, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i24, i81, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i24, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i24, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i24, i81, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i81, i24, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i81, i24, i81, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i81, i81, i24, i81, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i24, i81]).
-triple(i62, cycle, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
-triple(i63, cycle, [i72, i72, i72, i72, i72, i72, i72, i72, i72, i72, i72]).
-triple(i63, cycle, [i93, i93, i93, i93, i93, i93, i93, i93, i93, i93, i93]).
-triple(i64, cycle, [i3, i9, i3, i9, i3, i9, i3, i9, i3, i9, i3]).
-triple(i64, cycle, [i42, i42, i42, i42, i42, i42, i42, i42, i42, i42, i42]).
-triple(i64, cycle, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
-triple(i64, cycle, [i9, i3, i9, i3, i9, i3, i9, i3, i9, i3, i9]).
-triple(i65, cycle, [i12, i12, i12, i12, i12, i12, i12, i12, i12, i12, i12]).
-triple(i65, cycle, [i18, i57, i72, i9, i96, i18, i57, i72, i9, i96, i18]).
-triple(i65, cycle, [i18, i57, i72, i9, i96, i18, i57, i78, i9, i96, i18]).
-triple(i65, cycle, [i18, i57, i78, i78, i78, i78, i78, i78, i9, i96, i18]).
-triple(i65, cycle, [i18, i57, i78, i78, i9, i3, i84, i45, i9, i96, i18]).
-triple(i65, cycle, [i18, i57, i78, i9, i96, i18, i57, i72, i9, i96, i18]).
-triple(i65, cycle, [i18, i57, i78, i9, i96, i18, i57, i78, i9, i96, i18]).
-triple(i65, cycle, [i3, i84, i45, i9, i96, i18, i57, i78, i78, i9, i3]).
-triple(i65, cycle, [i45, i9, i96, i18, i57, i78, i78, i9, i3, i84, i45]).
-triple(i65, cycle, [i57, i72, i9, i96, i18, i57, i72, i9, i96, i18, i57]).
-triple(i65, cycle, [i57, i72, i9, i96, i18, i57, i78, i9, i96, i18, i57]).
-triple(i65, cycle, [i57, i78, i78, i78, i78, i78, i78, i9, i96, i18, i57]).
-triple(i65, cycle, [i57, i78, i78, i9, i3, i84, i45, i9, i96, i18, i57]).
-triple(i65, cycle, [i57, i78, i9, i96, i18, i57, i72, i9, i96, i18, i57]).
-triple(i65, cycle, [i57, i78, i9, i96, i18, i57, i78, i9, i96, i18, i57]).
-triple(i65, cycle, [i72, i9, i96, i18, i57, i72, i9, i96, i18, i57, i72]).
-triple(i65, cycle, [i72, i9, i96, i18, i57, i78, i9, i96, i18, i57, i72]).
-triple(i65, cycle, [i78, i78, i78, i78, i78, i78, i78, i78, i78, i78, i78]).
-triple(i65, cycle, [i78, i78, i78, i78, i78, i78, i9, i96, i18, i57, i78]).
-triple(i65, cycle, [i78, i78, i78, i78, i78, i9, i96, i18, i57, i78, i78]).
-triple(i65, cycle, [i78, i78, i78, i78, i9, i96, i18, i57, i78, i78, i78]).
-triple(i65, cycle, [i78, i78, i78, i9, i96, i18, i57, i78, i78, i78, i78]).
-triple(i65, cycle, [i78, i78, i9, i3, i84, i45, i9, i96, i18, i57, i78]).
-triple(i65, cycle, [i78, i78, i9, i96, i18, i57, i78, i78, i78, i78, i78]).
-triple(i65, cycle, [i78, i9, i3, i84, i45, i9, i96, i18, i57, i78, i78]).
-triple(i65, cycle, [i78, i9, i96, i18, i57, i72, i9, i96, i18, i57, i78]).
-triple(i65, cycle, [i78, i9, i96, i18, i57, i78, i78, i78, i78, i78, i78]).
-triple(i65, cycle, [i78, i9, i96, i18, i57, i78, i9, i96, i18, i57, i78]).
-triple(i65, cycle, [i84, i45, i9, i96, i18, i57, i78, i78, i9, i3, i84]).
-triple(i65, cycle, [i9, i3, i84, i45, i9, i96, i18, i57, i78, i78, i9]).
-triple(i65, cycle, [i9, i96, i18, i57, i72, i9, i96, i18, i57, i72, i9]).
-triple(i65, cycle, [i9, i96, i18, i57, i72, i9, i96, i18, i57, i78, i9]).
-triple(i65, cycle, [i9, i96, i18, i57, i78, i78, i78, i78, i78, i78, i9]).
-triple(i65, cycle, [i9, i96, i18, i57, i78, i78, i9, i3, i84, i45, i9]).
-triple(i65, cycle, [i9, i96, i18, i57, i78, i9, i96, i18, i57, i72, i9]).
-triple(i65, cycle, [i9, i96, i18, i57, i78, i9, i96, i18, i57, i78, i9]).
-triple(i65, cycle, [i96, i18, i57, i72, i9, i96, i18, i57, i72, i9, i96]).
-triple(i65, cycle, [i96, i18, i57, i72, i9, i96, i18, i57, i78, i9, i96]).
-triple(i65, cycle, [i96, i18, i57, i78, i78, i78, i78, i78, i78, i9, i96]).
-triple(i65, cycle, [i96, i18, i57, i78, i78, i9, i3, i84, i45, i9, i96]).
-triple(i65, cycle, [i96, i18, i57, i78, i9, i96, i18, i57, i72, i9, i96]).
-triple(i65, cycle, [i96, i18, i57, i78, i9, i96, i18, i57, i78, i9, i96]).
-triple(i66, cycle, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
-triple(i67, cycle, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i15, i15, i15, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i15, i15, i15, i54, i9, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i15, i15, i54, i9, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i15, i54, i9, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i15, i54, i9, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i54, i9, i15, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i54, i9, i15, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i15, i15, i15, i54, i9, i15, i54, i9, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i54, i9, i15, i15, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i54, i9, i15, i15, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i15, i15, i54, i9, i15, i15, i54, i9, i15, i15]).
-triple(i67, cycle, [i15, i15, i15, i54, i9, i15, i54, i9, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i54, i9, i15, i15, i15, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i54, i9, i15, i15, i15, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i15, i54, i9, i15, i15, i15, i54, i9, i15, i15]).
-triple(i67, cycle, [i15, i15, i54, i9, i15, i15, i54, i9, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i54, i9, i15, i54, i9, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i15, i54, i9, i15, i54, i9, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i15, i15, i15, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i15, i15, i15, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i15, i15, i15, i54, i9, i15, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i15, i15, i54, i9, i15, i15, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i15, i54, i9, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i15, i54, i9, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i54, i9, i15, i15, i15, i15, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i54, i9, i15, i15, i54, i9, i15]).
-triple(i67, cycle, [i15, i54, i9, i15, i54, i9, i15, i54, i9, i15, i15]).
-triple(i67, cycle, [i54, i9, i15, i15, i15, i15, i15, i15, i15, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i15, i15, i15, i15, i54, i9, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i15, i15, i15, i54, i9, i15, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i15, i15, i54, i9, i15, i15, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i15, i54, i9, i15, i15, i15, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i15, i54, i9, i15, i54, i9, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i54, i9, i15, i15, i15, i15, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i54, i9, i15, i15, i54, i9, i15, i54]).
-triple(i67, cycle, [i54, i9, i15, i54, i9, i15, i54, i9, i15, i15, i54]).
-triple(i67, cycle, [i9, i15, i15, i15, i15, i15, i15, i15, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i15, i15, i15, i15, i54, i9, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i15, i15, i15, i54, i9, i15, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i15, i15, i54, i9, i15, i15, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i15, i54, i9, i15, i15, i15, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i15, i54, i9, i15, i54, i9, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i54, i9, i15, i15, i15, i15, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i54, i9, i15, i15, i54, i9, i15, i54, i9]).
-triple(i67, cycle, [i9, i15, i54, i9, i15, i54, i9, i15, i15, i54, i9]).
-triple(i69, cycle, [i24, i24, i24, i24, i24, i24, i24, i24, i24, i24, i24]).
-triple(i69, cycle, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
-triple(i7, cycle, [i18, i75, i84, i72, i57, i18, i75, i84, i72, i57, i18]).
-triple(i7, cycle, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45]).
-triple(i7, cycle, [i57, i18, i75, i84, i72, i57, i18, i75, i84, i72, i57]).
-triple(i7, cycle, [i72, i57, i18, i75, i84, i72, i57, i18, i75, i84, i72]).
-triple(i7, cycle, [i75, i84, i72, i57, i18, i75, i84, i72, i57, i18, i75]).
-triple(i7, cycle, [i84, i72, i57, i18, i75, i84, i72, i57, i18, i75, i84]).
-triple(i70, cycle, [i0, i18, i0, i18, i0, i18, i0, i18, i0, i18, i0]).
-triple(i70, cycle, [i18, i0, i18, i0, i18, i0, i18, i0, i18, i0, i18]).
-triple(i70, cycle, [i39, i48, i69, i84, i75, i69, i84, i75, i69, i90, i39]).
-triple(i70, cycle, [i39, i48, i69, i84, i75, i69, i84, i87, i69, i90, i39]).
-triple(i70, cycle, [i39, i48, i69, i84, i87, i69, i84, i75, i69, i90, i39]).
-triple(i70, cycle, [i39, i48, i69, i84, i87, i69, i84, i87, i69, i90, i39]).
-triple(i70, cycle, [i48, i69, i84, i75, i69, i84, i75, i69, i90, i39, i48]).
-triple(i70, cycle, [i48, i69, i84, i75, i69, i84, i87, i69, i90, i39, i48]).
-triple(i70, cycle, [i48, i69, i84, i87, i69, i84, i75, i69, i90, i39, i48]).
-triple(i70, cycle, [i48, i69, i84, i87, i69, i84, i87, i69, i90, i39, i48]).
-triple(i70, cycle, [i69, i84, i75, i69, i84, i75, i69, i90, i39, i48, i69]).
-triple(i70, cycle, [i69, i84, i75, i69, i84, i87, i69, i90, i39, i48, i69]).
-triple(i70, cycle, [i69, i84, i75, i69, i90, i39, i48, i69, i84, i75, i69]).
-triple(i70, cycle, [i69, i84, i75, i69, i90, i39, i48, i69, i84, i87, i69]).
-triple(i70, cycle, [i69, i84, i87, i69, i84, i75, i69, i90, i39, i48, i69]).
-triple(i70, cycle, [i69, i84, i87, i69, i84, i87, i69, i90, i39, i48, i69]).
-triple(i70, cycle, [i69, i84, i87, i69, i90, i39, i48, i69, i84, i75, i69]).
-triple(i70, cycle, [i69, i84, i87, i69, i90, i39, i48, i69, i84, i87, i69]).
-triple(i70, cycle, [i69, i90, i39, i48, i69, i84, i75, i69, i84, i75, i69]).
-triple(i70, cycle, [i69, i90, i39, i48, i69, i84, i75, i69, i84, i87, i69]).
-triple(i70, cycle, [i69, i90, i39, i48, i69, i84, i87, i69, i84, i75, i69]).
-triple(i70, cycle, [i69, i90, i39, i48, i69, i84, i87, i69, i84, i87, i69]).
-triple(i70, cycle, [i75, i69, i84, i75, i69, i90, i39, i48, i69, i84, i75]).
-triple(i70, cycle, [i75, i69, i84, i87, i69, i90, i39, i48, i69, i84, i75]).
-triple(i70, cycle, [i75, i69, i90, i39, i48, i69, i84, i75, i69, i84, i75]).
-triple(i70, cycle, [i75, i69, i90, i39, i48, i69, i84, i87, i69, i84, i75]).
-triple(i70, cycle, [i84, i75, i69, i84, i75, i69, i90, i39, i48, i69, i84]).
-triple(i70, cycle, [i84, i75, i69, i84, i87, i69, i90, i39, i48, i69, i84]).
-triple(i70, cycle, [i84, i75, i69, i90, i39, i48, i69, i84, i75, i69, i84]).
-triple(i70, cycle, [i84, i75, i69, i90, i39, i48, i69, i84, i87, i69, i84]).
-triple(i70, cycle, [i84, i87, i69, i84, i75, i69, i90, i39, i48, i69, i84]).
-triple(i70, cycle, [i84, i87, i69, i84, i87, i69, i90, i39, i48, i69, i84]).
-triple(i70, cycle, [i84, i87, i69, i90, i39, i48, i69, i84, i75, i69, i84]).
-triple(i70, cycle, [i84, i87, i69, i90, i39, i48, i69, i84, i87, i69, i84]).
-triple(i70, cycle, [i87, i69, i84, i75, i69, i90, i39, i48, i69, i84, i87]).
-triple(i70, cycle, [i87, i69, i84, i87, i69, i90, i39, i48, i69, i84, i87]).
-triple(i70, cycle, [i87, i69, i90, i39, i48, i69, i84, i75, i69, i84, i87]).
-triple(i70, cycle, [i87, i69, i90, i39, i48, i69, i84, i87, i69, i84, i87]).
-triple(i70, cycle, [i90, i39, i48, i69, i84, i75, i69, i84, i75, i69, i90]).
-triple(i70, cycle, [i90, i39, i48, i69, i84, i75, i69, i84, i87, i69, i90]).
-triple(i70, cycle, [i90, i39, i48, i69, i84, i87, i69, i84, i75, i69, i90]).
-triple(i70, cycle, [i90, i39, i48, i69, i84, i87, i69, i84, i87, i69, i90]).
-triple(i71, cycle, [i0, i21, i0, i21, i0, i21, i0, i21, i0, i21, i0]).
-triple(i71, cycle, [i0, i21, i0, i21, i0, i45, i21, i0, i45, i21, i0]).
-triple(i71, cycle, [i0, i21, i0, i45, i21, i0, i21, i0, i45, i21, i0]).
-triple(i71, cycle, [i0, i21, i0, i45, i21, i0, i45, i21, i0, i21, i0]).
-triple(i71, cycle, [i0, i45, i21, i0, i21, i0, i21, i0, i45, i21, i0]).
-triple(i71, cycle, [i0, i45, i21, i0, i21, i0, i45, i21, i0, i21, i0]).
-triple(i71, cycle, [i0, i45, i21, i0, i45, i21, i0, i21, i0, i21, i0]).
-triple(i71, cycle, [i21, i0, i21, i0, i21, i0, i21, i0, i21, i0, i21]).
-triple(i71, cycle, [i21, i0, i21, i0, i21, i0, i45, i21, i0, i45, i21]).
-triple(i71, cycle, [i21, i0, i21, i0, i45, i21, i0, i21, i0, i45, i21]).
-triple(i71, cycle, [i21, i0, i21, i0, i45, i21, i0, i45, i21, i0, i21]).
-triple(i71, cycle, [i21, i0, i45, i21, i0, i21, i0, i21, i0, i45, i21]).
-triple(i71, cycle, [i21, i0, i45, i21, i0, i21, i0, i45, i21, i0, i21]).
-triple(i71, cycle, [i21, i0, i45, i21, i0, i45, i21, i0, i21, i0, i21]).
-triple(i71, cycle, [i45, i21, i0, i21, i0, i21, i0, i45, i21, i0, i45]).
-triple(i71, cycle, [i45, i21, i0, i21, i0, i45, i21, i0, i21, i0, i45]).
-triple(i71, cycle, [i45, i21, i0, i45, i21, i0, i21, i0, i21, i0, i45]).
-triple(i72, cycle, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
-triple(i74, cycle, [i27, i57, i27, i57, i27, i57, i27, i57, i27, i57, i27]).
-triple(i74, cycle, [i33, i60, i33, i60, i33, i60, i33, i60, i33, i60, i33]).
-triple(i74, cycle, [i57, i27, i57, i27, i57, i27, i57, i27, i57, i27, i57]).
-triple(i74, cycle, [i60, i33, i60, i33, i60, i33, i60, i33, i60, i33, i60]).
-triple(i74, cycle, [i90, i90, i90, i90, i90, i90, i90, i90, i90, i90, i90]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i30, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i30, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i30, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i30, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i0, i30, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i0, i30, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i30, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i30, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i30, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i30, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i0, i30, i0, i30, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i30, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i30, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i30, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i30, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i0, i30, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i0, i30, i0, i30, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i30, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i30, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i30, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i30, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i0, i30, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i0, i30, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i30, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i30, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i0, i30, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i30, i0, i0, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i30, i0, i0, i0, i30, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i30, i0, i0, i30, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i30, i0, i30, i0, i0, i0]).
-triple(i75, cycle, [i0, i30, i0, i30, i0, i30, i0, i30, i0, i30, i0]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i0, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i0, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i0, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i0, i30, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i0, i30, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i30, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i30, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i0, i30, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i30, i0, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i30, i0, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i30, i0, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i30, i0, i30, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i0, i30, i0, i30, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i0, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i0, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i0, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i0, i30, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i0, i30, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i30, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i30, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i0, i30, i0, i30, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i0, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i0, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i0, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i0, i30, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i0, i30, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i30, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i30, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i0, i30, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i30, i0, i0, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i30, i0, i0, i0, i30, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i30, i0, i0, i30, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i30, i0, i30, i0, i0, i0, i30]).
-triple(i75, cycle, [i30, i0, i30, i0, i30, i0, i30, i0, i30, i0, i30]).
-triple(i76, cycle, [i60, i78, i60, i78, i60, i78, i60, i78, i60, i78, i60]).
-triple(i76, cycle, [i78, i60, i78, i60, i78, i60, i78, i60, i78, i60, i78]).
-triple(i77, cycle, [i24, i24, i24, i24, i24, i24, i24, i24, i24, i24, i24]).
-triple(i77, cycle, [i69, i96, i69, i96, i69, i96, i69, i96, i69, i96, i69]).
-triple(i77, cycle, [i72, i72, i72, i72, i72, i72, i72, i72, i72, i72, i72]).
-triple(i77, cycle, [i96, i69, i96, i69, i96, i69, i96, i69, i96, i69, i96]).
-triple(i78, cycle, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
-triple(i79, cycle, [i3, i69, i9, i39, i3, i69, i9, i69, i9, i39, i3]).
-triple(i79, cycle, [i3, i69, i9, i39, i81, i3, i69, i9, i39, i81, i3]).
-triple(i79, cycle, [i3, i69, i9, i69, i9, i39, i3, i69, i9, i39, i3]).
-triple(i79, cycle, [i3, i69, i9, i69, i9, i69, i9, i69, i9, i39, i3]).
-triple(i79, cycle, [i39, i3, i69, i9, i39, i3, i69, i9, i69, i9, i39]).
-triple(i79, cycle, [i39, i3, i69, i9, i69, i9, i39, i3, i69, i9, i39]).
-triple(i79, cycle, [i39, i3, i69, i9, i69, i9, i69, i9, i69, i9, i39]).
-triple(i79, cycle, [i39, i81, i3, i69, i9, i39, i81, i3, i69, i9, i39]).
-triple(i79, cycle, [i69, i9, i39, i3, i69, i9, i39, i3, i69, i9, i69]).
-triple(i79, cycle, [i69, i9, i39, i3, i69, i9, i69, i9, i39, i3, i69]).
-triple(i79, cycle, [i69, i9, i39, i3, i69, i9, i69, i9, i69, i9, i69]).
-triple(i79, cycle, [i69, i9, i39, i81, i3, i69, i9, i39, i81, i3, i69]).
-triple(i79, cycle, [i69, i9, i69, i9, i39, i3, i69, i9, i39, i3, i69]).
-triple(i79, cycle, [i69, i9, i69, i9, i39, i3, i69, i9, i69, i9, i69]).
-triple(i79, cycle, [i69, i9, i69, i9, i69, i9, i39, i3, i69, i9, i69]).
-triple(i79, cycle, [i69, i9, i69, i9, i69, i9, i69, i9, i39, i3, i69]).
-triple(i79, cycle, [i69, i9, i69, i9, i69, i9, i69, i9, i69, i9, i69]).
-triple(i79, cycle, [i81, i3, i69, i9, i39, i81, i3, i69, i9, i39, i81]).
-triple(i79, cycle, [i9, i39, i3, i69, i9, i39, i3, i69, i9, i69, i9]).
-triple(i79, cycle, [i9, i39, i3, i69, i9, i69, i9, i39, i3, i69, i9]).
-triple(i79, cycle, [i9, i39, i3, i69, i9, i69, i9, i69, i9, i69, i9]).
-triple(i79, cycle, [i9, i39, i81, i3, i69, i9, i39, i81, i3, i69, i9]).
-triple(i79, cycle, [i9, i69, i9, i39, i3, i69, i9, i39, i3, i69, i9]).
-triple(i79, cycle, [i9, i69, i9, i39, i3, i69, i9, i69, i9, i69, i9]).
-triple(i79, cycle, [i9, i69, i9, i69, i9, i39, i3, i69, i9, i69, i9]).
-triple(i79, cycle, [i9, i69, i9, i69, i9, i69, i9, i39, i3, i69, i9]).
-triple(i79, cycle, [i9, i69, i9, i69, i9, i69, i9, i69, i9, i69, i9]).
-triple(i80, cycle, [i12, i45, i12, i45, i12, i45, i12, i45, i12, i45, i12]).
-triple(i80, cycle, [i15, i42, i15, i42, i15, i42, i15, i42, i15, i42, i15]).
-triple(i80, cycle, [i15, i42, i15, i42, i15, i60, i42, i15, i60, i42, i15]).
-triple(i80, cycle, [i15, i42, i15, i60, i42, i15, i42, i15, i60, i42, i15]).
-triple(i80, cycle, [i15, i42, i15, i60, i42, i15, i60, i42, i15, i42, i15]).
-triple(i80, cycle, [i15, i60, i42, i15, i42, i15, i42, i15, i60, i42, i15]).
-triple(i80, cycle, [i15, i60, i42, i15, i42, i15, i60, i42, i15, i42, i15]).
-triple(i80, cycle, [i15, i60, i42, i15, i60, i42, i15, i42, i15, i42, i15]).
-triple(i80, cycle, [i42, i15, i42, i15, i42, i15, i42, i15, i42, i15, i42]).
-triple(i80, cycle, [i42, i15, i42, i15, i42, i15, i60, i42, i15, i60, i42]).
-triple(i80, cycle, [i42, i15, i42, i15, i60, i42, i15, i42, i15, i60, i42]).
-triple(i80, cycle, [i42, i15, i42, i15, i60, i42, i15, i60, i42, i15, i42]).
-triple(i80, cycle, [i42, i15, i60, i42, i15, i42, i15, i42, i15, i60, i42]).
-triple(i80, cycle, [i42, i15, i60, i42, i15, i42, i15, i60, i42, i15, i42]).
-triple(i80, cycle, [i42, i15, i60, i42, i15, i60, i42, i15, i42, i15, i42]).
-triple(i80, cycle, [i45, i12, i45, i12, i45, i12, i45, i12, i45, i12, i45]).
-triple(i80, cycle, [i54, i81, i54, i81, i54, i81, i54, i81, i54, i81, i54]).
-triple(i80, cycle, [i60, i42, i15, i42, i15, i42, i15, i60, i42, i15, i60]).
-triple(i80, cycle, [i60, i42, i15, i42, i15, i60, i42, i15, i42, i15, i60]).
-triple(i80, cycle, [i60, i42, i15, i60, i42, i15, i42, i15, i42, i15, i60]).
-triple(i80, cycle, [i81, i54, i81, i54, i81, i54, i81, i54, i81, i54, i81]).
-triple(i80, cycle, [i90, i90, i90, i90, i90, i90, i90, i90, i90, i90, i90]).
-triple(i81, cycle, [i21, i75, i30, i75, i30, i75, i60, i21, i75, i60, i21]).
-triple(i81, cycle, [i21, i75, i30, i75, i60, i21, i75, i30, i75, i60, i21]).
-triple(i81, cycle, [i21, i75, i60, i21, i75, i30, i75, i30, i75, i60, i21]).
-triple(i81, cycle, [i27, i84, i27, i84, i27, i84, i27, i84, i27, i84, i27]).
-triple(i81, cycle, [i30, i75, i30, i75, i30, i75, i30, i75, i30, i75, i30]).
-triple(i81, cycle, [i30, i75, i30, i75, i60, i21, i75, i60, i21, i75, i30]).
-triple(i81, cycle, [i30, i75, i60, i21, i75, i30, i75, i60, i21, i75, i30]).
-triple(i81, cycle, [i30, i75, i60, i21, i75, i60, i21, i75, i30, i75, i30]).
-triple(i81, cycle, [i60, i21, i75, i30, i75, i30, i75, i60, i21, i75, i60]).
-triple(i81, cycle, [i60, i21, i75, i30, i75, i60, i21, i75, i30, i75, i60]).
-triple(i81, cycle, [i60, i21, i75, i60, i21, i75, i30, i75, i30, i75, i60]).
-triple(i81, cycle, [i75, i30, i75, i30, i75, i30, i75, i30, i75, i30, i75]).
-triple(i81, cycle, [i75, i30, i75, i30, i75, i60, i21, i75, i60, i21, i75]).
-triple(i81, cycle, [i75, i30, i75, i60, i21, i75, i30, i75, i60, i21, i75]).
-triple(i81, cycle, [i75, i30, i75, i60, i21, i75, i60, i21, i75, i30, i75]).
-triple(i81, cycle, [i75, i60, i21, i75, i30, i75, i30, i75, i60, i21, i75]).
-triple(i81, cycle, [i75, i60, i21, i75, i30, i75, i60, i21, i75, i30, i75]).
-triple(i81, cycle, [i75, i60, i21, i75, i60, i21, i75, i30, i75, i30, i75]).
-triple(i81, cycle, [i84, i27, i84, i27, i84, i27, i84, i27, i84, i27, i84]).
-triple(i82, cycle, [i21, i21, i21, i21, i21, i21, i21, i21, i21, i21, i21]).
-triple(i82, cycle, [i36, i36, i36, i36, i36, i36, i36, i36, i36, i36, i36]).
-triple(i83, cycle, [i0, i6, i84, i69, i6, i84, i69, i6, i84, i69, i0]).
-triple(i83, cycle, [i6, i84, i69, i0, i6, i84, i69, i6, i84, i69, i6]).
-triple(i83, cycle, [i6, i84, i69, i6, i84, i69, i0, i6, i84, i69, i6]).
-triple(i83, cycle, [i6, i84, i69, i6, i84, i69, i6, i84, i69, i0, i6]).
-triple(i83, cycle, [i69, i0, i6, i84, i69, i6, i84, i69, i6, i84, i69]).
-triple(i83, cycle, [i69, i6, i84, i69, i0, i6, i84, i69, i6, i84, i69]).
-triple(i83, cycle, [i69, i6, i84, i69, i6, i84, i69, i0, i6, i84, i69]).
-triple(i83, cycle, [i84, i69, i0, i6, i84, i69, i6, i84, i69, i6, i84]).
-triple(i83, cycle, [i84, i69, i6, i84, i69, i0, i6, i84, i69, i6, i84]).
-triple(i83, cycle, [i84, i69, i6, i84, i69, i6, i84, i69, i0, i6, i84]).
-triple(i84, cycle, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
-triple(i84, cycle, [i21, i87, i33, i93, i51, i30, i21, i87, i51, i30, i21]).
-triple(i84, cycle, [i21, i87, i51, i30, i21, i87, i33, i93, i51, i30, i21]).
-triple(i84, cycle, [i30, i21, i87, i33, i93, i51, i30, i21, i87, i51, i30]).
-triple(i84, cycle, [i30, i21, i87, i51, i30, i21, i87, i33, i93, i51, i30]).
-triple(i84, cycle, [i33, i93, i51, i30, i21, i87, i51, i30, i21, i87, i33]).
-triple(i84, cycle, [i51, i30, i21, i87, i33, i93, i51, i30, i21, i87, i51]).
-triple(i84, cycle, [i51, i30, i21, i87, i51, i30, i21, i87, i33, i93, i51]).
-triple(i84, cycle, [i87, i33, i93, i51, i30, i21, i87, i51, i30, i21, i87]).
-triple(i84, cycle, [i87, i51, i30, i21, i87, i33, i93, i51, i30, i21, i87]).
-triple(i84, cycle, [i93, i51, i30, i21, i87, i51, i30, i21, i87, i33, i93]).
-triple(i86, cycle, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
-triple(i88, cycle, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
-triple(i88, cycle, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
-triple(i88, cycle, [i57, i57, i57, i57, i57, i57, i57, i57, i57, i57, i57]).
-triple(i89, cycle, [i48, i48, i48, i48, i48, i48, i48, i48, i48, i48, i48]).
-triple(i89, cycle, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
-triple(i9, cycle, [i30, i9, i54, i30, i9, i54, i30, i9, i84, i54, i30]).
-triple(i9, cycle, [i30, i9, i54, i30, i9, i84, i54, i30, i9, i54, i30]).
-triple(i9, cycle, [i30, i9, i84, i54, i30, i9, i54, i30, i9, i54, i30]).
-triple(i9, cycle, [i54, i30, i9, i54, i30, i9, i54, i30, i9, i84, i54]).
-triple(i9, cycle, [i54, i30, i9, i54, i30, i9, i84, i54, i30, i9, i54]).
-triple(i9, cycle, [i54, i30, i9, i84, i54, i30, i9, i54, i30, i9, i54]).
-triple(i9, cycle, [i84, i54, i30, i9, i54, i30, i9, i54, i30, i9, i84]).
-triple(i9, cycle, [i9, i54, i30, i9, i54, i30, i9, i84, i54, i30, i9]).
-triple(i9, cycle, [i9, i54, i30, i9, i84, i54, i30, i9, i54, i30, i9]).
-triple(i9, cycle, [i9, i84, i54, i30, i9, i54, i30, i9, i54, i30, i9]).
-triple(i92, cycle, [i45, i84, i45, i84, i45, i84, i45, i84, i45, i84, i45]).
-triple(i92, cycle, [i84, i45, i84, i45, i84, i45, i84, i45, i84, i45, i84]).
-triple(i93, cycle, [i33, i48, i33, i48, i33, i48, i33, i48, i33, i48, i33]).
-triple(i93, cycle, [i48, i33, i48, i33, i48, i33, i48, i33, i48, i33, i48]).
-triple(i93, cycle, [i54, i69, i54, i69, i54, i69, i54, i69, i54, i69, i54]).
-triple(i93, cycle, [i69, i54, i69, i54, i69, i54, i69, i54, i69, i54, i69]).
-triple(i93, cycle, [i84, i84, i84, i84, i84, i84, i84, i84, i84, i84, i84]).
-triple(i94, cycle, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).
-triple(i95, cycle, [i48, i51, i48, i51, i48, i51, i48, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i48, i51, i48, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i48, i51, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i48, i51, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i48, i51, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i48, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i48, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i48, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i51, i48, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i51, i48, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i51, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i51, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i48, i51, i51, i51, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i48, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i48, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i48, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i51, i48, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i51, i48, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i51, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i51, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i48, i51, i51, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i48, i51, i48, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i48, i51, i48, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i48, i51, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i48, i51, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i48, i51, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i48, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i48, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i48, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i51, i48, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i51, i48, i51, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i51, i51, i48, i51, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i51, i51, i51, i48, i51, i48]).
-triple(i95, cycle, [i48, i51, i51, i51, i51, i51, i51, i51, i51, i51, i48]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i48, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i48, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i48, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i48, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i48, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i48, i51, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i48, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i48, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i48, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i48, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i48, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i48, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i48, i51, i51, i51, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i48, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i48, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i48, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i48, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i48, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i48, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i48, i51, i51, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i48, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i48, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i48, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i48, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i48, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i48, i51, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i48, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i48, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i48, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i48, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i48, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i48, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i48, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i48, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i48, i51, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i51, i48, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i51, i48, i51, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i51, i51, i48, i51, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i51, i51, i51, i48, i51]).
-triple(i95, cycle, [i51, i51, i51, i51, i51, i51, i51, i51, i51, i51, i51]).
-triple(i95, cycle, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
-triple(i96, cycle, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
-triple(i96, cycle, [i33, i69, i75, i48, i33, i69, i75, i75, i75, i48, i33]).
-triple(i96, cycle, [i33, i69, i75, i75, i48, i33, i69, i75, i75, i48, i33]).
-triple(i96, cycle, [i33, i69, i75, i75, i75, i48, i33, i69, i75, i48, i33]).
-triple(i96, cycle, [i33, i69, i75, i75, i75, i75, i75, i75, i75, i48, i33]).
-triple(i96, cycle, [i48, i33, i69, i75, i48, i33, i69, i75, i75, i75, i48]).
-triple(i96, cycle, [i48, i33, i69, i75, i75, i48, i33, i69, i75, i75, i48]).
-triple(i96, cycle, [i48, i33, i69, i75, i75, i75, i48, i33, i69, i75, i48]).
-triple(i96, cycle, [i48, i33, i69, i75, i75, i75, i75, i75, i75, i75, i48]).
-triple(i96, cycle, [i69, i75, i48, i33, i69, i75, i75, i75, i48, i33, i69]).
-triple(i96, cycle, [i69, i75, i75, i48, i33, i69, i75, i75, i48, i33, i69]).
-triple(i96, cycle, [i69, i75, i75, i75, i48, i33, i69, i75, i48, i33, i69]).
-triple(i96, cycle, [i69, i75, i75, i75, i75, i75, i75, i75, i48, i33, i69]).
-triple(i96, cycle, [i75, i48, i33, i69, i75, i48, i33, i69, i75, i75, i75]).
-triple(i96, cycle, [i75, i48, i33, i69, i75, i75, i48, i33, i69, i75, i75]).
-triple(i96, cycle, [i75, i48, i33, i69, i75, i75, i75, i48, i33, i69, i75]).
-triple(i96, cycle, [i75, i48, i33, i69, i75, i75, i75, i75, i75, i75, i75]).
-triple(i96, cycle, [i75, i75, i48, i33, i69, i75, i48, i33, i69, i75, i75]).
-triple(i96, cycle, [i75, i75, i48, i33, i69, i75, i75, i48, i33, i69, i75]).
-triple(i96, cycle, [i75, i75, i48, i33, i69, i75, i75, i75, i75, i75, i75]).
-triple(i96, cycle, [i75, i75, i75, i48, i33, i69, i75, i48, i33, i69, i75]).
-triple(i96, cycle, [i75, i75, i75, i48, i33, i69, i75, i75, i75, i75, i75]).
-triple(i96, cycle, [i75, i75, i75, i75, i48, i33, i69, i75, i75, i75, i75]).
-triple(i96, cycle, [i75, i75, i75, i75, i75, i48, i33, i69, i75, i75, i75]).
-triple(i96, cycle, [i75, i75, i75, i75, i75, i75, i48, i33, i69, i75, i75]).
-triple(i96, cycle, [i75, i75, i75, i75, i75, i75, i75, i48, i33, i69, i75]).
-triple(i96, cycle, [i75, i75, i75, i75, i75, i75, i75, i75, i75, i75, i75]).
-triple(i97, cycle, [i18, i69, i18, i69, i18, i69, i18, i69, i18, i69, i18]).
-triple(i97, cycle, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
-triple(i97, cycle, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
-triple(i97, cycle, [i69, i18, i69, i18, i69, i18, i69, i18, i69, i18, i69]).
-triple(i97, cycle, [i75, i84, i75, i84, i75, i84, i75, i84, i75, i84, i75]).
-triple(i97, cycle, [i84, i75, i84, i75, i84, i75, i84, i75, i84, i75, i84]).
-triple(i98, cycle, [i12, i12, i12, i12, i12, i12, i12, i12, i12, i12, i12]).
-triple(i98, cycle, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).
+cycle(i0, [i12, i66, i9, i12, i66, i9, i12, i9, i12, i9, i12]).
+cycle(i0, [i12, i66, i9, i12, i9, i12, i66, i9, i12, i9, i12]).
+cycle(i0, [i12, i66, i9, i12, i9, i12, i9, i12, i66, i9, i12]).
+cycle(i0, [i12, i9, i12, i66, i9, i12, i66, i9, i12, i9, i12]).
+cycle(i0, [i12, i9, i12, i66, i9, i12, i9, i12, i66, i9, i12]).
+cycle(i0, [i12, i9, i12, i9, i12, i66, i9, i12, i66, i9, i12]).
+cycle(i0, [i12, i9, i12, i9, i12, i9, i12, i9, i12, i9, i12]).
+cycle(i0, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
+cycle(i0, [i66, i9, i12, i66, i9, i12, i9, i12, i9, i12, i66]).
+cycle(i0, [i66, i9, i12, i9, i12, i66, i9, i12, i9, i12, i66]).
+cycle(i0, [i66, i9, i12, i9, i12, i9, i12, i66, i9, i12, i66]).
+cycle(i0, [i75, i84, i75, i84, i75, i84, i75, i84, i75, i84, i75]).
+cycle(i0, [i84, i75, i84, i75, i84, i75, i84, i75, i84, i75, i84]).
+cycle(i0, [i9, i12, i66, i9, i12, i66, i9, i12, i9, i12, i9]).
+cycle(i0, [i9, i12, i66, i9, i12, i9, i12, i66, i9, i12, i9]).
+cycle(i0, [i9, i12, i66, i9, i12, i9, i12, i9, i12, i66, i9]).
+cycle(i0, [i9, i12, i9, i12, i66, i9, i12, i66, i9, i12, i9]).
+cycle(i0, [i9, i12, i9, i12, i66, i9, i12, i9, i12, i66, i9]).
+cycle(i0, [i9, i12, i9, i12, i9, i12, i66, i9, i12, i66, i9]).
+cycle(i0, [i9, i12, i9, i12, i9, i12, i9, i12, i9, i12, i9]).
+cycle(i10, [i15, i78, i60, i33, i87, i15, i78, i60, i33, i87, i15]).
+cycle(i10, [i33, i87, i15, i78, i60, i33, i87, i15, i78, i60, i33]).
+cycle(i10, [i60, i33, i87, i15, i78, i60, i33, i87, i15, i78, i60]).
+cycle(i10, [i78, i60, i33, i87, i15, i78, i60, i33, i87, i15, i78]).
+cycle(i10, [i87, i15, i78, i60, i33, i87, i15, i78, i60, i33, i87]).
+cycle(i11, [i15, i30, i78, i45, i51, i15, i30, i78, i45, i51, i15]).
+cycle(i11, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
+cycle(i11, [i30, i78, i45, i51, i15, i30, i78, i45, i51, i15, i30]).
+cycle(i11, [i39, i39, i39, i39, i39, i39, i39, i39, i39, i39, i39]).
+cycle(i11, [i45, i51, i15, i30, i78, i45, i51, i15, i30, i78, i45]).
+cycle(i11, [i51, i15, i30, i78, i45, i51, i15, i30, i78, i45, i51]).
+cycle(i11, [i78, i45, i51, i15, i30, i78, i45, i51, i15, i30, i78]).
+cycle(i12, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45]).
+cycle(i12, [i66, i66, i66, i66, i66, i66, i66, i66, i66, i66, i66]).
+cycle(i13, [i12, i60, i12, i60, i12, i60, i12, i60, i12, i60, i12]).
+cycle(i13, [i45, i48, i78, i81, i87, i45, i48, i78, i81, i87, i45]).
+cycle(i13, [i48, i78, i81, i87, i45, i48, i78, i81, i87, i45, i48]).
+cycle(i13, [i60, i12, i60, i12, i60, i12, i60, i12, i60, i12, i60]).
+cycle(i13, [i78, i81, i87, i45, i48, i78, i81, i87, i45, i48, i78]).
+cycle(i13, [i81, i87, i45, i48, i78, i81, i87, i45, i48, i78, i81]).
+cycle(i13, [i87, i45, i48, i78, i81, i87, i45, i48, i78, i81, i87]).
+cycle(i15, [i36, i96, i36, i96, i36, i96, i36, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i36, i96, i36, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i36, i96, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i36, i96, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i36, i96, i96, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i36, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i36, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i36, i96, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i96, i36, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i96, i36, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i96, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i96, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i36, i96, i96, i96, i96, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i36, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i36, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i36, i96, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i96, i36, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i96, i36, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i96, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i96, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i36, i96, i96, i96, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i36, i96, i36, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i36, i96, i36, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i36, i96, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i36, i96, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i36, i96, i96, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i36, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i36, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i36, i96, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i96, i36, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i96, i36, i96, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i96, i96, i36, i96, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i96, i96, i96, i36, i96, i36]).
+cycle(i15, [i36, i96, i96, i96, i96, i96, i96, i96, i96, i96, i36]).
+cycle(i15, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
+cycle(i15, [i96, i36, i96, i36, i96, i36, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i36, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i36, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i36, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i36, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i36, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i36, i96, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i36, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i36, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i36, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i36, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i36, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i36, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i36, i96, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i36, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i36, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i36, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i36, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i36, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i36, i96, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i36, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i36, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i36, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i36, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i36, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i36, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i36, i96, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i36, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i36, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i36, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i36, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i36, i96, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i36, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i36, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i36, i96, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i96, i36, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i96, i36, i96, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i96, i96, i36, i96, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i36, i96]).
+cycle(i15, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i16, [i21, i42, i45, i93, i39, i45, i93, i45, i93, i63, i21]).
+cycle(i16, [i21, i42, i45, i93, i45, i93, i39, i45, i93, i63, i21]).
+cycle(i16, [i21, i42, i45, i93, i63, i21, i42, i45, i93, i63, i21]).
+cycle(i16, [i27, i93, i39, i42, i45, i93, i45, i93, i39, i87, i27]).
+cycle(i16, [i27, i93, i39, i45, i93, i39, i45, i93, i39, i87, i27]).
+cycle(i16, [i27, i93, i39, i87, i27, i93, i45, i93, i39, i87, i27]).
+cycle(i16, [i27, i93, i45, i93, i39, i42, i45, i93, i39, i87, i27]).
+cycle(i16, [i27, i93, i45, i93, i39, i87, i27, i93, i39, i87, i27]).
+cycle(i16, [i27, i93, i45, i93, i45, i93, i45, i93, i39, i87, i27]).
+cycle(i16, [i39, i42, i45, i93, i39, i42, i45, i93, i45, i93, i39]).
+cycle(i16, [i39, i42, i45, i93, i39, i45, i93, i39, i45, i93, i39]).
+cycle(i16, [i39, i42, i45, i93, i39, i87, i27, i93, i45, i93, i39]).
+cycle(i16, [i39, i42, i45, i93, i45, i93, i39, i42, i45, i93, i39]).
+cycle(i16, [i39, i42, i45, i93, i45, i93, i39, i87, i27, i93, i39]).
+cycle(i16, [i39, i42, i45, i93, i45, i93, i45, i93, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i39, i42, i45, i93, i39, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i39, i45, i93, i39, i42, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i39, i45, i93, i39, i87, i27, i93, i39]).
+cycle(i16, [i39, i45, i93, i39, i45, i93, i45, i93, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i39, i87, i27, i93, i39, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i45, i93, i39, i45, i93, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i45, i93, i45, i93, i39, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i45, i93, i63, i21, i42, i45, i93, i39]).
+cycle(i16, [i39, i45, i93, i63, i21, i42, i45, i93, i45, i93, i39]).
+cycle(i16, [i39, i87, i27, i93, i39, i42, i45, i93, i45, i93, i39]).
+cycle(i16, [i39, i87, i27, i93, i39, i45, i93, i39, i45, i93, i39]).
+cycle(i16, [i39, i87, i27, i93, i39, i87, i27, i93, i45, i93, i39]).
+cycle(i16, [i39, i87, i27, i93, i45, i93, i39, i42, i45, i93, i39]).
+cycle(i16, [i39, i87, i27, i93, i45, i93, i39, i87, i27, i93, i39]).
+cycle(i16, [i39, i87, i27, i93, i45, i93, i45, i93, i45, i93, i39]).
+cycle(i16, [i42, i45, i93, i39, i42, i45, i93, i45, i93, i39, i42]).
+cycle(i16, [i42, i45, i93, i39, i45, i93, i39, i45, i93, i39, i42]).
+cycle(i16, [i42, i45, i93, i39, i45, i93, i45, i93, i63, i21, i42]).
+cycle(i16, [i42, i45, i93, i39, i87, i27, i93, i45, i93, i39, i42]).
+cycle(i16, [i42, i45, i93, i45, i93, i39, i42, i45, i93, i39, i42]).
+cycle(i16, [i42, i45, i93, i45, i93, i39, i45, i93, i63, i21, i42]).
+cycle(i16, [i42, i45, i93, i45, i93, i39, i87, i27, i93, i39, i42]).
+cycle(i16, [i42, i45, i93, i45, i93, i45, i93, i45, i93, i39, i42]).
+cycle(i16, [i42, i45, i93, i63, i21, i42, i45, i93, i63, i21, i42]).
+cycle(i16, [i45, i93, i39, i42, i45, i93, i39, i42, i45, i93, i45]).
+cycle(i16, [i45, i93, i39, i42, i45, i93, i39, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i39, i42, i45, i93, i39, i87, i27, i93, i45]).
+cycle(i16, [i45, i93, i39, i42, i45, i93, i45, i93, i39, i42, i45]).
+cycle(i16, [i45, i93, i39, i42, i45, i93, i45, i93, i45, i93, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i39, i42, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i39, i45, i93, i39, i42, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i39, i45, i93, i45, i93, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i39, i87, i27, i93, i39, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i45, i93, i39, i45, i93, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i45, i93, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i45, i93, i63, i21, i42, i45]).
+cycle(i16, [i45, i93, i39, i45, i93, i63, i21, i42, i45, i93, i45]).
+cycle(i16, [i45, i93, i39, i87, i27, i93, i39, i42, i45, i93, i45]).
+cycle(i16, [i45, i93, i39, i87, i27, i93, i39, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i39, i87, i27, i93, i39, i87, i27, i93, i45]).
+cycle(i16, [i45, i93, i39, i87, i27, i93, i45, i93, i39, i42, i45]).
+cycle(i16, [i45, i93, i39, i87, i27, i93, i45, i93, i45, i93, i45]).
+cycle(i16, [i45, i93, i45, i93, i39, i42, i45, i93, i39, i42, i45]).
+cycle(i16, [i45, i93, i45, i93, i39, i42, i45, i93, i45, i93, i45]).
+cycle(i16, [i45, i93, i45, i93, i39, i45, i93, i39, i45, i93, i45]).
+cycle(i16, [i45, i93, i45, i93, i39, i45, i93, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i45, i93, i39, i45, i93, i63, i21, i42, i45]).
+cycle(i16, [i45, i93, i45, i93, i39, i87, i27, i93, i39, i42, i45]).
+cycle(i16, [i45, i93, i45, i93, i39, i87, i27, i93, i45, i93, i45]).
+cycle(i16, [i45, i93, i45, i93, i45, i93, i39, i42, i45, i93, i45]).
+cycle(i16, [i45, i93, i45, i93, i45, i93, i39, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i45, i93, i45, i93, i39, i87, i27, i93, i45]).
+cycle(i16, [i45, i93, i45, i93, i45, i93, i45, i93, i39, i42, i45]).
+cycle(i16, [i45, i93, i45, i93, i45, i93, i45, i93, i45, i93, i45]).
+cycle(i16, [i45, i93, i45, i93, i63, i21, i42, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i63, i21, i42, i45, i93, i39, i45, i93, i45]).
+cycle(i16, [i45, i93, i63, i21, i42, i45, i93, i45, i93, i39, i45]).
+cycle(i16, [i45, i93, i63, i21, i42, i45, i93, i63, i21, i42, i45]).
+cycle(i16, [i63, i21, i42, i45, i93, i39, i45, i93, i45, i93, i63]).
+cycle(i16, [i63, i21, i42, i45, i93, i45, i93, i39, i45, i93, i63]).
+cycle(i16, [i63, i21, i42, i45, i93, i63, i21, i42, i45, i93, i63]).
+cycle(i16, [i87, i27, i93, i39, i42, i45, i93, i45, i93, i39, i87]).
+cycle(i16, [i87, i27, i93, i39, i45, i93, i39, i45, i93, i39, i87]).
+cycle(i16, [i87, i27, i93, i39, i87, i27, i93, i45, i93, i39, i87]).
+cycle(i16, [i87, i27, i93, i45, i93, i39, i42, i45, i93, i39, i87]).
+cycle(i16, [i87, i27, i93, i45, i93, i39, i87, i27, i93, i39, i87]).
+cycle(i16, [i87, i27, i93, i45, i93, i45, i93, i45, i93, i39, i87]).
+cycle(i16, [i93, i39, i42, i45, i93, i39, i42, i45, i93, i45, i93]).
+cycle(i16, [i93, i39, i42, i45, i93, i39, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i39, i42, i45, i93, i39, i87, i27, i93, i45, i93]).
+cycle(i16, [i93, i39, i42, i45, i93, i45, i93, i39, i42, i45, i93]).
+cycle(i16, [i93, i39, i42, i45, i93, i45, i93, i39, i87, i27, i93]).
+cycle(i16, [i93, i39, i42, i45, i93, i45, i93, i45, i93, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i39, i42, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i39, i45, i93, i39, i42, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i39, i45, i93, i39, i87, i27, i93]).
+cycle(i16, [i93, i39, i45, i93, i39, i45, i93, i45, i93, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i39, i87, i27, i93, i39, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i45, i93, i39, i45, i93, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i45, i93, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i45, i93, i63, i21, i42, i45, i93]).
+cycle(i16, [i93, i39, i45, i93, i63, i21, i42, i45, i93, i45, i93]).
+cycle(i16, [i93, i39, i87, i27, i93, i39, i42, i45, i93, i45, i93]).
+cycle(i16, [i93, i39, i87, i27, i93, i39, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i39, i87, i27, i93, i39, i87, i27, i93, i45, i93]).
+cycle(i16, [i93, i39, i87, i27, i93, i45, i93, i39, i42, i45, i93]).
+cycle(i16, [i93, i39, i87, i27, i93, i45, i93, i39, i87, i27, i93]).
+cycle(i16, [i93, i39, i87, i27, i93, i45, i93, i45, i93, i45, i93]).
+cycle(i16, [i93, i45, i93, i39, i42, i45, i93, i39, i42, i45, i93]).
+cycle(i16, [i93, i45, i93, i39, i42, i45, i93, i39, i87, i27, i93]).
+cycle(i16, [i93, i45, i93, i39, i42, i45, i93, i45, i93, i45, i93]).
+cycle(i16, [i93, i45, i93, i39, i45, i93, i39, i45, i93, i45, i93]).
+cycle(i16, [i93, i45, i93, i39, i45, i93, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i45, i93, i39, i45, i93, i63, i21, i42, i45, i93]).
+cycle(i16, [i93, i45, i93, i39, i87, i27, i93, i39, i42, i45, i93]).
+cycle(i16, [i93, i45, i93, i39, i87, i27, i93, i39, i87, i27, i93]).
+cycle(i16, [i93, i45, i93, i39, i87, i27, i93, i45, i93, i45, i93]).
+cycle(i16, [i93, i45, i93, i45, i93, i39, i42, i45, i93, i45, i93]).
+cycle(i16, [i93, i45, i93, i45, i93, i39, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i45, i93, i45, i93, i39, i87, i27, i93, i45, i93]).
+cycle(i16, [i93, i45, i93, i45, i93, i45, i93, i39, i42, i45, i93]).
+cycle(i16, [i93, i45, i93, i45, i93, i45, i93, i39, i87, i27, i93]).
+cycle(i16, [i93, i45, i93, i45, i93, i45, i93, i45, i93, i45, i93]).
+cycle(i16, [i93, i45, i93, i63, i21, i42, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i63, i21, i42, i45, i93, i39, i45, i93, i45, i93]).
+cycle(i16, [i93, i63, i21, i42, i45, i93, i45, i93, i39, i45, i93]).
+cycle(i16, [i93, i63, i21, i42, i45, i93, i63, i21, i42, i45, i93]).
+cycle(i17, [i0, i30, i33, i63, i42, i54, i0, i30, i33, i75, i0]).
+cycle(i17, [i0, i30, i33, i75, i0, i30, i33, i63, i42, i54, i0]).
+cycle(i17, [i0, i30, i33, i75, i30, i33, i75, i30, i33, i75, i0]).
+cycle(i17, [i30, i33, i63, i42, i54, i0, i30, i33, i75, i0, i30]).
+cycle(i17, [i30, i33, i75, i0, i30, i33, i63, i42, i54, i0, i30]).
+cycle(i17, [i30, i33, i75, i0, i30, i33, i75, i30, i33, i75, i30]).
+cycle(i17, [i30, i33, i75, i30, i33, i75, i0, i30, i33, i75, i30]).
+cycle(i17, [i30, i33, i75, i30, i33, i75, i30, i33, i75, i0, i30]).
+cycle(i17, [i33, i63, i42, i54, i0, i30, i33, i75, i0, i30, i33]).
+cycle(i17, [i33, i75, i0, i30, i33, i63, i42, i54, i0, i30, i33]).
+cycle(i17, [i33, i75, i0, i30, i33, i75, i30, i33, i75, i30, i33]).
+cycle(i17, [i33, i75, i30, i33, i75, i0, i30, i33, i75, i30, i33]).
+cycle(i17, [i33, i75, i30, i33, i75, i30, i33, i75, i0, i30, i33]).
+cycle(i17, [i42, i54, i0, i30, i33, i75, i0, i30, i33, i63, i42]).
+cycle(i17, [i54, i0, i30, i33, i75, i0, i30, i33, i63, i42, i54]).
+cycle(i17, [i63, i42, i54, i0, i30, i33, i75, i0, i30, i33, i63]).
+cycle(i17, [i75, i0, i30, i33, i63, i42, i54, i0, i30, i33, i75]).
+cycle(i17, [i75, i0, i30, i33, i75, i30, i33, i75, i30, i33, i75]).
+cycle(i17, [i75, i30, i33, i75, i0, i30, i33, i75, i30, i33, i75]).
+cycle(i17, [i75, i30, i33, i75, i30, i33, i75, i0, i30, i33, i75]).
+cycle(i18, [i75, i75, i75, i75, i75, i75, i75, i75, i75, i75, i75]).
+cycle(i19, [i12, i93, i66, i36, i21, i21, i21, i21, i87, i33, i12]).
+cycle(i19, [i12, i93, i66, i36, i21, i87, i69, i36, i72, i33, i12]).
+cycle(i19, [i12, i93, i66, i36, i72, i66, i36, i21, i87, i33, i12]).
+cycle(i19, [i21, i21, i21, i21, i21, i21, i21, i21, i21, i21, i21]).
+cycle(i19, [i21, i21, i21, i21, i21, i21, i21, i87, i69, i36, i21]).
+cycle(i19, [i21, i21, i21, i21, i21, i21, i87, i69, i36, i21, i21]).
+cycle(i19, [i21, i21, i21, i21, i21, i87, i69, i36, i21, i21, i21]).
+cycle(i19, [i21, i21, i21, i21, i87, i33, i12, i93, i66, i36, i21]).
+cycle(i19, [i21, i21, i21, i21, i87, i69, i36, i21, i21, i21, i21]).
+cycle(i19, [i21, i21, i21, i21, i87, i69, i36, i72, i66, i36, i21]).
+cycle(i19, [i21, i21, i21, i87, i33, i12, i93, i66, i36, i21, i21]).
+cycle(i19, [i21, i21, i21, i87, i69, i36, i21, i21, i21, i21, i21]).
+cycle(i19, [i21, i21, i21, i87, i69, i36, i21, i87, i69, i36, i21]).
+cycle(i19, [i21, i21, i21, i87, i69, i36, i72, i66, i36, i21, i21]).
+cycle(i19, [i21, i21, i87, i33, i12, i93, i66, i36, i21, i21, i21]).
+cycle(i19, [i21, i21, i87, i69, i36, i21, i21, i21, i21, i21, i21]).
+cycle(i19, [i21, i21, i87, i69, i36, i21, i21, i87, i69, i36, i21]).
+cycle(i19, [i21, i21, i87, i69, i36, i21, i87, i69, i36, i21, i21]).
+cycle(i19, [i21, i21, i87, i69, i36, i72, i66, i36, i21, i21, i21]).
+cycle(i19, [i21, i87, i33, i12, i93, i66, i36, i21, i21, i21, i21]).
+cycle(i19, [i21, i87, i33, i12, i93, i66, i36, i72, i66, i36, i21]).
+cycle(i19, [i21, i87, i69, i36, i21, i21, i21, i21, i21, i21, i21]).
+cycle(i19, [i21, i87, i69, i36, i21, i21, i21, i87, i69, i36, i21]).
+cycle(i19, [i21, i87, i69, i36, i21, i21, i87, i69, i36, i21, i21]).
+cycle(i19, [i21, i87, i69, i36, i21, i87, i69, i36, i21, i21, i21]).
+cycle(i19, [i21, i87, i69, i36, i72, i33, i12, i93, i66, i36, i21]).
+cycle(i19, [i21, i87, i69, i36, i72, i66, i36, i21, i21, i21, i21]).
+cycle(i19, [i21, i87, i69, i36, i72, i66, i36, i72, i66, i36, i21]).
+cycle(i19, [i33, i12, i93, i66, i36, i21, i21, i21, i21, i87, i33]).
+cycle(i19, [i33, i12, i93, i66, i36, i21, i87, i69, i36, i72, i33]).
+cycle(i19, [i33, i12, i93, i66, i36, i72, i66, i36, i21, i87, i33]).
+cycle(i19, [i36, i21, i21, i21, i21, i21, i21, i21, i87, i69, i36]).
+cycle(i19, [i36, i21, i21, i21, i21, i87, i33, i12, i93, i66, i36]).
+cycle(i19, [i36, i21, i21, i21, i21, i87, i69, i36, i72, i66, i36]).
+cycle(i19, [i36, i21, i21, i21, i87, i69, i36, i21, i87, i69, i36]).
+cycle(i19, [i36, i21, i21, i87, i69, i36, i21, i21, i87, i69, i36]).
+cycle(i19, [i36, i21, i87, i33, i12, i93, i66, i36, i72, i66, i36]).
+cycle(i19, [i36, i21, i87, i69, i36, i21, i21, i21, i87, i69, i36]).
+cycle(i19, [i36, i21, i87, i69, i36, i72, i33, i12, i93, i66, i36]).
+cycle(i19, [i36, i21, i87, i69, i36, i72, i66, i36, i72, i66, i36]).
+cycle(i19, [i36, i72, i33, i12, i93, i66, i36, i21, i87, i69, i36]).
+cycle(i19, [i36, i72, i66, i36, i21, i21, i21, i21, i87, i69, i36]).
+cycle(i19, [i36, i72, i66, i36, i21, i87, i33, i12, i93, i66, i36]).
+cycle(i19, [i36, i72, i66, i36, i21, i87, i69, i36, i72, i66, i36]).
+cycle(i19, [i36, i72, i66, i36, i72, i66, i36, i21, i87, i69, i36]).
+cycle(i19, [i66, i36, i21, i21, i21, i21, i87, i33, i12, i93, i66]).
+cycle(i19, [i66, i36, i21, i21, i21, i21, i87, i69, i36, i72, i66]).
+cycle(i19, [i66, i36, i21, i87, i33, i12, i93, i66, i36, i72, i66]).
+cycle(i19, [i66, i36, i21, i87, i69, i36, i72, i33, i12, i93, i66]).
+cycle(i19, [i66, i36, i21, i87, i69, i36, i72, i66, i36, i72, i66]).
+cycle(i19, [i66, i36, i72, i66, i36, i21, i87, i33, i12, i93, i66]).
+cycle(i19, [i66, i36, i72, i66, i36, i21, i87, i69, i36, i72, i66]).
+cycle(i19, [i69, i36, i21, i21, i21, i21, i21, i21, i21, i87, i69]).
+cycle(i19, [i69, i36, i21, i21, i21, i87, i69, i36, i21, i87, i69]).
+cycle(i19, [i69, i36, i21, i21, i87, i69, i36, i21, i21, i87, i69]).
+cycle(i19, [i69, i36, i21, i87, i69, i36, i21, i21, i21, i87, i69]).
+cycle(i19, [i69, i36, i72, i33, i12, i93, i66, i36, i21, i87, i69]).
+cycle(i19, [i69, i36, i72, i66, i36, i21, i21, i21, i21, i87, i69]).
+cycle(i19, [i69, i36, i72, i66, i36, i72, i66, i36, i21, i87, i69]).
+cycle(i19, [i72, i33, i12, i93, i66, i36, i21, i87, i69, i36, i72]).
+cycle(i19, [i72, i66, i36, i21, i21, i21, i21, i87, i69, i36, i72]).
+cycle(i19, [i72, i66, i36, i21, i87, i33, i12, i93, i66, i36, i72]).
+cycle(i19, [i72, i66, i36, i21, i87, i69, i36, i72, i66, i36, i72]).
+cycle(i19, [i72, i66, i36, i72, i66, i36, i21, i87, i69, i36, i72]).
+cycle(i19, [i87, i33, i12, i93, i66, i36, i21, i21, i21, i21, i87]).
+cycle(i19, [i87, i33, i12, i93, i66, i36, i72, i66, i36, i21, i87]).
+cycle(i19, [i87, i69, i36, i21, i21, i21, i21, i21, i21, i21, i87]).
+cycle(i19, [i87, i69, i36, i21, i21, i21, i87, i69, i36, i21, i87]).
+cycle(i19, [i87, i69, i36, i21, i21, i87, i69, i36, i21, i21, i87]).
+cycle(i19, [i87, i69, i36, i21, i87, i69, i36, i21, i21, i21, i87]).
+cycle(i19, [i87, i69, i36, i72, i33, i12, i93, i66, i36, i21, i87]).
+cycle(i19, [i87, i69, i36, i72, i66, i36, i21, i21, i21, i21, i87]).
+cycle(i19, [i87, i69, i36, i72, i66, i36, i72, i66, i36, i21, i87]).
+cycle(i19, [i93, i66, i36, i21, i21, i21, i21, i87, i33, i12, i93]).
+cycle(i19, [i93, i66, i36, i21, i87, i69, i36, i72, i33, i12, i93]).
+cycle(i19, [i93, i66, i36, i72, i66, i36, i21, i87, i33, i12, i93]).
+cycle(i2, [i27, i66, i27, i66, i27, i66, i27, i66, i27, i66, i27]).
+cycle(i2, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
+cycle(i2, [i66, i27, i66, i27, i66, i27, i66, i27, i66, i27, i66]).
+cycle(i21, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
+cycle(i24, [i24, i33, i24, i33, i24, i33, i24, i33, i24, i33, i24]).
+cycle(i24, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
+cycle(i24, [i33, i24, i33, i24, i33, i24, i33, i24, i33, i24, i33]).
+cycle(i24, [i57, i57, i57, i57, i57, i57, i57, i57, i57, i57, i57]).
+cycle(i24, [i60, i87, i60, i87, i60, i87, i60, i87, i60, i87, i60]).
+cycle(i24, [i78, i78, i78, i78, i78, i78, i78, i78, i78, i78, i78]).
+cycle(i24, [i87, i60, i87, i60, i87, i60, i87, i60, i87, i60, i87]).
+cycle(i25, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
+cycle(i27, [i21, i72, i21, i72, i21, i72, i21, i72, i21, i72, i21]).
+cycle(i27, [i39, i84, i39, i84, i39, i84, i39, i84, i39, i84, i39]).
+cycle(i27, [i72, i21, i72, i21, i72, i21, i72, i21, i72, i21, i72]).
+cycle(i27, [i84, i39, i84, i39, i84, i39, i84, i39, i84, i39, i84]).
+cycle(i28, [i15, i36, i6, i87, i81, i15, i36, i6, i87, i81, i15]).
+cycle(i28, [i18, i78, i18, i78, i18, i78, i18, i78, i18, i78, i18]).
+cycle(i28, [i36, i6, i87, i81, i15, i36, i6, i87, i81, i15, i36]).
+cycle(i28, [i6, i87, i81, i15, i36, i6, i87, i81, i15, i36, i6]).
+cycle(i28, [i78, i18, i78, i18, i78, i18, i78, i18, i78, i18, i78]).
+cycle(i28, [i81, i15, i36, i6, i87, i81, i15, i36, i6, i87, i81]).
+cycle(i28, [i87, i81, i15, i36, i6, i87, i81, i15, i36, i6, i87]).
+cycle(i29, [i12, i12, i12, i12, i12, i12, i12, i12, i12, i12, i12]).
+cycle(i29, [i39, i39, i39, i39, i39, i39, i39, i39, i39, i39, i39]).
+cycle(i3, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i31, [i15, i3, i15, i3, i15, i3, i15, i3, i15, i3, i15]).
+cycle(i31, [i3, i15, i3, i15, i3, i15, i3, i15, i3, i15, i3]).
+cycle(i31, [i66, i66, i66, i66, i66, i66, i66, i66, i66, i66, i66]).
+cycle(i32, [i0, i33, i15, i60, i63, i0, i33, i15, i60, i63, i0]).
+cycle(i32, [i15, i60, i63, i0, i33, i15, i60, i63, i0, i33, i15]).
+cycle(i32, [i33, i15, i60, i63, i0, i33, i15, i60, i63, i0, i33]).
+cycle(i32, [i6, i90, i6, i90, i6, i90, i6, i90, i6, i90, i6]).
+cycle(i32, [i60, i63, i0, i33, i15, i60, i63, i0, i33, i15, i60]).
+cycle(i32, [i63, i0, i33, i15, i60, i63, i0, i33, i15, i60, i63]).
+cycle(i32, [i90, i6, i90, i6, i90, i6, i90, i6, i90, i6, i90]).
+cycle(i33, [i69, i69, i69, i69, i69, i69, i69, i69, i69, i69, i69]).
+cycle(i34, [i0, i30, i0, i30, i0, i30, i0, i30, i0, i30, i0]).
+cycle(i34, [i18, i18, i18, i18, i18, i18, i18, i18, i18, i18, i18]).
+cycle(i34, [i24, i24, i24, i24, i24, i24, i24, i24, i24, i24, i24]).
+cycle(i34, [i30, i0, i30, i0, i30, i0, i30, i0, i30, i0, i30]).
+cycle(i34, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
+cycle(i34, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
+cycle(i35, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45]).
+cycle(i36, [i24, i84, i51, i36, i24, i84, i51, i36, i93, i36, i24]).
+cycle(i36, [i24, i84, i51, i36, i72, i24, i84, i51, i36, i72, i24]).
+cycle(i36, [i24, i84, i51, i36, i93, i36, i24, i84, i51, i36, i24]).
+cycle(i36, [i24, i84, i51, i36, i93, i36, i93, i36, i93, i36, i24]).
+cycle(i36, [i36, i24, i84, i51, i36, i24, i84, i51, i36, i93, i36]).
+cycle(i36, [i36, i24, i84, i51, i36, i93, i36, i24, i84, i51, i36]).
+cycle(i36, [i36, i24, i84, i51, i36, i93, i36, i93, i36, i93, i36]).
+cycle(i36, [i36, i72, i24, i84, i51, i36, i72, i24, i84, i51, i36]).
+cycle(i36, [i36, i93, i36, i24, i84, i51, i36, i24, i84, i51, i36]).
+cycle(i36, [i36, i93, i36, i24, i84, i51, i36, i93, i36, i93, i36]).
+cycle(i36, [i36, i93, i36, i93, i36, i24, i84, i51, i36, i93, i36]).
+cycle(i36, [i36, i93, i36, i93, i36, i93, i36, i24, i84, i51, i36]).
+cycle(i36, [i36, i93, i36, i93, i36, i93, i36, i93, i36, i93, i36]).
+cycle(i36, [i51, i36, i24, i84, i51, i36, i93, i36, i24, i84, i51]).
+cycle(i36, [i51, i36, i72, i24, i84, i51, i36, i72, i24, i84, i51]).
+cycle(i36, [i51, i36, i93, i36, i24, i84, i51, i36, i24, i84, i51]).
+cycle(i36, [i51, i36, i93, i36, i93, i36, i93, i36, i24, i84, i51]).
+cycle(i36, [i72, i24, i84, i51, i36, i72, i24, i84, i51, i36, i72]).
+cycle(i36, [i84, i51, i36, i24, i84, i51, i36, i93, i36, i24, i84]).
+cycle(i36, [i84, i51, i36, i72, i24, i84, i51, i36, i72, i24, i84]).
+cycle(i36, [i84, i51, i36, i93, i36, i24, i84, i51, i36, i24, i84]).
+cycle(i36, [i84, i51, i36, i93, i36, i93, i36, i93, i36, i24, i84]).
+cycle(i36, [i93, i36, i24, i84, i51, i36, i24, i84, i51, i36, i93]).
+cycle(i36, [i93, i36, i24, i84, i51, i36, i93, i36, i93, i36, i93]).
+cycle(i36, [i93, i36, i93, i36, i24, i84, i51, i36, i93, i36, i93]).
+cycle(i36, [i93, i36, i93, i36, i93, i36, i24, i84, i51, i36, i93]).
+cycle(i36, [i93, i36, i93, i36, i93, i36, i93, i36, i93, i36, i93]).
+cycle(i37, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
+cycle(i39, [i90, i90, i90, i90, i90, i90, i90, i90, i90, i90, i90]).
+cycle(i39, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i4, [i57, i57, i57, i57, i57, i57, i57, i57, i57, i57, i57]).
+cycle(i4, [i69, i69, i69, i69, i69, i69, i69, i69, i69, i69, i69]).
+cycle(i42, [i72, i75, i72, i75, i72, i75, i72, i75, i72, i75, i72]).
+cycle(i42, [i75, i72, i75, i72, i75, i72, i75, i72, i75, i72, i75]).
+cycle(i42, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
+cycle(i42, [i87, i87, i87, i87, i87, i87, i87, i87, i87, i87, i87]).
+cycle(i42, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
+cycle(i43, [i18, i18, i18, i18, i18, i18, i18, i18, i18, i18, i18]).
+cycle(i43, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
+cycle(i44, [i27, i54, i51, i63, i48, i27, i54, i51, i63, i48, i27]).
+cycle(i44, [i48, i27, i54, i51, i63, i48, i27, i54, i51, i63, i48]).
+cycle(i44, [i51, i63, i48, i27, i54, i51, i63, i48, i27, i54, i51]).
+cycle(i44, [i54, i51, i63, i48, i27, i54, i51, i63, i48, i27, i54]).
+cycle(i44, [i63, i48, i27, i54, i51, i63, i48, i27, i54, i51, i63]).
+cycle(i45, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i48, [i69, i69, i69, i69, i69, i69, i69, i69, i69, i69, i69]).
+cycle(i48, [i72, i90, i72, i90, i72, i90, i72, i90, i72, i90, i72]).
+cycle(i48, [i90, i72, i90, i72, i90, i72, i90, i72, i90, i72, i90]).
+cycle(i5, [i0, i63, i81, i15, i60, i15, i60, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i81, i15, i60, i15, i81, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i81, i15, i81, i15, i60, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i81, i15, i81, i15, i81, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i9, i0, i63, i9, i93, i9, i93, i9, i0]).
+cycle(i5, [i0, i63, i9, i0, i81, i15, i60, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i9, i0, i81, i15, i81, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i9, i93, i81, i15, i60, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i9, i93, i81, i15, i81, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i9, i93, i9, i0, i63, i9, i93, i9, i0]).
+cycle(i5, [i0, i63, i9, i93, i9, i0, i81, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i9, i93, i9, i93, i81, i15, i60, i48, i0]).
+cycle(i5, [i0, i63, i9, i93, i9, i93, i9, i0, i63, i9, i0]).
+cycle(i5, [i0, i81, i15, i60, i15, i60, i48, i0, i63, i9, i0]).
+cycle(i5, [i0, i81, i15, i60, i48, i0, i63, i9, i93, i9, i0]).
+cycle(i5, [i0, i81, i15, i60, i48, i0, i81, i15, i60, i48, i0]).
+cycle(i5, [i0, i81, i15, i81, i15, i60, i48, i0, i63, i9, i0]).
+cycle(i5, [i15, i60, i15, i60, i15, i60, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i60, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i60, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i60, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i60, i48, i0, i63, i81, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i81, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i81, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i81, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i60, i15, i81, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i60, i48, i0, i63, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i60, i48, i0, i63, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i60, i48, i0, i63, i9, i0, i81, i15]).
+cycle(i5, [i15, i60, i15, i60, i48, i0, i63, i9, i93, i81, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i60, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i60, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i60, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i60, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i60, i48, i0, i63, i81, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i81, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i81, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i81, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i15, i81, i15, i81, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i81, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i81, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i81, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i81, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i9, i0, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i9, i0, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i9, i93, i81, i15, i60, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i9, i93, i81, i15, i81, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i9, i93, i9, i0, i81, i15]).
+cycle(i5, [i15, i60, i48, i0, i63, i9, i93, i9, i93, i81, i15]).
+cycle(i5, [i15, i60, i48, i0, i81, i15, i60, i48, i0, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i60, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i60, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i60, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i60, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i60, i48, i0, i63, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i81, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i81, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i81, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i60, i15, i81, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i48, i0, i63, i81, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i60, i48, i0, i63, i81, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i48, i0, i63, i9, i0, i81, i15]).
+cycle(i5, [i15, i81, i15, i60, i48, i0, i63, i9, i93, i81, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i60, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i60, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i60, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i60, i15, i81, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i60, i48, i0, i63, i81, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i81, i15, i60, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i81, i15, i60, i15, i81, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i81, i15, i81, i15, i60, i15]).
+cycle(i5, [i15, i81, i15, i81, i15, i81, i15, i81, i15, i81, i15]).
+cycle(i5, [i48, i0, i63, i81, i15, i60, i15, i60, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i81, i15, i60, i15, i81, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i81, i15, i81, i15, i60, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i81, i15, i81, i15, i81, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i9, i0, i81, i15, i60, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i9, i0, i81, i15, i81, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i9, i93, i81, i15, i60, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i9, i93, i81, i15, i81, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i9, i93, i9, i0, i81, i15, i60, i48]).
+cycle(i5, [i48, i0, i63, i9, i93, i9, i93, i81, i15, i60, i48]).
+cycle(i5, [i48, i0, i81, i15, i60, i48, i0, i81, i15, i60, i48]).
+cycle(i5, [i60, i15, i60, i15, i60, i15, i60, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i60, i15, i60, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i60, i15, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i60, i15, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i60, i48, i0, i63, i81, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i81, i15, i60, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i81, i15, i60, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i81, i15, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i60, i15, i81, i15, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i60, i48, i0, i63, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i60, i48, i0, i63, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i60, i48, i0, i63, i9, i0, i81, i15, i60]).
+cycle(i5, [i60, i15, i60, i48, i0, i63, i9, i93, i81, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i60, i15, i60, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i60, i15, i60, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i60, i15, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i60, i15, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i60, i48, i0, i63, i81, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i81, i15, i60, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i81, i15, i60, i15, i81, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i81, i15, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i15, i81, i15, i81, i15, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i81, i15, i60, i15, i60, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i81, i15, i60, i15, i81, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i81, i15, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i81, i15, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i9, i0, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i9, i0, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i9, i93, i81, i15, i60, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i9, i93, i81, i15, i81, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i9, i93, i9, i0, i81, i15, i60]).
+cycle(i5, [i60, i48, i0, i63, i9, i93, i9, i93, i81, i15, i60]).
+cycle(i5, [i60, i48, i0, i81, i15, i60, i48, i0, i81, i15, i60]).
+cycle(i5, [i63, i81, i15, i60, i15, i60, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i81, i15, i60, i15, i81, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i81, i15, i81, i15, i60, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i81, i15, i81, i15, i81, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i9, i0, i63, i9, i93, i9, i93, i9, i0, i63]).
+cycle(i5, [i63, i9, i0, i81, i15, i60, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i9, i0, i81, i15, i81, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i9, i93, i81, i15, i60, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i9, i93, i81, i15, i81, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i9, i93, i9, i0, i63, i9, i93, i9, i0, i63]).
+cycle(i5, [i63, i9, i93, i9, i0, i81, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i9, i93, i9, i93, i81, i15, i60, i48, i0, i63]).
+cycle(i5, [i63, i9, i93, i9, i93, i9, i0, i63, i9, i0, i63]).
+cycle(i5, [i81, i15, i60, i15, i60, i15, i60, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i60, i15, i60, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i60, i15, i60, i48, i0, i63, i81]).
+cycle(i5, [i81, i15, i60, i15, i60, i15, i81, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i60, i15, i81, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i60, i48, i0, i63, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i60, i48, i0, i63, i9, i0, i81]).
+cycle(i5, [i81, i15, i60, i15, i60, i48, i0, i63, i9, i93, i81]).
+cycle(i5, [i81, i15, i60, i15, i81, i15, i60, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i81, i15, i60, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i81, i15, i60, i48, i0, i63, i81]).
+cycle(i5, [i81, i15, i60, i15, i81, i15, i81, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i60, i15, i81, i15, i81, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i48, i0, i63, i81, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i60, i48, i0, i63, i81, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i48, i0, i63, i9, i0, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i48, i0, i63, i9, i93, i81, i15, i81]).
+cycle(i5, [i81, i15, i60, i48, i0, i63, i9, i93, i9, i0, i81]).
+cycle(i5, [i81, i15, i60, i48, i0, i63, i9, i93, i9, i93, i81]).
+cycle(i5, [i81, i15, i60, i48, i0, i81, i15, i60, i48, i0, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i15, i60, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i15, i60, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i15, i60, i48, i0, i63, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i15, i81, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i15, i81, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i48, i0, i63, i81, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i48, i0, i63, i9, i0, i81]).
+cycle(i5, [i81, i15, i81, i15, i60, i48, i0, i63, i9, i93, i81]).
+cycle(i5, [i81, i15, i81, i15, i81, i15, i60, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i81, i15, i60, i15, i81, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i81, i15, i60, i48, i0, i63, i81]).
+cycle(i5, [i81, i15, i81, i15, i81, i15, i81, i15, i60, i15, i81]).
+cycle(i5, [i81, i15, i81, i15, i81, i15, i81, i15, i81, i15, i81]).
+cycle(i5, [i9, i0, i63, i9, i0, i63, i9, i93, i9, i93, i9]).
+cycle(i5, [i9, i0, i63, i9, i93, i9, i0, i63, i9, i93, i9]).
+cycle(i5, [i9, i0, i63, i9, i93, i9, i93, i9, i0, i63, i9]).
+cycle(i5, [i9, i0, i81, i15, i60, i15, i60, i48, i0, i63, i9]).
+cycle(i5, [i9, i0, i81, i15, i60, i48, i0, i63, i9, i93, i9]).
+cycle(i5, [i9, i0, i81, i15, i81, i15, i60, i48, i0, i63, i9]).
+cycle(i5, [i9, i93, i81, i15, i60, i15, i60, i48, i0, i63, i9]).
+cycle(i5, [i9, i93, i81, i15, i60, i48, i0, i63, i9, i93, i9]).
+cycle(i5, [i9, i93, i81, i15, i81, i15, i60, i48, i0, i63, i9]).
+cycle(i5, [i9, i93, i9, i0, i63, i9, i0, i63, i9, i93, i9]).
+cycle(i5, [i9, i93, i9, i0, i63, i9, i93, i9, i0, i63, i9]).
+cycle(i5, [i9, i93, i9, i0, i81, i15, i60, i48, i0, i63, i9]).
+cycle(i5, [i9, i93, i9, i93, i81, i15, i60, i48, i0, i63, i9]).
+cycle(i5, [i9, i93, i9, i93, i9, i0, i63, i9, i0, i63, i9]).
+cycle(i5, [i9, i93, i9, i93, i9, i93, i9, i93, i9, i93, i9]).
+cycle(i5, [i93, i81, i15, i60, i15, i60, i48, i0, i63, i9, i93]).
+cycle(i5, [i93, i81, i15, i60, i48, i0, i63, i9, i93, i9, i93]).
+cycle(i5, [i93, i81, i15, i81, i15, i60, i48, i0, i63, i9, i93]).
+cycle(i5, [i93, i9, i0, i63, i9, i0, i63, i9, i93, i9, i93]).
+cycle(i5, [i93, i9, i0, i63, i9, i93, i9, i0, i63, i9, i93]).
+cycle(i5, [i93, i9, i0, i81, i15, i60, i48, i0, i63, i9, i93]).
+cycle(i5, [i93, i9, i93, i81, i15, i60, i48, i0, i63, i9, i93]).
+cycle(i5, [i93, i9, i93, i9, i0, i63, i9, i0, i63, i9, i93]).
+cycle(i5, [i93, i9, i93, i9, i93, i9, i93, i9, i93, i9, i93]).
+cycle(i50, [i12, i27, i15, i12, i27, i30, i39, i48, i27, i15, i12]).
+cycle(i50, [i12, i27, i15, i21, i72, i78, i87, i48, i27, i15, i12]).
+cycle(i50, [i12, i27, i30, i39, i33, i9, i33, i9, i27, i15, i12]).
+cycle(i50, [i12, i27, i30, i39, i48, i27, i15, i12, i27, i15, i12]).
+cycle(i50, [i12, i57, i69, i66, i51, i57, i69, i66, i51, i84, i12]).
+cycle(i50, [i15, i12, i27, i15, i12, i27, i30, i39, i48, i27, i15]).
+cycle(i50, [i15, i12, i27, i15, i21, i72, i78, i87, i48, i27, i15]).
+cycle(i50, [i15, i12, i27, i30, i39, i33, i9, i33, i9, i27, i15]).
+cycle(i50, [i15, i12, i27, i30, i39, i48, i27, i15, i12, i27, i15]).
+cycle(i50, [i15, i21, i72, i78, i87, i48, i27, i15, i12, i27, i15]).
+cycle(i50, [i15, i30, i39, i33, i9, i27, i30, i39, i48, i27, i15]).
+cycle(i50, [i15, i30, i39, i33, i9, i33, i9, i33, i9, i27, i15]).
+cycle(i50, [i15, i30, i39, i48, i27, i15, i30, i39, i48, i27, i15]).
+cycle(i50, [i15, i30, i39, i48, i27, i30, i39, i33, i9, i27, i15]).
+cycle(i50, [i21, i72, i78, i87, i48, i27, i15, i12, i27, i15, i21]).
+cycle(i50, [i27, i15, i12, i27, i15, i12, i27, i30, i39, i48, i27]).
+cycle(i50, [i27, i15, i12, i27, i15, i21, i72, i78, i87, i48, i27]).
+cycle(i50, [i27, i15, i12, i27, i30, i39, i33, i9, i33, i9, i27]).
+cycle(i50, [i27, i15, i12, i27, i30, i39, i48, i27, i15, i12, i27]).
+cycle(i50, [i27, i15, i21, i72, i78, i87, i48, i27, i15, i12, i27]).
+cycle(i50, [i27, i15, i30, i39, i33, i9, i27, i30, i39, i48, i27]).
+cycle(i50, [i27, i15, i30, i39, i33, i9, i33, i9, i33, i9, i27]).
+cycle(i50, [i27, i15, i30, i39, i48, i27, i15, i30, i39, i48, i27]).
+cycle(i50, [i27, i15, i30, i39, i48, i27, i30, i39, i33, i9, i27]).
+cycle(i50, [i27, i30, i39, i33, i9, i27, i15, i30, i39, i48, i27]).
+cycle(i50, [i27, i30, i39, i33, i9, i27, i30, i39, i33, i9, i27]).
+cycle(i50, [i27, i30, i39, i33, i9, i33, i9, i27, i15, i12, i27]).
+cycle(i50, [i27, i30, i39, i48, i27, i15, i12, i27, i15, i12, i27]).
+cycle(i50, [i27, i30, i39, i48, i27, i15, i30, i39, i33, i9, i27]).
+cycle(i50, [i30, i39, i33, i9, i27, i15, i30, i39, i48, i27, i30]).
+cycle(i50, [i30, i39, i33, i9, i27, i30, i39, i33, i9, i27, i30]).
+cycle(i50, [i30, i39, i33, i9, i27, i30, i39, i48, i27, i15, i30]).
+cycle(i50, [i30, i39, i33, i9, i33, i9, i27, i15, i12, i27, i30]).
+cycle(i50, [i30, i39, i33, i9, i33, i9, i33, i9, i27, i15, i30]).
+cycle(i50, [i30, i39, i48, i27, i15, i12, i27, i15, i12, i27, i30]).
+cycle(i50, [i30, i39, i48, i27, i15, i30, i39, i33, i9, i27, i30]).
+cycle(i50, [i30, i39, i48, i27, i15, i30, i39, i48, i27, i15, i30]).
+cycle(i50, [i30, i39, i48, i27, i30, i39, i33, i9, i27, i15, i30]).
+cycle(i50, [i33, i9, i27, i15, i12, i27, i30, i39, i33, i9, i33]).
+cycle(i50, [i33, i9, i27, i15, i30, i39, i33, i9, i33, i9, i33]).
+cycle(i50, [i33, i9, i27, i15, i30, i39, i48, i27, i30, i39, i33]).
+cycle(i50, [i33, i9, i27, i30, i39, i33, i9, i27, i30, i39, i33]).
+cycle(i50, [i33, i9, i27, i30, i39, i48, i27, i15, i30, i39, i33]).
+cycle(i50, [i33, i9, i33, i9, i27, i15, i12, i27, i30, i39, i33]).
+cycle(i50, [i33, i9, i33, i9, i27, i15, i30, i39, i33, i9, i33]).
+cycle(i50, [i33, i9, i33, i9, i33, i9, i27, i15, i30, i39, i33]).
+cycle(i50, [i33, i9, i33, i9, i33, i9, i33, i9, i33, i9, i33]).
+cycle(i50, [i36, i36, i36, i36, i36, i36, i36, i36, i36, i36, i36]).
+cycle(i50, [i39, i33, i9, i27, i15, i30, i39, i48, i27, i30, i39]).
+cycle(i50, [i39, i33, i9, i27, i30, i39, i33, i9, i27, i30, i39]).
+cycle(i50, [i39, i33, i9, i27, i30, i39, i48, i27, i15, i30, i39]).
+cycle(i50, [i39, i33, i9, i33, i9, i27, i15, i12, i27, i30, i39]).
+cycle(i50, [i39, i33, i9, i33, i9, i33, i9, i27, i15, i30, i39]).
+cycle(i50, [i39, i48, i27, i15, i12, i27, i15, i12, i27, i30, i39]).
+cycle(i50, [i39, i48, i27, i15, i30, i39, i33, i9, i27, i30, i39]).
+cycle(i50, [i39, i48, i27, i15, i30, i39, i48, i27, i15, i30, i39]).
+cycle(i50, [i39, i48, i27, i30, i39, i33, i9, i27, i15, i30, i39]).
+cycle(i50, [i48, i27, i15, i12, i27, i15, i12, i27, i30, i39, i48]).
+cycle(i50, [i48, i27, i15, i12, i27, i15, i21, i72, i78, i87, i48]).
+cycle(i50, [i48, i27, i15, i30, i39, i33, i9, i27, i30, i39, i48]).
+cycle(i50, [i48, i27, i15, i30, i39, i48, i27, i15, i30, i39, i48]).
+cycle(i50, [i48, i27, i30, i39, i33, i9, i27, i15, i30, i39, i48]).
+cycle(i50, [i51, i57, i69, i66, i51, i84, i12, i57, i69, i66, i51]).
+cycle(i50, [i51, i57, i69, i66, i57, i69, i66, i57, i69, i66, i51]).
+cycle(i50, [i51, i84, i12, i57, i69, i66, i51, i57, i69, i66, i51]).
+cycle(i50, [i51, i84, i72, i69, i66, i51, i84, i72, i69, i66, i51]).
+cycle(i50, [i51, i84, i72, i78, i87, i99, i54, i72, i69, i66, i51]).
+cycle(i50, [i51, i84, i72, i78, i87, i99, i66, i57, i69, i66, i51]).
+cycle(i50, [i54, i72, i69, i66, i51, i84, i72, i78, i87, i99, i54]).
+cycle(i50, [i54, i72, i78, i87, i99, i54, i72, i78, i87, i99, i54]).
+cycle(i50, [i57, i69, i66, i51, i57, i69, i66, i51, i84, i12, i57]).
+cycle(i50, [i57, i69, i66, i51, i57, i69, i66, i57, i69, i66, i57]).
+cycle(i50, [i57, i69, i66, i51, i84, i12, i57, i69, i66, i51, i57]).
+cycle(i50, [i57, i69, i66, i51, i84, i72, i78, i87, i99, i66, i57]).
+cycle(i50, [i57, i69, i66, i57, i69, i66, i51, i57, i69, i66, i57]).
+cycle(i50, [i57, i69, i66, i57, i69, i66, i57, i69, i66, i51, i57]).
+cycle(i50, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
+cycle(i50, [i66, i51, i57, i69, i66, i51, i84, i12, i57, i69, i66]).
+cycle(i50, [i66, i51, i57, i69, i66, i57, i69, i66, i57, i69, i66]).
+cycle(i50, [i66, i51, i84, i12, i57, i69, i66, i51, i57, i69, i66]).
+cycle(i50, [i66, i51, i84, i72, i69, i66, i51, i84, i72, i69, i66]).
+cycle(i50, [i66, i51, i84, i72, i78, i87, i99, i54, i72, i69, i66]).
+cycle(i50, [i66, i51, i84, i72, i78, i87, i99, i66, i57, i69, i66]).
+cycle(i50, [i66, i57, i69, i66, i51, i57, i69, i66, i57, i69, i66]).
+cycle(i50, [i66, i57, i69, i66, i51, i84, i72, i78, i87, i99, i66]).
+cycle(i50, [i66, i57, i69, i66, i57, i69, i66, i51, i57, i69, i66]).
+cycle(i50, [i69, i66, i51, i57, i69, i66, i51, i84, i12, i57, i69]).
+cycle(i50, [i69, i66, i51, i57, i69, i66, i57, i69, i66, i57, i69]).
+cycle(i50, [i69, i66, i51, i84, i12, i57, i69, i66, i51, i57, i69]).
+cycle(i50, [i69, i66, i51, i84, i72, i69, i66, i51, i84, i72, i69]).
+cycle(i50, [i69, i66, i51, i84, i72, i78, i87, i99, i54, i72, i69]).
+cycle(i50, [i69, i66, i51, i84, i72, i78, i87, i99, i66, i57, i69]).
+cycle(i50, [i69, i66, i57, i69, i66, i51, i57, i69, i66, i57, i69]).
+cycle(i50, [i69, i66, i57, i69, i66, i57, i69, i66, i51, i57, i69]).
+cycle(i50, [i72, i69, i66, i51, i84, i72, i69, i66, i51, i84, i72]).
+cycle(i50, [i72, i69, i66, i51, i84, i72, i78, i87, i99, i54, i72]).
+cycle(i50, [i72, i78, i87, i48, i27, i15, i12, i27, i15, i21, i72]).
+cycle(i50, [i72, i78, i87, i99, i54, i72, i69, i66, i51, i84, i72]).
+cycle(i50, [i72, i78, i87, i99, i54, i72, i78, i87, i99, i54, i72]).
+cycle(i50, [i72, i78, i87, i99, i66, i57, i69, i66, i51, i84, i72]).
+cycle(i50, [i78, i87, i48, i27, i15, i12, i27, i15, i21, i72, i78]).
+cycle(i50, [i78, i87, i99, i54, i72, i69, i66, i51, i84, i72, i78]).
+cycle(i50, [i78, i87, i99, i54, i72, i78, i87, i99, i54, i72, i78]).
+cycle(i50, [i78, i87, i99, i66, i57, i69, i66, i51, i84, i72, i78]).
+cycle(i50, [i84, i12, i57, i69, i66, i51, i57, i69, i66, i51, i84]).
+cycle(i50, [i84, i72, i69, i66, i51, i84, i72, i69, i66, i51, i84]).
+cycle(i50, [i84, i72, i78, i87, i99, i54, i72, i69, i66, i51, i84]).
+cycle(i50, [i84, i72, i78, i87, i99, i66, i57, i69, i66, i51, i84]).
+cycle(i50, [i87, i48, i27, i15, i12, i27, i15, i21, i72, i78, i87]).
+cycle(i50, [i87, i99, i54, i72, i69, i66, i51, i84, i72, i78, i87]).
+cycle(i50, [i87, i99, i54, i72, i78, i87, i99, i54, i72, i78, i87]).
+cycle(i50, [i87, i99, i66, i57, i69, i66, i51, i84, i72, i78, i87]).
+cycle(i50, [i9, i27, i15, i12, i27, i30, i39, i33, i9, i33, i9]).
+cycle(i50, [i9, i27, i15, i30, i39, i33, i9, i33, i9, i33, i9]).
+cycle(i50, [i9, i27, i15, i30, i39, i48, i27, i30, i39, i33, i9]).
+cycle(i50, [i9, i27, i30, i39, i33, i9, i27, i30, i39, i33, i9]).
+cycle(i50, [i9, i27, i30, i39, i48, i27, i15, i30, i39, i33, i9]).
+cycle(i50, [i9, i33, i9, i27, i15, i12, i27, i30, i39, i33, i9]).
+cycle(i50, [i9, i33, i9, i27, i15, i30, i39, i33, i9, i33, i9]).
+cycle(i50, [i9, i33, i9, i33, i9, i27, i15, i30, i39, i33, i9]).
+cycle(i50, [i9, i33, i9, i33, i9, i33, i9, i33, i9, i33, i9]).
+cycle(i50, [i99, i54, i72, i69, i66, i51, i84, i72, i78, i87, i99]).
+cycle(i50, [i99, i54, i72, i78, i87, i99, i54, i72, i78, i87, i99]).
+cycle(i50, [i99, i66, i57, i69, i66, i51, i84, i72, i78, i87, i99]).
+cycle(i52, [i21, i78, i21, i78, i21, i78, i21, i78, i21, i78, i21]).
+cycle(i52, [i78, i21, i78, i21, i78, i21, i78, i21, i78, i21, i78]).
+cycle(i53, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).
+cycle(i53, [i21, i75, i78, i96, i6, i21, i75, i78, i96, i6, i21]).
+cycle(i53, [i6, i21, i75, i78, i96, i6, i21, i75, i78, i96, i6]).
+cycle(i53, [i75, i78, i96, i6, i21, i75, i78, i96, i6, i21, i75]).
+cycle(i53, [i78, i96, i6, i21, i75, i78, i96, i6, i21, i75, i78]).
+cycle(i53, [i96, i6, i21, i75, i78, i96, i6, i21, i75, i78, i96]).
+cycle(i54, [i33, i96, i9, i51, i66, i33, i96, i9, i51, i66, i33]).
+cycle(i54, [i51, i66, i33, i96, i9, i51, i66, i33, i96, i9, i51]).
+cycle(i54, [i66, i33, i96, i9, i51, i66, i33, i96, i9, i51, i66]).
+cycle(i54, [i9, i51, i66, i33, i96, i9, i51, i66, i33, i96, i9]).
+cycle(i54, [i96, i9, i51, i66, i33, i96, i9, i51, i66, i33, i96]).
+cycle(i55, [i33, i33, i33, i33, i33, i33, i33, i33, i33, i33, i33]).
+cycle(i55, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
+cycle(i56, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
+cycle(i56, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
+cycle(i57, [i48, i69, i48, i69, i48, i69, i48, i69, i48, i69, i48]).
+cycle(i57, [i51, i84, i51, i84, i51, i84, i51, i84, i51, i84, i51]).
+cycle(i57, [i69, i48, i69, i48, i69, i48, i69, i48, i69, i48, i69]).
+cycle(i57, [i84, i51, i84, i51, i84, i51, i84, i51, i84, i51, i84]).
+cycle(i58, [i18, i18, i18, i18, i18, i18, i18, i18, i18, i18, i18]).
+cycle(i58, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
+cycle(i59, [i48, i48, i48, i48, i48, i48, i48, i48, i48, i48, i48]).
+cycle(i6, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
+cycle(i6, [i75, i75, i75, i75, i75, i75, i75, i75, i75, i75, i75]).
+cycle(i60, [i12, i63, i93, i27, i39, i48, i42, i45, i99, i33, i12]).
+cycle(i60, [i27, i39, i48, i42, i45, i99, i33, i12, i63, i93, i27]).
+cycle(i60, [i33, i12, i63, i93, i27, i39, i48, i42, i45, i99, i33]).
+cycle(i60, [i39, i48, i42, i45, i99, i33, i12, i63, i93, i27, i39]).
+cycle(i60, [i42, i45, i99, i33, i12, i63, i93, i27, i39, i48, i42]).
+cycle(i60, [i45, i99, i33, i12, i63, i93, i27, i39, i48, i42, i45]).
+cycle(i60, [i48, i42, i45, i99, i33, i12, i63, i93, i27, i39, i48]).
+cycle(i60, [i63, i93, i27, i39, i48, i42, i45, i99, i33, i12, i63]).
+cycle(i60, [i93, i27, i39, i48, i42, i45, i99, i33, i12, i63, i93]).
+cycle(i60, [i99, i33, i12, i63, i93, i27, i39, i48, i42, i45, i99]).
+cycle(i62, [i24, i81, i24, i81, i24, i81, i24, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i24, i81, i24, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i24, i81, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i24, i81, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i24, i81, i81, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i24, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i24, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i24, i81, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i81, i24, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i81, i24, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i81, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i81, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i24, i81, i81, i81, i81, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i24, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i24, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i24, i81, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i81, i24, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i81, i24, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i81, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i81, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i24, i81, i81, i81, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i24, i81, i24, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i24, i81, i24, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i24, i81, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i24, i81, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i24, i81, i81, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i24, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i24, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i24, i81, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i81, i24, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i81, i24, i81, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i81, i81, i24, i81, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i81, i81, i81, i24, i81, i24]).
+cycle(i62, [i24, i81, i81, i81, i81, i81, i81, i81, i81, i81, i24]).
+cycle(i62, [i63, i63, i63, i63, i63, i63, i63, i63, i63, i63, i63]).
+cycle(i62, [i81, i24, i81, i24, i81, i24, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i24, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i24, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i24, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i24, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i24, i81, i81, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i24, i81, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i24, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i24, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i24, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i24, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i24, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i24, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i24, i81, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i24, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i24, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i24, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i24, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i24, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i24, i81, i81, i81, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i24, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i24, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i24, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i24, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i24, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i24, i81, i81, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i24, i81, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i24, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i24, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i24, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i24, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i24, i81, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i24, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i24, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i24, i81, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i81, i24, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i81, i24, i81, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i81, i81, i24, i81, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i24, i81]).
+cycle(i62, [i81, i81, i81, i81, i81, i81, i81, i81, i81, i81, i81]).
+cycle(i63, [i72, i72, i72, i72, i72, i72, i72, i72, i72, i72, i72]).
+cycle(i63, [i93, i93, i93, i93, i93, i93, i93, i93, i93, i93, i93]).
+cycle(i64, [i3, i9, i3, i9, i3, i9, i3, i9, i3, i9, i3]).
+cycle(i64, [i42, i42, i42, i42, i42, i42, i42, i42, i42, i42, i42]).
+cycle(i64, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
+cycle(i64, [i9, i3, i9, i3, i9, i3, i9, i3, i9, i3, i9]).
+cycle(i65, [i12, i12, i12, i12, i12, i12, i12, i12, i12, i12, i12]).
+cycle(i65, [i18, i57, i72, i9, i96, i18, i57, i72, i9, i96, i18]).
+cycle(i65, [i18, i57, i72, i9, i96, i18, i57, i78, i9, i96, i18]).
+cycle(i65, [i18, i57, i78, i78, i78, i78, i78, i78, i9, i96, i18]).
+cycle(i65, [i18, i57, i78, i78, i9, i3, i84, i45, i9, i96, i18]).
+cycle(i65, [i18, i57, i78, i9, i96, i18, i57, i72, i9, i96, i18]).
+cycle(i65, [i18, i57, i78, i9, i96, i18, i57, i78, i9, i96, i18]).
+cycle(i65, [i3, i84, i45, i9, i96, i18, i57, i78, i78, i9, i3]).
+cycle(i65, [i45, i9, i96, i18, i57, i78, i78, i9, i3, i84, i45]).
+cycle(i65, [i57, i72, i9, i96, i18, i57, i72, i9, i96, i18, i57]).
+cycle(i65, [i57, i72, i9, i96, i18, i57, i78, i9, i96, i18, i57]).
+cycle(i65, [i57, i78, i78, i78, i78, i78, i78, i9, i96, i18, i57]).
+cycle(i65, [i57, i78, i78, i9, i3, i84, i45, i9, i96, i18, i57]).
+cycle(i65, [i57, i78, i9, i96, i18, i57, i72, i9, i96, i18, i57]).
+cycle(i65, [i57, i78, i9, i96, i18, i57, i78, i9, i96, i18, i57]).
+cycle(i65, [i72, i9, i96, i18, i57, i72, i9, i96, i18, i57, i72]).
+cycle(i65, [i72, i9, i96, i18, i57, i78, i9, i96, i18, i57, i72]).
+cycle(i65, [i78, i78, i78, i78, i78, i78, i78, i78, i78, i78, i78]).
+cycle(i65, [i78, i78, i78, i78, i78, i78, i9, i96, i18, i57, i78]).
+cycle(i65, [i78, i78, i78, i78, i78, i9, i96, i18, i57, i78, i78]).
+cycle(i65, [i78, i78, i78, i78, i9, i96, i18, i57, i78, i78, i78]).
+cycle(i65, [i78, i78, i78, i9, i96, i18, i57, i78, i78, i78, i78]).
+cycle(i65, [i78, i78, i9, i3, i84, i45, i9, i96, i18, i57, i78]).
+cycle(i65, [i78, i78, i9, i96, i18, i57, i78, i78, i78, i78, i78]).
+cycle(i65, [i78, i9, i3, i84, i45, i9, i96, i18, i57, i78, i78]).
+cycle(i65, [i78, i9, i96, i18, i57, i72, i9, i96, i18, i57, i78]).
+cycle(i65, [i78, i9, i96, i18, i57, i78, i78, i78, i78, i78, i78]).
+cycle(i65, [i78, i9, i96, i18, i57, i78, i9, i96, i18, i57, i78]).
+cycle(i65, [i84, i45, i9, i96, i18, i57, i78, i78, i9, i3, i84]).
+cycle(i65, [i9, i3, i84, i45, i9, i96, i18, i57, i78, i78, i9]).
+cycle(i65, [i9, i96, i18, i57, i72, i9, i96, i18, i57, i72, i9]).
+cycle(i65, [i9, i96, i18, i57, i72, i9, i96, i18, i57, i78, i9]).
+cycle(i65, [i9, i96, i18, i57, i78, i78, i78, i78, i78, i78, i9]).
+cycle(i65, [i9, i96, i18, i57, i78, i78, i9, i3, i84, i45, i9]).
+cycle(i65, [i9, i96, i18, i57, i78, i9, i96, i18, i57, i72, i9]).
+cycle(i65, [i9, i96, i18, i57, i78, i9, i96, i18, i57, i78, i9]).
+cycle(i65, [i96, i18, i57, i72, i9, i96, i18, i57, i72, i9, i96]).
+cycle(i65, [i96, i18, i57, i72, i9, i96, i18, i57, i78, i9, i96]).
+cycle(i65, [i96, i18, i57, i78, i78, i78, i78, i78, i78, i9, i96]).
+cycle(i65, [i96, i18, i57, i78, i78, i9, i3, i84, i45, i9, i96]).
+cycle(i65, [i96, i18, i57, i78, i9, i96, i18, i57, i72, i9, i96]).
+cycle(i65, [i96, i18, i57, i78, i9, i96, i18, i57, i78, i9, i96]).
+cycle(i66, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
+cycle(i67, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).
+cycle(i67, [i15, i15, i15, i15, i15, i15, i15, i15, i54, i9, i15]).
+cycle(i67, [i15, i15, i15, i15, i15, i15, i15, i54, i9, i15, i15]).
+cycle(i67, [i15, i15, i15, i15, i15, i15, i54, i9, i15, i15, i15]).
+cycle(i67, [i15, i15, i15, i15, i15, i54, i9, i15, i15, i15, i15]).
+cycle(i67, [i15, i15, i15, i15, i15, i54, i9, i15, i54, i9, i15]).
+cycle(i67, [i15, i15, i15, i15, i54, i9, i15, i15, i15, i15, i15]).
+cycle(i67, [i15, i15, i15, i15, i54, i9, i15, i15, i54, i9, i15]).
+cycle(i67, [i15, i15, i15, i15, i54, i9, i15, i54, i9, i15, i15]).
+cycle(i67, [i15, i15, i15, i54, i9, i15, i15, i15, i15, i15, i15]).
+cycle(i67, [i15, i15, i15, i54, i9, i15, i15, i15, i54, i9, i15]).
+cycle(i67, [i15, i15, i15, i54, i9, i15, i15, i54, i9, i15, i15]).
+cycle(i67, [i15, i15, i15, i54, i9, i15, i54, i9, i15, i15, i15]).
+cycle(i67, [i15, i15, i54, i9, i15, i15, i15, i15, i15, i15, i15]).
+cycle(i67, [i15, i15, i54, i9, i15, i15, i15, i15, i54, i9, i15]).
+cycle(i67, [i15, i15, i54, i9, i15, i15, i15, i54, i9, i15, i15]).
+cycle(i67, [i15, i15, i54, i9, i15, i15, i54, i9, i15, i15, i15]).
+cycle(i67, [i15, i15, i54, i9, i15, i54, i9, i15, i15, i15, i15]).
+cycle(i67, [i15, i15, i54, i9, i15, i54, i9, i15, i54, i9, i15]).
+cycle(i67, [i15, i54, i9, i15, i15, i15, i15, i15, i15, i15, i15]).
+cycle(i67, [i15, i54, i9, i15, i15, i15, i15, i15, i54, i9, i15]).
+cycle(i67, [i15, i54, i9, i15, i15, i15, i15, i54, i9, i15, i15]).
+cycle(i67, [i15, i54, i9, i15, i15, i15, i54, i9, i15, i15, i15]).
+cycle(i67, [i15, i54, i9, i15, i15, i54, i9, i15, i15, i15, i15]).
+cycle(i67, [i15, i54, i9, i15, i15, i54, i9, i15, i54, i9, i15]).
+cycle(i67, [i15, i54, i9, i15, i54, i9, i15, i15, i15, i15, i15]).
+cycle(i67, [i15, i54, i9, i15, i54, i9, i15, i15, i54, i9, i15]).
+cycle(i67, [i15, i54, i9, i15, i54, i9, i15, i54, i9, i15, i15]).
+cycle(i67, [i54, i9, i15, i15, i15, i15, i15, i15, i15, i15, i54]).
+cycle(i67, [i54, i9, i15, i15, i15, i15, i15, i54, i9, i15, i54]).
+cycle(i67, [i54, i9, i15, i15, i15, i15, i54, i9, i15, i15, i54]).
+cycle(i67, [i54, i9, i15, i15, i15, i54, i9, i15, i15, i15, i54]).
+cycle(i67, [i54, i9, i15, i15, i54, i9, i15, i15, i15, i15, i54]).
+cycle(i67, [i54, i9, i15, i15, i54, i9, i15, i54, i9, i15, i54]).
+cycle(i67, [i54, i9, i15, i54, i9, i15, i15, i15, i15, i15, i54]).
+cycle(i67, [i54, i9, i15, i54, i9, i15, i15, i54, i9, i15, i54]).
+cycle(i67, [i54, i9, i15, i54, i9, i15, i54, i9, i15, i15, i54]).
+cycle(i67, [i9, i15, i15, i15, i15, i15, i15, i15, i15, i54, i9]).
+cycle(i67, [i9, i15, i15, i15, i15, i15, i54, i9, i15, i54, i9]).
+cycle(i67, [i9, i15, i15, i15, i15, i54, i9, i15, i15, i54, i9]).
+cycle(i67, [i9, i15, i15, i15, i54, i9, i15, i15, i15, i54, i9]).
+cycle(i67, [i9, i15, i15, i54, i9, i15, i15, i15, i15, i54, i9]).
+cycle(i67, [i9, i15, i15, i54, i9, i15, i54, i9, i15, i54, i9]).
+cycle(i67, [i9, i15, i54, i9, i15, i15, i15, i15, i15, i54, i9]).
+cycle(i67, [i9, i15, i54, i9, i15, i15, i54, i9, i15, i54, i9]).
+cycle(i67, [i9, i15, i54, i9, i15, i54, i9, i15, i15, i54, i9]).
+cycle(i69, [i24, i24, i24, i24, i24, i24, i24, i24, i24, i24, i24]).
+cycle(i69, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
+cycle(i7, [i18, i75, i84, i72, i57, i18, i75, i84, i72, i57, i18]).
+cycle(i7, [i45, i45, i45, i45, i45, i45, i45, i45, i45, i45, i45]).
+cycle(i7, [i57, i18, i75, i84, i72, i57, i18, i75, i84, i72, i57]).
+cycle(i7, [i72, i57, i18, i75, i84, i72, i57, i18, i75, i84, i72]).
+cycle(i7, [i75, i84, i72, i57, i18, i75, i84, i72, i57, i18, i75]).
+cycle(i7, [i84, i72, i57, i18, i75, i84, i72, i57, i18, i75, i84]).
+cycle(i70, [i0, i18, i0, i18, i0, i18, i0, i18, i0, i18, i0]).
+cycle(i70, [i18, i0, i18, i0, i18, i0, i18, i0, i18, i0, i18]).
+cycle(i70, [i39, i48, i69, i84, i75, i69, i84, i75, i69, i90, i39]).
+cycle(i70, [i39, i48, i69, i84, i75, i69, i84, i87, i69, i90, i39]).
+cycle(i70, [i39, i48, i69, i84, i87, i69, i84, i75, i69, i90, i39]).
+cycle(i70, [i39, i48, i69, i84, i87, i69, i84, i87, i69, i90, i39]).
+cycle(i70, [i48, i69, i84, i75, i69, i84, i75, i69, i90, i39, i48]).
+cycle(i70, [i48, i69, i84, i75, i69, i84, i87, i69, i90, i39, i48]).
+cycle(i70, [i48, i69, i84, i87, i69, i84, i75, i69, i90, i39, i48]).
+cycle(i70, [i48, i69, i84, i87, i69, i84, i87, i69, i90, i39, i48]).
+cycle(i70, [i69, i84, i75, i69, i84, i75, i69, i90, i39, i48, i69]).
+cycle(i70, [i69, i84, i75, i69, i84, i87, i69, i90, i39, i48, i69]).
+cycle(i70, [i69, i84, i75, i69, i90, i39, i48, i69, i84, i75, i69]).
+cycle(i70, [i69, i84, i75, i69, i90, i39, i48, i69, i84, i87, i69]).
+cycle(i70, [i69, i84, i87, i69, i84, i75, i69, i90, i39, i48, i69]).
+cycle(i70, [i69, i84, i87, i69, i84, i87, i69, i90, i39, i48, i69]).
+cycle(i70, [i69, i84, i87, i69, i90, i39, i48, i69, i84, i75, i69]).
+cycle(i70, [i69, i84, i87, i69, i90, i39, i48, i69, i84, i87, i69]).
+cycle(i70, [i69, i90, i39, i48, i69, i84, i75, i69, i84, i75, i69]).
+cycle(i70, [i69, i90, i39, i48, i69, i84, i75, i69, i84, i87, i69]).
+cycle(i70, [i69, i90, i39, i48, i69, i84, i87, i69, i84, i75, i69]).
+cycle(i70, [i69, i90, i39, i48, i69, i84, i87, i69, i84, i87, i69]).
+cycle(i70, [i75, i69, i84, i75, i69, i90, i39, i48, i69, i84, i75]).
+cycle(i70, [i75, i69, i84, i87, i69, i90, i39, i48, i69, i84, i75]).
+cycle(i70, [i75, i69, i90, i39, i48, i69, i84, i75, i69, i84, i75]).
+cycle(i70, [i75, i69, i90, i39, i48, i69, i84, i87, i69, i84, i75]).
+cycle(i70, [i84, i75, i69, i84, i75, i69, i90, i39, i48, i69, i84]).
+cycle(i70, [i84, i75, i69, i84, i87, i69, i90, i39, i48, i69, i84]).
+cycle(i70, [i84, i75, i69, i90, i39, i48, i69, i84, i75, i69, i84]).
+cycle(i70, [i84, i75, i69, i90, i39, i48, i69, i84, i87, i69, i84]).
+cycle(i70, [i84, i87, i69, i84, i75, i69, i90, i39, i48, i69, i84]).
+cycle(i70, [i84, i87, i69, i84, i87, i69, i90, i39, i48, i69, i84]).
+cycle(i70, [i84, i87, i69, i90, i39, i48, i69, i84, i75, i69, i84]).
+cycle(i70, [i84, i87, i69, i90, i39, i48, i69, i84, i87, i69, i84]).
+cycle(i70, [i87, i69, i84, i75, i69, i90, i39, i48, i69, i84, i87]).
+cycle(i70, [i87, i69, i84, i87, i69, i90, i39, i48, i69, i84, i87]).
+cycle(i70, [i87, i69, i90, i39, i48, i69, i84, i75, i69, i84, i87]).
+cycle(i70, [i87, i69, i90, i39, i48, i69, i84, i87, i69, i84, i87]).
+cycle(i70, [i90, i39, i48, i69, i84, i75, i69, i84, i75, i69, i90]).
+cycle(i70, [i90, i39, i48, i69, i84, i75, i69, i84, i87, i69, i90]).
+cycle(i70, [i90, i39, i48, i69, i84, i87, i69, i84, i75, i69, i90]).
+cycle(i70, [i90, i39, i48, i69, i84, i87, i69, i84, i87, i69, i90]).
+cycle(i71, [i0, i21, i0, i21, i0, i21, i0, i21, i0, i21, i0]).
+cycle(i71, [i0, i21, i0, i21, i0, i45, i21, i0, i45, i21, i0]).
+cycle(i71, [i0, i21, i0, i45, i21, i0, i21, i0, i45, i21, i0]).
+cycle(i71, [i0, i21, i0, i45, i21, i0, i45, i21, i0, i21, i0]).
+cycle(i71, [i0, i45, i21, i0, i21, i0, i21, i0, i45, i21, i0]).
+cycle(i71, [i0, i45, i21, i0, i21, i0, i45, i21, i0, i21, i0]).
+cycle(i71, [i0, i45, i21, i0, i45, i21, i0, i21, i0, i21, i0]).
+cycle(i71, [i21, i0, i21, i0, i21, i0, i21, i0, i21, i0, i21]).
+cycle(i71, [i21, i0, i21, i0, i21, i0, i45, i21, i0, i45, i21]).
+cycle(i71, [i21, i0, i21, i0, i45, i21, i0, i21, i0, i45, i21]).
+cycle(i71, [i21, i0, i21, i0, i45, i21, i0, i45, i21, i0, i21]).
+cycle(i71, [i21, i0, i45, i21, i0, i21, i0, i21, i0, i45, i21]).
+cycle(i71, [i21, i0, i45, i21, i0, i21, i0, i45, i21, i0, i21]).
+cycle(i71, [i21, i0, i45, i21, i0, i45, i21, i0, i21, i0, i21]).
+cycle(i71, [i45, i21, i0, i21, i0, i21, i0, i45, i21, i0, i45]).
+cycle(i71, [i45, i21, i0, i21, i0, i45, i21, i0, i21, i0, i45]).
+cycle(i71, [i45, i21, i0, i45, i21, i0, i21, i0, i21, i0, i45]).
+cycle(i72, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
+cycle(i74, [i27, i57, i27, i57, i27, i57, i27, i57, i27, i57, i27]).
+cycle(i74, [i33, i60, i33, i60, i33, i60, i33, i60, i33, i60, i33]).
+cycle(i74, [i57, i27, i57, i27, i57, i27, i57, i27, i57, i27, i57]).
+cycle(i74, [i60, i33, i60, i33, i60, i33, i60, i33, i60, i33, i60]).
+cycle(i74, [i90, i90, i90, i90, i90, i90, i90, i90, i90, i90, i90]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i30, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i30, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i30, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i30, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i0, i30, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i0, i30, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i30, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i30, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i30, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i30, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i0, i30, i0, i30, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i30, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i30, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i30, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i30, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i0, i30, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i0, i30, i0, i30, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i30, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i30, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i30, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i30, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i0, i30, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i0, i30, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i0, i30, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i30, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i30, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i0, i30, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i30, i0, i0, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i30, i0, i0, i0, i30, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i30, i0, i0, i30, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i30, i0, i30, i0, i0, i0]).
+cycle(i75, [i0, i30, i0, i30, i0, i30, i0, i30, i0, i30, i0]).
+cycle(i75, [i30, i0, i0, i0, i0, i0, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i0, i0, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i0, i0, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i0, i0, i30, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i0, i0, i30, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i0, i30, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i0, i30, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i0, i30, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i30, i0, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i30, i0, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i30, i0, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i30, i0, i30, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i0, i30, i0, i30, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i0, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i0, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i0, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i0, i30, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i0, i30, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i30, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i30, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i0, i30, i0, i30, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i0, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i0, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i0, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i0, i30, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i0, i30, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i30, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i30, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i0, i30, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i30, i0, i0, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i30, i0, i0, i0, i30, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i30, i0, i0, i30, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i30, i0, i30, i0, i0, i0, i30]).
+cycle(i75, [i30, i0, i30, i0, i30, i0, i30, i0, i30, i0, i30]).
+cycle(i76, [i60, i78, i60, i78, i60, i78, i60, i78, i60, i78, i60]).
+cycle(i76, [i78, i60, i78, i60, i78, i60, i78, i60, i78, i60, i78]).
+cycle(i77, [i24, i24, i24, i24, i24, i24, i24, i24, i24, i24, i24]).
+cycle(i77, [i69, i96, i69, i96, i69, i96, i69, i96, i69, i96, i69]).
+cycle(i77, [i72, i72, i72, i72, i72, i72, i72, i72, i72, i72, i72]).
+cycle(i77, [i96, i69, i96, i69, i96, i69, i96, i69, i96, i69, i96]).
+cycle(i78, [i6, i6, i6, i6, i6, i6, i6, i6, i6, i6, i6]).
+cycle(i79, [i3, i69, i9, i39, i3, i69, i9, i69, i9, i39, i3]).
+cycle(i79, [i3, i69, i9, i39, i81, i3, i69, i9, i39, i81, i3]).
+cycle(i79, [i3, i69, i9, i69, i9, i39, i3, i69, i9, i39, i3]).
+cycle(i79, [i3, i69, i9, i69, i9, i69, i9, i69, i9, i39, i3]).
+cycle(i79, [i39, i3, i69, i9, i39, i3, i69, i9, i69, i9, i39]).
+cycle(i79, [i39, i3, i69, i9, i69, i9, i39, i3, i69, i9, i39]).
+cycle(i79, [i39, i3, i69, i9, i69, i9, i69, i9, i69, i9, i39]).
+cycle(i79, [i39, i81, i3, i69, i9, i39, i81, i3, i69, i9, i39]).
+cycle(i79, [i69, i9, i39, i3, i69, i9, i39, i3, i69, i9, i69]).
+cycle(i79, [i69, i9, i39, i3, i69, i9, i69, i9, i39, i3, i69]).
+cycle(i79, [i69, i9, i39, i3, i69, i9, i69, i9, i69, i9, i69]).
+cycle(i79, [i69, i9, i39, i81, i3, i69, i9, i39, i81, i3, i69]).
+cycle(i79, [i69, i9, i69, i9, i39, i3, i69, i9, i39, i3, i69]).
+cycle(i79, [i69, i9, i69, i9, i39, i3, i69, i9, i69, i9, i69]).
+cycle(i79, [i69, i9, i69, i9, i69, i9, i39, i3, i69, i9, i69]).
+cycle(i79, [i69, i9, i69, i9, i69, i9, i69, i9, i39, i3, i69]).
+cycle(i79, [i69, i9, i69, i9, i69, i9, i69, i9, i69, i9, i69]).
+cycle(i79, [i81, i3, i69, i9, i39, i81, i3, i69, i9, i39, i81]).
+cycle(i79, [i9, i39, i3, i69, i9, i39, i3, i69, i9, i69, i9]).
+cycle(i79, [i9, i39, i3, i69, i9, i69, i9, i39, i3, i69, i9]).
+cycle(i79, [i9, i39, i3, i69, i9, i69, i9, i69, i9, i69, i9]).
+cycle(i79, [i9, i39, i81, i3, i69, i9, i39, i81, i3, i69, i9]).
+cycle(i79, [i9, i69, i9, i39, i3, i69, i9, i39, i3, i69, i9]).
+cycle(i79, [i9, i69, i9, i39, i3, i69, i9, i69, i9, i69, i9]).
+cycle(i79, [i9, i69, i9, i69, i9, i39, i3, i69, i9, i69, i9]).
+cycle(i79, [i9, i69, i9, i69, i9, i69, i9, i39, i3, i69, i9]).
+cycle(i79, [i9, i69, i9, i69, i9, i69, i9, i69, i9, i69, i9]).
+cycle(i80, [i12, i45, i12, i45, i12, i45, i12, i45, i12, i45, i12]).
+cycle(i80, [i15, i42, i15, i42, i15, i42, i15, i42, i15, i42, i15]).
+cycle(i80, [i15, i42, i15, i42, i15, i60, i42, i15, i60, i42, i15]).
+cycle(i80, [i15, i42, i15, i60, i42, i15, i42, i15, i60, i42, i15]).
+cycle(i80, [i15, i42, i15, i60, i42, i15, i60, i42, i15, i42, i15]).
+cycle(i80, [i15, i60, i42, i15, i42, i15, i42, i15, i60, i42, i15]).
+cycle(i80, [i15, i60, i42, i15, i42, i15, i60, i42, i15, i42, i15]).
+cycle(i80, [i15, i60, i42, i15, i60, i42, i15, i42, i15, i42, i15]).
+cycle(i80, [i42, i15, i42, i15, i42, i15, i42, i15, i42, i15, i42]).
+cycle(i80, [i42, i15, i42, i15, i42, i15, i60, i42, i15, i60, i42]).
+cycle(i80, [i42, i15, i42, i15, i60, i42, i15, i42, i15, i60, i42]).
+cycle(i80, [i42, i15, i42, i15, i60, i42, i15, i60, i42, i15, i42]).
+cycle(i80, [i42, i15, i60, i42, i15, i42, i15, i42, i15, i60, i42]).
+cycle(i80, [i42, i15, i60, i42, i15, i42, i15, i60, i42, i15, i42]).
+cycle(i80, [i42, i15, i60, i42, i15, i60, i42, i15, i42, i15, i42]).
+cycle(i80, [i45, i12, i45, i12, i45, i12, i45, i12, i45, i12, i45]).
+cycle(i80, [i54, i81, i54, i81, i54, i81, i54, i81, i54, i81, i54]).
+cycle(i80, [i60, i42, i15, i42, i15, i42, i15, i60, i42, i15, i60]).
+cycle(i80, [i60, i42, i15, i42, i15, i60, i42, i15, i42, i15, i60]).
+cycle(i80, [i60, i42, i15, i60, i42, i15, i42, i15, i42, i15, i60]).
+cycle(i80, [i81, i54, i81, i54, i81, i54, i81, i54, i81, i54, i81]).
+cycle(i80, [i90, i90, i90, i90, i90, i90, i90, i90, i90, i90, i90]).
+cycle(i81, [i21, i75, i30, i75, i30, i75, i60, i21, i75, i60, i21]).
+cycle(i81, [i21, i75, i30, i75, i60, i21, i75, i30, i75, i60, i21]).
+cycle(i81, [i21, i75, i60, i21, i75, i30, i75, i30, i75, i60, i21]).
+cycle(i81, [i27, i84, i27, i84, i27, i84, i27, i84, i27, i84, i27]).
+cycle(i81, [i30, i75, i30, i75, i30, i75, i30, i75, i30, i75, i30]).
+cycle(i81, [i30, i75, i30, i75, i60, i21, i75, i60, i21, i75, i30]).
+cycle(i81, [i30, i75, i60, i21, i75, i30, i75, i60, i21, i75, i30]).
+cycle(i81, [i30, i75, i60, i21, i75, i60, i21, i75, i30, i75, i30]).
+cycle(i81, [i60, i21, i75, i30, i75, i30, i75, i60, i21, i75, i60]).
+cycle(i81, [i60, i21, i75, i30, i75, i60, i21, i75, i30, i75, i60]).
+cycle(i81, [i60, i21, i75, i60, i21, i75, i30, i75, i30, i75, i60]).
+cycle(i81, [i75, i30, i75, i30, i75, i30, i75, i30, i75, i30, i75]).
+cycle(i81, [i75, i30, i75, i30, i75, i60, i21, i75, i60, i21, i75]).
+cycle(i81, [i75, i30, i75, i60, i21, i75, i30, i75, i60, i21, i75]).
+cycle(i81, [i75, i30, i75, i60, i21, i75, i60, i21, i75, i30, i75]).
+cycle(i81, [i75, i60, i21, i75, i30, i75, i30, i75, i60, i21, i75]).
+cycle(i81, [i75, i60, i21, i75, i30, i75, i60, i21, i75, i30, i75]).
+cycle(i81, [i75, i60, i21, i75, i60, i21, i75, i30, i75, i30, i75]).
+cycle(i81, [i84, i27, i84, i27, i84, i27, i84, i27, i84, i27, i84]).
+cycle(i82, [i21, i21, i21, i21, i21, i21, i21, i21, i21, i21, i21]).
+cycle(i82, [i36, i36, i36, i36, i36, i36, i36, i36, i36, i36, i36]).
+cycle(i83, [i0, i6, i84, i69, i6, i84, i69, i6, i84, i69, i0]).
+cycle(i83, [i6, i84, i69, i0, i6, i84, i69, i6, i84, i69, i6]).
+cycle(i83, [i6, i84, i69, i6, i84, i69, i0, i6, i84, i69, i6]).
+cycle(i83, [i6, i84, i69, i6, i84, i69, i6, i84, i69, i0, i6]).
+cycle(i83, [i69, i0, i6, i84, i69, i6, i84, i69, i6, i84, i69]).
+cycle(i83, [i69, i6, i84, i69, i0, i6, i84, i69, i6, i84, i69]).
+cycle(i83, [i69, i6, i84, i69, i6, i84, i69, i0, i6, i84, i69]).
+cycle(i83, [i84, i69, i0, i6, i84, i69, i6, i84, i69, i6, i84]).
+cycle(i83, [i84, i69, i6, i84, i69, i0, i6, i84, i69, i6, i84]).
+cycle(i83, [i84, i69, i6, i84, i69, i6, i84, i69, i0, i6, i84]).
+cycle(i84, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i84, [i21, i87, i33, i93, i51, i30, i21, i87, i51, i30, i21]).
+cycle(i84, [i21, i87, i51, i30, i21, i87, i33, i93, i51, i30, i21]).
+cycle(i84, [i30, i21, i87, i33, i93, i51, i30, i21, i87, i51, i30]).
+cycle(i84, [i30, i21, i87, i51, i30, i21, i87, i33, i93, i51, i30]).
+cycle(i84, [i33, i93, i51, i30, i21, i87, i51, i30, i21, i87, i33]).
+cycle(i84, [i51, i30, i21, i87, i33, i93, i51, i30, i21, i87, i51]).
+cycle(i84, [i51, i30, i21, i87, i51, i30, i21, i87, i33, i93, i51]).
+cycle(i84, [i87, i33, i93, i51, i30, i21, i87, i51, i30, i21, i87]).
+cycle(i84, [i87, i51, i30, i21, i87, i33, i93, i51, i30, i21, i87]).
+cycle(i84, [i93, i51, i30, i21, i87, i51, i30, i21, i87, i33, i93]).
+cycle(i86, [i0, i0, i0, i0, i0, i0, i0, i0, i0, i0, i0]).
+cycle(i88, [i3, i3, i3, i3, i3, i3, i3, i3, i3, i3, i3]).
+cycle(i88, [i54, i54, i54, i54, i54, i54, i54, i54, i54, i54, i54]).
+cycle(i88, [i57, i57, i57, i57, i57, i57, i57, i57, i57, i57, i57]).
+cycle(i89, [i48, i48, i48, i48, i48, i48, i48, i48, i48, i48, i48]).
+cycle(i89, [i9, i9, i9, i9, i9, i9, i9, i9, i9, i9, i9]).
+cycle(i9, [i30, i9, i54, i30, i9, i54, i30, i9, i84, i54, i30]).
+cycle(i9, [i30, i9, i54, i30, i9, i84, i54, i30, i9, i54, i30]).
+cycle(i9, [i30, i9, i84, i54, i30, i9, i54, i30, i9, i54, i30]).
+cycle(i9, [i54, i30, i9, i54, i30, i9, i54, i30, i9, i84, i54]).
+cycle(i9, [i54, i30, i9, i54, i30, i9, i84, i54, i30, i9, i54]).
+cycle(i9, [i54, i30, i9, i84, i54, i30, i9, i54, i30, i9, i54]).
+cycle(i9, [i84, i54, i30, i9, i54, i30, i9, i54, i30, i9, i84]).
+cycle(i9, [i9, i54, i30, i9, i54, i30, i9, i84, i54, i30, i9]).
+cycle(i9, [i9, i54, i30, i9, i84, i54, i30, i9, i54, i30, i9]).
+cycle(i9, [i9, i84, i54, i30, i9, i54, i30, i9, i54, i30, i9]).
+cycle(i92, [i45, i84, i45, i84, i45, i84, i45, i84, i45, i84, i45]).
+cycle(i92, [i84, i45, i84, i45, i84, i45, i84, i45, i84, i45, i84]).
+cycle(i93, [i33, i48, i33, i48, i33, i48, i33, i48, i33, i48, i33]).
+cycle(i93, [i48, i33, i48, i33, i48, i33, i48, i33, i48, i33, i48]).
+cycle(i93, [i54, i69, i54, i69, i54, i69, i54, i69, i54, i69, i54]).
+cycle(i93, [i69, i54, i69, i54, i69, i54, i69, i54, i69, i54, i69]).
+cycle(i93, [i84, i84, i84, i84, i84, i84, i84, i84, i84, i84, i84]).
+cycle(i94, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).
+cycle(i95, [i48, i51, i48, i51, i48, i51, i48, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i48, i51, i48, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i48, i51, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i48, i51, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i48, i51, i51, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i48, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i48, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i48, i51, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i51, i48, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i51, i48, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i51, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i51, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i48, i51, i51, i51, i51, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i48, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i48, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i48, i51, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i51, i48, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i51, i48, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i51, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i51, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i48, i51, i51, i51, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i48, i51, i48, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i48, i51, i48, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i48, i51, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i48, i51, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i48, i51, i51, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i48, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i48, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i48, i51, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i51, i48, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i51, i48, i51, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i51, i51, i48, i51, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i51, i51, i51, i48, i51, i48]).
+cycle(i95, [i48, i51, i51, i51, i51, i51, i51, i51, i51, i51, i48]).
+cycle(i95, [i51, i48, i51, i48, i51, i48, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i48, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i48, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i48, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i48, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i48, i51, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i48, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i48, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i48, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i48, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i48, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i48, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i48, i51, i51, i51, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i48, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i48, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i48, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i48, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i48, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i48, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i48, i51, i51, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i48, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i48, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i48, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i48, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i48, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i48, i51, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i48, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i48, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i48, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i48, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i48, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i48, i51, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i48, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i48, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i48, i51, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i51, i48, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i51, i48, i51, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i51, i51, i48, i51, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i51, i51, i51, i48, i51]).
+cycle(i95, [i51, i51, i51, i51, i51, i51, i51, i51, i51, i51, i51]).
+cycle(i95, [i96, i96, i96, i96, i96, i96, i96, i96, i96, i96, i96]).
+cycle(i96, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
+cycle(i96, [i33, i69, i75, i48, i33, i69, i75, i75, i75, i48, i33]).
+cycle(i96, [i33, i69, i75, i75, i48, i33, i69, i75, i75, i48, i33]).
+cycle(i96, [i33, i69, i75, i75, i75, i48, i33, i69, i75, i48, i33]).
+cycle(i96, [i33, i69, i75, i75, i75, i75, i75, i75, i75, i48, i33]).
+cycle(i96, [i48, i33, i69, i75, i48, i33, i69, i75, i75, i75, i48]).
+cycle(i96, [i48, i33, i69, i75, i75, i48, i33, i69, i75, i75, i48]).
+cycle(i96, [i48, i33, i69, i75, i75, i75, i48, i33, i69, i75, i48]).
+cycle(i96, [i48, i33, i69, i75, i75, i75, i75, i75, i75, i75, i48]).
+cycle(i96, [i69, i75, i48, i33, i69, i75, i75, i75, i48, i33, i69]).
+cycle(i96, [i69, i75, i75, i48, i33, i69, i75, i75, i48, i33, i69]).
+cycle(i96, [i69, i75, i75, i75, i48, i33, i69, i75, i48, i33, i69]).
+cycle(i96, [i69, i75, i75, i75, i75, i75, i75, i75, i48, i33, i69]).
+cycle(i96, [i75, i48, i33, i69, i75, i48, i33, i69, i75, i75, i75]).
+cycle(i96, [i75, i48, i33, i69, i75, i75, i48, i33, i69, i75, i75]).
+cycle(i96, [i75, i48, i33, i69, i75, i75, i75, i48, i33, i69, i75]).
+cycle(i96, [i75, i48, i33, i69, i75, i75, i75, i75, i75, i75, i75]).
+cycle(i96, [i75, i75, i48, i33, i69, i75, i48, i33, i69, i75, i75]).
+cycle(i96, [i75, i75, i48, i33, i69, i75, i75, i48, i33, i69, i75]).
+cycle(i96, [i75, i75, i48, i33, i69, i75, i75, i75, i75, i75, i75]).
+cycle(i96, [i75, i75, i75, i48, i33, i69, i75, i48, i33, i69, i75]).
+cycle(i96, [i75, i75, i75, i48, i33, i69, i75, i75, i75, i75, i75]).
+cycle(i96, [i75, i75, i75, i75, i48, i33, i69, i75, i75, i75, i75]).
+cycle(i96, [i75, i75, i75, i75, i75, i48, i33, i69, i75, i75, i75]).
+cycle(i96, [i75, i75, i75, i75, i75, i75, i48, i33, i69, i75, i75]).
+cycle(i96, [i75, i75, i75, i75, i75, i75, i75, i48, i33, i69, i75]).
+cycle(i96, [i75, i75, i75, i75, i75, i75, i75, i75, i75, i75, i75]).
+cycle(i97, [i18, i69, i18, i69, i18, i69, i18, i69, i18, i69, i18]).
+cycle(i97, [i27, i27, i27, i27, i27, i27, i27, i27, i27, i27, i27]).
+cycle(i97, [i60, i60, i60, i60, i60, i60, i60, i60, i60, i60, i60]).
+cycle(i97, [i69, i18, i69, i18, i69, i18, i69, i18, i69, i18, i69]).
+cycle(i97, [i75, i84, i75, i84, i75, i84, i75, i84, i75, i84, i75]).
+cycle(i97, [i84, i75, i84, i75, i84, i75, i84, i75, i84, i75, i84]).
+cycle(i98, [i12, i12, i12, i12, i12, i12, i12, i12, i12, i12, i12]).
+cycle(i98, [i15, i15, i15, i15, i15, i15, i15, i15, i15, i15, i15]).

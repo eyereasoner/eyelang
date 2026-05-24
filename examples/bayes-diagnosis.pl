@@ -1,8 +1,15 @@
 % Bayesian diagnosis adapted from Eyeling bayes-diagnosis.n3.
 % The integer-scaled rules keep the model executable in eyelog.  The emitted
-% triples use Eyeling's full posterior vocabulary instead of rounded basis
+% relations use Eyeling's full posterior vocabulary instead of rounded basis
 % points, so this example is comparable with examples/output/bayes-diagnosis.n3
 % in the Eyeling repository.
+
+materialize(scores, 2).
+materialize(evidenceTotal, 2).
+materialize(result, 2).
+materialize(disease, 2).
+materialize(unnormalized, 2).
+materialize(posterior, 2).
 
 disease(covid19).
 disease(influenza).
@@ -85,14 +92,14 @@ posterior(influenza, 0.029203652890249024).
 posterior(allergicRhinitis, 0.00045630707641014084).
 posterior(bacterialPneumonia, 0.029130643758023392).
 
-triple(case, scores, [
+scores(case, [
   0.0015470000000000002,
   0.000048000000000000015,
   7.499999999999999e-7,
   0.000047879999999999996
 ]).
-triple(case, evidenceTotal, Total) :- total_score_decimal(Total).
-triple(case, result, result(Disease)) :- disease(Disease).
-triple(result(Disease), disease, Disease) :- disease(Disease).
-triple(result(Disease), unnormalized, Score) :- score_decimal(Disease, Score).
-triple(result(Disease), posterior, Posterior) :- posterior(Disease, Posterior).
+evidenceTotal(case, Total) :- total_score_decimal(Total).
+result(case, result(Disease)) :- disease(Disease).
+disease(result(Disease), Disease) :- disease(Disease).
+unnormalized(result(Disease), Score) :- score_decimal(Disease, Score).
+posterior(result(Disease), Posterior) :- posterior(Disease, Posterior).

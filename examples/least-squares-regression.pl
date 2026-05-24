@@ -3,6 +3,12 @@
 % The rules reduce a list of points to sufficient statistics, then derive the
 % fitted slope, intercept, and coefficient of determination R^2.
 
+materialize(slope, 2).
+materialize(intercept, 2).
+materialize(rSquared, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 dataset(regression1, [point(1.0, 2.0), point(2.0, 3.0), point(3.0, 5.0), point(4.0, 4.0)]).
 threshold(regression1, minimum_r_squared, 0.60).
 
@@ -60,17 +66,13 @@ accepted_fit(Data) :-
   threshold(Data, minimum_r_squared, Minimum),
   ge(R2, Minimum).
 
-triple(Data, slope, Slope) :-
-  slope(Data, Slope).
 
-triple(Data, intercept, Intercept) :-
-  intercept(Data, Intercept).
 
-triple(Data, rSquared, R2) :-
+rSquared(Data, R2) :-
   r_squared(Data, R2).
 
-triple(Data, status, accepted_linear_fit) :-
+status(Data, accepted_linear_fit) :-
   accepted_fit(Data).
 
-triple(Data, reason, "R squared meets the minimum explanatory-power threshold") :-
+reason(Data, "R squared meets the minimum explanatory-power threshold") :-
   accepted_fit(Data).

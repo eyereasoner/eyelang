@@ -1,6 +1,6 @@
-triple(line7_shift_a, cpk, 0.6666666666666673).
-triple(line7_shift_a, reason, "Cpk is below the production capability threshold").
-triple(line7_shift_a, status, needs_process_adjustment).
-triple(line8_shift_b, cpk, 1.6666666666666607).
-triple(line8_shift_b, reason, "Cpk meets the production capability threshold").
-triple(line8_shift_b, status, capable_process).
+cpk(line7_shift_a, 0.6666666666666673).
+cpk(line8_shift_b, 1.6666666666666607).
+reason(line7_shift_a, "Cpk is below the production capability threshold").
+reason(line8_shift_b, "Cpk meets the production capability threshold").
+status(line7_shift_a, needs_process_adjustment).
+status(line8_shift_b, capable_process).

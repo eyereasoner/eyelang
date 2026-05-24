@@ -1,7 +1,11 @@
 % Representative example: security incident correlation.
 %
 % The rules correlate endpoint, identity, vulnerability, and threat-intelligence
-% signals into an escalation decision with concise reason triples.
+% signals into an escalation decision with concise reason relations.
+
+materialize(type, 2).
+materialize(status, 2).
+materialize(reason, 2).
 
 incident(inc42).
 incident(inc43).
@@ -52,11 +56,11 @@ confirmed_compromise(Incident) :-
   c2_contact(Incident),
   exploitable_endpoint(Incident).
 
-triple(Incident, type, confirmed_compromise) :-
+type(Incident, confirmed_compromise) :-
   confirmed_compromise(Incident).
 
-triple(Incident, status, escalate_to_incident_response) :-
+status(Incident, escalate_to_incident_response) :-
   confirmed_compromise(Incident).
 
-triple(Incident, reason, "privileged credential abuse, malware on a critical endpoint, C2 contact, and exploitable RCE are correlated") :-
+reason(Incident, "privileged credential abuse, malware on a critical endpoint, C2 contact, and exploitable RCE are correlated") :-
   confirmed_compromise(Incident).

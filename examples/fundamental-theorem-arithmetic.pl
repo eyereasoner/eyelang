@@ -2,6 +2,16 @@
 % Compute a prime factorization by repeated smallest-divisor decomposition,
 % then check product reconstruction and primality of the distinct factors.
 
+materialize(n, 2).
+materialize(factorsSmallest, 2).
+materialize(factorsLargest, 2).
+materialize(product, 2).
+materialize(expectedFactorsMatched, 2).
+materialize(productReconstructsInput, 2).
+materialize(distinctPrimeCount, 2).
+materialize(smallestPrimeFactor, 2).
+materialize(largestPrimeFactor, 2).
+
 case(fta, 202692987).
 expected_factors(fta, [3, 3, 7, 829, 3881]).
 
@@ -62,39 +72,39 @@ all_expected_primes(true) :-
   trial_prime(829),
   trial_prime(3881).
 
-triple(case, n, N) :-
+n(case, N) :-
   case(fta, N).
 
-triple(case, factorsSmallest, Factors) :-
+factorsSmallest(case, Factors) :-
   case(fta, N),
   factor_smallest(N, Factors).
 
-triple(case, factorsLargest, Factors) :-
+factorsLargest(case, Factors) :-
   case(fta, N),
   factor_largest(N, Factors).
 
-triple(case, product, Product) :-
+product(case, Product) :-
   case(fta, N),
   factor_smallest(N, Factors),
   product(Factors, Product).
 
-triple(case, expectedFactorsMatched, true) :-
+expectedFactorsMatched(case, true) :-
   case(fta, N),
   expected_factors(fta, Factors),
   factor_smallest(N, Factors).
 
-triple(case, productReconstructsInput, true) :-
+productReconstructsInput(case, true) :-
   case(fta, N),
   factor_smallest(N, Factors),
   product(Factors, N).
 
-triple(case, distinctPrimeCount, 4) :-
+distinctPrimeCount(case, 4) :-
   all_expected_primes(true).
 
-triple(case, smallestPrimeFactor, 3) :-
+smallestPrimeFactor(case, 3) :-
   case(fta, N),
   factor_smallest(N, [3|_]).
 
-triple(case, largestPrimeFactor, 3881) :-
+largestPrimeFactor(case, 3881) :-
   case(fta, N),
   factor_largest(N, [3881|_]).

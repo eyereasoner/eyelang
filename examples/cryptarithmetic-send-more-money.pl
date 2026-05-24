@@ -5,6 +5,10 @@
 % a six-column addition.  Each column constraint is applied as soon as possible
 % so the finite digit search prunes early without cut.
 
+materialize(status, 2).
+materialize(assignment, 2).
+materialize(equation, 2).
+
 digits([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).
 
 number4(A, B, C, D, N) :-
@@ -123,20 +127,20 @@ donald_gerald_robert(solution(D, O, N, A, L, G, E, R, B, T), Donald, Gerald, Rob
   number6(R, O, B, E, R, T, Robert),
   add(Donald, Gerald, Robert).
 
-triple(send_more_money, status, solved) :-
+status(send_more_money, solved) :-
   once(send_more_money(_Solution, _Send, _More, _Money)).
 
-triple(send_more_money, assignment, Solution) :-
+assignment(send_more_money, Solution) :-
   once(send_more_money(Solution, _Send, _More, _Money)).
 
-triple(send_more_money, equation, plus(Send, More, Money)) :-
+equation(send_more_money, plus(Send, More, Money)) :-
   once(send_more_money(_Solution, Send, More, Money)).
 
-triple(donald_gerald_robert, status, solved) :-
+status(donald_gerald_robert, solved) :-
   once(donald_gerald_robert(_Solution, _Donald, _Gerald, _Robert)).
 
-triple(donald_gerald_robert, assignment, Solution) :-
+assignment(donald_gerald_robert, Solution) :-
   once(donald_gerald_robert(Solution, _Donald, _Gerald, _Robert)).
 
-triple(donald_gerald_robert, equation, plus(Donald, Gerald, Robert)) :-
+equation(donald_gerald_robert, plus(Donald, Gerald, Robert)) :-
   once(donald_gerald_robert(_Solution, Donald, Gerald, Robert)).

@@ -3,6 +3,11 @@
 % For small oscillations, T = 2*pi*sqrt(length / gravity).  Gravity is chosen
 % as pi^2 m/s^2 so a one-meter pendulum has a period of two seconds.
 
+materialize(period_s, 2).
+materialize(periodError_s, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 constant(pi, 3.141592653589793).
 experiment(pendulum1, length_m, 1.0).
 experiment(pendulum1, gravity_m_s2, 9.869604401089358).
@@ -29,14 +34,14 @@ within_period_tolerance(Experiment) :-
   limit(Experiment, tolerance_s, Tolerance),
   lt(Error, Tolerance).
 
-triple(Experiment, period_s, Period) :-
+period_s(Experiment, Period) :-
   period(Experiment, Period).
 
-triple(Experiment, periodError_s, Error) :-
+periodError_s(Experiment, Error) :-
   period_error(Experiment, Error).
 
-triple(Experiment, status, within_period_tolerance) :-
+status(Experiment, within_period_tolerance) :-
   within_period_tolerance(Experiment).
 
-triple(Experiment, reason, "small-angle period matches the two-second target") :-
+reason(Experiment, "small-angle period matches the two-second target") :-
   within_period_tolerance(Experiment).

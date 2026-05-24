@@ -10,6 +10,9 @@
 % Row - Q.  Rejecting repeats in those two lists enforces the remaining
 % N-queens constraints declaratively, without cut or destructive update.
 
+materialize(solution, 2).
+materialize(solved, 2).
+
 queens(N, Qs) :-
   range(1, N, Columns),
   place(1, Columns, [], [], Qs).
@@ -30,5 +33,5 @@ range(I, J, [I|Ns]) :-
   add(I, 1, I1),
   range(I1, J, Ns).
 
-triple(nQueens8, solution, Qs) :- queens(8, Qs).
-triple(nQueens8, solved, true) :- queens(8, _Qs).
+solution(nQueens8, Qs) :- queens(8, Qs).
+solved(nQueens8, true) :- queens(8, _Qs).

@@ -1,93 +1,93 @@
-triple(nQueens8, solution, [1, 5, 8, 6, 3, 7, 2, 4]).
-triple(nQueens8, solution, [1, 6, 8, 3, 7, 4, 2, 5]).
-triple(nQueens8, solution, [1, 7, 4, 6, 8, 2, 5, 3]).
-triple(nQueens8, solution, [1, 7, 5, 8, 2, 4, 6, 3]).
-triple(nQueens8, solution, [2, 4, 6, 8, 3, 1, 7, 5]).
-triple(nQueens8, solution, [2, 5, 7, 1, 3, 8, 6, 4]).
-triple(nQueens8, solution, [2, 5, 7, 4, 1, 8, 6, 3]).
-triple(nQueens8, solution, [2, 6, 1, 7, 4, 8, 3, 5]).
-triple(nQueens8, solution, [2, 6, 8, 3, 1, 4, 7, 5]).
-triple(nQueens8, solution, [2, 7, 3, 6, 8, 5, 1, 4]).
-triple(nQueens8, solution, [2, 7, 5, 8, 1, 4, 6, 3]).
-triple(nQueens8, solution, [2, 8, 6, 1, 3, 5, 7, 4]).
-triple(nQueens8, solution, [3, 1, 7, 5, 8, 2, 4, 6]).
-triple(nQueens8, solution, [3, 5, 2, 8, 1, 7, 4, 6]).
-triple(nQueens8, solution, [3, 5, 2, 8, 6, 4, 7, 1]).
-triple(nQueens8, solution, [3, 5, 7, 1, 4, 2, 8, 6]).
-triple(nQueens8, solution, [3, 5, 8, 4, 1, 7, 2, 6]).
-triple(nQueens8, solution, [3, 6, 2, 5, 8, 1, 7, 4]).
-triple(nQueens8, solution, [3, 6, 2, 7, 1, 4, 8, 5]).
-triple(nQueens8, solution, [3, 6, 2, 7, 5, 1, 8, 4]).
-triple(nQueens8, solution, [3, 6, 4, 1, 8, 5, 7, 2]).
-triple(nQueens8, solution, [3, 6, 4, 2, 8, 5, 7, 1]).
-triple(nQueens8, solution, [3, 6, 8, 1, 4, 7, 5, 2]).
-triple(nQueens8, solution, [3, 6, 8, 1, 5, 7, 2, 4]).
-triple(nQueens8, solution, [3, 6, 8, 2, 4, 1, 7, 5]).
-triple(nQueens8, solution, [3, 7, 2, 8, 5, 1, 4, 6]).
-triple(nQueens8, solution, [3, 7, 2, 8, 6, 4, 1, 5]).
-triple(nQueens8, solution, [3, 8, 4, 7, 1, 6, 2, 5]).
-triple(nQueens8, solution, [4, 1, 5, 8, 2, 7, 3, 6]).
-triple(nQueens8, solution, [4, 1, 5, 8, 6, 3, 7, 2]).
-triple(nQueens8, solution, [4, 2, 5, 8, 6, 1, 3, 7]).
-triple(nQueens8, solution, [4, 2, 7, 3, 6, 8, 1, 5]).
-triple(nQueens8, solution, [4, 2, 7, 3, 6, 8, 5, 1]).
-triple(nQueens8, solution, [4, 2, 7, 5, 1, 8, 6, 3]).
-triple(nQueens8, solution, [4, 2, 8, 5, 7, 1, 3, 6]).
-triple(nQueens8, solution, [4, 2, 8, 6, 1, 3, 5, 7]).
-triple(nQueens8, solution, [4, 6, 1, 5, 2, 8, 3, 7]).
-triple(nQueens8, solution, [4, 6, 8, 2, 7, 1, 3, 5]).
-triple(nQueens8, solution, [4, 6, 8, 3, 1, 7, 5, 2]).
-triple(nQueens8, solution, [4, 7, 1, 8, 5, 2, 6, 3]).
-triple(nQueens8, solution, [4, 7, 3, 8, 2, 5, 1, 6]).
-triple(nQueens8, solution, [4, 7, 5, 2, 6, 1, 3, 8]).
-triple(nQueens8, solution, [4, 7, 5, 3, 1, 6, 8, 2]).
-triple(nQueens8, solution, [4, 8, 1, 3, 6, 2, 7, 5]).
-triple(nQueens8, solution, [4, 8, 1, 5, 7, 2, 6, 3]).
-triple(nQueens8, solution, [4, 8, 5, 3, 1, 7, 2, 6]).
-triple(nQueens8, solution, [5, 1, 4, 6, 8, 2, 7, 3]).
-triple(nQueens8, solution, [5, 1, 8, 4, 2, 7, 3, 6]).
-triple(nQueens8, solution, [5, 1, 8, 6, 3, 7, 2, 4]).
-triple(nQueens8, solution, [5, 2, 4, 6, 8, 3, 1, 7]).
-triple(nQueens8, solution, [5, 2, 4, 7, 3, 8, 6, 1]).
-triple(nQueens8, solution, [5, 2, 6, 1, 7, 4, 8, 3]).
-triple(nQueens8, solution, [5, 2, 8, 1, 4, 7, 3, 6]).
-triple(nQueens8, solution, [5, 3, 1, 6, 8, 2, 4, 7]).
-triple(nQueens8, solution, [5, 3, 1, 7, 2, 8, 6, 4]).
-triple(nQueens8, solution, [5, 3, 8, 4, 7, 1, 6, 2]).
-triple(nQueens8, solution, [5, 7, 1, 3, 8, 6, 4, 2]).
-triple(nQueens8, solution, [5, 7, 1, 4, 2, 8, 6, 3]).
-triple(nQueens8, solution, [5, 7, 2, 4, 8, 1, 3, 6]).
-triple(nQueens8, solution, [5, 7, 2, 6, 3, 1, 4, 8]).
-triple(nQueens8, solution, [5, 7, 2, 6, 3, 1, 8, 4]).
-triple(nQueens8, solution, [5, 7, 4, 1, 3, 8, 6, 2]).
-triple(nQueens8, solution, [5, 8, 4, 1, 3, 6, 2, 7]).
-triple(nQueens8, solution, [5, 8, 4, 1, 7, 2, 6, 3]).
-triple(nQueens8, solution, [6, 1, 5, 2, 8, 3, 7, 4]).
-triple(nQueens8, solution, [6, 2, 7, 1, 3, 5, 8, 4]).
-triple(nQueens8, solution, [6, 2, 7, 1, 4, 8, 5, 3]).
-triple(nQueens8, solution, [6, 3, 1, 7, 5, 8, 2, 4]).
-triple(nQueens8, solution, [6, 3, 1, 8, 4, 2, 7, 5]).
-triple(nQueens8, solution, [6, 3, 1, 8, 5, 2, 4, 7]).
-triple(nQueens8, solution, [6, 3, 5, 7, 1, 4, 2, 8]).
-triple(nQueens8, solution, [6, 3, 5, 8, 1, 4, 2, 7]).
-triple(nQueens8, solution, [6, 3, 7, 2, 4, 8, 1, 5]).
-triple(nQueens8, solution, [6, 3, 7, 2, 8, 5, 1, 4]).
-triple(nQueens8, solution, [6, 3, 7, 4, 1, 8, 2, 5]).
-triple(nQueens8, solution, [6, 4, 1, 5, 8, 2, 7, 3]).
-triple(nQueens8, solution, [6, 4, 2, 8, 5, 7, 1, 3]).
-triple(nQueens8, solution, [6, 4, 7, 1, 3, 5, 2, 8]).
-triple(nQueens8, solution, [6, 4, 7, 1, 8, 2, 5, 3]).
-triple(nQueens8, solution, [6, 8, 2, 4, 1, 7, 5, 3]).
-triple(nQueens8, solution, [7, 1, 3, 8, 6, 4, 2, 5]).
-triple(nQueens8, solution, [7, 2, 4, 1, 8, 5, 3, 6]).
-triple(nQueens8, solution, [7, 2, 6, 3, 1, 4, 8, 5]).
-triple(nQueens8, solution, [7, 3, 1, 6, 8, 5, 2, 4]).
-triple(nQueens8, solution, [7, 3, 8, 2, 5, 1, 6, 4]).
-triple(nQueens8, solution, [7, 4, 2, 5, 8, 1, 3, 6]).
-triple(nQueens8, solution, [7, 4, 2, 8, 6, 1, 3, 5]).
-triple(nQueens8, solution, [7, 5, 3, 1, 6, 8, 2, 4]).
-triple(nQueens8, solution, [8, 2, 4, 1, 7, 5, 3, 6]).
-triple(nQueens8, solution, [8, 2, 5, 3, 1, 7, 4, 6]).
-triple(nQueens8, solution, [8, 3, 1, 6, 2, 5, 7, 4]).
-triple(nQueens8, solution, [8, 4, 1, 3, 6, 2, 7, 5]).
-triple(nQueens8, solved, true).
+solution(nQueens8, [1, 5, 8, 6, 3, 7, 2, 4]).
+solution(nQueens8, [1, 6, 8, 3, 7, 4, 2, 5]).
+solution(nQueens8, [1, 7, 4, 6, 8, 2, 5, 3]).
+solution(nQueens8, [1, 7, 5, 8, 2, 4, 6, 3]).
+solution(nQueens8, [2, 4, 6, 8, 3, 1, 7, 5]).
+solution(nQueens8, [2, 5, 7, 1, 3, 8, 6, 4]).
+solution(nQueens8, [2, 5, 7, 4, 1, 8, 6, 3]).
+solution(nQueens8, [2, 6, 1, 7, 4, 8, 3, 5]).
+solution(nQueens8, [2, 6, 8, 3, 1, 4, 7, 5]).
+solution(nQueens8, [2, 7, 3, 6, 8, 5, 1, 4]).
+solution(nQueens8, [2, 7, 5, 8, 1, 4, 6, 3]).
+solution(nQueens8, [2, 8, 6, 1, 3, 5, 7, 4]).
+solution(nQueens8, [3, 1, 7, 5, 8, 2, 4, 6]).
+solution(nQueens8, [3, 5, 2, 8, 1, 7, 4, 6]).
+solution(nQueens8, [3, 5, 2, 8, 6, 4, 7, 1]).
+solution(nQueens8, [3, 5, 7, 1, 4, 2, 8, 6]).
+solution(nQueens8, [3, 5, 8, 4, 1, 7, 2, 6]).
+solution(nQueens8, [3, 6, 2, 5, 8, 1, 7, 4]).
+solution(nQueens8, [3, 6, 2, 7, 1, 4, 8, 5]).
+solution(nQueens8, [3, 6, 2, 7, 5, 1, 8, 4]).
+solution(nQueens8, [3, 6, 4, 1, 8, 5, 7, 2]).
+solution(nQueens8, [3, 6, 4, 2, 8, 5, 7, 1]).
+solution(nQueens8, [3, 6, 8, 1, 4, 7, 5, 2]).
+solution(nQueens8, [3, 6, 8, 1, 5, 7, 2, 4]).
+solution(nQueens8, [3, 6, 8, 2, 4, 1, 7, 5]).
+solution(nQueens8, [3, 7, 2, 8, 5, 1, 4, 6]).
+solution(nQueens8, [3, 7, 2, 8, 6, 4, 1, 5]).
+solution(nQueens8, [3, 8, 4, 7, 1, 6, 2, 5]).
+solution(nQueens8, [4, 1, 5, 8, 2, 7, 3, 6]).
+solution(nQueens8, [4, 1, 5, 8, 6, 3, 7, 2]).
+solution(nQueens8, [4, 2, 5, 8, 6, 1, 3, 7]).
+solution(nQueens8, [4, 2, 7, 3, 6, 8, 1, 5]).
+solution(nQueens8, [4, 2, 7, 3, 6, 8, 5, 1]).
+solution(nQueens8, [4, 2, 7, 5, 1, 8, 6, 3]).
+solution(nQueens8, [4, 2, 8, 5, 7, 1, 3, 6]).
+solution(nQueens8, [4, 2, 8, 6, 1, 3, 5, 7]).
+solution(nQueens8, [4, 6, 1, 5, 2, 8, 3, 7]).
+solution(nQueens8, [4, 6, 8, 2, 7, 1, 3, 5]).
+solution(nQueens8, [4, 6, 8, 3, 1, 7, 5, 2]).
+solution(nQueens8, [4, 7, 1, 8, 5, 2, 6, 3]).
+solution(nQueens8, [4, 7, 3, 8, 2, 5, 1, 6]).
+solution(nQueens8, [4, 7, 5, 2, 6, 1, 3, 8]).
+solution(nQueens8, [4, 7, 5, 3, 1, 6, 8, 2]).
+solution(nQueens8, [4, 8, 1, 3, 6, 2, 7, 5]).
+solution(nQueens8, [4, 8, 1, 5, 7, 2, 6, 3]).
+solution(nQueens8, [4, 8, 5, 3, 1, 7, 2, 6]).
+solution(nQueens8, [5, 1, 4, 6, 8, 2, 7, 3]).
+solution(nQueens8, [5, 1, 8, 4, 2, 7, 3, 6]).
+solution(nQueens8, [5, 1, 8, 6, 3, 7, 2, 4]).
+solution(nQueens8, [5, 2, 4, 6, 8, 3, 1, 7]).
+solution(nQueens8, [5, 2, 4, 7, 3, 8, 6, 1]).
+solution(nQueens8, [5, 2, 6, 1, 7, 4, 8, 3]).
+solution(nQueens8, [5, 2, 8, 1, 4, 7, 3, 6]).
+solution(nQueens8, [5, 3, 1, 6, 8, 2, 4, 7]).
+solution(nQueens8, [5, 3, 1, 7, 2, 8, 6, 4]).
+solution(nQueens8, [5, 3, 8, 4, 7, 1, 6, 2]).
+solution(nQueens8, [5, 7, 1, 3, 8, 6, 4, 2]).
+solution(nQueens8, [5, 7, 1, 4, 2, 8, 6, 3]).
+solution(nQueens8, [5, 7, 2, 4, 8, 1, 3, 6]).
+solution(nQueens8, [5, 7, 2, 6, 3, 1, 4, 8]).
+solution(nQueens8, [5, 7, 2, 6, 3, 1, 8, 4]).
+solution(nQueens8, [5, 7, 4, 1, 3, 8, 6, 2]).
+solution(nQueens8, [5, 8, 4, 1, 3, 6, 2, 7]).
+solution(nQueens8, [5, 8, 4, 1, 7, 2, 6, 3]).
+solution(nQueens8, [6, 1, 5, 2, 8, 3, 7, 4]).
+solution(nQueens8, [6, 2, 7, 1, 3, 5, 8, 4]).
+solution(nQueens8, [6, 2, 7, 1, 4, 8, 5, 3]).
+solution(nQueens8, [6, 3, 1, 7, 5, 8, 2, 4]).
+solution(nQueens8, [6, 3, 1, 8, 4, 2, 7, 5]).
+solution(nQueens8, [6, 3, 1, 8, 5, 2, 4, 7]).
+solution(nQueens8, [6, 3, 5, 7, 1, 4, 2, 8]).
+solution(nQueens8, [6, 3, 5, 8, 1, 4, 2, 7]).
+solution(nQueens8, [6, 3, 7, 2, 4, 8, 1, 5]).
+solution(nQueens8, [6, 3, 7, 2, 8, 5, 1, 4]).
+solution(nQueens8, [6, 3, 7, 4, 1, 8, 2, 5]).
+solution(nQueens8, [6, 4, 1, 5, 8, 2, 7, 3]).
+solution(nQueens8, [6, 4, 2, 8, 5, 7, 1, 3]).
+solution(nQueens8, [6, 4, 7, 1, 3, 5, 2, 8]).
+solution(nQueens8, [6, 4, 7, 1, 8, 2, 5, 3]).
+solution(nQueens8, [6, 8, 2, 4, 1, 7, 5, 3]).
+solution(nQueens8, [7, 1, 3, 8, 6, 4, 2, 5]).
+solution(nQueens8, [7, 2, 4, 1, 8, 5, 3, 6]).
+solution(nQueens8, [7, 2, 6, 3, 1, 4, 8, 5]).
+solution(nQueens8, [7, 3, 1, 6, 8, 5, 2, 4]).
+solution(nQueens8, [7, 3, 8, 2, 5, 1, 6, 4]).
+solution(nQueens8, [7, 4, 2, 5, 8, 1, 3, 6]).
+solution(nQueens8, [7, 4, 2, 8, 6, 1, 3, 5]).
+solution(nQueens8, [7, 5, 3, 1, 6, 8, 2, 4]).
+solution(nQueens8, [8, 2, 4, 1, 7, 5, 3, 6]).
+solution(nQueens8, [8, 2, 5, 3, 1, 7, 4, 6]).
+solution(nQueens8, [8, 3, 1, 6, 2, 5, 7, 4]).
+solution(nQueens8, [8, 4, 1, 3, 6, 2, 7, 5]).
+solved(nQueens8, true).

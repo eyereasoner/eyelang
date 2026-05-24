@@ -1,17 +1,31 @@
-% RDF annotation adapted from Eyeling annotation.n3.
+% Annotation with quoted formula data.
 %
-% The Eyeling source is deliberately small:
-%   a name "Alice".
-%   t log_nameOf { a name "Alice". }.
-%   t statedBy bob.
-%   t recorded "2021-07-07".
-%
-% Eyelog uses the same idea directly.  The inner triple is quoted as data
-% because it appears as an object term; the top-level triples are ambient
-% facts and are printed by the default query.
+% The program keeps the annotation as data and derives visible relations from it.
+% Formula members become default output only when explicit rules project them.
 
-triple(a, name, "Alice").
-triple(t, log_nameOf, triple(a, name, "Alice")).
-triple(t, statedBy, bob).
-triple(t, recorded, "2021-07-07").
+materialize(name, 2).
+materialize(log_nameOf, 2).
+materialize(statedBy, 2).
+materialize(recorded, 2).
 
+annotation(t, (
+  name(a, "Alice"),
+  statedBy(t, bob),
+  recorded(t, "2021-07-07")
+)).
+
+name(S, O) :-
+  annotation(_T, Formula),
+  formula_binary(Formula, S, name, O).
+
+log_nameOf(T, name(S, O)) :-
+  annotation(T, Formula),
+  formula_binary(Formula, S, name, O).
+
+statedBy(S, O) :-
+  annotation(_T, Formula),
+  formula_binary(Formula, S, statedBy, O).
+
+recorded(S, O) :-
+  annotation(_T, Formula),
+  formula_binary(Formula, S, recorded, O).

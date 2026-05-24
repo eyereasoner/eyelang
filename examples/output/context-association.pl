@@ -1,6 +1,3 @@
-triple(association, dataGraph, skolem_g0).
-triple(association, metadataGraph, g3).
-triple(association, signatureGraph, skolem_g1).
-triple(g3, log_nameOf, (triple(skolem_g1, sec_proof, signature2), triple(signature2, rdf_type, sec_DataIntegrityProof), triple(signature2, sec_cryptosuite, "ecdsa-rdfc-2019"), triple(signature2, sec_created, "2021-11-13T18:19:39Z"), triple(signature2, sec_verificationMethod, "https://university.example/issuers/14#key-1"), triple(signature2, sec_proofPurpose, "assertionMethod"), triple(signature2, sec_proofValue, "adad123efv434r5200...dqed2t44v43das"))).
-triple(skolem_g0, log_nameOf, triple(bob, foaf_name, "Bob")).
-triple(skolem_g1, log_nameOf, (triple(skolem_g0, sec_proof, dataSignature), triple(signature1, rdf_type, sec_DataIntegrityProof), triple(signature1, sec_cryptosuite, "ecdsa-rdfc-2019"), triple(signature1, sec_created, "2021-11-13T18:19:39Z"), triple(signature1, sec_verificationMethod, "https://university.example/issuers/14#key-1"), triple(signature1, sec_proofPurpose, "assertionMethod"), triple(signature1, sec_proofValue, "z58DAdFfa9SkqZMVPxAQp...jQCrfFPP2oumHKtz"), triple(signature1, sec_issuer, university), triple(signature1, sec_validFrom, "2024-04-03T00:00:00.000Z"), triple(signature1, sec_validUntil, "2025-04-03T00:00:00.000Z"))).
+dataGraph(association, skolem_g0).
+metadataGraph(association, g3).
+signatureGraph(association, skolem_g1).

@@ -1,6 +1,10 @@
 % Eyelet-inspired D3 group example using findall/3 and sort/2.
 % It enumerates subgroups of the dihedral group of order 6.
 
+materialize(subgroups, 2).
+materialize(subgroupCount, 2).
+materialize(reason, 2).
+
 symmetry(identity).
 symmetry(rotation_120).
 symmetry(rotation_240).
@@ -78,11 +82,11 @@ all_subgroups(Groups) :-
   findall(G, valid_group(G), Raw),
   sort(Raw, Groups).
 
-triple(d3_group, subgroups, Groups) :-
+subgroups(d3_group, Groups) :-
   all_subgroups(Groups).
 
-triple(d3_group, subgroupCount, Count) :-
+subgroupCount(d3_group, Count) :-
   all_subgroups(Groups),
   length(Groups, Count).
 
-triple(d3_group, reason, "findall enumerates candidate subgroups and sort gives canonical subgroup order").
+reason(d3_group, "findall enumerates candidate subgroups and sort gives canonical subgroup order").

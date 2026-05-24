@@ -2,6 +2,12 @@
 %
 % The tip deflection for a point load at the free end is F*L^3/(3*E*I).
 
+materialize(type, 2).
+materialize(tipDeflection_m, 2).
+materialize(tipDeflection_mm, 2).
+materialize(limit_mm, 2).
+materialize(status, 2).
+
 beam(beam1, force_N, 1200.0).
 beam(beam1, length_m, 2.5).
 beam(beam1, elasticModulus_Pa, 200000000000.0).
@@ -23,19 +29,19 @@ tip_deflection_mm(Beam, DeflectionMm) :-
   tip_deflection_m(Beam, DeflectionM),
   mul(DeflectionM, 1000.0, DeflectionMm).
 
-triple(Beam, type, cantilever_beam) :-
+type(Beam, cantilever_beam) :-
   beam(Beam, force_N, _Force).
 
-triple(Beam, tipDeflection_m, DeflectionM) :-
+tipDeflection_m(Beam, DeflectionM) :-
   tip_deflection_m(Beam, DeflectionM).
 
-triple(Beam, tipDeflection_mm, DeflectionMm) :-
+tipDeflection_mm(Beam, DeflectionMm) :-
   tip_deflection_mm(Beam, DeflectionMm).
 
-triple(Beam, limit_mm, Limit) :-
+limit_mm(Beam, Limit) :-
   limit(Beam, maxDeflection_mm, Limit).
 
-triple(Beam, status, within_deflection_limit) :-
+status(Beam, within_deflection_limit) :-
   tip_deflection_mm(Beam, DeflectionMm),
   limit(Beam, maxDeflection_mm, Limit),
   le(DeflectionMm, Limit).

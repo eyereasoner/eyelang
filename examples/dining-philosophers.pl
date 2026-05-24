@@ -1,6 +1,16 @@
 % Chandy-Misra dining philosophers trace adapted from Eyeling dining-philosophers.n3.
 % Requests and sends are derived; KeepFork facts copy forks that are not sent.
 
+materialize(dp_type, 2).
+materialize(dp_in, 2).
+materialize(dp_from, 2).
+materialize(dp_to, 2).
+materialize(dp_fork, 2).
+materialize(dp_philosopher, 2).
+materialize(dp_mealNo, 2).
+materialize(dp_inSlot, 2).
+materialize(dp_usesFork, 2).
+
 left_fork(dp_P1, dp_F51). right_fork(dp_P1, dp_F12).
 left_fork(dp_P2, dp_F12). right_fork(dp_P2, dp_F23).
 left_fork(dp_P3, dp_F23). right_fork(dp_P3, dp_F34).
@@ -107,21 +117,21 @@ meal(M, P, N, S) :-
   after_send_state(CS, LF, P, _LeftCleanliness),
   after_send_state(CS, RF, P, _RightCleanliness).
 
-triple(request(C, P, Q, F), dp_type, dp_Request) :- request(C, P, Q, F).
-triple(request(C, P, Q, F), dp_in, C) :- request(C, P, Q, F).
-triple(request(C, P, Q, F), dp_from, P) :- request(C, P, Q, F).
-triple(request(C, P, Q, F), dp_to, Q) :- request(C, P, Q, F).
-triple(request(C, P, Q, F), dp_fork, F) :- request(C, P, Q, F).
+dp_type(request(C, P, Q, F), dp_Request) :- request(C, P, Q, F).
+dp_in(request(C, P, Q, F), C) :- request(C, P, Q, F).
+dp_from(request(C, P, Q, F), P) :- request(C, P, Q, F).
+dp_to(request(C, P, Q, F), Q) :- request(C, P, Q, F).
+dp_fork(request(C, P, Q, F), F) :- request(C, P, Q, F).
 
-triple(send(C, Q, P, F), dp_type, dp_SendFork) :- send_fork(C, Q, P, F).
-triple(send(C, Q, P, F), dp_in, C) :- send_fork(C, Q, P, F).
-triple(send(C, Q, P, F), dp_from, Q) :- send_fork(C, Q, P, F).
-triple(send(C, Q, P, F), dp_to, P) :- send_fork(C, Q, P, F).
-triple(send(C, Q, P, F), dp_fork, F) :- send_fork(C, Q, P, F).
+dp_type(send(C, Q, P, F), dp_SendFork) :- send_fork(C, Q, P, F).
+dp_in(send(C, Q, P, F), C) :- send_fork(C, Q, P, F).
+dp_from(send(C, Q, P, F), Q) :- send_fork(C, Q, P, F).
+dp_to(send(C, Q, P, F), P) :- send_fork(C, Q, P, F).
+dp_fork(send(C, Q, P, F), F) :- send_fork(C, Q, P, F).
 
-triple(M, dp_type, dp_Meal) :- meal(M, _P, _N, _S).
-triple(M, dp_philosopher, P) :- meal(M, P, _N, _S).
-triple(M, dp_mealNo, N) :- meal(M, _P, N, _S).
-triple(M, dp_inSlot, S) :- meal(M, _P, _N, S).
-triple(M, dp_usesFork, LF) :- meal(M, P, _N, _S), left_fork(P, LF).
-triple(M, dp_usesFork, RF) :- meal(M, P, _N, _S), right_fork(P, RF).
+dp_type(M, dp_Meal) :- meal(M, _P, _N, _S).
+dp_philosopher(M, P) :- meal(M, P, _N, _S).
+dp_mealNo(M, N) :- meal(M, _P, N, _S).
+dp_inSlot(M, S) :- meal(M, _P, _N, S).
+dp_usesFork(M, LF) :- meal(M, P, _N, _S), left_fork(P, LF).
+dp_usesFork(M, RF) :- meal(M, P, _N, _S), right_fork(P, RF).

@@ -1,5 +1,5 @@
-triple(regression1, intercept, 1.5).
-triple(regression1, rSquared, 0.64000000000000001).
-triple(regression1, reason, "R squared meets the minimum explanatory-power threshold").
-triple(regression1, slope, 0.80000000000000004).
-triple(regression1, status, accepted_linear_fit).
+intercept(regression1, 1.5).
+rSquared(regression1, 0.64000000000000001).
+reason(regression1, "R squared meets the minimum explanatory-power threshold").
+slope(regression1, 0.80000000000000004).
+status(regression1, accepted_linear_fit).

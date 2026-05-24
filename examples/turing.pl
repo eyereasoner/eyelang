@@ -3,6 +3,10 @@
 % The machine below adds 1 to a binary number represented as a list of bits.
 % The blank tape symbol is #.
 
+materialize(input, 2).
+materialize(output, 2).
+materialize(addsOne, 2).
+
 compute([], OutTape) :-
   start(_Machine, I),
   find(I, [], #, [], OutTape).
@@ -48,13 +52,13 @@ case(case2, [1, 0, 1, 1, 1, 1]).
 case(case3, [1, 1, 1, 1, 1, 1]).
 case(case4, []).
 
-triple(Case, input, InTape) :-
+input(Case, InTape) :-
   case(Case, InTape).
 
-triple(Case, output, OutTape) :-
+output(Case, OutTape) :-
   case(Case, InTape),
   compute(InTape, OutTape).
 
-triple(Case, addsOne, true) :-
+addsOne(Case, true) :-
   case(Case, InTape),
   compute(InTape, _OutTape).

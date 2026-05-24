@@ -3,6 +3,12 @@
 % A canary deployment is rolled back when its measured error rate exceeds the
 % allowed budget, even when latency is still acceptable.
 
+materialize(errorRate, 2).
+materialize(p95Latency_ms, 2).
+materialize(latencyCheck, 2).
+materialize(status, 2).
+materialize(reason, 2).
+
 canary(canary42, 5000.0, 75.0, 180.0).
 threshold(canary42, maximum_error_rate, 0.01).
 threshold(canary42, maximum_p95_latency_ms, 200.0).
@@ -24,17 +30,17 @@ error_budget_exceeded(Release) :-
 rollback_recommended(Release) :-
   error_budget_exceeded(Release).
 
-triple(Release, errorRate, Rate) :-
+errorRate(Release, Rate) :-
   error_rate(Release, Rate).
 
-triple(Release, p95Latency_ms, P95Latency) :-
+p95Latency_ms(Release, P95Latency) :-
   canary(Release, _Requests, _Errors, P95Latency).
 
-triple(Release, latencyCheck, ok) :-
+latencyCheck(Release, ok) :-
   latency_ok(Release).
 
-triple(Release, status, rollback_recommended) :-
+status(Release, rollback_recommended) :-
   rollback_recommended(Release).
 
-triple(Release, reason, "canary error rate exceeds the allowed budget") :-
+reason(Release, "canary error rate exceeds the allowed budget") :-
   rollback_recommended(Release).

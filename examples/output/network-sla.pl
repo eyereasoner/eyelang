@@ -1,4 +1,4 @@
-triple(edge_path, endToEndLatency_ms, 47.0).
-triple(edge_path, reason, "path latency including jitter is below the SLA limit").
-triple(edge_path, slaLimit_ms, 50.0).
-triple(edge_path, status, sla_compliant).
+endToEndLatency_ms(edge_path, 47.0).
+reason(edge_path, "path latency including jitter is below the SLA limit").
+slaLimit_ms(edge_path, 50.0).
+status(edge_path, sla_compliant).

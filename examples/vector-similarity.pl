@@ -1,5 +1,10 @@
 % Vector dot product, Euclidean norm, and cosine similarity.
 
+materialize(dotProduct, 2).
+materialize(normA, 2).
+materialize(normB, 2).
+materialize(cosineSimilarity, 2).
+
 vector(pair1, a, [1.0, 2.0, 3.0]).
 vector(pair1, b, [4.0, -5.0, 6.0]).
 
@@ -28,18 +33,18 @@ cosine_similarity(Case, Similarity) :-
   mul(NormA, NormB, Denominator),
   div(Dot, Denominator, Similarity).
 
-triple(Case, dotProduct, Dot) :-
+dotProduct(Case, Dot) :-
   vector(Case, a, A),
   vector(Case, b, B),
   dot(A, B, Dot).
 
-triple(Case, normA, NormA) :-
+normA(Case, NormA) :-
   vector(Case, a, A),
   norm(A, NormA).
 
-triple(Case, normB, NormB) :-
+normB(Case, NormB) :-
   vector(Case, b, B),
   norm(B, NormB).
 
-triple(Case, cosineSimilarity, Similarity) :-
+cosineSimilarity(Case, Similarity) :-
   cosine_similarity(Case, Similarity).

@@ -6,6 +6,12 @@
 % searching a finite complex-integer candidate grid.  The two cases below are
 % the same quartic polynomials used by the Eyelet source.
 
+materialize(polynomial, 2).
+materialize(root, 2).
+materialize(reconstructedPolynomial, 2).
+materialize(reconstructionMatches, 2).
+materialize(allRootsVerified, 2).
+
 case(real_quartic).
 case(complex_quartic).
 
@@ -96,20 +102,16 @@ reconstructed(Case, Coeffs) :-
   known_roots(Case, Roots),
   poly_from_roots(Roots, Coeffs).
 
-triple(Case, polynomial, Coeffs) :-
-  polynomial(Case, Coeffs).
 
-triple(Case, root, Root) :-
-  root(Case, Root).
 
-triple(Case, reconstructedPolynomial, Coeffs) :-
+reconstructedPolynomial(Case, Coeffs) :-
   reconstructed(Case, Coeffs).
 
-triple(Case, reconstructionMatches, true) :-
+reconstructionMatches(Case, true) :-
   polynomial(Case, Coeffs),
   reconstructed(Case, Coeffs).
 
-triple(Case, allRootsVerified, true) :-
+allRootsVerified(Case, true) :-
   known_roots(Case, Roots),
   all_roots_verify(Case, Roots).
 
