@@ -8,7 +8,7 @@ Programs write relations directly, for example `ancestor(pat, emma)` or `status(
 
 Current version: see [`VERSION`](VERSION).
 
-Try it in the [browser playground](https://eyereasoner.github.io/eyelog/playground).
+Try it in the [browser playground](https://eyereasoner.github.io/eyelog/playground). The playground includes run options equivalent to CLI `--query` and `--explain`.
 
 ## Quick start
 

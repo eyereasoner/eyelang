@@ -209,7 +209,7 @@ For a release:
 2. update `README.md`, `HANDBOOK.md`, `SPEC.md`, and release notes;
 3. regenerate golden outputs if behavior changed;
 4. run `make test`;
-5. build browser assets if publishing the playground.
+5. build browser assets if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL` and `--explain`.
 
 ## 8. Performance notes
 

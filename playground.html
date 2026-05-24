@@ -179,6 +179,22 @@
       margin-top: 10px;
     }
     .query-row input { width: 100%; }
+    .run-options {
+      margin-top: 10px;
+      align-items: flex-start;
+    }
+    .command-preview {
+      display: block;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      flex: 1 1 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
     .status { min-height: 1.4em; color: var(--muted); font-size: 0.92rem; }
     .status.ok { color: var(--ok); }
     .status.error { color: var(--danger); }
@@ -240,7 +256,7 @@
   <header>
     <h1>Eyelog Playground</h1>
     <p class="lead">Edit an Eyelog program, run it entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
-    <p class="meta"><span id="versionBadge" class="version-badge">version 0.5.20</span></p>
+    <p class="meta"><span id="versionBadge" class="version-badge">version 1.0.0</span></p>
   </header>
 
   <main class="stack">
@@ -273,6 +289,10 @@
           <label for="queryInput">Optional <code>--query</code> goal</label>
           <input id="queryInput" type="text" placeholder="ancestor(pat, X)" spellcheck="false">
         </div>
+        <div class="toolbar run-options">
+          <label class="row"><input id="explainToggle" type="checkbox"> include <code>--explain</code> proof output</label>
+          <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">eyelog input.pl</code>
+        </div>
         <div class="toolbar">
           <button id="runButton" class="primary" type="button">Run Eyelog</button>
           <button id="stopButton" type="button" disabled>Stop</button>
@@ -280,7 +300,7 @@
           <button id="clearSavedButton" type="button">Clear autosave</button>
           <span id="status" class="status" role="status">Idle.</span>
         </div>
-        <p class="small">The playground concatenates loaded background programs before the editor contents. Output without a query is the sorted set of new derived relation facts, matching the CLI default.</p>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and explain toggle like CLI <code>--query</code> and <code>--explain</code>. Output without a query is the sorted set of new derived relation facts, matching the CLI default.</p>
       </div>
     </section>
 
@@ -416,11 +436,13 @@
   "zebra",
 ];
     const DEFAULT_PROGRAM = "% Socrates is mortal.\n\nmaterialize(type, 2).\nmaterialize(is, 2).\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\nis(test, true) :-\n  type(socrates, mortal).";
-    const STORAGE_KEY = 'eyelog.playground.v2';
+    const STORAGE_KEY = 'eyelog.playground.v3';
 
     const programInput = document.getElementById('programInput');
     const programHighlight = document.getElementById('programHighlight');
     const queryInput = document.getElementById('queryInput');
+    const explainToggle = document.getElementById('explainToggle');
+    const commandPreview = document.getElementById('commandPreview');
     const exampleSelect = document.getElementById('exampleSelect');
     const loadExampleButton = document.getElementById('loadExampleButton');
     const resetButton = document.getElementById('resetButton');
@@ -628,10 +650,12 @@
 
     function saveState() {
       clearTimeout(saveTimer);
+      updateCommandPreview();
       saveTimer = setTimeout(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           program: programInput.value,
           query: queryInput.value,
+          explain: explainToggle.checked,
           backgroundPrograms,
           currentProgramUrl,
         }));
@@ -652,12 +676,31 @@
       return new TextDecoder().decode(bytes);
     }
 
+    function parseFlag(value) {
+      return /^(1|true|yes|on)$/i.test(String(value || ''));
+    }
+
+    function shellQuote(text) {
+      if (!text) return "''";
+      return "'" + String(text).replace(/'/g, "'\\''") + "'";
+    }
+
+    function updateCommandPreview() {
+      const args = ['eyelog'];
+      if (explainToggle.checked) args.push('--explain');
+      if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
+      args.push(currentProgramStillMatchesUrl() ? currentProgramUrl : 'input.pl');
+      commandPreview.textContent = args.join(' ');
+    }
+
     async function restoreState() {
       const searchParams = new URLSearchParams(location.search);
       if (searchParams.has('url')) {
         const sourceUrl = searchParams.get('url');
         urlInput.value = sourceUrl;
         queryInput.value = searchParams.get('query') || searchParams.get('q') || '';
+        explainToggle.checked = parseFlag(searchParams.get('explain') || searchParams.get('e'));
+        updateCommandPreview();
         try {
           await loadIntoEditor(sourceUrl, false, { save: false });
           setStatus(`Loaded ${sourceUrl}.`, 'ok');
@@ -672,6 +715,7 @@
         try {
           setProgramValue(decodePayload(params.get('p')));
           queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
+          explainToggle.checked = parseFlag(params.get('e'));
           currentProgramUrl = null;
           currentProgramSource = null;
           setStatus('Loaded shared program.', 'ok');
@@ -681,16 +725,18 @@
         }
       }
       try {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelog.playground.v1');
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelog.playground.v2') || localStorage.getItem('eyelog.playground.v1');
         if (raw) {
           const payload = JSON.parse(raw);
           setProgramValue(payload.program || DEFAULT_PROGRAM);
           queryInput.value = payload.query || '';
+          explainToggle.checked = Boolean(payload.explain);
           backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
           currentProgramUrl = payload.currentProgramUrl || null;
           currentProgramSource = currentProgramUrl ? programInput.value : null;
           if (currentProgramUrl) urlInput.value = currentProgramUrl;
           updateBackgroundNote();
+          updateCommandPreview();
           setStatus('Restored autosave.', 'ok');
           return;
         }
@@ -698,8 +744,10 @@
         console.warn(error);
       }
       setProgramValue(DEFAULT_PROGRAM);
+      explainToggle.checked = false;
       currentProgramUrl = null;
       currentProgramSource = null;
+      updateCommandPreview();
     }
 
 
@@ -735,6 +783,7 @@
         currentProgramUrl = url;
         currentProgramSource = programInput.value;
         urlInput.value = url;
+        updateCommandPreview();
       }
       setStatus(`Loaded ${url}.`, 'ok');
       if (options.save !== false) saveState();
@@ -925,6 +974,7 @@
         id: currentRunId,
         program: combinedProgram(),
         query: queryInput.value,
+        explain: explainToggle.checked,
       });
     }
 
@@ -979,10 +1029,12 @@
         url.search = '';
         url.searchParams.set('url', currentProgramUrl);
         if (queryInput.value.trim()) url.searchParams.set('query', queryInput.value.trim());
+        if (explainToggle.checked) url.searchParams.set('explain', '1');
       } else {
         const params = new URLSearchParams();
         params.set('p', encodePayload(programInput.value));
         if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
+        if (explainToggle.checked) params.set('e', '1');
         url.search = '';
         url.hash = params.toString();
       }
@@ -995,11 +1047,13 @@
     resetButton.addEventListener('click', () => {
       setProgramValue(DEFAULT_PROGRAM);
       queryInput.value = '';
+      explainToggle.checked = false;
       backgroundPrograms = [];
       currentProgramUrl = null;
       currentProgramSource = null;
       urlInput.value = '';
       updateBackgroundNote();
+      updateCommandPreview();
       setOutput(stdoutOutput, '(no output yet)');
       setOutput(stderrOutput, '(no errors)');
       setStatus('Reset to the built-in Socrates example.', 'ok');
@@ -1025,6 +1079,7 @@
     copyLinkButton.addEventListener('click', () => copyShareLink().catch(error => setStatus(`Could not copy link: ${error.message}`, 'error')));
     clearSavedButton.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('eyelog.playground.v2');
       localStorage.removeItem('eyelog.playground.v1');
       setStatus('Autosave cleared.', 'ok');
     });
@@ -1033,6 +1088,7 @@
     programInput.addEventListener('input', () => { updateProgramHighlight(); markProgramEdited(); });
     programInput.addEventListener('scroll', updateProgramHighlight);
     queryInput.addEventListener('input', saveState);
+    explainToggle.addEventListener('change', saveState);
 
     async function initializePage() {
       updateProgramHighlight();
@@ -1040,6 +1096,7 @@
       setOutput(stderrOutput, '(no errors)');
       loadVersion();
       await restoreState();
+      updateCommandPreview();
       if (location.protocol === 'file:') {
         fileProtocolNotice.classList.remove('hidden');
         setStatus('Serve over HTTP before running.', 'error');
