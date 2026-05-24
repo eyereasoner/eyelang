@@ -10,6 +10,7 @@ BROWSER_DIR = dist/browser
 BROWSER_JS = $(BROWSER_DIR)/eyelog.mjs
 BROWSER_WASM = $(BROWSER_DIR)/eyelog.wasm
 BROWSER_STACK_SIZE ?= 16777216
+TEST_SUITES := $(filter-out test check,$(MAKECMDGOALS))
 
 all: cli browser
 
@@ -38,11 +39,13 @@ $(BROWSER_JS): src/eyelog.c VERSION Makefile
 rebuild: clean all
 
 check test: clean cli
-	./test/run.sh
-	./conformance/run.sh
+	./test/run.sh $(TEST_ARGS) $(TEST_SUITES)
 
-conformance: cli
-	./conformance/run.sh
+api examples conformance core extension:
+	@if [ -z "$(filter test check,$(MAKECMDGOALS))" ]; then \
+		echo "Use: make test $@"; \
+		exit 2; \
+	fi
 
 serve: browser
 	$(PYTHON) -m http.server 8000
@@ -50,4 +53,4 @@ serve: browser
 clean:
 	rm -f $(BIN) $(BROWSER_JS) $(BROWSER_WASM)
 
-.PHONY: all cli browser conformance serve check test rebuild clean
+.PHONY: all cli browser serve check test rebuild clean api examples conformance core extension

@@ -58,16 +58,18 @@ ancestor(pat, jan).
 
 ## Tests and conformance
 
-Run the implementation tests and the language conformance suite:
+Run the full test suite, which starts with the language conformance cases and then runs the API and example suites:
 
 ```sh
 make test
 ```
 
-Run only the conformance suite from [`SPEC.md`](SPEC.md):
+Run only one suite when you are iterating:
 
 ```sh
-make conformance
+make test conformance
+make test api
+make test examples
 ```
 
 ## Read further

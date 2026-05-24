@@ -9,29 +9,29 @@ The suite is intentionally file-based so other implementations can run the same 
 - optional `conformance/cases/<profile>/<name>.explain` — presence means pass `--explain`;
 - `conformance/expected/<profile>/<name>.out` — exact expected standard output.
 
-Run all cases with:
+Run all conformance cases with:
 
 ```sh
-make conformance
+make test conformance
 ```
 
 or directly:
 
 ```sh
-./conformance/run.sh
+./test/run.sh conformance
 ```
 
 Run a single profile with:
 
 ```sh
-./conformance/run.sh core
-./conformance/run.sh extension
+./test/run.sh core
+./test/run.sh extension
 ```
 
 Regenerate expected outputs for the current implementation with:
 
 ```sh
-./conformance/run.sh --accept
+./test/run.sh --accept conformance
 ```
 
 ## Profiles

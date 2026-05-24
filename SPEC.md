@@ -426,7 +426,7 @@ The C implementation also supports:
 - browser execution through the WebAssembly build.
 
 
-Conformance cases for these profiles live in the repository under `conformance/`. The suite is executable with `make conformance` and uses exact expected standard output files so independent implementations can compare behavior case by case.
+Conformance cases for these profiles live in the repository under `conformance/`. They are run by `make test` before the API and example suites, and can be run alone with `make test conformance`. The cases use exact expected standard output files so independent implementations can compare behavior case by case.
 
 ## 13. Relationship to ISO Prolog
 

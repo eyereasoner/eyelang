@@ -184,18 +184,20 @@ for f in examples/*.pl; do
 done
 ```
 
-Run the test suite:
+Run the full test suite:
 
 ```sh
 make test
 ```
 
-The test suite checks the CLI, stdin and URL inputs, query parsing, explanation output, formula utilities, selected benchmark queries, every example against its golden output, and the conformance cases derived from `SPEC.md`.
+The test suite runs in this order: Conformance, API, Examples. Each section prints its own subtotal, followed by a grand total. The suite checks the CLI, stdin and URL inputs, query parsing, explanation output, formula utilities, selected benchmark queries, every example against its golden output, and the conformance cases derived from `SPEC.md`.
 
-Run only the conformance suite:
+Run only one suite when you are iterating:
 
 ```sh
-make conformance
+make test conformance
+make test api
+make test examples
 ```
 
 The conformance suite lives in [`conformance/`](conformance/) and is split into `core` and `extension` profiles matching `SPEC.md`. Each case is a small program with optional query text and an exact expected stdout file, so other implementations can reuse the same cases.
@@ -207,7 +209,8 @@ Common targets:
 ```sh
 make cli       # native CLI only
 make browser   # browser assets through Emscripten
-make test      # clean build plus tests
+make test      # clean build plus all tests
+make test api  # clean build plus only the API suite
 make clean
 ```
 
