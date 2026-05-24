@@ -39,6 +39,10 @@ rebuild: clean all
 
 check test: clean cli
 	./test/run.sh
+	./conformance/run.sh
+
+conformance: cli
+	./conformance/run.sh
 
 serve: browser
 	$(PYTHON) -m http.server 8000
@@ -46,4 +50,4 @@ serve: browser
 clean:
 	rm -f $(BIN) $(BROWSER_JS) $(BROWSER_WASM)
 
-.PHONY: all cli browser serve check test rebuild clean
+.PHONY: all cli browser conformance serve check test rebuild clean

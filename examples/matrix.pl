@@ -43,16 +43,10 @@ get_v(I, J, N, Flat, V) :-
   add(IN, J, E),
   nth0(E, Flat, V).
 
-set_nth0(0, [_Old|Rest], [V|Rest], V).
-set_nth0(N, [H|Rest], [H|NewRest], V) :-
-  gt(N, 0),
-  sub(N, 1, N1),
-  set_nth0(N1, Rest, NewRest, V).
-
 set_v(I, J, N, Flat, NewFlat, V) :-
   mul(I, N, IN),
   add(IN, J, E),
-  set_nth0(E, Flat, NewFlat, V).
+  set_nth0(E, Flat, V, NewFlat).
 
 % --- basic matrix operations ------------------------------------------------
 

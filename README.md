@@ -55,7 +55,22 @@ ancestor(pat, emma).
 ancestor(pat, jan).
 ```
 
+
+## Tests and conformance
+
+Run the implementation tests and the language conformance suite:
+
+```sh
+make test
+```
+
+Run only the conformance suite from [`SPEC.md`](SPEC.md):
+
+```sh
+make conformance
+```
+
 ## Read further
 
 Read the [language specification](SPEC.md) for the normative Prolog-like language definition.
-Read the [handbook](HANDBOOK.md) for examples, browser use, tests, release workflow, performance notes, and the relation-style output model.
+Read the [handbook](HANDBOOK.md) for examples, browser use, tests, conformance, release workflow, performance notes, and the relation-style output model.

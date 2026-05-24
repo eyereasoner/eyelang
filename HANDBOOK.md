@@ -172,7 +172,7 @@ Representative files:
 - [`bmi.pl`](examples/bmi.pl), [`matrix.pl`](examples/matrix.pl), [`sudoku.pl`](examples/sudoku.pl), and [`turing.pl`](examples/turing.pl) — arithmetic, matrix, finite-domain, and list-processing demonstrations.
 - [`delfour.pl`](examples/delfour.pl), [`odrl-dpv-risk-ranked.pl`](examples/odrl-dpv-risk-ranked.pl), and [`odrl-dpv-healthcare-risk-ranked.pl`](examples/odrl-dpv-healthcare-risk-ranked.pl) — larger policy-style examples using formula data and focused `materialize/2` output.
 
-## 6. Golden outputs and tests
+## 6. Golden outputs, tests, and conformance
 
 Golden outputs live in [`examples/output`](examples/output). Regenerate them after an intentional output change:
 
@@ -190,7 +190,15 @@ Run the test suite:
 make test
 ```
 
-The test suite checks the CLI, stdin and URL inputs, query parsing, explanation output, formula utilities, selected benchmark queries, and every example against its golden output.
+The test suite checks the CLI, stdin and URL inputs, query parsing, explanation output, formula utilities, selected benchmark queries, every example against its golden output, and the conformance cases derived from `SPEC.md`.
+
+Run only the conformance suite:
+
+```sh
+make conformance
+```
+
+The conformance suite lives in [`conformance/`](conformance/) and is split into `core` and `extension` profiles matching `SPEC.md`. Each case is a small program with optional query text and an exact expected stdout file, so other implementations can reuse the same cases.
 
 ## 7. Development and release
 
@@ -206,7 +214,7 @@ make clean
 For a release:
 
 1. update `VERSION`;
-2. update `README.md`, `HANDBOOK.md`, `SPEC.md`, and release notes;
+2. update `README.md`, `HANDBOOK.md`, and `SPEC.md`;
 3. regenerate golden outputs if behavior changed;
 4. run `make test`;
 5. build browser assets if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL` and `--explain`.

@@ -2689,11 +2689,11 @@ static bool builtin_set_nth0(Term *goal, Env *env, SolutionCallback callback, vo
 
   Term **updated = xmalloc(sizeof(Term *) * len);
   for (int i = 0; i < len; i++) updated[i] = items[i];
-  updated[index] = goal->args[3];
+  updated[index] = goal->args[2];
 
   Term *result = list_from_items(updated, 0, len, empty_list_term());
   Env next = clone_env(env);
-  if (unify(goal->args[2], result, &next)) call_once(&next, callback, user_data);
+  if (unify(goal->args[3], result, &next)) call_once(&next, callback, user_data);
 
   free(updated);
   free(items);

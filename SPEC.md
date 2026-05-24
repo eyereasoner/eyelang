@@ -425,6 +425,9 @@ The C implementation also supports:
 - stdin, file, and URL inputs in the native CLI;
 - browser execution through the WebAssembly build.
 
+
+Conformance cases for these profiles live in the repository under `conformance/`. The suite is executable with `make conformance` and uses exact expected standard output files so independent implementations can compare behavior case by case.
+
 ## 13. Relationship to ISO Prolog
 
 Eyelog borrows familiar Prolog syntax and Horn-clause execution but is not ISO Prolog. Notable differences include:
