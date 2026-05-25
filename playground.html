@@ -233,6 +233,116 @@
     .hidden { display: none !important; }
     .small { font-size: 0.86rem; color: var(--muted); }
 
+
+    .editor-shell {
+      display: grid;
+      grid-template-columns: 4.2rem minmax(0, 1fr);
+      height: 56vh;
+      min-height: 360px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--code-bg);
+      overflow: hidden;
+    }
+    .line-gutter {
+      padding: 14px 10px 14px 6px;
+      border-right: 1px solid var(--border);
+      background: var(--panel-soft);
+      color: #475467;
+      text-align: right;
+      line-height: 1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95rem;
+      white-space: pre;
+      overflow: hidden;
+      user-select: none;
+      font-variant-numeric: tabular-nums;
+    }
+    .line-gutter .error-line { color: var(--danger); font-weight: 700; }
+    .editor-code { position: relative; min-width: 0; height: 100%; background: var(--code-bg); overflow: hidden; }
+    .program-syntax,
+    .editor-shell textarea.program-textarea {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      margin: 0;
+      padding: 14px;
+      border: 0;
+      border-radius: 0;
+      line-height: 1.45;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95rem;
+      tab-size: 2;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+    .program-syntax {
+      z-index: 1;
+      pointer-events: none;
+      color: var(--code-text);
+      background: transparent;
+      /* Keep the highlighted text as a full-height document layer.
+         The parent clips the viewport; this layer itself must not clip,
+         otherwise longer programs disappear after the first editor screen. */
+      bottom: auto;
+      min-height: 100%;
+      height: auto;
+      overflow: visible;
+      box-sizing: border-box;
+    }
+    .editor-shell textarea.program-textarea {
+      z-index: 3;
+      display: block;
+      resize: none;
+      background: transparent;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      caret-color: var(--code-text);
+      outline: none;
+      overflow: auto;
+      overflow-x: hidden;
+    }
+    .editor-shell textarea.program-textarea::selection {
+      background: rgba(37, 99, 235, 0.22);
+    }
+    .error-band {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      right: 0;
+      height: calc(1em * 1.45);
+      background: rgba(244, 63, 94, 0.16);
+      border-left: 4px solid var(--danger);
+      pointer-events: none;
+    }
+    .output-shell {
+      display: grid;
+      grid-template-columns: 4.2rem minmax(0, 1fr);
+      min-height: 280px;
+      max-height: 60vh;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--code-bg);
+      overflow: hidden;
+    }
+    .output-shell pre {
+      min-height: 280px;
+      max-height: 60vh;
+      border: 0;
+      border-radius: 0;
+      padding: 14px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow: auto;
+      user-select: text;
+    }
+    .output-shell .line-gutter { max-height: 60vh; }
+    .stderr-label { color: var(--danger); font-weight: 700; }
+    .stderr-text { color: var(--danger); }
+
     @media (max-width: 620px) {
       header, main { width: min(100vw - 14px, 920px); }
       header { padding-top: 18px; }
@@ -256,7 +366,7 @@
   <header>
     <h1>Eyelog Playground</h1>
     <p class="lead">Edit an Eyelog program, run it entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
-    <p class="meta"><span id="versionBadge" class="version-badge">version 1.0.0</span></p>
+    <p class="meta"><span id="versionBadge" class="version-badge">version 1.0.15</span></p>
   </header>
 
   <main class="stack">
@@ -281,9 +391,13 @@
         <div id="backgroundNote" class="background-note hidden"></div>
       </div>
       <div class="card-body">
-        <div class="editor-shell">
-          <pre id="programHighlight" class="syntax-layer" aria-hidden="true"></pre>
-          <textarea id="programInput" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Editable Eyelog program"></textarea>
+        <div class="editor-shell" id="programEditor">
+          <div id="programGutter" class="line-gutter" aria-hidden="true">1</div>
+          <div class="editor-code">
+            <div id="programSyntax" class="program-syntax" aria-hidden="true"></div>
+            <div id="programErrorBand" class="error-band hidden" aria-hidden="true"></div>
+            <textarea id="programInput" class="program-textarea" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="soft" aria-label="Editable Eyelog program"></textarea>
+          </div>
         </div>
         <div class="query-row">
           <label for="queryInput">Optional <code>--query</code> goal</label>
@@ -307,14 +421,12 @@
     <section class="card">
       <div class="card-header row output-header">
         <h2>Output</h2>
-        <div class="output-tabs" aria-label="Output view">
-          <button id="stdoutTab" class="active" type="button">stdout</button>
-          <button id="stderrTab" type="button">stderr</button>
-        </div>
       </div>
       <div class="card-body">
-        <pre id="stdoutOutput" class="output-view">(no output yet)</pre>
-        <pre id="stderrOutput" class="output-view hidden">(no errors)</pre>
+        <div class="output-shell">
+          <div id="outputGutter" class="line-gutter" aria-hidden="true">1</div>
+          <pre id="combinedOutput" class="output-view">(no output yet)</pre>
+        </div>
       </div>
     </section>
   </main>
@@ -439,7 +551,9 @@
     const STORAGE_KEY = 'eyelog.playground.v3';
 
     const programInput = document.getElementById('programInput');
-    const programHighlight = document.getElementById('programHighlight');
+    const programSyntax = document.getElementById('programSyntax');
+    const programGutter = document.getElementById('programGutter');
+    const programErrorBand = document.getElementById('programErrorBand');
     const queryInput = document.getElementById('queryInput');
     const explainToggle = document.getElementById('explainToggle');
     const commandPreview = document.getElementById('commandPreview');
@@ -455,10 +569,8 @@
     const copyLinkButton = document.getElementById('copyLinkButton');
     const clearSavedButton = document.getElementById('clearSavedButton');
     const statusEl = document.getElementById('status');
-    const stdoutOutput = document.getElementById('stdoutOutput');
-    const stderrOutput = document.getElementById('stderrOutput');
-    const stdoutTab = document.getElementById('stdoutTab');
-    const stderrTab = document.getElementById('stderrTab');
+    const combinedOutput = document.getElementById('combinedOutput');
+    const outputGutter = document.getElementById('outputGutter');
     const fileProtocolNotice = document.getElementById('fileProtocolNotice');
     const versionBadge = document.getElementById('versionBadge');
 
@@ -491,12 +603,8 @@
       statusEl.className = `status ${kind}`;
     }
 
-    function showTab(which) {
-      const stdout = which === 'stdout';
-      stdoutOutput.classList.toggle('hidden', !stdout);
-      stderrOutput.classList.toggle('hidden', stdout);
-      stdoutTab.classList.toggle('active', stdout);
-      stderrTab.classList.toggle('active', !stdout);
+    function showTab(_) {
+      // Output is a single combined window. Kept as a no-op for older call sites.
     }
 
     function escapeHtml(text) {
@@ -611,19 +719,132 @@
       return html || ' ';
     }
 
+    let currentErrorLine = 0;
+
+    function lineCount(text) {
+      return Math.max(1, String(text || '').split('\n').length);
+    }
+
+    function renderLineNumbers(target, count, errorLine = 0) {
+      let html = '';
+      for (let i = 1; i <= count; i++) {
+        const escaped = String(i);
+        html += i === errorLine ? `<span class="error-line">${escaped}</span>` : escaped;
+        if (i < count) html += '\n';
+      }
+      target.innerHTML = html;
+    }
+
+    function updateProgramLineNumbers() {
+      renderLineNumbers(programGutter, lineCount(programInput.value), currentErrorLine);
+      programGutter.scrollTop = programInput.scrollTop;
+      updateErrorBand();
+    }
+
+    function updateErrorBand() {
+      if (!currentErrorLine) {
+        programErrorBand.classList.add('hidden');
+        return;
+      }
+      const style = getComputedStyle(programInput);
+      const lineHeight = parseFloat(style.lineHeight) || (parseFloat(style.fontSize) || 16) * 1.45;
+      const top = parseFloat(style.paddingTop || '0') + (currentErrorLine - 1) * lineHeight - programInput.scrollTop;
+      programErrorBand.style.top = `${top}px`;
+      programErrorBand.style.height = `${lineHeight}px`;
+      programErrorBand.classList.remove('hidden');
+    }
+
+    function clearErrorLine() {
+      currentErrorLine = 0;
+      updateProgramLineNumbers();
+    }
+
+    function markErrorLine(line) {
+      const count = lineCount(programInput.value);
+      const parsed = Number(line);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        clearErrorLine();
+        return;
+      }
+      currentErrorLine = Math.min(count, Math.max(1, Math.floor(parsed)));
+      updateProgramLineNumbers();
+      const style = getComputedStyle(programInput);
+      const lineHeight = parseFloat(style.lineHeight) || (parseFloat(style.fontSize) || 16) * 1.45;
+      programInput.scrollTop = Math.max(0, (currentErrorLine - 3) * lineHeight);
+      updateProgramLineNumbers();
+      const lines = programInput.value.split('\n');
+      let start = 0;
+      for (let i = 0; i < currentErrorLine - 1; i++) start += lines[i].length + 1;
+      const end = start + (lines[currentErrorLine - 1] || '').length;
+      try { programInput.setSelectionRange(start, end); } catch (_) {}
+    }
+
+    function updateProgramSyntax() {
+      if (!programSyntax) return;
+      programSyntax.innerHTML = highlightProlog(programInput.value || ' ');
+      // Match the textarea's scrollable content height. Without this, the
+      // passive syntax layer can be clipped to the visible editor height,
+      // making everything below the first screen look blank.
+      const scrollHeight = Math.max(programInput.scrollHeight, programInput.clientHeight);
+      programSyntax.style.minHeight = `${scrollHeight}px`;
+      programSyntax.style.transform = `translateY(${-programInput.scrollTop}px)`;
+    }
+
     function updateProgramHighlight() {
-      programHighlight.innerHTML = `${highlightProlog(programInput.value)}\n`;
-      programHighlight.scrollTop = programInput.scrollTop;
-      programHighlight.scrollLeft = programInput.scrollLeft;
+      updateProgramSyntax();
+      updateProgramLineNumbers();
     }
 
     function setProgramValue(value) {
       programInput.value = value;
+      clearErrorLine();
       updateProgramHighlight();
     }
 
-    function setOutput(element, text) {
-      element.innerHTML = highlightProlog(text);
+    function cleanStderr(text) {
+      const raw = String(text || '').trim();
+      if (!raw) return '';
+      if (/Maximum call stack size exceeded|call stack|stack overflow/i.test(raw)) {
+        return 'Eyelog exhausted the browser WebAssembly stack. Try a smaller example in the browser, or run this program with the native CLI.';
+      }
+      return raw;
+    }
+
+    function extractDiagnosticLine(text) {
+      const value = String(text || '');
+      const patterns = [
+        /(?:line|Line)\s+(\d+)/,
+        /:(\d+):\d+:/,
+        /syntax[^\n]*?(\d+)/i,
+        /parse[^\n]*?(\d+)/i,
+      ];
+      for (const pattern of patterns) {
+        const match = value.match(pattern);
+        if (match) return Number(match[1]);
+      }
+      return 0;
+    }
+
+    function combinedText(stdout, stderr) {
+      const out = String(stdout || '').trimEnd();
+      const err = cleanStderr(stderr);
+      if (out && err) return `${out}\n\nstderr\n${err}`;
+      if (out) return out;
+      if (err) return `stderr\n${err}`;
+      return '(no output)';
+    }
+
+    function setOutputText(text) {
+      combinedOutput.innerHTML = highlightProlog(String(text || ''));
+      renderLineNumbers(outputGutter, lineCount(String(text || '')));
+      outputGutter.scrollTop = combinedOutput.scrollTop;
+    }
+
+    function setRunOutput(stdout, stderr) {
+      const text = combinedText(stdout, stderr);
+      setOutputText(text);
+      const line = extractDiagnosticLine(stderr) || extractDiagnosticLine(stdout);
+      if (line) markErrorLine(line);
     }
 
     function updateBackgroundNote() {
@@ -867,9 +1088,7 @@
         workerReady = false;
         workerLoadError = data.stderr || 'Browser build could not be loaded.';
         preloadReject?.(new Error(workerLoadError));
-        setOutput(stdoutOutput, '(no stdout)');
-        setOutput(stderrOutput, buildMissingMessage(new Error(workerLoadError)));
-        showTab('stderr');
+        setRunOutput('', buildMissingMessage(new Error(workerLoadError)));
         setStatus('Browser build could not be loaded.', 'error');
         setRunning(false);
         return;
@@ -878,8 +1097,7 @@
       if (data.type !== 'result' || data.id !== currentRunId) return;
 
       const elapsed = Math.max(1, Math.round(performance.now() - runStarted));
-      setOutput(stdoutOutput, data.stdout || '(no stdout)');
-      setOutput(stderrOutput, data.stderr || '(no stderr)');
+      setRunOutput(data.stdout || '', data.stderr || '');
       if (data.exitCode === 0) {
         setStatus(`Finished in ${elapsed} ms.`, 'ok');
       } else {
@@ -891,9 +1109,7 @@
     }
 
     function handleWorkerError(error) {
-      setOutput(stdoutOutput, '(no stdout)');
-      setOutput(stderrOutput, formatWorkerError(error));
-      showTab('stderr');
+      setRunOutput('', formatWorkerError(error));
       setStatus('Browser build could not be loaded.', 'error');
       currentRunId = null;
       workerReady = false;
@@ -935,9 +1151,7 @@
 
     async function runEyelog() {
       if (location.protocol === 'file:') {
-        setOutput(stdoutOutput, '(no stdout)');
-        setOutput(stderrOutput, localFileMessage());
-        showTab('stderr');
+        setRunOutput('', localFileMessage());
         setStatus('Serve the playground over HTTP first.', 'error');
         return;
       }
@@ -947,9 +1161,7 @@
 
       if (!workerReady) {
         if (workerLoadError) {
-          setOutput(stdoutOutput, '(no stdout)');
-          setOutput(stderrOutput, buildMissingMessage(new Error(workerLoadError)));
-          showTab('stderr');
+          setRunOutput('', buildMissingMessage(new Error(workerLoadError)));
           setStatus('Browser build could not be loaded.', 'error');
           return;
         }
@@ -962,9 +1174,8 @@
       }
 
       runStarted = performance.now();
-      setOutput(stdoutOutput, 'Running…');
-      setOutput(stderrOutput, '(no errors)');
-      showTab('stdout');
+      clearErrorLine();
+      setOutputText('Running…');
       setStatus('Running Eyelog…');
       currentRunId = newRequestId();
       setRunning(true);
@@ -1054,8 +1265,7 @@
       urlInput.value = '';
       updateBackgroundNote();
       updateCommandPreview();
-      setOutput(stdoutOutput, '(no output yet)');
-      setOutput(stderrOutput, '(no errors)');
+      setOutputText('(no output yet)');
       setStatus('Reset to the built-in Socrates example.', 'ok');
       saveState();
     });
@@ -1083,17 +1293,15 @@
       localStorage.removeItem('eyelog.playground.v1');
       setStatus('Autosave cleared.', 'ok');
     });
-    stdoutTab.addEventListener('click', () => showTab('stdout'));
-    stderrTab.addEventListener('click', () => showTab('stderr'));
-    programInput.addEventListener('input', () => { updateProgramHighlight(); markProgramEdited(); });
+    programInput.addEventListener('input', () => { clearErrorLine(); updateProgramSyntax(); markProgramEdited(); });
     programInput.addEventListener('scroll', updateProgramHighlight);
+    combinedOutput.addEventListener('scroll', () => { outputGutter.scrollTop = combinedOutput.scrollTop; });
     queryInput.addEventListener('input', saveState);
     explainToggle.addEventListener('change', saveState);
 
     async function initializePage() {
       updateProgramHighlight();
-      setOutput(stdoutOutput, '(no output yet)');
-      setOutput(stderrOutput, '(no errors)');
+      setOutputText('(no output yet)');
       loadVersion();
       await restoreState();
       updateCommandPreview();
