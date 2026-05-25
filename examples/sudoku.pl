@@ -6,16 +6,8 @@
 % givens are rejected, and rows, columns, and 3x3 boxes are checked with
 % ordinary relations.
 
-materialize(name, 2).
-materialize(puzzleName, 2).
-materialize(puzzle, 2).
 materialize(solution, 2).
-materialize(status, 2).
-materialize(firstRow, 2).
-materialize(solvedBy, 2).
 
-memoize(solve, 2).
-memoize(solution, 2).
 
 name(case, "sudoku").
 puzzleName(case, classic).
@@ -1965,16 +1957,5 @@ solution(Name, Solution) :-
   puzzle(Name, Puzzle),
   once(solve(Puzzle, Solution)).
 
-solution(case, Solution) :-
-  puzzleName(case, Name),
-  solution(Name, Solution).
-
-status(case, ok) :-
-  puzzleName(case, Name),
-  solution(Name, _Solution).
-
-firstRow(case, Row) :-
-  puzzleName(case, Name),
-  solution(Name, [Row|_Rows]).
 
 solvedBy(case, generic_relations).
