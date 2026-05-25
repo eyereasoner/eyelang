@@ -26,6 +26,45 @@
 #define MAX_DEPTH 100000
 #define MAX_SOLUTIONS 10000000
 
+typedef struct SolverStats SolverStats;
+
+struct SolverStats {
+  long long solve_goals_calls;
+  long long solve_one_goal_calls;
+  long long solve_one_goal_uncached_calls;
+  long long completed_goal_lists;
+  long long unify_calls;
+  long long unify_pairs_processed;
+  long long deterministic_builtin_successes;
+  long long deterministic_builtin_failures;
+  long long deterministic_rule_expansions;
+  long long memo_replay_calls;
+  long long memo_answers_replayed;
+  int max_depth;
+  int max_goal_count;
+  int max_active_goals;
+  int current_solver_call_depth;
+  int max_solver_call_depth;
+};
+
+static SolverStats *global_stats = NULL;
+
+static void stats_note_depth(SolverStats *stats, int depth) {
+  if (stats && depth > stats->max_depth) stats->max_depth = depth;
+}
+
+static void stats_enter_solver(SolverStats *stats) {
+  if (!stats) return;
+  stats->current_solver_call_depth++;
+  if (stats->current_solver_call_depth > stats->max_solver_call_depth) {
+    stats->max_solver_call_depth = stats->current_solver_call_depth;
+  }
+}
+
+static void stats_leave_solver(SolverStats *stats) {
+  if (stats && stats->current_solver_call_depth > 0) stats->current_solver_call_depth--;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Utilities                                                                 */
 /* ------------------------------------------------------------------------- */
@@ -1128,6 +1167,8 @@ static void push_unify_pair(UnifyPair **stack, int *len, int *cap, Term *left, T
 }
 
 static bool unify(Term *left, Term *right, Env *env) {
+  if (global_stats) global_stats->unify_calls++;
+
   UnifyPair *stack = NULL;
   int len = 0;
   int cap = 0;
@@ -1135,6 +1176,7 @@ static bool unify(Term *left, Term *right, Env *env) {
   push_unify_pair(&stack, &len, &cap, left, right);
 
   while (len > 0) {
+    if (global_stats) global_stats->unify_pairs_processed++;
     UnifyPair pair = stack[--len];
     left = deref(pair.left, env);
     right = deref(pair.right, env);
@@ -1875,7 +1917,13 @@ struct Solver {
   int active_len;
   int active_cap;
   MemoEntry *memo;
+  SolverStats *stats;
 };
+
+static Solver make_solver(Program *program, SolverStats *stats) {
+  Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL, stats };
+  return solver;
+}
 
 static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
                         int depth, SolutionCallback callback, void *user_data);
@@ -1896,6 +1944,9 @@ static void push_active_goal(Solver *solver, Term *goal, Env *env) {
   solver->active_goals[solver->active_len] = goal;
   solver->active_envs[solver->active_len] = env;
   solver->active_len++;
+  if (solver->stats && solver->active_len > solver->stats->max_active_goals) {
+    solver->stats->max_active_goals = solver->active_len;
+  }
 }
 
 static void pop_active_goal(Solver *solver) {
@@ -3512,8 +3563,16 @@ static int append_conjunction_goals(Term *goal, Term **buffer, int count, int ca
 
 static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int rest_len,
                                     Env *env, int depth, SolutionCallback callback, void *user_data) {
-  if (depth > solver->max_depth) return;
-  if (solver->solutions_seen >= solver->solution_limit) return;
+  if (solver->stats) {
+    solver->stats->solve_one_goal_uncached_calls++;
+    stats_note_depth(solver->stats, depth);
+  }
+  stats_enter_solver(solver->stats);
+
+#define SOLVE_ONE_GOAL_UNCACHED_RETURN() do { stats_leave_solver(solver->stats); return; } while (0)
+
+  if (depth > solver->max_depth) SOLVE_ONE_GOAL_UNCACHED_RETURN();
+  if (solver->solutions_seen >= solver->solution_limit) SOLVE_ONE_GOAL_UNCACHED_RETURN();
 
   if (is_conjunction_goal(goal)) {
     Term **expanded = xmalloc_array(MAX_BODY, sizeof(Term *));
@@ -3522,18 +3581,18 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
     for (int i = 0; i < rest_len; i++) expanded[expanded_len + i] = rest[i];
     solve_goals(solver, expanded, expanded_len + rest_len, env, depth + 1, callback, user_data);
     free(expanded);
-    return;
+    SOLVE_ONE_GOAL_UNCACHED_RETURN();
   }
 
   Continuation cont = { solver, rest, rest_len, depth + 1, callback, user_data };
-  if (try_builtin(solver, goal, env, continue_after_builtin, &cont)) return;
+  if (try_builtin(solver, goal, env, continue_after_builtin, &cont)) SOLVE_ONE_GOAL_UNCACHED_RETURN();
 
-  if (goal->type != TERM_COMPOUND) return;
+  if (goal->type != TERM_COMPOUND) SOLVE_ONE_GOAL_UNCACHED_RETURN();
 
   PredicateGroup *group = find_group(solver->program, goal->name, goal->arity);
-  if (!group) return;
+  if (!group) SOLVE_ONE_GOAL_UNCACHED_RETURN();
 
-  if (active_variant_goal(solver, goal, env)) return;
+  if (active_variant_goal(solver, goal, env)) SOLVE_ONE_GOAL_UNCACHED_RETURN();
 
   ClauseCandidates candidates = select_clause_candidates(group, goal, env);
 
@@ -3569,6 +3628,8 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
       }
     }
   }
+#undef SOLVE_ONE_GOAL_UNCACHED_RETURN
+  stats_leave_solver(solver->stats);
 }
 
 typedef struct {
@@ -3586,7 +3647,9 @@ static void collect_memo_answer(Env *env, void *user_data) {
 static void replay_memo_answers(Solver *solver, Term *goal, Term **rest, int rest_len,
                                 Env *env, int depth, SolutionCallback callback,
                                 void *user_data, MemoEntry *entry) {
+  if (solver->stats) solver->stats->memo_replay_calls++;
   for (int i = 0; i < entry->len && solver->solutions_seen < solver->solution_limit; i++) {
+    if (solver->stats) solver->stats->memo_answers_replayed++;
     Env next = clone_env(env);
     bool ok = true;
     for (int j = 0; j < entry->arity; j++) {
@@ -3601,13 +3664,21 @@ static void replay_memo_answers(Solver *solver, Term *goal, Term **rest, int res
 
 static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len,
                            Env *env, int depth, SolutionCallback callback, void *user_data) {
-  if (depth > solver->max_depth) return;
-  if (solver->solutions_seen >= solver->solution_limit) return;
+  if (solver->stats) {
+    solver->stats->solve_one_goal_calls++;
+    stats_note_depth(solver->stats, depth);
+  }
+  stats_enter_solver(solver->stats);
+
+#define SOLVE_ONE_GOAL_RETURN() do { stats_leave_solver(solver->stats); return; } while (0)
+
+  if (depth > solver->max_depth) SOLVE_ONE_GOAL_RETURN();
+  if (solver->solutions_seen >= solver->solution_limit) SOLVE_ONE_GOAL_RETURN();
 
   PredicateGroup *group = goal->type == TERM_COMPOUND ? find_group(solver->program, goal->name, goal->arity) : NULL;
   if (!group || !group->memoized) {
     solve_one_goal_uncached(solver, goal, rest, rest_len, env, depth, callback, user_data);
-    return;
+    SOLVE_ONE_GOAL_RETURN();
   }
 
   bool has_bound = false;
@@ -3615,7 +3686,7 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
   if (!key || !has_bound) {
     free(key);
     solve_one_goal_uncached(solver, goal, rest, rest_len, env, depth, callback, user_data);
-    return;
+    SOLVE_ONE_GOAL_RETURN();
   }
 
   MemoEntry *entry = get_memo_entry(solver, key, goal->arity);
@@ -3623,12 +3694,12 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
 
   if (entry->complete) {
     replay_memo_answers(solver, goal, rest, rest_len, env, depth, callback, user_data, entry);
-    return;
+    SOLVE_ONE_GOAL_RETURN();
   }
 
   if (entry->computing) {
     solve_one_goal_uncached(solver, goal, rest, rest_len, env, depth, callback, user_data);
-    return;
+    SOLVE_ONE_GOAL_RETURN();
   }
 
   entry->computing = true;
@@ -3638,6 +3709,8 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
   entry->complete = true;
 
   replay_memo_answers(solver, goal, rest, rest_len, env, depth, callback, user_data, entry);
+#undef SOLVE_ONE_GOAL_RETURN
+  stats_leave_solver(solver->stats);
 }
 
 
@@ -3695,11 +3768,18 @@ static ExpandSingleResult try_expand_single_candidate_goal(Solver *solver, Term 
 
 static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
                         int depth, SolutionCallback callback, void *user_data) {
+  if (solver->stats) {
+    solver->stats->solve_goals_calls++;
+    stats_note_depth(solver->stats, depth);
+    if (goal_count > solver->stats->max_goal_count) solver->stats->max_goal_count = goal_count;
+  }
+  stats_enter_solver(solver->stats);
+
   Env current = clone_env(env);
   env = &current;
   Term **owned_goals = NULL;
 
-#define SOLVE_GOALS_RETURN() do { free(owned_goals); return; } while (0)
+#define SOLVE_GOALS_RETURN() do { free(owned_goals); stats_leave_solver(solver->stats); return; } while (0)
 
   while (goal_count > 0) {
     if (solver->solutions_seen >= solver->solution_limit) SOLVE_GOALS_RETURN();
@@ -3707,13 +3787,18 @@ static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
 
     Env next = { 0 };
     DeterministicBuiltinResult det = try_deterministic_builtin(solver, goals[0], env, &next);
-    if (det == DET_BUILTIN_FAILED) SOLVE_GOALS_RETURN();
+    if (det == DET_BUILTIN_FAILED) {
+      if (solver->stats) solver->stats->deterministic_builtin_failures++;
+      SOLVE_GOALS_RETURN();
+    }
     if (det == DET_BUILTIN_SUCCEEDED) {
+      if (solver->stats) solver->stats->deterministic_builtin_successes++;
       current = next;
       env = &current;
       goals++;
       goal_count--;
       depth++;
+      stats_note_depth(solver->stats, depth);
       continue;
     }
 
@@ -3724,13 +3809,16 @@ static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
                                                               &expanded, &expanded_len, &next);
     if (exp == EXPAND_FAILED) SOLVE_GOALS_RETURN();
     if (exp == EXPAND_SUCCEEDED) {
+      if (solver->stats) solver->stats->deterministic_rule_expansions++;
       free(owned_goals);
       owned_goals = expanded;
       current = next;
       env = &current;
       goals = owned_goals;
       goal_count = expanded_len;
+      if (solver->stats && goal_count > solver->stats->max_goal_count) solver->stats->max_goal_count = goal_count;
       depth++;
+      stats_note_depth(solver->stats, depth);
       continue;
     }
 
@@ -3740,11 +3828,13 @@ static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
 
   if (solver->solutions_seen < solver->solution_limit) {
     solver->solutions_seen++;
+    if (solver->stats) solver->stats->completed_goal_lists++;
     callback(env, user_data);
   }
 
 #undef SOLVE_GOALS_RETURN
   free(owned_goals);
+  stats_leave_solver(solver->stats);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3937,7 +4027,7 @@ static Term *generic_goal_for_group(PredicateGroup *group) {
   return new_compound(group->name, group->arity, args);
 }
 
-static void print_default_output(Program *program, bool explain) {
+static void print_default_output(Program *program, bool explain, SolverStats *stats) {
   Lines facts = { 0 };
   Lines lines = { 0 };
   bool has_materialize = program_has_materialize_declarations(program);
@@ -3952,7 +4042,7 @@ static void print_default_output(Program *program, bool explain) {
     }
     if (!group_has_rule(program, group)) continue;
 
-    Solver solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
+    Solver solver = make_solver(program, stats);
     Term *goal = generic_goal_for_group(group);
     Term *goals[1] = { goal };
     Env env = { 0 };
@@ -3967,12 +4057,32 @@ static void print_default_output(Program *program, bool explain) {
   }
 }
 
+static void print_solver_stats(FILE *stream, SolverStats *stats) {
+  if (!stats) return;
+  fprintf(stream, "eyelog stats:\n");
+  fprintf(stream, "  completed_goal_lists: %lld\n", stats->completed_goal_lists);
+  fprintf(stream, "  solve_goals_calls: %lld\n", stats->solve_goals_calls);
+  fprintf(stream, "  solve_one_goal_calls: %lld\n", stats->solve_one_goal_calls);
+  fprintf(stream, "  solve_one_goal_uncached_calls: %lld\n", stats->solve_one_goal_uncached_calls);
+  fprintf(stream, "  unify_calls: %lld\n", stats->unify_calls);
+  fprintf(stream, "  unify_pairs_processed: %lld\n", stats->unify_pairs_processed);
+  fprintf(stream, "  deterministic_builtin_successes: %lld\n", stats->deterministic_builtin_successes);
+  fprintf(stream, "  deterministic_builtin_failures: %lld\n", stats->deterministic_builtin_failures);
+  fprintf(stream, "  deterministic_rule_expansions: %lld\n", stats->deterministic_rule_expansions);
+  fprintf(stream, "  memo_replay_calls: %lld\n", stats->memo_replay_calls);
+  fprintf(stream, "  memo_answers_replayed: %lld\n", stats->memo_answers_replayed);
+  fprintf(stream, "  max_depth: %d\n", stats->max_depth);
+  fprintf(stream, "  max_goal_count: %d\n", stats->max_goal_count);
+  fprintf(stream, "  max_active_goals: %d\n", stats->max_active_goals);
+  fprintf(stream, "  max_solver_call_depth: %d\n", stats->max_solver_call_depth);
+}
+
 /* ------------------------------------------------------------------------- */
 /* CLI                                                                       */
 /* ------------------------------------------------------------------------- */
 
 static void print_usage(FILE *stream) {
-  fprintf(stream, "usage: eyelog [--version] [--explain] [--query GOAL] [file-or-url.pl|- ...]\n\nOptions:\n  --version       show version\n  --query GOAL    run GOAL instead of materializing new binary derivations\n  --explain       include explanations for query answers or derived output\n");
+  fprintf(stream, "usage: eyelog [--version] [--explain] [--stats] [--query GOAL] [file-or-url.pl|- ...]\n\nOptions:\n  --version       show version\n  --query GOAL    run GOAL instead of materializing new binary derivations\n  --explain       include explanations for query answers or derived output\n  --stats         print solver counters to stderr after the run\n");
 }
 
 static void print_version(void) {
@@ -4108,7 +4218,7 @@ static bool explain_goal(Program *program, Term *goal, Env *env, int depth, int 
     return ok;
   }
 
-  Solver builtin_solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
+  Solver builtin_solver = make_solver(program, NULL);
   Env builtin_env = { 0 };
   DeterministicBuiltinResult det = try_deterministic_builtin(&builtin_solver, goal, env, &builtin_env);
   if (det == DET_BUILTIN_SUCCEEDED) {
@@ -4184,7 +4294,7 @@ static bool explain_goal(Program *program, Term *goal, Env *env, int depth, int 
 static bool explain_goals(Program *program, Term **goals, int goal_count, Env *env, int depth, int max_depth) {
   Env current = clone_env(env);
   for (int i = 0; i < goal_count; i++) {
-    Solver builtin_solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
+    Solver builtin_solver = make_solver(program, NULL);
     Env next = { 0 };
     DeterministicBuiltinResult det = try_deterministic_builtin(&builtin_solver, goals[i], &current, &next);
     if (det == DET_BUILTIN_SUCCEEDED) {
@@ -4223,6 +4333,7 @@ static void print_query_solution(Env *env, void *user_data) {
 int main(int argc, char **argv) {
   const char *query = NULL;
   bool explain = false;
+  bool show_stats = false;
   const char **inputs = xmalloc_array((size_t)argc, sizeof(char *));
   int input_count = 0;
   bool end_options = false;
@@ -4243,6 +4354,8 @@ int main(int argc, char **argv) {
       query = argv[i];
     } else if (!end_options && strcmp(argv[i], "--explain") == 0) {
       explain = true;
+    } else if (!end_options && strcmp(argv[i], "--stats") == 0) {
+      show_stats = true;
     } else {
       inputs[input_count++] = argv[i];
     }
@@ -4257,16 +4370,22 @@ int main(int argc, char **argv) {
   Program program = parse_inputs(input_count, inputs);
   free(inputs);
 
+  SolverStats run_stats = { 0 };
+  SolverStats *stats = show_stats ? &run_stats : NULL;
+  global_stats = stats;
+
   if (query) {
     Term *goal = parse_query_goal(query);
     Term *goals[1] = { goal };
     Env env = { 0 };
-    Solver solver = { &program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
+    Solver solver = make_solver(&program, stats);
     QueryContext ctx = { &program, goal, explain };
     solve_goals(&solver, goals, 1, &env, 0, print_query_solution, &ctx);
   } else {
-    print_default_output(&program, explain);
+    print_default_output(&program, explain, stats);
   }
 
+  if (show_stats) print_solver_stats(stderr, &run_stats);
+  global_stats = NULL;
   return 0;
 }

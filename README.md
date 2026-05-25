@@ -168,6 +168,12 @@ bin/eyelog --query 'ackermann(4, 2, A)' examples/ackermann.pl
 bin/eyelog --query 'once(solution(classic, S))' examples/sudoku.pl
 ```
 
+Add `--stats` when you want lightweight solver counters on stderr without changing stdout:
+
+```sh
+bin/eyelog --stats --query 'once(solution(classic, S))' examples/sudoku.pl
+```
+
 ## Aggregation helpers
 
 Eyelog includes goal-directed aggregation helpers for finite searches:
@@ -378,6 +384,12 @@ make test api  # clean build plus only the API suite
 make clean
 ```
 
+Useful profiling smoke test:
+
+```sh
+bin/eyelog --stats --query 'once(solution(classic, S))' examples/sudoku.pl > /dev/null
+```
+
 For a release:
 
 1. update `VERSION`;
@@ -387,6 +399,8 @@ For a release:
 5. build browser assets if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL` and `--explain`.
 
 ## Performance notes
+
+Use `--stats` for a quick native sanity check while optimizing solver changes. It prints counters such as `solve_goals_calls`, `unify_calls`, `deterministic_rule_expansions`, `max_depth`, and `max_solver_call_depth` to stderr, leaving normal output stable for golden-file tests. The `max_solver_call_depth` counter is especially useful for browser/WASM regressions, where the VM call stack is tighter than the native C stack.
 
 Eyelog indexes clauses by predicate name and arity, then by scalar argument values. It also builds two-argument composite indexes for scalar pairs. This helps queries such as:
 
