@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -52,6 +53,31 @@ static void *xrealloc(void *ptr, size_t size) {
   return next;
 }
 
+static void *xmalloc_array(size_t count, size_t size) {
+  if (size != 0 && count > SIZE_MAX / size) die("allocation size overflow");
+  return xmalloc(count * size);
+}
+
+static void *xrealloc_array(void *ptr, size_t count, size_t size) {
+  if (size != 0 && count > SIZE_MAX / size) die("allocation size overflow");
+  return xrealloc(ptr, count * size);
+}
+
+static int grow_capacity(int current, int initial) {
+  if (current <= 0) return initial;
+  if (current > INT_MAX / 2) die("too many items");
+  return current * 2;
+}
+
+static size_t grow_size_capacity(size_t current, size_t needed) {
+  if (current == 0) current = 1;
+  while (current < needed) {
+    if (current > SIZE_MAX / 2) die("buffer size overflow");
+    current *= 2;
+  }
+  return current;
+}
+
 static char *xstrdup(const char *text) {
   char *copy = strdup(text ? text : "");
   if (!copy) die("out of memory");
@@ -98,7 +124,7 @@ static Term *new_term(TermType type, const char *name) {
 static Term *new_compound(const char *functor, int arity, Term **args) {
   Term *term = new_term(TERM_COMPOUND, functor);
   term->arity = arity;
-  term->args = xmalloc(sizeof(Term *) * (arity ? arity : 1));
+  term->args = xmalloc_array((size_t)(arity ? arity : 1), sizeof(Term *));
   for (int i = 0; i < arity; i++) term->args[i] = args[i];
   return term;
 }
@@ -381,13 +407,13 @@ static Term *parse_list(Parser *parser) {
 
   int len = 0;
   int cap = 8;
-  Term **items = xmalloc(sizeof(Term *) * cap);
+  Term **items = xmalloc_array((size_t)cap, sizeof(Term *));
   Term *tail = NULL;
 
   for (;;) {
     if (len == cap) {
-      cap *= 2;
-      items = xrealloc(items, sizeof(Term *) * cap);
+      cap = grow_capacity(cap, 8);
+      items = xrealloc_array(items, (size_t)cap, sizeof(Term *));
     }
     items[len++] = parse_term(parser);
 
@@ -551,7 +577,7 @@ static char *read_stream(FILE *stream, const char *label) {
 
   for (;;) {
     if (len + 4096 + 1 > cap) {
-      cap *= 2;
+      cap = grow_size_capacity(cap, len + 4096 + 1);
       buffer = xrealloc(buffer, cap);
     }
 
@@ -600,7 +626,7 @@ static char *read_stdin_interactive(void) {
 
     size_t n = strlen(line);
     if (len + n + 1 > cap) {
-      while (len + n + 1 > cap) cap *= 2;
+      cap = grow_size_capacity(cap, len + n + 1);
       buffer = xrealloc(buffer, cap);
     }
     memcpy(buffer + len, line, n);
@@ -697,8 +723,8 @@ static bool term_is_ground(Term *term) {
 
 static void add_clause(Program *program, Clause clause) {
   if (program->len == program->cap) {
-    program->cap = program->cap ? program->cap * 2 : 1024;
-    program->clauses = xrealloc(program->clauses, sizeof(Clause) * program->cap);
+    program->cap = grow_capacity(program->cap, 1024);
+    program->clauses = xrealloc_array(program->clauses, (size_t)program->cap, sizeof(Clause));
   }
   program->clauses[program->len++] = clause;
 }
@@ -714,15 +740,15 @@ static uint64_t index_hash_key(const char *text) {
 
 static void add_clause_index(int **items, int *len, int *cap, int clause_index) {
   if (*len == *cap) {
-    *cap = *cap ? *cap * 2 : 16;
-    *items = xrealloc(*items, sizeof(int) * *cap);
+    *cap = grow_capacity(*cap, 16);
+    *items = xrealloc_array(*items, (size_t)*cap, sizeof(int));
   }
   (*items)[(*len)++] = clause_index;
 }
 
 static void rehash_argument_index(ArgumentIndex *index, int requested_cap) {
   int cap = 16;
-  while (cap < requested_cap) cap *= 2;
+  while (cap < requested_cap) cap = grow_capacity(cap, 16);
 
   int *slots = xcalloc((size_t)cap, sizeof(int));
   int mask = cap - 1;
@@ -756,8 +782,8 @@ static ClauseIndexBucket *ensure_arg_bucket(ArgumentIndex *index, const char *ke
   if (bucket) return bucket;
 
   if (index->len == index->cap) {
-    index->cap = index->cap ? index->cap * 2 : 16;
-    index->buckets = xrealloc(index->buckets, sizeof(ClauseIndexBucket) * index->cap);
+    index->cap = grow_capacity(index->cap, 16);
+    index->buckets = xrealloc_array(index->buckets, (size_t)index->cap, sizeof(ClauseIndexBucket));
   }
 
   int bucket_index = index->len++;
@@ -902,8 +928,8 @@ static void index_clause(Program *program, int clause_index) {
   PredicateGroup *group = find_group(program, head->name, head->arity);
   if (!group) {
     if (program->group_len == program->group_cap) {
-      program->group_cap = program->group_cap ? program->group_cap * 2 : 64;
-      program->groups = xrealloc(program->groups, sizeof(PredicateGroup) * program->group_cap);
+      program->group_cap = grow_capacity(program->group_cap, 64);
+      program->groups = xrealloc_array(program->groups, (size_t)program->group_cap, sizeof(PredicateGroup));
     }
     group = &program->groups[program->group_len++];
     group->name = xstrdup(head->name);
@@ -965,7 +991,7 @@ static void parse_source_into_program(Program *program, const char *source) {
 
     if (parser.token.type == TOK_IF) {
       advance(&parser);
-      clause.body = xmalloc(sizeof(Term *) * MAX_BODY);
+      clause.body = xmalloc_array(MAX_BODY, sizeof(Term *));
       for (;;) {
         if (clause.body_len >= MAX_BODY) die("too many goals in rule body");
         clause.body[clause.body_len++] = parse_term(&parser);
@@ -1093,8 +1119,8 @@ typedef struct {
 
 static void push_unify_pair(UnifyPair **stack, int *len, int *cap, Term *left, Term *right) {
   if (*len == *cap) {
-    *cap = *cap ? *cap * 2 : 32;
-    *stack = xrealloc(*stack, sizeof(UnifyPair) * *cap);
+    *cap = grow_capacity(*cap, 32);
+    *stack = xrealloc_array(*stack, (size_t)*cap, sizeof(UnifyPair));
   }
   (*stack)[*len].left = left;
   (*stack)[*len].right = right;
@@ -1194,7 +1220,7 @@ static Term *fresh_term(Term *term, int id) {
   Term *copy = new_term(term->type, term->name);
   copy->arity = term->arity;
   if (term->arity) {
-    copy->args = xmalloc(sizeof(Term *) * term->arity);
+    copy->args = xmalloc_array((size_t)term->arity, sizeof(Term *));
     for (int i = 0; i < term->arity; i++) copy->args[i] = fresh_term(term->args[i], id);
   }
   return copy;
@@ -1205,7 +1231,7 @@ static Clause fresh_clause(Clause *clause) {
   Clause fresh = {
     fresh_term(clause->head, id),
     clause->body_len,
-    xmalloc(sizeof(Term *) * (clause->body_len ? clause->body_len : 1)),
+    xmalloc_array((size_t)(clause->body_len ? clause->body_len : 1), sizeof(Term *)),
     clause->head_ground
   };
   for (int i = 0; i < clause->body_len; i++) fresh.body[i] = fresh_term(clause->body[i], id);
@@ -1235,8 +1261,8 @@ static bool var_pair_matches(VarPairs *pairs, const char *left, const char *righ
   }
 
   if (pairs->len == pairs->cap) {
-    pairs->cap = pairs->cap ? pairs->cap * 2 : 8;
-    pairs->items = xrealloc(pairs->items, sizeof(VarPair) * pairs->cap);
+    pairs->cap = grow_capacity(pairs->cap, 8);
+    pairs->items = xrealloc_array(pairs->items, (size_t)pairs->cap, sizeof(VarPair));
   }
 
   pairs->items[pairs->len++] = (VarPair){ left, right };
@@ -1290,7 +1316,7 @@ static void sb_init(StringBuilder *sb) {
 static void sb_append(StringBuilder *sb, const char *text) {
   size_t length = strlen(text);
   if (sb->len + length + 1 > sb->cap) {
-    while (sb->len + length + 1 > sb->cap) sb->cap *= 2;
+    sb->cap = grow_size_capacity(sb->cap, sb->len + length + 1);
     sb->data = xrealloc(sb->data, sb->cap);
   }
   memcpy(sb->data + sb->len, text, length + 1);
@@ -1863,9 +1889,9 @@ static bool active_variant_goal(Solver *solver, Term *goal, Env *env) {
 
 static void push_active_goal(Solver *solver, Term *goal, Env *env) {
   if (solver->active_len == solver->active_cap) {
-    solver->active_cap = solver->active_cap ? solver->active_cap * 2 : 64;
-    solver->active_goals = xrealloc(solver->active_goals, sizeof(Term *) * solver->active_cap);
-    solver->active_envs = xrealloc(solver->active_envs, sizeof(Env *) * solver->active_cap);
+    solver->active_cap = grow_capacity(solver->active_cap, 64);
+    solver->active_goals = xrealloc_array(solver->active_goals, (size_t)solver->active_cap, sizeof(Term *));
+    solver->active_envs = xrealloc_array(solver->active_envs, (size_t)solver->active_cap, sizeof(Env *));
   }
   solver->active_goals[solver->active_len] = goal;
   solver->active_envs[solver->active_len] = env;
@@ -1933,7 +1959,7 @@ static Term *copy_resolved_term(Term *term, Env *env) {
   Term *copy = new_term(term->type, term->name);
   copy->arity = term->arity;
   if (term->arity) {
-    copy->args = xmalloc(sizeof(Term *) * term->arity);
+    copy->args = xmalloc_array((size_t)term->arity, sizeof(Term *));
     for (int i = 0; i < term->arity; i++) copy->args[i] = copy_resolved_term(term->args[i], env);
   }
   return copy;
@@ -1958,7 +1984,7 @@ static bool memo_entry_has_answer(MemoEntry *entry, const char *key) {
 }
 
 static void memo_entry_add_answer(MemoEntry *entry, Term *goal, Env *env) {
-  Term **args = xmalloc(sizeof(Term *) * entry->arity);
+  Term **args = xmalloc_array((size_t)entry->arity, sizeof(Term *));
   for (int i = 0; i < entry->arity; i++) args[i] = copy_resolved_term(goal->args[i], env);
 
   char *answer_key = memo_answer_key(args, entry->arity);
@@ -1969,8 +1995,8 @@ static void memo_entry_add_answer(MemoEntry *entry, Term *goal, Env *env) {
   }
 
   if (entry->len == entry->cap) {
-    entry->cap = entry->cap ? entry->cap * 2 : 16;
-    entry->answers = xrealloc(entry->answers, sizeof(MemoAnswer) * entry->cap);
+    entry->cap = grow_capacity(entry->cap, 16);
+    entry->answers = xrealloc_array(entry->answers, (size_t)entry->cap, sizeof(MemoAnswer));
   }
   entry->answers[entry->len++] = (MemoAnswer){ args, answer_key };
 }
@@ -2554,10 +2580,8 @@ static bool builtin_contains(const char *name, Term *goal, Env *env,
   bool has = strstr(haystack, needle) != NULL;
   bool pass = (strcmp(name, "contains") == 0 && has) ||
               (strcmp(name, "not_contains") == 0 && !has) ||
-              ((strcmp(name, "matches") == 0 || strcmp(name, "matches") == 0) &&
-               simple_alternation_match(haystack, needle)) ||
-              ((strcmp(name, "not_matches") == 0 || strcmp(name, "not_matches") == 0) &&
-               !simple_alternation_match(haystack, needle));
+              (strcmp(name, "matches") == 0 && simple_alternation_match(haystack, needle)) ||
+              (strcmp(name, "not_matches") == 0 && !simple_alternation_match(haystack, needle));
   if (pass) call_once(env, callback, user_data);
 
   free(haystack);
@@ -2568,13 +2592,13 @@ static bool builtin_contains(const char *name, Term *goal, Env *env,
 static bool proper_list_items(Term *list, Env *env, Term ***items_out, int *len_out) {
   int len = 0;
   int cap = 8;
-  Term **items = xmalloc(sizeof(Term *) * cap);
+  Term **items = xmalloc_array((size_t)cap, sizeof(Term *));
   Term *cursor = deref(list, env);
 
   while (is_cons_term(cursor)) {
     if (len == cap) {
-      cap *= 2;
-      items = xrealloc(items, sizeof(Term *) * cap);
+      cap = grow_capacity(cap, 8);
+      items = xrealloc_array(items, (size_t)cap, sizeof(Term *));
     }
     items[len++] = cursor->args[0];
     cursor = deref(cursor->args[1], env);
@@ -2606,8 +2630,8 @@ typedef struct {
 
 static void term_list_append(TermList *list, Term *term) {
   if (list->len == list->cap) {
-    list->cap = list->cap ? list->cap * 2 : 16;
-    list->items = xrealloc(list->items, sizeof(Term *) * list->cap);
+    list->cap = grow_capacity(list->cap, 16);
+    list->items = xrealloc_array(list->items, (size_t)list->cap, sizeof(Term *));
   }
   list->items[list->len++] = term;
 }
@@ -2722,7 +2746,7 @@ static bool builtin_set_nth0(Term *goal, Env *env, SolutionCallback callback, vo
     return true;
   }
 
-  Term **updated = xmalloc(sizeof(Term *) * len);
+  Term **updated = xmalloc_array((size_t)len, sizeof(Term *));
   for (int i = 0; i < len; i++) updated[i] = items[i];
   updated[index] = goal->args[2];
 
@@ -2780,7 +2804,7 @@ static bool builtin_select(Term *goal, Env *env, SolutionCallback callback, void
 
   for (int i = 0; i < len; i++) {
     Term **rest_items = NULL;
-    if (len > 1) rest_items = xmalloc(sizeof(Term *) * (size_t)(len - 1));
+    if (len > 1) rest_items = xmalloc_array((size_t)(len - 1), sizeof(Term *));
     int out = 0;
     for (int j = 0; j < len; j++) {
       if (j != i) rest_items[out++] = items[j];
@@ -3041,7 +3065,7 @@ static bool builtin_sort(Term *goal, Env *env, SolutionCallback callback, void *
   for (int i = 0; i < len; i++) term_list_append(&sorted, copy_resolved_term(items[i], env));
   free(items);
 
-  qsort(sorted.items, sorted.len, sizeof(Term *), compare_term_ptrs_for_sort);
+  qsort(sorted.items, (size_t)sorted.len, sizeof(Term *), compare_term_ptrs_for_sort);
 
   int unique_len = 0;
   for (int i = 0; i < sorted.len; i++) {
@@ -3451,14 +3475,38 @@ static DeterministicBuiltinResult try_deterministic_builtin(Solver *solver, Term
   return DET_BUILTIN_SUCCEEDED;
 }
 
+static bool is_conjunction_goal(Term *goal) {
+  return goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2;
+}
+
 static int append_conjunction_goals(Term *goal, Term **buffer, int count, int cap) {
-  if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
-    count = append_conjunction_goals(goal->args[0], buffer, count, cap);
-    return append_conjunction_goals(goal->args[1], buffer, count, cap);
+  int stack_len = 0;
+  int stack_cap = 16;
+  Term **stack = xmalloc_array((size_t)stack_cap, sizeof(Term *));
+
+#define PUSH_CONJUNCTION_TERM(term_) do {                                      \
+    if (stack_len == stack_cap) {                                             \
+      stack_cap = grow_capacity(stack_cap, 16);                               \
+      stack = xrealloc_array(stack, (size_t)stack_cap, sizeof(Term *));       \
+    }                                                                         \
+    stack[stack_len++] = (term_);                                             \
+  } while (0)
+
+  PUSH_CONJUNCTION_TERM(goal);
+  while (stack_len > 0) {
+    Term *current = stack[--stack_len];
+    if (is_conjunction_goal(current)) {
+      PUSH_CONJUNCTION_TERM(current->args[1]);
+      PUSH_CONJUNCTION_TERM(current->args[0]);
+      continue;
+    }
+
+    if (count >= cap) die("too many goals in conjunction");
+    buffer[count++] = current;
   }
 
-  if (count >= cap) die("too many goals in conjunction");
-  buffer[count++] = goal;
+#undef PUSH_CONJUNCTION_TERM
+  free(stack);
   return count;
 }
 
@@ -3467,8 +3515,8 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
   if (depth > solver->max_depth) return;
   if (solver->solutions_seen >= solver->solution_limit) return;
 
-  if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
-    Term **expanded = xmalloc(sizeof(Term *) * MAX_BODY);
+  if (is_conjunction_goal(goal)) {
+    Term **expanded = xmalloc_array(MAX_BODY, sizeof(Term *));
     int expanded_len = append_conjunction_goals(goal, expanded, 0, MAX_BODY);
     if (expanded_len + rest_len > MAX_BODY) die("too many goals after conjunction expansion");
     for (int i = 0; i < rest_len; i++) expanded[expanded_len + i] = rest[i];
@@ -3512,10 +3560,10 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
         if (fresh.body_len == 0) {
           solve_goals(solver, rest, rest_len, &next, depth + 1, callback, user_data);
         } else {
-          RuleContinuation cont = { solver, goal, env, rest, rest_len, depth + 1, callback, user_data };
+          RuleContinuation rule_cont = { solver, goal, env, rest, rest_len, depth + 1, callback, user_data };
           push_active_goal(solver, goal, env);
           solve_goals(solver, fresh.body, fresh.body_len, &next, depth + 1,
-                      continue_after_rule_body, &cont);
+                      continue_after_rule_body, &rule_cont);
           pop_active_goal(solver);
         }
       }
@@ -3635,7 +3683,7 @@ static ExpandSingleResult try_expand_single_candidate_goal(Solver *solver, Term 
   if (!unify(goal, fresh.head, &next)) return EXPAND_FAILED;
 
   if (fresh.body_len + rest_len > MAX_BODY) die("too many goals after deterministic expansion");
-  Term **expanded = xmalloc(sizeof(Term *) * (size_t)(fresh.body_len + rest_len ? fresh.body_len + rest_len : 1));
+  Term **expanded = xmalloc_array((size_t)(fresh.body_len + rest_len ? fresh.body_len + rest_len : 1), sizeof(Term *));
   for (int i = 0; i < fresh.body_len; i++) expanded[i] = fresh.body[i];
   for (int i = 0; i < rest_len; i++) expanded[fresh.body_len + i] = rest[i];
 
@@ -3742,7 +3790,7 @@ static void lines_insert_existing(Lines *lines, char *line) {
 
 static void lines_rehash(Lines *lines, int requested_cap) {
   int cap = 2048;
-  while (cap < requested_cap) cap *= 2;
+  while (cap < requested_cap) cap = grow_capacity(cap, 2048);
 
   free(lines->set);
   lines->set = xcalloc((size_t)cap, sizeof(char *));
@@ -3766,14 +3814,14 @@ static bool lines_contains(Lines *lines, const char *line) {
 
 static bool add_line(Lines *lines, const char *line) {
   if (!lines->set_cap || (lines->set_count + 1) * 10 >= lines->set_cap * 7) {
-    lines_rehash(lines, lines->set_cap ? lines->set_cap * 2 : 2048);
+    lines_rehash(lines, grow_capacity(lines->set_cap, 2048));
   }
 
   if (lines_contains(lines, line)) return false;
 
   if (lines->len == lines->cap) {
-    lines->cap = lines->cap ? lines->cap * 2 : 1024;
-    lines->items = xrealloc(lines->items, sizeof(char *) * lines->cap);
+    lines->cap = grow_capacity(lines->cap, 1024);
+    lines->items = xrealloc_array(lines->items, (size_t)lines->cap, sizeof(char *));
   }
 
   char *copy = xstrdup(line);
@@ -3880,7 +3928,7 @@ static void collect_source_facts(Program *program, Lines *facts) {
 }
 
 static Term *generic_goal_for_group(PredicateGroup *group) {
-  Term **args = xmalloc(sizeof(Term *) * (group->arity ? group->arity : 1));
+  Term **args = xmalloc_array((size_t)(group->arity ? group->arity : 1), sizeof(Term *));
   for (int i = 0; i < group->arity; i++) {
     char name[32];
     snprintf(name, sizeof(name), "X%d", i);
@@ -3914,7 +3962,7 @@ static void print_default_output(Program *program, bool explain) {
   }
 
   if (!explain) {
-    qsort(lines.items, lines.len, sizeof(char *), compare_lines);
+    qsort(lines.items, (size_t)lines.len, sizeof(char *), compare_lines);
     for (int i = 0; i < lines.len; i++) fputs(lines.items[i], stdout);
   }
 }
@@ -4003,8 +4051,8 @@ static ExplainSubstitution *find_explain_substitution(ExplainSubstitutions *subs
 static void add_explain_substitution(ExplainSubstitutions *subs, const char *name, Term *fresh) {
   if (find_explain_substitution(subs, name)) return;
   if (subs->len == subs->cap) {
-    subs->cap = subs->cap ? subs->cap * 2 : 8;
-    subs->items = xrealloc(subs->items, sizeof(ExplainSubstitution) * subs->cap);
+    subs->cap = grow_capacity(subs->cap, 8);
+    subs->items = xrealloc_array(subs->items, (size_t)subs->cap, sizeof(ExplainSubstitution));
   }
   subs->items[subs->len].name = name;
   subs->items[subs->len].fresh = fresh;
@@ -4052,8 +4100,8 @@ static bool explain_goal(Program *program, Term *goal, Env *env, int depth, int 
   explain_line(depth, "need %s", goal_text);
   free(goal_text);
 
-  if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
-    Term **expanded = xmalloc(sizeof(Term *) * MAX_BODY);
+  if (is_conjunction_goal(goal)) {
+    Term **expanded = xmalloc_array(MAX_BODY, sizeof(Term *));
     int expanded_len = append_conjunction_goals(goal, expanded, 0, MAX_BODY);
     bool ok = explain_goals(program, expanded, expanded_len, env, depth + 1, max_depth);
     free(expanded);
@@ -4175,7 +4223,7 @@ static void print_query_solution(Env *env, void *user_data) {
 int main(int argc, char **argv) {
   const char *query = NULL;
   bool explain = false;
-  const char **inputs = xmalloc(sizeof(char *) * (size_t)argc);
+  const char **inputs = xmalloc_array((size_t)argc, sizeof(char *));
   int input_count = 0;
   bool end_options = false;
 

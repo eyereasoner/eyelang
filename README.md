@@ -209,7 +209,7 @@ This can yield `S = alice`, `P = name`, `O = "Alice"` and `S = alice`, `P = know
 
 ## Example catalog
 
-The repository includes examples for recursion, graph reachability, finite search, arithmetic, list processing, optimization, policies, puzzles, and applied scientific calculations. Bundled examples use relation-style output.
+The repository includes examples for recursion, graph reachability, finite search, arithmetic, list processing, optimization, policies, puzzles, N3-inspired rule chains, and applied scientific calculations. Bundled examples use relation-style output.
 
 | Input | Short description | Output |
 | --- | --- | --- |
@@ -331,6 +331,7 @@ The repository includes examples for recursion, graph reachability, finite searc
 | [`traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/traveling-salesman.pl) | Finds an optimal traveling-salesman tour. | [`output/traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/traveling-salesman.pl) |
 | [`turing.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/turing.pl) | Simulates a binary-increment Turing machine. | [`output/turing.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/turing.pl) |
 | [`vector-similarity.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/vector-similarity.pl) | Computes dot product, norm, and cosine similarity. | [`output/vector-similarity.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/vector-similarity.pl) |
+| [`witch.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/witch.pl) | Derives the classic “burn the witch” N3 rule chain. | [`output/witch.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/witch.pl) |
 | [`wolf-goat-cabbage.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/wolf-goat-cabbage.pl) | Solves the wolf-goat-cabbage river crossing. | [`output/wolf-goat-cabbage.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/wolf-goat-cabbage.pl) |
 | [`zebra.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/zebra.pl) | Solves the zebra logic puzzle. | [`output/zebra.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/zebra.pl) |
 
