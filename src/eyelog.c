@@ -38,6 +38,10 @@ struct SolverStats {
   long long deterministic_builtin_successes;
   long long deterministic_builtin_failures;
   long long deterministic_rule_expansions;
+  long long candidate_lists_selected;
+  long long clause_candidates_considered;
+  long long clauses_tried;
+  long long clauses_head_rejected;
   long long memo_replay_calls;
   long long memo_answers_replayed;
   int max_depth;
@@ -598,6 +602,7 @@ typedef struct {
   int pair_len;
   bool memoized;
   bool recursive;
+  int next_hash;
 } PredicateGroup;
 
 typedef struct {
@@ -607,6 +612,8 @@ typedef struct {
   PredicateGroup *groups;
   int group_len;
   int group_cap;
+  int *group_hash_slots;
+  int group_hash_cap;
 } Program;
 
 static char *read_stream(FILE *stream, const char *label) {
@@ -952,7 +959,55 @@ static ClauseCandidates select_clause_candidates(PredicateGroup *group, Term *go
   return indexed ? best : all_group_clauses(group);
 }
 
+static uint64_t group_hash_key(const char *name, int arity) {
+  uint64_t hash = index_hash_key(name);
+  hash ^= (uint64_t)(unsigned int)arity + 0x9e3779b97f4a7c15ULL + (hash << 6) + (hash >> 2);
+  return hash;
+}
+
+static void rehash_program_groups(Program *program, int requested_cap) {
+  int cap = 16;
+  while (cap < requested_cap) cap = grow_capacity(cap, 16);
+
+  int *slots = xcalloc((size_t)cap, sizeof(int));
+  int mask = cap - 1;
+
+  for (int i = 0; i < program->group_len; i++) {
+    PredicateGroup *group = &program->groups[i];
+    int slot = (int)(group_hash_key(group->name, group->arity) & (uint64_t)mask);
+    group->next_hash = slots[slot];
+    slots[slot] = i + 1;
+  }
+
+  free(program->group_hash_slots);
+  program->group_hash_slots = slots;
+  program->group_hash_cap = cap;
+}
+
+static void insert_group_hash(Program *program, int group_index) {
+  if (!program->group_hash_slots || program->group_len * 2 > program->group_hash_cap) {
+    rehash_program_groups(program, program->group_hash_cap ? program->group_hash_cap * 2 : 16);
+    return;
+  }
+
+  PredicateGroup *group = &program->groups[group_index];
+  int mask = program->group_hash_cap - 1;
+  int slot = (int)(group_hash_key(group->name, group->arity) & (uint64_t)mask);
+  group->next_hash = program->group_hash_slots[slot];
+  program->group_hash_slots[slot] = group_index + 1;
+}
+
 static PredicateGroup *find_group(Program *program, const char *name, int arity) {
+  if (program->group_hash_slots) {
+    int mask = program->group_hash_cap - 1;
+    int slot = (int)(group_hash_key(name, arity) & (uint64_t)mask);
+    for (int cursor = program->group_hash_slots[slot]; cursor; cursor = program->groups[cursor - 1].next_hash) {
+      PredicateGroup *group = &program->groups[cursor - 1];
+      if (group->arity == arity && strcmp(group->name, name) == 0) return group;
+    }
+    return NULL;
+  }
+
   for (int i = 0; i < program->group_len; i++) {
     PredicateGroup *group = &program->groups[i];
     if (group->arity == arity && strcmp(group->name, name) == 0) return group;
@@ -970,7 +1025,8 @@ static void index_clause(Program *program, int clause_index) {
       program->group_cap = grow_capacity(program->group_cap, 64);
       program->groups = xrealloc_array(program->groups, (size_t)program->group_cap, sizeof(PredicateGroup));
     }
-    group = &program->groups[program->group_len++];
+    int group_index = program->group_len;
+    group = &program->groups[group_index];
     group->name = xstrdup(head->name);
     group->arity = head->arity;
     group->clause_indexes = NULL;
@@ -989,6 +1045,9 @@ static void index_clause(Program *program, int clause_index) {
     }
     group->memoized = false;
     group->recursive = false;
+    group->next_hash = 0;
+    program->group_len++;
+    insert_group_hash(program, group_index);
   }
 
   add_clause_index(&group->clause_indexes, &group->len, &group->cap, clause_index);
@@ -1056,22 +1115,50 @@ static void parse_source_into_program(Program *program, const char *source) {
 static bool predicate_reaches_group(Program *program, PredicateGroup *current,
                                     PredicateGroup *target, bool *seen) {
   int current_index = (int)(current - program->groups);
+  int target_index = (int)(target - program->groups);
   if (current_index < 0 || current_index >= program->group_len) return false;
-  if (seen[current_index]) return false;
-  seen[current_index] = true;
+  if (target_index < 0 || target_index >= program->group_len) return false;
 
-  for (int i = 0; i < current->len; i++) {
-    Clause *clause = &program->clauses[current->clause_indexes[i]];
-    for (int j = 0; j < clause->body_len; j++) {
-      Term *body_goal = clause->body[j];
-      if (body_goal->type != TERM_COMPOUND) continue;
-      PredicateGroup *next = find_group(program, body_goal->name, body_goal->arity);
-      if (!next) continue;
-      if (next == target) return true;
-      if (predicate_reaches_group(program, next, target, seen)) return true;
+  int stack_len = 0;
+  int stack_cap = 16;
+  int *stack = xmalloc_array((size_t)stack_cap, sizeof(int));
+
+#define PUSH_GROUP_INDEX(index_) do {                                         \
+    if (stack_len == stack_cap) {                                             \
+      stack_cap = grow_capacity(stack_cap, 16);                               \
+      stack = xrealloc_array(stack, (size_t)stack_cap, sizeof(int));          \
+    }                                                                         \
+    stack[stack_len++] = (index_);                                            \
+  } while (0)
+
+  PUSH_GROUP_INDEX(current_index);
+
+  while (stack_len > 0) {
+    int group_index = stack[--stack_len];
+    if (group_index < 0 || group_index >= program->group_len) continue;
+    if (seen[group_index]) continue;
+    seen[group_index] = true;
+
+    PredicateGroup *group = &program->groups[group_index];
+    for (int i = 0; i < group->len; i++) {
+      Clause *clause = &program->clauses[group->clause_indexes[i]];
+      for (int j = 0; j < clause->body_len; j++) {
+        Term *body_goal = clause->body[j];
+        if (body_goal->type != TERM_COMPOUND) continue;
+        PredicateGroup *next = find_group(program, body_goal->name, body_goal->arity);
+        if (!next) continue;
+        int next_index = (int)(next - program->groups);
+        if (next_index == target_index) {
+          free(stack);
+          return true;
+        }
+        if (!seen[next_index]) PUSH_GROUP_INDEX(next_index);
+      }
     }
   }
 
+#undef PUSH_GROUP_INDEX
+  free(stack);
   return false;
 }
 
@@ -3595,6 +3682,10 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
   if (active_variant_goal(solver, goal, env)) SOLVE_ONE_GOAL_UNCACHED_RETURN();
 
   ClauseCandidates candidates = select_clause_candidates(group, goal, env);
+  if (solver->stats) {
+    solver->stats->candidate_lists_selected++;
+    solver->stats->clause_candidates_considered += candidates.primary_len + candidates.fallback_len;
+  }
 
   for (int pass = 0; pass < 2 && solver->solutions_seen < solver->solution_limit; pass++) {
     int *clause_indexes = pass == 0 ? candidates.primary_indexes : candidates.fallback_indexes;
@@ -3602,7 +3693,11 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
 
     for (int i = 0; i < clause_count && solver->solutions_seen < solver->solution_limit; i++) {
       Clause *clause = &solver->program->clauses[clause_indexes[i]];
-      if (clause_head_cannot_match(goal, clause, env)) continue;
+      if (solver->stats) solver->stats->clauses_tried++;
+      if (clause_head_cannot_match(goal, clause, env)) {
+        if (solver->stats) solver->stats->clauses_head_rejected++;
+        continue;
+      }
 
       if (clause->body_len == 0 && clause->head_ground) {
         Env next = clone_env(env);
@@ -3742,14 +3837,22 @@ static ExpandSingleResult try_expand_single_candidate_goal(Solver *solver, Term 
 
   ClauseCandidates candidates = select_clause_candidates(group, goal, env);
   int candidate_count = candidates.primary_len + candidates.fallback_len;
+  if (solver->stats) {
+    solver->stats->candidate_lists_selected++;
+    solver->stats->clause_candidates_considered += candidate_count;
+  }
   if (candidate_count == 0) return EXPAND_FAILED;
   if (candidate_count != 1) return EXPAND_NOT_HANDLED;
 
   int clause_index = candidates.primary_len == 1 ? candidates.primary_indexes[0] : candidates.fallback_indexes[0];
   Clause *clause = &solver->program->clauses[clause_index];
+  if (solver->stats) solver->stats->clauses_tried++;
   if (clause_body_calls_predicate(clause, goal->name, goal->arity)) return EXPAND_NOT_HANDLED;
   if (active_variant_goal(solver, goal, env)) return EXPAND_FAILED;
-  if (clause_head_cannot_match(goal, clause, env)) return EXPAND_FAILED;
+  if (clause_head_cannot_match(goal, clause, env)) {
+    if (solver->stats) solver->stats->clauses_head_rejected++;
+    return EXPAND_FAILED;
+  }
 
   Clause fresh = fresh_clause(clause);
   Env next = clone_env(env);
@@ -4069,6 +4172,10 @@ static void print_solver_stats(FILE *stream, SolverStats *stats) {
   fprintf(stream, "  deterministic_builtin_successes: %lld\n", stats->deterministic_builtin_successes);
   fprintf(stream, "  deterministic_builtin_failures: %lld\n", stats->deterministic_builtin_failures);
   fprintf(stream, "  deterministic_rule_expansions: %lld\n", stats->deterministic_rule_expansions);
+  fprintf(stream, "  candidate_lists_selected: %lld\n", stats->candidate_lists_selected);
+  fprintf(stream, "  clause_candidates_considered: %lld\n", stats->clause_candidates_considered);
+  fprintf(stream, "  clauses_tried: %lld\n", stats->clauses_tried);
+  fprintf(stream, "  clauses_head_rejected: %lld\n", stats->clauses_head_rejected);
   fprintf(stream, "  memo_replay_calls: %lld\n", stats->memo_replay_calls);
   fprintf(stream, "  memo_answers_replayed: %lld\n", stats->memo_answers_replayed);
   fprintf(stream, "  max_depth: %d\n", stats->max_depth);

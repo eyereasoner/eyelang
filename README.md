@@ -400,9 +400,9 @@ For a release:
 
 ## Performance notes
 
-Use `--stats` for a quick native sanity check while optimizing solver changes. It prints counters such as `solve_goals_calls`, `unify_calls`, `deterministic_rule_expansions`, `max_depth`, and `max_solver_call_depth` to stderr, leaving normal output stable for golden-file tests. The `max_solver_call_depth` counter is especially useful for browser/WASM regressions, where the VM call stack is tighter than the native C stack.
+Use `--stats` for a quick native sanity check while optimizing solver changes. It prints counters such as `solve_goals_calls`, `unify_calls`, `deterministic_rule_expansions`, `candidate_lists_selected`, `clause_candidates_considered`, `clauses_tried`, `max_depth`, and `max_solver_call_depth` to stderr, leaving normal output stable for golden-file tests. The `max_solver_call_depth` counter is especially useful for browser/WASM regressions, where the VM call stack is tighter than the native C stack.
 
-Eyelog indexes clauses by predicate name and arity, then by scalar argument values. It also builds two-argument composite indexes for scalar pairs. This helps queries such as:
+Eyelog hashes predicate groups by name and arity, then indexes clauses by scalar argument values. It also builds two-argument composite indexes for scalar pairs. This helps both large generated programs with many predicates and selective queries such as:
 
 ```prolog
 edge(g1, a, X).
@@ -410,7 +410,7 @@ path(a, Y).
 status(Case, accepted).
 ```
 
-Ground facts use a fast path that avoids freshening and copying a rule body. Recursive examples use an active-call variant guard to prevent common cyclic closures from looping. Selected predicates can be memoized with:
+Ground facts use a fast path that avoids freshening and copying a rule body. Recursive-predicate detection uses an explicit work stack instead of recursive C calls, which keeps large predicate chains safer for browser/WASM builds. Recursive examples use an active-call variant guard to prevent common cyclic closures from looping. Selected predicates can be memoized with:
 
 ```prolog
 memoize(path, 2).
