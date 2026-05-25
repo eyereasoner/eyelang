@@ -7,7 +7,7 @@
 Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)` and prints them as Prolog facts. Source facts are not repeated. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
 
 
-Try it in the [browser playground](https://eyereasoner.github.io/eyelog/playground). The playground includes run options equivalent to CLI `--query` and `--explain`.
+Try it in the [browser playground](https://eyereasoner.github.io/eyelog/playground). The playground includes run options equivalent to CLI `--query`, `--explain`, and `--stats`.
 
 For the normative language definition, including lexical syntax, terms, clauses, goals, built-ins, `memoize/2`, `materialize/2`, and conformance boundaries, read [`SPEC.md`](SPEC.md).
 
@@ -173,6 +173,8 @@ Add `--stats` when you want lightweight solver counters on stderr without changi
 ```sh
 bin/eyelog --stats --query 'once(solution(classic, S))' examples/sudoku.pl
 ```
+
+The playground has a matching `--stats` checkbox, so browser runs can show the same counters in the combined output window.
 
 ## Aggregation helpers
 
@@ -396,13 +398,13 @@ For a release:
 2. update `README.md` and `SPEC.md`;
 3. regenerate golden outputs if behavior changed;
 4. run `make test`;
-5. build browser assets if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL` and `--explain`.
+5. build browser assets if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL`, `--explain`, and `--stats`.
 
 ## Performance notes
 
 Use `--stats` for a quick native sanity check while optimizing solver changes. It prints counters such as `solve_goals_calls`, `unify_calls`, `deterministic_rule_expansions`, `candidate_lists_selected`, `clause_candidates_considered`, `clauses_tried`, `max_depth`, and `max_solver_call_depth` to stderr, leaving normal output stable for golden-file tests. The `max_solver_call_depth` counter is especially useful for browser/WASM regressions, where the VM call stack is tighter than the native C stack.
 
-Eyelog hashes predicate groups by name and arity, then indexes clauses by scalar argument values. It also builds two-argument composite indexes for scalar pairs. This helps both large generated programs with many predicates and selective queries such as:
+Eyelog hashes predicate groups by name and arity, then indexes clauses by scalar argument values. It also builds two-argument composite indexes for scalar pairs and probes those composite indexes without per-lookup heap allocation. This helps both large generated programs with many predicates and selective queries such as:
 
 ```prolog
 edge(g1, a, X).

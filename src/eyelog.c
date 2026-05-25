@@ -775,13 +775,23 @@ static void add_clause(Program *program, Clause clause) {
   program->clauses[program->len++] = clause;
 }
 
-static uint64_t index_hash_key(const char *text) {
-  uint64_t hash = 1469598103934665603ULL;
+static uint64_t index_hash_update(uint64_t hash, const char *text) {
   while (*text) {
     hash ^= (unsigned char)*text++;
     hash *= 1099511628211ULL;
   }
   return hash;
+}
+
+static uint64_t index_hash_key(const char *text) {
+  return index_hash_update(1469598103934665603ULL, text);
+}
+
+static uint64_t composite_key2_hash_parts(const char *left, const char *right) {
+  uint64_t hash = index_hash_key(left);
+  hash ^= (unsigned char)'\x1f';
+  hash *= 1099511628211ULL;
+  return index_hash_update(hash, right);
 }
 
 static void add_clause_index(int **items, int *len, int *cap, int clause_index) {
@@ -867,11 +877,30 @@ static void index_clause_argument(PredicateGroup *group, Term *arg, int arg_inde
 static char *composite_key2(const char *left, const char *right) {
   size_t left_len = strlen(left);
   size_t right_len = strlen(right);
+  if (left_len > SIZE_MAX - right_len - 2) die("composite index key too large");
   char *key = xmalloc(left_len + right_len + 2);
   memcpy(key, left, left_len);
   key[left_len] = '\x1f';
   memcpy(key + left_len + 1, right, right_len + 1);
   return key;
+}
+
+static bool composite_key2_matches_parts(const char *key, const char *left, const char *right) {
+  size_t left_len = strlen(left);
+  return strncmp(key, left, left_len) == 0 && key[left_len] == '\x1f' &&
+         strcmp(key + left_len + 1, right) == 0;
+}
+
+static ClauseIndexBucket *find_composite_bucket(ArgumentIndex *index, const char *left, const char *right) {
+  if (!index->hash_slots) return NULL;
+
+  int mask = index->hash_cap - 1;
+  int slot = (int)(composite_key2_hash_parts(left, right) & (uint64_t)mask);
+  for (int cursor = index->hash_slots[slot]; cursor; cursor = index->buckets[cursor - 1].next_hash) {
+    ClauseIndexBucket *bucket = &index->buckets[cursor - 1];
+    if (composite_key2_matches_parts(bucket->key, left, right)) return bucket;
+  }
+  return NULL;
 }
 
 static void index_clause_pair(CompositeIndex *pair, Term *head, int clause_index) {
@@ -938,10 +967,8 @@ static ClauseCandidates select_clause_candidates(PredicateGroup *group, Term *go
     Term *right = deref(goal->args[pair->right], env);
     if (!simple_scalar(left) || !simple_scalar(right)) continue;
 
-    char *key = composite_key2(left->name, right->name);
     ArgumentIndex *index = &pair->index;
-    ClauseIndexBucket *bucket = find_arg_bucket(index, key);
-    free(key);
+    ClauseIndexBucket *bucket = find_composite_bucket(index, left->name, right->name);
 
     int bucket_len = bucket ? bucket->len : 0;
     int candidate_len = bucket_len + index->fallback_len;
@@ -4182,6 +4209,7 @@ static void print_solver_stats(FILE *stream, SolverStats *stats) {
   fprintf(stream, "  max_goal_count: %d\n", stats->max_goal_count);
   fprintf(stream, "  max_active_goals: %d\n", stats->max_active_goals);
   fprintf(stream, "  max_solver_call_depth: %d\n", stats->max_solver_call_depth);
+  fflush(stream);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -4492,6 +4520,7 @@ int main(int argc, char **argv) {
     print_default_output(&program, explain, stats);
   }
 
+  fflush(stdout);
   if (show_stats) print_solver_stats(stderr, &run_stats);
   global_stats = NULL;
   return 0;

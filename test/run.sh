@@ -191,6 +191,7 @@ run_api(){
   run 'missing query reports an error' bash -c '"$0" --query > "$TEST_TMPDIR/missing-query.out" 2> "$TEST_TMPDIR/missing-query.err"; status=$?; [ "$status" = 1 ] && grep -Fq "missing query after --query" "$TEST_TMPDIR/missing-query.err"' "$BIN"
   run 'query ancestor' bash -c '"$0" --query "ancestor(pat, X)" examples/ancestor.pl | grep -q "ancestor(pat, emma)."' "$BIN"
   run 'stats flag writes counters to stderr only' bash -c '"$0" --stats --query "ancestor(pat, X)" examples/ancestor.pl > "$TEST_TMPDIR/stats.out" 2> "$TEST_TMPDIR/stats.err" && grep -Fq "ancestor(pat, emma)." "$TEST_TMPDIR/stats.out" && grep -Fq "eyelog stats:" "$TEST_TMPDIR/stats.err" && grep -Fq "max_solver_call_depth:" "$TEST_TMPDIR/stats.err"' "$BIN"
+  run 'playground exposes stats option' bash -c 'grep -Fq statsToggle playground.html && grep -Fq -- --stats playground-worker.mjs && grep -Fq statsToggle.checked playground.html' "$BIN"
   run 'sudoku solver call depth remains bounded' bash -c '"$0" --stats --query "once(solution(classic, S))" examples/sudoku.pl > "$TEST_TMPDIR/sudoku-stats.out" 2> "$TEST_TMPDIR/sudoku-stats.err" && grep -Fq "solution(classic" "$TEST_TMPDIR/sudoku-stats.out" && awk "/max_solver_call_depth:/ { if (\$2 > 1000) exit 1; found=1 } END { exit !found }" "$TEST_TMPDIR/sudoku-stats.err"' "$BIN"
   run 'long predicate chain stays queryable' bash -c 'python3 - <<"PY" > "$TEST_TMPDIR/chain.pl"
 N = 1000

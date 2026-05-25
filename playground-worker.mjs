@@ -66,7 +66,7 @@ async function initialize(requestId, url) {
 }
 
 async function runEyelog(request) {
-  const { id, program, query, explain } = request;
+  const { id, program, query, explain, stats } = request;
   if (active) {
     self.postMessage({
       type: 'result',
@@ -94,6 +94,7 @@ async function runEyelog(request) {
 
     phase = 'running Eyelog';
     const args = [];
+    if (stats) args.push('--stats');
     if (explain) args.push('--explain');
     if (query && query.trim()) args.push('--query', query.trim());
     args.push('/work/input.pl');

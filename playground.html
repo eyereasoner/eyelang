@@ -366,7 +366,7 @@
   <header>
     <h1>Eyelog Playground</h1>
     <p class="lead">Edit an Eyelog program, run it entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
-    <p class="meta"><span id="versionBadge" class="version-badge">version 1.0.19</span></p>
+    <p class="meta"><span id="versionBadge" class="version-badge">version 1.0.20</span></p>
   </header>
 
   <main class="stack">
@@ -405,6 +405,7 @@
         </div>
         <div class="toolbar run-options">
           <label class="row"><input id="explainToggle" type="checkbox"> include <code>--explain</code> proof output</label>
+          <label class="row"><input id="statsToggle" type="checkbox"> include <code>--stats</code> counters</label>
           <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">eyelog input.pl</code>
         </div>
         <div class="toolbar">
@@ -549,7 +550,7 @@
   "zebra",
 ];
     const DEFAULT_PROGRAM = "% Socrates is mortal.\n\nmaterialize(type, 2).\nmaterialize(is, 2).\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\nis(test, true) :-\n  type(socrates, mortal).";
-    const STORAGE_KEY = 'eyelog.playground.v3';
+    const STORAGE_KEY = 'eyelog.playground.v4';
 
     const programInput = document.getElementById('programInput');
     const programSyntax = document.getElementById('programSyntax');
@@ -557,6 +558,7 @@
     const programErrorBand = document.getElementById('programErrorBand');
     const queryInput = document.getElementById('queryInput');
     const explainToggle = document.getElementById('explainToggle');
+    const statsToggle = document.getElementById('statsToggle');
     const commandPreview = document.getElementById('commandPreview');
     const exampleSelect = document.getElementById('exampleSelect');
     const loadExampleButton = document.getElementById('loadExampleButton');
@@ -878,6 +880,7 @@
           program: programInput.value,
           query: queryInput.value,
           explain: explainToggle.checked,
+          stats: statsToggle.checked,
           backgroundPrograms,
           currentProgramUrl,
         }));
@@ -909,6 +912,7 @@
 
     function updateCommandPreview() {
       const args = ['eyelog'];
+      if (statsToggle.checked) args.push('--stats');
       if (explainToggle.checked) args.push('--explain');
       if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
       args.push(currentProgramStillMatchesUrl() ? currentProgramUrl : 'input.pl');
@@ -922,6 +926,7 @@
         urlInput.value = sourceUrl;
         queryInput.value = searchParams.get('query') || searchParams.get('q') || '';
         explainToggle.checked = parseFlag(searchParams.get('explain') || searchParams.get('e'));
+        statsToggle.checked = parseFlag(searchParams.get('stats') || searchParams.get('s'));
         updateCommandPreview();
         try {
           await loadIntoEditor(sourceUrl, false, { save: false });
@@ -938,6 +943,7 @@
           setProgramValue(decodePayload(params.get('p')));
           queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
           explainToggle.checked = parseFlag(params.get('e'));
+          statsToggle.checked = parseFlag(params.get('s'));
           currentProgramUrl = null;
           currentProgramSource = null;
           setStatus('Loaded shared program.', 'ok');
@@ -947,12 +953,13 @@
         }
       }
       try {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelog.playground.v2') || localStorage.getItem('eyelog.playground.v1');
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelog.playground.v3') || localStorage.getItem('eyelog.playground.v2') || localStorage.getItem('eyelog.playground.v1');
         if (raw) {
           const payload = JSON.parse(raw);
           setProgramValue(payload.program || DEFAULT_PROGRAM);
           queryInput.value = payload.query || '';
           explainToggle.checked = Boolean(payload.explain);
+          statsToggle.checked = Boolean(payload.stats);
           backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
           currentProgramUrl = payload.currentProgramUrl || null;
           currentProgramSource = currentProgramUrl ? programInput.value : null;
@@ -967,6 +974,7 @@
       }
       setProgramValue(DEFAULT_PROGRAM);
       explainToggle.checked = false;
+      statsToggle.checked = false;
       currentProgramUrl = null;
       currentProgramSource = null;
       updateCommandPreview();
@@ -1187,6 +1195,7 @@
         program: combinedProgram(),
         query: queryInput.value,
         explain: explainToggle.checked,
+        stats: statsToggle.checked,
       });
     }
 
@@ -1242,11 +1251,13 @@
         url.searchParams.set('url', currentProgramUrl);
         if (queryInput.value.trim()) url.searchParams.set('query', queryInput.value.trim());
         if (explainToggle.checked) url.searchParams.set('explain', '1');
+        if (statsToggle.checked) url.searchParams.set('stats', '1');
       } else {
         const params = new URLSearchParams();
         params.set('p', encodePayload(programInput.value));
         if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
         if (explainToggle.checked) params.set('e', '1');
+        if (statsToggle.checked) params.set('s', '1');
         url.search = '';
         url.hash = params.toString();
       }
@@ -1260,6 +1271,7 @@
       setProgramValue(DEFAULT_PROGRAM);
       queryInput.value = '';
       explainToggle.checked = false;
+      statsToggle.checked = false;
       backgroundPrograms = [];
       currentProgramUrl = null;
       currentProgramSource = null;
@@ -1290,6 +1302,7 @@
     copyLinkButton.addEventListener('click', () => copyShareLink().catch(error => setStatus(`Could not copy link: ${error.message}`, 'error')));
     clearSavedButton.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('eyelog.playground.v3');
       localStorage.removeItem('eyelog.playground.v2');
       localStorage.removeItem('eyelog.playground.v1');
       setStatus('Autosave cleared.', 'ok');
@@ -1299,6 +1312,7 @@
     combinedOutput.addEventListener('scroll', () => { outputGutter.scrollTop = combinedOutput.scrollTop; });
     queryInput.addEventListener('input', saveState);
     explainToggle.addEventListener('change', saveState);
+    statsToggle.addEventListener('change', saveState);
 
     async function initializePage() {
       updateProgramHighlight();
