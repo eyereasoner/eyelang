@@ -532,6 +532,7 @@ typedef struct {
   CompositeIndex *pair_indexes;
   int pair_len;
   bool memoized;
+  bool recursive;
 } PredicateGroup;
 
 typedef struct {
@@ -922,6 +923,7 @@ static void index_clause(Program *program, int clause_index) {
       }
     }
     group->memoized = false;
+    group->recursive = false;
   }
 
   add_clause_index(&group->clause_indexes, &group->len, &group->cap, clause_index);
@@ -985,10 +987,42 @@ static void parse_source_into_program(Program *program, const char *source) {
   free_token(&parser.token);
 }
 
+
+static bool predicate_reaches_group(Program *program, PredicateGroup *current,
+                                    PredicateGroup *target, bool *seen) {
+  int current_index = (int)(current - program->groups);
+  if (current_index < 0 || current_index >= program->group_len) return false;
+  if (seen[current_index]) return false;
+  seen[current_index] = true;
+
+  for (int i = 0; i < current->len; i++) {
+    Clause *clause = &program->clauses[current->clause_indexes[i]];
+    for (int j = 0; j < clause->body_len; j++) {
+      Term *body_goal = clause->body[j];
+      if (body_goal->type != TERM_COMPOUND) continue;
+      PredicateGroup *next = find_group(program, body_goal->name, body_goal->arity);
+      if (!next) continue;
+      if (next == target) return true;
+      if (predicate_reaches_group(program, next, target, seen)) return true;
+    }
+  }
+
+  return false;
+}
+
+static void mark_recursive_predicates(Program *program) {
+  for (int i = 0; i < program->group_len; i++) {
+    bool *seen = xcalloc((size_t)program->group_len, sizeof(bool));
+    program->groups[i].recursive = predicate_reaches_group(program, &program->groups[i], &program->groups[i], seen);
+    free(seen);
+  }
+}
+
 static Program parse_program_text(const char *source) {
   Program program = { 0 };
   parse_source_into_program(&program, source);
   mark_memoized_predicates(&program);
+  mark_recursive_predicates(&program);
   return program;
 }
 
@@ -1003,6 +1037,7 @@ static Program parse_inputs(int input_count, const char **inputs) {
   }
 
   mark_memoized_predicates(&program);
+  mark_recursive_predicates(&program);
   return program;
 }
 
@@ -3433,11 +3468,12 @@ static void solve_one_goal_uncached(Solver *solver, Term *goal, Term **rest, int
   if (solver->solutions_seen >= solver->solution_limit) return;
 
   if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
-    Term *expanded[MAX_BODY];
+    Term **expanded = xmalloc(sizeof(Term *) * MAX_BODY);
     int expanded_len = append_conjunction_goals(goal, expanded, 0, MAX_BODY);
     if (expanded_len + rest_len > MAX_BODY) die("too many goals after conjunction expansion");
     for (int i = 0; i < rest_len; i++) expanded[expanded_len + i] = rest[i];
     solve_goals(solver, expanded, expanded_len + rest_len, env, depth + 1, callback, user_data);
+    free(expanded);
     return;
   }
 
@@ -3556,18 +3592,74 @@ static void solve_one_goal(Solver *solver, Term *goal, Term **rest, int rest_len
   replay_memo_answers(solver, goal, rest, rest_len, env, depth, callback, user_data, entry);
 }
 
+
+static bool clause_body_calls_predicate(Clause *clause, const char *name, int arity) {
+  for (int i = 0; i < clause->body_len; i++) {
+    Term *body_goal = clause->body[i];
+    if (body_goal->type == TERM_COMPOUND && body_goal->arity == arity &&
+        strcmp(body_goal->name, name) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+typedef enum {
+  EXPAND_NOT_HANDLED,
+  EXPAND_FAILED,
+  EXPAND_SUCCEEDED
+} ExpandSingleResult;
+
+static ExpandSingleResult try_expand_single_candidate_goal(Solver *solver, Term *goal, Env *env,
+                                                           Term **rest, int rest_len,
+                                                           Term ***goals_out, int *goal_count_out,
+                                                           Env *env_out) {
+  if (goal->type != TERM_COMPOUND) return EXPAND_NOT_HANDLED;
+
+  PredicateGroup *group = find_group(solver->program, goal->name, goal->arity);
+  if (!group || group->memoized || group->recursive) return EXPAND_NOT_HANDLED;
+
+  ClauseCandidates candidates = select_clause_candidates(group, goal, env);
+  int candidate_count = candidates.primary_len + candidates.fallback_len;
+  if (candidate_count == 0) return EXPAND_FAILED;
+  if (candidate_count != 1) return EXPAND_NOT_HANDLED;
+
+  int clause_index = candidates.primary_len == 1 ? candidates.primary_indexes[0] : candidates.fallback_indexes[0];
+  Clause *clause = &solver->program->clauses[clause_index];
+  if (clause_body_calls_predicate(clause, goal->name, goal->arity)) return EXPAND_NOT_HANDLED;
+  if (active_variant_goal(solver, goal, env)) return EXPAND_FAILED;
+  if (clause_head_cannot_match(goal, clause, env)) return EXPAND_FAILED;
+
+  Clause fresh = fresh_clause(clause);
+  Env next = clone_env(env);
+  if (!unify(goal, fresh.head, &next)) return EXPAND_FAILED;
+
+  if (fresh.body_len + rest_len > MAX_BODY) die("too many goals after deterministic expansion");
+  Term **expanded = xmalloc(sizeof(Term *) * (size_t)(fresh.body_len + rest_len ? fresh.body_len + rest_len : 1));
+  for (int i = 0; i < fresh.body_len; i++) expanded[i] = fresh.body[i];
+  for (int i = 0; i < rest_len; i++) expanded[fresh.body_len + i] = rest[i];
+
+  *goals_out = expanded;
+  *goal_count_out = fresh.body_len + rest_len;
+  *env_out = next;
+  return EXPAND_SUCCEEDED;
+}
+
 static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
                         int depth, SolutionCallback callback, void *user_data) {
   Env current = clone_env(env);
   env = &current;
+  Term **owned_goals = NULL;
+
+#define SOLVE_GOALS_RETURN() do { free(owned_goals); return; } while (0)
 
   while (goal_count > 0) {
-    if (solver->solutions_seen >= solver->solution_limit) return;
-    if (depth > solver->max_depth) return;
+    if (solver->solutions_seen >= solver->solution_limit) SOLVE_GOALS_RETURN();
+    if (depth > solver->max_depth) SOLVE_GOALS_RETURN();
 
     Env next = { 0 };
     DeterministicBuiltinResult det = try_deterministic_builtin(solver, goals[0], env, &next);
-    if (det == DET_BUILTIN_FAILED) return;
+    if (det == DET_BUILTIN_FAILED) SOLVE_GOALS_RETURN();
     if (det == DET_BUILTIN_SUCCEEDED) {
       current = next;
       env = &current;
@@ -3577,13 +3669,34 @@ static void solve_goals(Solver *solver, Term **goals, int goal_count, Env *env,
       continue;
     }
 
+    Term **expanded = NULL;
+    int expanded_len = 0;
+    ExpandSingleResult exp = try_expand_single_candidate_goal(solver, goals[0], env,
+                                                              goals + 1, goal_count - 1,
+                                                              &expanded, &expanded_len, &next);
+    if (exp == EXPAND_FAILED) SOLVE_GOALS_RETURN();
+    if (exp == EXPAND_SUCCEEDED) {
+      free(owned_goals);
+      owned_goals = expanded;
+      current = next;
+      env = &current;
+      goals = owned_goals;
+      goal_count = expanded_len;
+      depth++;
+      continue;
+    }
+
     solve_one_goal(solver, goals[0], goals + 1, goal_count - 1, env, depth, callback, user_data);
-    return;
+    SOLVE_GOALS_RETURN();
   }
 
-  if (solver->solutions_seen >= solver->solution_limit) return;
-  solver->solutions_seen++;
-  callback(env, user_data);
+  if (solver->solutions_seen < solver->solution_limit) {
+    solver->solutions_seen++;
+    callback(env, user_data);
+  }
+
+#undef SOLVE_GOALS_RETURN
+  free(owned_goals);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3940,9 +4053,11 @@ static bool explain_goal(Program *program, Term *goal, Env *env, int depth, int 
   free(goal_text);
 
   if (goal->type == TERM_COMPOUND && strcmp(goal->name, ",") == 0 && goal->arity == 2) {
-    Term *expanded[MAX_BODY];
+    Term **expanded = xmalloc(sizeof(Term *) * MAX_BODY);
     int expanded_len = append_conjunction_goals(goal, expanded, 0, MAX_BODY);
-    return explain_goals(program, expanded, expanded_len, env, depth + 1, max_depth);
+    bool ok = explain_goals(program, expanded, expanded_len, env, depth + 1, max_depth);
+    free(expanded);
+    return ok;
   }
 
   Solver builtin_solver = { program, MAX_DEPTH, 0, MAX_SOLUTIONS, NULL, NULL, 0, 0, NULL };
