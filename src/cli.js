@@ -6,32 +6,58 @@ import { Solver } from './solver.js';
 import { parseQueryGoal } from './parser.js';
 import { explainProof } from './explain.js';
 
+const VERSION = await packageVersion();
+
 export async function main(argv) {
-  const options = { files: [], query: null, explain: false, stats: false, version: false };
+  if (argv.length === 0) {
+    usage(process.stdout);
+    return;
+  }
+
+  const options = {
+    files: [],
+    query: null,
+    explain: false,
+    stats: false,
+    version: false,
+  };
+
   let endOptions = false;
+
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (!endOptions && arg === '--') endOptions = true;
-    else if (!endOptions && (arg === '--version' || arg === '-v')) options.version = true;
-    else if (!endOptions && arg === '--explain') options.explain = true;
-    else if (!endOptions && arg === '--stats') options.stats = true;
-    else if (!endOptions && arg === '--query') {
-      if (i + 1 >= argv.length) throw new Error('--query requires an argument');
-      options.query = argv[++i];
-    } else if (!endOptions && (arg === '-h' || arg === '--help')) {
+
+    if (!endOptions && arg === '--') {
+      endOptions = true;
+    } else if (!endOptions && (arg === '--version' || arg === '-v')) {
+      options.version = true;
+    } else if (!endOptions && (arg === '--help' || arg === '-h')) {
       usage(process.stdout);
       return;
+    } else if (!endOptions && arg === '--explain') {
+      options.explain = true;
+    } else if (!endOptions && arg === '--stats') {
+      options.stats = true;
+    } else if (!endOptions && arg === '--query') {
+      if (i + 1 >= argv.length) throw new Error('--query requires an argument');
+      options.query = argv[++i];
     } else {
       options.files.push(arg);
     }
   }
+
   if (options.version) {
-    process.stdout.write(`eyelog ${await packageVersion()}\n`);
+    process.stdout.write(`eyelog ${VERSION}\n`);
     return;
   }
-  if (options.files.length === 0) options.files.push('-');
+
+  if (options.files.length === 0) {
+    options.files.push('-');
+  }
+
   const sourceParts = [];
   let usedStdin = false;
+
   for (const file of options.files) {
     if (file === '-') {
       if (usedStdin) throw new Error("stdin input '-' can only be used once");
@@ -45,7 +71,9 @@ export async function main(argv) {
       sourceParts.push(await fs.readFile(file, 'utf8'));
     }
   }
+
   const program = Program.parse(sourceParts.join('\n'));
+
   if (options.query != null) runQuery(program, options.query, options);
   else runDefault(program, options);
 }
@@ -53,16 +81,21 @@ export async function main(argv) {
 function runQuery(program, query, options) {
   const goal = parseQueryGoal(query);
   const solver = new Solver(program);
+
   for (const env of solver.solve([goal], new Env(), 0)) {
     process.stdout.write(`${termToString(goal, env, true)}.\n`);
+
     if (options.explain) {
       const resolved = copyResolved(goal, env);
       process.stdout.write('% why\n');
       const proof = explainProof(program, resolved);
       process.stdout.write(proof.text);
-      if (!proof.ok) process.stdout.write('% no proof found by the experimental proof printer\n');
+      if (!proof.ok) {
+        process.stdout.write('% no proof found by the experimental proof printer\n');
+      }
     }
   }
+
   if (options.stats) printStats(solver.stats);
 }
 
@@ -70,39 +103,67 @@ function runDefault(program, options) {
   const facts = program.sourceFactLines();
   const lines = new Set();
   let lastStats = null;
+
   for (const goal of program.materializationGoals()) {
     const solver = new Solver(program);
+
     for (const env of solver.solve([goal], new Env(), 0)) {
       const resolved = copyResolved(goal, env);
       if (!termIsGround(resolved)) continue;
+
       const line = `${termToString(resolved, new Env(), true)}.\n`;
       if (facts.has(line) || lines.has(line)) continue;
+
       lines.add(line);
+
       if (options.explain) {
         process.stdout.write(line);
         process.stdout.write('% why\n');
         const proof = explainProof(program, resolved);
         process.stdout.write(proof.text);
-        if (!proof.ok) process.stdout.write('% no proof found by the experimental proof printer\n');
+        if (!proof.ok) {
+          process.stdout.write('% no proof found by the experimental proof printer\n');
+        }
       }
     }
+
     lastStats = solver.stats;
   }
+
   if (!options.explain) {
     for (const line of [...lines].sort()) process.stdout.write(line);
   }
+
   if (options.stats && lastStats) printStats(lastStats);
 }
 
 function usage(stream) {
-  stream.write('usage: eyelog [--version] [--explain] [--stats] [--query GOAL] [file-or-url.pl|- ...]\n');
+  stream.write(`eyelog ${VERSION}
+
+Usage:
+  eyelog [options] [file-or-url.pl|- ...]
+
+Input:
+  file-or-url.pl        Read an Eyelog program from a local file or http(s) URL.
+  -                     Read an Eyelog program from standard input.
+
+Options:
+  -h, --help            Show this help text and exit.
+  -v, --version         Show the package version and exit.
+      --query GOAL      Run GOAL as a query instead of materializing output predicates.
+      --explain         Print a proof explanation for each answer.
+      --stats           Print solver statistics to stderr after execution.
+  --                    Stop option parsing; following arguments are treated as files.
+`);
 }
 
 function readStdin() {
   return new Promise((resolve, reject) => {
     let data = '';
     process.stdin.setEncoding('utf8');
-    process.stdin.on('data', (chunk) => { data += chunk; });
+    process.stdin.on('data', (chunk) => {
+      data += chunk;
+    });
     process.stdin.on('end', () => resolve(data));
     process.stdin.on('error', reject);
   });
@@ -110,7 +171,9 @@ function readStdin() {
 
 function printStats(stats) {
   process.stderr.write('eyelog stats:\n');
-  for (const [key, value] of Object.entries(stats)) process.stderr.write(`  ${key}: ${value}\n`);
+  for (const [key, value] of Object.entries(stats)) {
+    process.stderr.write(`  ${key}: ${value}\n`);
+  }
 }
 
 async function packageVersion() {
@@ -121,5 +184,6 @@ async function packageVersion() {
   } catch (_) {
     // Fall through to a stable marker if package metadata is unavailable.
   }
+
   return 'unknown';
 }
