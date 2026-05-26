@@ -1,5 +1,5 @@
 {
-  "name": "eyelog",
+  "name": "eyelogreasoner",
   "version": "1.1.0",
   "description": "Eyelog rule engine with modular builtins",
   "type": "module",
