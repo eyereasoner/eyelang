@@ -7,7 +7,7 @@
 Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)` and prints them as Prolog facts. Source facts are not repeated. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
 
 
-Try it in the browser playground by serving the repository root and opening [`playground.html`](playground.html). The playground includes run options equivalent to CLI `--query`, `--explain`, and `--stats`.
+Try it in the [browser playground](https://eyereasoner.github.io/eyelog/playground). The playground includes run options equivalent to CLI `--query`, `--explain`, and `--stats`.
 
 For the normative language definition, including lexical syntax, terms, clauses, goals, built-ins, `memoize/2`, `materialize/2`, and conformance boundaries, read [`SPEC.md`](SPEC.md).
 
