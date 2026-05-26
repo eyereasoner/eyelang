@@ -4,6 +4,10 @@ import { selectClauseCandidates } from './program.js';
 
 let freshCounter = 0;
 
+export function nextFreshId() {
+  return ++freshCounter;
+}
+
 export class Solver {
   constructor(program, options = {}) {
     this.program = program;
@@ -129,7 +133,7 @@ export class Solver {
     for (const pass of [candidates.primary, candidates.fallback]) {
       for (const clause of pass) {
         if (headCannotMatch(goal, clause.head, env)) continue;
-        const id = ++freshCounter;
+        const id = nextFreshId();
         const freshHead = freshTerm(clause.head, id);
         const freshBody = clause.body.map((term) => freshTerm(term, id));
         const next = env.clone();

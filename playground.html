@@ -366,7 +366,7 @@
   <header>
     <h1>Eyelog Playground</h1>
     <p class="lead">Edit an Eyelog program, run it with the JavaScript engine entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
-    <p class="meta"><span id="versionBadge" class="version-badge">eyelog-js 0.1.0</span></p>
+    <p class="meta"><span id="versionBadge" class="version-badge">eyelog 1.1.0</span></p>
   </header>
 
   <main class="stack">
@@ -406,7 +406,7 @@
         <div class="toolbar run-options">
           <label class="row"><input id="explainToggle" type="checkbox"> include <code>--explain</code> proof output</label>
           <label class="row"><input id="statsToggle" type="checkbox"> include <code>--stats</code> counters</label>
-          <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">eyelog-js input.pl</code>
+          <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">eyelog input.pl</code>
         </div>
         <div class="toolbar">
           <button id="runButton" class="primary" type="button">Run Eyelog</button>
@@ -967,7 +967,7 @@
     }
 
     function updateCommandPreview() {
-      const args = ['eyelog-js'];
+      const args = ['eyelog'];
       if (statsToggle.checked) args.push('--stats');
       if (explainToggle.checked) args.push('--explain');
       if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
@@ -1043,9 +1043,9 @@
         const response = await fetch(new URL('./package.json', location.href), { cache: 'no-store' });
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
         const pkg = await response.json();
-        if (pkg && pkg.version) versionBadge.textContent = `eyelog-js ${pkg.version}`;
+        if (pkg && pkg.version) versionBadge.textContent = `eyelog ${pkg.version}`;
       } catch (error) {
-        console.warn('Could not load Eyelog JS package version:', error);
+        console.warn('Could not load Eyelog package version:', error);
       }
     }
 

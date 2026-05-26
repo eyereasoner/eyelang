@@ -4,20 +4,21 @@ import { Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { parseQueryGoal } from './parser.js';
-
-const VERSION = '0.1.0';
+import { explainProof } from './explain.js';
 
 export async function main(argv) {
   const options = { files: [], query: null, explain: false, stats: false, version: false };
+  let endOptions = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === '--version') options.version = true;
-    else if (arg === '--explain') options.explain = true;
-    else if (arg === '--stats') options.stats = true;
-    else if (arg === '--query') {
+    if (!endOptions && arg === '--') endOptions = true;
+    else if (!endOptions && (arg === '--version' || arg === '-v')) options.version = true;
+    else if (!endOptions && arg === '--explain') options.explain = true;
+    else if (!endOptions && arg === '--stats') options.stats = true;
+    else if (!endOptions && arg === '--query') {
       if (i + 1 >= argv.length) throw new Error('--query requires an argument');
       options.query = argv[++i];
-    } else if (arg === '-h' || arg === '--help') {
+    } else if (!endOptions && (arg === '-h' || arg === '--help')) {
       usage(process.stdout);
       return;
     } else {
@@ -25,7 +26,7 @@ export async function main(argv) {
     }
   }
   if (options.version) {
-    process.stdout.write(`eyelog ${VERSION}\n`);
+    process.stdout.write(`eyelog ${await packageVersion()}\n`);
     return;
   }
   if (options.files.length === 0) options.files.push('-');
@@ -54,7 +55,13 @@ function runQuery(program, query, options) {
   const solver = new Solver(program);
   for (const env of solver.solve([goal], new Env(), 0)) {
     process.stdout.write(`${termToString(goal, env, true)}.\n`);
-    if (options.explain) process.stdout.write('% why\n% explanation output is not implemented yet\n');
+    if (options.explain) {
+      const resolved = copyResolved(goal, env);
+      process.stdout.write('% why\n');
+      const proof = explainProof(program, resolved);
+      process.stdout.write(proof.text);
+      if (!proof.ok) process.stdout.write('% no proof found by the experimental proof printer\n');
+    }
   }
   if (options.stats) printStats(solver.stats);
 }
@@ -69,11 +76,21 @@ function runDefault(program, options) {
       const resolved = copyResolved(goal, env);
       if (!termIsGround(resolved)) continue;
       const line = `${termToString(resolved, new Env(), true)}.\n`;
-      if (!facts.has(line)) lines.add(line);
+      if (facts.has(line) || lines.has(line)) continue;
+      lines.add(line);
+      if (options.explain) {
+        process.stdout.write(line);
+        process.stdout.write('% why\n');
+        const proof = explainProof(program, resolved);
+        process.stdout.write(proof.text);
+        if (!proof.ok) process.stdout.write('% no proof found by the experimental proof printer\n');
+      }
     }
     lastStats = solver.stats;
   }
-  for (const line of [...lines].sort()) process.stdout.write(line);
+  if (!options.explain) {
+    for (const line of [...lines].sort()) process.stdout.write(line);
+  }
   if (options.stats && lastStats) printStats(lastStats);
 }
 
@@ -94,4 +111,15 @@ function readStdin() {
 function printStats(stats) {
   process.stderr.write('eyelog stats:\n');
   for (const [key, value] of Object.entries(stats)) process.stderr.write(`  ${key}: ${value}\n`);
+}
+
+async function packageVersion() {
+  try {
+    const text = await fs.readFile(new URL('../package.json', import.meta.url), 'utf8');
+    const pkg = JSON.parse(text);
+    if (pkg && typeof pkg.version === 'string' && pkg.version) return pkg.version;
+  } catch (_) {
+    // Fall through to a stable marker if package metadata is unavailable.
+  }
+  return 'unknown';
 }

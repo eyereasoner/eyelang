@@ -34,3 +34,4 @@ export function run(source, options = {}) {
   }
   return { stdout: output.join(''), stats: solver.stats };
 }
+export * from './explain.js';

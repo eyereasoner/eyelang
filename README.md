@@ -36,6 +36,7 @@ npm install
 There is no build step for the CLI. Run examples, explicit queries, multiple inputs, stdin, or a URL:
 
 ```sh
+bin/eyelog --version
 bin/eyelog examples/ancestor.pl
 bin/eyelog --query 'ancestor(pat, X)' examples/ancestor.pl
 bin/eyelog --explain examples/socrates.pl
@@ -55,6 +56,13 @@ python3 -m http.server 8000
 ```
 
 ## Running Eyelog
+
+Show the package version:
+
+```sh
+bin/eyelog --version
+bin/eyelog -v
+```
 
 Run a program and let Eyelog print derived binary facts:
 

@@ -73,6 +73,7 @@ async function runEyelog(request) {
       parseQueryGoal,
       termIsGround,
       termToString,
+      explainProof,
     } = await loadEngine();
 
     phase = 'parsing input';
@@ -86,7 +87,13 @@ async function runEyelog(request) {
       const out = [];
       for (const env of solver.solve([goal], new Env(), 0)) {
         out.push(`${termToString(goal, env, true)}.\n`);
-        if (explain) out.push('% why\n% explanation output is not implemented in eyelog-js yet\n');
+        if (explain) {
+          const resolved = copyResolved(goal, env);
+          const proof = explainProof(parsed, resolved);
+          out.push('% why\n');
+          out.push(proof.text);
+          if (!proof.ok) out.push('% no proof found by the experimental proof printer\n');
+        }
       }
       stdout = out.join('');
       if (stats) stderr = formatStats(solver.stats);
@@ -94,6 +101,7 @@ async function runEyelog(request) {
       phase = 'materializing output';
       const facts = parsed.sourceFactLines();
       const lines = new Set();
+      const out = [];
       let lastStats = null;
       for (const goal of parsed.materializationGoals()) {
         if (goal.type !== COMPOUND) continue;
@@ -102,11 +110,19 @@ async function runEyelog(request) {
           const resolved = copyResolved(goal, env);
           if (!termIsGround(resolved)) continue;
           const line = `${termToString(resolved, new Env(), true)}.\n`;
-          if (!facts.has(line)) lines.add(line);
+          if (facts.has(line) || lines.has(line)) continue;
+          lines.add(line);
+          if (explain) {
+            const proof = explainProof(parsed, resolved);
+            out.push(line);
+            out.push('% why\n');
+            out.push(proof.text);
+            if (!proof.ok) out.push('% no proof found by the experimental proof printer\n');
+          }
         }
         lastStats = solver.stats;
       }
-      stdout = [...lines].sort().join('');
+      stdout = explain ? out.join('') : [...lines].sort().join('');
       if (stats && lastStats) stderr = formatStats(lastStats);
     }
   } catch (error) {
@@ -126,7 +142,7 @@ async function runEyelog(request) {
 }
 
 function formatStats(stats) {
-  let text = 'eyelog-js stats:\n';
+  let text = 'eyelog stats:\n';
   for (const [key, value] of Object.entries(stats)) text += `  ${key}: ${value}\n`;
   return text;
 }
