@@ -2,17 +2,40 @@
   "name": "eyelogreasoner",
   "version": "1.1.1",
   "description": "Eyelog rule engine with modular builtins",
-  "type": "module",
+  "keywords": [
+    "prolog",
+    "reasoner"
+  ],
+  "license": "MIT",
+  "author": "Jos De Roo",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eyereasoner/eyelog.git"
+  },
+  "homepage": "https://github.com/eyereasoner/eyelog#readme",
   "bin": {
-    "eyelog": "./bin/eyelog"
+    "eyeling": "./bin/eyelog"
+  },
+  "files": [
+    "README.md",
+    "SPEC.md",
+    "LICENSE.md",
+    "src",
+    "bin",
+    "test",
+    "examples",
+    "conformance",
+    "playground.html",
+    "playground-worker.mjs"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "test": "npm run test:conformance && npm run test:examples",
     "test:conformance": "node test/run-conformance.js",
     "test:examples": "node test/run-examples.js"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "license": "MIT"
+    "preversion": "npm test",
+    "postversion": "git push origin HEAD --follow-tags"
+  }
 }
