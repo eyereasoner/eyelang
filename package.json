@@ -1,6 +1,6 @@
 {
   "name": "eyelogreasoner",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "type": "module",
   "description": "Eyelog rule engine with modular builtins",
   "keywords": [
