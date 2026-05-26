@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/eyereasoner/eyelog#readme",
   "bin": {
-    "eyeling": "./bin/eyelog"
+    "eyelog": "./bin/eyelog"
   },
   "files": [
     "README.md",
