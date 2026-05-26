@@ -176,6 +176,22 @@ bin/eyelog --stats --query 'once(solution(classic, S))' examples/sudoku.pl
 
 The playground has a matching `--stats` checkbox, so browser runs can show the same counters in the combined output window.
 
+
+### Compiled builtins
+
+Eyelog builtins are registered by name and arity inside the native/WASM binary. This keeps the runtime portable to the browser while still giving optional example helpers a clear module boundary. Unlike Eyeling's JavaScript `--builtin path/to/file.js` loading, C builtins are not compiled from source at runtime; they are compiled in and then enabled by normal predicate calls.
+
+The Sudoku example uses the compiled `sudoku/2` builtin:
+
+```prolog
+solution(Name, Rows) :-
+  puzzle(Name, Grid),
+  sudoku(Grid, Rows).
+```
+
+`sudoku/2` accepts either an 81-character string or a 9x9 list. Digits `1` to `9` are givens; `0`, `.`, and `_` mark blanks. It returns the solved 9x9 list.
+
+
 ## Aggregation helpers
 
 Eyelog includes goal-directed aggregation helpers for finite searches:
@@ -333,7 +349,7 @@ The repository includes examples for recursion, graph reachability, finite searc
 | [`skolem-functions.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/skolem-functions.pl) | Generates deterministic functional terms. | [`output/skolem-functions.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/skolem-functions.pl) |
 | [`socrates.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/socrates.pl) | Derives that Socrates is mortal. | [`output/socrates.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/socrates.pl) |
 | [`statistics-summary.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/statistics-summary.pl) | Computes population statistics for a sample. | [`output/statistics-summary.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/statistics-summary.pl) |
-| [`sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/sudoku.pl) | Solves a generic 9x9 list Sudoku puzzle with one materialized solution. | [`output/sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/sudoku.pl) |
+| [`sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/sudoku.pl) | Solves generic 9x9 Sudoku strings through the compiled sudoku/2 builtin. | [`output/sudoku.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/sudoku.pl) |
 | [`superdense-coding.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/superdense-coding.pl) | Models superdense-coding bit transmission. | [`output/superdense-coding.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/superdense-coding.pl) |
 | [`takeuchi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/takeuchi.pl) | Computes the recursive Takeuchi function. | [`output/takeuchi.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/takeuchi.pl) |
 | [`traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/traveling-salesman.pl) | Finds an optimal traveling-salesman tour. | [`output/traveling-salesman.pl`](https://github.com/eyereasoner/eyelog/blob/main/examples/output/traveling-salesman.pl) |

@@ -3403,148 +3403,478 @@ static bool builtin_once(Solver *solver, Term *goal, Env *env,
 }
 
 
+
+/* ------------------------------------------------------------------------- */
+/* Builtin registry                                                          */
+/*                                                                           */
+/* Builtins are compiled into the native/WASM binary, then registered here by */
+/* name and arity. This gives Eyelog a module boundary without relying on     */
+/* runtime C compilation or dlopen(), both of which are awkward for WASM.      */
+/* ------------------------------------------------------------------------- */
+
+typedef bool (*BuiltinHandler)(Solver *solver, Term *goal, Env *env,
+                               SolutionCallback callback, void *user_data);
+
+typedef struct {
+  const char *name;
+  int arity;
+  BuiltinHandler handler;
+  BuiltinHandler deterministic_handler;
+} BuiltinDef;
+
+static bool builtin_eq_registered(Solver *solver, Term *goal, Env *env,
+                                  SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_unify(goal, env, callback, user_data);
+}
+
+static bool builtin_neq_registered(Solver *solver, Term *goal, Env *env,
+                                   SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_neq(goal, env, callback, user_data);
+}
+
+static bool builtin_unary_math_registered(Solver *solver, Term *goal, Env *env,
+                                          SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_unary_math(goal->name, goal, env, callback, user_data);
+}
+
+static bool builtin_arithmetic_registered(Solver *solver, Term *goal, Env *env,
+                                          SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_arithmetic(goal->name, goal, env, callback, user_data);
+}
+
+static bool builtin_compare_registered(Solver *solver, Term *goal, Env *env,
+                                       SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_compare(goal->name, goal, env, callback, user_data);
+}
+
+static bool builtin_local_time_registered(Solver *solver, Term *goal, Env *env,
+                                          SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_local_time(goal, env, callback, user_data);
+}
+
+static bool builtin_difference_registered(Solver *solver, Term *goal, Env *env,
+                                          SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_difference(goal, env, callback, user_data);
+}
+
+static bool builtin_between_registered(Solver *solver, Term *goal, Env *env,
+                                       SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_between(goal, env, callback, user_data);
+}
+
+static bool builtin_smallest_divisor_from_registered(Solver *solver, Term *goal, Env *env,
+                                                     SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_smallest_divisor_from(goal, env, callback, user_data);
+}
+
+static bool builtin_concat_registered(Solver *solver, Term *goal, Env *env,
+                                      SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_concat(goal->name, goal, env, callback, user_data);
+}
+
+static bool builtin_contains_registered(Solver *solver, Term *goal, Env *env,
+                                        SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_contains(goal->name, goal, env, callback, user_data);
+}
+
+static bool builtin_append_registered(Solver *solver, Term *goal, Env *env,
+                                      SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_append(goal, env, callback, user_data);
+}
+
+static bool builtin_append_deterministic(Solver *solver, Term *goal, Env *env,
+                                         SolutionCallback callback, void *user_data) {
+  (void)solver;
+  Term **items = NULL;
+  int len = 0;
+  if (!proper_list_items(goal->args[0], env, &items, &len)) return false;
+  free(items);
+  return builtin_append(goal, env, callback, user_data);
+}
+
+static bool builtin_nth0_registered(Solver *solver, Term *goal, Env *env,
+                                    SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_nth0(goal, env, callback, user_data);
+}
+
+static bool builtin_nth0_deterministic(Solver *solver, Term *goal, Env *env,
+                                       SolutionCallback callback, void *user_data) {
+  (void)solver;
+  bool index_ok = false;
+  term_i64(goal->args[0], env, &index_ok);
+  if (!index_ok) return false;
+  return builtin_nth0(goal, env, callback, user_data);
+}
+
+static bool builtin_set_nth0_registered(Solver *solver, Term *goal, Env *env,
+                                        SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_set_nth0(goal, env, callback, user_data);
+}
+
+static bool builtin_set_nth0_deterministic(Solver *solver, Term *goal, Env *env,
+                                           SolutionCallback callback, void *user_data) {
+  (void)solver;
+  bool index_ok = false;
+  term_i64(goal->args[0], env, &index_ok);
+  if (!index_ok) return false;
+  return builtin_set_nth0(goal, env, callback, user_data);
+}
+
+static bool builtin_rest_registered(Solver *solver, Term *goal, Env *env,
+                                    SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_rest(goal, env, callback, user_data);
+}
+
+static bool builtin_member_registered(Solver *solver, Term *goal, Env *env,
+                                      SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_member(goal, env, callback, user_data);
+}
+
+static bool builtin_select_registered(Solver *solver, Term *goal, Env *env,
+                                      SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_select(goal, env, callback, user_data);
+}
+
+static bool builtin_not_member_registered(Solver *solver, Term *goal, Env *env,
+                                          SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_not_member(goal, env, callback, user_data);
+}
+
+static bool builtin_findall_registered(Solver *solver, Term *goal, Env *env,
+                                       SolutionCallback callback, void *user_data) {
+  return builtin_findall(solver, goal, env, callback, user_data);
+}
+
+static bool builtin_countall_registered(Solver *solver, Term *goal, Env *env,
+                                        SolutionCallback callback, void *user_data) {
+  return builtin_countall(solver, goal, env, callback, user_data);
+}
+
+static bool builtin_sumall_registered(Solver *solver, Term *goal, Env *env,
+                                      SolutionCallback callback, void *user_data) {
+  return builtin_sumall(solver, goal, env, callback, user_data);
+}
+
+static bool builtin_aggregate_min_registered(Solver *solver, Term *goal, Env *env,
+                                             SolutionCallback callback, void *user_data) {
+  return builtin_aggregate_best(solver, goal, env, callback, user_data, true);
+}
+
+static bool builtin_aggregate_max_registered(Solver *solver, Term *goal, Env *env,
+                                             SolutionCallback callback, void *user_data) {
+  return builtin_aggregate_best(solver, goal, env, callback, user_data, false);
+}
+
+static bool builtin_sort_registered(Solver *solver, Term *goal, Env *env,
+                                    SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_sort(goal, env, callback, user_data);
+}
+
+static bool builtin_formula_atom_registered(Solver *solver, Term *goal, Env *env,
+                                            SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_formula_atom(goal, env, callback, user_data);
+}
+
+static bool builtin_formula_binary_registered(Solver *solver, Term *goal, Env *env,
+                                              SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_formula_binary(goal, env, callback, user_data);
+}
+
+static bool builtin_length_registered(Solver *solver, Term *goal, Env *env,
+                                      SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_length(goal, env, callback, user_data);
+}
+
+static bool builtin_is_list_registered(Solver *solver, Term *goal, Env *env,
+                                       SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_is_list(goal, env, callback, user_data);
+}
+
+static bool builtin_reverse_registered(Solver *solver, Term *goal, Env *env,
+                                       SolutionCallback callback, void *user_data) {
+  (void)solver;
+  return builtin_reverse(goal, env, callback, user_data);
+}
+
+static bool builtin_not_registered(Solver *solver, Term *goal, Env *env,
+                                   SolutionCallback callback, void *user_data) {
+  return builtin_not(solver, goal, env, callback, user_data);
+}
+
+static bool builtin_once_registered(Solver *solver, Term *goal, Env *env,
+                                    SolutionCallback callback, void *user_data) {
+  return builtin_once(solver, goal, env, callback, user_data);
+}
+
+static int popcount9(int mask) {
+  int count = 0;
+  while (mask) {
+    count += mask & 1;
+    mask >>= 1;
+  }
+  return count;
+}
+
+static bool sudoku_parse_grid_string(const char *text, int cells[81]) {
+  if (!text || strlen(text) != 81) return false;
+  for (int i = 0; i < 81; i++) {
+    char ch = text[i];
+    if (ch == '.' || ch == '_') cells[i] = 0;
+    else if (ch >= '0' && ch <= '9') cells[i] = ch - '0';
+    else return false;
+  }
+  return true;
+}
+
+static bool sudoku_parse_grid_list(Term *term, Env *env, int cells[81]) {
+  Term **rows = NULL;
+  int row_count = 0;
+  if (!proper_list_items(term, env, &rows, &row_count) || row_count != 9) {
+    free(rows);
+    return false;
+  }
+
+  for (int r = 0; r < 9; r++) {
+    Term **cols = NULL;
+    int col_count = 0;
+    if (!proper_list_items(rows[r], env, &cols, &col_count) || col_count != 9) {
+      free(cols);
+      free(rows);
+      return false;
+    }
+    for (int c = 0; c < 9; c++) {
+      bool ok = false;
+      long long value = term_i64(cols[c], env, &ok);
+      if (!ok || value < 0 || value > 9) {
+        free(cols);
+        free(rows);
+        return false;
+      }
+      cells[r * 9 + c] = (int)value;
+    }
+    free(cols);
+  }
+
+  free(rows);
+  return true;
+}
+
+static bool sudoku_parse_grid(Term *term, Env *env, int cells[81]) {
+  term = deref(term, env);
+  if (term->type == TERM_STRING || term->type == TERM_ATOM || term->type == TERM_NUMBER) {
+    return sudoku_parse_grid_string(term->name, cells);
+  }
+  return sudoku_parse_grid_list(term, env, cells);
+}
+
+static bool sudoku_init_masks(const int cells[81], int row_mask[9], int col_mask[9], int box_mask[9]) {
+  for (int i = 0; i < 9; i++) {
+    row_mask[i] = 0;
+    col_mask[i] = 0;
+    box_mask[i] = 0;
+  }
+
+  for (int index = 0; index < 81; index++) {
+    int value = cells[index];
+    if (value == 0) continue;
+    int r = index / 9;
+    int c = index % 9;
+    int b = (r / 3) * 3 + (c / 3);
+    int bit = 1 << (value - 1);
+    if ((row_mask[r] & bit) || (col_mask[c] & bit) || (box_mask[b] & bit)) return false;
+    row_mask[r] |= bit;
+    col_mask[c] |= bit;
+    box_mask[b] |= bit;
+  }
+  return true;
+}
+
+static Term *sudoku_solution_term(const int cells[81]) {
+  Term *row_terms[9];
+  for (int r = 0; r < 9; r++) {
+    Term *items[9];
+    for (int c = 0; c < 9; c++) items[c] = number_term_from_i64(cells[r * 9 + c]);
+    row_terms[r] = list_from_items(items, 0, 9, empty_list_term());
+  }
+  return list_from_items(row_terms, 0, 9, empty_list_term());
+}
+
+typedef struct {
+  Solver *solver;
+  Term *solution_arg;
+  Env *env;
+  SolutionCallback callback;
+  void *user_data;
+} SudokuSearchContext;
+
+static void sudoku_emit_solution(SudokuSearchContext *ctx, int cells[81]) {
+  Term *solution = sudoku_solution_term(cells);
+  Env next = clone_env(ctx->env);
+  if (unify(ctx->solution_arg, solution, &next)) ctx->callback(&next, ctx->user_data);
+}
+
+static void sudoku_search(int cells[81], int row_mask[9], int col_mask[9], int box_mask[9],
+                          SudokuSearchContext *ctx) {
+  if (ctx->solver->solutions_seen >= ctx->solver->solution_limit) return;
+
+  int best_index = -1;
+  int best_candidates = 0;
+  int best_count = 10;
+  const int all = 0x1ff;
+
+  for (int index = 0; index < 81; index++) {
+    if (cells[index] != 0) continue;
+    int r = index / 9;
+    int c = index % 9;
+    int b = (r / 3) * 3 + (c / 3);
+    int candidates = all & ~(row_mask[r] | col_mask[c] | box_mask[b]);
+    int count = popcount9(candidates);
+    if (count == 0) return;
+    if (count < best_count) {
+      best_count = count;
+      best_index = index;
+      best_candidates = candidates;
+      if (count == 1) break;
+    }
+  }
+
+  if (best_index < 0) {
+    sudoku_emit_solution(ctx, cells);
+    return;
+  }
+
+  int r = best_index / 9;
+  int c = best_index % 9;
+  int b = (r / 3) * 3 + (c / 3);
+  for (int value = 1; value <= 9; value++) {
+    int bit = 1 << (value - 1);
+    if (!(best_candidates & bit)) continue;
+    cells[best_index] = value;
+    row_mask[r] |= bit;
+    col_mask[c] |= bit;
+    box_mask[b] |= bit;
+
+    sudoku_search(cells, row_mask, col_mask, box_mask, ctx);
+
+    box_mask[b] &= ~bit;
+    col_mask[c] &= ~bit;
+    row_mask[r] &= ~bit;
+    cells[best_index] = 0;
+
+    if (ctx->solver->solutions_seen >= ctx->solver->solution_limit) return;
+  }
+}
+
+static bool builtin_sudoku_registered(Solver *solver, Term *goal, Env *env,
+                                      SolutionCallback callback, void *user_data) {
+  int cells[81];
+  if (!sudoku_parse_grid(goal->args[0], env, cells)) return true;
+
+  int row_mask[9];
+  int col_mask[9];
+  int box_mask[9];
+  if (!sudoku_init_masks(cells, row_mask, col_mask, box_mask)) return true;
+
+  SudokuSearchContext ctx = { solver, goal->args[1], env, callback, user_data };
+  sudoku_search(cells, row_mask, col_mask, box_mask, &ctx);
+  return true;
+}
+
+static const BuiltinDef core_builtins[] = {
+  {"eq", 2, builtin_eq_registered, builtin_eq_registered},
+  {"neq", 2, builtin_neq_registered, builtin_neq_registered},
+  {"neg", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"abs", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"sin", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"cos", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"asin", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"acos", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"rounded", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"log", 2, builtin_unary_math_registered, builtin_unary_math_registered},
+  {"add", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"sub", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"mul", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"div", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"mod", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"max", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"min", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"pow", 3, builtin_arithmetic_registered, builtin_arithmetic_registered},
+  {"lt", 2, builtin_compare_registered, builtin_compare_registered},
+  {"gt", 2, builtin_compare_registered, builtin_compare_registered},
+  {"le", 2, builtin_compare_registered, builtin_compare_registered},
+  {"ge", 2, builtin_compare_registered, builtin_compare_registered},
+  {"local_time", 1, builtin_local_time_registered, builtin_local_time_registered},
+  {"difference", 3, builtin_difference_registered, builtin_difference_registered},
+  {"between", 3, builtin_between_registered, NULL},
+  {"smallest_divisor_from", 3, builtin_smallest_divisor_from_registered, builtin_smallest_divisor_from_registered},
+  {"atom_concat", 3, builtin_concat_registered, builtin_concat_registered},
+  {"str_concat", 3, builtin_concat_registered, builtin_concat_registered},
+  {"contains", 2, builtin_contains_registered, builtin_contains_registered},
+  {"not_contains", 2, builtin_contains_registered, builtin_contains_registered},
+  {"matches", 2, builtin_contains_registered, builtin_contains_registered},
+  {"not_matches", 2, builtin_contains_registered, builtin_contains_registered},
+  {"append", 3, builtin_append_registered, builtin_append_deterministic},
+  {"nth0", 3, builtin_nth0_registered, builtin_nth0_deterministic},
+  {"set_nth0", 4, builtin_set_nth0_registered, builtin_set_nth0_deterministic},
+  {"rest", 2, builtin_rest_registered, builtin_rest_registered},
+  {"member", 2, builtin_member_registered, NULL},
+  {"select", 3, builtin_select_registered, NULL},
+  {"not_member", 2, builtin_not_member_registered, builtin_not_member_registered},
+  {"findall", 3, builtin_findall_registered, NULL},
+  {"countall", 2, builtin_countall_registered, NULL},
+  {"sumall", 3, builtin_sumall_registered, NULL},
+  {"aggregate_min", 5, builtin_aggregate_min_registered, NULL},
+  {"aggregate_max", 5, builtin_aggregate_max_registered, NULL},
+  {"sort", 2, builtin_sort_registered, builtin_sort_registered},
+  {"formula_atom", 2, builtin_formula_atom_registered, NULL},
+  {"formula_binary", 4, builtin_formula_binary_registered, NULL},
+  {"reverse", 2, builtin_reverse_registered, builtin_reverse_registered},
+  {"length", 2, builtin_length_registered, builtin_length_registered},
+  {"is_list", 1, builtin_is_list_registered, builtin_is_list_registered},
+  {"not", 1, builtin_not_registered, NULL},
+  {"once", 1, builtin_once_registered, NULL},
+  /* Example builtin module. It is compiled in for native and browser builds, */
+  /* but kept as a normal registry entry so more modules can follow the same pattern. */
+  {"sudoku", 2, builtin_sudoku_registered, NULL},
+};
+
+static const BuiltinDef *find_builtin_def(const char *name, int arity) {
+  for (size_t i = 0; i < sizeof(core_builtins) / sizeof(core_builtins[0]); i++) {
+    const BuiltinDef *def = &core_builtins[i];
+    if (def->arity == arity && strcmp(def->name, name) == 0) return def;
+  }
+  return NULL;
+}
+
 static bool try_builtin(Solver *solver, Term *goal, Env *env,
                         SolutionCallback callback, void *user_data) {
   if (goal->type != TERM_COMPOUND) return false;
-
-  const char *name = goal->name;
-  int arity = goal->arity;
-
-  if (strcmp(name, "eq") == 0 && arity == 2) {
-    return builtin_unify(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "neq") == 0 && arity == 2) {
-    return builtin_neq(goal, env, callback, user_data);
-  }
-
-  if ((strcmp(name, "neg") == 0 || strcmp(name, "abs") == 0 ||
-       strcmp(name, "sin") == 0 || strcmp(name, "cos") == 0 ||
-       strcmp(name, "asin") == 0 || strcmp(name, "acos") == 0 ||
-       strcmp(name, "rounded") == 0 || strcmp(name, "log") == 0) && arity == 2) {
-    return builtin_unary_math(name, goal, env, callback, user_data);
-  }
-
-  if ((strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
-       strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
-       strcmp(name, "mod") == 0 || strcmp(name, "max") == 0 ||
-       strcmp(name, "min") == 0 || strcmp(name, "pow") == 0) && arity == 3) {
-    return builtin_arithmetic(name, goal, env, callback, user_data);
-  }
-
-  if ((strcmp(name, "lt") == 0 || strcmp(name, "gt") == 0 ||
-       strcmp(name, "le") == 0 || strcmp(name, "ge") == 0) && arity == 2) {
-    return builtin_compare(name, goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "local_time") == 0 && arity == 1) {
-    return builtin_local_time(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "difference") == 0 && arity == 3) {
-    return builtin_difference(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "between") == 0 && arity == 3) {
-    return builtin_between(goal, env, callback, user_data);
-  }
-
-
-  if (strcmp(name, "smallest_divisor_from") == 0 && arity == 3) {
-    return builtin_smallest_divisor_from(goal, env, callback, user_data);
-  }
-
-  if ((strcmp(name, "atom_concat") == 0 || strcmp(name, "str_concat") == 0) && arity == 3) {
-    return builtin_concat(name, goal, env, callback, user_data);
-  }
-
-  if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0 ||
-       strcmp(name, "matches") == 0 || strcmp(name, "not_matches") == 0) && arity == 2) {
-    return builtin_contains(name, goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "append") == 0 && arity == 3) {
-    return builtin_append(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "nth0") == 0 && arity == 3) {
-    return builtin_nth0(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "set_nth0") == 0 && arity == 4) {
-    return builtin_set_nth0(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "rest") == 0 && arity == 2) {
-    return builtin_rest(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "member") == 0 && arity == 2) {
-    return builtin_member(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "select") == 0 && arity == 3) {
-    return builtin_select(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "not_member") == 0 && arity == 2) {
-    return builtin_not_member(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "findall") == 0 && arity == 3) {
-    return builtin_findall(solver, goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "countall") == 0 && arity == 2) {
-    return builtin_countall(solver, goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "sumall") == 0 && arity == 3) {
-    return builtin_sumall(solver, goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "aggregate_min") == 0 && arity == 5) {
-    return builtin_aggregate_best(solver, goal, env, callback, user_data, true);
-  }
-
-  if (strcmp(name, "aggregate_max") == 0 && arity == 5) {
-    return builtin_aggregate_best(solver, goal, env, callback, user_data, false);
-  }
-
-  if (strcmp(name, "sort") == 0 && arity == 2) {
-    return builtin_sort(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "formula_atom") == 0 && arity == 2) {
-    return builtin_formula_atom(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "formula_binary") == 0 && arity == 4) {
-    return builtin_formula_binary(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "reverse") == 0 && arity == 2) {
-    return builtin_reverse(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "length") == 0 && arity == 2) {
-    return builtin_length(goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "is_list") == 0 && arity == 1) {
-    return builtin_is_list(goal, env, callback, user_data);
-  }
-
-
-  if (strcmp(name, "not") == 0 && arity == 1) {
-    return builtin_not(solver, goal, env, callback, user_data);
-  }
-
-  if (strcmp(name, "once") == 0 && arity == 1) {
-    return builtin_once(solver, goal, env, callback, user_data);
-  }
-
-  return false;
+  const BuiltinDef *def = find_builtin_def(goal->name, goal->arity);
+  if (!def) return false;
+  return def->handler(solver, goal, env, callback, user_data);
 }
 
 
@@ -3569,71 +3899,13 @@ static void capture_deterministic_solution(Env *env, void *user_data) {
 
 static DeterministicBuiltinResult try_deterministic_builtin(Solver *solver, Term *goal,
                                                            Env *env, Env *out) {
-  (void)solver;
   if (goal->type != TERM_COMPOUND) return DET_BUILTIN_NOT_HANDLED;
 
-  const char *name = goal->name;
-  int arity = goal->arity;
-  bool handled = false;
+  const BuiltinDef *def = find_builtin_def(goal->name, goal->arity);
+  if (!def || !def->deterministic_handler) return DET_BUILTIN_NOT_HANDLED;
+
   DeterministicBuiltinCapture capture = { 0 };
-
-  if (strcmp(name, "eq") == 0 && arity == 2) {
-    handled = builtin_unify(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "neq") == 0 && arity == 2) {
-    handled = builtin_neq(goal, env, capture_deterministic_solution, &capture);
-  } else if ((strcmp(name, "neg") == 0 || strcmp(name, "abs") == 0 ||
-              strcmp(name, "sin") == 0 || strcmp(name, "cos") == 0 ||
-              strcmp(name, "asin") == 0 || strcmp(name, "acos") == 0 ||
-              strcmp(name, "rounded") == 0 || strcmp(name, "log") == 0) && arity == 2) {
-    handled = builtin_unary_math(name, goal, env, capture_deterministic_solution, &capture);
-  } else if ((strcmp(name, "add") == 0 || strcmp(name, "sub") == 0 ||
-              strcmp(name, "mul") == 0 || strcmp(name, "div") == 0 ||
-              strcmp(name, "mod") == 0 || strcmp(name, "max") == 0 ||
-              strcmp(name, "min") == 0 || strcmp(name, "pow") == 0) && arity == 3) {
-    handled = builtin_arithmetic(name, goal, env, capture_deterministic_solution, &capture);
-  } else if ((strcmp(name, "lt") == 0 || strcmp(name, "gt") == 0 ||
-              strcmp(name, "le") == 0 || strcmp(name, "ge") == 0) && arity == 2) {
-    handled = builtin_compare(name, goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "local_time") == 0 && arity == 1) {
-    handled = builtin_local_time(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "difference") == 0 && arity == 3) {
-    handled = builtin_difference(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "smallest_divisor_from") == 0 && arity == 3) {
-    handled = builtin_smallest_divisor_from(goal, env, capture_deterministic_solution, &capture);
-  } else if ((strcmp(name, "atom_concat") == 0 || strcmp(name, "str_concat") == 0) && arity == 3) {
-    handled = builtin_concat(name, goal, env, capture_deterministic_solution, &capture);
-  } else if ((strcmp(name, "contains") == 0 || strcmp(name, "not_contains") == 0 ||
-              strcmp(name, "matches") == 0 || strcmp(name, "not_matches") == 0) && arity == 2) {
-    handled = builtin_contains(name, goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "append") == 0 && arity == 3) {
-    Term **items = NULL;
-    int len = 0;
-    if (proper_list_items(goal->args[0], env, &items, &len)) {
-      free(items);
-      handled = builtin_append(goal, env, capture_deterministic_solution, &capture);
-    }
-  } else if (strcmp(name, "nth0") == 0 && arity == 3) {
-    bool index_ok = false;
-    term_i64(goal->args[0], env, &index_ok);
-    if (index_ok) handled = builtin_nth0(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "set_nth0") == 0 && arity == 4) {
-    bool index_ok = false;
-    term_i64(goal->args[0], env, &index_ok);
-    if (index_ok) handled = builtin_set_nth0(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "rest") == 0 && arity == 2) {
-    handled = builtin_rest(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "length") == 0 && arity == 2) {
-    handled = builtin_length(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "is_list") == 0 && arity == 1) {
-    handled = builtin_is_list(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "reverse") == 0 && arity == 2) {
-    handled = builtin_reverse(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "not_member") == 0 && arity == 2) {
-    handled = builtin_not_member(goal, env, capture_deterministic_solution, &capture);
-  } else if (strcmp(name, "sort") == 0 && arity == 2) {
-    handled = builtin_sort(goal, env, capture_deterministic_solution, &capture);
-  }
-
+  bool handled = def->deterministic_handler(solver, goal, env, capture_deterministic_solution, &capture);
   if (!handled) return DET_BUILTIN_NOT_HANDLED;
   if (!capture.has_solution) return DET_BUILTIN_FAILED;
   *out = capture.env;
