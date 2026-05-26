@@ -3,8 +3,34 @@ import { deref, lexicalValue, listFromItems, numberTerm, properListItems, unify 
 export const sudokuBuiltins = {
   register(registry) {
     registry.add('sudoku', 2, sudoku);
+    registry.add('cover9', 1, cover9, { deterministic: true, ready: cover9Ready });
   }
 };
+
+
+function cover9Ready(goal, env) {
+  const items = properListItems(goal.args[0], env);
+  if (!items || items.length !== 9) return false;
+  for (const item of items) {
+    const text = lexicalValue(item, env);
+    if (!/^[1-9]$/.test(text ?? '')) return false;
+  }
+  return true;
+}
+
+function* cover9({ goal, env }) {
+  const items = properListItems(goal.args[0], env);
+  if (!items || items.length !== 9) return;
+  let mask = 0;
+  for (const item of items) {
+    const text = lexicalValue(item, env);
+    if (!/^[1-9]$/.test(text ?? '')) return;
+    const bit = 1 << (Number(text) - 1);
+    if (mask & bit) return;
+    mask |= bit;
+  }
+  if (mask === 0x1ff) yield env;
+}
 
 function* sudoku({ solver, goal, env }) {
   const cells = parseGrid(goal.args[0], env);

@@ -17,6 +17,7 @@ export class BuiltinRegistry {
       arity,
       handler,
       deterministic: options.deterministic ?? false,
+      ready: options.ready ?? null,
     });
     return this;
   }

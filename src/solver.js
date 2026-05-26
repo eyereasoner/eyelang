@@ -49,7 +49,9 @@ export class Solver {
       return;
     }
 
-    const [goal, ...rest] = goals;
+    const selectedIndex = selectReadyDeterministicBuiltin(goals, env, this.registry);
+    const goal = goals[selectedIndex];
+    const rest = selectedIndex === 0 ? goals.slice(1) : [...goals.slice(0, selectedIndex), ...goals.slice(selectedIndex + 1)];
     if (goal.type === COMPOUND && goal.name === ',' && goal.arity === 2) {
       yield* this.solve([...flattenConjunction(goal), ...rest], env, depth + 1);
       return;
@@ -164,6 +166,17 @@ export class Solver {
     this.active.pop();
   }
 
+}
+
+function selectReadyDeterministicBuiltin(goals, env, registry) {
+  for (let i = 0; i < goals.length; i++) {
+    const goal = goals[i];
+    if (goal.type !== COMPOUND) continue;
+    const def = registry.get(goal.name, goal.arity);
+    if (!def?.deterministic || typeof def.ready !== 'function') continue;
+    if (def.ready(goal, env)) return i;
+  }
+  return 0;
 }
 
 function headCannotMatch(goal, head, env) {
