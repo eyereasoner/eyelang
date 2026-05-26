@@ -1,0 +1,18 @@
+{
+  "name": "eyelog",
+  "version": "1.1.0",
+  "description": "Eyelog rule engine with modular builtins",
+  "type": "module",
+  "bin": {
+    "eyelog": "./bin/eyelog"
+  },
+  "scripts": {
+    "test": "npm run test:conformance && npm run test:examples",
+    "test:conformance": "node test/run-conformance.js",
+    "test:examples": "node test/run-examples.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,11 @@
+businessFunctionAtRisk(collect_payment, true).
+businessFunctionAtRisk(mobile_checkout, true).
+businessFunctionAtRisk(place_order, true).
+businessFunctionAtRisk(screen_fraud, true).
+impactedByFailureOf(checkout_api, payment_service).
+impactedByFailureOf(fraud_service, payment_service).
+impactedByFailureOf(mobile_app, payment_service).
+impactedByFailureOf(payment_service, payment_service).
+impactedByFailureOf(risk_rules, payment_service).
+impactedByFailureOf(web_store, payment_service).
+status(payment_service, failed).
