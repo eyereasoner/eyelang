@@ -1,9 +1,0 @@
-than(warmer, targetC).
-value(comfortable, true).
-value(difference, 6.875).
-value(mathProduct, 3.0).
-value(mathSum, 1.0).
-value(product, 10.0).
-value(quotient, 3.75).
-value(sqrtByPower, 3.0).
-value(sum, 3.75).

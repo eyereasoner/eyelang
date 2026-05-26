@@ -1,4 +1,0 @@
-answer(atom_concat, eyelog).
-answer(str_concat, "eyelog").
-answer(contains, true).
-answer(not_contains, true).

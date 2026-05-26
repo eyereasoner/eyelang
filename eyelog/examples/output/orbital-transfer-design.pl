@@ -1,7 +1,0 @@
-arrivalDeltaV_km_s(mars_hohmann, 2.6488967223855973).
-departureDeltaV_km_s(mars_hohmann, 2.9446911328430403).
-reason(mars_hohmann, "total Hohmann transfer delta-v is within the mission budget").
-status(mars_hohmann, feasible_reference_transfer).
-totalDeltaV_km_s(mars_hohmann, 5.5935878552286376).
-transferSemiMajorAxis_km(mars_hohmann, 188768535.34999999).
-transferTime_days(mars_hohmann, 258.86582676796297).

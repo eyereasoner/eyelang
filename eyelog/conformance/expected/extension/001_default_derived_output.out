@@ -1,3 +1,0 @@
-ancestor(jan, emma).
-ancestor(pat, emma).
-ancestor(pat, jan).
