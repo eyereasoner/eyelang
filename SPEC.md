@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Eyelog is a compact Prolog-like definite-clause language for rule-based programs over ordinary terms, lists, arithmetic, strings, and finite search. An Eyelog program is a finite sequence of facts and Horn clauses. Evaluation is goal-directed: goals are solved by unification against facts, rules, and a fixed set of built-in predicates.
+Eyelog is a compact Prolog-like definite-clause language for rule-based programs over ordinary terms, lists, arithmetic, strings, and finite search. An Eyelog program is a finite sequence of facts and Horn clauses. The underlying declarative semantics of the pure language is **Herbrand semantics**: constants, compound terms, and lists denote themselves, and predicates denote sets of ground atomic formulas over those terms. Evaluation is goal-directed: goals are solved by unification against facts, rules, and a fixed set of built-in predicates.
 
 Relation-style binary predicates such as `parent(pat, jan)`, `ancestor(pat, emma)`, `status(case1, accepted)`, and `reason(case1, "...")` are the normal output form. A host that runs Eyelog without an explicit query materializes new ground binary consequences `p(S, O)` unless `materialize/2` declarations restrict the selected predicates.
 
@@ -24,6 +24,8 @@ A **goal** is an atomic formula, a built-in call, or a comma conjunction.
 
 A **source fact** is a fact written directly in the input program. A **new derivation** is a ground consequence found through at least one rule and not merely repeated from the source facts.
 
+The **Herbrand universe** of a program is the set of all ground Eyelog terms constructible from the constants and functors in the program, together with the built-in list constructors `[]` and `./2` where lists are used. The **Herbrand base** is the set of all ground atomic formulas whose predicate symbols occur in the program or query and whose arguments are terms from the Herbrand universe.
+
 ## 2. Design goals
 
 Eyelog is designed to be:
@@ -39,7 +41,7 @@ Non-goals include complete ISO Prolog compatibility, operator declarations, modu
 
 ### 3.1 Character stream
 
-Input is a sequence of Unicode bytes treated as C strings by the implementation. Whitespace separates tokens and is otherwise insignificant outside quoted strings and quoted atoms.
+Input is Unicode text. Whitespace separates tokens and is otherwise insignificant outside quoted strings and quoted atoms.
 
 ### 3.2 Comments
 
@@ -114,7 +116,7 @@ Numbers are scalar terms. Integers, decimal numbers, and scientific notation are
 1.25e+3
 ```
 
-Integer arithmetic built-ins use arbitrary-precision decimal strings where possible. Floating operations use the host C `double` behavior.
+Integer arithmetic built-ins use arbitrary-precision decimal strings where possible. Floating operations use the host implementation's IEEE-754 double-precision behavior.
 
 ## 4. Surface grammar
 
@@ -224,13 +226,49 @@ A goal fails when no built-in case or user clause can prove it. Eyelog has no ex
 
 Programs and queries SHOULD be written so the relevant search space is finite. Eyelog includes recursion guards and memoization support, but it is not required to terminate for arbitrary recursive logic programs.
 
-## 8. Logical reading
+## 8. Logical reading: Herbrand semantics
 
-For the pure Horn-clause fragment, an Eyelog program has the standard least-Herbrand-model reading. Facts are true directly. A rule contributes an immediate consequence when its body is true under some substitution.
+The pure Eyelog language is interpreted over the **Herbrand universe**. This is the first-order universe made only of the ground terms that can be built from the program's atom constants, strings, numbers, list constructors, and compound functors. There are no hidden domain elements: a term denotes itself. For example, the atom constant `pat` denotes the Herbrand constant `pat`, the number `3` denotes the numeric Herbrand constant written `3`, and `parent(pat, jan)` is a ground atomic formula in the Herbrand base.
 
-The CLI is goal-directed rather than a complete bottom-up model enumerator. Its no-query output is a host behavior: it asks broad materialization queries, suppresses duplicates, excludes source facts, and prints selected ground answers. Explicit `--query` gives direct access to the goal-directed solver.
+A **Herbrand interpretation** for a program is a set of ground atomic formulas that are considered true. A source fact such as:
 
-Built-ins such as arithmetic, string operations, time, negation-as-failure, `once/1`, `findall/3`, and aggregation helpers are operational extensions and should be understood by their specified behavior rather than by pure Horn semantics alone.
+```prolog
+parent(pat, jan).
+```
+
+places the ground atom `parent(pat, jan)` in the interpretation. A rule such as:
+
+```prolog
+ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
+```
+
+is read universally over Herbrand terms: for every substitution of `X`, `Y`, and `Z` by ground Herbrand terms, if both body atoms are true, then the head atom is true. The declarative meaning of a pure program is the **least Herbrand model**: the smallest set of ground atomic formulas that contains all facts and is closed under all rules.
+
+Equivalently, the least Herbrand model is obtained by repeatedly applying the immediate-consequence operation: start with the source facts, add every ground rule head whose ground body is already true, and continue to the least fixed point. This definition is mathematical; an implementation does not have to compute the model bottom-up.
+
+### 8.1 Variables and quantification
+
+Variables do not range over external objects, records, pointers, or host-language values. In the logical reading, variables range over Herbrand terms. A rule is implicitly universally quantified over its variables. A query is existential in the usual logic-programming sense: Eyelog searches for substitutions of the query variables by Herbrand terms that make the query true with respect to the program.
+
+### 8.2 Equality, identity, and unification
+
+Because the domain is Herbrand, equality in the pure language is syntactic identity of terms after substitution. Two distinct atom constants are distinct. Two compound terms are equal only when they have the same functor, the same arity, and pairwise equal arguments. Lists follow the same rule through their `[]` and `./2` representation.
+
+Operationally, Eyelog uses first-order unification to find substitutions. The implementation does not perform an occurs check, so cyclic terms are not part of the portable Herbrand reading even if a particular implementation can temporarily construct recursive bindings internally. Portable programs SHOULD avoid relying on occurs-check-sensitive cases such as `eq(X, f(X))`.
+
+### 8.3 Goal-directed execution versus model-theoretic meaning
+
+Eyelog's CLI and library evaluator are goal-directed. They try to prove requested goals by resolving them against facts, rules, and built-ins, using clause order, goal order, indexing, memoization, and deterministic built-in execution. This operational strategy is intended to enumerate answers that are true in the least Herbrand model for the pure Horn-clause fragment, but it is not a complete bottom-up model enumerator. Non-terminating recursion or infinite generators can prevent an answer from being found even when the answer belongs to the least Herbrand model.
+
+The no-query CLI output is also a host behavior, not a separate semantics. It asks broad materialization queries, suppresses duplicates, excludes source facts, keeps ground answers, and prints selected consequences. Explicit `--query` gives direct access to the goal-directed solver.
+
+### 8.4 Built-ins and operational extensions
+
+Built-ins are specified relations or operations added to the Herbrand core. Some built-ins, such as `eq/2`, `append/3`, `member/2`, and `length/2`, can be understood as relations over Herbrand terms. Others, such as arithmetic, string matching, date/time predicates, aggregation, `once/1`, and negation-as-failure, are operational extensions whose behavior is defined by this specification rather than by pure least-Herbrand-model semantics alone.
+
+Arithmetic and string built-ins do not introduce a separate semantic universe. They inspect the lexical values of already represented Herbrand constants and, when they succeed, bind output arguments to Eyelog terms such as numbers, strings, or atom constants. For example, `add(2, 3, X)` may bind `X` to the number term `5`; it does not mean that variables range over host-language numbers outside the Herbrand universe.
+
+Negation-as-failure `not(Goal)` is especially operational: it succeeds when the current goal-directed search finds no solution for `Goal`. It is not classical negation and should not be read as adding negative facts to the Herbrand model. Programs using negation SHOULD keep the negated goal sufficiently ground and finite.
 
 ## 9. Built-in predicates
 
@@ -413,18 +451,18 @@ A conforming core implementation supports:
 
 ### 12.2 Extension profile
 
-The C implementation also supports:
+The full implementation also supports:
 
 - the built-ins listed in this specification;
 - `memoize/2` declarations;
 - `materialize/2` declarations;
 - default no-query derived output;
 - explanation output;
-- stdin, file, and URL inputs in the native CLI;
-- browser execution through the WebAssembly build.
+- stdin, file, and URL inputs in the CLI;
+- browser execution through the playground.
 
 
-Conformance cases for these profiles live in the repository under `conformance/`. They are run by `make test` before the API and example suites, and can be run alone with `make test conformance`. The cases use exact expected standard output files so independent implementations can compare behavior case by case.
+Conformance cases for these profiles live in the repository under `conformance/`. They are run by `npm test` before the example suite, and can be run alone with `npm run test:conformance`. The cases use exact expected standard output files so independent implementations can compare behavior case by case.
 
 ## 13. Relationship to ISO Prolog
 
@@ -477,6 +515,6 @@ status(a, open) :- open(a).
 
 ## 15. Security and portability considerations
 
-Native URL input uses external tools such as `curl` or `wget` when available. Hosts SHOULD treat downloaded programs as untrusted code because they can trigger expensive search.
+URL input uses host networking support when available. Hosts SHOULD treat downloaded programs as untrusted code because they can trigger expensive search.
 
 Programs SHOULD be written with finite search in mind. Broad no-query materialization can be expensive for helper predicates; use explicit `--query` or `materialize/2` declarations when needed.
