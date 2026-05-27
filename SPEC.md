@@ -14,9 +14,11 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY** ar
 
 A **term** is a variable, atom constant, string, number, list, or compound term.
 
-An **atom constant** is a symbolic scalar term, such as `pat`, `type`, or `'atom with spaces'`. In this specification, the word **atom** by itself refers to an atom constant unless explicitly qualified.
+An **atom constant** is a symbolic scalar term, such as `pat`, `type`, or `'atom with spaces'`. It is a term and may appear as an argument, list element, functor name, or predicate name.
 
-An **atomic formula** is a predicate application such as `parent(pat, jan)` or `status(case1, accepted)`. In logic-programming literature, atomic formulas are often also called atoms; this specification avoids that usage where ambiguity with atom constants could arise.
+An **atomic formula** is a predicate application such as `parent(pat, jan)` or `status(case1, accepted)`. It is the unit of truth in a Herbrand interpretation. In some logic-programming literature atomic formulas are called "atoms"; this specification avoids that shorthand. Whenever the noun "atom" appears here outside a historical built-in name such as `formula_atom/2`, it means **atom constant**, not atomic formula.
+
+This distinction is normative: `pat` is an atom constant and can appear as a term argument; `parent(pat, jan)` is an atomic formula and can appear as a fact, rule head, or goal. A compound term such as `pair(pat, jan)` has the same surface shape as an atomic formula, but its role is determined by context: as data it is a compound term, and as a clause head or goal it is an atomic formula with predicate symbol `pair/2`.
 
 A **clause** is either a fact `Head.` or a rule `Head :- Body.`.
 
@@ -41,11 +43,11 @@ Non-goals include complete ISO Prolog compatibility, operator declarations, modu
 
 ### 3.1 Character stream
 
-Input is Unicode text. Whitespace separates tokens and is otherwise insignificant outside quoted strings and quoted atoms.
+Input is Unicode text. Whitespace separates tokens and is otherwise insignificant outside quoted strings and quoted atom constants.
 
 ### 3.2 Comments
 
-A percent sign starts a line comment outside quoted strings and quoted atoms. The comment extends to the end of the line.
+A percent sign starts a line comment outside quoted strings and quoted atom constants. The comment extends to the end of the line.
 
 ```prolog
 parent(pat, jan).  % this is a comment
@@ -86,7 +88,7 @@ type
 case_123
 ```
 
-A quoted atom constant is enclosed in single quotes. A single quote inside a quoted atom is represented by doubling it:
+A quoted atom constant is enclosed in single quotes. A single quote inside a quoted atom constant is represented by doubling it:
 
 ```prolog
 'atom with spaces'
@@ -127,14 +129,16 @@ program      ::= clause*
 clause       ::= term "." | term ":-" goal_list "."
 goal_list    ::= term ("," term)*
 term         ::= variable
-              | atom
+              | atom_constant
               | string
               | number
-              | atom "(" [term ("," term)*] ")"
+              | atom_constant "(" [term ("," term)*] ")"
               | "[" [list_items] "]"
               | "(" term ("," term)+ ")"
 list_items   ::= term ("," term)* ["|" term]
 ```
+
+Here `atom_constant` is a lexical class for symbolic scalar terms, not an atomic formula. Atomic formulas are represented by the grammar alternative `atom_constant "(" ... ")"` when such a compound appears in a clause head, rule body, or query goal.
 
 A clause head SHOULD be a compound term. Non-compound heads are parsed but are not useful in the current predicate index.
 
@@ -155,7 +159,7 @@ Variables are scoped to a single clause or query. A variable in a rule head and 
 
 Atom constants, strings, and numbers are distinct scalar term kinds. Two scalar terms unify only when their type and lexical value match, except where a built-in explicitly interprets lexical values.
 
-### 5.3 Compound terms
+### 5.3 Compound terms and atomic formulas
 
 A compound term has a functor name and arity:
 
@@ -164,7 +168,9 @@ parent(pat, jan)
 pair(3, nested(atom, [x, y]))
 ```
 
-The functor name is fixed syntactically. Eyelog does not support variables in predicate or functor position.
+The same concrete syntax is used for atomic formulas when the compound appears as a fact, rule head, or goal. In `parent(pat, jan).`, `parent/2` is a predicate symbol and the whole expression is an atomic formula. In `value(x, parent(pat, jan)).`, the inner `parent(pat, jan)` is ordinary compound data.
+
+The functor or predicate name is fixed syntactically and is written as an atom constant. Eyelog does not support variables in predicate or functor position.
 
 ### 5.4 Lists
 
@@ -210,9 +216,9 @@ Clauses with the same predicate name and arity define one predicate group. Predi
 
 ## 7. Goals and proof search
 
-Goals are solved left-to-right. For a user predicate goal, Eyelog selects candidate clauses by predicate name, arity, and available indexes. A candidate clause is freshened, its head is unified with the goal, and then its body is solved.
+Goals are solved left-to-right. For a user-defined atomic-formula goal, Eyelog selects candidate clauses by predicate name, arity, and available indexes. A candidate clause is freshened, its head is unified with the goal, and then its body is solved.
 
-A conjunction goal succeeds when all conjuncts succeed in order. A query answer is printed as the resolved query term followed by a period.
+A conjunction goal succeeds when all conjunct goals succeed in order. A query answer is printed as the resolved query term followed by a period.
 
 ### 7.1 Unification
 
@@ -228,7 +234,9 @@ Programs and queries SHOULD be written so the relevant search space is finite. E
 
 ## 8. Logical reading: Herbrand semantics
 
-The pure Eyelog language is interpreted over the **Herbrand universe**. This is the first-order universe made only of the ground terms that can be built from the program's atom constants, strings, numbers, list constructors, and compound functors. There are no hidden domain elements: a term denotes itself. For example, the atom constant `pat` denotes the Herbrand constant `pat`, the number `3` denotes the numeric Herbrand constant written `3`, and `parent(pat, jan)` is a ground atomic formula in the Herbrand base.
+The pure Eyelog language is interpreted over the **Herbrand universe** and **Herbrand base**. The Herbrand universe is the first-order universe made only of the ground terms that can be built from the program's atom constants, strings, numbers, list constructors, and compound functors. There are no hidden domain elements: a term denotes itself. For example, the atom constant `pat` denotes the Herbrand constant `pat`, and the number `3` denotes the numeric Herbrand constant written `3`. The Herbrand base is separate from the universe: it contains ground atomic formulas such as `parent(pat, jan)`, whose predicate symbol is `parent/2` and whose arguments are Herbrand terms.
+
+An atom constant by itself is not true or false. For example, `pat` is a term, not a proposition. Truth applies to atomic formulas: `person(pat)` may be true or false in a Herbrand interpretation, while `pat` is simply one possible argument term.
 
 A **Herbrand interpretation** for a program is a set of ground atomic formulas that are considered true. A source fact such as:
 
@@ -236,13 +244,13 @@ A **Herbrand interpretation** for a program is a set of ground atomic formulas t
 parent(pat, jan).
 ```
 
-places the ground atom `parent(pat, jan)` in the interpretation. A rule such as:
+places the ground atomic formula `parent(pat, jan)` in the interpretation. A rule such as:
 
 ```prolog
 ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 ```
 
-is read universally over Herbrand terms: for every substitution of `X`, `Y`, and `Z` by ground Herbrand terms, if both body atoms are true, then the head atom is true. The declarative meaning of a pure program is the **least Herbrand model**: the smallest set of ground atomic formulas that contains all facts and is closed under all rules.
+is read universally over Herbrand terms: for every substitution of `X`, `Y`, and `Z` by ground Herbrand terms, if both ground body atomic formulas are true, then the ground head atomic formula is true. The declarative meaning of a pure program is the **least Herbrand model**: the smallest set of ground atomic formulas that contains all facts and is closed under all rules.
 
 Equivalently, the least Herbrand model is obtained by repeatedly applying the immediate-consequence operation: start with the source facts, add every ground rule head whose ground body is already true, and continue to the least fixed point. This definition is mathematical; an implementation does not have to compute the model bottom-up.
 
@@ -264,7 +272,7 @@ The no-query CLI output is also a host behavior, not a separate semantics. It as
 
 ### 8.4 Built-ins and operational extensions
 
-Built-ins are specified relations or operations added to the Herbrand core. Some built-ins, such as `eq/2`, `append/3`, `member/2`, and `length/2`, can be understood as relations over Herbrand terms. Others, such as arithmetic, string matching, date/time predicates, aggregation, `once/1`, and negation-as-failure, are operational extensions whose behavior is defined by this specification rather than by pure least-Herbrand-model semantics alone.
+Built-ins are specified relations or operations added to the Herbrand core. A built-in call in a goal has the syntax of an atomic formula, but its success relation is specified procedurally here rather than by source clauses. Some built-ins, such as `eq/2`, `append/3`, `member/2`, and `length/2`, can be understood as relations over Herbrand terms. Others, such as arithmetic, string matching, date/time predicates, aggregation, `once/1`, and negation-as-failure, are operational extensions whose behavior is defined by this specification rather than by pure least-Herbrand-model semantics alone.
 
 Arithmetic and string built-ins do not introduce a separate semantic universe. They inspect the lexical values of already represented Herbrand constants and, when they succeed, bind output arguments to Eyelog terms such as numbers, strings, or atom constants. For example, `add(2, 3, X)` may bind `X` to the number term `5`; it does not mean that variables range over host-language numbers outside the Herbrand universe.
 
@@ -322,7 +330,7 @@ Comparisons interpret numeric-looking terms numerically. Other scalar terms are 
 | `between(Low, High, X)` | Enumerates integers from `Low` through `High`. |
 | `smallest_divisor_from(N, Start, D)` | Finds a divisor of `N` starting at `Start`. |
 
-### 9.6 Strings and atoms
+### 9.6 Strings and atom constants
 
 | Built-in | Meaning |
 |---|---|
@@ -361,9 +369,11 @@ Comparisons interpret numeric-looking terms numerically. Other scalar terms are 
 
 ### 9.9 Formula terms
 
+Formula terms are data representations of atomic formulas and comma conjunctions. The historical built-in name `formula_atom/2` uses "atom" in the logic-programming sense of atomic formula; it MUST NOT be confused with atom constants such as `alice` or `name`.
+
 | Built-in | Meaning |
 |---|---|
-| `formula_atom(Formula, Atom)` | Enumerates compound formula members inside comma formula data. |
+| `formula_atom(Formula, Atom)` | Enumerates atomic-formula members inside comma formula data. The second argument name is historical; it denotes an atomic formula term, not necessarily an atom constant. |
 | `formula_binary(Formula, S, P, O)` | Enumerates binary formula members `P(S, O)`, exposing the functor as atom constant `P`. |
 
 Example:
