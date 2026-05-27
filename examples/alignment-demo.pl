@@ -1,8 +1,14 @@
 % Alignment demo, adapted from Eyeling's examples/alignment-demo.n3.
 %
-% Telraam and ANPR concepts are mapped into a small reference taxonomy.
-% The derived output shows concepts that roll up to the reference car class.
+% The output is the Prolog-style counterpart of the Eyeling golden output:
+% broader/narrower alignments, their transitive closure, the reflexive
+% narrower-or-equal relation, and the concepts that roll up to ref_car.
 
+materialize(broader, 2).
+materialize(narrower, 2).
+materialize(broaderTransitive, 2).
+materialize(narrowerTransitive, 2).
+materialize(narrowerOrEqualOf, 2).
 materialize(rollsUpTo, 2).
 
 concept(ref_car).
@@ -11,15 +17,21 @@ concept(tel_heavy_vehicle).
 concept(anpr_vehicle_with_plate).
 concept(anpr_passenger_car).
 
-broader(anpr_passenger_car, anpr_vehicle_with_plate).
-broadMatch(tel_car, ref_car).
-broadMatch(tel_heavy_vehicle, ref_car).
-broadMatch(anpr_vehicle_with_plate, ref_car).
+assertedBroader(tel_car, ref_car).
+assertedBroader(tel_heavy_vehicle, ref_car).
+assertedBroader(anpr_vehicle_with_plate, ref_car).
+assertedNarrower(anpr_vehicle_with_plate, anpr_passenger_car).
 
-broader(X, Y) :- broadMatch(X, Y).
+broader(X, Y) :- assertedBroader(X, Y).
+broader(X, Y) :- assertedNarrower(Y, X).
+
+narrower(X, Y) :- broader(Y, X).
 
 broaderTransitive(X, Y) :- broader(X, Y).
-broaderTransitive(X, Z) :- broaderTransitive(X, Y), broaderTransitive(Y, Z).
+broaderTransitive(X, Z) :- broader(X, Y), broaderTransitive(Y, Z).
+
+narrowerTransitive(X, Y) :- narrower(X, Y).
+narrowerTransitive(X, Z) :- narrower(X, Y), narrowerTransitive(Y, Z).
 
 narrowerOrEqualOf(X, X) :- concept(X).
 narrowerOrEqualOf(X, Y) :- broaderTransitive(X, Y).

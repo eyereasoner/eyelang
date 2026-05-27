@@ -1,18 +1,16 @@
-% Composition of injective functions is injective, adapted from the Eyeling
-% example with the same name.
+% Composition of injective functions is injective, adapted from Eyeling's
+% examples/composition-of-injective-functions-is-injective.n3.
 %
-% Functions are represented by app(Function, Input, Output), and composition
-% is represented by compositeOf(Composite, Outer, Inner).
+% The output mirrors the Eyeling golden result shape:
+% sameInputByCompositeInjectivity(h, a, b) and the symmetric counterpart.
 
-materialize(injective, 1).
-materialize(theorem, 1).
+materialize(sameInputByCompositeInjectivity, 3).
 
 inX(a).
 inX(b).
 inY(c).
 inY(d).
 inZ(e).
-inZ(f).
 
 sameTerm(X, X) :- inX(X).
 sameTerm(X, X) :- inY(X).
@@ -22,7 +20,7 @@ sameTerm(Y, X) :- sameTerm(X, Y).
 app(f, a, c).
 app(f, b, d).
 app(g, c, e).
-app(g, d, f_value).
+app(g, d, e).
 
 injective(f).
 injective(g).
@@ -39,10 +37,11 @@ sameTerm(X, Y) :-
   app(F, Y, V),
   sameTerm(U, V).
 
-injective(H) :-
+sameInputByCompositeInjectivity(H, X, Y) :-
   compositeOf(H, G, F),
   injective(G),
-  injective(F).
-
-theorem(composition_of_injective_functions_is_injective) :-
-  injective(h).
+  injective(F),
+  app(H, X, Z),
+  app(H, Y, Z),
+  sameTerm(X, Y),
+  neq(X, Y).

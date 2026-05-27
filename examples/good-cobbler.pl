@@ -1,11 +1,11 @@
 % Good cobbler, adapted from Eyeling's examples/good-cobbler.n3.
 %
-% The example demonstrates term-level structure: Joe is a good cobbler, so
-% there is someone who is good at something.
+% The Eyeling result is a quoted assertion saying that joe is a good Cobbler.
+% Here the quoted assertion is represented as an Eyelog term.
 
-materialize(answer, 2).
+materialize(is, 2).
 
-is(joe, good(cobbler)).
+assertedIs(joe, good(cobbler)).
 
-answer(test, is(X, good(Y))) :-
-  is(X, good(Y)).
+is(test, is(X, good(Y))) :-
+  assertedIs(X, good(Y)).

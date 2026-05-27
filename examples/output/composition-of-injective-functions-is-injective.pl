@@ -1,2 +1,2 @@
-injective(h).
-theorem(composition_of_injective_functions_is_injective).
+sameInputByCompositeInjectivity(h, a, b).
+sameInputByCompositeInjectivity(h, b, a).

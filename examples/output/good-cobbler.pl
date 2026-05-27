@@ -1,1 +1,1 @@
-answer(test, is(joe, good(cobbler))).
+is(test, is(joe, good(cobbler))).

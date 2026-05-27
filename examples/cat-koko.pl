@@ -1,21 +1,19 @@
 % Cat Koko, adapted from Eyeling's examples/cat-koko.n3.
 %
-% The Eyeling version uses rules that create two existential witnesses and then
-% checks that they are not equal. This Eyelog version names the witnesses.
+% The Eyeling output contains two existential witnesses. Eyelog has no blank
+% node constructor in the portable core, so this adaptation names those
+% witnesses sk_0 and sk_1.
 
+materialize(type, 2).
 materialize(is, 2).
 
 animal(koko).
-witness(cat, koko, cat_witness).
-witness(british_short_hair, koko, british_short_hair_witness).
 
-type(X, cat) :-
-  animal(koko),
-  witness(cat, koko, X).
+witness(cat, sk_0).
+witness(british_short_hair, sk_1).
 
-type(X, british_short_hair) :-
-  animal(koko),
-  witness(british_short_hair, koko, X).
+type(X, cat) :- animal(koko), witness(cat, X).
+type(X, british_short_hair) :- animal(koko), witness(british_short_hair, X).
 
 is(test, true) :-
   type(X, cat),
