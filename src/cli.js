@@ -1,3 +1,5 @@
+// Command-line interface for Eyelog.
+// It loads programs from files, URLs, or stdin, then either materializes derived output or evaluates an explicit query.
 import fs from 'node:fs/promises';
 import process from 'node:process';
 import { Env, copyResolved, termIsGround, termToString } from './term.js';

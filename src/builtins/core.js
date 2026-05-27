@@ -1,4 +1,6 @@
-import { Env, atom, numberTerm, stringTerm, lexicalValue, unify } from '../term.js';
+// Core relational builtins that do not naturally belong to arithmetic, strings, lists, or aggregation.
+// They are deterministic filters/projections and should avoid enumerating additional answers.
+import { stringTerm, lexicalValue, unify } from '../term.js';
 
 function* ok(env) { yield env; }
 
@@ -47,6 +49,7 @@ export const coreBuiltins = {
     }, { deterministic: true });
   }
 };
+
 
 function parseISODate(text) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);

@@ -56,7 +56,7 @@ feasiblePortfolio(Selected, Value, Cost, Risk) :-
   budget(portfolio2026, Budget),
   riskCap(portfolio2026, Cap),
   allProjectData(Projects),
-  choosePortfolio(Projects, Budget, Cap, Selected, Value, Cost, Risk),
+  bounded_subset(Projects, Budget, Cap, Selected, Value, Cost, Risk),
   gt(Value, 0).
 
 scoredPortfolio(Selected, Value, Cost, Risk, NegCost, NegRisk) :-

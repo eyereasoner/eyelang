@@ -1,3 +1,5 @@
+// Sudoku-specific helpers used by the example suite.
+// The cover9/1 optimization prunes invalid row blocks early while leaving the declarative fallback available.
 import { deref, lexicalValue, listFromItems, numberTerm, properListItems, unify } from '../term.js';
 
 export const sudokuBuiltins = {
@@ -19,6 +21,8 @@ function cover9Ready(goal, env) {
 }
 
 function* cover9({ goal, env }) {
+  // cover9/1 succeeds exactly when a nine-cell block contains each digit once.
+  // The bit mask makes this a constant-time duplicate check after the list is ground.
   const items = properListItems(goal.args[0], env);
   if (!items || items.length !== 9) return;
   let mask = 0;
@@ -95,6 +99,8 @@ function popcount(mask) {
 }
 
 function* search(cells, masks) {
+  // Choose the empty cell with the fewest legal candidates. This MRV heuristic
+  // is the main reason the compiled sudoku/2 helper stays fast.
   const all = 0x1ff;
   let best = -1, bestCandidates = 0, bestCount = 10;
   for (let i = 0; i < 81; i++) {

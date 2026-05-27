@@ -1,3 +1,5 @@
+// Public JavaScript API surface for embedders and the browser playground.
+// The CLI imports the same parser, program, solver, and term primitives from here.
 export { Program, makeProgram } from './program.js';
 export { parseClauses, parseProgramText, parseQueryGoal } from './parser.js';
 export { Solver } from './solver.js';

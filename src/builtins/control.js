@@ -1,3 +1,4 @@
+// Control builtins.  These intentionally use bounded sub-solvers so not/1 and once/1 only ask for the answers they need.
 export const controlBuiltins = {
   register(registry) {
     registry.add('not', 1, notBuiltin);

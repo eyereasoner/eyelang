@@ -1,3 +1,5 @@
+// Proof explanation printer.
+// This replays a successful ground goal against the program and emits the native-style "why" tree.
 import { COMPOUND, Env, VAR, deref, flattenConjunction, freshTerm, termToString, unify } from './term.js';
 import { selectClauseCandidates } from './program.js';
 import { createDefaultRegistry } from './builtins/registry.js';

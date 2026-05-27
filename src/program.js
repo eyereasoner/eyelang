@@ -1,3 +1,5 @@
+// Program representation and clause indexing.
+// Indexes are deliberately conservative: they speed up common scalar arguments but never replace unification as the final check.
 import { ATOM, COMPOUND, Env, compound, deref, flattenConjunction, isScalar, termIsGround, termToString } from './term.js';
 import { parseClauses } from './parser.js';
 
@@ -12,6 +14,9 @@ export class Program {
     return new Program(parseClauses(source));
   }
   makeGroup(name, arity) {
+    // A group corresponds to one predicate indicator, for example edge/3.
+    // Single-argument and pair indexes cover the common case where queries bind
+    // one or two scalar arguments before calling the predicate.
     const group = {
       name,
       arity,
@@ -58,6 +63,8 @@ export class Program {
     this.markRecursivePredicates();
   }
   markRecursivePredicates() {
+    // Recursion is a group-level hint used by the solver and diagnostics. It is
+    // computed from predicate dependencies rather than from individual clauses.
     const groups = [...this.groups.values()];
     const indexByGroup = new Map(groups.map((group, i) => [group, i]));
     const deps = groups.map(() => new Set());
@@ -158,6 +165,8 @@ function indexPair(pair, head, clause) {
 }
 
 export function selectClauseCandidates(group, goal, env) {
+  // Pick the narrowest applicable index. Fallback clauses remain in the result
+  // because clauses with variables or compound heads can still unify later.
   let bestPrimary = group.clauses;
   let bestFallback = [];
   let bestLen = group.clauses.length;

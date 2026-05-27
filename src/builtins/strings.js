@@ -1,3 +1,5 @@
+// String and atom conversion builtins.
+// They mostly project from already-ground terms to avoid guessing string domains.
 import { atom, lexicalValue, stringTerm, unify } from '../term.js';
 
 export const stringBuiltins = {
@@ -6,6 +8,7 @@ export const stringBuiltins = {
     for (const name of ['contains', 'not_contains', 'matches', 'not_matches']) registry.add(name, 2, contains(name), { deterministic: true });
   }
 };
+
 
 function concat(name) {
   return function* ({ goal, env }) {

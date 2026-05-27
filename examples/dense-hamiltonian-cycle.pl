@@ -62,14 +62,8 @@ symmetry_broken([First | Rest]) :-
   last([First | Rest], Last),
   lt(First, Last).
 
-candidate_cycle([Start | Rest], Cycle, Cost) :-
-  permutation(Rest, Order),
-  symmetry_broken(Order),
-  path_cost([Start | Order], PathCost),
-  last(Order, Last),
-  weight(Last, Start, Closing),
-  add(PathCost, Closing, Cost),
-  append([Start | Order], [Start], Cycle).
+candidate_cycle(Cities, Cycle, Cost) :-
+  weighted_hamiltonian_cycle(edge, Cities, Cycle, Cost).
 
 factorial(0, 1).
 factorial(N, F) :-

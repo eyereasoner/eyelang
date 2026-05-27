@@ -77,8 +77,10 @@ prime(P) :-
   combined_twice(P).
 
 prime_implicants(Primes) :-
-  findall(P, prime(P), Raw),
-  sort(Raw, Primes).
+  minterms(Minterms),
+  dont_cares(DontCares),
+  bit_table(Bits),
+  qm_prime_implicants(Minterms, DontCares, Bits, Primes).
 
 covers([], []).
 covers([x | Pattern], [_Bit | Bits]) :-
@@ -101,6 +103,13 @@ minterms(Minterms) :-
   findall(M, minterm(M), Raw),
   sort(Raw, Minterms).
 
+dont_cares(DontCares) :-
+  findall(D, dont_care(D), Raw),
+  sort(Raw, DontCares).
+
+bit_table(Bits) :-
+  findall(bit(N, Pattern), bits(N, Pattern), Bits).
+
 pair_from([A | Rest], A, B) :-
   member(B, Rest).
 pair_from([_Head | Rest], A, B) :-
@@ -114,8 +123,10 @@ cover_candidate(Cover) :-
   covers_all(Cover, Minterms).
 
 minimal_cover(Cover) :-
-  findall(C, cover_candidate(C), Raw),
-  sort(Raw, [Cover | _Alternatives]).
+  minterms(Minterms),
+  dont_cares(DontCares),
+  bit_table(Bits),
+  qm_minimal_cover(Minterms, DontCares, Bits, Cover).
 
 primeImplicants(quine_mccluskey, Primes) :-
   prime_implicants(Primes).

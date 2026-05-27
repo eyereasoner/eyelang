@@ -1,3 +1,5 @@
+// Depth-first Eyelog solver with builtin dispatch, memoization, and guarded recursion handling.
+// Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import { COMPOUND, Env, flattenConjunction, freshTerm, termToString, unify, variantTerms } from './term.js';
 import { createDefaultRegistry } from './builtins/registry.js';
 import { selectClauseCandidates } from './program.js';
@@ -49,6 +51,9 @@ export class Solver {
       return;
     }
 
+    // Eyelog normally solves left-to-right, but ready deterministic builtins can
+    // be run early as pure filters. This gives large pruning wins without
+    // reordering user predicates or nondeterministic generators.
     const selectedIndex = selectReadyDeterministicBuiltin(goals, env, this.registry);
     const goal = goals[selectedIndex];
     const rest = selectedIndex === 0 ? goals.slice(1) : [...goals.slice(0, selectedIndex), ...goals.slice(selectedIndex + 1)];
@@ -58,7 +63,7 @@ export class Solver {
     }
 
     const def = goal.type === COMPOUND ? this.registry.get(goal.name, goal.arity) : null;
-    if (def) {
+    if (def && builtinIsReadyOrAuthoritative(def, this, goal, env)) {
       let produced = false;
       for (const next of def.handler({ solver: this, goal, env })) {
         produced = true;
@@ -93,6 +98,9 @@ export class Solver {
   }
 
   *solveMemoizedGoal(group, goal, rest, env, depth) {
+    // Memoization only pays off when at least one argument is bound. A fully
+    // open call would require storing the entire relation and can mask useful
+    // goal-ordering behavior, so it falls back to the normal path.
     const key = memoKey(goal, env);
     if (!key.hasBound) {
       yield* this.solveUserGoalUncached(group, goal, rest, env, depth);
@@ -131,6 +139,9 @@ export class Solver {
 
   *solveUserGoalUncached(group, goal, rest, env, depth) {
     if (this.activeVariant(goal, env)) return;
+    // Program indexes provide candidate clauses, but every candidate is still
+    // freshened and unified below. The index is a performance hint, not a
+    // semantic shortcut.
     const candidates = selectClauseCandidates(group, goal, env);
     for (const pass of [candidates.primary, candidates.fallback]) {
       for (const clause of pass) {
@@ -168,12 +179,21 @@ export class Solver {
 
 }
 
+
+function builtinIsReadyOrAuthoritative(def, solver, goal, env) {
+  if (typeof def.shouldUse === 'function' && !def.shouldUse({ solver, goal, env })) return false;
+  if (typeof def.ready !== 'function') return true;
+  if (def.ready(goal, env)) return true;
+  return !def.fallbackWhenNotReady;
+}
+
 function selectReadyDeterministicBuiltin(goals, env, registry) {
   for (let i = 0; i < goals.length; i++) {
     const goal = goals[i];
     if (goal.type !== COMPOUND) continue;
     const def = registry.get(goal.name, goal.arity);
     if (!def?.deterministic || typeof def.ready !== 'function') continue;
+    if (typeof def.shouldUse === 'function') continue;
     if (def.ready(goal, env)) return i;
   }
   return 0;

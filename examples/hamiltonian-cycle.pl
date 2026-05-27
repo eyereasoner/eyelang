@@ -34,18 +34,8 @@ adjacent(X, Y) :- edge(Y, X).
 vertices([a, b, c, d, e, f, g, h]).
 
 hamiltonian_cycle(Cycle) :-
-  vertices([Start|Rest]),
-  visit_cycle(Start, Start, Rest, [Start], Cycle).
-
-visit_cycle(Current, Start, [], Visited, Cycle) :-
-  adjacent(Current, Start),
-  reverse(Visited, Path),
-  append(Path, [Start], Cycle).
-
-visit_cycle(Current, Start, Remaining, Visited, Cycle) :-
-  select(Next, Remaining, Rest),
-  adjacent(Current, Next),
-  visit_cycle(Next, Start, Rest, [Next|Visited], Cycle).
+  vertices(Vertices),
+  hamiltonian_cycle(edge, Vertices, Cycle).
 
 status(hamiltonian_cycle, exists) :-
   once(hamiltonian_cycle(_Cycle)).

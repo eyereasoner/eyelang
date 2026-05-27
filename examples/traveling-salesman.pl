@@ -38,9 +38,8 @@ total_distance([X, Y|Tail], D) :-
   total_distance([Y|Tail], D2),
   add(D1, D2, D).
 
-tsp([Start|Cities], [Start|Tour], Distance) :-
-  permutation(Cities, Tour),
-  total_distance([Start|Tour], Distance).
+tsp(Cities, Tour, Distance) :-
+  weighted_hamiltonian_path(distance, Cities, Tour, Distance).
 
 optimalTour(Cities, Optimal) :-
   target_cities(Cities),

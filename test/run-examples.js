@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Example-output test runner.
+// It compares each example byte-for-byte against examples/output so performance changes cannot silently alter results.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

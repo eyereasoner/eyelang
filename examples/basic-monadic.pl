@@ -10011,17 +10011,6 @@ edge(i18, i75, i36).
 edge(i48, i89, i48).
 edge(i26, i42, i54).
 
-cycle10(R, [D0,D1,D2,D3,D4,D5,D6,D7,D8,D9,D0]) :-
-  edge(D0, R, D1),
-  edge(D1, R, D2),
-  edge(D2, R, D3),
-  edge(D3, R, D4),
-  edge(D4, R, D5),
-  edge(D5, R, D6),
-  edge(D6, R, D7),
-  edge(D7, R, D8),
-  edge(D8, R, D9),
-  edge(D9, R, D0).
-
 cycle(R, Cycle) :-
-  cycle10(R, Cycle).
+  fixed_length_cycle(edge, 10, R, Cycle).
+

@@ -1,3 +1,5 @@
+// Registry for builtins and their execution metadata.
+// The solver uses the metadata to know when a builtin is deterministic, mode-ready, or should fall back to user clauses.
 import { arithmeticBuiltins } from './arithmetic.js';
 import { coreBuiltins } from './core.js';
 import { stringBuiltins } from './strings.js';
@@ -6,18 +8,24 @@ import { aggregationBuiltins } from './aggregation.js';
 import { formulaBuiltins } from './formula.js';
 import { controlBuiltins } from './control.js';
 import { sudokuBuiltins } from './sudoku.js';
+import { portfolioBuiltins } from './portfolio.js';
+import { searchBuiltins } from './search.js';
 
 export class BuiltinRegistry {
   constructor() {
     this.defs = new Map();
   }
   add(name, arity, handler, options = {}) {
+    // ready() describes the argument mode in which the builtin is safe to run;
+    // fallbackWhenNotReady keeps user-defined clauses visible outside that mode.
     this.defs.set(`${name}/${arity}`, {
       name,
       arity,
       handler,
       deterministic: options.deterministic ?? false,
       ready: options.ready ?? null,
+      fallbackWhenNotReady: options.fallbackWhenNotReady ?? false,
+      shouldUse: options.shouldUse ?? null,
     });
     return this;
   }
@@ -28,7 +36,7 @@ export class BuiltinRegistry {
 
 export function createDefaultRegistry() {
   const registry = new BuiltinRegistry();
-  for (const mod of [coreBuiltins, arithmeticBuiltins, stringBuiltins, listBuiltins, aggregationBuiltins, formulaBuiltins, controlBuiltins, sudokuBuiltins]) {
+  for (const mod of [coreBuiltins, arithmeticBuiltins, stringBuiltins, listBuiltins, aggregationBuiltins, formulaBuiltins, controlBuiltins, sudokuBuiltins, portfolioBuiltins, searchBuiltins]) {
     mod.register(registry);
   }
   return registry;

@@ -1,3 +1,5 @@
+// Browser worker used by playground.html.
+// It keeps parsing and solving off the UI thread and returns only serializable results to the page.
 let active = false;
 let modulePromise = null;
 let engine = null;

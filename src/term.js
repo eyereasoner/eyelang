@@ -1,3 +1,5 @@
+// Term model, environments, unification, readback, and ordering helpers.
+// This file is intentionally dependency-free because nearly every other module imports it.
 export const VAR = 'var';
 export const ATOM = 'atom';
 export const STRING = 'string';
@@ -42,6 +44,8 @@ export class Env {
 }
 
 export function deref(term, env) {
+  // Follow variable bindings until a non-variable term is reached. The seen set
+  // protects readback from accidental cycles in partially constructed terms.
   let current = term;
   const seen = new Set();
   while (current?.type === VAR && env?.has(current.name)) {
@@ -69,6 +73,8 @@ export function isConjunction(term) {
 }
 
 export function unify(left, right, env) {
+  // Iterative unification avoids deep JavaScript recursion on long lists or
+  // deeply nested compounds. Bindings are written into the supplied Env.
   const stack = [[left, right]];
   while (stack.length) {
     let [a, b] = stack.pop();

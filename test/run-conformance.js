@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Conformance test runner.
+// It executes each case through the CLI so tests cover the same path users run from the shell.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

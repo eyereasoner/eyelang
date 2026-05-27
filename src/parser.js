@@ -1,3 +1,5 @@
+// Tokenizer and recursive-descent parser for the Eyelog source language.
+// It preserves the compact Prolog-like syntax while producing Term objects for the solver.
 import { atom, compound, cons, emptyList, numberTerm, stringTerm, variable } from './term.js';
 
 const TOK = {
@@ -38,6 +40,8 @@ class Parser {
     return !!ch && !/\s/.test(ch) && !'()[],|.\'":'.includes(ch);
   }
   nextToken() {
+    // The tokenizer keeps just enough state for useful parse-line errors and
+    // treats quoted atoms and quoted strings differently, as Prolog syntax does.
     this.skipWhitespaceAndComments();
     const line = this.line;
     const ch = this.peek();
@@ -113,6 +117,8 @@ class Parser {
     if (this.token.type !== type) throw new Error(`parse line ${this.token.line}: expected ${desc}, got ${this.token.text}`);
   }
   parseParenthesizedTerm() {
+    // Parenthesized comma terms are represented as right-associated ','/2
+    // compounds, which lets the solver flatten conjunctions uniformly.
     this.expect(TOK.LPAREN, '(');
     this.advance();
     const items = [];
@@ -131,6 +137,8 @@ class Parser {
     return term;
   }
   parseList() {
+    // Lists are lowered to './2' cons cells and [] so list predicates can work
+    // on a single canonical representation.
     this.expect(TOK.LBRACKET, '[');
     this.advance();
     if (this.token.type === TOK.RBRACKET) {

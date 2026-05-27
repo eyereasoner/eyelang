@@ -1,3 +1,5 @@
+// Formula builtins that treat conjunctions as first-class data terms.
+// These are used by examples that construct or inspect rule bodies programmatically.
 import { atom, deref, isConjunction, unify } from '../term.js';
 
 export const formulaBuiltins = {

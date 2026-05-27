@@ -1,3 +1,5 @@
+// Numeric builtins for integer-preserving arithmetic, floating point functions, comparisons, and ranges.
+// The code keeps BigInt paths where possible so large Eyelog integers remain exact.
 import { compareIntegerText, isDecimalInteger, lexicalValue, numberTerm, numberTextFromDouble, parseFiniteNumber, unify } from '../term.js';
 
 const unaryNames = ['neg', 'abs', 'sin', 'cos', 'asin', 'acos', 'rounded', 'log'];
@@ -13,6 +15,7 @@ export const arithmeticBuiltins = {
     registry.add('smallest_divisor_from', 3, smallestDivisorFrom, { deterministic: true });
   }
 };
+
 
 function unary(name) {
   return function* ({ goal, env }) {
@@ -118,6 +121,14 @@ function parseDuration(text) {
 function* between({ goal, env }) {
   const lowText = lexicalValue(goal.args[0], env), highText = lexicalValue(goal.args[1], env);
   if (!isDecimalInteger(lowText) || !isDecimalInteger(highText)) return;
+  const lowNumber = Number(lowText), highNumber = Number(highText);
+  if (Number.isSafeInteger(lowNumber) && Number.isSafeInteger(highNumber)) {
+    for (let value = lowNumber; value <= highNumber; value++) {
+      const next = env.clone();
+      if (unify(goal.args[2], numberTerm(String(value)), next)) yield next;
+    }
+    return;
+  }
   const low = BigInt(lowText), high = BigInt(highText);
   for (let value = low; value <= high; value++) {
     const next = env.clone();

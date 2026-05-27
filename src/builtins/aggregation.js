@@ -1,3 +1,5 @@
+// Aggregation builtins that run a subquery and collect, count, sum, or select the best answers.
+// Each handler clones the solver so the inner goal can enumerate independently of the outer goal.
 import { compareTerms, copyResolved, isDecimalInteger, lexicalValue, listFromItems, numberTerm, numberTextFromDouble, parseFiniteNumber, unify } from '../term.js';
 
 export const aggregationBuiltins = {

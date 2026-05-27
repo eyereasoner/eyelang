@@ -54,8 +54,7 @@ cnf_true([Clause|Clauses], Assignment) :-
 
 model(Name, Assignment) :-
   problem(Name, Variables, Clauses),
-  assignment(Variables, Assignment),
-  cnf_true(Clauses, Assignment).
+  cnf_model(Variables, Clauses, Assignment).
 
 status(sat_instance, satisfiable) :-
   once(model(sat_instance, _Assignment)).

@@ -1,3 +1,5 @@
+// List builtins for proper lists, selection, membership, sorting, and indexing.
+// Several predicates support both checking and generation, so the argument modes are handled explicitly.
 import { compareTerms, copyResolved, deref, isCons, lexicalValue, listFromItems, numberTerm, properListItems, unify } from '../term.js';
 
 export const listBuiltins = {
@@ -15,6 +17,13 @@ export const listBuiltins = {
     registry.add('sort', 2, sortBuiltin, { deterministic: true });
   }
 };
+
+
+function listFromItemsExcept(items, skip) {
+  const copy = new Array(items.length - 1);
+  for (let i = 0, j = 0; i < items.length; i++) if (i !== skip) copy[j++] = items[i];
+  return listFromItems(copy);
+}
 
 function* append({ goal, env }) {
   let items = properListItems(goal.args[0], env);
@@ -86,15 +95,23 @@ function* select({ goal, env }) {
   const items = properListItems(goal.args[1], env);
   if (!items) return;
   for (let i = 0; i < items.length; i++) {
-    const restItems = items.filter((_, j) => j !== i);
     const next = env.clone();
-    if (unify(goal.args[0], items[i], next) && unify(goal.args[2], listFromItems(restItems), next)) yield next;
+    if (unify(goal.args[0], items[i], next) && unify(goal.args[2], listFromItemsExcept(items, i), next)) yield next;
   }
 }
 
 function* notMember({ goal, env }) {
   const items = properListItems(goal.args[1], env);
   if (!items) return;
+  const value = deref(goal.args[0], env);
+  if (value.type === 'number' || value.type === 'atom' || value.type === 'string') {
+    for (const item of items) {
+      const resolved = deref(item, env);
+      if (resolved.type === value.type && resolved.name === value.name) return;
+    }
+    yield env;
+    return;
+  }
   for (const item of items) {
     const attempt = env.clone();
     if (unify(goal.args[0], item, attempt)) return;
