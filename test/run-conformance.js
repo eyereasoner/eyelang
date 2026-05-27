@@ -29,7 +29,7 @@ try {
   for (const profile of profiles) runProfile(profile);
 
   const grandMs = nowMs() - grandStart;
-  console.log(`\n== Grand total`);
+  console.log(`\n== Conformance grand total`);
   console.log(`${GREEN}OK${RESET} ${ok}/${total} tests passed ${DIM}(${grandMs} ms)${RESET}`);
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true });

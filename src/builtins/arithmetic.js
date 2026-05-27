@@ -1,6 +1,6 @@
 // Numeric builtins for integer-preserving arithmetic, floating point functions, comparisons, and ranges.
 // The code keeps BigInt paths where possible so large Eyelog integers remain exact.
-import { compareIntegerText, isDecimalInteger, lexicalValue, numberTerm, numberTextFromDouble, parseFiniteNumber, unify } from '../term.js';
+import { compareIntegerText, deref, isDecimalInteger, lexicalValue, numberTerm, numberTextFromDouble, parseFiniteNumber, unify } from '../term.js';
 
 const unaryNames = ['neg', 'abs', 'sin', 'cos', 'asin', 'acos', 'rounded', 'log'];
 const binaryNames = ['add', 'sub', 'mul', 'div', 'mod', 'max', 'min', 'pow'];
@@ -122,7 +122,16 @@ function* between({ goal, env }) {
   const lowText = lexicalValue(goal.args[0], env), highText = lexicalValue(goal.args[1], env);
   if (!isDecimalInteger(lowText) || !isDecimalInteger(highText)) return;
   const lowNumber = Number(lowText), highNumber = Number(highText);
+  const output = deref(goal.args[2], env);
   if (Number.isSafeInteger(lowNumber) && Number.isSafeInteger(highNumber)) {
+    if (output.type === 'var') {
+      for (let value = lowNumber; value <= highNumber; value++) {
+        const next = env.clone();
+        next.bind(output.name, numberTerm(String(value)));
+        yield next;
+      }
+      return;
+    }
     for (let value = lowNumber; value <= highNumber; value++) {
       const next = env.clone();
       if (unify(goal.args[2], numberTerm(String(value)), next)) yield next;
@@ -130,6 +139,14 @@ function* between({ goal, env }) {
     return;
   }
   const low = BigInt(lowText), high = BigInt(highText);
+  if (output.type === 'var') {
+    for (let value = low; value <= high; value++) {
+      const next = env.clone();
+      next.bind(output.name, numberTerm(value.toString()));
+      yield next;
+    }
+    return;
+  }
   for (let value = low; value <= high; value++) {
     const next = env.clone();
     if (unify(goal.args[2], numberTerm(value.toString()), next)) yield next;

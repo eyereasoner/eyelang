@@ -179,8 +179,4 @@ isPrime(N, true) :-
 
 goldbachOk(N, true) :-
   even_between_4_1000(N),
-  div(N, 2, Half),
-  prime(P),
-  le(P, Half),
-  sub(N, P, Q),
-  prime(Q).
+  goldbach_pair(N, _P, _Q).

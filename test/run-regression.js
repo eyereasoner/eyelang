@@ -1,0 +1,364 @@
+#!/usr/bin/env node
+// Supplemental regression runner.
+// This file collects focused checks that do not belong to the public
+// conformance corpus or the example-output corpus: CLI regressions, public API
+// checks, and small white-box tests for maintenance-sensitive internals.
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import {
+  run,
+  Program,
+  makeProgram,
+  Solver,
+  Env,
+  BuiltinRegistry,
+  createDefaultRegistry,
+  atom,
+  compound,
+  listFromItems,
+  numberTerm,
+  stringTerm,
+  variable,
+  copyResolved,
+  flattenConjunction,
+  properListItems,
+  termIsGround,
+  termToString,
+  unify,
+  variantTerms,
+  parseProgramText,
+  parseQueryGoal,
+} from '../src/index.js';
+import { selectClauseCandidates } from '../src/program.js';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const bin = path.join(root, 'bin', 'eyelog');
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const useColor = Boolean(process.stdout.isTTY);
+const GREEN = useColor ? '\x1b[32m' : '';
+const DIM = useColor ? '\x1b[2m' : '';
+const RED = useColor ? '\x1b[31m' : '';
+const RESET = useColor ? '\x1b[0m' : '';
+
+let ok = 0;
+let total = 0;
+const grandStart = nowMs();
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-regression.'));
+
+try {
+  runSection('Regression', regressionCases());
+  runSection('API', apiCases());
+  runSection('White-box', whiteBoxCases());
+
+  const grandMs = nowMs() - grandStart;
+  console.log(`\n== Regression/API/White-box grand total`);
+  console.log(`${GREEN}OK${RESET} ${ok}/${total} tests passed ${DIM}(${grandMs} ms)${RESET}`);
+} finally {
+  fs.rmSync(tmp, { recursive: true, force: true });
+}
+
+function regressionCases() {
+  return [
+    {
+      name: 'explain rule fact proof comments',
+      run: () => runExplain({
+        program: 'type(socrates, man).\ntype(X, mortal) :- type(X, man).\n',
+        query: 'type(socrates, mortal)',
+        expected: `type(socrates, mortal).\n% why\n% need type(socrates, mortal)\n%   because rule #2: type(X, mortal) :- type(X, man)\n%     where X = socrates\n%     need type(socrates, man)\n%       because fact #1: type(socrates, man)\n%   therefore type(socrates, mortal)\n`,
+      }),
+    },
+    {
+      name: 'explain numeric builtin proof comments',
+      run: () => runExplain({
+        program: 'p(X) :- between(4, 1000, X).\n',
+        query: 'p(536)',
+        expected: `p(536).\n% why\n% need p(536)\n%   because rule #1: p(X) :- between(4, 1000, X)\n%     where X = 536\n%     need between(4, 1000, 536)\n%       because builtin between/3: between(4, 1000, 536)\n%       therefore between(4, 1000, 536)\n%   therefore p(536)\n`,
+      }),
+    },
+    {
+      name: 'explain list builtin proof comments',
+      run: () => runExplain({
+        program: 'p(X) :- member(X, [a, b]).\n',
+        query: 'p(a)',
+        expected: `p(a).\n% why\n% need p(a)\n%   because rule #1: p(X) :- member(X, [a, b])\n%     where X = a\n%     need member(a, [a, b])\n%       because builtin member/2: member(a, [a, b])\n%       therefore member(a, [a, b])\n%   therefore p(a)\n`,
+      }),
+    },
+    {
+      name: 'help with no arguments',
+      run: () => {
+        const result = runCli([]);
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'Usage:\n  eyelog [options] [file-or-url.pl|- ...]', 'stdout');
+        assertIncludes(result.stdout, '--query GOAL', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'version comes from package.json',
+      run: () => {
+        const result = runCli(['--version']);
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, `eyelog ${pkg.version}\n`, 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'stdin input is accepted',
+      run: () => {
+        const result = runCli(['--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'double dash permits option-shaped file names',
+      run: () => {
+        const file = path.join(tmp, '-h');
+        fs.writeFileSync(file, 'p(a, b).\nq(X, Y) :- p(X, Y).\n');
+        const result = runCli(['--', file]);
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'missing query argument fails clearly',
+      run: () => {
+        const result = runCli(['--query']);
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'eyelog: --query requires an argument', 'stderr');
+      },
+    },
+  ];
+}
+
+function apiCases() {
+  return [
+    {
+      name: 'run query through public API',
+      run: () => {
+        const result = run('parent(pat, jan).\nancestor(X, Y) :- parent(X, Y).\n', { query: 'ancestor(pat, Y)' });
+        assertEqual(result.stdout, 'ancestor(pat, jan).\n', 'stdout');
+      },
+    },
+    {
+      name: 'run materialization through public API',
+      run: () => {
+        const result = run('p(a, b).\nq(X, Y) :- p(X, Y).\n');
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+      },
+    },
+    {
+      name: 'run accepts Program instances',
+      run: () => {
+        const program = Program.parse('p(a).\np(b).\n');
+        const result = run(program, { query: 'p(X)' });
+        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+      },
+    },
+    {
+      name: 'makeProgram creates indexed programs',
+      run: () => {
+        const program = makeProgram('edge(a, b).\npath(X, Y) :- edge(X, Y).\n');
+        const group = program.findGroup('path', 2);
+        assertEqual(Boolean(group), true, 'path/2 group exists');
+        assertEqual(group.groupName ?? group.name, 'path', 'group name');
+        assertEqual(group.arity, 2, 'group arity');
+      },
+    },
+    {
+      name: 'program and solver public classes',
+      run: () => {
+        const program = Program.parse('p(a).\np(b).\n');
+        const solver = new Solver(program);
+        const goal = parseQueryGoal('p(X)');
+        const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
+        assertEqual(answers.join('\n'), 'p(a)\np(b)', 'answers');
+      },
+    },
+    {
+      name: 'solver honors solution limits',
+      run: () => {
+        const program = Program.parse('p(a).\np(b).\np(c).\n');
+        const solver = new Solver(program, { solutionLimit: 2 });
+        const goal = parseQueryGoal('p(X)');
+        const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
+        assertEqual(answers.join('\n'), 'p(a)\np(b)', 'answers');
+      },
+    },
+    {
+      name: 'custom builtin registry can be embedded',
+      run: () => {
+        const registry = new BuiltinRegistry();
+        registry.add('hello', 1, function* ({ goal, env }) {
+          const next = env.clone();
+          if (unify(goal.args[0], atom('world'), next)) yield next;
+        });
+        const program = Program.parse('answer(X) :- hello(X).\n');
+        const solver = new Solver(program, { registry });
+        const goal = parseQueryGoal('answer(X)');
+        const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
+        assertEqual(answers.join('\n'), 'answer(world)', 'answers');
+      },
+    },
+    {
+      name: 'default builtin registry exposes expected metadata',
+      run: () => {
+        const registry = createDefaultRegistry();
+        const between = registry.get('between', 3);
+        const append = registry.get('append', 3);
+        assertEqual(Boolean(between), true, 'between/3 exists');
+        assertEqual(Boolean(append), true, 'append/3 exists');
+        assertEqual(between.name, 'between', 'between name');
+        assertEqual(append.arity, 3, 'append arity');
+      },
+    },
+  ];
+}
+
+function whiteBoxCases() {
+  return [
+    {
+      name: 'unification binds variables in Env',
+      run: () => {
+        const env = new Env();
+        assertEqual(unify(variable('X'), atom('socrates'), env), true, 'unify result');
+        assertEqual(termToString(variable('X'), env, true), 'socrates', 'binding');
+      },
+    },
+    {
+      name: 'copyResolved and termIsGround follow bindings',
+      run: () => {
+        const env = new Env();
+        const term = compound('p', [variable('X'), atom('b')]);
+        assertEqual(termIsGround(term, env), false, 'not ground before binding');
+        assertEqual(unify(variable('X'), atom('a'), env), true, 'bind X');
+        const resolved = copyResolved(term, env);
+        assertEqual(termToString(resolved, new Env(), true), 'p(a, b)', 'resolved term');
+        assertEqual(termIsGround(resolved), true, 'ground after copy');
+      },
+    },
+    {
+      name: 'parser preserves list syntax readback',
+      run: () => {
+        const goal = parseQueryGoal('member(X, [a, b])');
+        assertEqual(termToString(goal, new Env(), true), 'member(X, [a, b])', 'goal');
+      },
+    },
+    {
+      name: 'list construction round-trips through properListItems',
+      run: () => {
+        const list = listFromItems([atom('a'), numberTerm(2), stringTerm('c')]);
+        const items = properListItems(list, new Env());
+        assertEqual(items.length, 3, 'length');
+        assertEqual(termToString(list, new Env(), true), '[a, 2, "c"]', 'list text');
+      },
+    },
+    {
+      name: 'variantTerms recognizes alpha-equivalent goals',
+      run: () => {
+        const left = parseQueryGoal('edge(X, Y)');
+        const right = parseQueryGoal('edge(A, B)');
+        const nonVariant = parseQueryGoal('edge(A, A)');
+        assertEqual(variantTerms(left, new Env(), right, new Env()), true, 'variant');
+        assertEqual(variantTerms(left, new Env(), nonVariant, new Env()), false, 'non-variant');
+      },
+    },
+    {
+      name: 'flattenConjunction preserves left-to-right order',
+      run: () => {
+        const goal = parseQueryGoal('(a, b, c)');
+        const parts = flattenConjunction(goal).map((part) => termToString(part, new Env(), true));
+        assertEqual(parts.join(' | '), 'a | b | c', 'order');
+      },
+    },
+    {
+      name: 'parseProgramText returns clause objects',
+      run: () => {
+        const clauses = parseProgramText('p(a).\nq(X) :- p(X).\n');
+        assertEqual(clauses.length, 2, 'clause count');
+        assertEqual(termToString(clauses[1].head, new Env(), true), 'q(X)', 'rule head');
+        assertEqual(clauses[1].body.length, 1, 'body length');
+      },
+    },
+    {
+      name: 'clause candidate selection uses scalar indexes with fallback',
+      run: () => {
+        const program = Program.parse('edge(a, b).\nedge(c, d).\nedge(X, z).\n');
+        const group = program.findGroup('edge', 2);
+        const goal = parseQueryGoal('edge(a, Y)');
+        const candidates = selectClauseCandidates(group, goal, new Env());
+        assertEqual(candidates.primary.length, 1, 'primary bucket length');
+        assertEqual(candidates.fallback.length, 1, 'fallback length');
+        assertEqual(termToString(candidates.primary[0].head, new Env(), true), 'edge(a, b)', 'primary head');
+      },
+    },
+  ];
+}
+
+function runSection(name, cases) {
+  const sectionStart = nowMs();
+  let sectionOk = 0;
+  console.log(`\n== ${name}`);
+
+  for (const testCase of cases) {
+    total++;
+    const nr = String(total).padStart(3, '0');
+    const start = nowMs();
+    try {
+      testCase.run();
+      const ms = nowMs() - start;
+      ok++;
+      sectionOk++;
+      console.log(`${nr} ${GREEN}OK${RESET} ${GREEN}${testCase.name}${RESET} ${DIM}(${ms} ms)${RESET}`);
+    } catch (error) {
+      console.error(`${nr} ${RED}FAIL${RESET} ${testCase.name}`);
+      console.error(error?.stack ?? String(error));
+      process.exit(1);
+    }
+  }
+
+  const sectionMs = nowMs() - sectionStart;
+  console.log(`\n== ${name} subtotal`);
+  console.log(`${GREEN}OK${RESET} ${sectionOk}/${cases.length} tests passed ${DIM}(${sectionMs} ms)${RESET}`);
+}
+
+function runExplain({ program, query, expected }) {
+  const programFile = path.join(tmp, `${total}.pl`);
+  fs.writeFileSync(programFile, program);
+  const result = runCli(['--explain', '--query', query, programFile]);
+  assertEqual(result.status, 0, 'exit status');
+  assertEqual(result.stderr, '', 'stderr');
+  assertEqual(result.stdout, expected, 'stdout');
+
+  const nonComment = result.stdout.split('\n').slice(1).filter((line) => line.length > 0 && !line.startsWith('%'));
+  assertEqual(nonComment.join(' | '), '', 'explanation comment lines');
+}
+
+function runCli(args, options = {}) {
+  return spawnSync(process.execPath, [bin, ...args], {
+    cwd: root,
+    encoding: 'utf8',
+    input: options.input ?? undefined,
+  });
+}
+
+function assertEqual(actual, expected, label) {
+  if (actual !== expected) throw new Error(`${label} mismatch\nexpected: ${format(expected)}\nactual:   ${format(actual)}`);
+}
+
+function assertIncludes(actual, expected, label) {
+  if (!actual.includes(expected)) throw new Error(`${label} did not include ${format(expected)}\nactual: ${format(actual)}`);
+}
+
+function format(value) {
+  return typeof value === 'string' ? JSON.stringify(value) : String(value);
+}
+
+function nowMs() {
+  return Number(process.hrtime.bigint() / 1000000n);
+}

@@ -9,24 +9,17 @@ airroute(discovered, RouteText) :-
   airport(Source, From),
   airport(Destination, To),
   add(MaxStopOvers, 1, MaxLegs),
-  str_concat("|", Source, StartKey0),
-  str_concat(StartKey0, "|", StartKey),
-  route_from(Source, Destination, MaxLegs, StartKey, From, RouteText).
+  bounded_path(flight, Source, Destination, MaxLegs, Path),
+  route_text(Path, RouteText).
 
-route_from(Destination, Destination, _RemainingLegs, _Visited, Text, Text).
-route_from(Current, Destination, RemainingLegs, Visited, Prefix, Text) :-
-  gt(RemainingLegs, 0),
-  flight(Current, Next),
-  str_concat("|", Next, NextKey0),
-  str_concat(NextKey0, "|", NextKey),
-  not_contains(Visited, NextKey),
-  airport(Next, NextLabel),
-  str_concat(Prefix, " -> ", Prefix0),
-  str_concat(Prefix0, NextLabel, Prefix1),
-  str_concat(Visited, Next, Visited0),
-  str_concat(Visited0, "|", Visited1),
-  sub(RemainingLegs, 1, NextRemainingLegs),
-  route_from(Next, Destination, NextRemainingLegs, Visited1, Prefix1, Text).
+route_text([Node], Text) :-
+  airport(Node, Text).
+route_text([Node|Rest], Text) :-
+  neq(Rest, []),
+  airport(Node, Label),
+  route_text(Rest, Tail),
+  str_concat(Label, " -> ", Prefix),
+  str_concat(Prefix, Tail, Text).
 
 airport(res_airport_1, "Goroka Airport").
 airport(res_airport_10, "Thule Air Base").

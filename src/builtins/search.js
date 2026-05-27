@@ -14,6 +14,7 @@ export const searchBuiltins = {
     registry.add('weighted_hamiltonian_path', 4, weightedHamiltonianPath, { fallbackWhenNotReady: true, ready: weightedGraphReady });
     registry.add('hamiltonian_cycle', 3, hamiltonianCycle, { fallbackWhenNotReady: true, ready: graphReady });
     registry.add('fixed_length_cycle', 4, fixedLengthCycle, { fallbackWhenNotReady: true, ready: fixedCycleReady });
+    registry.add('bounded_path', 5, boundedPath, { fallbackWhenNotReady: true, ready: boundedPathReady });
     registry.add('cnf_model', 3, cnfModel, { fallbackWhenNotReady: true, ready: cnfReady });
     registry.add('qm_prime_implicants', 4, qmPrimeImplicants, { deterministic: true, ready: qmReady });
     registry.add('qm_minimal_cover', 4, qmMinimalCover, { deterministic: true, ready: qmReady });
@@ -24,6 +25,7 @@ function firstIntReady(goal, env) { return intTerm(goal.args[0], env) !== null; 
 function graphReady(goal, env) { return atomKey(deref(goal.args[0], env)) !== null && properListItems(goal.args[1], env) !== null; }
 function weightedGraphReady(goal, env) { return graphReady(goal, env); }
 function fixedCycleReady(goal, env) { return atomKey(deref(goal.args[0], env)) !== null && intTerm(goal.args[1], env) !== null; }
+function boundedPathReady(goal, env) { return atomKey(deref(goal.args[0], env)) !== null && atomKey(deref(goal.args[1], env)) !== null && atomKey(deref(goal.args[2], env)) !== null && intTerm(goal.args[3], env) !== null; }
 function atomRangeReady(goal, env) { return atomKey(deref(goal.args[0], env)) !== null && intTerm(goal.args[1], env) !== null && intTerm(goal.args[2], env) !== null; }
 function atomRangesReady(goal, env) { return atomList(goal.args[0], env) !== null && intTerm(goal.args[1], env) !== null && intTerm(goal.args[2], env) !== null; }
 function cnfReady(goal, env) { return atomList(goal.args[0], env) !== null && clauseList(goal.args[1], env) !== null; }
@@ -47,7 +49,8 @@ function* atomRange({ goal, env }) {
   }
   for (let i = low; i <= high; i++) {
     const next = env.clone();
-    if (unify(goal.args[3], atom(`${prefix}${i}`), next)) yield next;
+    next.bind(output.name, atom(`${prefix}${i}`));
+    yield next;
   }
 }
 
@@ -79,7 +82,8 @@ function* atomRanges({ goal, env }) {
   for (const prefix of prefixes) {
     for (let i = low; i <= high; i++) {
       const next = env.clone();
-      if (unify(goal.args[3], atom(`${prefix}${i}`), next)) yield next;
+      next.bind(output.name, atom(`${prefix}${i}`));
+      yield next;
     }
   }
 }
@@ -273,6 +277,56 @@ function labelledGraph(program, predicate) {
     arr.push(dst); count++;
   }
   return count ? { byRelation } : null;
+}
+
+
+function* boundedPath({ solver, goal, env }) {
+  // bounded_path(EdgePred, Source, Target, MaxEdges, Path) enumerates simple
+  // directed paths with at most MaxEdges edges. EdgePred is read from EdgePred/2
+  // facts in source order so declarative examples retain stable answer order.
+  const predicate = atomKey(deref(goal.args[0], env));
+  const source = atomKey(deref(goal.args[1], env));
+  const target = atomKey(deref(goal.args[2], env));
+  const maxEdges = intTerm(goal.args[3], env);
+  if (!predicate || source == null || target == null || maxEdges == null || maxEdges < 0) return;
+  const graph = directedAdjacency(solver.program, predicate);
+  if (!graph) return;
+  const path = [source];
+  const visited = new Set([source]);
+  function* dfs(current, remaining) {
+    if (current === target) {
+      const next = env.clone();
+      if (unify(goal.args[4], listFromItems(path.map(atom)), next)) yield next;
+      return;
+    }
+    if (remaining <= 0) return;
+    for (const dst of graph.get(current) ?? []) {
+      if (visited.has(dst)) continue;
+      visited.add(dst);
+      path.push(dst);
+      yield* dfs(dst, remaining - 1);
+      path.pop();
+      visited.delete(dst);
+    }
+  }
+  yield* dfs(source, maxEdges);
+}
+
+function directedAdjacency(program, predicate) {
+  const map = new Map();
+  let count = 0;
+  for (const clause of program.clauses) {
+    if (clause.body.length !== 0) continue;
+    const h = clause.head;
+    if (h.type !== 'compound' || h.name !== predicate || h.arity !== 2) continue;
+    const a = atomKey(h.args[0]), b = atomKey(h.args[1]);
+    if (a == null || b == null) continue;
+    let arr = map.get(a);
+    if (!arr) map.set(a, arr = []);
+    arr.push(b);
+    count++;
+  }
+  return count ? map : null;
 }
 
 function* cnfModel({ goal, env }) {

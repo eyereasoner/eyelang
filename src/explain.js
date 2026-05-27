@@ -1,53 +1,13 @@
 // Proof explanation printer.
-// This replays a successful ground goal against the program and emits the native-style "why" tree.
+// It replays a successful goal against the program and emits a Prolog-readable
+// explanation: the derived answer is a fact, and every explanation line is a
+// Prolog comment.  Builtins are handled through the same registry metadata as
+// the solver, so optimized builtin predicates explain themselves instead of
+// being reported as missing user clauses.
 import { COMPOUND, Env, VAR, deref, flattenConjunction, freshTerm, termToString, unify } from './term.js';
 import { selectClauseCandidates } from './program.js';
 import { createDefaultRegistry } from './builtins/registry.js';
 import { Solver, nextFreshId } from './solver.js';
-
-const DETERMINISTIC_EXPLAIN_BUILTINS = new Set([
-  'eq/2',
-  'neq/2',
-  'neg/2',
-  'abs/2',
-  'sin/2',
-  'cos/2',
-  'asin/2',
-  'acos/2',
-  'rounded/2',
-  'log/2',
-  'add/3',
-  'sub/3',
-  'mul/3',
-  'div/3',
-  'mod/3',
-  'max/3',
-  'min/3',
-  'pow/3',
-  'lt/2',
-  'gt/2',
-  'le/2',
-  'ge/2',
-  'local_time/1',
-  'difference/3',
-  'smallest_divisor_from/3',
-  'atom_concat/3',
-  'str_concat/3',
-  'contains/2',
-  'not_contains/2',
-  'matches/2',
-  'not_matches/2',
-  'append/3',
-  'nth0/3',
-  'set_nth0/4',
-  'rest/2',
-  'not_member/2',
-  'sort/2',
-  'reverse/2',
-  'length/2',
-  'is_list/1',
-]);
-
 
 export function explainProof(program, goal, options = {}) {
   const out = [];
@@ -70,13 +30,15 @@ function explainGoal(program, goal, env, depth, maxDepth, out, registry) {
     return explainGoals(program, flattenConjunction(goal), env, depth + 1, maxDepth, out, registry);
   }
 
-  const det = tryDeterministicBuiltin(program, goal, env, registry);
-  if (det.handled) {
-    if (det.env) {
-      explainLine(out, depth + 1, `builtin ${termToString(goal, det.env, true)} succeeds`);
-      return det.env;
+  const builtin = tryBuiltin(program, goal, env, registry);
+  if (builtin.handled) {
+    if (builtin.env) {
+      explainLine(out, depth + 1, `because builtin ${signature(goal)}: ${termToString(goal, builtin.env, true)}`);
+      explainBuiltinDetails(program, goal, builtin.env, depth + 2, maxDepth, out, registry);
+      explainLine(out, depth + 1, `therefore ${termToString(goal, builtin.env, true)}`);
+      return builtin.env;
     }
-    explainLine(out, depth + 1, 'builtin fails');
+    explainLine(out, depth + 1, `builtin ${signature(goal)} fails`);
     return null;
   }
 
@@ -129,13 +91,6 @@ function explainGoal(program, goal, env, depth, maxDepth, out, registry) {
 function explainGoals(program, goals, env, depth, maxDepth, out, registry) {
   let current = env.clone();
   for (const goal of goals) {
-    const det = tryDeterministicBuiltin(program, goal, current, registry);
-    if (det.handled && det.env) {
-      explainLine(out, depth, `builtin ${termToString(goal, det.env, true)} succeeds`);
-      current = det.env;
-      continue;
-    }
-
     const next = explainGoal(program, goal, current, depth, maxDepth, out, registry);
     if (!next) return null;
     current = next;
@@ -143,19 +98,59 @@ function explainGoals(program, goals, env, depth, maxDepth, out, registry) {
   return current;
 }
 
-function tryDeterministicBuiltin(program, goal, env, registry) {
+function tryBuiltin(program, goal, env, registry) {
   if (goal.type !== COMPOUND) return { handled: false, env: null };
-  const signature = `${goal.name}/${goal.arity}`;
-  if (!DETERMINISTIC_EXPLAIN_BUILTINS.has(signature)) return { handled: false, env: null };
-
   const def = registry.get(goal.name, goal.arity);
   if (!def) return { handled: false, env: null };
 
   const solver = new Solver(program, { registry, solutionLimit: 1 });
+  if (!builtinIsUsedForGoal(def, solver, goal, env)) return { handled: false, env: null };
   for (const next of def.handler({ solver, goal, env })) {
     return { handled: true, env: next.clone ? next.clone() : next };
   }
   return { handled: true, env: null };
+}
+
+function builtinIsUsedForGoal(def, solver, goal, env) {
+  if (typeof def.shouldUse === 'function' && !def.shouldUse({ solver, goal, env })) return false;
+  if (typeof def.ready !== 'function') return true;
+  if (def.ready(goal, env)) return true;
+  return !def.fallbackWhenNotReady;
+}
+
+function explainBuiltinDetails(program, goal, env, depth, maxDepth, out, registry) {
+  if (goal.type !== COMPOUND) return;
+
+  if (goal.name === 'not' && goal.arity === 1) {
+    explainLine(out, depth, `negation-as-failure: ${termToString(goal.args[0], env, true)} has no proof`);
+    return;
+  }
+
+  if (goal.name === 'once' && goal.arity === 1) {
+    explainLine(out, depth, 'once/1 keeps the first proof of its argument');
+    explainGoal(program, goal.args[0], env.clone(), depth, maxDepth, out, registry);
+    return;
+  }
+
+  if (goal.name === 'findall' && goal.arity === 3) {
+    explainLine(out, depth, 'findall/3 collects all template instances proved by its goal');
+    return;
+  }
+
+  if (goal.name === 'countall' && goal.arity === 2) {
+    explainLine(out, depth, 'countall/2 counts all proofs of its goal');
+    return;
+  }
+
+  if (goal.name === 'sumall' && goal.arity === 3) {
+    explainLine(out, depth, 'sumall/3 sums all template values proved by its goal');
+    return;
+  }
+
+  if ((goal.name === 'aggregate_min' || goal.name === 'aggregate_max') && goal.arity === 5) {
+    explainLine(out, depth, `${goal.name}/5 selects the best proof according to its score argument`);
+    return;
+  }
 }
 
 function goalsToString(goals, env) {
@@ -163,7 +158,7 @@ function goalsToString(goals, env) {
 }
 
 function explainLine(out, depth, text) {
-  out.push(`${'  '.repeat(depth)}${text}\n`);
+  out.push(`% ${'  '.repeat(depth)}${text}\n`);
 }
 
 function collectClauseSubstitutions(clause, freshHead, freshBody) {
@@ -196,4 +191,9 @@ function explainSubstitutions(substitutions, env, depth, out) {
     if (resolved.type === VAR) continue;
     explainLine(out, depth, `where ${substitution.name} = ${termToString(substitution.fresh, env, true)}`);
   }
+}
+
+function signature(goal) {
+  if (goal.type !== COMPOUND) return 'goal';
+  return `${goal.name}/${goal.arity}`;
 }

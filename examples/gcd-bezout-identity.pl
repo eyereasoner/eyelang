@@ -16,35 +16,9 @@ case(c4, 270, 192).
 case(c5, -27, 36).
 case(c6, 123456, 7890).
 
-sign_and_abs(N, 1, N) :- ge(N, 0).
-sign_and_abs(N, -1, Abs) :- lt(N, 0), neg(N, Abs).
-
-initial_work(Case, A, B, AbsA, AbsB, SignA, SignB) :-
-  case(Case, A, B),
-  sign_and_abs(A, SignA, AbsA),
-  sign_and_abs(B, SignB, AbsB).
-
-work(Case, 0, AbsA, AbsB, 1, 0, 0, 1) :-
-  initial_work(Case, A, B, AbsA, AbsB, SignA, SignB).
-
-work(Case, Step, R1, R2, S1, S2, T1, T2) :-
-  gt(Step, 0),
-  sub(Step, 1, PrevStep),
-  work(Case, PrevStep, R0, R1, S0, S1, T0, T1),
-  neq(R1, 0),
-  div(R0, R1, Q),
-  mod(R0, R1, R2),
-  mul(Q, S1, QS1),
-  sub(S0, QS1, S2),
-  mul(Q, T1, QT1),
-  sub(T0, QT1, T2).
-
 answer(Case, Gcd, S, T) :-
-  between(0, 10, Step),
-  work(Case, Step, Gcd, 0, S0, S1, T0, T1),
-  initial_work(Case, A, B, AbsA, AbsB, SignA, SignB),
-  mul(S0, SignA, S),
-  mul(T0, SignB, T).
+  case(Case, A, B),
+  extended_gcd(A, B, Gcd, S, T).
 
 bezout_ok(Case) :-
   case(Case, A, B),
