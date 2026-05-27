@@ -12,6 +12,7 @@ import { portfolioBuiltins } from './portfolio.js';
 import { searchBuiltins } from './search.js';
 import { numberTheoryBuiltins } from './number-theory.js';
 import { matrixBuiltins } from './matrix.js';
+import { alphameticBuiltins } from './alphametic.js';
 
 export class BuiltinRegistry {
   constructor() {
@@ -38,7 +39,7 @@ export class BuiltinRegistry {
 
 export function createDefaultRegistry() {
   const registry = new BuiltinRegistry();
-  for (const mod of [coreBuiltins, arithmeticBuiltins, stringBuiltins, listBuiltins, aggregationBuiltins, formulaBuiltins, controlBuiltins, sudokuBuiltins, portfolioBuiltins, searchBuiltins, numberTheoryBuiltins, matrixBuiltins]) {
+  for (const mod of [coreBuiltins, arithmeticBuiltins, stringBuiltins, listBuiltins, aggregationBuiltins, formulaBuiltins, controlBuiltins, sudokuBuiltins, portfolioBuiltins, searchBuiltins, numberTheoryBuiltins, matrixBuiltins, alphameticBuiltins]) {
     mod.register(registry);
   }
   return registry;

@@ -102,23 +102,25 @@ function runQuery(program, query, options) {
 }
 
 function runDefault(program, options) {
-  const facts = program.sourceFactLines();
+  const goals = program.materializationGoals();
+  const materializedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
+  const facts = program.sourceFactLines(materializedKeys);
   const lines = new Set();
   let lastStats = null;
 
-  for (const goal of program.materializationGoals()) {
+  for (const goal of goals) {
     const solver = new Solver(program);
 
     for (const env of solver.solve([goal], new Env(), 0)) {
-      const resolved = copyResolved(goal, env);
-      if (!termIsGround(resolved)) continue;
+      if (!termIsGround(goal, env)) continue;
 
-      const line = `${termToString(resolved, new Env(), true)}.\n`;
+      const line = `${termToString(goal, env, true)}.\n`;
       if (facts.has(line) || lines.has(line)) continue;
 
       lines.add(line);
 
       if (options.explain) {
+        const resolved = copyResolved(goal, env);
         process.stdout.write(line);
         process.stdout.write('% why\n');
         const proof = explainProof(program, resolved);
@@ -133,7 +135,8 @@ function runDefault(program, options) {
   }
 
   if (!options.explain) {
-    for (const line of [...lines].sort()) process.stdout.write(line);
+    const sorted = [...lines].sort();
+    if (sorted.length !== 0) process.stdout.write(sorted.join(''));
   }
 
   if (options.stats && lastStats) printStats(lastStats);

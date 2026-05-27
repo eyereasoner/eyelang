@@ -278,9 +278,13 @@ Arithmetic and string built-ins do not introduce a separate semantic universe. T
 
 Negation-as-failure `not(Goal)` is especially operational: it succeeds when the current goal-directed search finds no solution for `Goal`. It is not classical negation and should not be read as adding negative facts to the Herbrand model. Programs using negation SHOULD keep the negated goal sufficiently ground and finite.
 
-## 9. Built-in predicates
+## 9. Standard built-in predicates
 
-This section lists the built-ins supported by the implementation.
+This section specifies the **standard built-ins** of the Eyelog language. An implementation that claims support for this standard built-in profile MUST implement the predicates in this section with the meanings described here.
+
+A built-in call is still written as an atomic formula, but the relation is provided by the host implementation rather than by source clauses. Several built-ins are mode-sensitive: they are intended to run when their input arguments are sufficiently ground, and implementations may leave user-defined clauses visible when that mode is not yet satisfied.
+
+Implementations MAY provide additional built-ins, but such built-ins are extensions and are not part of this normative catalog. Extension built-ins are discussed separately in section 10.
 
 ### 9.1 Equality and unification
 
@@ -391,11 +395,29 @@ This can yield `formula_binary((name(alice, "Alice"), knows(alice, bob)), alice,
 | `not(Goal)` | Negation as failure. Succeeds when `Goal` has no solution. |
 | `once(Goal)` | Succeeds with at most the first solution of `Goal`. |
 
-## 10. Declarations
+## 10. Extension built-ins
+
+Implementations MAY provide additional built-ins beyond the standard predicates listed above. Such built-ins are **extension built-ins**. They are useful for embedding Eyelog in particular host environments, exposing efficient finite-domain solvers, or providing domain-specific relations for examples and applications.
+
+Extension built-ins are not required for conformance to this specification. A portable Eyelog program SHOULD NOT depend on an extension built-in unless the target implementation explicitly documents that extension.
+
+An extension built-in SHOULD obey the same surface-language discipline as standard built-ins:
+
+- it is called using ordinary atomic-formula syntax, for example `some_extension(A, B)`;
+- its arguments and results are Eyelog terms from the Herbrand universe;
+- it succeeds, fails, and binds variables as a relation over Eyelog terms;
+- it SHOULD document its intended modes, especially which arguments must be ground before it runs deterministically;
+- it MUST NOT change the meaning of ordinary facts, rules, unification, or standard built-ins.
+
+For example, an implementation may include extension modules for Sudoku solving, portfolio selection, number-theory algorithms, graph search, matrix operations, or alphametic puzzles. Those modules may be valuable and may make example programs much faster, but their predicate names, arities, algorithms, and modes are implementation-defined unless they are separately standardized.
+
+An implementation that provides explanation output SHOULD make extension built-ins explainable at least as opaque successful or failed built-in calls, so that proof traces do not incorrectly report "no clauses" for a host-provided relation.
+
+## 11. Declarations
 
 Declarations are written as ordinary facts, but the host treats them specially.
 
-### 10.1 Memoization
+### 11.1 Memoization
 
 ```prolog
 memoize(Name, Arity).
@@ -409,7 +431,7 @@ Example:
 memoize(path, 2).
 ```
 
-### 10.2 Default-output materialization
+### 11.2 Default-output materialization
 
 ```prolog
 materialize(Name, Arity).
@@ -426,7 +448,7 @@ materialize(reason, 2).
 
 `materialize/2` does not affect explicit queries.
 
-## 11. Output and read-back profile
+## 12. Output and read-back profile
 
 Normal answer output prints one resolved term per line, followed by a period. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation.
 
@@ -442,15 +464,15 @@ Without `--query`, the host behavior is:
 6. suppress duplicates;
 7. print sorted facts.
 
-### 11.1 Explanation output
+### 12.1 Explanation output
 
 `--explain` MAY print non-normative proof trees for query answers or default derived output. Explanation output is outside the logical semantics and MUST NOT change the set of answers.
 
-## 12. Conformance profiles
+## 13. Conformance profiles
 
-### 12.1 Core profile
+### 13.1 Core language profile
 
-A conforming core implementation supports:
+A conforming core language implementation supports:
 
 - lexical syntax described above;
 - facts and definite clauses;
@@ -459,22 +481,26 @@ A conforming core implementation supports:
 - lists and comma conjunctions;
 - answer printing.
 
-### 12.2 Extension profile
+### 13.2 Standard built-in profile
 
-The full implementation also supports:
+A conforming standard built-in implementation supports the built-ins listed in section 9. These are the portable built-ins independent implementations should implement when they claim standard built-in compatibility.
 
-- the built-ins listed in this specification;
+### 13.3 Standard host profile
+
+A conforming standard host also supports:
+
 - `memoize/2` declarations;
 - `materialize/2` declarations;
 - default no-query derived output;
 - explanation output;
-- stdin, file, and URL inputs in the CLI;
-- browser execution through the playground.
+- stdin, file, and URL inputs in the CLI.
+
+Browser execution, package layout, and any extension built-ins described in implementation documentation are outside this specification unless separately standardized.
 
 
 Conformance cases for these profiles live in the repository under `conformance/`. They are run by `npm test` before the example suite, and can be run alone with `npm run test:conformance`. The cases use exact expected standard output files so independent implementations can compare behavior case by case.
 
-## 13. Relationship to ISO Prolog
+## 14. Relationship to ISO Prolog
 
 Eyelog borrows familiar Prolog syntax and Horn-clause execution but is not ISO Prolog. Notable differences include:
 
@@ -489,9 +515,9 @@ Eyelog borrows familiar Prolog syntax and Horn-clause execution but is not ISO P
 
 Programs intended to be portable to Eyelog SHOULD avoid ISO-specific syntax and keep terms explicit.
 
-## 14. Examples
+## 15. Examples
 
-### 14.1 Transitive closure
+### 15.1 Transitive closure
 
 ```prolog
 parent(pat, jan).
@@ -501,21 +527,21 @@ ancestor(X, Y) :- parent(X, Y).
 ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 ```
 
-### 14.2 Arithmetic
+### 15.2 Arithmetic
 
 ```prolog
 square(X, Y) :- mul(X, X, Y).
 answer(three, Y) :- square(3, Y).
 ```
 
-### 14.3 Lists
+### 15.3 Lists
 
 ```prolog
 first([X | _Rest], X).
 answer(example, X) :- first([a, b, c], X).
 ```
 
-### 14.4 Negation as failure
+### 15.4 Negation as failure
 
 ```prolog
 closed(b).
@@ -523,7 +549,7 @@ open(X) :- not(closed(X)).
 status(a, open) :- open(a).
 ```
 
-## 15. Security and portability considerations
+## 16. Security and portability considerations
 
 URL input uses host networking support when available. Hosts SHOULD treat downloaded programs as untrusted code because they can trigger expensive search.
 

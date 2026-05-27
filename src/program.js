@@ -26,9 +26,11 @@ export class Program {
       memoized: false,
       recursive: false,
     };
-    for (let left = 0; left < arity; left++) {
-      for (let right = left + 1; right < arity; right++) {
-        group.pairIndexes.push({ left, right, buckets: new Map(), fallback: [] });
+    if (arity > 2) {
+      for (let left = 0; left < arity; left++) {
+        for (let right = left + 1; right < arity; right++) {
+          group.pairIndexes.push({ left, right, buckets: new Map(), fallback: [] });
+        }
       }
     }
     return group;
@@ -110,11 +112,15 @@ export class Program {
   groupHasRule(group) {
     return group.clauses.some((clause) => clause.body.length > 0);
   }
-  sourceFactLines() {
+  sourceFactLines(predicateKeys = null) {
+    // Only facts for predicates that may be materialized need to be remembered.
+    // On data-heavy examples this avoids formatting tens of thousands of
+    // unrelated source facts just to suppress duplicate derived output.
     const lines = new Set();
     const env = new Env();
     for (const clause of this.clauses) {
       if (clause.body.length !== 0 || clause.head.type !== COMPOUND) continue;
+      if (predicateKeys && !predicateKeys.has(`${clause.head.name}/${clause.head.arity}`)) continue;
       lines.add(`${termToString(clause.head, env, true)}.\n`);
     }
     return lines;

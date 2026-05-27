@@ -7,6 +7,28 @@ const TOK = {
   LPAREN: '(', RPAREN: ')', LBRACKET: '[', RBRACKET: ']', COMMA: ',', BAR: '|', DOT: '.', IF: ':-'
 };
 
+function isWhitespaceCode(code) {
+  return code === 32 || code === 9 || code === 10 || code === 13 || code === 12 || code === 11;
+}
+
+function isDigitCode(code) {
+  return code >= 48 && code <= 57;
+}
+
+function isVariableStart(text) {
+  const code = text.charCodeAt(0);
+  return code === 95 || (code >= 65 && code <= 90);
+}
+
+function isAtomCharCode(code) {
+  // Stop at whitespace and the punctuation tokens that have syntactic meaning.
+  return code > 0 &&
+    !isWhitespaceCode(code) &&
+    code !== 40 && code !== 41 && code !== 91 && code !== 93 &&
+    code !== 44 && code !== 124 && code !== 46 &&
+    code !== 39 && code !== 34 && code !== 58;
+}
+
 class Parser {
   constructor(source) {
     this.source = String(source ?? '');
@@ -27,17 +49,21 @@ class Parser {
     return ch;
   }
   skipWhitespaceAndComments() {
+    const source = this.source;
+    const len = source.length;
     while (true) {
-      while (/\s/.test(this.peek())) this.take();
-      if (this.peek() === '%') {
-        while (this.peek() && this.peek() !== '\n') this.take();
+      while (this.pos < len) {
+        const code = source.charCodeAt(this.pos);
+        if (!isWhitespaceCode(code)) break;
+        if (code === 10) this.line++;
+        this.pos++;
+      }
+      if (source.charCodeAt(this.pos) === 37) { // % line comment
+        while (this.pos < len && source.charCodeAt(this.pos) !== 10) this.pos++;
         continue;
       }
       break;
     }
-  }
-  isAtomChar(ch) {
-    return !!ch && !/\s/.test(ch) && !'()[],|.\'":'.includes(ch);
   }
   nextToken() {
     // The tokenizer keeps just enough state for useful parse-line errors and
@@ -82,31 +108,31 @@ class Parser {
       return { type: quote === '"' ? TOK.STRING : TOK.ATOM, text, line };
     }
 
-    if (/\d/.test(ch) || (ch === '-' && /\d/.test(this.peek(1)))) {
+    if (isDigitCode(ch.charCodeAt(0)) || (ch === '-' && isDigitCode(this.peek(1).charCodeAt(0)))) {
       const start = this.pos;
       if (this.peek() === '-') this.take();
-      while (/\d/.test(this.peek())) this.take();
-      if (this.peek() === '.' && /\d/.test(this.peek(1))) {
+      while (isDigitCode(this.peek().charCodeAt(0))) this.take();
+      if (this.peek() === '.' && isDigitCode(this.peek(1).charCodeAt(0))) {
         this.take();
-        while (/\d/.test(this.peek())) this.take();
+        while (isDigitCode(this.peek().charCodeAt(0))) this.take();
       }
       if ((this.peek() === 'e' || this.peek() === 'E')) {
         let idx = this.pos + 1;
         if (this.source[idx] === '+' || this.source[idx] === '-') idx++;
-        if (/\d/.test(this.source[idx] ?? '')) {
+        if (isDigitCode((this.source[idx] ?? '').charCodeAt(0))) {
           this.take();
           if (this.peek() === '+' || this.peek() === '-') this.take();
-          while (/\d/.test(this.peek())) this.take();
+          while (isDigitCode(this.peek().charCodeAt(0))) this.take();
         }
       }
       return { type: TOK.NUMBER, text: this.source.slice(start, this.pos), line };
     }
 
     const start = this.pos;
-    while (this.isAtomChar(this.peek())) this.take();
+    while (this.pos < this.source.length && isAtomCharCode(this.source.charCodeAt(this.pos))) this.pos++;
     if (this.pos === start) throw new Error(`parse line ${line}: bad character ${JSON.stringify(ch)}`);
     let text = this.source.slice(start, this.pos);
-    let type = /^[A-Z_]/.test(text) ? TOK.VAR : TOK.ATOM;
+    let type = isVariableStart(text) ? TOK.VAR : TOK.ATOM;
     if (type === TOK.VAR && text === '_') text = `__anon${this.anonymous++}`;
     return { type, text, line };
   }

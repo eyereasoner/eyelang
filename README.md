@@ -196,17 +196,26 @@ The playground has a matching `--stats` checkbox, so browser runs can show the s
 
 Eyelog builtins are registered by name and arity in small modules under [`src/builtins`](src/builtins). This keeps the runtime portable to Node.js and the browser while giving each builtin family a clear boundary. Builtins are enabled by normal predicate calls.
 
-The Sudoku example uses the `sudoku/2` builtin:
+The core builtin families cover unification, arithmetic, comparison, dates, strings, lists, aggregation, formula terms, and search control. Additional reusable finite-search helpers are available for examples that would otherwise need large amounts of repetitive generate-and-test code. These helpers are deliberately general relations rather than shortcuts tied to a particular example name. For example:
 
 ```prolog
 solution(Name, Rows) :-
   puzzle(Name, Grid),
   sudoku(Grid, Rows).
+
+answer(Queens) :-
+  n_queens(8, Queens).
+
+best(Cycle, Cost) :-
+  cities(Cities),
+  weighted_hamiltonian_cycle(edge, Cities, Cycle, Cost).
 ```
 
 `sudoku/2` accepts either an 81-character string or a 9x9 list. Digits `1` to `9` are givens; `0`, `.`, and `_` mark blanks. It returns the solved 9x9 list.
 
-To add a builtin, create or extend a module with `register(registry)` and call `registry.add(name, arity, handler, { deterministic })`. The default registry is assembled in [`src/builtins/registry.js`](src/builtins/registry.js).
+The reusable search and numeric helpers include `atom_range/4`, `atom_ranges/4`, `n_queens/2`, Hamiltonian path/cycle helpers, `cnf_model/3`, Quine-McCluskey helpers, bounded subset/path helpers, number-theory helpers such as `extended_gcd/5`, matrix helpers such as `matrix_multiply/2`, and `alphametic_sum/5`. See [`SPEC.md`](SPEC.md) for the normative builtin catalog.
+
+To add a builtin, create or extend a module with `register(registry)` and call `registry.add(name, arity, handler, options)`. The default registry is assembled in [`src/builtins/registry.js`](src/builtins/registry.js). Builtins that are only safe for specific argument modes should provide a `ready` predicate and `fallbackWhenNotReady: true`, so user-defined clauses remain visible until the builtin is applicable.
 
 
 ## Aggregation helpers
@@ -220,7 +229,7 @@ aggregate_min(Key, Template, Goal, BestKey, BestTemplate).
 aggregate_max(Key, Template, Goal, BestKey, BestTemplate).
 ```
 
-Use `countall/2` for solution counts, `sumall/3` for numeric totals, and `aggregate_min/5` or `aggregate_max/5` when a search should keep only the best candidate instead of collecting and sorting every answer. The `Key` can be a number, atom, string, compound term, or list; normal term ordering is used, so compound keys such as `[Cost, Path]` are useful for deterministic tie-breaking.
+Use `countall/2` for solution counts, `sumall/3` for numeric totals, and `aggregate_min/5` or `aggregate_max/5` when a search should keep only the best candidate instead of collecting and sorting every answer. The `Key` can be a number, atom constant, string, compound term, or list; normal term ordering is used, so compound keys such as `[Cost, Path]` are useful for deterministic tie-breaking.
 
 Example:
 
@@ -392,24 +401,26 @@ Run the full test suite:
 npm test
 ```
 
-The test suite runs in this order: Conformance, Examples. Each section prints its own subtotal, followed by a grand total. The suite checks every example against its golden output and the conformance cases derived from `SPEC.md`.
+The test suite runs in this order: Conformance, Regression/API/White-box, Examples. Each section prints its own subtotal, followed by a suite-specific grand total. The suite checks the conformance cases derived from `SPEC.md`, supplemental regression/API/white-box checks, and every example against its golden output.
 
 Run only one suite when you are iterating:
 
 ```sh
 npm run test:conformance
+npm run test:regression
 npm run test:examples
 ```
 
-The conformance suite lives in [`conformance/`](conformance/) and is split into `core` and `extension` profiles matching `SPEC.md`. Each case is a small program with optional query text and an exact expected stdout file, so other implementations can reuse the same cases.
+The conformance suite lives in [`conformance/`](conformance/) and is split into `core` and `extension` profiles matching `SPEC.md`. Each case is a small program with optional query text and an exact expected stdout file, so other implementations can reuse the same cases. The regression suite lives in [`test/run-regression.js`](test/run-regression.js) and covers CLI regressions, the public JavaScript API, and white-box invariants for parser, unification, and indexing behavior.
 
 ## Development and release
 
 Common commands:
 
 ```sh
-npm test                  # conformance plus examples
+npm test                  # conformance, regression/API/white-box, and examples
 npm run test:conformance  # only the conformance suite
+npm run test:regression   # CLI regression, API, and white-box checks
 npm run test:examples     # every example against examples/output
 node bin/eyelog --help
 ```
