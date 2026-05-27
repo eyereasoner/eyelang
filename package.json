@@ -33,7 +33,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "npm run test:conformance && npm run test:regression && npm run test:examples",
+    "test": "node test/run-all.js",
     "test:conformance": "node test/run-conformance.js",
     "test:regression": "node test/run-regression.js",
     "test:examples": "node test/run-examples.js",

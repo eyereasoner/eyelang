@@ -33,31 +33,26 @@ import {
   parseQueryGoal,
 } from '../src/index.js';
 import { selectClauseCandidates } from '../src/program.js';
+import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bin = path.join(root, 'bin', 'eyelog');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const useColor = Boolean(process.stdout.isTTY);
-const GREEN = useColor ? '\x1b[32m' : '';
-const DIM = useColor ? '\x1b[2m' : '';
-const RED = useColor ? '\x1b[31m' : '';
-const RESET = useColor ? '\x1b[0m' : '';
+let tmp = null;
+let tmpCounter = 0;
 
-let ok = 0;
-let total = 0;
-const grandStart = nowMs();
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-regression.'));
+export function runRegression(reporter = new TestReporter()) {
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-regression.'));
+  tmpCounter = 0;
 
-try {
-  runSection('Regression', regressionCases());
-  runSection('API', apiCases());
-  runSection('White-box', whiteBoxCases());
-
-  const grandMs = nowMs() - grandStart;
-  console.log(`\n== Regression/API/White-box grand total`);
-  console.log(`${GREEN}OK${RESET} ${ok}/${total} tests passed ${DIM}(${grandMs} ms)${RESET}`);
-} finally {
-  fs.rmSync(tmp, { recursive: true, force: true });
+  try {
+    runSection(reporter, 'Regression', regressionCases());
+    runSection(reporter, 'API', apiCases());
+    runSection(reporter, 'White-box', whiteBoxCases());
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+    tmp = null;
+  }
 }
 
 function regressionCases() {
@@ -300,35 +295,20 @@ function whiteBoxCases() {
   ];
 }
 
-function runSection(name, cases) {
-  const sectionStart = nowMs();
-  let sectionOk = 0;
-  console.log(`\n== ${name}`);
+function runSection(reporter, name, cases) {
+  reporter.section(name);
+  for (const testCase of cases) reporter.test(testCase.name, testCase.run);
+  reporter.sectionTotal(sectionLabel(name));
+}
 
-  for (const testCase of cases) {
-    total++;
-    const nr = String(total).padStart(3, '0');
-    const start = nowMs();
-    try {
-      testCase.run();
-      const ms = nowMs() - start;
-      ok++;
-      sectionOk++;
-      console.log(`${nr} ${GREEN}OK${RESET} ${GREEN}${testCase.name}${RESET} ${DIM}(${ms} ms)${RESET}`);
-    } catch (error) {
-      console.error(`${nr} ${RED}FAIL${RESET} ${testCase.name}`);
-      console.error(error?.stack ?? String(error));
-      process.exit(1);
-    }
-  }
-
-  const sectionMs = nowMs() - sectionStart;
-  console.log(`\n== ${name} subtotal`);
-  console.log(`${GREEN}OK${RESET} ${sectionOk}/${cases.length} tests passed ${DIM}(${sectionMs} ms)${RESET}`);
+function sectionLabel(name) {
+  if (name === 'API') return 'API';
+  if (name === 'White-box') return 'white-box';
+  return name.toLowerCase();
 }
 
 function runExplain({ program, query, expected }) {
-  const programFile = path.join(tmp, `${total}.pl`);
+  const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
   const result = runCli(['--explain', '--query', query, programFile]);
   assertEqual(result.status, 0, 'exit status');
@@ -359,6 +339,12 @@ function format(value) {
   return typeof value === 'string' ? JSON.stringify(value) : String(value);
 }
 
-function nowMs() {
-  return Number(process.hrtime.bigint() / 1000000n);
+if (isMainModule(import.meta.url)) {
+  const reporter = new TestReporter();
+  try {
+    runRegression(reporter);
+    reporter.totalLine();
+  } catch (_) {
+    process.exit(1);
+  }
 }

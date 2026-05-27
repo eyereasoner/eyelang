@@ -6,112 +6,81 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bin = path.join(root, 'bin', 'eyelog');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
 
-const useColor = Boolean(process.stdout.isTTY);
-const GREEN = useColor ? '\x1b[32m' : '';
-const DIM = useColor ? '\x1b[2m' : '';
-const RED = useColor ? '\x1b[31m' : '';
-const RESET = useColor ? '\x1b[0m' : '';
+export function runExamples(reporter = new TestReporter()) {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-examples.'));
+  const actualFile = path.join(tmp, 'actual.out');
+  const errFile = path.join(tmp, 'stderr.out');
 
-let ok = 0;
-let total = 0;
-const grandStart = nowMs();
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-examples.'));
-const actualFile = path.join(tmp, 'actual.out');
-const errFile = path.join(tmp, 'stderr.out');
-
-try {
-  sectionBegin('Examples');
-  const files = fs.readdirSync(examplesDir)
-    .filter((name) => name.endsWith('.pl'))
-    .sort();
-  for (const name of files) runExample(name);
-  sectionEnd('Examples', ok, total, grandStart);
-  const grandMs = nowMs() - grandStart;
-  console.log(`\n== Examples grand total`);
-  console.log(`${GREEN}OK${RESET} ${ok}/${total} tests passed ${DIM}(${grandMs} ms)${RESET}`);
-} finally {
-  fs.rmSync(tmp, { recursive: true, force: true });
+  try {
+    reporter.section('Examples');
+    const files = fs.readdirSync(examplesDir)
+      .filter((name) => name.endsWith('.pl'))
+      .sort();
+    for (const name of files) reporter.test(name, () => runExample(name, actualFile, errFile));
+    reporter.sectionTotal('examples');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 }
 
-function runExample(name) {
-  total++;
-  const nr = String(total).padStart(3, '0');
+function runExample(name, actualFile, errFile) {
   const program = path.join(examplesDir, name);
   const expected = path.join(expectedDir, name);
   const outFd = fs.openSync(actualFile, 'w');
   const errFd = fs.openSync(errFile, 'w');
-  const start = nowMs();
   const result = spawnSync(process.execPath, [bin, program], {
     cwd: root,
     stdio: ['ignore', outFd, errFd],
   });
   fs.closeSync(outFd);
   fs.closeSync(errFd);
-  const ms = nowMs() - start;
 
   if (result.status !== 0) {
-    console.error(`${nr} ${RED}FAIL${RESET} ${name}`);
     const stderr = fs.readFileSync(errFile, 'utf8');
     const stdout = fs.readFileSync(actualFile, 'utf8');
-    if (stderr) console.error(stderr.trimEnd());
-    if (stdout) console.error(stdout.trimEnd());
-    process.exit(1);
+    throw new Error(`example ${name} exited with ${result.status}\n${stderr}${stdout}`.trimEnd());
   }
 
   if (!fs.existsSync(expected)) {
-    console.error(`${nr} ${RED}FAIL${RESET} ${name}`);
-    console.error(`missing expected file: ${path.relative(root, expected)}`);
-    process.exit(1);
+    throw new Error(`missing expected file: ${path.relative(root, expected)}`);
   }
 
   const expectedBuffer = fs.readFileSync(expected);
   const actualBuffer = fs.readFileSync(actualFile);
   if (!expectedBuffer.equals(actualBuffer)) {
-    console.error(`${nr} ${RED}FAIL${RESET} ${name}`);
-    printDiff(expected, actualFile);
-    process.exit(1);
+    throw new Error(`output mismatch for ${name}\n${diffText(expected, actualFile)}`.trimEnd());
   }
-
-  ok++;
-  console.log(`${nr} ${GREEN}OK${RESET} ${GREEN}${name}${RESET} ${DIM}(${ms} ms)${RESET}`);
 }
 
-function sectionBegin(name) {
-  console.log(`\n== ${name}`);
-}
-
-function sectionEnd(name, sectionOk, sectionTotal, startedAt) {
-  const ms = nowMs() - startedAt;
-  const label = name.toLowerCase();
-  console.log(`\n== ${name} subtotal`);
-  console.log(`${GREEN}OK${RESET} ${sectionOk}/${sectionTotal} ${label} tests passed ${DIM}(${ms} ms)${RESET}`);
-}
-
-function nowMs() {
-  return Number(process.hrtime.bigint() / 1000000n);
-}
-
-function printDiff(expected, actual) {
+function diffText(expected, actual) {
   const diff = spawnSync('diff', ['-u', expected, actual], { encoding: 'utf8' });
-  if (diff.stdout) {
-    process.stderr.write(diff.stdout);
-    return;
-  }
+  if (diff.stdout) return diff.stdout;
+
   const expectedText = fs.readFileSync(expected, 'utf8').split('\n');
   const actualText = fs.readFileSync(actual, 'utf8').split('\n');
   const limit = Math.max(expectedText.length, actualText.length);
   for (let i = 0; i < limit; i++) {
     if (expectedText[i] !== actualText[i]) {
-      console.error(`first difference at line ${i + 1}`);
-      console.error(`expected: ${expectedText[i] ?? '<missing>'}`);
-      console.error(`actual:   ${actualText[i] ?? '<missing>'}`);
-      return;
+      return `first difference at line ${i + 1}\nexpected: ${expectedText[i] ?? '<missing>'}\nactual:   ${actualText[i] ?? '<missing>'}`;
     }
+  }
+
+  return 'outputs differ';
+}
+
+if (isMainModule(import.meta.url)) {
+  const reporter = new TestReporter();
+  try {
+    runExamples(reporter);
+    reporter.totalLine();
+  } catch (_) {
+    process.exit(1);
   }
 }
