@@ -1,31 +1,16 @@
-a(ind, i1).
-a(ind, i10).
-a(ind, i2).
-a(ind, i3).
-a(ind, i4).
-a(ind, i5).
-a(ind, i6).
-a(ind, i7).
-a(ind, i8).
-a(ind, i9).
-a(ind, j1).
-a(ind, j10).
-a(ind, j2).
-a(ind, j3).
-a(ind, j4).
-a(ind, j5).
-a(ind, j6).
-a(ind, j7).
-a(ind, j8).
-a(ind, j9).
-a(ind, n1).
-a(ind, n10).
-a(ind, n2).
-a(ind, n3).
-a(ind, n4).
-a(ind, n5).
-a(ind, n6).
-a(ind, n7).
-a(ind, n8).
-a(ind, n9).
+answer(report, "The test succeeds: starting from one individual classified as n0, the rules eventually classify it as n10 and then as a2.").
+arc(check1, "C1 OK - the starting classification n0 is present.").
+arc(check2, "C2 OK - the first expansion produced n1 together with side labels i1 and j1.").
+arc(check3, "C3 OK - the chain reaches the midpoint n5 and still carries both side-label branches.").
+arc(check4, "C4 OK - the final taxonomy step from n9 to n10 was completed.").
+arc(check5, "C5 OK - once n10 is reached, the terminal class a2 is derived.").
+arc(check6, "C6 OK - the success flag is raised only after the terminal class a2 is present.").
+checkPassed(report, check1).
+checkPassed(report, check2).
+checkPassed(report, check3).
+checkPassed(report, check4).
+checkPassed(report, check5).
+checkPassed(report, check6).
 is(test, true).
+reason(report, "The adjacent rules mirror the Eyeling N3 deep-taxonomy-10 chain. Redundant checkpoint rules are included only as proof accelerators: each shortcut is entailed by the adjacent chain, and once/1 prevents backtracking into the long adjacent-only proof after a check has succeeded.").
+result(report, success).
