@@ -2,7 +2,7 @@
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1242549108-blue.svg)](https://doi.org/10.5281/zenodo.20342331)
 
-`eyelog` is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search.
+`eyelog` is a compact symbolic reasoning language and reference engine for verifiable AI, logic rules, and neuro-symbolic workflows.
 
 Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)` and prints them as Prolog facts. Source facts are not repeated. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
 
