@@ -90,12 +90,12 @@ type(socrates, mortal).
 why(
   type(socrates, mortal),
   proof(
-    id(p1), goal(type(socrates, mortal)), method(rule(2)),
+    id(p1), goal(type(socrates, mortal)), method(rule(4)),
     source(head(type(v("X"), mortal)), body([type(v("X"), man)])),
     bindings([binding("X", socrates)]),
     uses([
       proof(
-        id(p2), goal(type(socrates, man)), method(fact(1)),
+        id(p2), goal(type(socrates, man)), method(fact(3)),
         source(head(type(socrates, man)), body([])),
         bindings([]),
         uses([])
@@ -107,6 +107,61 @@ why(
 ```
 
 The proof output can itself be read as SEE input and queried, for example `why(type(socrates, mortal), Proof)`.
+
+### Explanation cookbook
+
+Use `--why` when an answer should carry its own provenance.
+
+Explain one derived fact:
+
+```sh
+bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl
+```
+
+The output contains the answer and a `why/2` fact. The proof term shows the rule that produced the answer and the source fact used below it.
+
+Inspect variable bindings with a small policy program:
+
+```prolog
+score(case1, 95).
+threshold(90).
+
+status(Case, accepted) :-
+  score(Case, Score),
+  threshold(T),
+  ge(Score, T).
+```
+
+```sh
+bin/see --query 'status(Case, accepted)' --why policy.pl
+```
+
+The explanation contains the instantiated answer and the variables that made the rule succeed:
+
+```prolog
+status(case1, accepted).
+why(
+  status(case1, accepted),
+  proof(
+    id(p1), goal(status(case1, accepted)), method(rule(3)),
+    source(head(status(v("Case"), accepted)), body([score(v("Case"), v("Score")), threshold(v("T")), ge(v("Score"), v("T"))])),
+    bindings([binding("Case", case1), binding("Score", 95), binding("T", 90)]),
+    uses([...])
+  )
+).
+```
+
+Use the `uses([...])` list to follow the proof tree. In the policy example it contains one subproof for `score(case1, 95)`, one for `threshold(90)`, and one for the built-in comparison `ge(95, 90)`.
+
+Reuse explanations as data:
+
+```sh
+bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl > socrates.why.pl
+bin/see --query 'why(type(socrates, mortal), Proof)' socrates.why.pl
+```
+
+When a query has no answers, `--why` prints no explanations. That makes missing proofs explicit without inventing a reason.
+
 
 Compose multiple files, stdin, and URLs:
 
