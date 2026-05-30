@@ -58,27 +58,27 @@ export function runRegression(reporter = new TestReporter()) {
 function regressionCases() {
   return [
     {
-      name: 'explain rule fact proof comments',
-      run: () => runExplain({
+      name: 'why rule fact proof facts',
+      run: () => runWhy({
         program: 'type(socrates, man).\ntype(X, mortal) :- type(X, man).\n',
         query: 'type(socrates, mortal)',
-        expected: `type(socrates, mortal).\n% why\n% need type(socrates, mortal)\n%   because rule #2: type(X, mortal) :- type(X, man)\n%     where X = socrates\n%     need type(socrates, man)\n%       because fact #1: type(socrates, man)\n%   therefore type(socrates, mortal)\n`,
+        expected: `type(socrates, mortal).\nwhy(type(socrates, mortal), p1).\nproof(p1, type(socrates, mortal), rule(2)).\nsource(p1, type(v("X"), mortal), [type(v("X"), man)]).\nbinding(p1, "X", socrates).\nuses(p1, p2).\nproof(p2, type(socrates, man), fact(1)).\nsource(p2, type(socrates, man), []).\n`,
       }),
     },
     {
-      name: 'explain numeric builtin proof comments',
-      run: () => runExplain({
+      name: 'why numeric builtin proof facts',
+      run: () => runWhy({
         program: 'p(X) :- between(4, 1000, X).\n',
         query: 'p(536)',
-        expected: `p(536).\n% why\n% need p(536)\n%   because rule #1: p(X) :- between(4, 1000, X)\n%     where X = 536\n%     need between(4, 1000, 536)\n%       because builtin between/3: between(4, 1000, 536)\n%       therefore between(4, 1000, 536)\n%   therefore p(536)\n`,
+        expected: `p(536).\nwhy(p(536), p1).\nproof(p1, p(536), rule(1)).\nsource(p1, p(v("X")), [between(4, 1000, v("X"))]).\nbinding(p1, "X", 536).\nuses(p1, p2).\nproof(p2, between(4, 1000, 536), builtin(between, 3)).\nsource(p2, between(4, 1000, 536), []).\n`,
       }),
     },
     {
-      name: 'explain list builtin proof comments',
-      run: () => runExplain({
+      name: 'why list builtin proof facts',
+      run: () => runWhy({
         program: 'p(X) :- member(X, [a, b]).\n',
         query: 'p(a)',
-        expected: `p(a).\n% why\n% need p(a)\n%   because rule #1: p(X) :- member(X, [a, b])\n%     where X = a\n%     need member(a, [a, b])\n%       because builtin member/2: member(a, [a, b])\n%       therefore member(a, [a, b])\n%   therefore p(a)\n`,
+        expected: `p(a).\nwhy(p(a), p1).\nproof(p1, p(a), rule(1)).\nsource(p1, p(v("X")), [member(v("X"), [a, b])]).\nbinding(p1, "X", a).\nuses(p1, p2).\nproof(p2, member(a, [a, b]), builtin(member, 2)).\nsource(p2, member(a, [a, b]), []).\n`,
       }),
     },
     {
@@ -307,16 +307,16 @@ function sectionLabel(name) {
   return name.toLowerCase();
 }
 
-function runExplain({ program, query, expected }) {
+function runWhy({ program, query, expected }) {
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
-  const result = runCli(['--explain', '--query', query, programFile]);
+  const result = runCli(['--why', '--query', query, programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
   assertEqual(result.stdout, expected, 'stdout');
 
-  const nonComment = result.stdout.split('\n').slice(1).filter((line) => line.length > 0 && !line.startsWith('%'));
-  assertEqual(nonComment.join(' | '), '', 'explanation comment lines');
+  const proofFacts = result.stdout.split('\n').slice(1).filter((line) => line.length > 0);
+  assertEqual(proofFacts.every((line) => line.endsWith('.')), true, 'why output is fact syntax');
 }
 
 function runCli(args, options = {}) {

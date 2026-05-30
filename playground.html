@@ -404,7 +404,7 @@
           <input id="queryInput" type="text" placeholder="ancestor(pat, X)" spellcheck="false">
         </div>
         <div class="toolbar run-options">
-          <label class="row"><input id="explainToggle" type="checkbox"> include <code>--explain</code> proof output</label>
+          <label class="row"><input id="explainToggle" type="checkbox"> include <code>--why</code> proof facts</label>
           <label class="row"><input id="statsToggle" type="checkbox"> include <code>--stats</code> counters</label>
           <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">see input.pl</code>
         </div>
@@ -415,7 +415,7 @@
           <button id="clearSavedButton" type="button">Clear autosave</button>
           <span id="status" class="status" role="status">Idle.</span>
         </div>
-        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and explain toggle like CLI <code>--query</code> and <code>--explain</code>. Output without a query is the sorted set of new derived relation facts, matching the CLI default.</p>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and why toggle like CLI <code>--query</code> and <code>--why</code>. Output without a query is the sorted set of new derived relation facts, matching the CLI default.</p>
       </div>
     </section>
 
@@ -933,7 +933,7 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           program: programInput.value,
           query: queryInput.value,
-          explain: explainToggle.checked,
+          why: explainToggle.checked,
           stats: statsToggle.checked,
           backgroundPrograms,
           currentProgramUrl,
@@ -967,7 +967,7 @@
     function updateCommandPreview() {
       const args = ['see'];
       if (statsToggle.checked) args.push('--stats');
-      if (explainToggle.checked) args.push('--explain');
+      if (explainToggle.checked) args.push('--why');
       if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
       args.push(currentProgramStillMatchesUrl() ? currentProgramUrl : 'input.pl');
       commandPreview.textContent = args.join(' ');
@@ -979,7 +979,7 @@
         const sourceUrl = searchParams.get('url');
         urlInput.value = sourceUrl;
         queryInput.value = searchParams.get('query') || searchParams.get('q') || '';
-        explainToggle.checked = parseFlag(searchParams.get('explain') || searchParams.get('e'));
+        explainToggle.checked = parseFlag(searchParams.get('why') || searchParams.get('w') || searchParams.get('explain') || searchParams.get('e'));
         statsToggle.checked = parseFlag(searchParams.get('stats') || searchParams.get('s'));
         updateCommandPreview();
         try {
@@ -996,7 +996,7 @@
         try {
           setProgramValue(decodePayload(params.get('p')));
           queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
-          explainToggle.checked = parseFlag(params.get('e'));
+          explainToggle.checked = parseFlag(params.get('w') || params.get('e'));
           statsToggle.checked = parseFlag(params.get('s'));
           currentProgramUrl = null;
           currentProgramSource = null;
@@ -1012,7 +1012,7 @@
           const payload = JSON.parse(raw);
           setProgramValue(payload.program || DEFAULT_PROGRAM);
           queryInput.value = payload.query || '';
-          explainToggle.checked = Boolean(payload.explain);
+          explainToggle.checked = Boolean(payload.why ?? payload.explain);
           statsToggle.checked = Boolean(payload.stats);
           backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
           currentProgramUrl = payload.currentProgramUrl || null;
@@ -1238,7 +1238,7 @@
         id: currentRunId,
         program: combinedProgram(),
         query: queryInput.value,
-        explain: explainToggle.checked,
+        why: explainToggle.checked,
         stats: statsToggle.checked,
       });
     }
@@ -1294,13 +1294,13 @@
         url.search = '';
         url.searchParams.set('url', currentProgramUrl);
         if (queryInput.value.trim()) url.searchParams.set('query', queryInput.value.trim());
-        if (explainToggle.checked) url.searchParams.set('explain', '1');
+        if (explainToggle.checked) url.searchParams.set('why', '1');
         if (statsToggle.checked) url.searchParams.set('stats', '1');
       } else {
         const params = new URLSearchParams();
         params.set('p', encodePayload(programInput.value));
         if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
-        if (explainToggle.checked) params.set('e', '1');
+        if (explainToggle.checked) params.set('w', '1');
         if (statsToggle.checked) params.set('s', '1');
         url.search = '';
         url.hash = params.toString();

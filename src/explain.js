@@ -1,57 +1,65 @@
-// Proof explanation printer.
-// It replays a successful goal against the program and emits a Prolog-readable
-// explanation: the derived answer is a fact, and every explanation line is a
-// Prolog comment.  Builtins are handled through the same registry metadata as
-// the solver, so optimized builtin predicates explain themselves instead of
-// being reported as missing user clauses.
-import { COMPOUND, Env, VAR, deref, flattenConjunction, freshTerm, termToString, unify } from './term.js';
+// SEE proof output helpers.
+// The --why printer replays a successful goal against the program and emits
+// ordinary SEE facts.  Explanations are therefore both human-readable and
+// machine-readable: answers are facts, and explanations are facts too.
+import { COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, isCons, isEmptyList, termToString, unify } from './term.js';
 import { selectClauseCandidates } from './program.js';
 import { createDefaultRegistry } from './builtins/registry.js';
 import { Solver, nextFreshId } from './solver.js';
 
-export function explainProof(program, goal, options = {}) {
-  const out = [];
+export function whyProof(program, goal, options = {}) {
   const maxDepth = options.maxDepth ?? 256;
   const registry = options.registry ?? createDefaultRegistry();
   const env = options.env ?? new Env();
-  const ok = explainGoal(program, goal, env, 0, maxDepth, out, registry) != null;
-  return { ok, text: out.join('') };
+  const proof = proveGoal(program, goal, env, 0, maxDepth, registry);
+  if (!proof) return { ok: false, text: '' };
+  return { ok: true, text: renderWhyFacts(goal, proof.node, proof.env) };
 }
 
-function explainGoal(program, goal, env, depth, maxDepth, out, registry) {
-  if (depth > maxDepth) {
-    explainLine(out, depth, '... depth limit reached');
-    return null;
-  }
+// Kept for embedders that already import explainProof.  The CLI exposes machine-readable output through whyProof.
+export function explainProof(program, goal, options = {}) {
+  return whyProof(program, goal, options);
+}
 
-  explainLine(out, depth, `need ${termToString(goal, env, true)}`);
+function proveGoal(program, goal, env, depth, maxDepth, registry) {
+  if (depth > maxDepth) return null;
 
   if (goal.type === COMPOUND && goal.name === ',' && goal.arity === 2) {
-    return explainGoals(program, flattenConjunction(goal), env, depth + 1, maxDepth, out, registry);
+    const proved = proveGoals(program, flattenConjunction(goal), env, depth + 1, maxDepth, registry);
+    if (!proved) return null;
+    return {
+      env: proved.env,
+      node: {
+        goal: resolveForProof(goal, proved.env),
+        method: 'conjunction',
+        sourceHead: null,
+        sourceBody: flattenConjunction(goal),
+        bindings: [],
+        children: proved.children,
+      },
+    };
   }
 
   const builtin = tryBuiltin(program, goal, env, registry);
   if (builtin.handled) {
-    if (builtin.env) {
-      explainLine(out, depth + 1, `because builtin ${signature(goal)}: ${termToString(goal, builtin.env, true)}`);
-      explainBuiltinDetails(program, goal, builtin.env, depth + 2, maxDepth, out, registry);
-      explainLine(out, depth + 1, `therefore ${termToString(goal, builtin.env, true)}`);
-      return builtin.env;
-    }
-    explainLine(out, depth + 1, `builtin ${signature(goal)} fails`);
-    return null;
+    if (!builtin.env) return null;
+    return {
+      env: builtin.env,
+      node: {
+        goal: resolveForProof(goal, builtin.env),
+        method: `builtin(${quoteAtomText(goal.type === COMPOUND ? goal.name : 'goal')}, ${goal.type === COMPOUND ? goal.arity : 0})`,
+        sourceHead: resolveForProof(goal, builtin.env),
+        sourceBody: [],
+        bindings: [],
+        children: builtinChildren(program, goal, builtin.env, depth + 1, maxDepth, registry),
+      },
+    };
   }
 
-  if (goal.type !== COMPOUND) {
-    explainLine(out, depth + 1, 'no rule can prove this non-compound goal');
-    return null;
-  }
+  if (goal.type !== COMPOUND) return null;
 
   const group = program.findGroup(goal.name, goal.arity);
-  if (!group) {
-    explainLine(out, depth + 1, `no clauses for ${goal.name}/${goal.arity}`);
-    return null;
-  }
+  if (!group) return null;
 
   const candidates = selectClauseCandidates(group, goal, env);
   for (const pass of [candidates.primary, candidates.fallback]) {
@@ -63,39 +71,53 @@ function explainGoal(program, goal, env, depth, maxDepth, out, registry) {
       if (!unify(goal, freshHead, next)) continue;
 
       const substitutions = collectClauseSubstitutions(clause, freshHead, freshBody);
-      const originalHeadText = termToString(clause.head, env, true);
+      const bindings = resolvedSubstitutions(substitutions, next);
       const clauseNumber = (clause.index ?? 0) + 1;
 
       if (freshBody.length === 0) {
-        explainLine(out, depth + 1, `because fact #${clauseNumber}: ${originalHeadText}`);
-        explainSubstitutions(substitutions, next, depth + 2, out);
-        return next;
+        return {
+          env: next,
+          node: {
+            goal: resolveForProof(goal, next),
+            method: `fact(${clauseNumber})`,
+            sourceHead: clause.head,
+            sourceBody: [],
+            bindings,
+            children: [],
+          },
+        };
       }
 
-      const originalBodyText = goalsToString(clause.body, env);
-      explainLine(out, depth + 1, `because rule #${clauseNumber}: ${originalHeadText} :- ${originalBodyText}`);
-      explainSubstitutions(substitutions, next, depth + 2, out);
+      const proved = proveGoals(program, freshBody, next, depth + 1, maxDepth, registry);
+      if (!proved) continue;
 
-      const provedEnv = explainGoals(program, freshBody, next, depth + 2, maxDepth, out, registry);
-      if (provedEnv) {
-        explainLine(out, depth + 1, `therefore ${termToString(goal, provedEnv, true)}`);
-        return provedEnv;
-      }
+      return {
+        env: proved.env,
+        node: {
+          goal: resolveForProof(goal, proved.env),
+          method: `rule(${clauseNumber})`,
+          sourceHead: clause.head,
+          sourceBody: clause.body,
+          bindings: resolvedSubstitutions(substitutions, proved.env),
+          children: proved.children,
+        },
+      };
     }
   }
 
-  explainLine(out, depth + 1, 'no matching clause succeeds');
   return null;
 }
 
-function explainGoals(program, goals, env, depth, maxDepth, out, registry) {
+function proveGoals(program, goals, env, depth, maxDepth, registry) {
   let current = env.clone();
+  const children = [];
   for (const goal of goals) {
-    const next = explainGoal(program, goal, current, depth, maxDepth, out, registry);
-    if (!next) return null;
-    current = next;
+    const proved = proveGoal(program, goal, current, depth, maxDepth, registry);
+    if (!proved) return null;
+    current = proved.env;
+    children.push(proved.node);
   }
-  return current;
+  return { env: current, children };
 }
 
 function tryBuiltin(program, goal, env, registry) {
@@ -118,47 +140,90 @@ function builtinIsUsedForGoal(def, solver, goal, env) {
   return !def.fallbackWhenNotReady;
 }
 
-function explainBuiltinDetails(program, goal, env, depth, maxDepth, out, registry) {
-  if (goal.type !== COMPOUND) return;
-
-  if (goal.name === 'not' && goal.arity === 1) {
-    explainLine(out, depth, `negation-as-failure: ${termToString(goal.args[0], env, true)} has no proof`);
-    return;
-  }
-
+function builtinChildren(program, goal, env, depth, maxDepth, registry) {
+  if (goal.type !== COMPOUND) return [];
   if (goal.name === 'once' && goal.arity === 1) {
-    explainLine(out, depth, 'once/1 keeps the first proof of its argument');
-    explainGoal(program, goal.args[0], env.clone(), depth, maxDepth, out, registry);
-    return;
+    const proved = proveGoal(program, goal.args[0], env.clone(), depth, maxDepth, registry);
+    return proved ? [proved.node] : [];
   }
-
-  if (goal.name === 'findall' && goal.arity === 3) {
-    explainLine(out, depth, 'findall/3 collects all template instances proved by its goal');
-    return;
-  }
-
-  if (goal.name === 'countall' && goal.arity === 2) {
-    explainLine(out, depth, 'countall/2 counts all proofs of its goal');
-    return;
-  }
-
-  if (goal.name === 'sumall' && goal.arity === 3) {
-    explainLine(out, depth, 'sumall/3 sums all template values proved by its goal');
-    return;
-  }
-
-  if ((goal.name === 'aggregate_min' || goal.name === 'aggregate_max') && goal.arity === 5) {
-    explainLine(out, depth, `${goal.name}/5 selects the best proof according to its score argument`);
-    return;
-  }
+  return [];
 }
 
-function goalsToString(goals, env) {
-  return goals.map((goal) => termToString(goal, env, true)).join(', ');
+function renderWhyFacts(answerGoal, rootNode, env) {
+  const out = [];
+  const ids = new Map();
+  assignIds(rootNode, ids, { next: 1 });
+  const answer = termToString(resolveForProof(answerGoal, env), new Env(), true);
+  out.push(`why(${answer}, ${ids.get(rootNode)}).\n`);
+  renderNode(rootNode, ids, out);
+  return out.join('');
 }
 
-function explainLine(out, depth, text) {
-  out.push(`% ${'  '.repeat(depth)}${text}\n`);
+function assignIds(node, ids, state) {
+  ids.set(node, `p${state.next++}`);
+  for (const child of node.children) assignIds(child, ids, state);
+}
+
+function renderNode(node, ids, out) {
+  const id = ids.get(node);
+  const goal = termToString(node.goal, new Env(), true);
+  out.push(`proof(${id}, ${goal}, ${node.method}).\n`);
+  if (node.sourceHead) {
+    out.push(`source(${id}, ${termToProofSource(node.sourceHead)}, ${listToProofSource(node.sourceBody)}).\n`);
+  } else if (node.sourceBody.length !== 0) {
+    out.push(`source(${id}, ${goal}, ${listToProofSource(node.sourceBody)}).\n`);
+  }
+  for (const binding of node.bindings) {
+    out.push(`binding(${id}, ${quoteString(binding.name)}, ${termToString(binding.value, new Env(), true)}).\n`);
+  }
+  for (const child of node.children) out.push(`uses(${id}, ${ids.get(child)}).\n`);
+  for (const child of node.children) renderNode(child, ids, out);
+}
+
+function listToProofSource(terms) {
+  return `[${terms.map(termToProofSource).join(', ')}]`;
+}
+
+function termToProofSource(term) {
+  const resolved = deref(term, new Env());
+  if (resolved.type === VAR) return `v(${quoteString(originalVariableName(resolved.name))})`;
+  if (isCons(resolved) || isEmptyList(resolved)) return listTermToProofSource(resolved);
+  if (resolved.type !== COMPOUND) return termToString(resolved, new Env(), true);
+  return `${quoteCompoundName(resolved.name)}(${resolved.args.map(termToProofSource).join(', ')})`;
+}
+
+function listTermToProofSource(term) {
+  const parts = [];
+  let cursor = term;
+  while (isCons(cursor)) {
+    parts.push(termToProofSource(cursor.args[0]));
+    cursor = deref(cursor.args[1], new Env());
+  }
+  if (isEmptyList(cursor)) return `[${parts.join(', ')}]`;
+  if (parts.length) return `[${parts.join(', ')} | ${termToProofSource(cursor)}]`;
+  return '[]';
+}
+
+function quoteCompoundName(name) {
+  return termToString({ type: 'atom', name: String(name), args: [] }, new Env(), true);
+}
+
+function quoteAtomText(text) {
+  return quoteCompoundName(text);
+}
+
+function quoteString(value) {
+  return JSON.stringify(String(value));
+}
+
+function originalVariableName(name) {
+  return String(name).replace(/#\d+$/, '');
+}
+
+function resolveForProof(term, env) {
+  const resolved = deref(term, env);
+  if (resolved.type === VAR) return new Term(VAR, originalVariableName(resolved.name), []);
+  return new Term(resolved.type, resolved.name, resolved.args.map((arg) => resolveForProof(arg, env)));
 }
 
 function collectClauseSubstitutions(clause, freshHead, freshBody) {
@@ -185,15 +250,12 @@ function collectSubstitutions(original, fresh, substitutions, seen) {
   for (let i = 0; i < arity; i++) collectSubstitutions(original.args[i], fresh.args[i], substitutions, seen);
 }
 
-function explainSubstitutions(substitutions, env, depth, out) {
+function resolvedSubstitutions(substitutions, env) {
+  const out = [];
   for (const substitution of substitutions) {
     const resolved = deref(substitution.fresh, env);
     if (resolved.type === VAR) continue;
-    explainLine(out, depth, `where ${substitution.name} = ${termToString(substitution.fresh, env, true)}`);
+    out.push({ name: substitution.name, value: resolveForProof(substitution.fresh, env) });
   }
-}
-
-function signature(goal) {
-  if (goal.type !== COMPOUND) return 'goal';
-  return `${goal.name}/${goal.arity}`;
+  return out;
 }

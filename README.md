@@ -1,13 +1,13 @@
-# SEE
+# SEE - Symbolic Explanation Engine
 
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1242549108-blue.svg)](https://doi.org/10.5281/zenodo.20342331)
 
-SEE (Symbolic Explanation Engine) is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `see`.
+SEE is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `see`.
 
 Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)` and prints them as Prolog facts. Source facts are not repeated. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
 
 
-Try it in the [browser playground](https://eyereasoner.github.io/see/playground). The playground includes run options equivalent to CLI `--query`, `--explain`, and `--stats`.
+Try it in the [browser playground](https://eyereasoner.github.io/see/playground). The playground includes run options equivalent to CLI `--query`, `--why`, and `--stats`.
 
 For the normative language definition, including lexical syntax, terms, clauses, goals, built-ins, `memoize/2`, `materialize/2`, and conformance boundaries, read [`SPEC.md`](SPEC.md).
 
@@ -39,8 +39,8 @@ There is no build step for the CLI. Run examples, explicit queries, multiple inp
 bin/see --version
 bin/see examples/ancestor.pl
 bin/see --query 'ancestor(pat, X)' examples/ancestor.pl
-bin/see --explain examples/socrates.pl
-bin/see --explain --query 'type(socrates, mortal)' examples/socrates.pl
+bin/see --why examples/socrates.pl
+bin/see --why --query 'type(socrates, mortal)' examples/socrates.pl
 bin/see facts.pl rules.pl
 printf 'works(stdin, true) :- eq(ok, ok).\n' | bin/see -
 bin/see https://raw.githubusercontent.com/eyereasoner/see/refs/heads/main/examples/ancestor.pl
@@ -76,12 +76,27 @@ Run an explicit query:
 bin/see --query 'ancestor(pat, X)' examples/ancestor.pl
 ```
 
-Explain default output or query answers:
+Print SEE-readable proof facts for default output or query answers:
 
 ```sh
-bin/see --explain examples/socrates.pl
-bin/see --query 'type(socrates, mortal)' --explain examples/socrates.pl
+bin/see --why examples/socrates.pl
+bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl
 ```
+
+With `--why`, explanations are emitted as ordinary SEE facts. For example:
+
+```prolog
+type(socrates, mortal).
+why(type(socrates, mortal), p1).
+proof(p1, type(socrates, mortal), rule(2)).
+source(p1, type(v("X"), mortal), [type(v("X"), man)]).
+binding(p1, "X", socrates).
+uses(p1, p2).
+proof(p2, type(socrates, man), fact(1)).
+source(p2, type(socrates, man), []).
+```
+
+The proof output can itself be read as SEE input and queried, for example `why(type(socrates, mortal), P)`.
 
 Compose multiple files, stdin, and URLs:
 
@@ -447,7 +462,7 @@ For a release:
 2. update `README.md` and `SPEC.md`;
 3. regenerate golden outputs if behavior changed;
 4. run `npm test`;
-5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL`, `--explain`, and `--stats`.
+5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL`, `--why`, and `--stats`.
 
 ## Performance notes
 

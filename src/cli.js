@@ -6,7 +6,7 @@ import { Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { parseQueryGoal } from './parser.js';
-import { explainProof } from './explain.js';
+import { whyProof } from './explain.js';
 
 const VERSION = await packageVersion();
 
@@ -19,7 +19,7 @@ export async function main(argv) {
   const options = {
     files: [],
     query: null,
-    explain: false,
+    why: false,
     stats: false,
     version: false,
   };
@@ -36,13 +36,15 @@ export async function main(argv) {
     } else if (!endOptions && (arg === '--help' || arg === '-h')) {
       usage(process.stdout);
       return;
-    } else if (!endOptions && arg === '--explain') {
-      options.explain = true;
+    } else if (!endOptions && arg === '--why') {
+      options.why = true;
     } else if (!endOptions && arg === '--stats') {
       options.stats = true;
     } else if (!endOptions && arg === '--query') {
       if (i + 1 >= argv.length) throw new Error('--query requires an argument');
       options.query = argv[++i];
+    } else if (!endOptions && arg.startsWith('-') && arg !== '-') {
+      throw new Error(`unknown option: ${arg}`);
     } else {
       options.files.push(arg);
     }
@@ -87,13 +89,12 @@ function runQuery(program, query, options) {
   for (const env of solver.solve([goal], new Env(), 0)) {
     process.stdout.write(`${termToString(goal, env, true)}.\n`);
 
-    if (options.explain) {
+    if (options.why) {
       const resolved = copyResolved(goal, env);
-      process.stdout.write('% why\n');
-      const proof = explainProof(program, resolved);
+      const proof = whyProof(program, resolved);
       process.stdout.write(proof.text);
       if (!proof.ok) {
-        process.stdout.write('% no proof found by the experimental proof printer\n');
+        process.stdout.write(`why(${termToString(resolved, new Env(), true)}, no_proof).\n`);
       }
     }
   }
@@ -119,14 +120,13 @@ function runDefault(program, options) {
 
       lines.add(line);
 
-      if (options.explain) {
+      if (options.why) {
         const resolved = copyResolved(goal, env);
         process.stdout.write(line);
-        process.stdout.write('% why\n');
-        const proof = explainProof(program, resolved);
+        const proof = whyProof(program, resolved);
         process.stdout.write(proof.text);
         if (!proof.ok) {
-          process.stdout.write('% no proof found by the experimental proof printer\n');
+          process.stdout.write(`why(${termToString(resolved, new Env(), true)}, no_proof).\n`);
         }
       }
     }
@@ -134,7 +134,7 @@ function runDefault(program, options) {
     lastStats = solver.stats;
   }
 
-  if (!options.explain) {
+  if (!options.why) {
     const sorted = [...lines].sort();
     if (sorted.length !== 0) process.stdout.write(sorted.join(''));
   }
@@ -156,7 +156,7 @@ Options:
   -h, --help            Show this help text and exit.
   -v, --version         Show the package version and exit.
       --query GOAL      Run GOAL as a query instead of materializing output predicates.
-      --explain         Print a proof explanation for each answer.
+      --why             Print SEE-readable proof facts for each answer.
       --stats           Print solver statistics to stderr after execution.
   --                    Stop option parsing; following arguments are treated as files.
 `);

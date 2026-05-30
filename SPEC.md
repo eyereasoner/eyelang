@@ -464,9 +464,9 @@ Without `--query`, the host behavior is:
 6. suppress duplicates;
 7. print sorted facts.
 
-### 12.1 Explanation output
+### 12.1 Why output
 
-`--explain` MAY print non-normative proof trees for query answers or default derived output. Explanation output is outside the logical semantics and MUST NOT change the set of answers.
+`--why` MAY print machine-readable proof facts for query answers or default derived output. Why output is ordinary SEE syntax and MAY include relations such as `why/2`, `proof/3`, `source/3`, `binding/3`, and `uses/2`. Why output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
 ## 13. Conformance profiles
 
