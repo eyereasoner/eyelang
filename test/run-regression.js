@@ -36,13 +36,13 @@ import { selectClauseCandidates } from '../src/program.js';
 import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'bin', 'eyelog');
+const bin = path.join(root, 'bin', 'see');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 let tmp = null;
 let tmpCounter = 0;
 
 export function runRegression(reporter = new TestReporter()) {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-regression.'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'see-regression.'));
   tmpCounter = 0;
 
   try {
@@ -86,7 +86,7 @@ function regressionCases() {
       run: () => {
         const result = runCli([]);
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, 'Usage:\n  eyelog [options] [file-or-url.pl|- ...]', 'stdout');
+        assertIncludes(result.stdout, 'Usage:\n  see [options] [file-or-url.pl|- ...]', 'stdout');
         assertIncludes(result.stdout, '--query GOAL', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
@@ -96,7 +96,7 @@ function regressionCases() {
       run: () => {
         const result = runCli(['--version']);
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, `eyelog ${pkg.version}\n`, 'stdout');
+        assertEqual(result.stdout, `see ${pkg.version}\n`, 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -125,7 +125,7 @@ function regressionCases() {
       run: () => {
         const result = runCli(['--query']);
         assertEqual(result.status, 1, 'exit status');
-        assertIncludes(result.stderr, 'eyelog: --query requires an argument', 'stderr');
+        assertIncludes(result.stderr, 'see: --query requires an argument', 'stderr');
       },
     },
   ];

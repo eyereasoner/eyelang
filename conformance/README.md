@@ -1,6 +1,6 @@
-# Eyelog conformance suite
+# SEE conformance suite
 
-This directory contains an executable conformance suite for the Eyelog Language Specification in `SPEC.md`.
+This directory contains an executable conformance suite for the SEE Language Specification in `SPEC.md`.
 
 The suite is intentionally file-based so other implementations can run the same cases. A case consists of:
 

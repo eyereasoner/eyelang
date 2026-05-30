@@ -9,12 +9,12 @@ import { fileURLToPath } from 'node:url';
 import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'bin', 'eyelog');
+const bin = path.join(root, 'bin', 'see');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
 
 export function runExamples(reporter = new TestReporter()) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-examples.'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'see-examples.'));
   const actualFile = path.join(tmp, 'actual.out');
   const errFile = path.join(tmp, 'stderr.out');
 

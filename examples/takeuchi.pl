@@ -2,7 +2,7 @@
 %
 % The recursive Tak function is intentionally expensive without caching.  The
 % memoize declaration makes shared subcalls explicit while keeping the program
-% ordinary Eyelog rules.
+% ordinary SEE rules.
 
 materialize(takeuchiInput, 2).
 materialize(takeuchiResult, 2).

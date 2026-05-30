@@ -14,7 +14,7 @@ function stringifyError(error) {
     return [
       stack,
       '',
-      'Eyelog exhausted the browser JavaScript call stack.',
+      'SEE exhausted the browser JavaScript call stack.',
       'Try a smaller example in the playground, or run this program with the Node CLI.',
     ].join('\n');
   }
@@ -45,16 +45,16 @@ async function initialize(requestId) {
   }
 }
 
-async function runEyelog(request) {
+async function runSEE(request) {
   const { id, program, query, explain, stats } = request;
   if (active) {
     self.postMessage({
       type: 'result',
       id,
       exitCode: 1,
-      phase: 'starting Eyelog',
+      phase: 'starting SEE',
       stdout: '',
-      stderr: 'Eyelog is already running.',
+      stderr: 'SEE is already running.',
     });
     return;
   }
@@ -144,7 +144,7 @@ async function runEyelog(request) {
 }
 
 function formatStats(stats) {
-  let text = 'eyelog stats:\n';
+  let text = 'see stats:\n';
   for (const [key, value] of Object.entries(stats)) text += `  ${key}: ${value}\n`;
   return text;
 }
@@ -152,5 +152,5 @@ function formatStats(stats) {
 self.onmessage = event => {
   const message = event.data || {};
   if (message.type === 'init') initialize(message.id);
-  else if (message.type === 'run') runEyelog(message);
+  else if (message.type === 'run') runSEE(message);
 };

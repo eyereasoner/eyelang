@@ -1,7 +1,7 @@
 % Prime enumeration inspired by Eyelet input/sieve.pl.
 % The 1000-limit answer matches Eyelet output-swipl/sieve.pl.
 %
-% Eyelog uses the built-in smallest_divisor_from/3 relation to keep the
+% SEE uses the built-in smallest_divisor_from/3 relation to keep the
 % example fast while preserving the same generated prime list.
 
 materialize(primes, 2).

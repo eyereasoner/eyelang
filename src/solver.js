@@ -1,4 +1,4 @@
-// Depth-first Eyelog solver with builtin dispatch, memoization, and guarded recursion handling.
+// Depth-first SEE solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import { COMPOUND, Env, flattenConjunction, freshTerm, termToString, unify, variantTerms } from './term.js';
 import { createDefaultRegistry } from './builtins/registry.js';
@@ -51,7 +51,7 @@ export class Solver {
       return;
     }
 
-    // Eyelog normally solves left-to-right, but ready deterministic builtins can
+    // SEE normally solves left-to-right, but ready deterministic builtins can
     // be run early as pure filters. This gives large pruning wins without
     // reordering user predicates or nondeterministic generators.
     const selectedIndex = selectReadyDeterministicBuiltin(goals, env, this.registry);

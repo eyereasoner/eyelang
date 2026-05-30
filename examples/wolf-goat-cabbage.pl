@@ -2,7 +2,7 @@
 % input/wolf-goat-cabbage.pl.
 %
 % A configuration is [man, wolf, goat, cabbage], where each item is on the west
-% bank w or east bank e.  The recursive search keeps a visited list so Eyelog
+% bank w or east bank e.  The recursive search keeps a visited list so SEE
 % explores the finite state space without looping.
 
 materialize(solution, 2).

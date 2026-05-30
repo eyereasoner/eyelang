@@ -1,2 +1,2 @@
-answer(atom, eyelog).
-answer(string, "eyelog").
+answer(atom, see).
+answer(string, "see").

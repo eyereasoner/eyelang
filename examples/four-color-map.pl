@@ -1,7 +1,7 @@
 % EYE reasoning-inspired example: four-colour map check for the European Union.
 %
 % The source EYE example encodes the EU neighbourhood map and an answer assigning
-% four colours. This Eyelog version keeps the same map/assignment shape and adds
+% four colours. This SEE version keeps the same map/assignment shape and adds
 % a rule-level validation layer that rejects equal colours across borders.
 
 materialize(color, 2).

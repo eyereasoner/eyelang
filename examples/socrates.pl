@@ -1,7 +1,7 @@
 % Socrates is mortal, adapted from Eyelet's input/socrates.pl.
 %
 % Eyelet uses type('Socrates', 'Man') and a single rule deriving Mortal.
-% Eyelog keeps the same reasoning shape and emits relation facts.
+% SEE keeps the same reasoning shape and emits relation facts.
 
 materialize(type, 2).
 materialize(is, 2).

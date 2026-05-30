@@ -1,8 +1,8 @@
 {
-  "name": "eyelogreasoner",
+  "name": "see-reasoner",
   "version": "1.1.14",
   "type": "module",
-  "description": "Eyelog rule engine with modular builtins",
+  "description": "SEE: A compact symbolic reasoning language and reference engine",
   "keywords": [
     "prolog",
     "reasoner"
@@ -11,11 +11,11 @@
   "author": "Jos De Roo",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eyereasoner/eyelog.git"
+    "url": "git+https://github.com/eyereasoner/see.git"
   },
-  "homepage": "https://github.com/eyereasoner/eyelog#readme",
+  "homepage": "https://github.com/eyereasoner/see#readme",
   "bin": {
-    "eyelog": "./bin/eyelog"
+    "see": "./bin/see"
   },
   "files": [
     "README.md",

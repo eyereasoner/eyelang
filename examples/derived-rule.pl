@@ -6,7 +6,7 @@
 %   { ?x a cat. } => { { ?y a dog. } => { test is true. }. }.
 %
 % The inner implication is represented directly as quoted formula data.
-% var(y) is not an eyelog variable; it is a ground term that names
+% var(y) is not an see variable; it is a ground term that names
 % a variable placeholder inside the quoted formula.
 
 materialize(type, 2).

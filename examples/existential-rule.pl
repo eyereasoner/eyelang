@@ -1,7 +1,7 @@
 materialize(is, 2).
 
 % Existential-rule example adapted from Eyeling existential-rule.n3.
-% Eyeling creates blank-node witnesses.  Eyelog has Herbrand terms only, so the
+% Eyeling creates blank-node witnesses.  SEE has Herbrand terms only, so the
 % witness is represented explicitly by a deterministic Skolem-style term.
 
 type(socrates, human).
