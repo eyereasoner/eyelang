@@ -76,6 +76,7 @@ async function runSEE(request) {
       parseQueryGoal,
       termIsGround,
       termToString,
+      whyNoProof,
       whyProof,
     } = await loadEngine();
 
@@ -94,7 +95,7 @@ async function runSEE(request) {
           const resolved = copyResolved(goal, env);
           const proof = whyProof(parsed, resolved);
           out.push(proof.text);
-          if (!proof.ok) out.push(`why(${termToString(resolved, new Env(), true)}, no_proof).\n`);
+          if (!proof.ok) out.push(whyNoProof(resolved));
         }
       }
       stdout = out.join('');
@@ -118,7 +119,7 @@ async function runSEE(request) {
             const proof = whyProof(parsed, resolved);
             out.push(line);
             out.push(proof.text);
-            if (!proof.ok) out.push(`why(${termToString(resolved, new Env(), true)}, no_proof).\n`);
+            if (!proof.ok) out.push(whyNoProof(resolved));
           }
         }
         lastStats = solver.stats;

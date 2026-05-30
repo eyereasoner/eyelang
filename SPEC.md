@@ -466,7 +466,7 @@ Without `--query`, the host behavior is:
 
 ### 12.1 Why output
 
-`--why` MAY print machine-readable proof facts for query answers or default derived output. Why output is ordinary SEE syntax and MAY include relations such as `why/2`, `proof/3`, `source/3`, `binding/3`, and `uses/2`. Why output is outside the logical semantics of the input program and MUST NOT change the set of answers.
+`--why` MAY print machine-readable proof facts for query answers or default derived output. Why output is ordinary SEE syntax and MAY include `why/2` facts whose second argument is a nested proof term such as `proof(id(P), goal(G), method(M), source(head(H), body(B)), bindings(Bindings), uses(Proofs))`. Why output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
 ## 13. Conformance profiles
 

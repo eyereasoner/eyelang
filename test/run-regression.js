@@ -62,7 +62,39 @@ function regressionCases() {
       run: () => runWhy({
         program: 'type(socrates, man).\ntype(X, mortal) :- type(X, man).\n',
         query: 'type(socrates, mortal)',
-        expected: `type(socrates, mortal).\nwhy(type(socrates, mortal), p1).\nproof(p1, type(socrates, mortal), rule(2)).\nsource(p1, type(v("X"), mortal), [type(v("X"), man)]).\nbinding(p1, "X", socrates).\nuses(p1, p2).\nproof(p2, type(socrates, man), fact(1)).\nsource(p2, type(socrates, man), []).\n`,
+        expected: `type(socrates, mortal).
+why(
+  type(socrates, mortal),
+  proof(
+    id(p1),
+    goal(type(socrates, mortal)),
+    method(rule(2)),
+    source(
+      head(type(v("X"), mortal)),
+      body([
+        type(v("X"), man)
+      ])
+    ),
+    bindings([
+      binding("X", socrates)
+    ]),
+    uses([
+      proof(
+        id(p2),
+        goal(type(socrates, man)),
+        method(fact(1)),
+        source(
+          head(type(socrates, man)),
+          body([])
+        ),
+        bindings([]),
+        uses([])
+      )
+    ])
+  )
+).
+
+`,
       }),
     },
     {
@@ -70,7 +102,39 @@ function regressionCases() {
       run: () => runWhy({
         program: 'p(X) :- between(4, 1000, X).\n',
         query: 'p(536)',
-        expected: `p(536).\nwhy(p(536), p1).\nproof(p1, p(536), rule(1)).\nsource(p1, p(v("X")), [between(4, 1000, v("X"))]).\nbinding(p1, "X", 536).\nuses(p1, p2).\nproof(p2, between(4, 1000, 536), builtin(between, 3)).\nsource(p2, between(4, 1000, 536), []).\n`,
+        expected: `p(536).
+why(
+  p(536),
+  proof(
+    id(p1),
+    goal(p(536)),
+    method(rule(1)),
+    source(
+      head(p(v("X"))),
+      body([
+        between(4, 1000, v("X"))
+      ])
+    ),
+    bindings([
+      binding("X", 536)
+    ]),
+    uses([
+      proof(
+        id(p2),
+        goal(between(4, 1000, 536)),
+        method(builtin(between, 3)),
+        source(
+          head(between(4, 1000, 536)),
+          body([])
+        ),
+        bindings([]),
+        uses([])
+      )
+    ])
+  )
+).
+
+`,
       }),
     },
     {
@@ -78,7 +142,39 @@ function regressionCases() {
       run: () => runWhy({
         program: 'p(X) :- member(X, [a, b]).\n',
         query: 'p(a)',
-        expected: `p(a).\nwhy(p(a), p1).\nproof(p1, p(a), rule(1)).\nsource(p1, p(v("X")), [member(v("X"), [a, b])]).\nbinding(p1, "X", a).\nuses(p1, p2).\nproof(p2, member(a, [a, b]), builtin(member, 2)).\nsource(p2, member(a, [a, b]), []).\n`,
+        expected: `p(a).
+why(
+  p(a),
+  proof(
+    id(p1),
+    goal(p(a)),
+    method(rule(1)),
+    source(
+      head(p(v("X"))),
+      body([
+        member(v("X"), [a, b])
+      ])
+    ),
+    bindings([
+      binding("X", a)
+    ]),
+    uses([
+      proof(
+        id(p2),
+        goal(member(a, [a, b])),
+        method(builtin(member, 2)),
+        source(
+          head(member(a, [a, b])),
+          body([])
+        ),
+        bindings([]),
+        uses([])
+      )
+    ])
+  )
+).
+
+`,
       }),
     },
     {
@@ -315,8 +411,10 @@ function runWhy({ program, query, expected }) {
   assertEqual(result.stderr, '', 'stderr');
   assertEqual(result.stdout, expected, 'stdout');
 
-  const proofFacts = result.stdout.split('\n').slice(1).filter((line) => line.length > 0);
-  assertEqual(proofFacts.every((line) => line.endsWith('.')), true, 'why output is fact syntax');
+  Program.parse(result.stdout);
+  assertIncludes(result.stdout, '  proof(\n', 'stdout');
+  assertIncludes(result.stdout, '    source(\n', 'stdout');
+  assertIncludes(result.stdout, '\n).\n\n', 'stdout');
 }
 
 function runCli(args, options = {}) {

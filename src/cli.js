@@ -6,7 +6,7 @@ import { Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { parseQueryGoal } from './parser.js';
-import { whyProof } from './explain.js';
+import { whyNoProof, whyProof } from './explain.js';
 
 const VERSION = await packageVersion();
 
@@ -94,7 +94,7 @@ function runQuery(program, query, options) {
       const proof = whyProof(program, resolved);
       process.stdout.write(proof.text);
       if (!proof.ok) {
-        process.stdout.write(`why(${termToString(resolved, new Env(), true)}, no_proof).\n`);
+        process.stdout.write(whyNoProof(resolved));
       }
     }
   }
@@ -126,7 +126,7 @@ function runDefault(program, options) {
         const proof = whyProof(program, resolved);
         process.stdout.write(proof.text);
         if (!proof.ok) {
-          process.stdout.write(`why(${termToString(resolved, new Env(), true)}, no_proof).\n`);
+          process.stdout.write(whyNoProof(resolved));
         }
       }
     }

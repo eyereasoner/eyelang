@@ -1,7 +1,7 @@
 // SEE proof output helpers.
 // The --why printer replays a successful goal against the program and emits
-// ordinary SEE facts.  Explanations are therefore both human-readable and
-// machine-readable: answers are facts, and explanations are facts too.
+// ordinary SEE facts with nested proof terms.  Explanations are therefore both
+// human-readable and machine-readable.
 import { COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, isCons, isEmptyList, termToString, unify } from './term.js';
 import { selectClauseCandidates } from './program.js';
 import { createDefaultRegistry } from './builtins/registry.js';
@@ -14,6 +14,10 @@ export function whyProof(program, goal, options = {}) {
   const proof = proveGoal(program, goal, env, 0, maxDepth, registry);
   if (!proof) return { ok: false, text: '' };
   return { ok: true, text: renderWhyFacts(goal, proof.node, proof.env) };
+}
+
+export function whyNoProof(goal) {
+  return renderWhyNoProof(goal);
 }
 
 // Kept for embedders that already import explainProof.  The CLI exposes machine-readable output through whyProof.
@@ -150,13 +154,10 @@ function builtinChildren(program, goal, env, depth, maxDepth, registry) {
 }
 
 function renderWhyFacts(answerGoal, rootNode, env) {
-  const out = [];
   const ids = new Map();
   assignIds(rootNode, ids, { next: 1 });
   const answer = termToString(resolveForProof(answerGoal, env), new Env(), true);
-  out.push(`why(${answer}, ${ids.get(rootNode)}).\n`);
-  renderNode(rootNode, ids, out);
-  return out.join('');
+  return renderWhyTerm(answer, renderProofTerm(rootNode, ids, 1));
 }
 
 function assignIds(node, ids, state) {
@@ -164,24 +165,72 @@ function assignIds(node, ids, state) {
   for (const child of node.children) assignIds(child, ids, state);
 }
 
-function renderNode(node, ids, out) {
-  const id = ids.get(node);
-  const goal = termToString(node.goal, new Env(), true);
-  out.push(`proof(${id}, ${goal}, ${node.method}).\n`);
-  if (node.sourceHead) {
-    out.push(`source(${id}, ${termToProofSource(node.sourceHead)}, ${listToProofSource(node.sourceBody)}).\n`);
-  } else if (node.sourceBody.length !== 0) {
-    out.push(`source(${id}, ${goal}, ${listToProofSource(node.sourceBody)}).\n`);
-  }
-  for (const binding of node.bindings) {
-    out.push(`binding(${id}, ${quoteString(binding.name)}, ${termToString(binding.value, new Env(), true)}).\n`);
-  }
-  for (const child of node.children) out.push(`uses(${id}, ${ids.get(child)}).\n`);
-  for (const child of node.children) renderNode(child, ids, out);
+function renderWhyNoProof(goal) {
+  const answer = termToString(resolveForProof(goal, new Env()), new Env(), true);
+  return renderWhyTerm(answer, `${indent(1)}no_proof`);
 }
 
-function listToProofSource(terms) {
-  return `[${terms.map(termToProofSource).join(', ')}]`;
+function renderWhyTerm(answer, proofTerm) {
+  return ['why(', `${indent(1)}${answer},`, proofTerm, ').', '', ''].join('\n');
+}
+
+function renderProofTerm(node, ids, level) {
+  const id = ids.get(node);
+  const goal = termToString(node.goal, new Env(), true);
+  return [
+    `${indent(level)}proof(`,
+    `${indent(level + 1)}id(${id}),`,
+    `${indent(level + 1)}goal(${goal}),`,
+    `${indent(level + 1)}method(${node.method}),`,
+    withTrailingComma(renderSourceTerm(node, goal, level + 1)),
+    withTrailingComma(renderBindingsTerm(node.bindings, level + 1)),
+    renderUsesTerm(node.children, ids, level + 1),
+    `${indent(level)})`,
+  ].join('\n');
+}
+
+function renderSourceTerm(node, fallbackGoal, level) {
+  const head = node.sourceHead ? termToProofSource(node.sourceHead) : fallbackGoal;
+  return [
+    `${indent(level)}source(`,
+    `${indent(level + 1)}head(${head}),`,
+    renderProofList('body', node.sourceBody, level + 1, termToProofSource),
+    `${indent(level)})`,
+  ].join('\n');
+}
+
+function renderBindingsTerm(bindings, level) {
+  return renderProofList('bindings', bindings, level, binding => `binding(${quoteString(binding.name)}, ${termToString(binding.value, new Env(), true)})`);
+}
+
+function renderUsesTerm(children, ids, level) {
+  return renderProofList('uses', children, level, child => renderProofTerm(child, ids, level + 1));
+}
+
+function renderProofList(name, items, level, renderItem) {
+  if (items.length === 0) return `${indent(level)}${name}([])`;
+
+  const lines = [`${indent(level)}${name}([`];
+  for (let i = 0; i < items.length; i++) {
+    const item = indentProofListItem(renderItem(items[i]), level + 1);
+    lines.push(i === items.length - 1 ? item : withTrailingComma(item));
+  }
+  lines.push(`${indent(level)}])`);
+  return lines.join('\n');
+}
+
+function indentProofListItem(text, level) {
+  return String(text).includes('\n') ? String(text) : `${indent(level)}${text}`;
+}
+
+function withTrailingComma(text) {
+  const lines = String(text).split('\n');
+  lines[lines.length - 1] += ',';
+  return lines.join('\n');
+}
+
+function indent(level) {
+  return '  '.repeat(level);
 }
 
 function termToProofSource(term) {
