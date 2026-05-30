@@ -1,43 +1,50 @@
 # SEE conformance suite
 
-This directory contains an executable conformance suite for the SEE Language Specification in `SPEC.md`.
+This directory contains the executable conformance cases for the SEE language and reference engine. The normative language description is in [`../SPEC.md`](../SPEC.md).
 
-The suite is intentionally file-based so other implementations can run the same cases. A case consists of:
+The suite is intentionally file-based so another implementation can run the same programs and compare exact standard output. A case consists of:
 
-- `conformance/cases/<profile>/<name>.pl` — the input program;
-- optional `conformance/cases/<profile>/<name>.query` — the exact query to pass with `--query`;
-- optional `conformance/cases/<profile>/<name>.explain` — presence means pass `--explain`;
+- `conformance/cases/<profile>/<name>.pl` — input program;
+- optional `conformance/cases/<profile>/<name>.query` — query text passed to `see --query`;
 - `conformance/expected/<profile>/<name>.out` — exact expected standard output.
 
-Run all conformance cases with:
+The current runner compares only standard output. Standard error, performance, resource limits, and explanation tree formatting are outside this suite.
+
+## Running the suite
+
+Run all tests, including conformance, regression, examples, and style checks:
 
 ```sh
-make test conformance
+npm test
 ```
 
-or directly:
+Run only the conformance suite:
 
 ```sh
-./test/run.sh conformance
+npm run test:conformance
 ```
 
-Run a single profile with:
+Run a single conformance profile directly:
 
 ```sh
-./test/run.sh core
-./test/run.sh extension
+node test/run-conformance.js core
+node test/run-conformance.js extension
 ```
 
-Regenerate expected outputs for the current implementation with:
-
-```sh
-./test/run.sh --accept conformance
-```
+The runner executes cases through the public CLI path `bin/see`, so the suite checks the same entry point used from the shell.
 
 ## Profiles
 
-`core` covers the core language profile from `SPEC.md`: syntax, facts, definite clauses, first-order terms, lists, conjunction, unification through user predicates, goal-directed proof search, and normal answer printing.
+`core` covers the portable core language profile from `../SPEC.md`: lexical syntax, facts, definite clauses, first-order terms, lists, conjunction, unification through user predicates, left-to-right goal-directed proof search, and normal answer printing.
 
-`extension` covers the C implementation extension profile from `SPEC.md`: built-ins, aggregation helpers, formula-term helpers, `materialize/2`, and default no-query derived output.
+`extension` covers the standard built-in and host behavior exercised by the current reference implementation: arithmetic, comparison, strings, list relations, aggregation, formula-term helpers, `memoize/2`, `materialize/2`, and default no-query derived output.
 
-Explanation trees are intentionally not normatively compared yet, because `SPEC.md` defines explanation output as non-normative and answer-set preserving. A future suite can add answer-set checks for `--explain` once a stable machine-readable explanation format exists.
+The profile name `extension` is a test-suite grouping name. It does not mean that these cases are outside the SEE specification; most of them correspond to the standard built-in profile and standard host profile in `../SPEC.md`.
+
+## Explanation output
+
+`see --explain` is intentionally not compared by this conformance suite yet. The specification treats explanation output as non-normative and answer-set preserving, so stable conformance should first compare ordinary answers. A future suite can add machine-readable explanation checks if that output format becomes normative.
+
+## Updating expected output
+
+There is no committed auto-accept mode. To update an expected file, run the matching case with `bin/see`, inspect the result, and replace the corresponding file under `conformance/expected/<profile>/` deliberately.

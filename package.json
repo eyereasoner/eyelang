@@ -2,7 +2,7 @@
   "name": "see-reasoner",
   "version": "1.1.16",
   "type": "module",
-  "description": "SEE: A compact symbolic reasoning language and reference engine",
+  "description": "Symbolic Explanation Engine",
   "keywords": [
     "prolog",
     "reasoner"
