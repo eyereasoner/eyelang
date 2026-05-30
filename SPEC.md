@@ -324,7 +324,7 @@ Comparisons interpret numeric-looking terms numerically. Other scalar terms are 
 
 | Built-in | Meaning |
 |---|---|
-| `local_time(T)` | Binds `T` to the local timestamp string. |
+| `local_time(T)` | Binds `T` to the local date string. For deterministic runs, `SEE_LOCAL_TIME=YYYY-MM-DD` overrides the current date. |
 | `difference(A, B, D)` | Computes an ISO-like date/duration difference. |
 
 ### 9.5 Generators

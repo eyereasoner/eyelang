@@ -13,6 +13,7 @@ const bin = path.join(root, 'bin', 'see');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
 const expectedWhyDir = path.join(examplesDir, 'why');
+const fixedExampleDate = '2026-05-30';
 
 export function runExamples(reporter = new TestReporter()) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'see-examples.'));
@@ -53,6 +54,7 @@ function runAndCompare(name, program, expected, args, actualFile, errFile, label
   const errFd = fs.openSync(errFile, 'w');
   const result = spawnSync(process.execPath, [bin, ...args, program], {
     cwd: root,
+    env: { ...process.env, SEE_LOCAL_TIME: fixedExampleDate },
     stdio: ['ignore', outFd, errFd],
   });
   fs.closeSync(outFd);

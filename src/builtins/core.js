@@ -17,12 +17,8 @@ export const coreBuiltins = {
     }, { deterministic: true });
 
     registry.add('local_time', 1, function* ({ goal, env }) {
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
       const next = env.clone();
-      if (unify(goal.args[0], stringTerm(`${yyyy}-${mm}-${dd}`), next)) yield next;
+      if (unify(goal.args[0], stringTerm(localDateText()), next)) yield next;
     }, { deterministic: true });
 
     registry.add('difference', 3, function* ({ goal, env }) {
@@ -50,6 +46,17 @@ export const coreBuiltins = {
   }
 };
 
+
+function localDateText() {
+  const fixed = typeof process !== 'undefined' ? process.env?.SEE_LOCAL_TIME : null;
+  if (fixed) return fixed;
+
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 function parseISODate(text) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);

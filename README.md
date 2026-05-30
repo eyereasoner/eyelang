@@ -469,13 +469,13 @@ The repository includes examples for recursion, graph reachability, finite searc
 
 ## Golden outputs, tests, and conformance
 
-Golden outputs live in [`examples/output`](examples/output), and `--why` explanation goldens live in [`examples/why`](examples/why). Regenerate them after an intentional output or explanation change:
+Golden outputs live in [`examples/output`](examples/output), and `--why` explanation goldens live in [`examples/why`](examples/why). Example tests pin `local_time/1` to `2026-05-30` so date-dependent examples stay deterministic. Regenerate them after an intentional output or explanation change:
 
 ```sh
 for f in examples/*.pl; do
   b=$(basename "$f")
-  bin/see "$f" > "examples/output/$b"
-  bin/see --why "$f" > "examples/why/$b"
+  SEE_LOCAL_TIME=2026-05-30 bin/see "$f" > "examples/output/$b"
+  SEE_LOCAL_TIME=2026-05-30 bin/see --why "$f" > "examples/why/$b"
 done
 ```
 

@@ -142,6 +142,18 @@ why(
       },
     },
     {
+      name: 'SEE_LOCAL_TIME fixes local_time builtin',
+      run: () => {
+        const result = runCli(['--query', 'local_time(D)', '-'], {
+          input: '',
+          env: { SEE_LOCAL_TIME: '2024-01-02' },
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'local_time("2024-01-02").\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'help with no arguments',
       run: () => {
         const result = runCli([]);
@@ -399,6 +411,7 @@ function runCli(args, options = {}) {
   return spawnSync(process.execPath, [bin, ...args], {
     cwd: root,
     encoding: 'utf8',
+    env: options.env ? { ...process.env, ...options.env } : process.env,
     input: options.input ?? undefined,
   });
 }
