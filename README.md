@@ -83,23 +83,17 @@ bin/see --why examples/socrates.pl
 bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl
 ```
 
-With `--why`, explanations are emitted as ordinary SEE facts. Each `why/2` fact contains a nested proof term, and a blank line separates consecutive explanations. Using SEE syntax for `--why` keeps explanations in the same language as the answers themselves: they are readable by humans, parseable by SEE, easy to test, and can be queried, transformed, or explained further like any other SEE data. For example:
+With `--why`, explanations are emitted as ordinary SEE facts. Each `why/2` fact contains a nested abstract proof term, and a blank line separates consecutive explanations. Using SEE syntax for `--why` keeps explanations in the same language as the answers themselves: they are readable by humans, parseable by SEE, easy to test, and can be queried, transformed, or explained further like any other SEE data. For example:
 
 ```prolog
 type(socrates, mortal).
 why(
   type(socrates, mortal),
   proof(
-    id(p1), goal(type(socrates, mortal)), method(rule(4)),
-    source(head(type(v("X"), mortal)), body([type(v("X"), man)])),
+    goal(type(socrates, mortal)), by(rule("socrates.pl", clause(4))),
     bindings([binding("X", socrates)]),
     uses([
-      proof(
-        id(p2), goal(type(socrates, man)), method(fact(3)),
-        source(head(type(socrates, man)), body([])),
-        bindings([]),
-        uses([])
-      )
+      proof(goal(type(socrates, man)), by(fact("socrates.pl", clause(3))))
     ])
   )
 ).
@@ -118,7 +112,7 @@ Explain one derived fact:
 bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl
 ```
 
-The output contains the answer and a `why/2` fact. The proof term shows the rule that produced the answer and the source fact used below it.
+The output contains the answer and a `why/2` fact. The proof term shows the source rule that produced the answer and the source fact used below it. Source references use `rule("file.pl", clause(N))` and `fact("file.pl", clause(N))`, where `N` is the 1-based clause number in that file.
 
 Inspect variable bindings with a small policy program:
 
@@ -143,15 +137,14 @@ status(case1, accepted).
 why(
   status(case1, accepted),
   proof(
-    id(p1), goal(status(case1, accepted)), method(rule(3)),
-    source(head(status(v("Case"), accepted)), body([score(v("Case"), v("Score")), threshold(v("T")), ge(v("Score"), v("T"))])),
+    goal(status(case1, accepted)), by(rule("policy.pl", clause(3))),
     bindings([binding("Case", case1), binding("Score", 95), binding("T", 90)]),
     uses([...])
   )
 ).
 ```
 
-Use the `uses([...])` list to follow the proof tree. In the policy example it contains one subproof for `score(case1, 95)`, one for `threshold(90)`, and one for the built-in comparison `ge(95, 90)`.
+Use the `uses([...])` list to follow the proof tree. In the policy example it contains one subproof for `score(case1, 95)`, one for `threshold(90)`, and one for the built-in comparison `ge(95, 90)`. Built-ins are shown as `builtin(Name, Arity)` because they do not come from source clauses.
 
 Reuse explanations as data:
 

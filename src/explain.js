@@ -2,7 +2,7 @@
 // The --why printer replays a successful goal against the program and emits
 // ordinary SEE facts with nested proof terms.  Explanations are therefore both
 // human-readable and machine-readable.
-import { COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, isCons, isEmptyList, termToString, unify } from './term.js';
+import { COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, termToString, unify } from './term.js';
 import { selectClauseCandidates } from './program.js';
 import { createDefaultRegistry } from './builtins/registry.js';
 import { Solver, nextFreshId } from './solver.js';
@@ -51,7 +51,7 @@ function proveGoal(program, goal, env, depth, maxDepth, registry) {
       env: builtin.env,
       node: {
         goal: resolveForProof(goal, builtin.env),
-        method: `builtin(${quoteAtomText(goal.type === COMPOUND ? goal.name : 'goal')}, ${goal.type === COMPOUND ? goal.arity : 0})`,
+        method: builtinMethod(goal),
         sourceHead: resolveForProof(goal, builtin.env),
         sourceBody: [],
         bindings: [],
@@ -76,14 +76,13 @@ function proveGoal(program, goal, env, depth, maxDepth, registry) {
 
       const substitutions = collectClauseSubstitutions(clause, freshHead, freshBody);
       const bindings = resolvedSubstitutions(substitutions, next);
-      const clauseNumber = (clause.index ?? 0) + 1;
 
       if (freshBody.length === 0) {
         return {
           env: next,
           node: {
             goal: resolveForProof(goal, next),
-            method: `fact(${clauseNumber})`,
+            method: sourceMethod(clause, 'fact'),
             sourceHead: clause.head,
             sourceBody: [],
             bindings,
@@ -99,7 +98,7 @@ function proveGoal(program, goal, env, depth, maxDepth, registry) {
         env: proved.env,
         node: {
           goal: resolveForProof(goal, proved.env),
-          method: `rule(${clauseNumber})`,
+          method: sourceMethod(clause, 'rule'),
           sourceHead: clause.head,
           sourceBody: clause.body,
           bindings: resolvedSubstitutions(substitutions, proved.env),
@@ -153,16 +152,34 @@ function builtinChildren(program, goal, env, depth, maxDepth, registry) {
   return [];
 }
 
-function renderWhyFacts(answerGoal, rootNode, env) {
-  const ids = new Map();
-  assignIds(rootNode, ids, { next: 1 });
-  const answer = termToString(resolveForProof(answerGoal, env), new Env(), true);
-  return renderWhyTerm(answer, renderProofTerm(rootNode, ids, 1));
+
+function sourceMethod(clause, kind) {
+  const source = clause.source ?? {};
+  return {
+    type: 'source',
+    kind,
+    filename: source.filename ?? '<input>',
+    clause: source.clause ?? ((clause.index ?? 0) + 1),
+  };
 }
 
-function assignIds(node, ids, state) {
-  ids.set(node, `p${state.next++}`);
-  for (const child of node.children) assignIds(child, ids, state);
+function builtinMethod(goal) {
+  return {
+    type: 'builtin',
+    name: goal.type === COMPOUND ? goal.name : 'goal',
+    arity: goal.type === COMPOUND ? goal.arity : 0,
+  };
+}
+
+function renderMethodTerm(method) {
+  if (method && method.type === 'source') return `${method.kind}(${quoteString(method.filename)}, clause(${method.clause}))`;
+  if (method && method.type === 'builtin') return `builtin(${quoteAtomText(method.name)}, ${method.arity})`;
+  return String(method);
+}
+
+function renderWhyFacts(answerGoal, rootNode, env) {
+  const answer = termToString(resolveForProof(answerGoal, env), new Env(), true);
+  return renderWhyTerm(answer, renderAbstractProofTerm(rootNode, 1));
 }
 
 function renderWhyNoProof(goal) {
@@ -174,46 +191,38 @@ function renderWhyTerm(answer, proofTerm) {
   return ['why(', `${indent(1)}${answer},`, proofTerm, ').', '', ''].join('\n');
 }
 
-function renderProofTerm(node, ids, level) {
-  const id = ids.get(node);
+function renderAbstractProofTerm(node, level) {
   const goal = termToString(node.goal, new Env(), true);
-  return [
+  if (node.bindings.length === 0 && node.children.length === 0) return `${indent(level)}proof(goal(${goal}), by(${renderMethodTerm(node.method)}))`;
+
+  const lines = [
     `${indent(level)}proof(`,
-    `${indent(level + 1)}id(${id}), goal(${goal}), method(${node.method}),`,
-    `${indent(level + 1)}${renderSourceTerm(node, goal)},`,
-    `${indent(level + 1)}${renderBindingsTerm(node.bindings)},`,
-    renderUsesTerm(node.children, ids, level + 1),
-    `${indent(level)})`,
-  ].join('\n');
+    `${indent(level + 1)}goal(${goal}), by(${renderMethodTerm(node.method)})${node.bindings.length || node.children.length ? ',' : ''}`,
+  ];
+
+  if (node.bindings.length) lines.push(`${indent(level + 1)}${renderBindingsTerm(node.bindings)}${node.children.length ? ',' : ''}`);
+  if (node.children.length) lines.push(renderUsesTerm(node.children, level + 1));
+
+  lines.push(`${indent(level)})`);
+  return lines.join('\n');
 }
 
-function renderSourceTerm(node, fallbackGoal) {
-  const head = node.sourceHead ? termToProofSource(node.sourceHead) : fallbackGoal;
-  return `source(head(${head}), body(${renderProofListInline(node.sourceBody, termToProofSource)}))`;
-}
-
-function renderBindingsTerm(bindings) {
-  return `bindings(${renderProofListInline(bindings, binding => `binding(${quoteString(binding.name)}, ${termToString(binding.value, new Env(), true)})`)})`;
-}
-
-function renderUsesTerm(children, ids, level) {
-  if (children.length === 0) return `${indent(level)}uses([])`;
-
+function renderUsesTerm(children, level) {
   const lines = [`${indent(level)}uses([`];
   for (let i = 0; i < children.length; i++) {
-    const item = indentProofListItem(renderProofTerm(children[i], ids, level + 1), level + 1);
+    const item = renderAbstractProofTerm(children[i], level + 1);
     lines.push(i === children.length - 1 ? item : withTrailingComma(item));
   }
   lines.push(`${indent(level)}])`);
   return lines.join('\n');
 }
 
-function renderProofListInline(items, renderItem) {
-  return `[${items.map(item => renderItem(item)).join(', ')}]`;
+function renderBindingsTerm(bindings) {
+  return `bindings(${renderProofListInline(bindings, binding => `binding(${quoteString(binding.name)}, ${termToString(binding.value, new Env(), true)})`)})`;
 }
 
-function indentProofListItem(text, level) {
-  return String(text).includes('\n') ? String(text) : `${indent(level)}${text}`;
+function renderProofListInline(items, renderItem) {
+  return `[${items.map(item => renderItem(item)).join(', ')}]`;
 }
 
 function withTrailingComma(text) {
@@ -226,32 +235,8 @@ function indent(level) {
   return '  '.repeat(level);
 }
 
-function termToProofSource(term) {
-  const resolved = deref(term, new Env());
-  if (resolved.type === VAR) return `v(${quoteString(originalVariableName(resolved.name))})`;
-  if (isCons(resolved) || isEmptyList(resolved)) return listTermToProofSource(resolved);
-  if (resolved.type !== COMPOUND) return termToString(resolved, new Env(), true);
-  return `${quoteCompoundName(resolved.name)}(${resolved.args.map(termToProofSource).join(', ')})`;
-}
-
-function listTermToProofSource(term) {
-  const parts = [];
-  let cursor = term;
-  while (isCons(cursor)) {
-    parts.push(termToProofSource(cursor.args[0]));
-    cursor = deref(cursor.args[1], new Env());
-  }
-  if (isEmptyList(cursor)) return `[${parts.join(', ')}]`;
-  if (parts.length) return `[${parts.join(', ')} | ${termToProofSource(cursor)}]`;
-  return '[]';
-}
-
-function quoteCompoundName(name) {
-  return termToString({ type: 'atom', name: String(name), args: [] }, new Env(), true);
-}
-
 function quoteAtomText(text) {
-  return quoteCompoundName(text);
+  return termToString({ type: 'atom', name: String(text), args: [] }, new Env(), true);
 }
 
 function quoteString(value) {

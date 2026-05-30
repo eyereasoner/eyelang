@@ -66,16 +66,10 @@ function regressionCases() {
 why(
   type(socrates, mortal),
   proof(
-    id(p1), goal(type(socrates, mortal)), method(rule(2)),
-    source(head(type(v("X"), mortal)), body([type(v("X"), man)])),
+    goal(type(socrates, mortal)), by(rule("__FILE__", clause(2))),
     bindings([binding("X", socrates)]),
     uses([
-      proof(
-        id(p2), goal(type(socrates, man)), method(fact(1)),
-        source(head(type(socrates, man)), body([])),
-        bindings([]),
-        uses([])
-      )
+      proof(goal(type(socrates, man)), by(fact("__FILE__", clause(1))))
     ])
   )
 ).
@@ -92,16 +86,10 @@ why(
 why(
   p(536),
   proof(
-    id(p1), goal(p(536)), method(rule(1)),
-    source(head(p(v("X"))), body([between(4, 1000, v("X"))])),
+    goal(p(536)), by(rule("__FILE__", clause(1))),
     bindings([binding("X", 536)]),
     uses([
-      proof(
-        id(p2), goal(between(4, 1000, 536)), method(builtin(between, 3)),
-        source(head(between(4, 1000, 536)), body([])),
-        bindings([]),
-        uses([])
-      )
+      proof(goal(between(4, 1000, 536)), by(builtin(between, 3)))
     ])
   )
 ).
@@ -118,16 +106,10 @@ why(
 why(
   p(a),
   proof(
-    id(p1), goal(p(a)), method(rule(1)),
-    source(head(p(v("X"))), body([member(v("X"), [a, b])])),
+    goal(p(a)), by(rule("__FILE__", clause(1))),
     bindings([binding("X", a)]),
     uses([
-      proof(
-        id(p2), goal(member(a, [a, b])), method(builtin(member, 2)),
-        source(head(member(a, [a, b])), body([])),
-        bindings([]),
-        uses([])
-      )
+      proof(goal(member(a, [a, b])), by(builtin(member, 2)))
     ])
   )
 ).
@@ -367,11 +349,14 @@ function runWhy({ program, query, expected }) {
   const result = runCli(['--why', '--query', query, programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
-  assertEqual(result.stdout, expected, 'stdout');
+  const expectedText = expected.replaceAll('__FILE__', path.basename(programFile));
+  assertEqual(result.stdout, expectedText, 'stdout');
 
   Program.parse(result.stdout);
   assertIncludes(result.stdout, '  proof(\n', 'stdout');
-  assertIncludes(result.stdout, '    source(head(', 'stdout');
+  assertIncludes(result.stdout, ' by(rule("', 'stdout');
+  assertIncludes(result.stdout, ', clause(', 'stdout');
+  assertNotIncludes(result.stdout, 'source(head(', 'stdout');
   assertIncludes(result.stdout, '\n).\n\n', 'stdout');
 }
 
@@ -389,6 +374,10 @@ function assertEqual(actual, expected, label) {
 
 function assertIncludes(actual, expected, label) {
   if (!actual.includes(expected)) throw new Error(`${label} did not include ${format(expected)}\nactual: ${format(actual)}`);
+}
+
+function assertNotIncludes(actual, expected, label) {
+  if (String(actual).includes(expected)) throw new Error(`${label} unexpectedly included ${format(expected)}\nactual: ${format(actual)}`);
 }
 
 function format(value) {

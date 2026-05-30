@@ -1,6 +1,7 @@
 // Command-line interface for SEE.
 // It loads programs from files, URLs, or stdin, then either materializes derived output or evaluates an explicit query.
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import process from 'node:process';
 import { Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';
@@ -66,17 +67,17 @@ export async function main(argv) {
     if (file === '-') {
       if (usedStdin) throw new Error("stdin input '-' can only be used once");
       usedStdin = true;
-      sourceParts.push(await readStdin());
+      sourceParts.push({ text: await readStdin(), filename: '<stdin>' });
     } else if (/^https?:\/\//.test(file)) {
       const response = await fetch(file);
       if (!response.ok) throw new Error(`could not fetch URL: ${file}`);
-      sourceParts.push(await response.text());
+      sourceParts.push({ text: await response.text(), filename: file });
     } else {
-      sourceParts.push(await fs.readFile(file, 'utf8'));
+      sourceParts.push({ text: await fs.readFile(file, 'utf8'), filename: path.basename(file) || file });
     }
   }
 
-  const program = Program.parse(sourceParts.join('\n'));
+  const program = Program.parseSources(sourceParts);
 
   if (options.query != null) runQuery(program, options.query, options);
   else runDefault(program, options);

@@ -466,7 +466,7 @@ Without `--query`, the host behavior is:
 
 ### 12.1 Why output
 
-`--why` MAY print machine-readable proof facts for query answers or default derived output. Why output is ordinary SEE syntax and MAY include `why/2` facts whose second argument is a nested proof term such as `proof(id(P), goal(G), method(M), source(head(H), body(B)), bindings(Bindings), uses(Proofs))`. Why output is outside the logical semantics of the input program and MUST NOT change the set of answers.
+`--why` MAY print machine-readable proof facts for query answers or default derived output. Why output is ordinary SEE syntax and MAY include `why/2` facts whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Why output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
 ## 13. Conformance profiles
 

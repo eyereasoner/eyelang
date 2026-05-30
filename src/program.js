@@ -10,8 +10,18 @@ export class Program {
     for (const clause of this.clauses) this.indexClause(clause);
     this.applyDeclarations();
   }
-  static parse(source) {
-    return new Program(parseClauses(source));
+  static parse(source, options = {}) {
+    return new Program(parseClauses(source, options));
+  }
+  static parseSources(sources = []) {
+    const clauses = [];
+    for (const source of sources) {
+      const parsed = typeof source === 'string'
+        ? parseClauses(source)
+        : parseClauses(source?.text ?? source?.source ?? '', { filename: source?.filename ?? '<input>' });
+      for (const clause of parsed) clauses.push(clause);
+    }
+    return new Program(clauses);
   }
   makeGroup(name, arity) {
     // A group corresponds to one predicate indicator, for example edge/3.
@@ -212,6 +222,6 @@ export function selectClauseCandidates(group, goal, env) {
   return { primary: bestPrimary, fallback: bestFallback };
 }
 
-export function makeProgram(source) {
-  return Program.parse(source);
+export function makeProgram(source, options = {}) {
+  return Program.parse(source, options);
 }

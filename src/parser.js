@@ -30,8 +30,9 @@ function isAtomCharCode(code) {
 }
 
 class Parser {
-  constructor(source) {
+  constructor(source, options = {}) {
     this.source = String(source ?? '');
+    this.filename = options.filename ?? '<input>';
     this.pos = 0;
     this.line = 1;
     this.anonymous = 0;
@@ -239,6 +240,7 @@ class Parser {
   parseProgram() {
     const clauses = [];
     while (this.token.type !== TOK.EOF) {
+      const line = this.token.line;
       const head = this.parseTerm();
       const body = [];
       if (this.token.type === TOK.IF) {
@@ -254,14 +256,14 @@ class Parser {
       }
       this.expect(TOK.DOT, '.');
       this.advance();
-      clauses.push({ head, body });
+      clauses.push({ head, body, source: { filename: this.filename, line, clause: clauses.length + 1 } });
     }
     return clauses;
   }
 }
 
-export function parseClauses(source) {
-  return new Parser(source).parseProgram();
+export function parseClauses(source, options = {}) {
+  return new Parser(source, options).parseProgram();
 }
 
 export function parseProgramText(source) {

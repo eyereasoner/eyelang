@@ -81,7 +81,7 @@ async function runSEE(request) {
     } = await loadEngine();
 
     phase = 'parsing input';
-    const parsed = Program.parse(program || '');
+    const parsed = Program.parse(program || '', { filename: '<playground>' });
 
     if (query && query.trim()) {
       phase = 'parsing query';
