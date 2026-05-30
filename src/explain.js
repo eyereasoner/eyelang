@@ -2,7 +2,7 @@
 // The --why printer replays a successful goal against the program and emits
 // ordinary SEE facts with nested proof terms.  Explanations are therefore both
 // human-readable and machine-readable.
-import { COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, termToString, unify } from './term.js';
+import { COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, termToString, unify, variantTerms } from './term.js';
 import { selectClauseCandidates } from './program.js';
 import { createDefaultRegistry } from './builtins/registry.js';
 import { Solver, nextFreshId } from './solver.js';
@@ -11,9 +11,10 @@ export function whyProof(program, goal, options = {}) {
   const maxDepth = options.maxDepth ?? 256;
   const registry = options.registry ?? createDefaultRegistry();
   const env = options.env ?? new Env();
-  const proof = proveGoal(program, goal, env, 0, maxDepth, registry);
-  if (!proof) return { ok: false, text: '' };
-  return { ok: true, text: renderWhyFacts(goal, proof.node, proof.env) };
+  for (const proof of proveGoalAll(program, goal, env, 0, maxDepth, registry, [])) {
+    return { ok: true, text: renderWhyFacts(goal, proof.node, proof.env) };
+  }
+  return { ok: false, text: '' };
 }
 
 export function whyNoProof(goal) {
@@ -25,45 +26,50 @@ export function explainProof(program, goal, options = {}) {
   return whyProof(program, goal, options);
 }
 
-function proveGoal(program, goal, env, depth, maxDepth, registry) {
-  if (depth > maxDepth) return null;
+function* proveGoalAll(program, goal, env, depth, maxDepth, registry, active) {
+  if (depth > maxDepth) return;
 
   if (goal.type === COMPOUND && goal.name === ',' && goal.arity === 2) {
-    const proved = proveGoals(program, flattenConjunction(goal), env, depth + 1, maxDepth, registry);
-    if (!proved) return null;
-    return {
-      env: proved.env,
-      node: {
-        goal: resolveForProof(goal, proved.env),
-        method: 'conjunction',
-        sourceHead: null,
-        sourceBody: flattenConjunction(goal),
-        bindings: [],
-        children: proved.children,
-      },
-    };
+    for (const proved of proveGoalsAll(program, flattenConjunction(goal), env, depth + 1, maxDepth, registry, active)) {
+      yield {
+        env: proved.env,
+        node: {
+          goal: resolveForProof(goal, proved.env),
+          method: 'conjunction',
+          sourceHead: null,
+          sourceBody: flattenConjunction(goal),
+          bindings: [],
+          children: proved.children,
+        },
+      };
+    }
+    return;
   }
 
-  const builtin = tryBuiltin(program, goal, env, registry);
+  const builtin = builtinDefinition(program, goal, env, registry);
   if (builtin.handled) {
-    if (!builtin.env) return null;
-    return {
-      env: builtin.env,
-      node: {
-        goal: resolveForProof(goal, builtin.env),
-        method: builtinMethod(goal),
-        sourceHead: resolveForProof(goal, builtin.env),
-        sourceBody: [],
-        bindings: [],
-        children: builtinChildren(program, goal, builtin.env, depth + 1, maxDepth, registry),
-      },
-    };
+    for (const next of builtinEnvs(builtin.def, builtin.solver, goal, env)) {
+      const proofEnv = next.clone ? next.clone() : next;
+      yield {
+        env: proofEnv,
+        node: {
+          goal: resolveForProof(goal, proofEnv),
+          method: builtinMethod(goal),
+          sourceHead: resolveForProof(goal, proofEnv),
+          sourceBody: [],
+          bindings: [],
+          children: builtinChildren(program, goal, proofEnv, depth + 1, maxDepth, registry, active),
+        },
+      };
+    }
+    return;
   }
 
-  if (goal.type !== COMPOUND) return null;
+  if (goal.type !== COMPOUND) return;
 
   const group = program.findGroup(goal.name, goal.arity);
-  if (!group) return null;
+  if (!group) return;
+  if (!group.memoized && activeVariant(goal, env, active)) return;
 
   const candidates = selectClauseCandidates(group, goal, env);
   for (const pass of [candidates.primary, candidates.fallback]) {
@@ -78,7 +84,7 @@ function proveGoal(program, goal, env, depth, maxDepth, registry) {
       const bindings = resolvedSubstitutions(substitutions, next);
 
       if (freshBody.length === 0) {
-        return {
+        yield {
           env: next,
           node: {
             goal: resolveForProof(goal, next),
@@ -89,51 +95,67 @@ function proveGoal(program, goal, env, depth, maxDepth, registry) {
             children: [],
           },
         };
+        continue;
       }
 
-      const proved = proveGoals(program, freshBody, next, depth + 1, maxDepth, registry);
-      if (!proved) continue;
-
-      return {
-        env: proved.env,
-        node: {
-          goal: resolveForProof(goal, proved.env),
-          method: sourceMethod(clause, 'rule'),
-          sourceHead: clause.head,
-          sourceBody: clause.body,
-          bindings: resolvedSubstitutions(substitutions, proved.env),
-          children: proved.children,
-        },
-      };
+      let activePushed = true;
+      active.push({ goal, env });
+      try {
+        for (const proved of proveGoalsAll(program, freshBody, next, depth + 1, maxDepth, registry, active)) {
+          active.pop();
+          activePushed = false;
+          yield {
+            env: proved.env,
+            node: {
+              goal: resolveForProof(goal, proved.env),
+              method: sourceMethod(clause, 'rule'),
+              sourceHead: clause.head,
+              sourceBody: clause.body,
+              bindings: resolvedSubstitutions(substitutions, proved.env),
+              children: proved.children,
+            },
+          };
+          active.push({ goal, env });
+          activePushed = true;
+        }
+      } finally {
+        if (activePushed) active.pop();
+      }
     }
   }
-
-  return null;
 }
 
-function proveGoals(program, goals, env, depth, maxDepth, registry) {
-  let current = env.clone();
-  const children = [];
-  for (const goal of goals) {
-    const proved = proveGoal(program, goal, current, depth, maxDepth, registry);
-    if (!proved) return null;
-    current = proved.env;
-    children.push(proved.node);
+function* proveGoalsAll(program, goals, env, depth, maxDepth, registry, active) {
+  if (goals.length === 0) {
+    yield { env: env.clone(), children: [] };
+    return;
   }
-  return { env: current, children };
+
+  const selectedIndex = selectReadyDeterministicBuiltin(goals, env, registry);
+  const goal = goals[selectedIndex];
+  const rest = selectedIndex === 0 ? goals.slice(1) : [...goals.slice(0, selectedIndex), ...goals.slice(selectedIndex + 1)];
+
+  for (const proved of proveGoalAll(program, goal, env, depth, maxDepth, registry, active)) {
+    for (const tail of proveGoalsAll(program, rest, proved.env, depth, maxDepth, registry, active)) {
+      const children = tail.children.slice();
+      children.splice(selectedIndex, 0, proved.node);
+      yield { env: tail.env, children };
+    }
+  }
 }
 
-function tryBuiltin(program, goal, env, registry) {
-  if (goal.type !== COMPOUND) return { handled: false, env: null };
+function builtinDefinition(program, goal, env, registry) {
+  if (goal.type !== COMPOUND) return { handled: false, def: null, solver: null };
   const def = registry.get(goal.name, goal.arity);
-  if (!def) return { handled: false, env: null };
+  if (!def) return { handled: false, def: null, solver: null };
 
-  const solver = new Solver(program, { registry, solutionLimit: 1 });
-  if (!builtinIsUsedForGoal(def, solver, goal, env)) return { handled: false, env: null };
-  for (const next of def.handler({ solver, goal, env })) {
-    return { handled: true, env: next.clone ? next.clone() : next };
-  }
-  return { handled: true, env: null };
+  const solver = new Solver(program, { registry });
+  if (!builtinIsUsedForGoal(def, solver, goal, env)) return { handled: false, def: null, solver: null };
+  return { handled: true, def, solver };
+}
+
+function* builtinEnvs(def, solver, goal, env) {
+  for (const next of def.handler({ solver, goal, env })) yield next;
 }
 
 function builtinIsUsedForGoal(def, solver, goal, env) {
@@ -143,15 +165,29 @@ function builtinIsUsedForGoal(def, solver, goal, env) {
   return !def.fallbackWhenNotReady;
 }
 
-function builtinChildren(program, goal, env, depth, maxDepth, registry) {
+function selectReadyDeterministicBuiltin(goals, env, registry) {
+  for (let i = 0; i < goals.length; i++) {
+    const goal = goals[i];
+    if (goal.type !== COMPOUND) continue;
+    const def = registry.get(goal.name, goal.arity);
+    if (!def?.deterministic || typeof def.ready !== 'function') continue;
+    if (typeof def.shouldUse === 'function') continue;
+    if (def.ready(goal, env)) return i;
+  }
+  return 0;
+}
+
+function builtinChildren(program, goal, env, depth, maxDepth, registry, active) {
   if (goal.type !== COMPOUND) return [];
   if (goal.name === 'once' && goal.arity === 1) {
-    const proved = proveGoal(program, goal.args[0], env.clone(), depth, maxDepth, registry);
-    return proved ? [proved.node] : [];
+    for (const proved of proveGoalAll(program, goal.args[0], env.clone(), depth, maxDepth, registry, active)) return [proved.node];
   }
   return [];
 }
 
+function activeVariant(goal, env, active) {
+  return active.some((entry) => variantTerms(goal, env, entry.goal, entry.env));
+}
 
 function sourceMethod(clause, kind) {
   const source = clause.source ?? {};

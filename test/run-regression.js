@@ -118,6 +118,30 @@ why(
       }),
     },
     {
+      name: 'why backtracks across earlier subgoal alternatives',
+      run: () => {
+        const result = runWhyLoose({
+          program: 'p(ok) :- q(X), r(X).\nq(a).\nq(b).\nr(b).\n',
+          query: 'p(ok)',
+        });
+        assertIncludes(result.stdout, 'proof(goal(q(b)), by(fact("', 'stdout');
+        assertIncludes(result.stdout, 'proof(goal(r(b)), by(fact("', 'stdout');
+        assertNotIncludes(result.stdout, 'no_proof', 'stdout');
+      },
+    },
+    {
+      name: 'why releases active call before caller rest goals',
+      run: () => {
+        const result = runWhyLoose({
+          program: 'p(ok) :- q(1), q(1).\nq(0).\nq(1) :- q(0).\n',
+          query: 'p(ok)',
+        });
+        assertIncludes(result.stdout, 'goal(p(ok)), by(rule("', 'stdout');
+        assertIncludes(result.stdout, 'goal(q(1)), by(rule("', 'stdout');
+        assertNotIncludes(result.stdout, 'no_proof', 'stdout');
+      },
+    },
+    {
       name: 'help with no arguments',
       run: () => {
         const result = runCli([]);
@@ -358,6 +382,17 @@ function runWhy({ program, query, expected }) {
   assertIncludes(result.stdout, ', clause(', 'stdout');
   assertNotIncludes(result.stdout, 'source(head(', 'stdout');
   assertIncludes(result.stdout, '\n).\n\n', 'stdout');
+}
+
+function runWhyLoose({ program, query }) {
+  const programFile = path.join(tmp, `${++tmpCounter}.pl`);
+  fs.writeFileSync(programFile, program);
+  const result = runCli(['--why', '--query', query, programFile]);
+  assertEqual(result.status, 0, 'exit status');
+  assertEqual(result.stderr, '', 'stderr');
+  Program.parse(result.stdout);
+  assertIncludes(result.stdout, '\n).\n\n', 'stdout');
+  return result;
 }
 
 function runCli(args, options = {}) {

@@ -458,7 +458,6 @@ The repository includes examples for recursion, graph reachability, finite searc
 | [`statistics-summary.pl`](https://github.com/eyereasoner/see/blob/main/examples/statistics-summary.pl) | Computes population statistics for a sample. | [`output/statistics-summary.pl`](https://github.com/eyereasoner/see/blob/main/examples/output/statistics-summary.pl) |
 | [`sudoku.pl`](https://github.com/eyereasoner/see/blob/main/examples/sudoku.pl) | Solves generic 9x9 Sudoku strings through the sudoku/2 builtin. | [`output/sudoku.pl`](https://github.com/eyereasoner/see/blob/main/examples/output/sudoku.pl) |
 | [`superdense-coding.pl`](https://github.com/eyereasoner/see/blob/main/examples/superdense-coding.pl) | Models superdense-coding bit transmission. | [`output/superdense-coding.pl`](https://github.com/eyereasoner/see/blob/main/examples/output/superdense-coding.pl) |
-| [`takeuchi.pl`](https://github.com/eyereasoner/see/blob/main/examples/takeuchi.pl) | Computes the recursive Takeuchi function. | [`output/takeuchi.pl`](https://github.com/eyereasoner/see/blob/main/examples/output/takeuchi.pl) |
 | [`traveling-salesman.pl`](https://github.com/eyereasoner/see/blob/main/examples/traveling-salesman.pl) | Finds an optimal traveling-salesman tour. | [`output/traveling-salesman.pl`](https://github.com/eyereasoner/see/blob/main/examples/output/traveling-salesman.pl) |
 | [`turing.pl`](https://github.com/eyereasoner/see/blob/main/examples/turing.pl) | Simulates a binary-increment Turing machine. | [`output/turing.pl`](https://github.com/eyereasoner/see/blob/main/examples/output/turing.pl) |
 | [`vector-similarity.pl`](https://github.com/eyereasoner/see/blob/main/examples/vector-similarity.pl) | Computes dot product, norm, and cosine similarity. | [`output/vector-similarity.pl`](https://github.com/eyereasoner/see/blob/main/examples/output/vector-similarity.pl) |
@@ -469,12 +468,13 @@ The repository includes examples for recursion, graph reachability, finite searc
 
 ## Golden outputs, tests, and conformance
 
-Golden outputs live in [`examples/output`](examples/output). Regenerate them after an intentional output change:
+Golden outputs live in [`examples/output`](examples/output), and `--why` explanation goldens live in [`examples/why`](examples/why). Regenerate them after an intentional output or explanation change:
 
 ```sh
 for f in examples/*.pl; do
   b=$(basename "$f")
   bin/see "$f" > "examples/output/$b"
+  bin/see --why "$f" > "examples/why/$b"
 done
 ```
 
@@ -484,7 +484,7 @@ Run the full test suite:
 npm test
 ```
 
-The test suite runs in this order: Conformance, Regression/API/White-box, Examples. Each section prints its own subtotal, followed by a suite-specific grand total. The suite checks the conformance cases derived from `SPEC.md`, supplemental regression/API/white-box checks, and every example against its golden output.
+The test suite runs in this order: Conformance, Regression/API/White-box, Examples. Each section prints its own subtotal, followed by a suite-specific grand total. The suite checks the conformance cases derived from `SPEC.md`, supplemental regression/API/white-box checks, and every example against both its output golden and its `--why` explanation golden.
 
 Run only one suite when you are iterating:
 
@@ -504,7 +504,7 @@ Common commands:
 npm test                  # conformance, regression/API/white-box, and examples
 npm run test:conformance  # only the conformance suite
 npm run test:regression   # CLI regression, API, and white-box checks
-npm run test:examples     # every example against examples/output
+npm run test:examples     # every example against examples/output and examples/why
 node bin/see --help
 ```
 

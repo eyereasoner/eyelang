@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Example-output test runner.
-// It compares each example byte-for-byte against examples/output so performance changes cannot silently alter results.
+// It compares each example byte-for-byte against examples/output and examples/why so output and explanation changes cannot silently alter results.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -12,6 +12,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bin = path.join(root, 'bin', 'see');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
+const expectedWhyDir = path.join(examplesDir, 'why');
 
 export function runExamples(reporter = new TestReporter()) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'see-examples.'));
@@ -19,12 +20,17 @@ export function runExamples(reporter = new TestReporter()) {
   const errFile = path.join(tmp, 'stderr.out');
 
   try {
-    reporter.section('Examples');
     const files = fs.readdirSync(examplesDir)
       .filter((name) => name.endsWith('.pl'))
       .sort();
+
+    reporter.section('Examples');
     for (const name of files) reporter.test(name, () => runExample(name, actualFile, errFile));
     reporter.sectionTotal('examples');
+
+    reporter.section('Example explanations');
+    for (const name of files) reporter.test(name, () => runExampleWhy(name, actualFile, errFile));
+    reporter.sectionTotal('example explanations');
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
@@ -33,9 +39,19 @@ export function runExamples(reporter = new TestReporter()) {
 function runExample(name, actualFile, errFile) {
   const program = path.join(examplesDir, name);
   const expected = path.join(expectedDir, name);
+  runAndCompare(name, program, expected, [], actualFile, errFile, 'output');
+}
+
+function runExampleWhy(name, actualFile, errFile) {
+  const program = path.join(examplesDir, name);
+  const expected = path.join(expectedWhyDir, name);
+  runAndCompare(name, program, expected, ['--why'], actualFile, errFile, 'explanation');
+}
+
+function runAndCompare(name, program, expected, args, actualFile, errFile, label) {
   const outFd = fs.openSync(actualFile, 'w');
   const errFd = fs.openSync(errFile, 'w');
-  const result = spawnSync(process.execPath, [bin, program], {
+  const result = spawnSync(process.execPath, [bin, ...args, program], {
     cwd: root,
     stdio: ['ignore', outFd, errFd],
   });
@@ -45,17 +61,19 @@ function runExample(name, actualFile, errFile) {
   if (result.status !== 0) {
     const stderr = fs.readFileSync(errFile, 'utf8');
     const stdout = fs.readFileSync(actualFile, 'utf8');
-    throw new Error(`example ${name} exited with ${result.status}\n${stderr}${stdout}`.trimEnd());
+    throw new Error(`example ${name} ${label} exited with ${result.status}
+${stderr}${stdout}`.trimEnd());
   }
 
   if (!fs.existsSync(expected)) {
-    throw new Error(`missing expected file: ${path.relative(root, expected)}`);
+    throw new Error(`missing expected ${label} file: ${path.relative(root, expected)}`);
   }
 
   const expectedBuffer = fs.readFileSync(expected);
   const actualBuffer = fs.readFileSync(actualFile);
   if (!expectedBuffer.equals(actualBuffer)) {
-    throw new Error(`output mismatch for ${name}\n${diffText(expected, actualFile)}`.trimEnd());
+    throw new Error(`${label} mismatch for ${name}
+${diffText(expected, actualFile)}`.trimEnd());
   }
 }
 
@@ -68,7 +86,9 @@ function diffText(expected, actual) {
   const limit = Math.max(expectedText.length, actualText.length);
   for (let i = 0; i < limit; i++) {
     if (expectedText[i] !== actualText[i]) {
-      return `first difference at line ${i + 1}\nexpected: ${expectedText[i] ?? '<missing>'}\nactual:   ${actualText[i] ?? '<missing>'}`;
+      return `first difference at line ${i + 1}
+expected: ${expectedText[i] ?? '<missing>'}
+actual:   ${actualText[i] ?? '<missing>'}`;
     }
   }
 

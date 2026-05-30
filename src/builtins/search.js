@@ -238,12 +238,43 @@ function* fixedLengthCycle({ solver, goal, env }) {
   if (!predicate || length == null || length < 0) return;
   const graph = labelledGraph(solver.program, predicate);
   if (!graph) return;
-  for (const [relation, byStart] of graph.byRelation.entries()) {
+
+  const requestedRelation = atomKey(deref(goal.args[2], env));
+  const requestedCycle = fixedLengthCycleRequestedPath(goal, env, length);
+  if (requestedRelation && requestedCycle) {
+    const byStart = graph.byRelation.get(requestedRelation);
+    if (byStart && fixedLengthCyclePathExists(byStart, requestedCycle)) {
+      const next = env.clone();
+      if (unify(goal.args[2], atom(requestedRelation), next) && unify(goal.args[3], listFromItems(requestedCycle.map(atom)), next)) yield next;
+    }
+    return;
+  }
+
+  const relations = requestedRelation
+    ? [[requestedRelation, graph.byRelation.get(requestedRelation)]].filter(([, byStart]) => byStart)
+    : graph.byRelation.entries();
+  for (const [relation, byStart] of relations) {
     for (const start of byStart.keys()) {
       const path = [atom(start)];
       yield* fixedLengthCycleDfs(goal, env, byStart, relation, start, start, length, path);
     }
   }
+}
+
+function fixedLengthCycleRequestedPath(goal, env, length) {
+  const items = properListItems(goal.args[3], env);
+  if (!items || items.length !== length + 1) return null;
+  const nodes = items.map((item) => atomKey(deref(item, env)));
+  if (nodes.some((node) => node == null)) return null;
+  if (nodes[0] !== nodes[nodes.length - 1]) return null;
+  return nodes;
+}
+
+function fixedLengthCyclePathExists(byStart, nodes) {
+  for (let i = 0; i < nodes.length - 1; i++) {
+    if (!(byStart.get(nodes[i]) ?? []).includes(nodes[i + 1])) return false;
+  }
+  return true;
 }
 
 function* fixedLengthCycleDfs(goal, env, byStart, relation, start, current, remaining, path) {
