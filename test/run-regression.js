@@ -66,27 +66,13 @@ function regressionCases() {
 why(
   type(socrates, mortal),
   proof(
-    id(p1),
-    goal(type(socrates, mortal)),
-    method(rule(2)),
-    source(
-      head(type(v("X"), mortal)),
-      body([
-        type(v("X"), man)
-      ])
-    ),
-    bindings([
-      binding("X", socrates)
-    ]),
+    id(p1), goal(type(socrates, mortal)), method(rule(2)),
+    source(head(type(v("X"), mortal)), body([type(v("X"), man)])),
+    bindings([binding("X", socrates)]),
     uses([
       proof(
-        id(p2),
-        goal(type(socrates, man)),
-        method(fact(1)),
-        source(
-          head(type(socrates, man)),
-          body([])
-        ),
+        id(p2), goal(type(socrates, man)), method(fact(1)),
+        source(head(type(socrates, man)), body([])),
         bindings([]),
         uses([])
       )
@@ -106,27 +92,13 @@ why(
 why(
   p(536),
   proof(
-    id(p1),
-    goal(p(536)),
-    method(rule(1)),
-    source(
-      head(p(v("X"))),
-      body([
-        between(4, 1000, v("X"))
-      ])
-    ),
-    bindings([
-      binding("X", 536)
-    ]),
+    id(p1), goal(p(536)), method(rule(1)),
+    source(head(p(v("X"))), body([between(4, 1000, v("X"))])),
+    bindings([binding("X", 536)]),
     uses([
       proof(
-        id(p2),
-        goal(between(4, 1000, 536)),
-        method(builtin(between, 3)),
-        source(
-          head(between(4, 1000, 536)),
-          body([])
-        ),
+        id(p2), goal(between(4, 1000, 536)), method(builtin(between, 3)),
+        source(head(between(4, 1000, 536)), body([])),
         bindings([]),
         uses([])
       )
@@ -146,27 +118,13 @@ why(
 why(
   p(a),
   proof(
-    id(p1),
-    goal(p(a)),
-    method(rule(1)),
-    source(
-      head(p(v("X"))),
-      body([
-        member(v("X"), [a, b])
-      ])
-    ),
-    bindings([
-      binding("X", a)
-    ]),
+    id(p1), goal(p(a)), method(rule(1)),
+    source(head(p(v("X"))), body([member(v("X"), [a, b])])),
+    bindings([binding("X", a)]),
     uses([
       proof(
-        id(p2),
-        goal(member(a, [a, b])),
-        method(builtin(member, 2)),
-        source(
-          head(member(a, [a, b])),
-          body([])
-        ),
+        id(p2), goal(member(a, [a, b])), method(builtin(member, 2)),
+        source(head(member(a, [a, b])), body([])),
         bindings([]),
         uses([])
       )
@@ -413,7 +371,7 @@ function runWhy({ program, query, expected }) {
 
   Program.parse(result.stdout);
   assertIncludes(result.stdout, '  proof(\n', 'stdout');
-  assertIncludes(result.stdout, '    source(\n', 'stdout');
+  assertIncludes(result.stdout, '    source(head(', 'stdout');
   assertIncludes(result.stdout, '\n).\n\n', 'stdout');
 }
 

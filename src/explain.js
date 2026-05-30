@@ -179,44 +179,37 @@ function renderProofTerm(node, ids, level) {
   const goal = termToString(node.goal, new Env(), true);
   return [
     `${indent(level)}proof(`,
-    `${indent(level + 1)}id(${id}),`,
-    `${indent(level + 1)}goal(${goal}),`,
-    `${indent(level + 1)}method(${node.method}),`,
-    withTrailingComma(renderSourceTerm(node, goal, level + 1)),
-    withTrailingComma(renderBindingsTerm(node.bindings, level + 1)),
+    `${indent(level + 1)}id(${id}), goal(${goal}), method(${node.method}),`,
+    `${indent(level + 1)}${renderSourceTerm(node, goal)},`,
+    `${indent(level + 1)}${renderBindingsTerm(node.bindings)},`,
     renderUsesTerm(node.children, ids, level + 1),
     `${indent(level)})`,
   ].join('\n');
 }
 
-function renderSourceTerm(node, fallbackGoal, level) {
+function renderSourceTerm(node, fallbackGoal) {
   const head = node.sourceHead ? termToProofSource(node.sourceHead) : fallbackGoal;
-  return [
-    `${indent(level)}source(`,
-    `${indent(level + 1)}head(${head}),`,
-    renderProofList('body', node.sourceBody, level + 1, termToProofSource),
-    `${indent(level)})`,
-  ].join('\n');
+  return `source(head(${head}), body(${renderProofListInline(node.sourceBody, termToProofSource)}))`;
 }
 
-function renderBindingsTerm(bindings, level) {
-  return renderProofList('bindings', bindings, level, binding => `binding(${quoteString(binding.name)}, ${termToString(binding.value, new Env(), true)})`);
+function renderBindingsTerm(bindings) {
+  return `bindings(${renderProofListInline(bindings, binding => `binding(${quoteString(binding.name)}, ${termToString(binding.value, new Env(), true)})`)})`;
 }
 
 function renderUsesTerm(children, ids, level) {
-  return renderProofList('uses', children, level, child => renderProofTerm(child, ids, level + 1));
-}
+  if (children.length === 0) return `${indent(level)}uses([])`;
 
-function renderProofList(name, items, level, renderItem) {
-  if (items.length === 0) return `${indent(level)}${name}([])`;
-
-  const lines = [`${indent(level)}${name}([`];
-  for (let i = 0; i < items.length; i++) {
-    const item = indentProofListItem(renderItem(items[i]), level + 1);
-    lines.push(i === items.length - 1 ? item : withTrailingComma(item));
+  const lines = [`${indent(level)}uses([`];
+  for (let i = 0; i < children.length; i++) {
+    const item = indentProofListItem(renderProofTerm(children[i], ids, level + 1), level + 1);
+    lines.push(i === children.length - 1 ? item : withTrailingComma(item));
   }
   lines.push(`${indent(level)}])`);
   return lines.join('\n');
+}
+
+function renderProofListInline(items, renderItem) {
+  return `[${items.map(item => renderItem(item)).join(', ')}]`;
 }
 
 function indentProofListItem(text, level) {

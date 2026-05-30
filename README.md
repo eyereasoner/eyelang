@@ -83,34 +83,20 @@ bin/see --why examples/socrates.pl
 bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl
 ```
 
-With `--why`, explanations are emitted as ordinary SEE facts. Each `why/2` fact contains a nested proof term, and a blank line separates consecutive explanations. For example:
+With `--why`, explanations are emitted as ordinary SEE facts. Each `why/2` fact contains a nested proof term, and a blank line separates consecutive explanations. Using SEE syntax for `--why` keeps explanations in the same language as the answers themselves: they are readable by humans, parseable by SEE, easy to test, and can be queried, transformed, or explained further like any other SEE data. For example:
 
 ```prolog
 type(socrates, mortal).
 why(
   type(socrates, mortal),
   proof(
-    id(p1),
-    goal(type(socrates, mortal)),
-    method(rule(2)),
-    source(
-      head(type(v("X"), mortal)),
-      body([
-        type(v("X"), man)
-      ])
-    ),
-    bindings([
-      binding("X", socrates)
-    ]),
+    id(p1), goal(type(socrates, mortal)), method(rule(2)),
+    source(head(type(v("X"), mortal)), body([type(v("X"), man)])),
+    bindings([binding("X", socrates)]),
     uses([
       proof(
-        id(p2),
-        goal(type(socrates, man)),
-        method(fact(1)),
-        source(
-          head(type(socrates, man)),
-          body([])
-        ),
+        id(p2), goal(type(socrates, man)), method(fact(1)),
+        source(head(type(socrates, man)), body([])),
         bindings([]),
         uses([])
       )
