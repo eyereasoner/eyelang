@@ -2,10 +2,14 @@ answer(value, nil()).
 why(
   answer(value, nil()),
   proof(
-    goal(answer(value, nil())), by(rule("016_zero_arity_compound.pl", clause(2))),
+    goal(answer(value, nil())),
+    by(rule("016_zero_arity_compound.pl", clause(2))),
     bindings([binding("X", nil())]),
     uses([
-      proof(goal(status(nil(), ok)), by(fact("016_zero_arity_compound.pl", clause(1))))
+      proof(
+        goal(status(nil(), ok)),
+        by(fact("016_zero_arity_compound.pl", clause(1)))
+      )
     ])
   )
 ).

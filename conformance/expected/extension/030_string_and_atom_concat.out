@@ -2,10 +2,14 @@ answer(atom, see).
 why(
   answer(atom, see),
   proof(
-    goal(answer(atom, see)), by(rule("030_string_and_atom_concat.pl", clause(1))),
+    goal(answer(atom, see)),
+    by(rule("030_string_and_atom_concat.pl", clause(1))),
     bindings([binding("X", see)]),
     uses([
-      proof(goal(atom_concat(s, ee, see)), by(builtin(atom_concat, 3)))
+      proof(
+        goal(atom_concat(s, ee, see)),
+        by(builtin(atom_concat, 3))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(string, "see").
 why(
   answer(string, "see"),
   proof(
-    goal(answer(string, "see")), by(rule("030_string_and_atom_concat.pl", clause(2))),
+    goal(answer(string, "see")),
+    by(rule("030_string_and_atom_concat.pl", clause(2))),
     bindings([binding("X", "see")]),
     uses([
-      proof(goal(str_concat("s", "ee", "see")), by(builtin(str_concat, 3)))
+      proof(
+        goal(str_concat("s", "ee", "see")),
+        by(builtin(str_concat, 3))
+      )
     ])
   )
 ).

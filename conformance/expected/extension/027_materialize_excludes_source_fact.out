@@ -2,9 +2,13 @@ answer(b, ok).
 why(
   answer(b, ok),
   proof(
-    goal(answer(b, ok)), by(rule("027_materialize_excludes_source_fact.pl", clause(5))),
+    goal(answer(b, ok)),
+    by(rule("027_materialize_excludes_source_fact.pl", clause(5))),
     uses([
-      proof(goal(seed(a)), by(fact("027_materialize_excludes_source_fact.pl", clause(2))))
+      proof(
+        goal(seed(a)),
+        by(fact("027_materialize_excludes_source_fact.pl", clause(2)))
+      )
     ])
   )
 ).

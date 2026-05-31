@@ -2,10 +2,14 @@ answer(member, a).
 why(
   answer(member, a),
   proof(
-    goal(answer(member, a)), by(rule("005_lists_aggregation_ordering.pl", clause(1))),
+    goal(answer(member, a)),
+    by(rule("005_lists_aggregation_ordering.pl", clause(1))),
     bindings([binding("X", a)]),
     uses([
-      proof(goal(member(a, [a, b])), by(builtin(member, 2)))
+      proof(
+        goal(member(a, [a, b])),
+        by(builtin(member, 2))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(member, b).
 why(
   answer(member, b),
   proof(
-    goal(answer(member, b)), by(rule("005_lists_aggregation_ordering.pl", clause(1))),
+    goal(answer(member, b)),
+    by(rule("005_lists_aggregation_ordering.pl", clause(1))),
     bindings([binding("X", b)]),
     uses([
-      proof(goal(member(b, [a, b])), by(builtin(member, 2)))
+      proof(
+        goal(member(b, [a, b])),
+        by(builtin(member, 2))
+      )
     ])
   )
 ).
@@ -26,10 +34,14 @@ answer(append, [a, b, c]).
 why(
   answer(append, [a, b, c]),
   proof(
-    goal(answer(append, [a, b, c])), by(rule("005_lists_aggregation_ordering.pl", clause(2))),
+    goal(answer(append, [a, b, c])),
+    by(rule("005_lists_aggregation_ordering.pl", clause(2))),
     bindings([binding("X", [a, b, c])]),
     uses([
-      proof(goal(append([a], [b, c], [a, b, c])), by(builtin(append, 3)))
+      proof(
+        goal(append([a], [b, c], [a, b, c])),
+        by(builtin(append, 3))
+      )
     ])
   )
 ).
@@ -38,10 +50,14 @@ answer(nth0, b).
 why(
   answer(nth0, b),
   proof(
-    goal(answer(nth0, b)), by(rule("005_lists_aggregation_ordering.pl", clause(3))),
+    goal(answer(nth0, b)),
+    by(rule("005_lists_aggregation_ordering.pl", clause(3))),
     bindings([binding("X", b)]),
     uses([
-      proof(goal(nth0(1, [a, b, c], b)), by(builtin(nth0, 3)))
+      proof(
+        goal(nth0(1, [a, b, c], b)),
+        by(builtin(nth0, 3))
+      )
     ])
   )
 ).
@@ -50,10 +66,14 @@ answer(set_nth0, [a, x, c]).
 why(
   answer(set_nth0, [a, x, c]),
   proof(
-    goal(answer(set_nth0, [a, x, c])), by(rule("005_lists_aggregation_ordering.pl", clause(4))),
+    goal(answer(set_nth0, [a, x, c])),
+    by(rule("005_lists_aggregation_ordering.pl", clause(4))),
     bindings([binding("X", [a, x, c])]),
     uses([
-      proof(goal(set_nth0(1, [a, b, c], x, [a, x, c])), by(builtin(set_nth0, 4)))
+      proof(
+        goal(set_nth0(1, [a, b, c], x, [a, x, c])),
+        by(builtin(set_nth0, 4))
+      )
     ])
   )
 ).
@@ -62,10 +82,14 @@ answer(reverse, [c, b, a]).
 why(
   answer(reverse, [c, b, a]),
   proof(
-    goal(answer(reverse, [c, b, a])), by(rule("005_lists_aggregation_ordering.pl", clause(5))),
+    goal(answer(reverse, [c, b, a])),
+    by(rule("005_lists_aggregation_ordering.pl", clause(5))),
     bindings([binding("X", [c, b, a])]),
     uses([
-      proof(goal(reverse([a, b, c], [c, b, a])), by(builtin(reverse, 2)))
+      proof(
+        goal(reverse([a, b, c], [c, b, a])),
+        by(builtin(reverse, 2))
+      )
     ])
   )
 ).
@@ -74,10 +98,14 @@ answer(length, 3).
 why(
   answer(length, 3),
   proof(
-    goal(answer(length, 3)), by(rule("005_lists_aggregation_ordering.pl", clause(6))),
+    goal(answer(length, 3)),
+    by(rule("005_lists_aggregation_ordering.pl", clause(6))),
     bindings([binding("N", 3)]),
     uses([
-      proof(goal(length([a, b, c], 3)), by(builtin(length, 2)))
+      proof(
+        goal(length([a, b, c], 3)),
+        by(builtin(length, 2))
+      )
     ])
   )
 ).
@@ -86,10 +114,14 @@ answer(findall, [1, 2, 3]).
 why(
   answer(findall, [1, 2, 3]),
   proof(
-    goal(answer(findall, [1, 2, 3])), by(rule("005_lists_aggregation_ordering.pl", clause(7))),
+    goal(answer(findall, [1, 2, 3])),
+    by(rule("005_lists_aggregation_ordering.pl", clause(7))),
     bindings([binding("X", [1, 2, 3])]),
     uses([
-      proof(goal(findall(N, between(1, 3, N), [1, 2, 3])), by(builtin(findall, 3)))
+      proof(
+        goal(findall(N, between(1, 3, N), [1, 2, 3])),
+        by(builtin(findall, 3))
+      )
     ])
   )
 ).
@@ -98,10 +130,14 @@ answer(sort, [a, b]).
 why(
   answer(sort, [a, b]),
   proof(
-    goal(answer(sort, [a, b])), by(rule("005_lists_aggregation_ordering.pl", clause(8))),
+    goal(answer(sort, [a, b])),
+    by(rule("005_lists_aggregation_ordering.pl", clause(8))),
     bindings([binding("X", [a, b])]),
     uses([
-      proof(goal(sort([b, a, b], [a, b])), by(builtin(sort, 2)))
+      proof(
+        goal(sort([b, a, b], [a, b])),
+        by(builtin(sort, 2))
+      )
     ])
   )
 ).

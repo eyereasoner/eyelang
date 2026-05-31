@@ -2,11 +2,18 @@ answer(fresh, yes).
 why(
   answer(fresh, yes),
   proof(
-    goal(answer(fresh, yes)), by(rule("007_anonymous_variables.pl", clause(3))),
+    goal(answer(fresh, yes)),
+    by(rule("007_anonymous_variables.pl", clause(3))),
     bindings([binding("__anon0", one), binding("__anon1", two)]),
     uses([
-      proof(goal(pair(a, one)), by(fact("007_anonymous_variables.pl", clause(1)))),
-      proof(goal(pair(b, two)), by(fact("007_anonymous_variables.pl", clause(2))))
+      proof(
+        goal(pair(a, one)),
+        by(fact("007_anonymous_variables.pl", clause(1)))
+      ),
+      proof(
+        goal(pair(b, two)),
+        by(fact("007_anonymous_variables.pl", clause(2)))
+      )
     ])
   )
 ).

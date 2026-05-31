@@ -2,14 +2,19 @@ answer(color, red).
 why(
   answer(color, red),
   proof(
-    goal(answer(color, red)), by(rule("013_multiple_clauses_order.pl", clause(4))),
+    goal(answer(color, red)),
+    by(rule("013_multiple_clauses_order.pl", clause(4))),
     bindings([binding("X", red)]),
     uses([
       proof(
-        goal(paint(red)), by(rule("013_multiple_clauses_order.pl", clause(3))),
+        goal(paint(red)),
+        by(rule("013_multiple_clauses_order.pl", clause(3))),
         bindings([binding("X", red)]),
         uses([
-          proof(goal(color(red)), by(fact("013_multiple_clauses_order.pl", clause(1))))
+          proof(
+            goal(color(red)),
+            by(fact("013_multiple_clauses_order.pl", clause(1)))
+          )
         ])
       )
     ])
@@ -20,14 +25,19 @@ answer(color, blue).
 why(
   answer(color, blue),
   proof(
-    goal(answer(color, blue)), by(rule("013_multiple_clauses_order.pl", clause(4))),
+    goal(answer(color, blue)),
+    by(rule("013_multiple_clauses_order.pl", clause(4))),
     bindings([binding("X", blue)]),
     uses([
       proof(
-        goal(paint(blue)), by(rule("013_multiple_clauses_order.pl", clause(3))),
+        goal(paint(blue)),
+        by(rule("013_multiple_clauses_order.pl", clause(3))),
         bindings([binding("X", blue)]),
         uses([
-          proof(goal(color(blue)), by(fact("013_multiple_clauses_order.pl", clause(2))))
+          proof(
+            goal(color(blue)),
+            by(fact("013_multiple_clauses_order.pl", clause(2)))
+          )
         ])
       )
     ])

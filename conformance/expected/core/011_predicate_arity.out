@@ -2,10 +2,14 @@ answer(unary, a).
 why(
   answer(unary, a),
   proof(
-    goal(answer(unary, a)), by(rule("011_predicate_arity.pl", clause(3))),
+    goal(answer(unary, a)),
+    by(rule("011_predicate_arity.pl", clause(3))),
     bindings([binding("X", a)]),
     uses([
-      proof(goal(p(a)), by(fact("011_predicate_arity.pl", clause(1))))
+      proof(
+        goal(p(a)),
+        by(fact("011_predicate_arity.pl", clause(1)))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(binary, pair(a, b)).
 why(
   answer(binary, pair(a, b)),
   proof(
-    goal(answer(binary, pair(a, b))), by(rule("011_predicate_arity.pl", clause(4))),
+    goal(answer(binary, pair(a, b))),
+    by(rule("011_predicate_arity.pl", clause(4))),
     bindings([binding("X", a), binding("Y", b)]),
     uses([
-      proof(goal(p(a, b)), by(fact("011_predicate_arity.pl", clause(2))))
+      proof(
+        goal(p(a, b)),
+        by(fact("011_predicate_arity.pl", clause(2)))
+      )
     ])
   )
 ).

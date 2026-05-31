@@ -2,10 +2,14 @@ answer(bag, [b, a, b]).
 why(
   answer(bag, [b, a, b]),
   proof(
-    goal(answer(bag, [b, a, b])), by(rule("018_findall_user_goal.pl", clause(4))),
+    goal(answer(bag, [b, a, b])),
+    by(rule("018_findall_user_goal.pl", clause(4))),
     bindings([binding("X", [b, a, b])]),
     uses([
-      proof(goal(findall(P, p(P), [b, a, b])), by(builtin(findall, 3)))
+      proof(
+        goal(findall(P, p(P), [b, a, b])),
+        by(builtin(findall, 3))
+      )
     ])
   )
 ).

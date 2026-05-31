@@ -2,10 +2,14 @@ ancestor(pat, jan).
 why(
   ancestor(pat, jan),
   proof(
-    goal(ancestor(pat, jan)), by(rule("001_default_derived_output.pl", clause(3))),
+    goal(ancestor(pat, jan)),
+    by(rule("001_default_derived_output.pl", clause(3))),
     bindings([binding("X", pat), binding("Y", jan)]),
     uses([
-      proof(goal(parent(pat, jan)), by(fact("001_default_derived_output.pl", clause(1))))
+      proof(
+        goal(parent(pat, jan)),
+        by(fact("001_default_derived_output.pl", clause(1)))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ ancestor(jan, emma).
 why(
   ancestor(jan, emma),
   proof(
-    goal(ancestor(jan, emma)), by(rule("001_default_derived_output.pl", clause(3))),
+    goal(ancestor(jan, emma)),
+    by(rule("001_default_derived_output.pl", clause(3))),
     bindings([binding("X", jan), binding("Y", emma)]),
     uses([
-      proof(goal(parent(jan, emma)), by(fact("001_default_derived_output.pl", clause(2))))
+      proof(
+        goal(parent(jan, emma)),
+        by(fact("001_default_derived_output.pl", clause(2)))
+      )
     ])
   )
 ).
@@ -26,15 +34,23 @@ ancestor(pat, emma).
 why(
   ancestor(pat, emma),
   proof(
-    goal(ancestor(pat, emma)), by(rule("001_default_derived_output.pl", clause(4))),
+    goal(ancestor(pat, emma)),
+    by(rule("001_default_derived_output.pl", clause(4))),
     bindings([binding("X", pat), binding("Z", emma), binding("Y", jan)]),
     uses([
-      proof(goal(parent(pat, jan)), by(fact("001_default_derived_output.pl", clause(1)))),
       proof(
-        goal(ancestor(jan, emma)), by(rule("001_default_derived_output.pl", clause(3))),
+        goal(parent(pat, jan)),
+        by(fact("001_default_derived_output.pl", clause(1)))
+      ),
+      proof(
+        goal(ancestor(jan, emma)),
+        by(rule("001_default_derived_output.pl", clause(3))),
         bindings([binding("X", jan), binding("Y", emma)]),
         uses([
-          proof(goal(parent(jan, emma)), by(fact("001_default_derived_output.pl", clause(2))))
+          proof(
+            goal(parent(jan, emma)),
+            by(fact("001_default_derived_output.pl", clause(2)))
+          )
         ])
       )
     ])

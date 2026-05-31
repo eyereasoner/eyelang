@@ -2,10 +2,14 @@ answer(symbol, 'two words').
 why(
   answer(symbol, 'two words'),
   proof(
-    goal(answer(symbol, 'two words')), by(rule("018_quoted_atom_readback.pl", clause(4))),
+    goal(answer(symbol, 'two words')),
+    by(rule("018_quoted_atom_readback.pl", clause(4))),
     bindings([binding("X", 'two words')]),
     uses([
-      proof(goal(symbol('two words')), by(fact("018_quoted_atom_readback.pl", clause(1))))
+      proof(
+        goal(symbol('two words')),
+        by(fact("018_quoted_atom_readback.pl", clause(1)))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(symbol, 'needs''quote').
 why(
   answer(symbol, 'needs''quote'),
   proof(
-    goal(answer(symbol, 'needs''quote')), by(rule("018_quoted_atom_readback.pl", clause(4))),
+    goal(answer(symbol, 'needs''quote')),
+    by(rule("018_quoted_atom_readback.pl", clause(4))),
     bindings([binding("X", 'needs''quote')]),
     uses([
-      proof(goal(symbol('needs''quote')), by(fact("018_quoted_atom_readback.pl", clause(2))))
+      proof(
+        goal(symbol('needs''quote')),
+        by(fact("018_quoted_atom_readback.pl", clause(2)))
+      )
     ])
   )
 ).
@@ -26,10 +34,14 @@ answer(symbol, '').
 why(
   answer(symbol, ''),
   proof(
-    goal(answer(symbol, '')), by(rule("018_quoted_atom_readback.pl", clause(4))),
+    goal(answer(symbol, '')),
+    by(rule("018_quoted_atom_readback.pl", clause(4))),
     bindings([binding("X", '')]),
     uses([
-      proof(goal(symbol('')), by(fact("018_quoted_atom_readback.pl", clause(3))))
+      proof(
+        goal(symbol('')),
+        by(fact("018_quoted_atom_readback.pl", clause(3)))
+      )
     ])
   )
 ).

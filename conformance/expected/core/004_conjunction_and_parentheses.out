@@ -2,14 +2,22 @@ ok(a, yes).
 why(
   ok(a, yes),
   proof(
-    goal(ok(a, yes)), by(rule("004_conjunction_and_parentheses.pl", clause(3))),
+    goal(ok(a, yes)),
+    by(rule("004_conjunction_and_parentheses.pl", clause(3))),
     bindings([binding("X", a)]),
     uses([
       proof(
-        goal((p(a), q(a))), by(conjunction),
+        goal((p(a), q(a))),
+        by(conjunction),
         uses([
-          proof(goal(p(a)), by(fact("004_conjunction_and_parentheses.pl", clause(1)))),
-          proof(goal(q(a)), by(fact("004_conjunction_and_parentheses.pl", clause(2))))
+          proof(
+            goal(p(a)),
+            by(fact("004_conjunction_and_parentheses.pl", clause(1)))
+          ),
+          proof(
+            goal(q(a)),
+            by(fact("004_conjunction_and_parentheses.pl", clause(2)))
+          )
         ])
       )
     ])

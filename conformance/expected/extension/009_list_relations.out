@@ -2,10 +2,14 @@ answer(rest, [b, c]).
 why(
   answer(rest, [b, c]),
   proof(
-    goal(answer(rest, [b, c])), by(rule("009_list_relations.pl", clause(1))),
+    goal(answer(rest, [b, c])),
+    by(rule("009_list_relations.pl", clause(1))),
     bindings([binding("X", [b, c])]),
     uses([
-      proof(goal(rest([a, b, c], [b, c])), by(builtin(rest, 2)))
+      proof(
+        goal(rest([a, b, c], [b, c])),
+        by(builtin(rest, 2))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(select, selected(a, [b])).
 why(
   answer(select, selected(a, [b])),
   proof(
-    goal(answer(select, selected(a, [b]))), by(rule("009_list_relations.pl", clause(2))),
+    goal(answer(select, selected(a, [b]))),
+    by(rule("009_list_relations.pl", clause(2))),
     bindings([binding("X", a), binding("R", [b])]),
     uses([
-      proof(goal(select(a, [a, b], [b])), by(builtin(select, 3)))
+      proof(
+        goal(select(a, [a, b], [b])),
+        by(builtin(select, 3))
+      )
     ])
   )
 ).
@@ -26,10 +34,14 @@ answer(select, selected(b, [a])).
 why(
   answer(select, selected(b, [a])),
   proof(
-    goal(answer(select, selected(b, [a]))), by(rule("009_list_relations.pl", clause(2))),
+    goal(answer(select, selected(b, [a]))),
+    by(rule("009_list_relations.pl", clause(2))),
     bindings([binding("X", b), binding("R", [a])]),
     uses([
-      proof(goal(select(b, [a, b], [a])), by(builtin(select, 3)))
+      proof(
+        goal(select(b, [a, b], [a])),
+        by(builtin(select, 3))
+      )
     ])
   )
 ).
@@ -38,9 +50,13 @@ answer(not_member, true).
 why(
   answer(not_member, true),
   proof(
-    goal(answer(not_member, true)), by(rule("009_list_relations.pl", clause(3))),
+    goal(answer(not_member, true)),
+    by(rule("009_list_relations.pl", clause(3))),
     uses([
-      proof(goal(not_member(c, [a, b])), by(builtin(not_member, 2)))
+      proof(
+        goal(not_member(c, [a, b])),
+        by(builtin(not_member, 2))
+      )
     ])
   )
 ).
@@ -49,9 +65,13 @@ answer(is_list, true).
 why(
   answer(is_list, true),
   proof(
-    goal(answer(is_list, true)), by(rule("009_list_relations.pl", clause(4))),
+    goal(answer(is_list, true)),
+    by(rule("009_list_relations.pl", clause(4))),
     uses([
-      proof(goal(is_list([a, b])), by(builtin(is_list, 1)))
+      proof(
+        goal(is_list([a, b])),
+        by(builtin(is_list, 1))
+      )
     ])
   )
 ).

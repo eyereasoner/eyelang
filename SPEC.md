@@ -466,7 +466,7 @@ Without `--query`, the host behavior is:
 
 ### 12.1 Explanation output
 
-Each answer SHOULD be followed by a machine-readable `why/2` fact. Explanation output is ordinary SEE syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
+Each answer SHOULD be followed by a machine-readable `why/2` fact. Explanation output is ordinary SEE syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`; implementations SHOULD print `goal(...)` and `by(...)` on separate lines for readability. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
 ## 13. Conformance profiles
 

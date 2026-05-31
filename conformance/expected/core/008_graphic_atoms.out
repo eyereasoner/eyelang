@@ -1,18 +1,27 @@
 value(hash, #).
 why(
   value(hash, #),
-  proof(goal(value(hash, #)), by(fact("008_graphic_atoms.pl", clause(1))))
+  proof(
+    goal(value(hash, #)),
+    by(fact("008_graphic_atoms.pl", clause(1)))
+  )
 ).
 
 value(arrow, =>).
 why(
   value(arrow, =>),
-  proof(goal(value(arrow, =>)), by(fact("008_graphic_atoms.pl", clause(2))))
+  proof(
+    goal(value(arrow, =>)),
+    by(fact("008_graphic_atoms.pl", clause(2)))
+  )
 ).
 
 value(comparison, =<).
 why(
   value(comparison, =<),
-  proof(goal(value(comparison, =<)), by(fact("008_graphic_atoms.pl", clause(3))))
+  proof(
+    goal(value(comparison, =<)),
+    by(fact("008_graphic_atoms.pl", clause(3)))
+  )
 ).
 

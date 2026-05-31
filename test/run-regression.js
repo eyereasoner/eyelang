@@ -66,10 +66,14 @@ function regressionCases() {
 why(
   type(socrates, mortal),
   proof(
-    goal(type(socrates, mortal)), by(rule("__FILE__", clause(2))),
+    goal(type(socrates, mortal)),
+    by(rule("__FILE__", clause(2))),
     bindings([binding("X", socrates)]),
     uses([
-      proof(goal(type(socrates, man)), by(fact("__FILE__", clause(1))))
+      proof(
+        goal(type(socrates, man)),
+        by(fact("__FILE__", clause(1)))
+      )
     ])
   )
 ).
@@ -86,10 +90,14 @@ why(
 why(
   p(536),
   proof(
-    goal(p(536)), by(rule("__FILE__", clause(1))),
+    goal(p(536)),
+    by(rule("__FILE__", clause(1))),
     bindings([binding("X", 536)]),
     uses([
-      proof(goal(between(4, 1000, 536)), by(builtin(between, 3)))
+      proof(
+        goal(between(4, 1000, 536)),
+        by(builtin(between, 3))
+      )
     ])
   )
 ).
@@ -106,10 +114,14 @@ why(
 why(
   p(a),
   proof(
-    goal(p(a)), by(rule("__FILE__", clause(1))),
+    goal(p(a)),
+    by(rule("__FILE__", clause(1))),
     bindings([binding("X", a)]),
     uses([
-      proof(goal(member(a, [a, b])), by(builtin(member, 2)))
+      proof(
+        goal(member(a, [a, b])),
+        by(builtin(member, 2))
+      )
     ])
   )
 ).
@@ -124,8 +136,8 @@ why(
           program: 'p(ok) :- q(X), r(X).\nq(a).\nq(b).\nr(b).\n',
           query: 'p(ok)',
         });
-        assertIncludes(result.stdout, 'proof(goal(q(b)), by(fact("', 'stdout');
-        assertIncludes(result.stdout, 'proof(goal(r(b)), by(fact("', 'stdout');
+        assertIncludes(result.stdout, 'goal(q(b)),\n        by(fact("', 'stdout');
+        assertIncludes(result.stdout, 'goal(r(b)),\n        by(fact("', 'stdout');
         assertNotIncludes(result.stdout, 'no_proof', 'stdout');
       },
     },
@@ -136,8 +148,8 @@ why(
           program: 'p(ok) :- q(1), q(1).\nq(0).\nq(1) :- q(0).\n',
           query: 'p(ok)',
         });
-        assertIncludes(result.stdout, 'goal(p(ok)), by(rule("', 'stdout');
-        assertIncludes(result.stdout, 'goal(q(1)), by(rule("', 'stdout');
+        assertIncludes(result.stdout, 'goal(p(ok)),\n    by(rule("', 'stdout');
+        assertIncludes(result.stdout, 'goal(q(1)),\n        by(rule("', 'stdout');
         assertNotIncludes(result.stdout, 'no_proof', 'stdout');
       },
     },
@@ -149,7 +161,7 @@ why(
           env: { SEE_LOCAL_TIME: '2024-01-02' },
         });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'local_time("2024-01-02").\nwhy(\n  local_time("2024-01-02"),\n  proof(goal(local_time("2024-01-02")), by(builtin(local_time, 1)))\n).\n\n', 'stdout');
+        assertEqual(result.stdout, 'local_time("2024-01-02").\nwhy(\n  local_time("2024-01-02"),\n  proof(\n    goal(local_time("2024-01-02")),\n    by(builtin(local_time, 1))\n  )\n).\n\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },

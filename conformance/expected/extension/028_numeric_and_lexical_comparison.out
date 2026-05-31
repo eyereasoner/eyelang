@@ -2,9 +2,13 @@ answer(numeric_gt, true).
 why(
   answer(numeric_gt, true),
   proof(
-    goal(answer(numeric_gt, true)), by(rule("028_numeric_and_lexical_comparison.pl", clause(1))),
+    goal(answer(numeric_gt, true)),
+    by(rule("028_numeric_and_lexical_comparison.pl", clause(1))),
     uses([
-      proof(goal(gt(10, 2)), by(builtin(gt, 2)))
+      proof(
+        goal(gt(10, 2)),
+        by(builtin(gt, 2))
+      )
     ])
   )
 ).
@@ -13,9 +17,13 @@ answer(numeric_le, true).
 why(
   answer(numeric_le, true),
   proof(
-    goal(answer(numeric_le, true)), by(rule("028_numeric_and_lexical_comparison.pl", clause(2))),
+    goal(answer(numeric_le, true)),
+    by(rule("028_numeric_and_lexical_comparison.pl", clause(2))),
     uses([
-      proof(goal(le(2, 2.0)), by(builtin(le, 2)))
+      proof(
+        goal(le(2, 2.0)),
+        by(builtin(le, 2))
+      )
     ])
   )
 ).
@@ -24,9 +32,13 @@ answer(lexical_ge, true).
 why(
   answer(lexical_ge, true),
   proof(
-    goal(answer(lexical_ge, true)), by(rule("028_numeric_and_lexical_comparison.pl", clause(3))),
+    goal(answer(lexical_ge, true)),
+    by(rule("028_numeric_and_lexical_comparison.pl", clause(3))),
     uses([
-      proof(goal(ge(beta, alpha)), by(builtin(ge, 2)))
+      proof(
+        goal(ge(beta, alpha)),
+        by(builtin(ge, 2))
+      )
     ])
   )
 ).

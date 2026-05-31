@@ -2,10 +2,14 @@ answer(split, split([], [a, b])).
 why(
   answer(split, split([], [a, b])),
   proof(
-    goal(answer(split, split([], [a, b]))), by(rule("010_append_splits.pl", clause(1))),
+    goal(answer(split, split([], [a, b]))),
+    by(rule("010_append_splits.pl", clause(1))),
     bindings([binding("A", []), binding("B", [a, b])]),
     uses([
-      proof(goal(append([], [a, b], [a, b])), by(builtin(append, 3)))
+      proof(
+        goal(append([], [a, b], [a, b])),
+        by(builtin(append, 3))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(split, split([a], [b])).
 why(
   answer(split, split([a], [b])),
   proof(
-    goal(answer(split, split([a], [b]))), by(rule("010_append_splits.pl", clause(1))),
+    goal(answer(split, split([a], [b]))),
+    by(rule("010_append_splits.pl", clause(1))),
     bindings([binding("A", [a]), binding("B", [b])]),
     uses([
-      proof(goal(append([a], [b], [a, b])), by(builtin(append, 3)))
+      proof(
+        goal(append([a], [b], [a, b])),
+        by(builtin(append, 3))
+      )
     ])
   )
 ).
@@ -26,10 +34,14 @@ answer(split, split([a, b], [])).
 why(
   answer(split, split([a, b], [])),
   proof(
-    goal(answer(split, split([a, b], []))), by(rule("010_append_splits.pl", clause(1))),
+    goal(answer(split, split([a, b], []))),
+    by(rule("010_append_splits.pl", clause(1))),
     bindings([binding("A", [a, b]), binding("B", [])]),
     uses([
-      proof(goal(append([a, b], [], [a, b])), by(builtin(append, 3)))
+      proof(
+        goal(append([a, b], [], [a, b])),
+        by(builtin(append, 3))
+      )
     ])
   )
 ).

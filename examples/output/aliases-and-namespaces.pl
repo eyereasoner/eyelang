@@ -2,10 +2,14 @@ value(nativeMath, 1.0).
 why(
   value(nativeMath, 1.0),
   proof(
-    goal(value(nativeMath, 1.0)), by(rule("aliases-and-namespaces.pl", clause(5))),
+    goal(value(nativeMath, 1.0)),
+    by(rule("aliases-and-namespaces.pl", clause(5))),
     bindings([binding("X", 1.0)]),
     uses([
-      proof(goal(add(0.125, 0.875, 1.0)), by(builtin(add, 3)))
+      proof(
+        goal(add(0.125, 0.875, 1.0)),
+        by(builtin(add, 3))
+      )
     ])
   )
 ).
@@ -14,9 +18,13 @@ ok(nativeCompare, true).
 why(
   ok(nativeCompare, true),
   proof(
-    goal(ok(nativeCompare, true)), by(rule("aliases-and-namespaces.pl", clause(6))),
+    goal(ok(nativeCompare, true)),
+    by(rule("aliases-and-namespaces.pl", clause(6))),
     uses([
-      proof(goal(lt(2, 3)), by(builtin(lt, 2)))
+      proof(
+        goal(lt(2, 3)),
+        by(builtin(lt, 2))
+      )
     ])
   )
 ).
@@ -25,9 +33,13 @@ ok(nativeString, true).
 why(
   ok(nativeString, true),
   proof(
-    goal(ok(nativeString, true)), by(rule("aliases-and-namespaces.pl", clause(7))),
+    goal(ok(nativeString, true)),
+    by(rule("aliases-and-namespaces.pl", clause(7))),
     uses([
-      proof(goal(matches("scoped retail insight", "retail|medical")), by(builtin(matches, 2)))
+      proof(
+        goal(matches("scoped retail insight", "retail|medical")),
+        by(builtin(matches, 2))
+      )
     ])
   )
 ).
@@ -36,10 +48,14 @@ tail(nativeList, [b, c]).
 why(
   tail(nativeList, [b, c]),
   proof(
-    goal(tail(nativeList, [b, c])), by(rule("aliases-and-namespaces.pl", clause(8))),
+    goal(tail(nativeList, [b, c])),
+    by(rule("aliases-and-namespaces.pl", clause(8))),
     bindings([binding("Tail", [b, c])]),
     uses([
-      proof(goal(rest([a, b, c], [b, c])), by(builtin(rest, 2)))
+      proof(
+        goal(rest([a, b, c], [b, c])),
+        by(builtin(rest, 2))
+      )
     ])
   )
 ).
@@ -48,10 +64,14 @@ label(vocabularyExample, "vocabulary names are ordinary predicate names").
 why(
   label(vocabularyExample, "vocabulary names are ordinary predicate names"),
   proof(
-    goal(label(vocabularyExample, "vocabulary names are ordinary predicate names")), by(rule("aliases-and-namespaces.pl", clause(10))),
+    goal(label(vocabularyExample, "vocabulary names are ordinary predicate names")),
+    by(rule("aliases-and-namespaces.pl", clause(10))),
     bindings([binding("Text", "vocabulary names are ordinary predicate names")]),
     uses([
-      proof(goal(example_label(vocabularyExample, "vocabulary names are ordinary predicate names")), by(fact("aliases-and-namespaces.pl", clause(9))))
+      proof(
+        goal(example_label(vocabularyExample, "vocabulary names are ordinary predicate names")),
+        by(fact("aliases-and-namespaces.pl", clause(9)))
+      )
     ])
   )
 ).

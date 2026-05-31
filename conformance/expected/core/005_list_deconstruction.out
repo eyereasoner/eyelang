@@ -2,11 +2,13 @@ answer(first, a).
 why(
   answer(first, a),
   proof(
-    goal(answer(first, a)), by(rule("005_list_deconstruction.pl", clause(3))),
+    goal(answer(first, a)),
+    by(rule("005_list_deconstruction.pl", clause(3))),
     bindings([binding("X", a)]),
     uses([
       proof(
-        goal(first([a, b, c], a)), by(fact("005_list_deconstruction.pl", clause(1))),
+        goal(first([a, b, c], a)),
+        by(fact("005_list_deconstruction.pl", clause(1))),
         bindings([binding("X", a), binding("_Rest", [b, c])])
       )
     ])
@@ -17,11 +19,13 @@ answer(tail, [b, c]).
 why(
   answer(tail, [b, c]),
   proof(
-    goal(answer(tail, [b, c])), by(rule("005_list_deconstruction.pl", clause(4))),
+    goal(answer(tail, [b, c])),
+    by(rule("005_list_deconstruction.pl", clause(4))),
     bindings([binding("Tail", [b, c])]),
     uses([
       proof(
-        goal(tail([a, b, c], [b, c])), by(fact("005_list_deconstruction.pl", clause(2))),
+        goal(tail([a, b, c], [b, c])),
+        by(fact("005_list_deconstruction.pl", clause(2))),
         bindings([binding("_Head", a), binding("Tail", [b, c])])
       )
     ])

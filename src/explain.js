@@ -229,11 +229,11 @@ function renderWhyTerm(answer, proofTerm) {
 
 function renderAbstractProofTerm(node, level) {
   const goal = termToString(node.goal, new Env(), true);
-  if (node.bindings.length === 0 && node.children.length === 0) return `${indent(level)}proof(goal(${goal}), by(${renderMethodTerm(node.method)}))`;
-
+  const hasTail = node.bindings.length || node.children.length;
   const lines = [
     `${indent(level)}proof(`,
-    `${indent(level + 1)}goal(${goal}), by(${renderMethodTerm(node.method)})${node.bindings.length || node.children.length ? ',' : ''}`,
+    `${indent(level + 1)}goal(${goal}),`,
+    `${indent(level + 1)}by(${renderMethodTerm(node.method)})${hasTail ? ',' : ''}`,
   ];
 
   if (node.bindings.length) lines.push(`${indent(level + 1)}${renderBindingsTerm(node.bindings)}${node.children.length ? ',' : ''}`);

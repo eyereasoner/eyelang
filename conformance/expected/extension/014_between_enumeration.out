@@ -2,10 +2,14 @@ answer(n, 3).
 why(
   answer(n, 3),
   proof(
-    goal(answer(n, 3)), by(rule("014_between_enumeration.pl", clause(1))),
+    goal(answer(n, 3)),
+    by(rule("014_between_enumeration.pl", clause(1))),
     bindings([binding("X", 3)]),
     uses([
-      proof(goal(between(3, 5, 3)), by(builtin(between, 3)))
+      proof(
+        goal(between(3, 5, 3)),
+        by(builtin(between, 3))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(n, 4).
 why(
   answer(n, 4),
   proof(
-    goal(answer(n, 4)), by(rule("014_between_enumeration.pl", clause(1))),
+    goal(answer(n, 4)),
+    by(rule("014_between_enumeration.pl", clause(1))),
     bindings([binding("X", 4)]),
     uses([
-      proof(goal(between(3, 5, 4)), by(builtin(between, 3)))
+      proof(
+        goal(between(3, 5, 4)),
+        by(builtin(between, 3))
+      )
     ])
   )
 ).
@@ -26,10 +34,14 @@ answer(n, 5).
 why(
   answer(n, 5),
   proof(
-    goal(answer(n, 5)), by(rule("014_between_enumeration.pl", clause(1))),
+    goal(answer(n, 5)),
+    by(rule("014_between_enumeration.pl", clause(1))),
     bindings([binding("X", 5)]),
     uses([
-      proof(goal(between(3, 5, 5)), by(builtin(between, 3)))
+      proof(
+        goal(between(3, 5, 5)),
+        by(builtin(between, 3))
+      )
     ])
   )
 ).

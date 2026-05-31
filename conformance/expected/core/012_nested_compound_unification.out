@@ -2,10 +2,14 @@ answer(middle, b).
 why(
   answer(middle, b),
   proof(
-    goal(answer(middle, b)), by(rule("012_nested_compound_unification.pl", clause(2))),
+    goal(answer(middle, b)),
+    by(rule("012_nested_compound_unification.pl", clause(2))),
     bindings([binding("X", b)]),
     uses([
-      proof(goal(fact(pair(a, nested(b, [c, d])))), by(fact("012_nested_compound_unification.pl", clause(1))))
+      proof(
+        goal(fact(pair(a, nested(b, [c, d])))),
+        by(fact("012_nested_compound_unification.pl", clause(1)))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(list_tail, [d]).
 why(
   answer(list_tail, [d]),
   proof(
-    goal(answer(list_tail, [d])), by(rule("012_nested_compound_unification.pl", clause(3))),
+    goal(answer(list_tail, [d])),
+    by(rule("012_nested_compound_unification.pl", clause(3))),
     bindings([binding("T", [d])]),
     uses([
-      proof(goal(fact(pair(a, nested(b, [c, d])))), by(fact("012_nested_compound_unification.pl", clause(1))))
+      proof(
+        goal(fact(pair(a, nested(b, [c, d])))),
+        by(fact("012_nested_compound_unification.pl", clause(1)))
+      )
     ])
   )
 ).

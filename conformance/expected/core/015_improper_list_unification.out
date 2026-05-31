@@ -2,10 +2,14 @@ answer(list, [head | tail]).
 why(
   answer(list, [head | tail]),
   proof(
-    goal(answer(list, [head | tail])), by(rule("015_improper_list_unification.pl", clause(2))),
+    goal(answer(list, [head | tail])),
+    by(rule("015_improper_list_unification.pl", clause(2))),
     bindings([binding("L", [head | tail])]),
     uses([
-      proof(goal(cell([head | tail], head, tail)), by(fact("015_improper_list_unification.pl", clause(1))))
+      proof(
+        goal(cell([head | tail], head, tail)),
+        by(fact("015_improper_list_unification.pl", clause(1)))
+      )
     ])
   )
 ).
@@ -14,10 +18,14 @@ answer(head, head).
 why(
   answer(head, head),
   proof(
-    goal(answer(head, head)), by(rule("015_improper_list_unification.pl", clause(3))),
+    goal(answer(head, head)),
+    by(rule("015_improper_list_unification.pl", clause(3))),
     bindings([binding("H", head)]),
     uses([
-      proof(goal(cell([head | tail], head, tail)), by(fact("015_improper_list_unification.pl", clause(1))))
+      proof(
+        goal(cell([head | tail], head, tail)),
+        by(fact("015_improper_list_unification.pl", clause(1)))
+      )
     ])
   )
 ).
@@ -26,10 +34,14 @@ answer(tail, tail).
 why(
   answer(tail, tail),
   proof(
-    goal(answer(tail, tail)), by(rule("015_improper_list_unification.pl", clause(4))),
+    goal(answer(tail, tail)),
+    by(rule("015_improper_list_unification.pl", clause(4))),
     bindings([binding("T", tail)]),
     uses([
-      proof(goal(cell([head | tail], head, tail)), by(fact("015_improper_list_unification.pl", clause(1))))
+      proof(
+        goal(cell([head | tail], head, tail)),
+        by(fact("015_improper_list_unification.pl", clause(1)))
+      )
     ])
   )
 ).

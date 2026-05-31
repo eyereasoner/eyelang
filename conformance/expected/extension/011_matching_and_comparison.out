@@ -2,9 +2,13 @@ answer(matches, true).
 why(
   answer(matches, true),
   proof(
-    goal(answer(matches, true)), by(rule("011_matching_and_comparison.pl", clause(1))),
+    goal(answer(matches, true)),
+    by(rule("011_matching_and_comparison.pl", clause(1))),
     uses([
-      proof(goal(matches("see", "se")), by(builtin(matches, 2)))
+      proof(
+        goal(matches("see", "se")),
+        by(builtin(matches, 2))
+      )
     ])
   )
 ).
@@ -13,9 +17,13 @@ answer(not_matches, true).
 why(
   answer(not_matches, true),
   proof(
-    goal(answer(not_matches, true)), by(rule("011_matching_and_comparison.pl", clause(2))),
+    goal(answer(not_matches, true)),
+    by(rule("011_matching_and_comparison.pl", clause(2))),
     uses([
-      proof(goal(not_matches("see", "cat")), by(builtin(not_matches, 2)))
+      proof(
+        goal(not_matches("see", "cat")),
+        by(builtin(not_matches, 2))
+      )
     ])
   )
 ).
@@ -24,9 +32,13 @@ answer(lex_lt, true).
 why(
   answer(lex_lt, true),
   proof(
-    goal(answer(lex_lt, true)), by(rule("011_matching_and_comparison.pl", clause(3))),
+    goal(answer(lex_lt, true)),
+    by(rule("011_matching_and_comparison.pl", clause(3))),
     uses([
-      proof(goal(lt(alpha, beta)), by(builtin(lt, 2)))
+      proof(
+        goal(lt(alpha, beta)),
+        by(builtin(lt, 2))
+      )
     ])
   )
 ).
@@ -35,9 +47,13 @@ answer(lex_gt, true).
 why(
   answer(lex_gt, true),
   proof(
-    goal(answer(lex_gt, true)), by(rule("011_matching_and_comparison.pl", clause(4))),
+    goal(answer(lex_gt, true)),
+    by(rule("011_matching_and_comparison.pl", clause(4))),
     uses([
-      proof(goal(gt(beta, alpha)), by(builtin(gt, 2)))
+      proof(
+        goal(gt(beta, alpha)),
+        by(builtin(gt, 2))
+      )
     ])
   )
 ).
@@ -46,9 +62,13 @@ answer(numeric_le, true).
 why(
   answer(numeric_le, true),
   proof(
-    goal(answer(numeric_le, true)), by(rule("011_matching_and_comparison.pl", clause(5))),
+    goal(answer(numeric_le, true)),
+    by(rule("011_matching_and_comparison.pl", clause(5))),
     uses([
-      proof(goal(le(2, 2)), by(builtin(le, 2)))
+      proof(
+        goal(le(2, 2)),
+        by(builtin(le, 2))
+      )
     ])
   )
 ).

@@ -1,5 +1,6 @@
 # SEE - Symbolic Explanation Engine
 
+[![npm version](https://img.shields.io/npm/v/see-reasoner.svg)](https://www.npmjs.com/package/see-reasoner)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1242549108-blue.svg)](https://doi.org/10.5281/zenodo.20342331)
 
 SEE is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `see`.
@@ -81,10 +82,14 @@ type(socrates, mortal).
 why(
   type(socrates, mortal),
   proof(
-    goal(type(socrates, mortal)), by(rule("socrates.pl", clause(4))),
+    goal(type(socrates, mortal)),
+    by(rule("socrates.pl", clause(4))),
     bindings([binding("X", socrates)]),
     uses([
-      proof(goal(type(socrates, man)), by(fact("socrates.pl", clause(3))))
+      proof(
+        goal(type(socrates, man)),
+        by(fact("socrates.pl", clause(3)))
+      )
     ])
   )
 ).
@@ -128,7 +133,8 @@ status(case1, accepted).
 why(
   status(case1, accepted),
   proof(
-    goal(status(case1, accepted)), by(rule("policy.pl", clause(3))),
+    goal(status(case1, accepted)),
+    by(rule("policy.pl", clause(3))),
     bindings([binding("Case", case1), binding("Score", 95), binding("T", 90)]),
     uses([...])
   )
