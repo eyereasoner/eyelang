@@ -1,2 +1,26 @@
 answer(has_ph, a).
+why(
+  answer(has_ph, a),
+  proof(
+    goal(answer(has_ph, a)), by(rule("029_string_matching_filters.pl", clause(3))),
+    bindings([binding("K", a), binding("T", "alpha")]),
+    uses([
+      proof(goal(text(a, "alpha")), by(fact("029_string_matching_filters.pl", clause(1)))),
+      proof(goal(matches("alpha", "ph")), by(builtin(matches, 2)))
+    ])
+  )
+).
+
 answer(no_ph, b).
+why(
+  answer(no_ph, b),
+  proof(
+    goal(answer(no_ph, b)), by(rule("029_string_matching_filters.pl", clause(4))),
+    bindings([binding("K", b), binding("T", "beta")]),
+    uses([
+      proof(goal(text(b, "beta")), by(fact("029_string_matching_filters.pl", clause(2)))),
+      proof(goal(not_matches("beta", "ph")), by(builtin(not_matches, 2)))
+    ])
+  )
+).
+

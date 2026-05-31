@@ -1,2 +1,38 @@
 answer(from_a, c).
+why(
+  answer(from_a, c),
+  proof(
+    goal(answer(from_a, c)), by(rule("010_variable_scope_and_reuse.pl", clause(5))),
+    bindings([binding("Z", c)]),
+    uses([
+      proof(
+        goal(two_step(a, c)), by(rule("010_variable_scope_and_reuse.pl", clause(4))),
+        bindings([binding("X", a), binding("Z", c), binding("Y", b)]),
+        uses([
+          proof(goal(edge(a, b)), by(fact("010_variable_scope_and_reuse.pl", clause(1)))),
+          proof(goal(edge(b, c)), by(fact("010_variable_scope_and_reuse.pl", clause(2))))
+        ])
+      )
+    ])
+  )
+).
+
 answer(from_b, d).
+why(
+  answer(from_b, d),
+  proof(
+    goal(answer(from_b, d)), by(rule("010_variable_scope_and_reuse.pl", clause(6))),
+    bindings([binding("Z", d)]),
+    uses([
+      proof(
+        goal(two_step(b, d)), by(rule("010_variable_scope_and_reuse.pl", clause(4))),
+        bindings([binding("X", b), binding("Z", d), binding("Y", c)]),
+        uses([
+          proof(goal(edge(b, c)), by(fact("010_variable_scope_and_reuse.pl", clause(2)))),
+          proof(goal(edge(c, d)), by(fact("010_variable_scope_and_reuse.pl", clause(3))))
+        ])
+      )
+    ])
+  )
+).
+

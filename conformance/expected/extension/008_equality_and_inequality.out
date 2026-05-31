@@ -1,4 +1,46 @@
 answer(eq_variable, pair(a, [b, c])).
+why(
+  answer(eq_variable, pair(a, [b, c])),
+  proof(
+    goal(answer(eq_variable, pair(a, [b, c]))), by(rule("008_equality_and_inequality.pl", clause(1))),
+    bindings([binding("X", pair(a, [b, c]))]),
+    uses([
+      proof(goal(eq(pair(a, [b, c]), pair(a, [b, c]))), by(builtin(eq, 2)))
+    ])
+  )
+).
+
 answer(eq_nested, true).
+why(
+  answer(eq_nested, true),
+  proof(
+    goal(answer(eq_nested, true)), by(rule("008_equality_and_inequality.pl", clause(2))),
+    bindings([binding("X", same)]),
+    uses([
+      proof(goal(eq(pair(same, same), pair(same, same))), by(builtin(eq, 2)))
+    ])
+  )
+).
+
 answer(neq_atoms, true).
+why(
+  answer(neq_atoms, true),
+  proof(
+    goal(answer(neq_atoms, true)), by(rule("008_equality_and_inequality.pl", clause(3))),
+    uses([
+      proof(goal(neq(alice, bob)), by(builtin(neq, 2)))
+    ])
+  )
+).
+
 answer(neq_structures, true).
+why(
+  answer(neq_structures, true),
+  proof(
+    goal(answer(neq_structures, true)), by(rule("008_equality_and_inequality.pl", clause(4))),
+    uses([
+      proof(goal(neq(pair(a), pair(a, b))), by(builtin(neq, 2)))
+    ])
+  )
+).
+

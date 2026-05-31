@@ -1,5 +1,5 @@
 // SEE proof output helpers.
-// The --why printer replays a successful goal against the program and emits
+// The explanation printer replays a successful goal against the program and emits
 // ordinary SEE facts with nested proof terms.  Explanations are therefore both
 // human-readable and machine-readable.
 import { COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, termToString, unify, variantTerms } from './term.js';

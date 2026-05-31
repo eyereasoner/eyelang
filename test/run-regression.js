@@ -58,7 +58,7 @@ export function runRegression(reporter = new TestReporter()) {
 function regressionCases() {
   return [
     {
-      name: 'why rule fact proof facts',
+      name: 'default rule fact explanation output',
       run: () => runWhy({
         program: 'type(socrates, man).\ntype(X, mortal) :- type(X, man).\n',
         query: 'type(socrates, mortal)',
@@ -78,7 +78,7 @@ why(
       }),
     },
     {
-      name: 'why numeric builtin proof facts',
+      name: 'default numeric builtin explanation output',
       run: () => runWhy({
         program: 'p(X) :- between(4, 1000, X).\n',
         query: 'p(536)',
@@ -98,7 +98,7 @@ why(
       }),
     },
     {
-      name: 'why list builtin proof facts',
+      name: 'default list builtin explanation output',
       run: () => runWhy({
         program: 'p(X) :- member(X, [a, b]).\n',
         query: 'p(a)',
@@ -118,7 +118,7 @@ why(
       }),
     },
     {
-      name: 'why backtracks across earlier subgoal alternatives',
+      name: 'explanation backtracks across earlier subgoal alternatives',
       run: () => {
         const result = runWhyLoose({
           program: 'p(ok) :- q(X), r(X).\nq(a).\nq(b).\nr(b).\n',
@@ -130,7 +130,7 @@ why(
       },
     },
     {
-      name: 'why releases active call before caller rest goals',
+      name: 'explanation releases active call before caller rest goals',
       run: () => {
         const result = runWhyLoose({
           program: 'p(ok) :- q(1), q(1).\nq(0).\nq(1) :- q(0).\n',
@@ -149,7 +149,7 @@ why(
           env: { SEE_LOCAL_TIME: '2024-01-02' },
         });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'local_time("2024-01-02").\n', 'stdout');
+        assertEqual(result.stdout, 'local_time("2024-01-02").\nwhy(\n  local_time("2024-01-02"),\n  proof(goal(local_time("2024-01-02")), by(builtin(local_time, 1)))\n).\n\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -177,7 +177,8 @@ why(
       run: () => {
         const result = runCli(['--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        assertIncludes(result.stdout, 'p(a).\nwhy(', 'stdout');
+        assertIncludes(result.stdout, 'p(b).\nwhy(', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -188,7 +189,7 @@ why(
         fs.writeFileSync(file, 'p(a, b).\nq(X, Y) :- p(X, Y).\n');
         const result = runCli(['--', file]);
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+        assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -209,14 +210,14 @@ function apiCases() {
       name: 'run query through public API',
       run: () => {
         const result = run('parent(pat, jan).\nancestor(X, Y) :- parent(X, Y).\n', { query: 'ancestor(pat, Y)' });
-        assertEqual(result.stdout, 'ancestor(pat, jan).\n', 'stdout');
+        assertIncludes(result.stdout, 'ancestor(pat, jan).\nwhy(', 'stdout');
       },
     },
     {
       name: 'run materialization through public API',
       run: () => {
         const result = run('p(a, b).\nq(X, Y) :- p(X, Y).\n');
-        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+        assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
       },
     },
     {
@@ -224,7 +225,8 @@ function apiCases() {
       run: () => {
         const program = Program.parse('p(a).\np(b).\n');
         const result = run(program, { query: 'p(X)' });
-        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        assertIncludes(result.stdout, 'p(a).\nwhy(', 'stdout');
+        assertIncludes(result.stdout, 'p(b).\nwhy(', 'stdout');
       },
     },
     {
@@ -382,7 +384,7 @@ function sectionLabel(name) {
 function runWhy({ program, query, expected }) {
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
-  const result = runCli(['--why', '--query', query, programFile]);
+  const result = runCli(['--query', query, programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
   const expectedText = expected.replaceAll('__FILE__', path.basename(programFile));
@@ -399,7 +401,7 @@ function runWhy({ program, query, expected }) {
 function runWhyLoose({ program, query }) {
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
-  const result = runCli(['--why', '--query', query, programFile]);
+  const result = runCli(['--query', query, programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
   Program.parse(result.stdout);

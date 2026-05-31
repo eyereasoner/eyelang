@@ -1,2 +1,24 @@
 answer(prefix, [a, b]).
+why(
+  answer(prefix, [a, b]),
+  proof(
+    goal(answer(prefix, [a, b])), by(rule("020_append_bound_prefix_suffix.pl", clause(1))),
+    bindings([binding("X", [a, b])]),
+    uses([
+      proof(goal(append([a, b], [c], [a, b, c])), by(builtin(append, 3)))
+    ])
+  )
+).
+
 answer(suffix, [b, c]).
+why(
+  answer(suffix, [b, c]),
+  proof(
+    goal(answer(suffix, [b, c])), by(rule("020_append_bound_prefix_suffix.pl", clause(2))),
+    bindings([binding("X", [b, c])]),
+    uses([
+      proof(goal(append([a], [b, c], [a, b, c])), by(builtin(append, 3)))
+    ])
+  )
+).
+

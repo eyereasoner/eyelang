@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Example-output test runner.
-// It compares each example byte-for-byte against examples/output and examples/why so output and explanation changes cannot silently alter results.
+// It compares each example byte-for-byte against examples/output so output and explanation changes cannot silently alter results.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -12,7 +12,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bin = path.join(root, 'bin', 'see');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
-const expectedWhyDir = path.join(examplesDir, 'why');
 const fixedExampleDate = '2026-05-30';
 
 export function runExamples(reporter = new TestReporter()) {
@@ -28,10 +27,6 @@ export function runExamples(reporter = new TestReporter()) {
     reporter.section('Examples');
     for (const name of files) reporter.test(name, () => runExample(name, actualFile, errFile));
     reporter.sectionTotal('examples');
-
-    reporter.section('Example explanations');
-    for (const name of files) reporter.test(name, () => runExampleWhy(name, actualFile, errFile));
-    reporter.sectionTotal('example explanations');
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
@@ -41,12 +36,6 @@ function runExample(name, actualFile, errFile) {
   const program = path.join(examplesDir, name);
   const expected = path.join(expectedDir, name);
   runAndCompare(name, program, expected, [], actualFile, errFile, 'output');
-}
-
-function runExampleWhy(name, actualFile, errFile) {
-  const program = path.join(examplesDir, name);
-  const expected = path.join(expectedWhyDir, name);
-  runAndCompare(name, program, expected, ['--why'], actualFile, errFile, 'explanation');
 }
 
 function runAndCompare(name, program, expected, args, actualFile, errFile, label) {

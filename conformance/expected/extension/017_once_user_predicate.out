@@ -1,1 +1,17 @@
 answer(first, a).
+why(
+  answer(first, a),
+  proof(
+    goal(answer(first, a)), by(rule("017_once_user_predicate.pl", clause(3))),
+    bindings([binding("X", a)]),
+    uses([
+      proof(
+        goal(once(choice(a))), by(builtin(once, 1)),
+        uses([
+          proof(goal(choice(a)), by(fact("017_once_user_predicate.pl", clause(1))))
+        ])
+      )
+    ])
+  )
+).
+

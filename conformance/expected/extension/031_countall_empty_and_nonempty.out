@@ -1,1 +1,12 @@
 (countall(item(X), 2), countall(missing(X), 0)).
+why(
+  (countall(item(X), 2), countall(missing(X), 0)),
+  proof(
+    goal((countall(item(X), 2), countall(missing(X), 0))), by(conjunction),
+    uses([
+      proof(goal(countall(item(X), 2)), by(builtin(countall, 2))),
+      proof(goal(countall(missing(X), 0)), by(builtin(countall, 2)))
+    ])
+  )
+).
+

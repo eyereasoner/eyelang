@@ -20,7 +20,6 @@ export async function main(argv) {
   const options = {
     files: [],
     query: null,
-    why: false,
     stats: false,
     version: false,
   };
@@ -37,8 +36,6 @@ export async function main(argv) {
     } else if (!endOptions && (arg === '--help' || arg === '-h')) {
       usage(process.stdout);
       return;
-    } else if (!endOptions && arg === '--why') {
-      options.why = true;
     } else if (!endOptions && arg === '--stats') {
       options.stats = true;
     } else if (!endOptions && arg === '--query') {
@@ -90,13 +87,11 @@ function runQuery(program, query, options) {
   for (const env of solver.solve([goal], new Env(), 0)) {
     process.stdout.write(`${termToString(goal, env, true)}.\n`);
 
-    if (options.why) {
-      const resolved = copyResolved(goal, env);
-      const proof = whyProof(program, resolved);
-      process.stdout.write(proof.text);
-      if (!proof.ok) {
-        process.stdout.write(whyNoProof(resolved));
-      }
+    const resolved = copyResolved(goal, env);
+    const proof = whyProof(program, resolved);
+    process.stdout.write(proof.text);
+    if (!proof.ok) {
+      process.stdout.write(whyNoProof(resolved));
     }
   }
 
@@ -121,23 +116,16 @@ function runDefault(program, options) {
 
       lines.add(line);
 
-      if (options.why) {
-        const resolved = copyResolved(goal, env);
-        process.stdout.write(line);
-        const proof = whyProof(program, resolved);
-        process.stdout.write(proof.text);
-        if (!proof.ok) {
-          process.stdout.write(whyNoProof(resolved));
-        }
+      const resolved = copyResolved(goal, env);
+      process.stdout.write(line);
+      const proof = whyProof(program, resolved);
+      process.stdout.write(proof.text);
+      if (!proof.ok) {
+        process.stdout.write(whyNoProof(resolved));
       }
     }
 
     lastStats = solver.stats;
-  }
-
-  if (!options.why) {
-    const sorted = [...lines].sort();
-    if (sorted.length !== 0) process.stdout.write(sorted.join(''));
   }
 
   if (options.stats && lastStats) printStats(lastStats);
@@ -157,7 +145,6 @@ Options:
   -h, --help            Show this help text and exit.
   -v, --version         Show the package version and exit.
       --query GOAL      Run GOAL as a query instead of materializing output predicates.
-      --why             Print SEE-readable proof facts for each answer.
       --stats           Print solver statistics to stderr after execution.
   --                    Stop option parsing; following arguments are treated as files.
 `);

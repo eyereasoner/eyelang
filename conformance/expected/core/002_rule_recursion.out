@@ -1,2 +1,31 @@
 ancestor(pat, jan).
+why(
+  ancestor(pat, jan),
+  proof(
+    goal(ancestor(pat, jan)), by(rule("002_rule_recursion.pl", clause(3))),
+    bindings([binding("X", pat), binding("Y", jan)]),
+    uses([
+      proof(goal(parent(pat, jan)), by(fact("002_rule_recursion.pl", clause(1))))
+    ])
+  )
+).
+
 ancestor(pat, emma).
+why(
+  ancestor(pat, emma),
+  proof(
+    goal(ancestor(pat, emma)), by(rule("002_rule_recursion.pl", clause(4))),
+    bindings([binding("X", pat), binding("Z", emma), binding("Y", jan)]),
+    uses([
+      proof(goal(parent(pat, jan)), by(fact("002_rule_recursion.pl", clause(1)))),
+      proof(
+        goal(ancestor(jan, emma)), by(rule("002_rule_recursion.pl", clause(3))),
+        bindings([binding("X", jan), binding("Y", emma)]),
+        uses([
+          proof(goal(parent(jan, emma)), by(fact("002_rule_recursion.pl", clause(2))))
+        ])
+      )
+    ])
+  )
+).
+

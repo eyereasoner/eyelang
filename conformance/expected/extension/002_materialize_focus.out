@@ -1,1 +1,18 @@
 answer(a, ok).
+why(
+  answer(a, ok),
+  proof(
+    goal(answer(a, ok)), by(rule("002_materialize_focus.pl", clause(4))),
+    bindings([binding("X", a)]),
+    uses([
+      proof(
+        goal(helper(a, y)), by(rule("002_materialize_focus.pl", clause(3))),
+        bindings([binding("X", a)]),
+        uses([
+          proof(goal(seed(a)), by(fact("002_materialize_focus.pl", clause(2))))
+        ])
+      )
+    ])
+  )
+).
+

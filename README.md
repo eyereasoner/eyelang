@@ -1,14 +1,13 @@
 # SEE - Symbolic Explanation Engine
 
-[![npm version](https://img.shields.io/npm/v/see-reasoner.svg)](https://www.npmjs.com/package/see-reasoner)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1242549108-blue.svg)](https://doi.org/10.5281/zenodo.20342331)
 
 SEE is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `see`.
 
-Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)` and prints them as Prolog facts. Source facts are not repeated. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
+Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. SEE output is ordinary SEE syntax: each answer fact is followed by a `why/2` explanation that records the proof. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)`, suppresses repeated source facts, and prints each derived answer with its explanation. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
 
 
-Try it in the [browser playground](https://eyereasoner.github.io/see/playground). The playground includes run options equivalent to CLI `--query`, `--why`, and `--stats`.
+Try it in the [browser playground](https://eyereasoner.github.io/see/playground). The playground includes run options equivalent to CLI `--query` and `--stats`.
 
 For the normative language definition, including lexical syntax, terms, clauses, goals, built-ins, `memoize/2`, `materialize/2`, and conformance boundaries, read [`SPEC.md`](SPEC.md).
 
@@ -40,8 +39,6 @@ There is no build step for the CLI. Run examples, explicit queries, multiple inp
 bin/see --version
 bin/see examples/ancestor.pl
 bin/see --query 'ancestor(pat, X)' examples/ancestor.pl
-bin/see --why examples/socrates.pl
-bin/see --why --query 'type(socrates, mortal)' examples/socrates.pl
 bin/see facts.pl rules.pl
 printf 'works(stdin, true) :- eq(ok, ok).\n' | bin/see -
 bin/see https://raw.githubusercontent.com/eyereasoner/see/refs/heads/main/examples/ancestor.pl
@@ -65,7 +62,7 @@ bin/see --version
 bin/see -v
 ```
 
-Run a program and let SEE print derived binary facts:
+Run a program and let SEE print derived binary facts with explanations:
 
 ```sh
 bin/see examples/ancestor.pl
@@ -77,14 +74,7 @@ Run an explicit query:
 bin/see --query 'ancestor(pat, X)' examples/ancestor.pl
 ```
 
-Print SEE-readable proof facts for default output or query answers:
-
-```sh
-bin/see --why examples/socrates.pl
-bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl
-```
-
-With `--why`, explanations are emitted as ordinary SEE facts. Each `why/2` fact contains a nested abstract proof term, and a blank line separates consecutive explanations. Using SEE syntax for `--why` keeps explanations in the same language as the answers themselves: they are readable by humans, parseable by SEE, easy to test, and can be queried, transformed, or explained further like any other SEE data. For example:
+SEE-readable explanations are part of the default output. Each `why/2` fact contains a nested abstract proof term, and a blank line separates consecutive explanations. Using SEE syntax for explanations keeps them in the same language as the answers themselves: they are readable by humans, parseable by SEE, easy to test, and can be queried, transformed, or explained further like any other SEE data. For example:
 
 ```prolog
 type(socrates, mortal).
@@ -101,16 +91,16 @@ why(
 
 ```
 
-The proof output can itself be read as SEE input and queried, for example `why(type(socrates, mortal), Proof)`.
+The explanation output can itself be read as SEE input and queried, for example `why(type(socrates, mortal), Proof)`.
 
 ### Explanation cookbook
 
-Use `--why` when an answer should carry its own provenance.
+SEE answers carry their own provenance by default.
 
 Explain one derived fact:
 
 ```sh
-bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl
+bin/see --query 'type(socrates, mortal)' examples/socrates.pl
 ```
 
 The output contains the answer and a `why/2` fact. The proof term shows the source rule that produced the answer and the source fact used below it. Source references use `rule("file.pl", clause(N))` and `fact("file.pl", clause(N))`, where `N` is the 1-based clause number in that file.
@@ -128,7 +118,7 @@ status(Case, accepted) :-
 ```
 
 ```sh
-bin/see --query 'status(Case, accepted)' --why policy.pl
+bin/see --query 'status(Case, accepted)' policy.pl
 ```
 
 The explanation contains the instantiated answer and the variables that made the rule succeed:
@@ -150,11 +140,11 @@ Use the `uses([...])` list to follow the proof tree. In the policy example it co
 Reuse explanations as data:
 
 ```sh
-bin/see --query 'type(socrates, mortal)' --why examples/socrates.pl > socrates.why.pl
+bin/see --query 'type(socrates, mortal)' examples/socrates.pl > socrates.why.pl
 bin/see --query 'why(type(socrates, mortal), Proof)' socrates.why.pl
 ```
 
-When a query has no answers, `--why` prints no explanations. That makes missing proofs explicit without inventing a reason.
+When a query has no answers, SEE prints no answers and no explanations. That makes missing proofs explicit without inventing a reason.
 
 
 Compose multiple files, stdin, and URLs:
@@ -469,13 +459,12 @@ The repository includes examples for recursion, graph reachability, finite searc
 
 ## Golden outputs, tests, and conformance
 
-Golden outputs live in [`examples/output`](examples/output), and `--why` explanation goldens live in [`examples/why`](examples/why). Example tests pin `local_time/1` to `2026-05-30` so date-dependent examples stay deterministic. Regenerate them after an intentional output or explanation change:
+Golden outputs live in [`examples/output`](examples/output). They include both answer facts and their `why/2` explanations. Example tests pin `local_time/1` to `2026-05-30` so date-dependent examples stay deterministic. Regenerate them after an intentional output or explanation change:
 
 ```sh
 for f in examples/*.pl; do
   b=$(basename "$f")
   SEE_LOCAL_TIME=2026-05-30 bin/see "$f" > "examples/output/$b"
-  SEE_LOCAL_TIME=2026-05-30 bin/see --why "$f" > "examples/why/$b"
 done
 ```
 
@@ -485,7 +474,7 @@ Run the full test suite:
 npm test
 ```
 
-The test suite runs in this order: Conformance, Regression/API/White-box, Examples. Each section prints its own subtotal, followed by a suite-specific grand total. The suite checks the conformance cases derived from `SPEC.md`, supplemental regression/API/white-box checks, and every example against both its output golden and its `--why` explanation golden.
+The test suite runs in this order: Conformance, Regression/API/White-box, Examples. Each section prints its own subtotal, followed by a suite-specific grand total. The suite checks the conformance cases derived from `SPEC.md`, supplemental regression/API/white-box checks, and every example against its explanation-rich output golden.
 
 Run only one suite when you are iterating:
 
@@ -505,7 +494,7 @@ Common commands:
 npm test                  # conformance, regression/API/white-box, and examples
 npm run test:conformance  # only the conformance suite
 npm run test:regression   # CLI regression, API, and white-box checks
-npm run test:examples     # every example against examples/output and examples/why
+npm run test:examples     # every example against examples/output
 node bin/see --help
 ```
 
@@ -521,7 +510,7 @@ For a release:
 2. update `README.md` and `SPEC.md`;
 3. regenerate golden outputs if behavior changed;
 4. run `npm test`;
-5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL`, `--why`, and `--stats`.
+5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL` and `--stats`.
 
 ## Performance notes
 

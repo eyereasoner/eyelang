@@ -1,1 +1,25 @@
 answer(ok, a).
+why(
+  answer(ok, a),
+  proof(
+    goal(answer(ok, a)), by(rule("019_parenthesized_three_conjuncts.pl", clause(5))),
+    bindings([binding("X", a)]),
+    uses([
+      proof(
+        goal(ok(a)), by(rule("019_parenthesized_three_conjuncts.pl", clause(4))),
+        bindings([binding("X", a)]),
+        uses([
+          proof(
+            goal((p(a), q(a), r(a))), by(conjunction),
+            uses([
+              proof(goal(p(a)), by(fact("019_parenthesized_three_conjuncts.pl", clause(1)))),
+              proof(goal(q(a)), by(fact("019_parenthesized_three_conjuncts.pl", clause(2)))),
+              proof(goal(r(a)), by(fact("019_parenthesized_three_conjuncts.pl", clause(3))))
+            ])
+          )
+        ])
+      )
+    ])
+  )
+).
+

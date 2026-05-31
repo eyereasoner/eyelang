@@ -1,13 +1,78 @@
 value(atom, pat).
+why(
+  value(atom, pat),
+  proof(goal(value(atom, pat)), by(fact("003_terms_and_readback.pl", clause(1))))
+).
+
 value(quoted_atom, 'atom with spaces').
+why(
+  value(quoted_atom, 'atom with spaces'),
+  proof(goal(value(quoted_atom, 'atom with spaces')), by(fact("003_terms_and_readback.pl", clause(2))))
+).
+
 value(quoted_quote, 'needs''quote').
+why(
+  value(quoted_quote, 'needs''quote'),
+  proof(goal(value(quoted_quote, 'needs''quote')), by(fact("003_terms_and_readback.pl", clause(3))))
+).
+
 value(empty_atom, '').
+why(
+  value(empty_atom, ''),
+  proof(goal(value(empty_atom, '')), by(fact("003_terms_and_readback.pl", clause(4))))
+).
+
 value(string, "line\nquote: \"ok\"").
+why(
+  value(string, "line\nquote: \"ok\""),
+  proof(goal(value(string, "line\nquote: \"ok\"")), by(fact("003_terms_and_readback.pl", clause(5))))
+).
+
 value(integer, -42).
+why(
+  value(integer, -42),
+  proof(goal(value(integer, -42)), by(fact("003_terms_and_readback.pl", clause(6))))
+).
+
 value(decimal, 0.25).
+why(
+  value(decimal, 0.25),
+  proof(goal(value(decimal, 0.25)), by(fact("003_terms_and_readback.pl", clause(7))))
+).
+
 value(scientific, 1.25e-3).
+why(
+  value(scientific, 1.25e-3),
+  proof(goal(value(scientific, 1.25e-3)), by(fact("003_terms_and_readback.pl", clause(8))))
+).
+
 value(compound, pair(3, nested(atom, [x, y]))).
+why(
+  value(compound, pair(3, nested(atom, [x, y]))),
+  proof(goal(value(compound, pair(3, nested(atom, [x, y])))), by(fact("003_terms_and_readback.pl", clause(9))))
+).
+
 value(zero_arity, nil()).
+why(
+  value(zero_arity, nil()),
+  proof(goal(value(zero_arity, nil())), by(fact("003_terms_and_readback.pl", clause(10))))
+).
+
 value(empty_list, []).
+why(
+  value(empty_list, []),
+  proof(goal(value(empty_list, [])), by(fact("003_terms_and_readback.pl", clause(11))))
+).
+
 value(proper_list, [a, b, c]).
+why(
+  value(proper_list, [a, b, c]),
+  proof(goal(value(proper_list, [a, b, c])), by(fact("003_terms_and_readback.pl", clause(12))))
+).
+
 value(improper_list, [a, b | tail]).
+why(
+  value(improper_list, [a, b | tail]),
+  proof(goal(value(improper_list, [a, b | tail])), by(fact("003_terms_and_readback.pl", clause(13))))
+).
+

@@ -1,2 +1,31 @@
 reach(a, b).
+why(
+  reach(a, b),
+  proof(
+    goal(reach(a, b)), by(rule("012_memoize_declaration.pl", clause(4))),
+    bindings([binding("X", a), binding("Y", b)]),
+    uses([
+      proof(goal(edge(a, b)), by(fact("012_memoize_declaration.pl", clause(2))))
+    ])
+  )
+).
+
 reach(a, c).
+why(
+  reach(a, c),
+  proof(
+    goal(reach(a, c)), by(rule("012_memoize_declaration.pl", clause(5))),
+    bindings([binding("X", a), binding("Z", c), binding("Y", b)]),
+    uses([
+      proof(goal(edge(a, b)), by(fact("012_memoize_declaration.pl", clause(2)))),
+      proof(
+        goal(reach(b, c)), by(rule("012_memoize_declaration.pl", clause(4))),
+        bindings([binding("X", b), binding("Y", c)]),
+        uses([
+          proof(goal(edge(b, c)), by(fact("012_memoize_declaration.pl", clause(3))))
+        ])
+      )
+    ])
+  )
+).
+

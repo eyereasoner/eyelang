@@ -47,7 +47,6 @@ async function initialize(requestId) {
 
 async function runSEE(request) {
   const { id, program, query, stats } = request;
-  const why = Boolean(request.why ?? request.explain);
   if (active) {
     self.postMessage({
       type: 'result',
@@ -91,22 +90,22 @@ async function runSEE(request) {
       const out = [];
       for (const env of solver.solve([goal], new Env(), 0)) {
         out.push(`${termToString(goal, env, true)}.\n`);
-        if (why) {
-          const resolved = copyResolved(goal, env);
-          const proof = whyProof(parsed, resolved);
-          out.push(proof.text);
-          if (!proof.ok) out.push(whyNoProof(resolved));
-        }
+        const resolved = copyResolved(goal, env);
+        const proof = whyProof(parsed, resolved);
+        out.push(proof.text);
+        if (!proof.ok) out.push(whyNoProof(resolved));
       }
       stdout = out.join('');
       if (stats) stderr = formatStats(solver.stats);
     } else {
       phase = 'materializing output';
-      const facts = parsed.sourceFactLines();
+      const goals = parsed.materializationGoals();
+      const materializedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
+      const facts = parsed.sourceFactLines(materializedKeys);
       const lines = new Set();
       const out = [];
       let lastStats = null;
-      for (const goal of parsed.materializationGoals()) {
+      for (const goal of goals) {
         if (goal.type !== COMPOUND) continue;
         const solver = new Solver(parsed);
         for (const env of solver.solve([goal], new Env(), 0)) {
@@ -115,16 +114,14 @@ async function runSEE(request) {
           const line = `${termToString(resolved, new Env(), true)}.\n`;
           if (facts.has(line) || lines.has(line)) continue;
           lines.add(line);
-          if (why) {
-            const proof = whyProof(parsed, resolved);
-            out.push(line);
-            out.push(proof.text);
-            if (!proof.ok) out.push(whyNoProof(resolved));
-          }
+          const proof = whyProof(parsed, resolved);
+          out.push(line);
+          out.push(proof.text);
+          if (!proof.ok) out.push(whyNoProof(resolved));
         }
         lastStats = solver.stats;
       }
-      stdout = why ? out.join('') : [...lines].sort().join('');
+      stdout = out.join('');
       if (stats && lastStats) stderr = formatStats(lastStats);
     }
   } catch (error) {

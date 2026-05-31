@@ -404,7 +404,6 @@
           <input id="queryInput" type="text" placeholder="ancestor(pat, X)" spellcheck="false">
         </div>
         <div class="toolbar run-options">
-          <label class="row"><input id="explainToggle" type="checkbox"> include <code>--why</code> proof facts</label>
           <label class="row"><input id="statsToggle" type="checkbox"> include <code>--stats</code> counters</label>
           <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">see input.pl</code>
         </div>
@@ -415,7 +414,7 @@
           <button id="clearSavedButton" type="button">Clear autosave</button>
           <span id="status" class="status" role="status">Idle.</span>
         </div>
-        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and toggles like CLI <code>--query</code>, <code>--why</code>, and <code>--stats</code>. Output without a query is the sorted set of new derived relation facts, matching the CLI default.</p>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and <code>--stats</code> toggle like the CLI. Output is ordinary SEE syntax: each answer is followed by its <code>why/2</code> explanation.</p>
       </div>
     </section>
 
@@ -554,14 +553,13 @@
   "zebra"
 ];
     const DEFAULT_PROGRAM = "% Socrates is mortal.\n\nmaterialize(type, 2).\nmaterialize(is, 2).\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\nis(test, true) :-\n  type(socrates, mortal).";
-    const STORAGE_KEY = 'see.playground.v4';
+    const STORAGE_KEY = 'see.playground.v5';
 
     const programInput = document.getElementById('programInput');
     const programSyntax = document.getElementById('programSyntax');
     const programGutter = document.getElementById('programGutter');
     const programErrorBand = document.getElementById('programErrorBand');
     const queryInput = document.getElementById('queryInput');
-    const explainToggle = document.getElementById('explainToggle');
     const statsToggle = document.getElementById('statsToggle');
     const commandPreview = document.getElementById('commandPreview');
     const exampleSelect = document.getElementById('exampleSelect');
@@ -932,7 +930,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           program: programInput.value,
           query: queryInput.value,
-          why: explainToggle.checked,
           stats: statsToggle.checked,
           backgroundPrograms,
           currentProgramUrl,
@@ -966,7 +963,6 @@
     function updateCommandPreview() {
       const args = ['see'];
       if (statsToggle.checked) args.push('--stats');
-      if (explainToggle.checked) args.push('--why');
       if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
       args.push(currentProgramStillMatchesUrl() ? currentProgramUrl : 'input.pl');
       commandPreview.textContent = args.join(' ');
@@ -978,7 +974,6 @@
         const sourceUrl = searchParams.get('url');
         urlInput.value = sourceUrl;
         queryInput.value = searchParams.get('query') || searchParams.get('q') || '';
-        explainToggle.checked = parseFlag(searchParams.get('why') || searchParams.get('w') || searchParams.get('explain') || searchParams.get('e'));
         statsToggle.checked = parseFlag(searchParams.get('stats') || searchParams.get('s'));
         updateCommandPreview();
         try {
@@ -995,7 +990,6 @@
         try {
           setProgramValue(decodePayload(params.get('p')));
           queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
-          explainToggle.checked = parseFlag(params.get('w') || params.get('e'));
           statsToggle.checked = parseFlag(params.get('s'));
           currentProgramUrl = null;
           currentProgramSource = null;
@@ -1006,12 +1000,11 @@
         }
       }
       try {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('see.playground.v3') || localStorage.getItem('see.playground.v2') || localStorage.getItem('see.playground.v1');
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('see.playground.v4') || localStorage.getItem('see.playground.v3') || localStorage.getItem('see.playground.v2') || localStorage.getItem('see.playground.v1');
         if (raw) {
           const payload = JSON.parse(raw);
           setProgramValue(payload.program || DEFAULT_PROGRAM);
           queryInput.value = payload.query || '';
-          explainToggle.checked = Boolean(payload.why ?? payload.explain);
           statsToggle.checked = Boolean(payload.stats);
           backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
           currentProgramUrl = payload.currentProgramUrl || null;
@@ -1026,7 +1019,6 @@
         console.warn(error);
       }
       setProgramValue(DEFAULT_PROGRAM);
-      explainToggle.checked = false;
       statsToggle.checked = false;
       currentProgramUrl = null;
       currentProgramSource = null;
@@ -1237,7 +1229,6 @@
         id: currentRunId,
         program: combinedProgram(),
         query: queryInput.value,
-        why: explainToggle.checked,
         stats: statsToggle.checked,
       });
     }
@@ -1293,13 +1284,11 @@
         url.search = '';
         url.searchParams.set('url', currentProgramUrl);
         if (queryInput.value.trim()) url.searchParams.set('query', queryInput.value.trim());
-        if (explainToggle.checked) url.searchParams.set('why', '1');
         if (statsToggle.checked) url.searchParams.set('stats', '1');
       } else {
         const params = new URLSearchParams();
         params.set('p', encodePayload(programInput.value));
         if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
-        if (explainToggle.checked) params.set('w', '1');
         if (statsToggle.checked) params.set('s', '1');
         url.search = '';
         url.hash = params.toString();
@@ -1313,7 +1302,6 @@
     resetButton.addEventListener('click', () => {
       setProgramValue(DEFAULT_PROGRAM);
       queryInput.value = '';
-      explainToggle.checked = false;
       statsToggle.checked = false;
       backgroundPrograms = [];
       currentProgramUrl = null;
@@ -1345,6 +1333,7 @@
     copyLinkButton.addEventListener('click', () => copyShareLink().catch(error => setStatus(`Could not copy link: ${error.message}`, 'error')));
     clearSavedButton.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('see.playground.v4');
       localStorage.removeItem('see.playground.v3');
       localStorage.removeItem('see.playground.v2');
       localStorage.removeItem('see.playground.v1');
@@ -1354,7 +1343,6 @@
     programInput.addEventListener('scroll', updateProgramHighlight);
     combinedOutput.addEventListener('scroll', () => { outputGutter.scrollTop = combinedOutput.scrollTop; });
     queryInput.addEventListener('input', saveState);
-    explainToggle.addEventListener('change', saveState);
     statsToggle.addEventListener('change', saveState);
 
     async function initializePage() {

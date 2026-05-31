@@ -450,9 +450,9 @@ materialize(reason, 2).
 
 ## 12. Output and read-back profile
 
-Normal answer output prints one resolved term per line, followed by a period. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation.
+Normal answer output prints one resolved answer term followed by a period, and then a `why/2` explanation fact for that answer. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation.
 
-Output SHOULD be accepted as SEE input when it contains only supported term syntax.
+Output SHOULD be accepted as SEE input when it contains only supported term syntax. Explanations are ordinary SEE facts, so answer output can be read back and queried by SEE.
 
 Without `--query`, the host behavior is:
 
@@ -462,11 +462,11 @@ Without `--query`, the host behavior is:
 4. keep only ground answers;
 5. remove answers identical to source facts;
 6. suppress duplicates;
-7. print sorted facts.
+7. print each answer followed by its `why/2` explanation.
 
-### 12.1 Why output
+### 12.1 Explanation output
 
-`--why` MAY print machine-readable proof facts for query answers or default derived output. Why output is ordinary SEE syntax and MAY include `why/2` facts whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Why output is outside the logical semantics of the input program and MUST NOT change the set of answers.
+Each answer SHOULD be followed by a machine-readable `why/2` fact. Explanation output is ordinary SEE syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
 ## 13. Conformance profiles
 

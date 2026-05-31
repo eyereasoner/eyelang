@@ -1,1 +1,13 @@
 answer(not_present, c).
+why(
+  answer(not_present, c),
+  proof(
+    goal(answer(not_present, c)), by(rule("024_not_member_filter.pl", clause(4))),
+    bindings([binding("X", c)]),
+    uses([
+      proof(goal(candidate(c)), by(fact("024_not_member_filter.pl", clause(3)))),
+      proof(goal(not_member(c, [a, b])), by(builtin(not_member, 2)))
+    ])
+  )
+).
+

@@ -10,6 +10,7 @@ import { Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { parseQueryGoal } from './parser.js';
+import { whyNoProof, whyProof } from './explain.js';
 
 export function run(source, options = {}) {
   const program = source instanceof Program ? source : Program.parse(source);
@@ -19,21 +20,32 @@ export function run(source, options = {}) {
     const goal = typeof options.query === 'string' ? parseQueryGoal(options.query) : options.query;
     for (const env of solver.solve([goal], new Env(), 0)) {
       output.push(`${termToString(goal, env, true)}.\n`);
+      const resolved = copyResolved(goal, env);
+      const proof = whyProof(program, resolved);
+      output.push(proof.text);
+      if (!proof.ok) output.push(whyNoProof(resolved));
     }
   } else {
-    const facts = program.sourceFactLines();
+    const goals = program.materializationGoals();
+    const materializedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
+    const facts = program.sourceFactLines(materializedKeys);
     const seen = new Set();
-    for (const goal of program.materializationGoals()) {
+    for (const goal of goals) {
       const localSolver = new Solver(program, options);
       for (const env of localSolver.solve([goal], new Env(), 0)) {
         const resolved = copyResolved(goal, env);
         if (!termIsGround(resolved)) continue;
         const line = `${termToString(resolved, new Env(), true)}.\n`;
-        if (!facts.has(line)) seen.add(line);
+        if (facts.has(line) || seen.has(line)) continue;
+        seen.add(line);
+        output.push(line);
+        const proof = whyProof(program, resolved);
+        output.push(proof.text);
+        if (!proof.ok) output.push(whyNoProof(resolved));
       }
     }
-    output.push(...[...seen].sort());
   }
   return { stdout: output.join(''), stats: solver.stats };
 }
+
 export * from './explain.js';

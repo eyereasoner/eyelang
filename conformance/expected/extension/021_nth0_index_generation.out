@@ -1,1 +1,12 @@
 answer(index, 1).
+why(
+  answer(index, 1),
+  proof(
+    goal(answer(index, 1)), by(rule("021_nth0_index_generation.pl", clause(1))),
+    bindings([binding("I", 1)]),
+    uses([
+      proof(goal(nth0(1, [a, b, c], b)), by(builtin(nth0, 3)))
+    ])
+  )
+).
+

@@ -1,4 +1,52 @@
 answer(atom, name(alice, "Alice")).
+why(
+  answer(atom, name(alice, "Alice")),
+  proof(
+    goal(answer(atom, name(alice, "Alice"))), by(rule("006_formula_terms.pl", clause(2))),
+    bindings([binding("A", name(alice, "Alice")), binding("F", (name(alice, "Alice"), knows(alice, bob)))]),
+    uses([
+      proof(goal(formula((name(alice, "Alice"), knows(alice, bob)))), by(fact("006_formula_terms.pl", clause(1)))),
+      proof(goal(formula_atom((name(alice, "Alice"), knows(alice, bob)), name(alice, "Alice"))), by(builtin(formula_atom, 2)))
+    ])
+  )
+).
+
 answer(atom, knows(alice, bob)).
+why(
+  answer(atom, knows(alice, bob)),
+  proof(
+    goal(answer(atom, knows(alice, bob))), by(rule("006_formula_terms.pl", clause(2))),
+    bindings([binding("A", knows(alice, bob)), binding("F", (name(alice, "Alice"), knows(alice, bob)))]),
+    uses([
+      proof(goal(formula((name(alice, "Alice"), knows(alice, bob)))), by(fact("006_formula_terms.pl", clause(1)))),
+      proof(goal(formula_atom((name(alice, "Alice"), knows(alice, bob)), knows(alice, bob))), by(builtin(formula_atom, 2)))
+    ])
+  )
+).
+
 answer(binary, exposed(alice, name, "Alice")).
+why(
+  answer(binary, exposed(alice, name, "Alice")),
+  proof(
+    goal(answer(binary, exposed(alice, name, "Alice"))), by(rule("006_formula_terms.pl", clause(3))),
+    bindings([binding("S", alice), binding("P", name), binding("O", "Alice"), binding("F", (name(alice, "Alice"), knows(alice, bob)))]),
+    uses([
+      proof(goal(formula((name(alice, "Alice"), knows(alice, bob)))), by(fact("006_formula_terms.pl", clause(1)))),
+      proof(goal(formula_binary((name(alice, "Alice"), knows(alice, bob)), alice, name, "Alice")), by(builtin(formula_binary, 4)))
+    ])
+  )
+).
+
 answer(binary, exposed(alice, knows, bob)).
+why(
+  answer(binary, exposed(alice, knows, bob)),
+  proof(
+    goal(answer(binary, exposed(alice, knows, bob))), by(rule("006_formula_terms.pl", clause(3))),
+    bindings([binding("S", alice), binding("P", knows), binding("O", bob), binding("F", (name(alice, "Alice"), knows(alice, bob)))]),
+    uses([
+      proof(goal(formula((name(alice, "Alice"), knows(alice, bob)))), by(fact("006_formula_terms.pl", clause(1)))),
+      proof(goal(formula_binary((name(alice, "Alice"), knows(alice, bob)), alice, knows, bob)), by(builtin(formula_binary, 4)))
+    ])
+  )
+).
+

@@ -1,4 +1,46 @@
 answer(atom_concat, see).
+why(
+  answer(atom_concat, see),
+  proof(
+    goal(answer(atom_concat, see)), by(rule("004_strings_and_atoms.pl", clause(1))),
+    bindings([binding("X", see)]),
+    uses([
+      proof(goal(atom_concat(s, ee, see)), by(builtin(atom_concat, 3)))
+    ])
+  )
+).
+
 answer(str_concat, "see").
+why(
+  answer(str_concat, "see"),
+  proof(
+    goal(answer(str_concat, "see")), by(rule("004_strings_and_atoms.pl", clause(2))),
+    bindings([binding("X", "see")]),
+    uses([
+      proof(goal(str_concat("s", "ee", "see")), by(builtin(str_concat, 3)))
+    ])
+  )
+).
+
 answer(contains, true).
+why(
+  answer(contains, true),
+  proof(
+    goal(answer(contains, true)), by(rule("004_strings_and_atoms.pl", clause(3))),
+    uses([
+      proof(goal(contains("see", "ee")), by(builtin(contains, 2)))
+    ])
+  )
+).
+
 answer(not_contains, true).
+why(
+  answer(not_contains, true),
+  proof(
+    goal(answer(not_contains, true)), by(rule("004_strings_and_atoms.pl", clause(4))),
+    uses([
+      proof(goal(not_contains("see", "cat")), by(builtin(not_contains, 2)))
+    ])
+  )
+).
+

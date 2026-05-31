@@ -1,2 +1,26 @@
 answer(open, a).
+why(
+  answer(open, a),
+  proof(
+    goal(answer(open, a)), by(rule("016_negation_filter.pl", clause(5))),
+    bindings([binding("X", a)]),
+    uses([
+      proof(goal(candidate(a)), by(fact("016_negation_filter.pl", clause(1)))),
+      proof(goal(not(blocked(a))), by(builtin(not, 1)))
+    ])
+  )
+).
+
 answer(open, c).
+why(
+  answer(open, c),
+  proof(
+    goal(answer(open, c)), by(rule("016_negation_filter.pl", clause(5))),
+    bindings([binding("X", c)]),
+    uses([
+      proof(goal(candidate(c)), by(fact("016_negation_filter.pl", clause(3)))),
+      proof(goal(not(blocked(c))), by(builtin(not, 1)))
+    ])
+  )
+).
+

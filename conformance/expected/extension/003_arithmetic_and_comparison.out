@@ -1,10 +1,118 @@
 answer(sum, 5).
+why(
+  answer(sum, 5),
+  proof(
+    goal(answer(sum, 5)), by(rule("003_arithmetic_and_comparison.pl", clause(1))),
+    bindings([binding("X", 5)]),
+    uses([
+      proof(goal(add(2, 3, 5)), by(builtin(add, 3)))
+    ])
+  )
+).
+
 answer(diff, 3).
+why(
+  answer(diff, 3),
+  proof(
+    goal(answer(diff, 3)), by(rule("003_arithmetic_and_comparison.pl", clause(2))),
+    bindings([binding("X", 3)]),
+    uses([
+      proof(goal(sub(7, 4, 3)), by(builtin(sub, 3)))
+    ])
+  )
+).
+
 answer(product, 42).
+why(
+  answer(product, 42),
+  proof(
+    goal(answer(product, 42)), by(rule("003_arithmetic_and_comparison.pl", clause(3))),
+    bindings([binding("X", 42)]),
+    uses([
+      proof(goal(mul(6, 7, 42)), by(builtin(mul, 3)))
+    ])
+  )
+).
+
 answer(integer_division, 3).
+why(
+  answer(integer_division, 3),
+  proof(
+    goal(answer(integer_division, 3)), by(rule("003_arithmetic_and_comparison.pl", clause(4))),
+    bindings([binding("X", 3)]),
+    uses([
+      proof(goal(div(7, 2, 3)), by(builtin(div, 3)))
+    ])
+  )
+).
+
 answer(remainder, 1).
+why(
+  answer(remainder, 1),
+  proof(
+    goal(answer(remainder, 1)), by(rule("003_arithmetic_and_comparison.pl", clause(5))),
+    bindings([binding("X", 1)]),
+    uses([
+      proof(goal(mod(7, 2, 1)), by(builtin(mod, 3)))
+    ])
+  )
+).
+
 answer(power, 256).
+why(
+  answer(power, 256),
+  proof(
+    goal(answer(power, 256)), by(rule("003_arithmetic_and_comparison.pl", clause(6))),
+    bindings([binding("X", 256)]),
+    uses([
+      proof(goal(pow(2, 8, 256)), by(builtin(pow, 3)))
+    ])
+  )
+).
+
 answer(minimum, 3).
+why(
+  answer(minimum, 3),
+  proof(
+    goal(answer(minimum, 3)), by(rule("003_arithmetic_and_comparison.pl", clause(7))),
+    bindings([binding("X", 3)]),
+    uses([
+      proof(goal(min(3, 9, 3)), by(builtin(min, 3)))
+    ])
+  )
+).
+
 answer(maximum, 9).
+why(
+  answer(maximum, 9),
+  proof(
+    goal(answer(maximum, 9)), by(rule("003_arithmetic_and_comparison.pl", clause(8))),
+    bindings([binding("X", 9)]),
+    uses([
+      proof(goal(max(3, 9, 9)), by(builtin(max, 3)))
+    ])
+  )
+).
+
 answer(less_than, true).
+why(
+  answer(less_than, true),
+  proof(
+    goal(answer(less_than, true)), by(rule("003_arithmetic_and_comparison.pl", clause(9))),
+    uses([
+      proof(goal(lt(3, 9)), by(builtin(lt, 2)))
+    ])
+  )
+).
+
 answer(greater_equal, true).
+why(
+  answer(greater_equal, true),
+  proof(
+    goal(answer(greater_equal, true)), by(rule("003_arithmetic_and_comparison.pl", clause(10))),
+    uses([
+      proof(goal(ge(9, 9)), by(builtin(ge, 2)))
+    ])
+  )
+).
+

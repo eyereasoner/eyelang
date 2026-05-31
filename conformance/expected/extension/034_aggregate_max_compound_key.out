@@ -1,1 +1,6 @@
 aggregate_max([S, Name], Name, score(Name, S), [7, beta], beta).
+why(
+  aggregate_max([S, Name], Name, score(Name, S), [7, beta], beta),
+  proof(goal(aggregate_max([S, Name], Name, score(Name, S), [7, beta], beta)), by(builtin(aggregate_max, 5)))
+).
+
