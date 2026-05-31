@@ -16,7 +16,7 @@ A **term** is a variable, atom constant, string, number, list, or compound term.
 
 An **atom constant** is a symbolic scalar term, such as `pat`, `type`, or `'atom with spaces'`. It is a term and may appear as an argument, list element, functor name, or predicate name.
 
-An **atomic formula** is a predicate application such as `parent(pat, jan)` or `status(case1, accepted)`. It is the unit of truth in a Herbrand interpretation. In some logic-programming literature atomic formulas are called "atoms"; this specification avoids that shorthand. Whenever the noun "atom" appears here outside a historical built-in name such as `formula_atom/2`, it means **atom constant**, not atomic formula.
+An **atomic formula** is a predicate application such as `parent(pat, jan)` or `status(case1, accepted)`. It is the unit of truth in a Herbrand interpretation. In some logic-programming literature atomic formulas are called "atoms"; this specification avoids that shorthand. Whenever the noun "atom" appears here outside a built-in name such as `formula_atom/2`, it means **atom constant**, not atomic formula.
 
 This distinction is normative: `pat` is an atom constant and can appear as a term argument; `parent(pat, jan)` is an atomic formula and can appear as a fact, rule head, or goal. A compound term such as `pair(pat, jan)` has the same surface shape as an atomic formula, but its role is determined by context: as data it is a compound term, and as a clause head or goal it is an atomic formula with predicate symbol `pair/2`.
 
@@ -373,11 +373,11 @@ Comparisons interpret numeric-looking terms numerically. Other scalar terms are 
 
 ### 9.9 Formula terms
 
-Formula terms are data representations of atomic formulas and comma conjunctions. The historical built-in name `formula_atom/2` uses "atom" in the logic-programming sense of atomic formula; it MUST NOT be confused with atom constants such as `alice` or `name`.
+Formula terms are data representations of atomic formulas and comma conjunctions. `formula_atom/2` uses "atom" in the logic-programming sense of atomic formula; it MUST NOT be confused with atom constants such as `alice` or `name`.
 
 | Built-in | Meaning |
 |---|---|
-| `formula_atom(Formula, Atom)` | Enumerates atomic-formula members inside comma formula data. The second argument name is historical; it denotes an atomic formula term, not necessarily an atom constant. |
+| `formula_atom(Formula, Atom)` | Enumerates atomic-formula members inside comma formula data. The second argument denotes an atomic formula term, not necessarily an atom constant. |
 | `formula_binary(Formula, S, P, O)` | Enumerates binary formula members `P(S, O)`, exposing the functor as atom constant `P`. |
 
 Example:
