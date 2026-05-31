@@ -1,10 +1,67 @@
 # SEE Language Specification
 
+## Table of contents
+
+- [Abstract](#abstract)
+- [1. Terminology and normative language](#1-terminology-and-normative-language)
+- [2. Design goals](#2-design-goals)
+- [3. Lexical structure](#3-lexical-structure)
+  - [3.1 Character stream](#31-character-stream)
+  - [3.2 Comments](#32-comments)
+  - [3.3 Punctuation tokens](#33-punctuation-tokens)
+  - [3.4 Variables](#34-variables)
+  - [3.5 Atom constants](#35-atom-constants)
+  - [3.6 Strings](#36-strings)
+  - [3.7 Numbers](#37-numbers)
+- [4. Surface grammar](#4-surface-grammar)
+- [5. Terms](#5-terms)
+  - [5.1 Variables](#51-variables)
+  - [5.2 Atom constants, strings, and numbers](#52-atom-constants-strings-and-numbers)
+  - [5.3 Compound terms and atomic formulas](#53-compound-terms-and-atomic-formulas)
+  - [5.4 Lists](#54-lists)
+  - [5.5 Comma terms](#55-comma-terms)
+- [6. Clauses and predicates](#6-clauses-and-predicates)
+- [7. Goals and proof search](#7-goals-and-proof-search)
+  - [7.1 Unification](#71-unification)
+  - [7.2 Failure](#72-failure)
+  - [7.3 Finite search expectation](#73-finite-search-expectation)
+- [8. Logical reading: Herbrand semantics](#8-logical-reading-herbrand-semantics)
+  - [8.1 Variables and quantification](#81-variables-and-quantification)
+  - [8.2 Equality, identity, and unification](#82-equality-identity-and-unification)
+  - [8.3 Goal-directed execution versus model-theoretic meaning](#83-goal-directed-execution-versus-model-theoretic-meaning)
+  - [8.4 Built-ins and operational extensions](#84-built-ins-and-operational-extensions)
+- [9. Standard built-in predicates](#9-standard-built-in-predicates)
+  - [9.1 Equality and unification](#91-equality-and-unification)
+  - [9.2 Arithmetic](#92-arithmetic)
+  - [9.3 Comparison](#93-comparison)
+  - [9.4 Dates and durations](#94-dates-and-durations)
+  - [9.5 Generators](#95-generators)
+  - [9.6 Strings and atom constants](#96-strings-and-atom-constants)
+  - [9.7 Lists](#97-lists)
+  - [9.8 Aggregation and ordering](#98-aggregation-and-ordering)
+  - [9.9 Formula terms](#99-formula-terms)
+  - [9.10 Search control](#910-search-control)
+- [10. Extension built-ins](#10-extension-built-ins)
+- [11. Declarations](#11-declarations)
+  - [11.1 Memoization](#111-memoization)
+  - [11.2 Default-output materialization](#112-default-output-materialization)
+- [12. Output and read-back profile](#12-output-and-read-back-profile)
+  - [12.1 Explanation output](#121-explanation-output)
+- [13. Conformance profiles](#13-conformance-profiles)
+  - [13.1 Core language profile](#131-core-language-profile)
+  - [13.2 Standard built-in profile](#132-standard-built-in-profile)
+  - [13.3 Standard host profile](#133-standard-host-profile)
+- [14. Relationship to ISO Prolog](#14-relationship-to-iso-prolog)
+- [15. Examples](#15-examples)
+  - [15.1 Transitive closure](#151-transitive-closure)
+  - [15.2 Arithmetic](#152-arithmetic)
+  - [15.3 Lists](#153-lists)
+  - [15.4 Negation as failure](#154-negation-as-failure)
+- [16. Security and portability considerations](#16-security-and-portability-considerations)
+
 ## Abstract
 
 SEE is a compact Prolog-like definite-clause language for rule-based programs over ordinary terms, lists, arithmetic, strings, and finite search. An SEE program is a finite sequence of facts and Horn clauses. The underlying declarative semantics of the pure language is **Herbrand semantics**: constants, compound terms, and lists denote themselves, and predicates denote sets of ground atomic formulas over those terms. Evaluation is goal-directed: goals are solved by unification against facts, rules, and a fixed set of built-in predicates.
-
-Relation-style binary predicates such as `parent(pat, jan)`, `ancestor(pat, emma)`, `status(case1, accepted)`, and `reason(case1, "...")` are the normal output form. A host that runs SEE without an explicit query materializes new ground binary consequences `p(S, O)` unless `materialize/2` declarations restrict the selected predicates.
 
 SEE is intentionally smaller than ISO Prolog. It supports enough Prolog syntax to express Horn-clause reasoning, list processing, arithmetic examples, finite search, and formula data, without operators, cut, modules, dynamic predicates, DCGs, or a complete ISO standard library.
 
