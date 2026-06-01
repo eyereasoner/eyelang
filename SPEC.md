@@ -45,19 +45,23 @@
 - [11. Declarations](#11-declarations)
   - [11.1 Memoization](#111-memoization)
   - [11.2 Default-output materialization](#112-default-output-materialization)
-- [12. Output and read-back profile](#12-output-and-read-back-profile)
-  - [12.1 Explanation output](#121-explanation-output)
-- [13. Conformance profiles](#13-conformance-profiles)
-  - [13.1 Core language profile](#131-core-language-profile)
-  - [13.2 Standard built-in profile](#132-standard-built-in-profile)
-  - [13.3 Standard host profile](#133-standard-host-profile)
-- [14. Relationship to ISO Prolog](#14-relationship-to-iso-prolog)
-- [15. Examples](#15-examples)
-  - [15.1 Transitive closure](#151-transitive-closure)
-  - [15.2 Arithmetic](#152-arithmetic)
-  - [15.3 Lists](#153-lists)
-  - [15.4 Negation as failure](#154-negation-as-failure)
-- [16. Security and portability considerations](#16-security-and-portability-considerations)
+- [12. SEE Sockets](#12-see-sockets)
+  - [12.1 Socket vocabulary](#121-socket-vocabulary)
+  - [12.2 Socket example](#122-socket-example)
+  - [12.3 Sockets and AI agents](#123-sockets-and-ai-agents)
+- [13. Output and read-back profile](#13-output-and-read-back-profile)
+  - [13.1 Explanation output](#131-explanation-output)
+- [14. Conformance profiles](#14-conformance-profiles)
+  - [14.1 Core language profile](#141-core-language-profile)
+  - [14.2 Standard built-in profile](#142-standard-built-in-profile)
+  - [14.3 Standard host profile](#143-standard-host-profile)
+- [15. Relationship to ISO Prolog](#15-relationship-to-iso-prolog)
+- [16. Examples](#16-examples)
+  - [16.1 Transitive closure](#161-transitive-closure)
+  - [16.2 Arithmetic](#162-arithmetic)
+  - [16.3 Lists](#163-lists)
+  - [16.4 Negation as failure](#164-negation-as-failure)
+- [17. Security and portability considerations](#17-security-and-portability-considerations)
 
 ## Abstract
 
@@ -505,7 +509,72 @@ materialize(reason, 2).
 
 `materialize/2` does not affect explicit queries.
 
-## 12. Output and read-back profile
+## 12. SEE Sockets
+
+A **SEE Socket** is a declared semantic opening in a SEE program where facts, rules, tools, datasets, or agents can plug in knowledge through an explicit contract while preserving SEE-readable reasoning and explanations.
+
+The term follows the ordinary socket pattern: a socket defines a place where a matching provider can connect. In SEE, the matching part is knowledge. A socket identifies what shape of knowledge a program expects; a plug identifies which provider supplies it. This separates reasoning logic from knowledge providers and makes composition boundaries visible as SEE data.
+
+In this specification, sockets are a portable **programming pattern** expressed with ordinary facts. The core solver does not give `socket/2`, `plug/2`, `provides/1`, or `requires/1` special proof-search behavior unless a host explicitly documents such an extension. Because they are ordinary facts, socket declarations remain readable, queryable, explainable, and safe to ignore by hosts that do not validate them.
+
+### 12.1 Socket vocabulary
+
+The minimal socket vocabulary is:
+
+```prolog
+socket(Name, Contract).
+plug(Provider, Name).
+provides(Signature).
+requires(Signature).
+```
+
+`Name` and `Provider` are ordinary SEE terms, usually atom constants. `Contract` is an ordinary SEE term that describes the expected or offered knowledge. A portable signature form is:
+
+```prolog
+predicate(PredicateName, Arity)
+```
+
+For example:
+
+```prolog
+socket(family_source, provides(predicate(parent, 2))).
+plug(family_file, family_source).
+```
+
+This says that `family_source` is a named opening for knowledge of the shape `parent/2`, and that `family_file` is the provider plugged into that opening.
+
+### 12.2 Socket example
+
+A rule module can declare the knowledge it expects:
+
+```prolog
+materialize(ancestor, 2).
+
+socket(family_source, provides(predicate(parent, 2))).
+plug(family_file, family_source).
+
+parent(pat, jan).
+parent(jan, emma).
+
+ancestor(X, Y) :-
+    parent(X, Y).
+
+ancestor(X, Z) :-
+    parent(X, Y),
+    ancestor(Y, Z).
+```
+
+The `ancestor/2` rules do not depend on a particular storage mechanism for `parent/2`. In a small test, the provider may be the same file. In an embedded host, it may be a database adapter, a document extractor, a remote service, or another SEE module. The socket facts make that boundary explicit without changing the logical meaning of the rules.
+
+When SEE derives `ancestor(pat, emma)`, the answer explanation can still refer to the source clauses that were actually used, for example facts for `parent/2` and rules for `ancestor/2`. The socket facts add a queryable description of where such knowledge is intended to enter.
+
+### 12.3 Sockets and AI agents
+
+SEE Sockets are especially useful for AI-facing systems. An AI agent can extract or propose candidate claims, but those claims should enter a reasoning program as explicit SEE facts or rules through a declared socket rather than as opaque text. SEE can then check the claims against other facts and rules, derive consequences, and return ordinary `why/2` explanations.
+
+This gives a clear division of labor: AI can help generate, translate, and connect knowledge; SEE can represent, check, and explain the reasoning; sockets define the boundary between them.
+
+## 13. Output and read-back profile
 
 Normal answer output prints one resolved answer term followed by a period, and then a `why/2` explanation fact for that answer. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation.
 
@@ -521,13 +590,13 @@ Without `--query`, the host behavior is:
 6. suppress duplicates;
 7. print each answer followed by its `why/2` explanation.
 
-### 12.1 Explanation output
+### 13.1 Explanation output
 
 Each answer SHOULD be followed by a machine-readable `why/2` fact. Explanation output is ordinary SEE syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`; implementations SHOULD print `goal(...)` and `by(...)` on separate lines for readability. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
-## 13. Conformance profiles
+## 14. Conformance profiles
 
-### 13.1 Core language profile
+### 14.1 Core language profile
 
 A conforming core language implementation supports:
 
@@ -538,11 +607,11 @@ A conforming core language implementation supports:
 - lists and comma conjunctions;
 - answer printing.
 
-### 13.2 Standard built-in profile
+### 14.2 Standard built-in profile
 
 A conforming standard built-in implementation supports the built-ins listed in section 9. These are the portable built-ins independent implementations should implement when they claim standard built-in compatibility.
 
-### 13.3 Standard host profile
+### 14.3 Standard host profile
 
 A conforming standard host also supports:
 
@@ -557,7 +626,7 @@ Browser execution, package layout, and any extension built-ins described in impl
 
 Conformance cases for these profiles live in the repository under `conformance/`. They are run by `npm test` before the example suite, and can be run alone with `npm run test:conformance`. The cases use exact expected standard output files so independent implementations can compare behavior case by case.
 
-## 14. Relationship to ISO Prolog
+## 15. Relationship to ISO Prolog
 
 SEE borrows familiar Prolog syntax and Horn-clause execution but is not ISO Prolog. Notable differences include:
 
@@ -572,9 +641,9 @@ SEE borrows familiar Prolog syntax and Horn-clause execution but is not ISO Prol
 
 Programs intended to be portable to SEE SHOULD avoid ISO-specific syntax and keep terms explicit.
 
-## 15. Examples
+## 16. Examples
 
-### 15.1 Transitive closure
+### 16.1 Transitive closure
 
 ```prolog
 parent(pat, jan).
@@ -584,21 +653,21 @@ ancestor(X, Y) :- parent(X, Y).
 ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 ```
 
-### 15.2 Arithmetic
+### 16.2 Arithmetic
 
 ```prolog
 square(X, Y) :- mul(X, X, Y).
 answer(three, Y) :- square(3, Y).
 ```
 
-### 15.3 Lists
+### 16.3 Lists
 
 ```prolog
 first([X | _Rest], X).
 answer(example, X) :- first([a, b, c], X).
 ```
 
-### 15.4 Negation as failure
+### 16.4 Negation as failure
 
 ```prolog
 closed(b).
@@ -606,7 +675,7 @@ open(X) :- not(closed(X)).
 status(a, open) :- open(a).
 ```
 
-## 16. Security and portability considerations
+## 17. Security and portability considerations
 
 URL input uses host networking support when available. Hosts SHOULD treat downloaded programs as untrusted code because they can trigger expensive search.
 
