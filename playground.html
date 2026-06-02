@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SEE Playground</title>
+  <title>eyelog Playground</title>
   <style>
     :root {
       color-scheme: light;
@@ -364,9 +364,9 @@
 </head>
 <body>
   <header>
-    <h1>SEE Playground</h1>
-    <p class="lead">Edit an SEE program, run it with the JavaScript engine entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
-    <p class="meta"><span id="versionBadge" class="version-badge">see 1.1.0</span></p>
+    <h1>eyelog Playground</h1>
+    <p class="lead">Edit an eyelog program, run it with the JavaScript engine entirely in your browser, load examples or URLs, autosave locally, and share a compact link.</p>
+    <p class="meta"><span id="versionBadge" class="version-badge">eyelog 1.1.0</span></p>
   </header>
 
   <main class="stack">
@@ -396,7 +396,7 @@
           <div class="editor-code">
             <div id="programSyntax" class="program-syntax" aria-hidden="true"></div>
             <div id="programErrorBand" class="error-band hidden" aria-hidden="true"></div>
-            <textarea id="programInput" class="program-textarea" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="soft" aria-label="Editable SEE program"></textarea>
+            <textarea id="programInput" class="program-textarea" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="soft" aria-label="Editable eyelog program"></textarea>
           </div>
         </div>
         <div class="query-row">
@@ -405,16 +405,16 @@
         </div>
         <div class="toolbar run-options">
           <label class="row"><input id="statsToggle" type="checkbox"> include <code>--stats</code> counters</label>
-          <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">see input.pl</code>
+          <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">eyelog input.pl</code>
         </div>
         <div class="toolbar">
-          <button id="runButton" class="primary" type="button">Run SEE</button>
+          <button id="runButton" class="primary" type="button">Run eyelog</button>
           <button id="stopButton" type="button" disabled>Stop</button>
           <button id="copyLinkButton" type="button">Copy share link</button>
           <button id="clearSavedButton" type="button">Clear autosave</button>
           <span id="status" class="status" role="status">Idle.</span>
         </div>
-        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and <code>--stats</code> toggle like the CLI. Output is ordinary SEE syntax: each answer is followed by its <code>why/2</code> explanation.</p>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and <code>--stats</code> toggle like the CLI. Output is ordinary eyelog syntax: each answer is followed by its <code>why/2</code> explanation.</p>
       </div>
     </section>
 
@@ -553,7 +553,7 @@
   "zebra"
 ];
     const DEFAULT_PROGRAM = "% Socrates is mortal.\n\nmaterialize(type, 2).\nmaterialize(is, 2).\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\nis(test, true) :-\n  type(socrates, mortal).";
-    const STORAGE_KEY = 'see.playground.v5';
+    const STORAGE_KEY = 'eyelog.playground.v5';
 
     const programInput = document.getElementById('programInput');
     const programSyntax = document.getElementById('programSyntax');
@@ -859,7 +859,7 @@
       const raw = String(text || '').trim();
       if (!raw) return '';
       if (/Maximum call stack size exceeded|call stack|stack overflow/i.test(raw)) {
-        return 'SEE exhausted the browser JavaScript call stack. Try a smaller example in the playground, or run this program with the Node CLI.';
+        return 'eyelog exhausted the browser JavaScript call stack. Try a smaller example in the playground, or run this program with the Node CLI.';
       }
       return raw;
     }
@@ -961,7 +961,7 @@
     }
 
     function updateCommandPreview() {
-      const args = ['see'];
+      const args = ['eyelog'];
       if (statsToggle.checked) args.push('--stats');
       if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
       args.push(currentProgramStillMatchesUrl() ? currentProgramUrl : 'input.pl');
@@ -1000,7 +1000,7 @@
         }
       }
       try {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('see.playground.v4') || localStorage.getItem('see.playground.v3') || localStorage.getItem('see.playground.v2') || localStorage.getItem('see.playground.v1');
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelog.playground.v4') || localStorage.getItem('eyelog.playground.v3') || localStorage.getItem('eyelog.playground.v2') || localStorage.getItem('eyelog.playground.v1');
         if (raw) {
           const payload = JSON.parse(raw);
           setProgramValue(payload.program || DEFAULT_PROGRAM);
@@ -1032,9 +1032,9 @@
         const response = await fetch(new URL('./package.json', location.href), { cache: 'no-store' });
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
         const pkg = await response.json();
-        if (pkg && pkg.version) versionBadge.textContent = `see ${pkg.version}`;
+        if (pkg && pkg.version) versionBadge.textContent = `eyelog ${pkg.version}`;
       } catch (error) {
-        console.warn('Could not load SEE package version:', error);
+        console.warn('Could not load eyelog package version:', error);
       }
     }
 
@@ -1109,7 +1109,7 @@
         return [
           message,
           '',
-          'SEE exhausted the browser JavaScript call stack.',
+          'eyelog exhausted the browser JavaScript call stack.',
           'Try a smaller example in the playground, or run this program with the Node CLI.',
         ].join('\n');
       }
@@ -1193,7 +1193,7 @@
       return preloadPromise;
     }
 
-    async function runSEE() {
+    async function runEyelog() {
       if (location.protocol === 'file:') {
         setRunOutput('', localFileMessage());
         setStatus('Serve the playground over HTTP first.', 'error');
@@ -1220,7 +1220,7 @@
       runStarted = performance.now();
       clearErrorLine();
       setOutputText('Running…');
-      setStatus('Running SEE…');
+      setStatus('Running eyelog…');
       currentRunId = newRequestId();
       setRunning(true);
 
@@ -1257,7 +1257,7 @@
         textarea.remove();
       }
 
-      window.prompt('Copy this SEE playground link:', text);
+      window.prompt('Copy this eyelog playground link:', text);
       return 'manual';
     }
 
@@ -1318,7 +1318,7 @@
       if (!url) return setStatus('Enter a URL first.', 'error');
       loadIntoEditor(url, backgroundToggle.checked).catch(error => setStatus(`Could not load URL: ${error.message}`, 'error'));
     });
-    runButton.addEventListener('click', runSEE);
+    runButton.addEventListener('click', runEyelog);
     stopButton.addEventListener('click', () => {
       if (worker) {
         worker.terminate();
@@ -1333,10 +1333,10 @@
     copyLinkButton.addEventListener('click', () => copyShareLink().catch(error => setStatus(`Could not copy link: ${error.message}`, 'error')));
     clearSavedButton.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem('see.playground.v4');
-      localStorage.removeItem('see.playground.v3');
-      localStorage.removeItem('see.playground.v2');
-      localStorage.removeItem('see.playground.v1');
+      localStorage.removeItem('eyelog.playground.v4');
+      localStorage.removeItem('eyelog.playground.v3');
+      localStorage.removeItem('eyelog.playground.v2');
+      localStorage.removeItem('eyelog.playground.v1');
       setStatus('Autosave cleared.', 'ok');
     });
     programInput.addEventListener('input', () => { clearErrorLine(); updateProgramSyntax(); markProgramEdited(); });

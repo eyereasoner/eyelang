@@ -1,6 +1,6 @@
 % Animal classification, adapted from Eyelet's input/animal.pl.
 %
-% The Eyelet source uses Unicode predicate names; this SEE version keeps the
+% The Eyelet source uses Unicode predicate names; this eyelog version keeps the
 % same tiny inheritance idea with plain vocabulary names.
 
 materialize(type, 2).

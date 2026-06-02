@@ -1,4 +1,4 @@
-# SEE Language Specification
+# eyelog Language Specification
 
 ## Table of contents
 
@@ -45,7 +45,7 @@
 - [11. Declarations](#11-declarations)
   - [11.1 Memoization](#111-memoization)
   - [11.2 Default-output materialization](#112-default-output-materialization)
-- [12. SEE Sockets](#12-see-sockets)
+- [12. eyelog Sockets](#12-eyelog-sockets)
   - [12.1 Socket vocabulary](#121-socket-vocabulary)
   - [12.2 Socket example](#122-socket-example)
   - [12.3 Sockets and AI agents](#123-sockets-and-ai-agents)
@@ -65,9 +65,9 @@
 
 ## Abstract
 
-SEE is a compact Prolog-like definite-clause language for rule-based programs over ordinary terms, lists, arithmetic, strings, and finite search. An SEE program is a finite sequence of facts and Horn clauses. The underlying declarative semantics of the pure language is **Herbrand semantics**: constants, compound terms, and lists denote themselves, and predicates denote sets of ground atomic formulas over those terms. Evaluation is goal-directed: goals are solved by unification against facts, rules, and a fixed set of built-in predicates.
+eyelog is a compact Prolog-like definite-clause language for rule-based programs over ordinary terms, lists, arithmetic, strings, and finite search. An eyelog program is a finite sequence of facts and Horn clauses. The underlying declarative semantics of the pure language is **Herbrand semantics**: constants, compound terms, and lists denote themselves, and predicates denote sets of ground atomic formulas over those terms. Evaluation is goal-directed: goals are solved by unification against facts, rules, and a fixed set of built-in predicates.
 
-SEE is intentionally smaller than ISO Prolog. It supports enough Prolog syntax to express Horn-clause reasoning, list processing, arithmetic examples, finite search, and formula data, without operators, cut, modules, dynamic predicates, DCGs, or a complete ISO standard library.
+eyelog is intentionally smaller than ISO Prolog. It supports enough Prolog syntax to express Horn-clause reasoning, list processing, arithmetic examples, finite search, and formula data, without operators, cut, modules, dynamic predicates, DCGs, or a complete ISO standard library.
 
 ## 1. Terminology and normative language
 
@@ -87,11 +87,11 @@ A **goal** is an atomic formula, a built-in call, or a comma conjunction.
 
 A **source fact** is a fact written directly in the input program. A **new derivation** is a ground consequence found through at least one rule and not merely repeated from the source facts.
 
-The **Herbrand universe** of a program is the set of all ground SEE terms constructible from the constants and functors in the program, together with the built-in list constructors `[]` and `./2` where lists are used. The **Herbrand base** is the set of all ground atomic formulas whose predicate symbols occur in the program or query and whose arguments are terms from the Herbrand universe.
+The **Herbrand universe** of a program is the set of all ground eyelog terms constructible from the constants and functors in the program, together with the built-in list constructors `[]` and `./2` where lists are used. The **Herbrand base** is the set of all ground atomic formulas whose predicate symbols occur in the program or query and whose arguments are terms from the Herbrand universe.
 
 ## 2. Design goals
 
-SEE is designed to be:
+eyelog is designed to be:
 
 - small enough to embed and audit;
 - deterministic in textual output order after duplicate suppression;
@@ -231,7 +231,7 @@ pair(3, nested(atom, [x, y]))
 
 The same concrete syntax is used for atomic formulas when the compound appears as a fact, rule head, or goal. In `parent(pat, jan).`, `parent/2` is a predicate symbol and the whole expression is an atomic formula. In `value(x, parent(pat, jan)).`, the inner `parent(pat, jan)` is ordinary compound data.
 
-The functor or predicate name is fixed syntactically and is written as an atom constant. SEE does not support variables in predicate or functor position.
+The functor or predicate name is fixed syntactically and is written as an atom constant. eyelog does not support variables in predicate or functor position.
 
 ### 5.4 Lists
 
@@ -277,7 +277,7 @@ Clauses with the same predicate name and arity define one predicate group. Predi
 
 ## 7. Goals and proof search
 
-Goals are solved left-to-right. For a user-defined atomic-formula goal, SEE selects candidate clauses by predicate name, arity, and available indexes. A candidate clause is freshened, its head is unified with the goal, and then its body is solved.
+Goals are solved left-to-right. For a user-defined atomic-formula goal, eyelog selects candidate clauses by predicate name, arity, and available indexes. A candidate clause is freshened, its head is unified with the goal, and then its body is solved.
 
 A conjunction goal succeeds when all conjunct goals succeed in order. A query answer is printed as the resolved query term followed by a period.
 
@@ -287,15 +287,15 @@ Unification follows the ordinary first-order term structure used by the language
 
 ### 7.2 Failure
 
-A goal fails when no built-in case or user clause can prove it. SEE has no exception term language; parse errors and resource failures are implementation errors reported to the host.
+A goal fails when no built-in case or user clause can prove it. eyelog has no exception term language; parse errors and resource failures are implementation errors reported to the host.
 
 ### 7.3 Finite search expectation
 
-Programs and queries SHOULD be written so the relevant search space is finite. SEE includes recursion guards and memoization support, but it is not required to terminate for arbitrary recursive logic programs.
+Programs and queries SHOULD be written so the relevant search space is finite. eyelog includes recursion guards and memoization support, but it is not required to terminate for arbitrary recursive logic programs.
 
 ## 8. Logical reading: Herbrand semantics
 
-The pure SEE language is interpreted over the **Herbrand universe** and **Herbrand base**. The Herbrand universe is the first-order universe made only of the ground terms that can be built from the program's atom constants, strings, numbers, list constructors, and compound functors. There are no hidden domain elements: a term denotes itself. For example, the atom constant `pat` denotes the Herbrand constant `pat`, and the number `3` denotes the numeric Herbrand constant written `3`. The Herbrand base is separate from the universe: it contains ground atomic formulas such as `parent(pat, jan)`, whose predicate symbol is `parent/2` and whose arguments are Herbrand terms.
+The pure eyelog language is interpreted over the **Herbrand universe** and **Herbrand base**. The Herbrand universe is the first-order universe made only of the ground terms that can be built from the program's atom constants, strings, numbers, list constructors, and compound functors. There are no hidden domain elements: a term denotes itself. For example, the atom constant `pat` denotes the Herbrand constant `pat`, and the number `3` denotes the numeric Herbrand constant written `3`. The Herbrand base is separate from the universe: it contains ground atomic formulas such as `parent(pat, jan)`, whose predicate symbol is `parent/2` and whose arguments are Herbrand terms.
 
 An atom constant by itself is not true or false. For example, `pat` is a term, not a proposition. Truth applies to atomic formulas: `person(pat)` may be true or false in a Herbrand interpretation, while `pat` is simply one possible argument term.
 
@@ -317,17 +317,17 @@ Equivalently, the least Herbrand model is obtained by repeatedly applying the im
 
 ### 8.1 Variables and quantification
 
-Variables do not range over external objects, records, pointers, or host-language values. In the logical reading, variables range over Herbrand terms. A rule is implicitly universally quantified over its variables. A query is existential in the usual logic-programming sense: SEE searches for substitutions of the query variables by Herbrand terms that make the query true with respect to the program.
+Variables do not range over external objects, records, pointers, or host-language values. In the logical reading, variables range over Herbrand terms. A rule is implicitly universally quantified over its variables. A query is existential in the usual logic-programming sense: eyelog searches for substitutions of the query variables by Herbrand terms that make the query true with respect to the program.
 
 ### 8.2 Equality, identity, and unification
 
 Because the domain is Herbrand, equality in the pure language is syntactic identity of terms after substitution. Two distinct atom constants are distinct. Two compound terms are equal only when they have the same functor, the same arity, and pairwise equal arguments. Lists follow the same rule through their `[]` and `./2` representation.
 
-Operationally, SEE uses first-order unification to find substitutions. The implementation does not perform an occurs check, so cyclic terms are not part of the portable Herbrand reading even if a particular implementation can temporarily construct recursive bindings internally. Portable programs SHOULD avoid relying on occurs-check-sensitive cases such as `eq(X, f(X))`.
+Operationally, eyelog uses first-order unification to find substitutions. The implementation does not perform an occurs check, so cyclic terms are not part of the portable Herbrand reading even if a particular implementation can temporarily construct recursive bindings internally. Portable programs SHOULD avoid relying on occurs-check-sensitive cases such as `eq(X, f(X))`.
 
 ### 8.3 Goal-directed execution versus model-theoretic meaning
 
-SEE's CLI and library evaluator are goal-directed. They try to prove requested goals by resolving them against facts, rules, and built-ins, using clause order, goal order, indexing, memoization, and deterministic built-in execution. This operational strategy is intended to enumerate answers that are true in the least Herbrand model for the pure Horn-clause fragment, but it is not a complete bottom-up model enumerator. Non-terminating recursion or infinite generators can prevent an answer from being found even when the answer belongs to the least Herbrand model.
+eyelog's CLI and library evaluator are goal-directed. They try to prove requested goals by resolving them against facts, rules, and built-ins, using clause order, goal order, indexing, memoization, and deterministic built-in execution. This operational strategy is intended to enumerate answers that are true in the least Herbrand model for the pure Horn-clause fragment, but it is not a complete bottom-up model enumerator. Non-terminating recursion or infinite generators can prevent an answer from being found even when the answer belongs to the least Herbrand model.
 
 The no-query CLI output is also a host behavior, not a separate semantics. It asks broad materialization queries, suppresses duplicates, excludes source facts, keeps ground answers, and prints selected consequences. Explicit `--query` gives direct access to the goal-directed solver.
 
@@ -335,13 +335,13 @@ The no-query CLI output is also a host behavior, not a separate semantics. It as
 
 Built-ins are specified relations or operations added to the Herbrand core. A built-in call in a goal has the syntax of an atomic formula, but its success relation is specified procedurally here rather than by source clauses. Some built-ins, such as `eq/2`, `append/3`, `member/2`, and `length/2`, can be understood as relations over Herbrand terms. Others, such as arithmetic, string matching, date/time predicates, aggregation, `once/1`, and negation-as-failure, are operational extensions whose behavior is defined by this specification rather than by pure least-Herbrand-model semantics alone.
 
-Arithmetic and string built-ins do not introduce a separate semantic universe. They inspect the lexical values of already represented Herbrand constants and, when they succeed, bind output arguments to SEE terms such as numbers, strings, or atom constants. For example, `add(2, 3, X)` may bind `X` to the number term `5`; it does not mean that variables range over host-language numbers outside the Herbrand universe.
+Arithmetic and string built-ins do not introduce a separate semantic universe. They inspect the lexical values of already represented Herbrand constants and, when they succeed, bind output arguments to eyelog terms such as numbers, strings, or atom constants. For example, `add(2, 3, X)` may bind `X` to the number term `5`; it does not mean that variables range over host-language numbers outside the Herbrand universe.
 
 Negation-as-failure `not(Goal)` is especially operational: it succeeds when the current goal-directed search finds no solution for `Goal`. It is not classical negation and should not be read as adding negative facts to the Herbrand model. Programs using negation SHOULD keep the negated goal sufficiently ground and finite.
 
 ## 9. Standard built-in predicates
 
-This section specifies the **standard built-ins** of the SEE language. An implementation that claims support for this standard built-in profile MUST implement the predicates in this section with the meanings described here.
+This section specifies the **standard built-ins** of the eyelog language. An implementation that claims support for this standard built-in profile MUST implement the predicates in this section with the meanings described here.
 
 A built-in call is still written as an atomic formula, but the relation is provided by the host implementation rather than by source clauses. Several built-ins are mode-sensitive: they are intended to run when their input arguments are sufficiently ground, and implementations may leave user-defined clauses visible when that mode is not yet satisfied.
 
@@ -385,7 +385,7 @@ Comparisons interpret numeric-looking terms numerically. Other scalar terms are 
 
 | Built-in | Meaning |
 |---|---|
-| `local_time(T)` | Binds `T` to the local date string. For deterministic runs, `SEE_LOCAL_TIME=YYYY-MM-DD` overrides the current date. |
+| `local_time(T)` | Binds `T` to the local date string. For deterministic runs, `EYELOG_LOCAL_TIME=YYYY-MM-DD` overrides the current date. |
 | `difference(A, B, D)` | Computes an ISO-like date/duration difference. |
 
 ### 9.5 Generators
@@ -458,15 +458,15 @@ This can yield `formula_binary((name(alice, "Alice"), knows(alice, bob)), alice,
 
 ## 10. Extension built-ins
 
-Implementations MAY provide additional built-ins beyond the standard predicates listed above. Such built-ins are **extension built-ins**. They are useful for embedding SEE in particular host environments, exposing efficient finite-domain solvers, or providing domain-specific relations for examples and applications.
+Implementations MAY provide additional built-ins beyond the standard predicates listed above. Such built-ins are **extension built-ins**. They are useful for embedding eyelog in particular host environments, exposing efficient finite-domain solvers, or providing domain-specific relations for examples and applications.
 
-Extension built-ins are not required for conformance to this specification. A portable SEE program SHOULD NOT depend on an extension built-in unless the target implementation explicitly documents that extension.
+Extension built-ins are not required for conformance to this specification. A portable eyelog program SHOULD NOT depend on an extension built-in unless the target implementation explicitly documents that extension.
 
 An extension built-in SHOULD obey the same surface-language discipline as standard built-ins:
 
 - it is called using ordinary atomic-formula syntax, for example `some_extension(A, B)`;
-- its arguments and results are SEE terms from the Herbrand universe;
-- it succeeds, fails, and binds variables as a relation over SEE terms;
+- its arguments and results are eyelog terms from the Herbrand universe;
+- it succeeds, fails, and binds variables as a relation over eyelog terms;
 - it SHOULD document its intended modes, especially which arguments must be ground before it runs deterministically;
 - it MUST NOT change the meaning of ordinary facts, rules, unification, or standard built-ins.
 
@@ -509,11 +509,11 @@ materialize(reason, 2).
 
 `materialize/2` does not affect explicit queries.
 
-## 12. SEE Sockets
+## 12. eyelog Sockets
 
-A **SEE Socket** is a declared semantic opening in a SEE program where facts, rules, tools, datasets, or agents can plug in knowledge through an explicit contract while preserving SEE-readable reasoning and explanations.
+A **eyelog Socket** is a declared semantic opening in a eyelog program where facts, rules, tools, datasets, or agents can plug in knowledge through an explicit contract while preserving eyelog-readable reasoning and explanations.
 
-The term follows the ordinary socket pattern: a socket defines a place where a matching provider can connect. In SEE, the matching part is knowledge. A socket identifies what shape of knowledge a program expects; a plug identifies which provider supplies it. This separates reasoning logic from knowledge providers and makes composition boundaries visible as SEE data.
+The term follows the ordinary socket pattern: a socket defines a place where a matching provider can connect. In eyelog, the matching part is knowledge. A socket identifies what shape of knowledge a program expects; a plug identifies which provider supplies it. This separates reasoning logic from knowledge providers and makes composition boundaries visible as eyelog data.
 
 In this specification, sockets are a portable **programming pattern** expressed with ordinary facts. The core solver does not give `socket/2`, `plug/2`, `provides/1`, or `requires/1` special proof-search behavior unless a host explicitly documents such an extension. Because they are ordinary facts, socket declarations remain readable, queryable, explainable, and safe to ignore by hosts that do not validate them.
 
@@ -528,7 +528,7 @@ provides(Signature).
 requires(Signature).
 ```
 
-`Name` and `Provider` are ordinary SEE terms, usually atom constants. `Contract` is an ordinary SEE term that describes the expected or offered knowledge. A portable signature form is:
+`Name` and `Provider` are ordinary eyelog terms, usually atom constants. `Contract` is an ordinary eyelog term that describes the expected or offered knowledge. A portable signature form is:
 
 ```prolog
 predicate(PredicateName, Arity)
@@ -564,21 +564,21 @@ ancestor(X, Z) :-
     ancestor(Y, Z).
 ```
 
-The `ancestor/2` rules do not depend on a particular storage mechanism for `parent/2`. In a small test, the provider may be the same file. In an embedded host, it may be a database adapter, a document extractor, a remote service, or another SEE module. The socket facts make that boundary explicit without changing the logical meaning of the rules.
+The `ancestor/2` rules do not depend on a particular storage mechanism for `parent/2`. In a small test, the provider may be the same file. In an embedded host, it may be a database adapter, a document extractor, a remote service, or another eyelog module. The socket facts make that boundary explicit without changing the logical meaning of the rules.
 
-When SEE derives `ancestor(pat, emma)`, the answer explanation can still refer to the source clauses that were actually used, for example facts for `parent/2` and rules for `ancestor/2`. The socket facts add a queryable description of where such knowledge is intended to enter.
+When eyelog derives `ancestor(pat, emma)`, the answer explanation can still refer to the source clauses that were actually used, for example facts for `parent/2` and rules for `ancestor/2`. The socket facts add a queryable description of where such knowledge is intended to enter.
 
 ### 12.3 Sockets and AI agents
 
-SEE Sockets are especially useful for AI-facing systems. An AI agent can extract or propose candidate claims, but those claims should enter a reasoning program as explicit SEE facts or rules through a declared socket rather than as opaque text. SEE can then check the claims against other facts and rules, derive consequences, and return ordinary `why/2` explanations.
+eyelog Sockets are especially useful for AI-facing systems. An AI agent can extract or propose candidate claims, but those claims should enter a reasoning program as explicit eyelog facts or rules through a declared socket rather than as opaque text. eyelog can then check the claims against other facts and rules, derive consequences, and return ordinary `why/2` explanations.
 
-This gives a clear division of labor: AI can help generate, translate, and connect knowledge; SEE can represent, check, and explain the reasoning; sockets define the boundary between them.
+This gives a clear division of labor: AI can help generate, translate, and connect knowledge; eyelog can represent, check, and explain the reasoning; sockets define the boundary between them.
 
 ## 13. Output and read-back profile
 
 Normal answer output prints one resolved answer term followed by a period, and then a `why/2` explanation fact for that answer. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation.
 
-Output SHOULD be accepted as SEE input when it contains only supported term syntax. Explanations are ordinary SEE facts, so answer output can be read back and queried by SEE.
+Output SHOULD be accepted as eyelog input when it contains only supported term syntax. Explanations are ordinary eyelog facts, so answer output can be read back and queried by eyelog.
 
 Without `--query`, the host behavior is:
 
@@ -592,7 +592,7 @@ Without `--query`, the host behavior is:
 
 ### 13.1 Explanation output
 
-Each answer SHOULD be followed by a machine-readable `why/2` fact. Explanation output is ordinary SEE syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`; implementations SHOULD print `goal(...)` and `by(...)` on separate lines for readability. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
+Each answer SHOULD be followed by a machine-readable `why/2` fact. Explanation output is ordinary eyelog syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`; implementations SHOULD print `goal(...)` and `by(...)` on separate lines for readability. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
 ## 14. Conformance profiles
 
@@ -628,7 +628,7 @@ Conformance cases for these profiles live in the repository under `conformance/`
 
 ## 15. Relationship to ISO Prolog
 
-SEE borrows familiar Prolog syntax and Horn-clause execution but is not ISO Prolog. Notable differences include:
+eyelog borrows familiar Prolog syntax and Horn-clause execution but is not ISO Prolog. Notable differences include:
 
 - no operators or operator declarations;
 - no cut;
@@ -639,7 +639,7 @@ SEE borrows familiar Prolog syntax and Horn-clause execution but is not ISO Prol
 - no variables in functor or predicate position;
 - no occurs check in unification.
 
-Programs intended to be portable to SEE SHOULD avoid ISO-specific syntax and keep terms explicit.
+Programs intended to be portable to eyelog SHOULD avoid ISO-specific syntax and keep terms explicit.
 
 ## 16. Examples
 

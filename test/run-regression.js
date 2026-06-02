@@ -36,13 +36,13 @@ import { selectClauseCandidates } from '../src/program.js';
 import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'bin', 'see');
+const bin = path.join(root, 'bin', 'eyelog');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 let tmp = null;
 let tmpCounter = 0;
 
 export function runRegression(reporter = new TestReporter()) {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'see-regression.'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-regression.'));
   tmpCounter = 0;
 
   try {
@@ -154,11 +154,11 @@ why(
       },
     },
     {
-      name: 'SEE_LOCAL_TIME fixes local_time builtin',
+      name: 'EYELOG_LOCAL_TIME fixes local_time builtin',
       run: () => {
         const result = runCli(['--query', 'local_time(D)', '-'], {
           input: '',
-          env: { SEE_LOCAL_TIME: '2024-01-02' },
+          env: { EYELOG_LOCAL_TIME: '2024-01-02' },
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, 'local_time("2024-01-02").\nwhy(\n  local_time("2024-01-02"),\n  proof(\n    goal(local_time("2024-01-02")),\n    by(builtin(local_time, 1))\n  )\n).\n\n', 'stdout');
@@ -170,7 +170,7 @@ why(
       run: () => {
         const result = runCli([]);
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, 'Usage:\n  see [options] [file-or-url.pl|- ...]', 'stdout');
+        assertIncludes(result.stdout, 'Usage:\n  eyelog [options] [file-or-url.pl|- ...]', 'stdout');
         assertIncludes(result.stdout, '--query GOAL', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
@@ -180,7 +180,7 @@ why(
       run: () => {
         const result = runCli(['--version']);
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, `see ${pkg.version}\n`, 'stdout');
+        assertEqual(result.stdout, `eyelog ${pkg.version}\n`, 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -210,7 +210,7 @@ why(
       run: () => {
         const result = runCli(['--query']);
         assertEqual(result.status, 1, 'exit status');
-        assertIncludes(result.stderr, 'see: --query requires an argument', 'stderr');
+        assertIncludes(result.stderr, 'eyelog: --query requires an argument', 'stderr');
       },
     },
   ];

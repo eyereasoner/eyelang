@@ -1,4 +1,4 @@
-// Command-line interface for SEE.
+// Command-line interface for eyelog.
 // It loads programs from files, URLs, or stdin, then either materializes derived output or evaluates an explicit query.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -49,7 +49,7 @@ export async function main(argv) {
   }
 
   if (options.version) {
-    process.stdout.write(`see ${VERSION}\n`);
+    process.stdout.write(`eyelog ${VERSION}\n`);
     return;
   }
 
@@ -132,14 +132,14 @@ function runDefault(program, options) {
 }
 
 function usage(stream) {
-  stream.write(`see ${VERSION}
+  stream.write(`eyelog ${VERSION}
 
 Usage:
-  see [options] [file-or-url.pl|- ...]
+  eyelog [options] [file-or-url.pl|- ...]
 
 Input:
-  file-or-url.pl        Read an SEE program from a local file or http(s) URL.
-  -                     Read an SEE program from standard input.
+  file-or-url.pl        Read an eyelog program from a local file or http(s) URL.
+  -                     Read an eyelog program from standard input.
 
 Options:
   -h, --help            Show this help text and exit.
@@ -163,7 +163,7 @@ function readStdin() {
 }
 
 function printStats(stats) {
-  process.stderr.write('see stats:\n');
+  process.stderr.write('eyelog stats:\n');
   for (const [key, value] of Object.entries(stats)) {
     process.stderr.write(`  ${key}: ${value}\n`);
   }

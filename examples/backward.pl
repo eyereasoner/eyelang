@@ -1,7 +1,7 @@
 materialize(isIndeedMoreInterestingThan, 2).
 
 % Backward rule example adapted from Eyeling backward.n3.
-% Eyeling writes the interestingness rule backward; SEE records the same
+% Eyeling writes the interestingness rule backward; eyelog records the same
 % relation as an ordinary rule whose body is the numeric comparison.
 
 moreInterestingThan(X, Y) :- gt(X, Y).

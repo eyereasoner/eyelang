@@ -1,29 +1,29 @@
-answer(atom_concat, see).
+answer(atom_concat, eyelog).
 why(
-  answer(atom_concat, see),
+  answer(atom_concat, eyelog),
   proof(
-    goal(answer(atom_concat, see)),
+    goal(answer(atom_concat, eyelog)),
     by(rule("004_strings_and_atoms.pl", clause(1))),
-    bindings([binding("X", see)]),
+    bindings([binding("X", eyelog)]),
     uses([
       proof(
-        goal(atom_concat(s, ee, see)),
+        goal(atom_concat(eye, log, eyelog)),
         by(builtin(atom_concat, 3))
       )
     ])
   )
 ).
 
-answer(str_concat, "see").
+answer(str_concat, "eyelog").
 why(
-  answer(str_concat, "see"),
+  answer(str_concat, "eyelog"),
   proof(
-    goal(answer(str_concat, "see")),
+    goal(answer(str_concat, "eyelog")),
     by(rule("004_strings_and_atoms.pl", clause(2))),
-    bindings([binding("X", "see")]),
+    bindings([binding("X", "eyelog")]),
     uses([
       proof(
-        goal(str_concat("s", "ee", "see")),
+        goal(str_concat("eye", "log", "eyelog")),
         by(builtin(str_concat, 3))
       )
     ])
@@ -38,7 +38,7 @@ why(
     by(rule("004_strings_and_atoms.pl", clause(3))),
     uses([
       proof(
-        goal(contains("see", "ee")),
+        goal(contains("eyelog", "log")),
         by(builtin(contains, 2))
       )
     ])
@@ -53,7 +53,7 @@ why(
     by(rule("004_strings_and_atoms.pl", clause(4))),
     uses([
       proof(
-        goal(not_contains("see", "cat")),
+        goal(not_contains("eyelog", "cat")),
         by(builtin(not_contains, 2))
       )
     ])

@@ -9,13 +9,13 @@ import { fileURLToPath } from 'node:url';
 import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'bin', 'see');
+const bin = path.join(root, 'bin', 'eyelog');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
 const fixedExampleDate = '2026-05-30';
 
 export function runExamples(reporter = new TestReporter()) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'see-examples.'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-examples.'));
   const actualFile = path.join(tmp, 'actual.out');
   const errFile = path.join(tmp, 'stderr.out');
 
@@ -43,7 +43,7 @@ function runAndCompare(name, program, expected, args, actualFile, errFile, label
   const errFd = fs.openSync(errFile, 'w');
   const result = spawnSync(process.execPath, [bin, ...args, program], {
     cwd: root,
-    env: { ...process.env, SEE_LOCAL_TIME: fixedExampleDate },
+    env: { ...process.env, EYELOG_LOCAL_TIME: fixedExampleDate },
     stdio: ['ignore', outFd, errFd],
   });
   fs.closeSync(outFd);

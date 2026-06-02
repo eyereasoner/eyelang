@@ -1,8 +1,8 @@
 % =============================================================================================================================
-% Deep Taxonomy - depth 100 - expanded N3-style SEE with checkpoint proof accelerators
+% Deep Taxonomy - depth 100 - expanded N3-style eyelog with checkpoint proof accelerators
 %
 % Adjacent rules mirror the Eyeling N3 deep-taxonomy chain. The checkpoint
-% rules are redundant consequences of that chain and are placed first so SEE
+% rules are redundant consequences of that chain and are placed first so eyelog
 % can prove terminal/report goals without overflowing the JavaScript call stack.
 % Report/check rules use once/1 so successful checks do not backtrack into a
 % long adjacent-only proof after a shorter checkpoint proof has succeeded.

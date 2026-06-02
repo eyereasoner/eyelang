@@ -9,12 +9,12 @@ import { fileURLToPath } from 'node:url';
 import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'bin', 'see');
+const bin = path.join(root, 'bin', 'eyelog');
 const profileArg = process.argv[2] ?? 'conformance';
 
 export function runConformance(reporter = new TestReporter(), requestedProfiles = null) {
   const profiles = requestedProfiles ?? (profileArg === 'conformance' ? ['core', 'extension'] : [profileArg]);
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'see-conformance.'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-conformance.'));
   const actualFile = path.join(tmp, 'actual.out');
   const errFile = path.join(tmp, 'stderr.out');
 

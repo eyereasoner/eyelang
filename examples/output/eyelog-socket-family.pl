@@ -3,12 +3,12 @@ why(
   ancestor(pat, jan),
   proof(
     goal(ancestor(pat, jan)),
-    by(rule("see-socket-family.pl", clause(6))),
+    by(rule("eyelog-socket-family.pl", clause(6))),
     bindings([binding("X", pat), binding("Y", jan)]),
     uses([
       proof(
         goal(parent(pat, jan)),
-        by(fact("see-socket-family.pl", clause(4)))
+        by(fact("eyelog-socket-family.pl", clause(4)))
       )
     ])
   )
@@ -19,12 +19,12 @@ why(
   ancestor(jan, emma),
   proof(
     goal(ancestor(jan, emma)),
-    by(rule("see-socket-family.pl", clause(6))),
+    by(rule("eyelog-socket-family.pl", clause(6))),
     bindings([binding("X", jan), binding("Y", emma)]),
     uses([
       proof(
         goal(parent(jan, emma)),
-        by(fact("see-socket-family.pl", clause(5)))
+        by(fact("eyelog-socket-family.pl", clause(5)))
       )
     ])
   )
@@ -35,21 +35,21 @@ why(
   ancestor(pat, emma),
   proof(
     goal(ancestor(pat, emma)),
-    by(rule("see-socket-family.pl", clause(7))),
+    by(rule("eyelog-socket-family.pl", clause(7))),
     bindings([binding("X", pat), binding("Z", emma), binding("Y", jan)]),
     uses([
       proof(
         goal(parent(pat, jan)),
-        by(fact("see-socket-family.pl", clause(4)))
+        by(fact("eyelog-socket-family.pl", clause(4)))
       ),
       proof(
         goal(ancestor(jan, emma)),
-        by(rule("see-socket-family.pl", clause(6))),
+        by(rule("eyelog-socket-family.pl", clause(6))),
         bindings([binding("X", jan), binding("Y", emma)]),
         uses([
           proof(
             goal(parent(jan, emma)),
-            by(fact("see-socket-family.pl", clause(5)))
+            by(fact("eyelog-socket-family.pl", clause(5)))
           )
         ])
       )

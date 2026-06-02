@@ -1,5 +1,5 @@
 {
-  "name": "see-reasoner",
+  "name": "eyelog",
   "version": "1.3.2",
   "type": "module",
   "description": "Symbolic Explanation Engine",
@@ -11,11 +11,11 @@
   "author": "Jos De Roo",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eyereasoner/see.git"
+    "url": "git+https://github.com/eyereasoner/eyelog.git"
   },
-  "homepage": "https://github.com/eyereasoner/see#readme",
+  "homepage": "https://github.com/eyereasoner/eyelog#readme",
   "bin": {
-    "see": "./bin/see"
+    "eyelog": "./bin/eyelog"
   },
   "files": [
     "README.md",

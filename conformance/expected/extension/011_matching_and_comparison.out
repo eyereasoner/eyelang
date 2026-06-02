@@ -6,7 +6,7 @@ why(
     by(rule("011_matching_and_comparison.pl", clause(1))),
     uses([
       proof(
-        goal(matches("see", "se")),
+        goal(matches("eyelog", "eye")),
         by(builtin(matches, 2))
       )
     ])
@@ -21,7 +21,7 @@ why(
     by(rule("011_matching_and_comparison.pl", clause(2))),
     uses([
       proof(
-        goal(not_matches("see", "cat")),
+        goal(not_matches("eyelog", "cat")),
         by(builtin(not_matches, 2))
       )
     ])

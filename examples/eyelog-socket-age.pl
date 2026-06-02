@@ -1,8 +1,8 @@
-% see-socket-age.pl
+% eyelog-socket-age.pl
 %
-% A small runnable SEE Socket example for age reasoning.
+% A small runnable eyelog Socket example for age reasoning.
 %
-% The socket facts are ordinary SEE data. They document the semantic
+% The socket facts are ordinary eyelog data. They document the semantic
 % openings that this rule module expects:
 %
 %   - a patient registry that provides birthDay/2
@@ -12,7 +12,7 @@
 % The plug facts say which concrete providers are connected.
 %
 % Run:
-%   see see-socket-age.pl
+%   eyelog eyelog-socket-age.pl
 
 materialize(ageAbove, 2).
 
