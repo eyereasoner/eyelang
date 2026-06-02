@@ -1,6 +1,6 @@
 # eyelog
 
-[![npm version](https://img.shields.io/npm/v/eyelog.svg)](https://www.npmjs.com/package/eyelog)
+[![npm version](https://img.shields.io/npm/v/eyelogreasoner.svg)](https://www.npmjs.com/package/eyelogreasoner)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1242549108-blue.svg)](https://doi.org/10.5281/zenodo.20342331)
 
 eyelog is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `eyelog`.
