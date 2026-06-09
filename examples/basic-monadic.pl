@@ -6,7 +6,7 @@
 %
 % The expected output contains 1518 distinct cycle relations, matching
 % EYE reasoning/basic-monadic/10tt_answer.n3 in cardinality and content
-% after translating N3 statements to eyelog relation terms.
+% after translating N3 statements to eyelang relation terms.
 
 materialize(cycle, 2).
 

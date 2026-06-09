@@ -1,4 +1,4 @@
-// Command-line interface for eyelog.
+// Command-line interface for eyelang.
 // It loads programs from files, URLs, or stdin, then either materializes derived output or evaluates an explicit query.
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -22,6 +22,7 @@ export async function main(argv) {
     query: null,
     stats: false,
     version: false,
+    why: true,
   };
 
   let endOptions = false;
@@ -38,6 +39,8 @@ export async function main(argv) {
       return;
     } else if (!endOptions && arg === '--stats') {
       options.stats = true;
+    } else if (!endOptions && arg === '--no-why') {
+      options.why = false;
     } else if (!endOptions && arg === '--query') {
       if (i + 1 >= argv.length) throw new Error('--query requires an argument');
       options.query = argv[++i];
@@ -49,7 +52,7 @@ export async function main(argv) {
   }
 
   if (options.version) {
-    process.stdout.write(`eyelog ${VERSION}\n`);
+    process.stdout.write(`eyelang ${VERSION}\n`);
     return;
   }
 
@@ -87,12 +90,7 @@ function runQuery(program, query, options) {
   for (const env of solver.solve([goal], new Env(), 0)) {
     process.stdout.write(`${termToString(goal, env, true)}.\n`);
 
-    const resolved = copyResolved(goal, env);
-    const proof = whyProof(program, resolved);
-    process.stdout.write(proof.text);
-    if (!proof.ok) {
-      process.stdout.write(whyNoProof(resolved));
-    }
+    if (options.why) writeExplanation(program, copyResolved(goal, env));
   }
 
   if (options.stats) printStats(solver.stats);
@@ -116,13 +114,8 @@ function runDefault(program, options) {
 
       lines.add(line);
 
-      const resolved = copyResolved(goal, env);
       process.stdout.write(line);
-      const proof = whyProof(program, resolved);
-      process.stdout.write(proof.text);
-      if (!proof.ok) {
-        process.stdout.write(whyNoProof(resolved));
-      }
+      if (options.why) writeExplanation(program, copyResolved(goal, env));
     }
 
     lastStats = solver.stats;
@@ -131,21 +124,28 @@ function runDefault(program, options) {
   if (options.stats && lastStats) printStats(lastStats);
 }
 
+function writeExplanation(program, resolved) {
+  const proof = whyProof(program, resolved);
+  process.stdout.write(proof.text);
+  if (!proof.ok) process.stdout.write(whyNoProof(resolved));
+}
+
 function usage(stream) {
-  stream.write(`eyelog ${VERSION}
+  stream.write(`eyelang ${VERSION}
 
 Usage:
-  eyelog [options] [file-or-url.pl|- ...]
+  eyelang [options] [file-or-url.pl|- ...]
 
 Input:
-  file-or-url.pl        Read an eyelog program from a local file or http(s) URL.
-  -                     Read an eyelog program from standard input.
+  file-or-url.pl        Read an eyelang program from a local file or http(s) URL.
+  -                     Read an eyelang program from standard input.
 
 Options:
   -h, --help            Show this help text and exit.
   -v, --version         Show the package version and exit.
       --query GOAL      Run GOAL as a query instead of materializing output predicates.
       --stats           Print solver statistics to stderr after execution.
+      --no-why          Suppress why/2 explanation facts; print answers only.
   --                    Stop option parsing; following arguments are treated as files.
 `);
 }
@@ -163,7 +163,7 @@ function readStdin() {
 }
 
 function printStats(stats) {
-  process.stderr.write('eyelog stats:\n');
+  process.stderr.write('eyelang stats:\n');
   for (const [key, value] of Object.entries(stats)) {
     process.stderr.write(`  ${key}: ${value}\n`);
   }

@@ -1,6 +1,6 @@
 % EYE reasoning-inspired example: greatest common divisor and Bézout identity.
 %
-% This ports the extended Euclidean algorithm idea into ordinary eyelog rules.
+% This ports the extended Euclidean algorithm idea into ordinary eyelang rules.
 % Each case derives gcd(a,b), coefficients s,t, and validation checks for
 % a*s + b*t = gcd(a,b) and divisibility.
 

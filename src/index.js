@@ -16,14 +16,12 @@ export function run(source, options = {}) {
   const program = source instanceof Program ? source : Program.parse(source);
   const solver = new Solver(program, options);
   const output = [];
+  const includeWhy = options.why !== false && options.explain !== false;
   if (options.query) {
     const goal = typeof options.query === 'string' ? parseQueryGoal(options.query) : options.query;
     for (const env of solver.solve([goal], new Env(), 0)) {
       output.push(`${termToString(goal, env, true)}.\n`);
-      const resolved = copyResolved(goal, env);
-      const proof = whyProof(program, resolved);
-      output.push(proof.text);
-      if (!proof.ok) output.push(whyNoProof(resolved));
+      if (includeWhy) appendExplanation(output, program, copyResolved(goal, env));
     }
   } else {
     const goals = program.materializationGoals();
@@ -39,13 +37,17 @@ export function run(source, options = {}) {
         if (facts.has(line) || seen.has(line)) continue;
         seen.add(line);
         output.push(line);
-        const proof = whyProof(program, resolved);
-        output.push(proof.text);
-        if (!proof.ok) output.push(whyNoProof(resolved));
+        if (includeWhy) appendExplanation(output, program, resolved);
       }
     }
   }
   return { stdout: output.join(''), stats: solver.stats };
+}
+
+function appendExplanation(output, program, resolved) {
+  const proof = whyProof(program, resolved);
+  output.push(proof.text);
+  if (!proof.ok) output.push(whyNoProof(resolved));
 }
 
 export * from './explain.js';

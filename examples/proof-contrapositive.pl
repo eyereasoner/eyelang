@@ -1,7 +1,7 @@
 % Proof by contrapositive example adapted from Eyelet input/proof-by-contrapositive.pl.
 %
 % The implication itself is represented as data with implies/2.  The proof
-% rule remains ordinary eyelog: if A implies B and B is false, then A is false.
+% rule remains ordinary eyelang: if A implies B and B is false, then A is false.
 
 materialize(refutes, 2).
 materialize(method, 2).

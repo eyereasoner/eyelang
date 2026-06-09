@@ -1,7 +1,7 @@
 % Quadratic formula over sample equations.
 %
 % Each equation is represented as a*x^2 + b*x + c = 0.  The example uses
-% eyelog arithmetic predicates to derive the discriminant and the two roots.
+% eyelang arithmetic predicates to derive the discriminant and the two roots.
 
 materialize(discriminant, 2).
 materialize(root, 2).

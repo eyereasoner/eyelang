@@ -1,29 +1,29 @@
-answer(atom, eyelog).
+answer(atom, eyelang).
 why(
-  answer(atom, eyelog),
+  answer(atom, eyelang),
   proof(
-    goal(answer(atom, eyelog)),
+    goal(answer(atom, eyelang)),
     by(rule("030_string_and_atom_concat.pl", clause(1))),
-    bindings([binding("X", eyelog)]),
+    bindings([binding("X", eyelang)]),
     uses([
       proof(
-        goal(atom_concat(eye, log, eyelog)),
+        goal(atom_concat(eye, lang, eyelang)),
         by(builtin(atom_concat, 3))
       )
     ])
   )
 ).
 
-answer(string, "eyelog").
+answer(string, "eyelang").
 why(
-  answer(string, "eyelog"),
+  answer(string, "eyelang"),
   proof(
-    goal(answer(string, "eyelog")),
+    goal(answer(string, "eyelang")),
     by(rule("030_string_and_atom_concat.pl", clause(2))),
-    bindings([binding("X", "eyelog")]),
+    bindings([binding("X", "eyelang")]),
     uses([
       proof(
-        goal(str_concat("eye", "log", "eyelog")),
+        goal(str_concat("eye", "lang", "eyelang")),
         by(builtin(str_concat, 3))
       )
     ])

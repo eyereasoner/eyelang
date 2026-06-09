@@ -1,4 +1,4 @@
-% Cyclic transitive closure. The graph contains a directed cycle, but eyelog's
+% Cyclic transitive closure. The graph contains a directed cycle, but eyelang's
 % variant loop guard prevents recursive proof search from revisiting the same
 % active subgoal forever.
 

@@ -1,7 +1,7 @@
 % Good cobbler, adapted from Eyeling's examples/good-cobbler.n3.
 %
 % The Eyeling result is a quoted assertion saying that joe is a good Cobbler.
-% Here the quoted assertion is represented as an eyelog term.
+% Here the quoted assertion is represented as an eyelang term.
 
 materialize(is, 2).
 

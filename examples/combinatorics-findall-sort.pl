@@ -1,5 +1,5 @@
 % Eyelet-inspired combinations example using findall/3 and sort/2.
-% The source-level select/3 relation remains an ordinary eyelog rule.
+% The source-level select/3 relation remains an ordinary eyelang rule.
 
 materialize(combinations, 2).
 materialize(count, 2).

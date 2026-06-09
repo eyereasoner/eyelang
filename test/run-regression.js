@@ -36,13 +36,13 @@ import { selectClauseCandidates } from '../src/program.js';
 import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'bin', 'eyelog');
+const bin = path.join(root, 'bin', 'eyelang');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 let tmp = null;
 let tmpCounter = 0;
 
 export function runRegression(reporter = new TestReporter()) {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelog-regression.'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelang-regression.'));
   tmpCounter = 0;
 
   try {
@@ -154,11 +154,11 @@ why(
       },
     },
     {
-      name: 'EYELOG_LOCAL_TIME fixes local_time builtin',
+      name: 'EYELANG_LOCAL_TIME fixes local_time builtin',
       run: () => {
         const result = runCli(['--query', 'local_time(D)', '-'], {
           input: '',
-          env: { EYELOG_LOCAL_TIME: '2024-01-02' },
+          env: { EYELANG_LOCAL_TIME: '2024-01-02' },
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, 'local_time("2024-01-02").\nwhy(\n  local_time("2024-01-02"),\n  proof(\n    goal(local_time("2024-01-02")),\n    by(builtin(local_time, 1))\n  )\n).\n\n', 'stdout');
@@ -170,8 +170,9 @@ why(
       run: () => {
         const result = runCli([]);
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, 'Usage:\n  eyelog [options] [file-or-url.pl|- ...]', 'stdout');
+        assertIncludes(result.stdout, 'Usage:\n  eyelang [options] [file-or-url.pl|- ...]', 'stdout');
         assertIncludes(result.stdout, '--query GOAL', 'stdout');
+        assertIncludes(result.stdout, '--no-why', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -180,7 +181,7 @@ why(
       run: () => {
         const result = runCli(['--version']);
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, `eyelog ${pkg.version}\n`, 'stdout');
+        assertEqual(result.stdout, `eyelang ${pkg.version}\n`, 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -194,6 +195,27 @@ why(
         assertEqual(result.stderr, '', 'stderr');
       },
     },
+
+
+    {
+      name: '--no-why suppresses query explanations',
+      run: () => {
+        const result = runCli(['--no-why', '--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: '--no-why suppresses materialization explanations',
+      run: () => {
+        const result = runCli(['--no-why', '-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+
     {
       name: 'double dash permits option-shaped file names',
       run: () => {
@@ -210,7 +232,7 @@ why(
       run: () => {
         const result = runCli(['--query']);
         assertEqual(result.status, 1, 'exit status');
-        assertIncludes(result.stderr, 'eyelog: --query requires an argument', 'stderr');
+        assertIncludes(result.stderr, 'eyelang: --query requires an argument', 'stderr');
       },
     },
   ];
@@ -232,6 +254,23 @@ function apiCases() {
         assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
       },
     },
+
+
+    {
+      name: 'run query can suppress explanations',
+      run: () => {
+        const result = run('p(a).\np(b).\n', { query: 'p(X)', why: false });
+        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+      },
+    },
+    {
+      name: 'run materialization can suppress explanations',
+      run: () => {
+        const result = run('p(a, b).\nq(X, Y) :- p(X, Y).\n', { explain: false });
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+      },
+    },
+
     {
       name: 'run accepts Program instances',
       run: () => {

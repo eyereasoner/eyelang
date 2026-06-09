@@ -1,7 +1,7 @@
 % Graph reachability example adapted from Eyelet input/graph-reachability.pl.
 %
 % The original uses Prolog negation and member/2 to avoid revisiting nodes.
-% eyelog expresses the same finite search with not(member(...)).
+% eyelang expresses the same finite search with not(member(...)).
 
 materialize(reachable, 2).
 materialize(not_reachable, 2).

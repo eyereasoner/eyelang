@@ -1,5 +1,5 @@
 % Eyelet-inspired Dijkstra example using findall/3 and sort/2.
-% Adapted to eyelog's explicit built-ins and relation report style.
+% Adapted to eyelang's explicit built-ins and relation report style.
 
 materialize(shortestPath, 2).
 materialize(cost, 2).

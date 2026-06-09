@@ -4030,7 +4030,7 @@ airport(res_airport_13004, "Nypari Airport").
 airport(res_airport_13006, "Ihtiman Airfield").
 airport(res_airport_13009, "Vogtareuth Airport").
 airport(res_airport_1301, "Pontivy Airport").
-airport(res_airport_13011, "[Duplicate] Illertissen eyelog EDMI - ED-0425 location moved out-of-the way").
+airport(res_airport_13011, "[Duplicate] Illertissen eyelang EDMI - ED-0425 location moved out-of-the way").
 airport(res_airport_13016, "New Smyrna Beach Municipal Airport").
 airport(res_airport_13018, "Las Vegas Helicopters Heliport").
 airport(res_airport_13019, "Delta Camp Airport").
@@ -6315,7 +6315,7 @@ airport(res_airport_6878, "Kenosha Regional Airport").
 airport(res_airport_6886, "Lympne Airport").
 airport(res_airport_6887, "Porto Cheli Airport").
 airport(res_airport_689, "Falköping Airport").
-airport(res_airport_6894, "Zell Am eyelog Airport").
+airport(res_airport_6894, "Zell Am eyelang Airport").
 airport(res_airport_6896, "RAAF Base Amberley").
 airport(res_airport_6897, "Tindal Airport").
 airport(res_airport_6898, "RAAF Williams, Laverton Base").

@@ -14,7 +14,7 @@ function stringifyError(error) {
     return [
       stack,
       '',
-      'eyelog exhausted the browser JavaScript call stack.',
+      'eyelang exhausted the browser JavaScript call stack.',
       'Try a smaller example in the playground, or run this program with the Node CLI.',
     ].join('\n');
   }
@@ -45,16 +45,16 @@ async function initialize(requestId) {
   }
 }
 
-async function runEyelog(request) {
-  const { id, program, query, stats } = request;
+async function runEyelang(request) {
+  const { id, program, query, stats, why = true } = request;
   if (active) {
     self.postMessage({
       type: 'result',
       id,
       exitCode: 1,
-      phase: 'starting eyelog',
+      phase: 'starting eyelang',
       stdout: '',
-      stderr: 'eyelog is already running.',
+      stderr: 'eyelang is already running.',
     });
     return;
   }
@@ -90,10 +90,7 @@ async function runEyelog(request) {
       const out = [];
       for (const env of solver.solve([goal], new Env(), 0)) {
         out.push(`${termToString(goal, env, true)}.\n`);
-        const resolved = copyResolved(goal, env);
-        const proof = whyProof(parsed, resolved);
-        out.push(proof.text);
-        if (!proof.ok) out.push(whyNoProof(resolved));
+        if (why) appendExplanation(out, parsed, copyResolved(goal, env), whyProof, whyNoProof);
       }
       stdout = out.join('');
       if (stats) stderr = formatStats(solver.stats);
@@ -114,10 +111,8 @@ async function runEyelog(request) {
           const line = `${termToString(resolved, new Env(), true)}.\n`;
           if (facts.has(line) || lines.has(line)) continue;
           lines.add(line);
-          const proof = whyProof(parsed, resolved);
           out.push(line);
-          out.push(proof.text);
-          if (!proof.ok) out.push(whyNoProof(resolved));
+          if (why) appendExplanation(out, parsed, resolved, whyProof, whyNoProof);
         }
         lastStats = solver.stats;
       }
@@ -140,8 +135,14 @@ async function runEyelog(request) {
   }
 }
 
+function appendExplanation(out, program, resolved, whyProof, whyNoProof) {
+  const proof = whyProof(program, resolved);
+  out.push(proof.text);
+  if (!proof.ok) out.push(whyNoProof(resolved));
+}
+
 function formatStats(stats) {
-  let text = 'eyelog stats:\n';
+  let text = 'eyelang stats:\n';
   for (const [key, value] of Object.entries(stats)) text += `  ${key}: ${value}\n`;
   return text;
 }
@@ -149,5 +150,5 @@ function formatStats(stats) {
 self.onmessage = event => {
   const message = event.data || {};
   if (message.type === 'init') initialize(message.id);
-  else if (message.type === 'run') runEyelog(message);
+  else if (message.type === 'run') runEyelang(message);
 };
