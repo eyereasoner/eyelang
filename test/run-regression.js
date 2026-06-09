@@ -186,6 +186,16 @@ why(
       },
     },
     {
+      name: 'README and playground cover every bundled example',
+      run: () => {
+        const examples = listExampleNames();
+        const readmeExamples = readmeCatalogExampleNames();
+        const playgroundExamples = playgroundExampleNames();
+        assertEqual(readmeExamples.join('\n'), examples.join('\n'), 'README example catalog');
+        assertEqual(playgroundExamples.join('\n'), examples.join('\n'), 'playground examples');
+      },
+    },
+    {
       name: 'stdin input is accepted',
       run: () => {
         const result = runCli(['--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
@@ -458,6 +468,40 @@ function runWhyLoose({ program, query }) {
   Program.parse(result.stdout);
   assertIncludes(result.stdout, '\n).\n\n', 'stdout');
   return result;
+}
+
+function listExampleNames() {
+  return fs.readdirSync(path.join(root, 'examples'))
+    .filter((name) => name.endsWith('.pl'))
+    .map((name) => name.slice(0, -3))
+    .sort();
+}
+
+function readmeCatalogExampleNames() {
+  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+  const section = between(readme, '## Example catalog', '## Golden outputs, tests, and conformance');
+  return [...section.matchAll(/examples\/([A-Za-z0-9_-]+)\.pl/g)]
+    .map((match) => match[1])
+    .filter((name, index, names) => names.indexOf(name) === index)
+    .sort();
+}
+
+function playgroundExampleNames() {
+  const html = fs.readFileSync(path.join(root, 'playground.html'), 'utf8');
+  const match = html.match(/const EXAMPLES = \[(.*?)\];/s);
+  if (match == null) throw new Error('playground EXAMPLES array not found');
+  return [...match[1].matchAll(/"([^"]+)"/g)]
+    .map((match) => match[1])
+    .sort();
+}
+
+function between(text, startMarker, endMarker) {
+  const start = text.indexOf(startMarker);
+  if (start === -1) throw new Error(`${startMarker} not found`);
+  const contentStart = start + startMarker.length;
+  const end = text.indexOf(endMarker, contentStart);
+  if (end === -1) throw new Error(`${endMarker} not found`);
+  return text.slice(contentStart, end);
 }
 
 function runCli(args, options = {}) {
