@@ -1,13 +1,13 @@
-% eyelog-socket-family.pl
+% socket-family.pl
 %
-% A small runnable eyelog Socket example.
+% A small runnable eyelang Socket example.
 %
-% The socket facts below are ordinary eyelog data. They document the
+% The socket facts below are ordinary eyelang data. They document the
 % semantic opening: this reasoning module expects a provider for parent/2.
 % The plug fact says which provider is connected.
 %
 % Run:
-%   eyelog eyelog-socket-family.pl
+%   eyelang socket-family.pl
 
 materialize(ancestor, 2).
 
