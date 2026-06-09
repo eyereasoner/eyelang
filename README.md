@@ -1,6 +1,6 @@
 # eyelang
 
-[![npm version](https://img.shields.io/npm/v/eyelangreasoner.svg)](https://www.npmjs.com/package/eyelangreasoner)
+[![npm version](https://img.shields.io/npm/v/eyelang.svg)](https://www.npmjs.com/package/eyelang)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.1242549108-blue.svg)](https://doi.org/10.5281/zenodo.20342331)
 
 eyelang is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `eyelang`.
