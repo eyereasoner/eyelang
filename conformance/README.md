@@ -7,7 +7,7 @@ The suite is intentionally file-based so another implementation can run the same
 - `conformance/cases/<profile>/<name>.pl` — input program;
 - `conformance/expected/<profile>/<name>.out` — exact expected standard output.
 
-The current runner compares standard output, including answer facts and their `why/2` explanation facts. Standard error, performance, and resource limits are outside this suite.
+The current runner compares standard output from normal execution. Proof explanations are opt-in in the CLI and are not part of these conformance goldens. Standard error, performance, and resource limits are outside this suite.
 
 ## Running the suite
 
@@ -34,9 +34,9 @@ The runner executes materialized programs in-process through the public JavaScri
 
 ## Profiles
 
-`core` covers the portable core language profile from `../SPEC.md`: lexical syntax, facts, definite clauses, first-order terms, lists, conjunction, unification through user predicates, left-to-right goal-directed proof search, and answer printing.
+`core` covers the portable core language profile from `../SPEC.md`: lexical syntax, facts, definite clauses, first-order terms, lists, conjunction, structured unification through user predicates, left-to-right goal-directed proof search, materialized output, and read-back printing.
 
-`extension` covers the standard built-in and host behavior exercised by the current reference implementation: arithmetic, comparison, strings, list relations, aggregation, formula-term helpers, `memoize/2`, `materialize/2`, and default derived output.
+`extension` covers the standard built-in and host behavior exercised by the current reference implementation: arithmetic, comparison, strings, list relations, aggregation, formula-term helpers, number-theory helpers, finite-search helpers, matrix helpers, `memoize/2`, `materialize/2`, and default derived output.
 
 The profile name `extension` is a test-suite grouping name. It does not mean that these cases are outside the eyelang specification; most of them correspond to the standard built-in profile and standard host profile in `../SPEC.md`.
 
