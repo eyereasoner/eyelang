@@ -287,12 +287,14 @@ function isSimpleName(text) {
 
 const SIMPLE_NUMBER = /^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
 const SIMPLE_ARG_FORBIDDEN = /[\s()[\]|"']/;
+const FAST_BINARY_FACT = /^([a-z][A-Za-z0-9_]*)\(\s*([^,\s()[\]|"']+)\s*,\s*([^,\s()[\]|"']+)\s*\)\.$/;
+const FAST_BINARY_RULE = /^([a-z][A-Za-z0-9_]*)\(\s*([^,\s()[\]|"']+)\s*,\s*([^,\s()[\]|"']+)\s*\)\s*:-\s*([a-z][A-Za-z0-9_]*)\(\s*([^,\s()[\]|"']+)\s*,\s*([^,\s()[\]|"']+)\s*\)\.$/;
 
 function parseClausesFastNoSource(source) {
   source = String(source ?? '');
-  const atomCache = new Map();
   const numberCache = new Map();
   const stringCache = new Map();
+  const variableCache = new Map();
   const clauses = [];
   let anonymous = 0;
   let chunk = '';
@@ -304,22 +306,23 @@ function parseClausesFastNoSource(source) {
     cache.set(key, value);
     return value;
   };
-  const scalarOrVariable = (text, variables) => {
-    text = text.trim();
+  const scalarOrVariableFast = (text) => {
     if (!text) throw new Error('empty simple term');
+    const first = text.charCodeAt(0);
     if (text === '_') return variable(`__anon${anonymous++}`);
-    if (isVariableStart(text)) {
-      const existing = variables.get(text);
+    if (first === 95 || (first >= 65 && first <= 90)) {
+      const existing = variableCache.get(text);
       if (existing) return existing;
       const value = variable(text);
-      variables.set(text, value);
+      variableCache.set(text, value);
       return value;
     }
-    if (SIMPLE_NUMBER.test(text)) return cached(numberCache, text, numberTerm);
-    if (text[0] === '"' && text.endsWith('"')) return cached(stringCache, text.slice(1, -1), stringTerm);
-    return cached(atomCache, text, atom);
+    if ((first === 45 || isDigitCode(first)) && SIMPLE_NUMBER.test(text)) return cached(numberCache, text, numberTerm);
+    if (first === 34 && text.endsWith('"')) return cached(stringCache, text.slice(1, -1), stringTerm);
+    return atom(text);
   };
-  const parseBinaryCompound = (text, variables) => {
+  const scalarOrVariable = (text) => scalarOrVariableFast(text.trim());
+  const parseBinaryCompound = (text) => {
     text = text.trim();
     const open = text.indexOf('(');
     if (open <= 0 || text[text.length - 1] !== ')') return null;
@@ -332,19 +335,37 @@ function parseClausesFastNoSource(source) {
     const left = inner.slice(0, comma).trim();
     const right = inner.slice(comma + 1).trim();
     if (!left || !right || SIMPLE_ARG_FORBIDDEN.test(left) || SIMPLE_ARG_FORBIDDEN.test(right)) return null;
-    return compound(name, [scalarOrVariable(left, variables), scalarOrVariable(right, variables)]);
+    return compound(name, [scalarOrVariable(left), scalarOrVariable(right)]);
+  };
+  const parseFastBinaryMatch = (match) => {
+    return compound(match[1], [scalarOrVariableFast(match[2]), scalarOrVariableFast(match[3])]);
+  };
+  const parseFastBinaryRuleMatch = (match) => {
+    return {
+      head: compound(match[1], [scalarOrVariableFast(match[2]), scalarOrVariableFast(match[3])]),
+      body: [compound(match[4], [scalarOrVariableFast(match[5]), scalarOrVariableFast(match[6])])],
+    };
+  };
+  const parseFastLine = (text) => {
+    if (!text.endsWith('.')) return null;
+    const ruleMatch = FAST_BINARY_RULE.exec(text);
+    if (ruleMatch) return parseFastBinaryRuleMatch(ruleMatch);
+    const factMatch = FAST_BINARY_FACT.exec(text);
+    if (factMatch) return { head: parseFastBinaryMatch(factMatch), body: [] };
+    return null;
   };
   const parseSimple = (text) => {
     if (!text.endsWith('.') || text.includes('\n')) return null;
+    const fast = parseFastLine(text);
+    if (fast) return fast;
     text = text.slice(0, -1);
-    const variables = new Map();
     const rule = text.indexOf(':-');
     if (rule < 0) {
-      const head = parseBinaryCompound(text, variables);
+      const head = parseBinaryCompound(text);
       return head ? { head, body: [] } : null;
     }
-    const head = parseBinaryCompound(text.slice(0, rule), variables);
-    const bodyGoal = parseBinaryCompound(text.slice(rule + 2), variables);
+    const head = parseBinaryCompound(text.slice(0, rule));
+    const bodyGoal = parseBinaryCompound(text.slice(rule + 2));
     return head && bodyGoal ? { head, body: [bodyGoal] } : null;
   };
 
@@ -375,7 +396,7 @@ function parseClausesFastNoSource(source) {
     const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith('%')) {
       if (!chunk && trimmed.endsWith('.')) {
-        const simple = parseSimple(trimmed);
+        const simple = parseFastLine(trimmed) ?? parseSimple(trimmed);
         if (simple) clauses.push(simple);
         else {
           chunk = line + '\n';

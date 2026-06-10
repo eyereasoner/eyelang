@@ -24,8 +24,8 @@ export function run(source, options = {}) {
   const facts = program.sourceFactLines(materializedKeys);
   const seen = new Set();
   for (const goal of goals) {
-    const localSolver = new Solver(program, runOptions);
-    for (const env of localSolver.solve([goal], new Env(), 0)) {
+    solver.solutionsSeen = 0;
+    for (const env of solver.solve([goal], new Env(), 0)) {
       const resolved = copyResolved(goal, env);
       if (!termIsGround(resolved)) continue;
       const line = `${termToString(resolved, new Env(), true)}.\n`;
