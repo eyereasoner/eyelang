@@ -10,13 +10,16 @@
 % log_impliedBy/2, then mirrored as an ordinary eyelang rule so the generated
 % childOf relation can feed the ordinary hasParent rule.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(log_impliedBy, 2).
 materialize(childOf, 2).
 materialize(hasParent, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 invOf(parentOf, childOf).
 parentOf(alice, bob).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 log_impliedBy(childOf(var(x), var(y)), parentOf(var(y), var(x))) :-
   invOf(parentOf, childOf).
 

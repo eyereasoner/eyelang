@@ -5,10 +5,13 @@
 % a six-column addition.  Each column constraint is applied as soon as possible
 % so the finite digit search prunes early without cut.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(status, 2).
 materialize(assignment, 2).
 materialize(equation, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 send_more_money(solution(S, E, N, D, M, O, R, Y), Send, More, Money) :-
   alphametic_sum(
     [s, e, n, d, m, o, r, y],

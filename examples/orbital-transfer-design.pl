@@ -4,6 +4,7 @@
 % mission constraints. Distances are in kilometres, speeds in kilometres per
 % second, and time in days.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(transferSemiMajorAxis_km, 2).
 materialize(departureDeltaV_km_s, 2).
 materialize(arrivalDeltaV_km_s, 2).
@@ -12,6 +13,7 @@ materialize(transferTime_days, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 mission(mars_hohmann, centralBodyMu_km3_s2, 132712440018.0).
 mission(mars_hohmann, departureOrbitRadius_km, 149597870.7).
 mission(mars_hohmann, arrivalOrbitRadius_km, 227939200.0).
@@ -19,6 +21,7 @@ mission(mars_hohmann, deltaVBudget_km_s, 6.0).
 mission(mars_hohmann, pi, 3.141592653589793).
 mission(mars_hohmann, secondsPerDay, 86400.0).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 semi_major_axis(Mission, Axis) :-
   mission(Mission, departureOrbitRadius_km, R1),
   mission(Mission, arrivalOrbitRadius_km, R2),

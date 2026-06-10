@@ -2,6 +2,7 @@
 % Compute a prime factorization by repeated smallest-divisor decomposition,
 % then check product reconstruction and primality of the distinct factors.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(n, 2).
 materialize(factorsSmallest, 2).
 materialize(factorsLargest, 2).
@@ -12,10 +13,12 @@ materialize(distinctPrimeCount, 2).
 materialize(smallestPrimeFactor, 2).
 materialize(largestPrimeFactor, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 case(fta, 202692987).
 expected_factors(fta, [3, 3, 7, 829, 3881]).
 
 % A divides B in positive integers.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 divides(A, B) :-
   gt(A, 0),
   gt(B, 0),

@@ -2,6 +2,7 @@
 % Fields are classified from soil N, fertilizer N, losses, and crop demand.
 
 % field(Field, SoilN, FertilizerN, LossFraction, CropDemandN).
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(availableN_kg_ha, 2).
 materialize(deficitN_kg_ha, 2).
 materialize(surplusN_kg_ha, 2).
@@ -10,11 +11,13 @@ materialize(status, 2).
 materialize(highestLeachingRisk, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 field(low_input, 25, 40, 0.10, 110).
 field(balanced_loam, 45, 80, 0.12, 110).
 field(sandy_high, 30, 150, 0.35, 105).
 field(clay_surplus, 70, 90, 0.08, 120).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 total_n(F, Total) :-
   field(F, Soil, Fert, _, _),
   add(Soil, Fert, Total).

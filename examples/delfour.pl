@@ -8,6 +8,7 @@
 % Rules project only the fields they need, avoiding global permission/prohibition
 % facts that could contradict another policy formula in the same program.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(caseName, 2).
 materialize(needsLowSugar, 2).
 materialize(derivedFromNeed, 2).
@@ -39,6 +40,8 @@ materialize(dutyTimingConsistent, 2).
 materialize(marketingProhibited, 2).
 materialize(filesWrittenExpected, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Formula-valued facts keep each input graph scoped and easy to project.
 case_graph(delfourCaseGraph, (
   caseName(case, "delfour"),
   requestPurpose(case, "shopping_assist"),
@@ -53,6 +56,7 @@ case_graph(delfourCaseGraph, (
   scannedProduct(scan, prod_BIS_001)
 )).
 
+% Catalog rows are product(IdTerm, DisplayId, Name, SugarTenths, SugarG).
 product_catalog(delfourCatalog, [
   product(prod_BIS_001, "prod_BIS_001", "Classic Tea Biscuits", 120, 12.0),
   product(prod_BIS_101, "prod_BIS_101", "Low-Sugar Tea Biscuits", 30, 3.0),
@@ -97,6 +101,7 @@ signature_graph(delfourSignatureGraph, (
 
 reason_text(reasonText, "Household requires low-sugar guidance (diabetes in POD). A neutral Insight is scoped to device 'self-scanner', event 'pick_up_scanner', retailer 'Delfour', and expires soon; the policy confines use to shopping assistance.").
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 case_statement(S, P, O) :- case_graph(delfourCaseGraph, Formula), formula_binary(Formula, S, P, O).
 insight_statement(S, P, O) :- insight_graph(delfourInsightGraph, Formula), formula_binary(Formula, S, P, O).
 policy_statement(S, P, O) :- policy_graph(delfourPolicyGraph, Formula), formula_binary(Formula, S, P, O).
@@ -149,6 +154,7 @@ payload_hash_sha256(signature, Hash) :- signature_statement(signature, payloadHa
 signature_hmac(signature, Hmac) :- signature_statement(signature, hmac, Hmac).
 hmac_verification_mode(signature, Mode) :- signature_statement(signature, hmacVerificationMode, Mode).
 
+% The household profile creates the low-sugar need used by the insight.
 needs_low_sugar(case) :-
   condition(householdProfile, "Diabetes").
 
@@ -200,6 +206,7 @@ better_lower_sugar(ScannedSugar, CandidateSugar) :-
   gt(ScannedSugar, OtherSugar),
   lt(OtherSugar, CandidateSugar).
 
+% Pick the lowest-sugar alternative according to the insight suggestion policy.
 suggested_alternative(case, Candidate) :-
   scanned_product(scan, Scanned),
   sugar_tenths(Scanned, ScannedSugar),

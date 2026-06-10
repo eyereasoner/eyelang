@@ -1,5 +1,6 @@
 % Memoize interval computations reused across width, midpoint, gradient, step,
 % objective, and contraction report relations.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(eta, 2).
 materialize(etaLeHalf, 2).
 materialize(xBounds, 2).
@@ -10,6 +11,7 @@ materialize(stepBounds, 2).
 materialize(objectiveBounds, 2).
 materialize(widthContractsAt, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(x_bounds, 3).
 memoize(width, 2).
 memoize(g_bounds, 3).
@@ -23,6 +25,7 @@ memoize(f_upper, 2).
 
 max_k(10).
 target(1.0).
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 eta(Eta) :- div(1.0, 5, Eta).
 x_bounds(0, 0.0, 2.0).
 

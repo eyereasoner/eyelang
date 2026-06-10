@@ -3,10 +3,12 @@
 % The rules compute process capability indices from measurement summaries and
 % classify production lines using a practical Cpk threshold.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(cpk, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 run(line7_shift_a).
 run(line8_shift_b).
 
@@ -22,6 +24,7 @@ summary(line8_shift_b, sigma_mm, 0.02).
 
 capability_threshold(cpk, 1.33).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 upper_margin_mm(Run, Margin) :-
   spec(Run, upper_mm, Upper),
   summary(Run, mean_mm, Mean),

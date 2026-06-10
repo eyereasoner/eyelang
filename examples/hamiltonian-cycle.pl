@@ -5,11 +5,13 @@
 % cycle directions are still distinct, so the count is for cycles from a fixed
 % start in traversal order.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(status, 2).
 materialize(witness, 2).
 materialize(vertexCount, 2).
 materialize(cycleCountFromA, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 edge(a, b).
 edge(a, f).
 edge(a, g).
@@ -28,6 +30,7 @@ edge(e, f).
 edge(f, g).
 edge(g, h).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 adjacent(X, Y) :- edge(X, Y).
 adjacent(X, Y) :- edge(Y, X).
 

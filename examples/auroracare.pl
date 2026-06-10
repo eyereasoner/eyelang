@@ -3,6 +3,7 @@
 % translation materializes the policy decisions, reasons, traces, and ARC-style
 % check values as ordinary relation output.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(label, 2).
 materialize(description, 2).
 materialize(careTeamLinked, 2).
@@ -24,9 +25,11 @@ materialize(checkC8, 2).
 materialize(checkC9, 2).
 materialize(checkC10Text, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 caseName(case, "auroracare").
 question(case, "For each AuroraCare scenario, should the PDP permit or deny the requested use of health data, and why?").
 
+% Policies: primary care, quality improvement, research, and an explicit denial.
 policyUid(policyPrimary, "urn:policy:primary-care-001").
 purposeAllowed(policyPrimary, primaryCareManagement).
 purposeAllowed(policyPrimary, patientRemoteMonitoring).
@@ -64,6 +67,7 @@ primaryPurpose(auroracare, primaryCareManagement).
 primaryPurpose(auroracare, patientRemoteMonitoring).
 prohibitedPurpose(auroracare, insuranceManagement).
 
+% Scenarios A-G mirror the upstream Markdown report cases.
 scenario(scenarioA).
 outputKey(scenarioA, out010A).
 scenario_label(scenarioA, "A – Primary care visit").
@@ -145,6 +149,7 @@ environment(scenarioG, "secure_env").
 category(scenarioG, patientSummary).
 category(scenarioG, labResults).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 label(S, Label) :- scenario_label(S, Label).
 description(S, Description) :- scenario_description(S, Description).
 
@@ -195,9 +200,11 @@ careTeamLinked(S, true) :- care_team_linked(S).
 subjectOptIn(S, true) :- subject_opt_in(S).
 subjectOptOut(S, true) :- subject_opt_out(S).
 
+% Permit when a scenario satisfies one of the allowed policy branches.
 decision(S, "PERMIT") :- primary_policy_match(S).
 decision(S, "PERMIT") :- qi_policy_match(S).
 decision(S, "PERMIT") :- research_policy_match(S).
+% Deny branches preserve the reason that will be materialized for the report.
 decision(S, "DENY") :- insurance_prohibition_match(S).
 decision(S, "DENY") :- ai_training_opt_out_match(S).
 decision(scenarioC, "DENY") :- purpose(scenarioC, ensureQualitySafetyHealthcare).
@@ -223,6 +230,7 @@ trace(S, "urn:policy:deny-insurance:deny:odrl:prohibition_matched") :- insurance
 trace(S, "deny:subject_opted_out_ai_training") :- ai_training_opt_out_match(S).
 trace(scenarioC, "urn:policy:qi-2025-aurora:deny:odrl:no_permission_matched") :- purpose(scenarioC, ensureQualitySafetyHealthcare).
 
+% C1-C10 below are the ARC-style checklist lines from the upstream output.
 checkC1(scenarioA, "SKIPPED - not a prohibited purpose") :- decision(scenarioA, "PERMIT").
 checkC2(scenarioA, "OK - clinician") :- decision(scenarioA, "PERMIT").
 checkC3(scenarioA, "OK - care-team linked") :- decision(scenarioA, "PERMIT").

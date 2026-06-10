@@ -3,12 +3,14 @@
 % Four simplified worlds classify candidate transit signals using either Bayes,
 % sensitivity-only reasoning, a heuristic threshold, or a stricter Bayesian rule.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(ppvPlanetGivenDetection, 2).
 materialize(confirmsInWorld, 2).
 materialize(rejectsInWorld, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 candidate(rare_wide_orbit, 0.001, 0.99, 0.99).
 candidate(mstar_short_period, 0.20, 0.99, 0.99).
 candidate(common_hot_neptune_good, 0.25, 0.95, 0.97).
@@ -19,6 +21,7 @@ world(w1, sensitivity_only_naive).
 world(w2, occurrence_sensitivity_specificity_heuristic).
 world(w3, cautious_bayes_threshold).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 ppv_planet(Candidate, PPV) :-
   candidate(Candidate, Occurrence, Sensitivity, Specificity),
   mul(Sensitivity, Occurrence, Numerator),

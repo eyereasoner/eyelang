@@ -1,7 +1,9 @@
 % Memoize the fast-doubling helper: several requested Fibonacci numbers reuse
 % the same half-size subproblems.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(fibonacci, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(fib_pair, 3).
 
 % BigInt Fibonacci via fast doubling, implemented in Prolog using generic
@@ -14,6 +16,7 @@ fib_case(100).
 fib_case(1000).
 fib_case(10000).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 fib(N, Value) :- fib_pair(N, Value, _Next).
 
 fib_pair(0, 0, 1).

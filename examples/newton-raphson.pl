@@ -1,12 +1,15 @@
 % Newton-Raphson root finding, adapted from Eyelet input/newton-raphson.pl.
 % The selected roots match Eyelet output-swipl/newton-raphson.pl.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(findRoot, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 want_root([1, 1.0, 1.0e-15]).
 want_root([2, 2.0, 1.0e-15]).
 want_root([3, 3.0, 1.0e-15]).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 findRoot(Input, Root) :-
   want_root(Input),
   find_root(Input, Root).

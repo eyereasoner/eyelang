@@ -3,11 +3,13 @@
 % The example combines measurements, observations, targets, logarithmic
 % feedforward compensation, square-root normalization, and nonlinear feedback.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(controlSignal, 2).
 materialize(status, 2).
 materialize(normalizedMeasurement, 2).
 materialize(log10, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 measurement(input1, [6, 11]).
 measurement(disturbance2, [45, 39]).
 measurement(input2, true).
@@ -21,6 +23,7 @@ observation(state3, 22).
 
 target(output2, 29).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 measurement_normalized(I, M) :-
   measurement(I, [M1, M2]),
   lt(M1, M2),

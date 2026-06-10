@@ -4,6 +4,7 @@
 % the default relation materialization stays concise.  The visible output is
 % the alarm plus the small set of relations explaining why the alarm fired.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(type, 2).
 materialize(lld_left_length_cm, 2).
 materialize(lld_right_length_cm, 2).
@@ -11,6 +12,7 @@ materialize(lld_discrepancy_cm, 2).
 materialize(lld_threshold_cm, 2).
 materialize(lld_reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 measurement(meas47).
 
 % measured landmark coordinates, in centimetres
@@ -27,6 +29,7 @@ val(meas47, p4yCm, 28.5).
 threshold(meas47, lld_alarm_threshold_cm, 1.25).
 
 % geometric intermediate values
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 val(M, dx12Cm, Z) :- measurement(M), val(M, p1xCm, X), val(M, p2xCm, Y), sub(X, Y, Z).
 val(M, dx51Cm, Z) :- measurement(M), val(M, p5xCm, X), val(M, p1xCm, Y), sub(X, Y, Z).
 val(M, dx53Cm, Z) :- measurement(M), val(M, p5xCm, X), val(M, p3xCm, Y), sub(X, Y, Z).

@@ -3,6 +3,7 @@
 % A simplified continuous-conduction buck converter model computes duty cycle,
 % inductor ripple current, capacitor ripple voltage, and checks design limits.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(dutyCycle, 2).
 materialize(inductorRipple_A, 2).
 materialize(rippleRatio, 2).
@@ -10,6 +11,7 @@ materialize(capacitorRipple_V, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 converter(regulator1, inputVoltage_V, 24.0).
 converter(regulator1, outputVoltage_V, 5.0).
 converter(regulator1, loadCurrent_A, 2.0).
@@ -19,6 +21,7 @@ converter(regulator1, capacitance_F, 0.000047).
 limit(regulator1, maxRippleRatio, 0.30).
 limit(regulator1, maxOutputRipple_V, 0.05).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 duty_cycle(Converter, Duty) :-
   converter(Converter, outputVoltage_V, OutputVoltage),
   converter(Converter, inputVoltage_V, InputVoltage),

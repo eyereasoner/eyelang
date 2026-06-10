@@ -1,12 +1,16 @@
 % Fast exponentiation examples adapted from Eyeling fastpow.n3.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(pow, 2).
 materialize(powSlow, 2).
 materialize(powMod1e6, 2).
 materialize(tower, 2).
 materialize(towerMod1e6, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% pow/3 uses exponentiation by squaring.
 pow(_Base, 0, 1).
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 pow(Base, Exp, Value) :-
   gt(Exp, 0),
   mod(Exp, 2, 0),
@@ -20,6 +24,7 @@ pow(Base, Exp, Value) :-
   pow(Base, EvenExp, EvenValue),
   mul(Base, EvenValue, Value).
 
+% pow_mod/4 applies the modulus at each multiplication to keep values small.
 pow_mod(_Base, 0, _Mod, 1).
 pow_mod(Base, Exp, Mod, Value) :-
   gt(Exp, 0),

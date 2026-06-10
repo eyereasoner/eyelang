@@ -1,9 +1,11 @@
 % Memoize scoped family projection and recursive labels; cousin derivation asks
 % for the same generation and branch facts many times.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(generation, 2).
 materialize(branch, 2).
 materialize(cousin, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(family_statement, 3).
 memoize(generation, 2).
 memoize(branch, 2).
@@ -30,6 +32,7 @@ family_graph(familyGraph, (
   seedBranch(grace, c)
 )).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 family_statement(S, P, O) :- family_graph(familyGraph, Formula), formula_binary(Formula, S, P, O).
 
 parent(Parent, Child) :- family_statement(Parent, parent, Child).

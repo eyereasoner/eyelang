@@ -1,10 +1,13 @@
 % Eyelet-inspired D3 group example using findall/3 and sort/2.
 % It enumerates subgroups of the dihedral group of order 6.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(subgroups, 2).
 materialize(subgroupCount, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Six symmetries of an equilateral triangle: identity, rotations, reflections.
 symmetry(identity).
 symmetry(rotation_120).
 symmetry(rotation_240).
@@ -12,6 +15,7 @@ symmetry(reflection_a).
 symmetry(reflection_b).
 symmetry(reflection_c).
 
+% Cayley table for D3 composition.
 compose(identity, identity, identity).
 compose(identity, rotation_120, rotation_120).
 compose(identity, rotation_240, rotation_240).
@@ -48,6 +52,7 @@ compose(reflection_c, rotation_240, reflection_a).
 compose(reflection_c, reflection_a, rotation_240).
 compose(reflection_c, reflection_b, rotation_120).
 compose(reflection_c, reflection_c, identity).
+% Each candidate subgroup must also contain inverses.
 inverse(identity, identity).
 inverse(rotation_120, rotation_240).
 inverse(rotation_240, rotation_120).
@@ -55,7 +60,9 @@ inverse(reflection_a, reflection_a).
 inverse(reflection_b, reflection_b).
 inverse(reflection_c, reflection_c).
 
+% Candidate subsets are generated as subsequences of the sorted symmetry list.
 subsequence([], []).
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 subsequence([Head | Tail], [Head | Rest]) :-
   subsequence(Tail, Rest).
 subsequence([_Head | Tail], Rest) :-
@@ -65,6 +72,7 @@ all_symmetries(Symmetries) :-
   findall(X, symmetry(X), Raw),
   sort(Raw, Symmetries).
 
+% A valid subgroup is closed under both composition and inverse.
 closed_under_composition(Group) :-
   not((member(X, Group), member(Y, Group), compose(X, Y, Z), not(member(Z, Group)))).
 

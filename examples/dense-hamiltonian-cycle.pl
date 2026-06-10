@@ -5,11 +5,13 @@
 % scores the closed cycles, and keeps the cheapest candidate with
 % aggregate_min/5.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(best, 2).
 materialize(candidateCount, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 cities([a, b, c, d, e, f, g, h]).
 
 edge(a, b, 3).
@@ -41,6 +43,7 @@ edge(f, g, 8).
 edge(f, h, 45).
 edge(g, h, 9).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 weight(A, B, W) :- edge(A, B, W).
 weight(A, B, W) :- edge(B, A, W).
 

@@ -1,9 +1,12 @@
 % Generic path discovery over the air-routes graph.
 % Change or add route_request(FromLabel, ToLabel, MaxStopOvers) to answer other routes.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(airroute, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 route_request("Ostend-Bruges International Airport", "Václav Havel Airport Prague", 2).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 airroute(discovered, RouteText) :-
   route_request(From, To, MaxStopOvers),
   airport(Source, From),

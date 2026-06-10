@@ -5,6 +5,7 @@
 % reasoning, and materializes the derived DPV risks as relation output.
 
 % Consumer profile and needs.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(dct_title, 2).
 materialize(dpv_hasRisk, 2).
 materialize(type, 2).
@@ -31,6 +32,7 @@ materialize(dpv_mitigatesRisk, 2).
 materialize(clauseId, 2).
 materialize(text, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 consumer(consumerExample).
 title(consumerExample, "Example consumer profile").
 has_need(consumerExample, need_DataCannotBeRemoved).
@@ -94,6 +96,7 @@ policy_graph(policyGraph1, (
   clause(prohibitExportData, clauseC4)
 )).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 policy_statement(Subject, Predicate, Object) :-
   policy_graph(_Graph, Formula),
   formula_binary(Formula, Subject, Predicate, Object).

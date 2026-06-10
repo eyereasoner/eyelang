@@ -5,11 +5,14 @@
 % has_bananas].  The selected output searches bounded move lists and derives successful
 % plans.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(plan, 2).
 materialize(solved, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(reachable, 3).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 plan(Moves) :-
   candidate_plan(Moves),
   initial_state(I),

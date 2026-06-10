@@ -4,10 +4,12 @@
 % source can be joined again.  This compact eyelang version keeps the same
 % diamond idea and also checks that it is preserved by reflexive closure.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(holdsFor, 2).
 materialize(commonSuccessor, 2).
 materialize(preservedUnderReflexiveClosure, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 node(a).
 node(b).
 node(c).
@@ -18,6 +20,7 @@ r(a, c).
 r(b, d).
 r(c, d).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 re(X, X) :- node(X).
 re(X, Y) :- r(X, Y).
 

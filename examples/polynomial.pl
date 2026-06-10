@@ -6,12 +6,14 @@
 % searching a finite complex-integer candidate grid.  The two cases below are
 % the same quartic polynomials used by the Eyelet source.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(polynomial, 2).
 materialize(root, 2).
 materialize(reconstructedPolynomial, 2).
 materialize(reconstructionMatches, 2).
 materialize(allRootsVerified, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 case(real_quartic).
 case(complex_quartic).
 
@@ -32,6 +34,7 @@ known_roots(complex_quartic, [[0, 1], [1, 1], [3, 2], [5, 1]]).
 
 c_zero([0, 0]).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 c_add([A, B], [C, D], [E, F]) :-
   add(A, C, E),
   add(B, D, F).

@@ -4,11 +4,13 @@
 % The input interval table is a list of records, showing how tabular data can
 % stay scoped as one term instead of many unrelated global start/end facts.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(start, 2).
 materialize(end, 2).
 materialize(duration, 2).
 materialize(statement, 3).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 interval_table([
   interval(a, 10, 12),
   interval(b, 13, 15),
@@ -23,6 +25,7 @@ interval_table([
   interval(k, 13, 14)
 ]).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 interval(I) :- interval_table(Table), member(interval(I, _Start, _End), Table).
 start(I, Start) :- interval_table(Table), member(interval(I, Start, _End), Table).
 end(I, End) :- interval_table(Table), member(interval(I, _Start, End), Table).

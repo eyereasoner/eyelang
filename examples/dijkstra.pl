@@ -5,9 +5,11 @@
 % The input weighted graph is quoted as ... data and projected locally,
 % so the route network is not asserted as ambient edge facts.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(edge, 2).
 materialize(path, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 weighted_graph(dijkstraGraph, (
   edge(a, arc(b, 4)),
   edge(a, arc(c, 2)),
@@ -20,6 +22,7 @@ weighted_graph(dijkstraGraph, (
   edge(e, arc(f, 3))
 )).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 base_link(A, B, Cost) :-
   weighted_graph(dijkstraGraph, Formula),
   formula_binary(Formula, A, edge, arc(B, Cost)).

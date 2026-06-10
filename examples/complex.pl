@@ -3,11 +3,14 @@
 % Complex values are represented as two-item lists [Real, Imaginary], matching
 % the pair-shaped pair lists used by the Eyeling source.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(is, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 pi(3.141592653589793).
 e(2.718281828459045).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 complex_exponentiation([A, B], [C, D], [E, F]) :-
   complex_polar([A, B], [R, T]),
   pow(R, C, Z1),

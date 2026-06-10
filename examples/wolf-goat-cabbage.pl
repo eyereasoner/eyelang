@@ -5,11 +5,14 @@
 % bank w or east bank e.  The recursive search keeps a visited list so eyelang
 % explores the finite state space without looping.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(solution, 2).
 materialize(solved, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(solve, 4).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 solution(Moves) :-
   solve([w, w, w, w], [e, e, e, e], [[w, w, w, w]], Moves),
   length(Moves, 7).

@@ -4,6 +4,7 @@
 % broader/narrower alignments, their transitive closure, the reflexive
 % narrower-or-equal relation, and the concepts that roll up to ref_car.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(broader, 2).
 materialize(narrower, 2).
 materialize(broaderTransitive, 2).
@@ -11,6 +12,7 @@ materialize(narrowerTransitive, 2).
 materialize(narrowerOrEqualOf, 2).
 materialize(rollsUpTo, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 concept(ref_car).
 concept(tel_car).
 concept(tel_heavy_vehicle).
@@ -22,6 +24,7 @@ assertedBroader(tel_heavy_vehicle, ref_car).
 assertedBroader(anpr_vehicle_with_plate, ref_car).
 assertedNarrower(anpr_vehicle_with_plate, anpr_passenger_car).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 broader(X, Y) :- assertedBroader(X, Y).
 broader(X, Y) :- assertedNarrower(Y, X).
 

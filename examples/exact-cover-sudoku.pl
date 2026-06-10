@@ -5,10 +5,13 @@
 % The solver then chooses one candidate per row and checks the exact-cover
 % constraints for all columns and 3x3 boxes.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(status, 2).
 materialize(solution, 2).
 materialize(firstRow, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 cover9(Cells) :-
   sort(Cells, [1, 2, 3, 4, 5, 6, 7, 8, 9]).
 

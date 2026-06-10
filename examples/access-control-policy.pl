@@ -4,10 +4,12 @@
 % finite logical conditions.  The universal allOf/noneOf checks use negation
 % as failure over bound policy facts.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(policy, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 policy_request(test1, policy_x).
 has(test1, claim_a).
 has(test1, claim_b).
@@ -19,6 +21,7 @@ allOf(policy_x, claim_b).
 anyOf(policy_x, claim_c).
 noneOf(policy_x, claim_d).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 passes_all_of(Request, Policy) :-
   policy_request(Request, Policy),
   policy(Policy),

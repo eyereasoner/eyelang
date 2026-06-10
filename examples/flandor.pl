@@ -3,6 +3,7 @@
 % the neutral insight, policy envelope, authorization, package choice, and checks
 % as materialized relation output.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(caseName, 2).
 materialize(regionName, 2).
 materialize(metric, 2).
@@ -42,6 +43,8 @@ materialize(surveillanceReuseProhibited, 2).
 materialize(filesWrittenExpected, 2).
 materialize(lowestCostEligiblePackageChosen, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Case metadata describes the request, audit window, and expected file writes.
 case_name(case, "flandor").
 question(case, "Is the Flemish Economic Resilience Board allowed to use a neutral macro-economic insight for regional stabilization, and if so which package should it activate for Flanders?").
 expectedFilesWritten(case, 6).
@@ -60,6 +63,7 @@ aggregationLevel(signals, "regional_cluster").
 containsFirmNames(signals, false).
 containsPayrollRows(signals, false).
 
+% Signals are intentionally aggregated: no firm names or payroll rows are present.
 industrialCluster(clusterAntwerp).
 clusterName(clusterAntwerp, "Antwerp chemicals").
 exportOrdersIndex(clusterAntwerp, 84).
@@ -76,6 +80,7 @@ renewableCurtailmentMWh(grid, 240).
 maxMEUR(budget, 140).
 windowName(budget, "Q2 resilience window").
 
+% Candidate packages expose cost and which active needs they cover.
 policyPackage(pkgTrainingOnly).
 packageId(pkgTrainingOnly, "pkg:TRAIN_070").
 packageName(pkgTrainingOnly, "Flanders Skills Sprint").
@@ -142,6 +147,7 @@ hmacVerificationMode(signature, trustedPrecomputedInput).
 
 reason_value(reasonText, "Secure aggregates from Flanders indicate simultaneous export weakness, technical labour scarcity, and grid congestion. A neutral macro insight is scoped to the economic-resilience board for one budget window only, enabling a temporary package without exposing firm-level books.").
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 caseName(Case, Name) :- case_name(Case, Name).
 regionName(Region, Name) :- region_name(Region, Name).
 metric(Insight, Metric) :- insight_metric(Insight, Metric).
@@ -187,6 +193,7 @@ scope_complete(check) :-
   scopeEvent(macroInsight, _Event),
   expiresAt(macroInsight, _Expiry).
 
+% Authorization combines policy scope, envelope timing, and use permission.
 authorization_allowed(check) :-
   permission(policy, odrlUse, macroInsight, "regional_stabilization"),
   boardAuthAt(case, AuthAt),
@@ -195,6 +202,7 @@ authorization_allowed(check) :-
 
 decision(decision, "Allowed", macroInsight) :- authorization_allowed(check).
 
+% An eligible package must cover every active need and fit under the budget cap.
 eligible_package(Pkg) :-
   needs_retooling_pulse(case),
   maxMEUR(budget, Max),
@@ -210,6 +218,7 @@ lower_cost_eligible_package(Cost) :-
   costMEUR(Other, OtherCost),
   lt(OtherCost, Cost).
 
+% The recommendation is the lowest-cost eligible package.
 recommended_package(case, Pkg) :-
   eligible_package(Pkg),
   costMEUR(Pkg, Cost),

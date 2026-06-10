@@ -4,10 +4,12 @@
 % predicates keep the inclusion/exclusion logic separate from the concise
 % public relation report.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(type, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 patient(p001).
 patient(p002).
 patient(p003).
@@ -35,6 +37,7 @@ lab(p004, egfr_ml_min, 72.0).
 
 condition(p003, pregnant).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 inclusion_adult(Patient) :-
   patient(Patient),
   age(Patient, Age),

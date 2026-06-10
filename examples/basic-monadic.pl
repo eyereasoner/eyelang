@@ -8,8 +8,10 @@
 % EYE reasoning/basic-monadic/10tt_answer.n3 in cardinality and content
 % after translating N3 statements to eyelang relation terms.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(cycle, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 edge(i30, i12, i33).
 edge(i61, i29, i42).
 edge(i57, i46, i87).
@@ -10011,6 +10013,6 @@ edge(i18, i75, i36).
 edge(i48, i89, i48).
 edge(i26, i42, i54).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 cycle(R, Cycle) :-
   fixed_length_cycle(edge, 10, R, Cycle).
-

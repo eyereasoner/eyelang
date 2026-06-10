@@ -4,10 +4,12 @@
 % four colours. This eyelang version keeps the same map/assignment shape and adds
 % a rule-level validation layer that rejects equal colours across borders.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(color, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 country(belgium). country(netherlands). country(luxemburg). country(france).
 country(germany). country(italy). country(denmark). country(ireland).
 country(greece). country(spain). country(portugal). country(austria).
@@ -36,6 +38,7 @@ border(estonia, latvia).
 border(latvia, lithuania).
 border(bulgaria, romania).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 adjacent(A, B) :- border(A, B).
 adjacent(A, B) :- border(B, A).
 

@@ -1,11 +1,13 @@
 % Eyelet-inspired Quine-McCluskey minimization using findall/3 and sort/2.
 % Problem: f(A,B,C,D) = Sigma m(1,3,7,11,15) + d(0,2,5).
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(primeImplicants, 2).
 materialize(minimalCover, 2).
 materialize(equation, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 minterm(1).
 minterm(3).
 minterm(7).
@@ -33,6 +35,7 @@ bits(13, [1, 1, 0, 1]).
 bits(14, [1, 1, 1, 0]).
 bits(15, [1, 1, 1, 1]).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 initial_pattern(P) :- minterm(M), bits(M, P).
 initial_pattern(P) :- dont_care(D), bits(D, P).
 

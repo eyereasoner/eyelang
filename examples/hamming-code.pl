@@ -3,6 +3,7 @@
 % The received word has one corrupted bit. Syndrome bits identify the bad
 % position, then the corrected codeword and decoded payload are derived.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(syndrome, 2).
 materialize(errorBit, 2).
 materialize(correctedCodeword, 2).
@@ -10,6 +11,7 @@ materialize(decodedPayload, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 received_bit(packet1, 1, 1).
 received_bit(packet1, 2, 0).
 received_bit(packet1, 3, 1).
@@ -21,6 +23,7 @@ received_bit(packet1, 7, 0).
 flip(0, 1).
 flip(1, 0).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 parity4(A, B, C, D, Parity) :-
   add(A, B, AB),
   add(AB, C, ABC),

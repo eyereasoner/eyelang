@@ -4,11 +4,13 @@
 % are sorted lists of on(Block, Support) facts so equality and visited-state
 % checks are purely structural.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(status, 2).
 materialize(plan, 2).
 materialize(finalState, 2).
 materialize(blockCount, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 initial([on(a, table), on(b, a), on(c, b), on(d, c), on(e, d)]).
 goal([on(a, table), on(b, a), on(c, table), on(d, c), on(e, d)]).
 
@@ -19,6 +21,7 @@ block(d).
 block(e).
 
 support(table, _State).
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 support(Block, State) :-
   block(Block),
   member(on(Block, _Below), State).

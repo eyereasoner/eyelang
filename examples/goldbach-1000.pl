@@ -1,8 +1,10 @@
 % Goldbach pairs up to 1000.
 % Prime numbers are input data; the rule below derives all Goldbach pairs.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(isPrime, 2).
 materialize(goldbachOk, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 prime(2).
 prime(3).
 prime(5).
@@ -172,6 +174,7 @@ prime(983).
 prime(991).
 prime(997).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 even_between_4_1000(N) :- between(4, 1000, N), mod(N, 2, 0).
 
 isPrime(N, true) :-

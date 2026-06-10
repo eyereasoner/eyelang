@@ -4,6 +4,7 @@
 % points, so this example is comparable with examples/output/bayes-diagnosis.n3
 % in the Eyeling repository.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(scores, 2).
 materialize(evidenceTotal, 2).
 materialize(result, 2).
@@ -11,6 +12,7 @@ materialize(disease, 2).
 materialize(unnormalized, 2).
 materialize(posterior, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 disease(covid19).
 disease(influenza).
 disease(allergicRhinitis).
@@ -53,6 +55,7 @@ evidence([
   ev(shortBreath, true)
 ]).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 factor(Disease, Symptom, true, P) :- p_given(Disease, Symptom, P).
 factor(Disease, Symptom, false, Q) :-
   p_given(Disease, Symptom, P),

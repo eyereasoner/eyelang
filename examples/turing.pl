@@ -3,10 +3,13 @@
 % The machine below adds 1 to a binary number represented as a list of bits.
 % The blank tape symbol is #.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(input, 2).
 materialize(output, 2).
 materialize(addsOne, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 compute([], OutTape) :-
   start(_Machine, I),
   find(I, [], #, [], OutTape).

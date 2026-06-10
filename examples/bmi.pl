@@ -7,6 +7,7 @@
 % For reproducibility and documentation only; not medical advice.
 
 % Editable metric input.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(unitSystem, 2).
 materialize(weight, 2).
 materialize(height, 2).
@@ -39,6 +40,7 @@ materialize(result, 2).
 materialize(healthyWeightRangeKg, 2).
 materialize(checkPassed, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 unitSystem(input, metric).
 weight(input, 72.0).
 height(input, 178.0).
@@ -49,6 +51,7 @@ height(input, 178.0).
 % height(input, 70.08).
 
 % Normalization and BMI calculation.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 weightKg(case, W) :-
   unitSystem(input, metric),
   weight(input, W).

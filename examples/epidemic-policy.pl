@@ -1,12 +1,15 @@
 % EYE-inspired epidemic policy choice.
 % Policies are evaluated by estimated reproduction risk and social cost.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(riskScore, 2).
 materialize(cost, 2).
 materialize(status, 2).
 materialize(recommendedPolicy, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Candidate interventions combine vaccination and mask factors.
 policy(no_mandate).
 policy(vaccination_campaign).
 policy(indoor_masks).
@@ -29,6 +32,8 @@ policy_cost(vaccination_campaign, 3).
 policy_cost(indoor_masks, 2).
 policy_cost(vaccination_and_masks, 5).
 
+% Risk multiplies the base reproduction estimate by policy-specific factors.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 risk_score(P, R) :-
   base_risk(Base),
   vaccination_factor(P, VF),
@@ -48,6 +53,7 @@ status(P, insufficient_control) :-
 status(P, acceptable_control) :-
   acceptable(P).
 
+% The recommendation is the only candidate below the outbreak threshold.
 recommended(vaccination_and_masks) :-
   acceptable(vaccination_and_masks),
   status(no_mandate, insufficient_control),

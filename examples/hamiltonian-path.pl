@@ -4,9 +4,11 @@
 % vertex set directly and derives every path that visits each vertex exactly
 % once.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(hasHamiltonianPath, 2).
 materialize(hamiltonianPath, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(adjacent, 2).
 
 edge(v1, v2).
@@ -21,6 +23,7 @@ edge(v3, v6).
 edge(v4, v5).
 edge(v4, v6).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 adjacent(V, U) :- edge(V, U).
 adjacent(V, U) :- edge(U, V).
 

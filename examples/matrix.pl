@@ -7,10 +7,13 @@
 
 % --- small list helpers -----------------------------------------------------
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(result, 2).
 materialize(checksConsistentWithTreallaReference, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 nth0(0, [H|_T], H).
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 nth0(N, [_H|T], V) :-
   gt(N, 0),
   sub(N, 1, N1),

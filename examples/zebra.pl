@@ -4,10 +4,13 @@
 % Cigarette).  The answer is the classic one: the Norwegian drinks water and the
 % Japanese owns the zebra.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(waterDrinker, 2).
 materialize(zebraOwner, 2).
 materialize(solved, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 zebra(WaterDrinker, ZebraOwner) :-
   eq(Houses, [_, _, _, _, _]),
   first(Houses, house(_, norwegian, _, _, _)),

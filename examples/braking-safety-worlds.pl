@@ -3,11 +3,13 @@
 % Four simplified models classify the same road scenarios. The example is not a
 % real safety calculator; it demonstrates rule-level model comparison.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(safeInWorld, 2).
 materialize(riskyInWorld, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 scenario(city_dry, 13.9, 0.8, 40.0).
 scenario(highway_dry_short_gap, 27.8, 0.8, 60.0).
 scenario(city_wet, 13.9, 0.4, 40.0).
@@ -18,6 +20,7 @@ world(w1, "simplified braking-only rule without reaction time").
 world(w2, "naive dry-road friction assumption").
 world(w3, "cautious factor over the physics model").
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 stop_distance(Scenario, w0, Distance) :-
   scenario(Scenario, V, Mu, Avail),
   mul(V, 1.0, Reaction),

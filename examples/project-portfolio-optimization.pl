@@ -5,6 +5,7 @@
 % accumulate, then use aggregate builtins to select useful optima without
 % building and sorting a large bag of candidate portfolios.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(bestPortfolio, 2).
 materialize(lowRiskTarget, 2).
 materialize(feasibleCount, 2).
@@ -12,6 +13,7 @@ materialize(projectCount, 2).
 materialize(totalAvailableValue, 2).
 materialize(note, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 budget(portfolio2026, 75).
 riskCap(portfolio2026, 28).
 targetValue(portfolio2026, 125).
@@ -31,6 +33,7 @@ allProjectData([
   p(security, 25, 16, 7)
 ]).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 project(Name, Value, Cost, Risk) :-
   allProjectData(Projects),
   member(p(Name, Value, Cost, Risk), Projects).

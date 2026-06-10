@@ -4,11 +4,13 @@
 % and its contents remain quoted formula data.  Nothing inside the three formulae
 % is asserted globally unless a rule explicitly projects it.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(log_nameOf, 2).
 materialize(dataGraph, 2).
 materialize(signatureGraph, 2).
 materialize(metadataGraph, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 log_nameOf(skolem_g0, foaf_name(bob, "Bob")).
 
 log_nameOf(skolem_g1, (
@@ -36,6 +38,7 @@ log_nameOf(g3, (
 
 % A tiny projection shows how a program can inspect a quoted context without
 % making the entire context globally true.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 context_statement(Context, Subject, Predicate, Object) :-
   log_nameOf(Context, Formula),
   formula_binary(Formula, Subject, Predicate, Object).

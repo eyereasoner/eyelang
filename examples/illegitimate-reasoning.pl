@@ -7,6 +7,7 @@
 
 % Affirming the consequent:
 %   If it rained, the street is wet. The street is wet. Therefore it rained.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(type, 2).
 materialize(fallacy, 2).
 materialize(conclusion, 2).
@@ -15,6 +16,7 @@ materialize(sampleSize, 2).
 materialize(requiredSampleSize, 2).
 materialize(omittedAlternative, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 argument(arg_affirming_consequent).
 implication(arg_affirming_consequent, rain, street_wet).
 observed(arg_affirming_consequent, street_wet).
@@ -47,6 +49,7 @@ implication(arg_modus_ponens, subscription_paid, access_allowed).
 observed(arg_modus_ponens, subscription_paid).
 concludes(arg_modus_ponens, access_allowed).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 fallacy(A, affirming_consequent) :-
   argument(A),
   implication(A, Antecedent, Consequent),

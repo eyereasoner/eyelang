@@ -4,11 +4,13 @@
 % Each case derives gcd(a,b), coefficients s,t, and validation checks for
 % a*s + b*t = gcd(a,b) and divisibility.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(gcd, 2).
 materialize(bezoutCoefficients, 2).
 materialize(check, 2).
 materialize(status, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 case(c1, 48, 18).
 case(c2, 101, 462).
 case(c3, 0, 5).
@@ -16,6 +18,7 @@ case(c4, 270, 192).
 case(c5, -27, 36).
 case(c6, 123456, 7890).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 answer(Case, Gcd, S, T) :-
   case(Case, A, B),
   extended_gcd(A, B, Gcd, S, T).

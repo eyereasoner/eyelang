@@ -1,5 +1,6 @@
 % Memoize route costs: selected paths, route relations, and trust checks reuse
 % the same path-list reductions.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(route, 2).
 materialize(rawCost, 2).
 materialize(riskSum, 2).
@@ -10,6 +11,7 @@ materialize(trustGate, 2).
 materialize(notes, 2).
 materialize(selects, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(route_cost, 4).
 
 % Risk-adjusted route selection adapted from Eyeling dijkstra-risk-path.n3.
@@ -28,6 +30,7 @@ route_network(riskNetwork, (
   segment(depotA, segment(labD, 14.0, 0.05))
 )).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 route_segment(From, To, Raw, Risk) :-
   route_network(riskNetwork, Formula),
   formula_binary(Formula, From, segment, segment(To, Raw, Risk)).

@@ -3,16 +3,19 @@
 % The rules reduce a list of points to sufficient statistics, then derive the
 % fitted slope, intercept, and coefficient of determination R^2.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(slope, 2).
 materialize(intercept, 2).
 materialize(rSquared, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 dataset(regression1, [point(1.0, 2.0), point(2.0, 3.0), point(3.0, 5.0), point(4.0, 4.0)]).
 threshold(regression1, minimum_r_squared, 0.60).
 
 stats([], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0).
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 stats([point(X, Y)|Rest], N, SumX, SumY, SumXX, SumXY, SumYY) :-
   stats(Rest, N0, SumX0, SumY0, SumXX0, SumXY0, SumYY0),
   add(N0, 1.0, N),

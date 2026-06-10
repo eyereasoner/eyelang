@@ -14,8 +14,10 @@
 % Run:
 %   eyelang socket-age.pl
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(ageAbove, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 socket(patient_registry, provides(birthDay_2)).
 socket(policy_source, provides(duration_2)).
 socket(clock_source, provides(today_1)).
@@ -28,6 +30,7 @@ birthDay(patH, "1944-08-21").
 duration(check, "P80Y").
 today("2026-05-30").
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 ageAbove(S, A) :-
     birthDay(S, B),
     duration(check, A),

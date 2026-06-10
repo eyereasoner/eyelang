@@ -8,6 +8,7 @@
 % long adjacent-only proof after a shorter checkpoint proof has succeeded.
 % =============================================================================================================================
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(is, 2).
 materialize(answer, 2).
 materialize(reason, 2).
@@ -15,12 +16,14 @@ materialize(result, 2).
 materialize(checkPassed, 2).
 materialize(arc, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 % fact
 
 a(ind, n0).
 
 % terminal rule
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 is(test, true) :- once(a(ind, a2)).
 a(X, a2) :- a(X, n10000).
 

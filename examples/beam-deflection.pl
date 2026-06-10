@@ -2,18 +2,21 @@
 %
 % The tip deflection for a point load at the free end is F*L^3/(3*E*I).
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(type, 2).
 materialize(tipDeflection_m, 2).
 materialize(tipDeflection_mm, 2).
 materialize(limit_mm, 2).
 materialize(status, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 beam(beam1, force_N, 1200.0).
 beam(beam1, length_m, 2.5).
 beam(beam1, elasticModulus_Pa, 200000000000.0).
 beam(beam1, secondMoment_m4, 0.000008).
 limit(beam1, maxDeflection_mm, 5.0).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 tip_deflection_m(Beam, Deflection) :-
   beam(Beam, force_N, Force),
   beam(Beam, length_m, Length),

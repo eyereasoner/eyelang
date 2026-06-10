@@ -3,13 +3,16 @@
 % a subject with both defaults is reported as conflicted rather than forced to
 % choose one extension.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(defaultSupports, 2).
 materialize(conflict, 2).
 materialize(status, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 kind(nixon, quaker).
 kind(nixon, republican).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 supports_default(Person, pacifist) :-
   kind(Person, quaker).
 

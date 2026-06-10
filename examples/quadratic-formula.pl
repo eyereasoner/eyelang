@@ -3,12 +3,15 @@
 % Each equation is represented as a*x^2 + b*x + c = 0.  The example uses
 % eyelang arithmetic predicates to derive the discriminant and the two roots.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(discriminant, 2).
 materialize(root, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 equation(eq1, 1.0, -5.0, 6.0).
 equation(eq2, 2.0, -4.0, -6.0).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 discriminant(Case, D) :-
   equation(Case, A, B, C),
   pow(B, 2.0, B2),

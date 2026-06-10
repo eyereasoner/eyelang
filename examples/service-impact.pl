@@ -3,10 +3,12 @@
 % fraud_service, fraud_service calls risk_rules, and risk_rules calls payment_service
 % for authorization data. A payment outage should still produce a finite impact set.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(impactedByFailureOf, 2).
 materialize(status, 2).
 materialize(businessFunctionAtRisk, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 depends_on(web_store, checkout_api).
 depends_on(mobile_app, checkout_api).
 depends_on(checkout_api, payment_service).
@@ -25,6 +27,7 @@ business_function(show_stock, inventory_service).
 
 failed(payment_service).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 impacted(Service, Failed) :- depends_on(Service, Failed).
 impacted(Service, Failed) :- depends_on(Service, Dependency), impacted(Dependency, Failed).
 

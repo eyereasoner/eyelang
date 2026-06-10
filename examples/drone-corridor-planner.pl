@@ -1,6 +1,8 @@
 % Memoize bounded paths because surviving-plan metrics reuse route prefixes.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(gps_plan, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(path, 9).
 
 % Bounded drone corridor planner adapted from Eyeling drone-corridor-planner.n3.
@@ -24,6 +26,7 @@ step(state(brugge, mid, P), state(oostende, low, P), public_coastline_brugge_oos
 step(state(brugge, full, P), state(oostende, mid, P), public_coastline_brugge_oostende, 1200.0, 0.006, 0.975, 0.96).
 step(state(kortrijk, full, yes), state(oostende, mid, yes), direct_corridor_kortrijk_oostende, 1100.0, 0.009, 0.955, 0.92).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 path(From, To, [Act], Duration, Cost, Belief, Comfort, FuelIn, FuelOut) :-
   step(From, To, Act, Duration, Cost, Belief, Comfort),
   rest(FuelIn, FuelOut).

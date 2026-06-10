@@ -5,6 +5,7 @@
 % larger instance has eight variables and twelve clauses, so it is still small
 % enough for full model collection but no longer a toy four-variable search.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(status, 2).
 materialize(witness, 2).
 materialize(modelCount, 2).
@@ -12,6 +13,7 @@ materialize(variableCount, 2).
 materialize(clauseCount, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 problem(sat_instance,
   [a, b, c, d, e, f, g, h],
   [
@@ -33,6 +35,7 @@ truth(false).
 truth(true).
 
 assignment([], []).
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 assignment([Var|Vars], [value(Var, Truth)|Rest]) :-
   truth(Truth),
   assignment(Vars, Rest).

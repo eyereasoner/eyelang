@@ -1,5 +1,6 @@
 % Memoize shared inference layers: the score vector, disease likelihood tails,
 % and expected therapy success are reused by several report relations.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(diseases, 2).
 materialize(therapies, 2).
 materialize(evidence, 2).
@@ -12,6 +13,7 @@ materialize(expectedAdverse, 2).
 materialize(utility, 2).
 materialize(recommendedTherapy, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(scores_for, 2).
 memoize(likelihood, 3).
 memoize(expected_success, 2).
@@ -81,6 +83,7 @@ adverse(supportiveCare, 0.01).
 benefit_weight(10).
 harm_weight(3).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 factor(Disease, ev(Symptom, true), P) :- p_given(Disease, Symptom, P).
 factor(Disease, ev(Symptom, false), Q) :-
   p_given(Disease, Symptom, P),

@@ -4,14 +4,17 @@
 % The output mirrors the Eyeling golden result shape:
 % sameInputByCompositeInjectivity(h, a, b) and the symmetric counterpart.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(sameInputByCompositeInjectivity, 3).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 inX(a).
 inX(b).
 inY(c).
 inY(d).
 inZ(e).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 sameTerm(X, X) :- inX(X).
 sameTerm(X, X) :- inY(X).
 sameTerm(X, X) :- inZ(X).

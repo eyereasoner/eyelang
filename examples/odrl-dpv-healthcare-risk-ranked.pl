@@ -2,6 +2,7 @@
 % odrl-dpv-healthcare-risk-ranked.n3.
 % The agreement policy and mitigation suggestions are formula-valued terms.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(policyGraph, 2).
 materialize(contains, 2).
 materialize(dpv_hasRisk, 2).
@@ -20,6 +21,7 @@ materialize(suggestAddGraph, 2).
 materialize(firstRisk, 2).
 materialize(retentionRiskScore, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 party(hospital).
 party(researchUnit).
 party(pharmaPartner).
@@ -110,6 +112,7 @@ policy_graph(policyGraphHC1, (
   clause(permRetention10y, clauseH4)
 )).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 policy_statement(GraphName, Subject, Predicate, Object) :-
   policy_graph(GraphName, Formula),
   formula_binary(Formula, Subject, Predicate, Object).

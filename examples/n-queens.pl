@@ -10,9 +10,12 @@
 % Row - Q.  Rejecting repeats in those two lists enforces the remaining
 % N-queens constraints declaratively, without cut or destructive update.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(solution, 2).
 materialize(solved, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 queens(N, Qs) :-
   n_queens(N, Qs).
 

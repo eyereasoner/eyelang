@@ -3,10 +3,12 @@
 % The rules correlate endpoint, identity, vulnerability, and threat-intelligence
 % signals into an escalation decision with concise reason relations.
 
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(type, 2).
 materialize(status, 2).
 materialize(reason, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 incident(inc42).
 incident(inc43).
 
@@ -30,6 +32,7 @@ alert(inc43, outbound_ip, ip_198_51_100_42).
 vulnerability(endpoint23, cve_critical_rce).
 threat_intel(ip_203_0_113_17, command_and_control).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 critical_asset(Endpoint) :-
   asset(Endpoint, criticality, high).
 

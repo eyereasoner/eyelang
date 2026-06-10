@@ -7,10 +7,12 @@
 % with a single support path after the interference choices are expanded.
 
 % |R) = |0, 0) + |1, 1)
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(decodesAs, 2).
 materialize(preservesMessage, 2).
 materialize(cancelsCrossTalk, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 r(false, false).
 r(true, true).
 
@@ -28,6 +30,7 @@ k(true, false).
 k(true, true).
 
 % KG and GK compositions.
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 kg(X, Y) :-
   g(X, Z),
   k(Z, Y).

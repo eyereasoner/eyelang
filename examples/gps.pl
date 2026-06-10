@@ -1,5 +1,6 @@
 % Memoize route paths because the same candidate routes are checked repeatedly
 % for explanation and verification relations.
+% Output declarations: materialize/2 selects the relations written to this example's golden output.
 materialize(recommendedRoute, 2).
 materialize(outcome, 2).
 materialize(statement, 3).
@@ -12,6 +13,7 @@ materialize(comfort, 2).
 materialize(selectedRoute, 2).
 materialize(comparison, 2).
 
+% Program structure: facts set up the scenario, and rules derive the materialized conclusions.
 memoize(path, 7).
 memoize(traveller_path, 6).
 
@@ -35,6 +37,7 @@ map_graph(mapBE, (
   gps_description(mapBE, description(location(S, brugge), true, location(S, oostende), drive_brugge_oostende, 900.0, 0.004, 0.98, 1.0))
 )).
 
+% Derivation rules: each rule below contributes one logical step toward the displayed results.
 case_statement(S, P, O) :-
   case_graph(caseGraph, Formula),
   formula_binary(Formula, S, P, O).
