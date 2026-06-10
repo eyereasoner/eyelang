@@ -5,10 +5,10 @@
 
 eyelang is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `eyelang`.
 
-Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. eyelang output is ordinary eyelang syntax: by default, each answer fact is followed by a `why/2` explanation that records the proof. Pass `--no-why` when you want answer facts only. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)`, suppresses repeated source facts, and prints each derived answer. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
+Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. eyelang output is ordinary eyelang syntax: by default, it prints answer facts only. Pass `--proof` (or `-p`) when you also want each answer followed by a `why/2` explanation fact that records the proof. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)`, suppresses repeated source facts, and prints each derived answer. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
 
 
-Try it in the [browser playground](https://eyereasoner.github.io/eyelang/playground). The playground includes run options equivalent to CLI `--query`, `--stats`, and `--no-why`.
+Try it in the [browser playground](https://eyereasoner.github.io/eyelang/playground). The playground includes run options equivalent to CLI `--query`, `--stats`, and `--proof`.
 
 For the normative language definition, including lexical syntax, terms, clauses, goals, built-ins, `memoize/2`, `materialize/2`, and conformance boundaries, read the [eyelang specification](SPEC.md).
 
@@ -63,7 +63,7 @@ bin/eyelang --version
 bin/eyelang -v
 ```
 
-Run a program and let eyelang print derived binary facts with explanations:
+Run a program and let eyelang print derived binary facts:
 
 ```sh
 bin/eyelang examples/ancestor.pl
@@ -75,14 +75,14 @@ Run an explicit query:
 bin/eyelang --query 'ancestor(pat, X)' examples/ancestor.pl
 ```
 
-Suppress proof explanations when you want only answer facts:
+Enable proof explanations when you want machine-readable provenance:
 
 ```sh
-bin/eyelang --no-why --query 'ancestor(pat, X)' examples/ancestor.pl
-bin/eyelang --no-why examples/ancestor.pl
+bin/eyelang --proof --query 'ancestor(pat, X)' examples/ancestor.pl
+bin/eyelang -p examples/ancestor.pl
 ```
 
-eyelang-readable explanations are part of the default output. Each `why/2` fact contains a nested abstract proof term, and a blank line separates consecutive explanations. Using eyelang syntax for explanations keeps them in the same language as the answers themselves: they are readable by humans, parseable by eyelang, easy to test, and can be queried, transformed, or explained further like any other eyelang data. For example:
+eyelang-readable explanations are opt-in proof output. Each `why/2` fact contains a nested abstract proof term, and a blank line separates consecutive explanations. Using eyelang syntax for explanations keeps them in the same language as the answers themselves: they are readable by humans, parseable by eyelang, easy to test, and can be queried, transformed, or explained further like any other eyelang data. For example:
 
 ```prolog
 type(socrates, mortal).
@@ -103,16 +103,16 @@ why(
 
 ```
 
-The explanation output can itself be read as eyelang input and queried, for example `why(type(socrates, mortal), Proof)`. `--no-why` suppresses only these explanation facts; it does not change the answers found by the solver.
+The explanation output can itself be read as eyelang input and queried, for example `why(type(socrates, mortal), Proof)`. `--proof` adds only these explanation facts; it does not change the answers found by the solver.
 
 ### Explanation cookbook
 
-eyelang answers carry their own provenance by default.
+eyelang answers can carry their own provenance when proof output is enabled.
 
 Explain one derived fact:
 
 ```sh
-bin/eyelang --query 'type(socrates, mortal)' examples/socrates.pl
+bin/eyelang --proof --query 'type(socrates, mortal)' examples/socrates.pl
 ```
 
 The output contains the answer and a `why/2` fact. The proof term shows the source rule that produced the answer and the source fact used below it. Source references use `rule("file.pl", clause(N))` and `fact("file.pl", clause(N))`, where `N` is the 1-based clause number in that file.
@@ -153,7 +153,7 @@ Use the `uses([...])` list to follow the proof tree. In the policy example it co
 Reuse explanations as data:
 
 ```sh
-bin/eyelang --query 'type(socrates, mortal)' examples/socrates.pl > socrates.why.pl
+bin/eyelang --proof --query 'type(socrates, mortal)' examples/socrates.pl > socrates.why.pl
 bin/eyelang --query 'why(type(socrates, mortal), Proof)' socrates.why.pl
 ```
 
@@ -266,7 +266,7 @@ Add `--stats` when you want lightweight solver counters on stderr without changi
 bin/eyelang --stats --query 'once(solution(classic, S))' examples/sudoku.pl
 ```
 
-The playground has matching `--stats` and `--no-why` checkboxes, so browser runs can show the same counters or suppress explanations like the CLI.
+The playground has matching `--stats` and `--proof` checkboxes, so browser runs can show the same counters or explanations like the CLI.
 
 
 ### Builtins
@@ -474,12 +474,17 @@ The repository includes examples for recursion, graph reachability, finite searc
 
 ## Golden outputs, tests, and conformance
 
-Golden outputs live in [`examples/output`](examples/output). They include both answer facts and their `why/2` explanations. Example tests pin `local_time/1` to `2026-05-30` so date-dependent examples stay deterministic. Regenerate them after an intentional output or explanation change:
+Golden answer outputs live in [`examples/output`](examples/output). A curated proof-output suite lives in [`examples/proof`](examples/proof). Example tests pin `local_time/1` to `2026-05-30` so date-dependent examples stay deterministic. Regenerate them after an intentional output or explanation change:
 
 ```sh
 for f in examples/*.pl; do
   b=$(basename "$f")
   EYELANG_LOCAL_TIME=2026-05-30 bin/eyelang "$f" > "examples/output/$b"
+done
+
+for f in examples/proof/*.pl; do
+  b=$(basename "$f")
+  EYELANG_LOCAL_TIME=2026-05-30 bin/eyelang --proof "examples/$b" > "examples/proof/$b"
 done
 ```
 
@@ -525,7 +530,7 @@ For a release:
 2. update `README.md` and `SPEC.md`;
 3. regenerate golden outputs if behavior changed;
 4. run `npm test`;
-5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL`, `--stats`, and `--no-why`.
+5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL`, `--stats`, and `--proof`.
 
 ## Performance notes
 

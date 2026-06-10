@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Example-output test runner.
-// It compares each example byte-for-byte against examples/output so output and explanation changes cannot silently alter results.
+// It compares examples byte-for-byte against golden output so answer and proof changes cannot silently alter results.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -12,7 +12,31 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bin = path.join(root, 'bin', 'eyelang');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
+const expectedProofDir = path.join(examplesDir, 'proof');
 const fixedExampleDate = '2026-05-30';
+
+const proofExamples = [
+  'age.pl',
+  'aliases-and-namespaces.pl',
+  'ancestor.pl',
+  'animal.pl',
+  'annotation.pl',
+  'backward.pl',
+  'cat-koko.pl',
+  'data-negotiation.pl',
+  'derived-rule.pl',
+  'dog.pl',
+  'electrical-rc-filter.pl',
+  'existential-rule.pl',
+  'floating-point.pl',
+  'good-cobbler.pl',
+  'group-inverse-uniqueness.pl',
+  'list-collection.pl',
+  'proof-contrapositive.pl',
+  'socket-age.pl',
+  'socket-family.pl',
+  'socrates.pl',
+];
 
 export function runExamples(reporter = new TestReporter()) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelang-examples.'));
@@ -27,6 +51,10 @@ export function runExamples(reporter = new TestReporter()) {
     reporter.section('Examples');
     for (const name of files) reporter.test(name, () => runExample(name, actualFile, errFile));
     reporter.sectionTotal('examples');
+
+    reporter.section('Proof examples');
+    for (const name of proofExamples) reporter.test(name, () => runProofExample(name, actualFile, errFile));
+    reporter.sectionTotal('proof examples');
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
@@ -36,6 +64,12 @@ function runExample(name, actualFile, errFile) {
   const program = path.join(examplesDir, name);
   const expected = path.join(expectedDir, name);
   runAndCompare(name, program, expected, [], actualFile, errFile, 'output');
+}
+
+function runProofExample(name, actualFile, errFile) {
+  const program = path.join(examplesDir, name);
+  const expected = path.join(expectedProofDir, name);
+  runAndCompare(name, program, expected, ['--proof'], actualFile, errFile, 'proof output');
 }
 
 function runAndCompare(name, program, expected, args, actualFile, errFile, label) {
@@ -52,8 +86,7 @@ function runAndCompare(name, program, expected, args, actualFile, errFile, label
   if (result.status !== 0) {
     const stderr = fs.readFileSync(errFile, 'utf8');
     const stdout = fs.readFileSync(actualFile, 'utf8');
-    throw new Error(`example ${name} ${label} exited with ${result.status}
-${stderr}${stdout}`.trimEnd());
+    throw new Error(`example ${name} ${label} exited with ${result.status}\n${stderr}${stdout}`.trimEnd());
   }
 
   if (!fs.existsSync(expected)) {
@@ -63,8 +96,7 @@ ${stderr}${stdout}`.trimEnd());
   const expectedBuffer = fs.readFileSync(expected);
   const actualBuffer = fs.readFileSync(actualFile);
   if (!expectedBuffer.equals(actualBuffer)) {
-    throw new Error(`${label} mismatch for ${name}
-${diffText(expected, actualFile)}`.trimEnd());
+    throw new Error(`${label} mismatch for ${name}\n${diffText(expected, actualFile)}`.trimEnd());
   }
 }
 
@@ -77,9 +109,7 @@ function diffText(expected, actual) {
   const limit = Math.max(expectedText.length, actualText.length);
   for (let i = 0; i < limit; i++) {
     if (expectedText[i] !== actualText[i]) {
-      return `first difference at line ${i + 1}
-expected: ${expectedText[i] ?? '<missing>'}
-actual:   ${actualText[i] ?? '<missing>'}`;
+      return `first difference at line ${i + 1}\nexpected: ${expectedText[i] ?? '<missing>'}\nactual:   ${actualText[i] ?? '<missing>'}`;
     }
   }
 

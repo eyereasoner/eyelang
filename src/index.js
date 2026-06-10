@@ -13,10 +13,11 @@ import { parseQueryGoal } from './parser.js';
 import { whyNoProof, whyProof } from './explain.js';
 
 export function run(source, options = {}) {
-  const program = source instanceof Program ? source : Program.parse(source);
+  const includeWhy = options.proof === true || options.why === true || options.explain === true;
+  const parseOptions = { ...options, sourceMetadata: includeWhy, markRecursive: includeWhy };
+  const program = source instanceof Program ? source : Program.parse(source, parseOptions);
   const solver = new Solver(program, options);
   const output = [];
-  const includeWhy = options.why !== false && options.explain !== false;
   if (options.query) {
     const goal = typeof options.query === 'string' ? parseQueryGoal(options.query) : options.query;
     for (const env of solver.solve([goal], new Env(), 0)) {

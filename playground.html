@@ -405,7 +405,7 @@
         </div>
         <div class="toolbar run-options">
           <label class="row"><input id="statsToggle" type="checkbox"> include <code>--stats</code> counters</label>
-          <label class="row"><input id="noWhyToggle" type="checkbox"> suppress <code>why/2</code> explanations</label>
+          <label class="row"><input id="proofToggle" type="checkbox"> include <code>--proof</code> explanations</label>
           <code id="commandPreview" class="command-preview" aria-label="Equivalent CLI command">eyelang input.pl</code>
         </div>
         <div class="toolbar">
@@ -415,7 +415,7 @@
           <button id="clearSavedButton" type="button">Clear autosave</button>
           <span id="status" class="status" role="status">Idle.</span>
         </div>
-        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and <code>--stats</code> toggle like the CLI. Output is ordinary eyelang syntax: each answer is followed by its <code>why/2</code> explanation unless <code>--no-why</code> is selected.</p>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and <code>--stats</code> toggle like the CLI. Output is ordinary eyelang syntax: answer facts by default, with <code>why/2</code> explanations added when <code>--proof</code> is selected.</p>
       </div>
     </section>
 
@@ -566,7 +566,7 @@
   "zebra"
 ];
     const DEFAULT_PROGRAM = "% Socrates is mortal.\n\nmaterialize(type, 2).\nmaterialize(is, 2).\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\nis(test, true) :-\n  type(socrates, mortal).";
-    const STORAGE_KEY = 'eyelang.playground.v5';
+    const STORAGE_KEY = 'eyelang.playground.v6';
 
     const programInput = document.getElementById('programInput');
     const programSyntax = document.getElementById('programSyntax');
@@ -574,7 +574,7 @@
     const programErrorBand = document.getElementById('programErrorBand');
     const queryInput = document.getElementById('queryInput');
     const statsToggle = document.getElementById('statsToggle');
-    const noWhyToggle = document.getElementById('noWhyToggle');
+    const proofToggle = document.getElementById('proofToggle');
     const commandPreview = document.getElementById('commandPreview');
     const exampleSelect = document.getElementById('exampleSelect');
     const loadExampleButton = document.getElementById('loadExampleButton');
@@ -945,7 +945,7 @@
           program: programInput.value,
           query: queryInput.value,
           stats: statsToggle.checked,
-          noWhy: noWhyToggle.checked,
+          proof: proofToggle.checked,
           backgroundPrograms,
           currentProgramUrl,
         }));
@@ -978,7 +978,7 @@
     function updateCommandPreview() {
       const args = ['eyelang'];
       if (statsToggle.checked) args.push('--stats');
-      if (noWhyToggle.checked) args.push('--no-why');
+      if (proofToggle.checked) args.push('--proof');
       if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
       args.push(currentProgramStillMatchesUrl() ? currentProgramUrl : 'input.pl');
       commandPreview.textContent = args.join(' ');
@@ -991,7 +991,7 @@
         urlInput.value = sourceUrl;
         queryInput.value = searchParams.get('query') || searchParams.get('q') || '';
         statsToggle.checked = parseFlag(searchParams.get('stats') || searchParams.get('s'));
-        noWhyToggle.checked = parseFlag(searchParams.get('no-why') || searchParams.get('nowhy') || searchParams.get('n'));
+        proofToggle.checked = parseFlag(searchParams.get('proof') || searchParams.get('pr'));
         updateCommandPreview();
         try {
           await loadIntoEditor(sourceUrl, false, { save: false });
@@ -1008,7 +1008,7 @@
           setProgramValue(decodePayload(params.get('p')));
           queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
           statsToggle.checked = parseFlag(params.get('s'));
-          noWhyToggle.checked = parseFlag(params.get('n'));
+          proofToggle.checked = parseFlag(params.get('r'));
           currentProgramUrl = null;
           currentProgramSource = null;
           setStatus('Loaded shared program.', 'ok');
@@ -1024,7 +1024,7 @@
           setProgramValue(payload.program || DEFAULT_PROGRAM);
           queryInput.value = payload.query || '';
           statsToggle.checked = Boolean(payload.stats);
-          noWhyToggle.checked = Boolean(payload.noWhy);
+          proofToggle.checked = Boolean(payload.proof);
           backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
           currentProgramUrl = payload.currentProgramUrl || null;
           currentProgramSource = currentProgramUrl ? programInput.value : null;
@@ -1039,7 +1039,7 @@
       }
       setProgramValue(DEFAULT_PROGRAM);
       statsToggle.checked = false;
-      noWhyToggle.checked = false;
+      proofToggle.checked = false;
       currentProgramUrl = null;
       currentProgramSource = null;
       updateCommandPreview();
@@ -1250,7 +1250,7 @@
         program: combinedProgram(),
         query: queryInput.value,
         stats: statsToggle.checked,
-        why: !noWhyToggle.checked,
+        proof: proofToggle.checked,
       });
     }
 
@@ -1306,13 +1306,13 @@
         url.searchParams.set('url', currentProgramUrl);
         if (queryInput.value.trim()) url.searchParams.set('query', queryInput.value.trim());
         if (statsToggle.checked) url.searchParams.set('stats', '1');
-        if (noWhyToggle.checked) url.searchParams.set('no-why', '1');
+        if (proofToggle.checked) url.searchParams.set('proof', '1');
       } else {
         const params = new URLSearchParams();
         params.set('p', encodePayload(programInput.value));
         if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
         if (statsToggle.checked) params.set('s', '1');
-        if (noWhyToggle.checked) params.set('n', '1');
+        if (proofToggle.checked) params.set('r', '1');
         url.search = '';
         url.hash = params.toString();
       }
@@ -1326,7 +1326,7 @@
       setProgramValue(DEFAULT_PROGRAM);
       queryInput.value = '';
       statsToggle.checked = false;
-      noWhyToggle.checked = false;
+      proofToggle.checked = false;
       backgroundPrograms = [];
       currentProgramUrl = null;
       currentProgramSource = null;
@@ -1368,7 +1368,7 @@
     combinedOutput.addEventListener('scroll', () => { outputGutter.scrollTop = combinedOutput.scrollTop; });
     queryInput.addEventListener('input', saveState);
     statsToggle.addEventListener('change', saveState);
-    noWhyToggle.addEventListener('change', saveState);
+    proofToggle.addEventListener('change', saveState);
 
     async function initializePage() {
       updateProgramHighlight();

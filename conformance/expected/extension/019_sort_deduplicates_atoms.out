@@ -1,16 +1,1 @@
 answer(sorted, [a, b, c]).
-why(
-  answer(sorted, [a, b, c]),
-  proof(
-    goal(answer(sorted, [a, b, c])),
-    by(rule("019_sort_deduplicates_atoms.pl", clause(1))),
-    bindings([binding("X", [a, b, c])]),
-    uses([
-      proof(
-        goal(sort([c, a, b, a], [a, b, c])),
-        by(builtin(sort, 2))
-      )
-    ])
-  )
-).
-

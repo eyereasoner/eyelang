@@ -19,10 +19,10 @@ export async function main(argv) {
 
   const options = {
     files: [],
+    proof: false,
     query: null,
     stats: false,
     version: false,
-    why: true,
   };
 
   let endOptions = false;
@@ -37,13 +37,13 @@ export async function main(argv) {
     } else if (!endOptions && (arg === '--help' || arg === '-h')) {
       usage(process.stdout);
       return;
-    } else if (!endOptions && arg === '--stats') {
-      options.stats = true;
-    } else if (!endOptions && (arg === '--no-why' || arg === '-n')) {
-      options.why = false;
+    } else if (!endOptions && (arg === '--proof' || arg === '-p')) {
+      options.proof = true;
     } else if (!endOptions && arg === '--query') {
       if (i + 1 >= argv.length) throw new Error('--query requires an argument');
       options.query = argv[++i];
+    } else if (!endOptions && arg === '--stats') {
+      options.stats = true;
     } else if (!endOptions && arg.startsWith('-') && arg !== '-') {
       throw new Error(`unknown option: ${arg}`);
     } else {
@@ -77,7 +77,7 @@ export async function main(argv) {
     }
   }
 
-  const program = Program.parseSources(sourceParts, { sourceMetadata: options.why, markRecursive: options.why });
+  const program = Program.parseSources(sourceParts, { sourceMetadata: options.proof, markRecursive: options.proof });
 
   if (options.query != null) runQuery(program, options.query, options);
   else runDefault(program, options);
@@ -90,7 +90,7 @@ function runQuery(program, query, options) {
   for (const env of solver.solve([goal], new Env(), 0)) {
     process.stdout.write(`${termToString(goal, env, true)}.\n`);
 
-    if (options.why) writeExplanation(program, copyResolved(goal, env));
+    if (options.proof) writeExplanation(program, copyResolved(goal, env));
   }
 
   if (options.stats) printStats(solver.stats);
@@ -115,7 +115,7 @@ function runDefault(program, options) {
       lines.add(line);
 
       process.stdout.write(line);
-      if (options.why) writeExplanation(program, copyResolved(goal, env));
+      if (options.proof) writeExplanation(program, copyResolved(goal, env));
     }
 
     lastStats = solver.stats;
@@ -142,7 +142,7 @@ Input:
 
 Options:
   -h, --help            Show this help text and exit.
-  -n, --no-why          Suppress why/2 explanation facts; print answers only.
+  -p, --proof           Enable proof explanations.
       --query GOAL      Run GOAL as a query instead of materializing output predicates.
       --stats           Print solver statistics to stderr after execution.
   -v, --version         Show the package version and exit.

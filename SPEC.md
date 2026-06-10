@@ -570,13 +570,13 @@ When eyelang derives `ancestor(pat, emma)`, the answer explanation can still ref
 
 ### 12.3 Sockets and AI agents
 
-eyelang Sockets are especially useful for AI-facing systems. An AI agent can extract or propose candidate claims, but those claims should enter a reasoning program as explicit eyelang facts or rules through a declared socket rather than as opaque text. eyelang can then check the claims against other facts and rules, derive consequences, and return ordinary `why/2` explanations.
+eyelang Sockets are especially useful for AI-facing systems. An AI agent can extract or propose candidate claims, but those claims should enter a reasoning program as explicit eyelang facts or rules through a declared socket rather than as opaque text. eyelang can then check the claims against other facts and rules, derive consequences, and optionally return ordinary `why/2` explanations.
 
 This gives a clear division of labor: AI can help generate, translate, and connect knowledge; eyelang can represent, check, and explain the reasoning; sockets define the boundary between them.
 
 ## 13. Output and read-back profile
 
-Normal answer output prints one resolved answer term followed by a period, and by default a `why/2` explanation fact for that answer. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation. Host interfaces MAY provide an option such as `--no-why` to suppress explanation facts; this option MUST NOT change the answers found.
+Normal answer output prints one resolved answer term followed by a period. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation. Host interfaces MAY provide an option such as `--proof` to add `why/2` explanation facts; this option MUST NOT change the answers found.
 
 Output SHOULD be accepted as eyelang input when it contains only supported term syntax. Explanations are ordinary eyelang facts, so answer output can be read back and queried by eyelang.
 
@@ -588,11 +588,11 @@ Without `--query`, the host behavior is:
 4. keep only ground answers;
 5. remove answers identical to source facts;
 6. suppress duplicates;
-7. print each answer followed by its `why/2` explanation, unless the host interface was explicitly asked to suppress explanations.
+7. print each answer, followed by its `why/2` explanation only if the host interface was explicitly asked to emit proof output.
 
 ### 13.1 Explanation output
 
-Each answer SHOULD be followed by a machine-readable `why/2` fact unless explanation output is explicitly suppressed by the host interface. Explanation output is ordinary eyelang syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`; implementations SHOULD print `goal(...)` and `by(...)` on separate lines for readability. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
+When proof output is enabled, each answer SHOULD be followed by a machine-readable `why/2` fact. Explanation output is ordinary eyelang syntax whose second argument is a nested abstract proof term such as `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`; implementations SHOULD print `goal(...)` and `by(...)` on separate lines for readability. A proof term preserves the answer goal, derivation method, relevant bindings, and nested uses while omitting proof IDs. User clauses SHOULD be referenced explicitly as `fact(Filename, clause(N))` or `rule(Filename, clause(N))`, where `N` is the 1-based clause number within that source. Built-ins SHOULD be referenced as `builtin(Name, Arity)` because they do not come from source clauses. Explanation output is outside the logical semantics of the input program and MUST NOT change the set of answers.
 
 ## 14. Conformance profiles
 

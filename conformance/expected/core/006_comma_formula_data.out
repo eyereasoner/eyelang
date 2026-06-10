@@ -1,16 +1,1 @@
 answer(formula, (name(alice, "Alice"), knows(alice, bob))).
-why(
-  answer(formula, (name(alice, "Alice"), knows(alice, bob))),
-  proof(
-    goal(answer(formula, (name(alice, "Alice"), knows(alice, bob)))),
-    by(rule("006_comma_formula_data.pl", clause(2))),
-    bindings([binding("F", (name(alice, "Alice"), knows(alice, bob)))]),
-    uses([
-      proof(
-        goal(record((name(alice, "Alice"), knows(alice, bob)))),
-        by(fact("006_comma_formula_data.pl", clause(1)))
-      )
-    ])
-  )
-).
-

@@ -58,7 +58,7 @@ export function runRegression(reporter = new TestReporter()) {
 function regressionCases() {
   return [
     {
-      name: 'default rule fact explanation output',
+      name: '--proof rule fact explanation output',
       run: () => runWhy({
         program: 'type(socrates, man).\ntype(X, mortal) :- type(X, man).\n',
         query: 'type(socrates, mortal)',
@@ -82,7 +82,7 @@ why(
       }),
     },
     {
-      name: 'default numeric builtin explanation output',
+      name: '--proof numeric builtin explanation output',
       run: () => runWhy({
         program: 'p(X) :- between(4, 1000, X).\n',
         query: 'p(536)',
@@ -106,7 +106,7 @@ why(
       }),
     },
     {
-      name: 'default list builtin explanation output',
+      name: '--proof list builtin explanation output',
       run: () => runWhy({
         program: 'p(X) :- member(X, [a, b]).\n',
         query: 'p(a)',
@@ -161,7 +161,7 @@ why(
           env: { EYELANG_LOCAL_TIME: '2024-01-02' },
         });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'local_time("2024-01-02").\nwhy(\n  local_time("2024-01-02"),\n  proof(\n    goal(local_time("2024-01-02")),\n    by(builtin(local_time, 1))\n  )\n).\n\n', 'stdout');
+        assertEqual(result.stdout, 'local_time("2024-01-02").\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -172,7 +172,7 @@ why(
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'Usage:\n  eyelang [options] [file-or-url.pl|- ...]', 'stdout');
         assertIncludes(result.stdout, '--query GOAL', 'stdout');
-        assertIncludes(result.stdout, '--no-why', 'stdout');
+        assertIncludes(result.stdout, '--proof', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -200,40 +200,32 @@ why(
       run: () => {
         const result = runCli(['--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
         assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+
+
+    {
+      name: '--proof enables query explanations',
+      run: () => {
+        const result = runCli(['--proof', '--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
+        assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'p(a).\nwhy(', 'stdout');
         assertIncludes(result.stdout, 'p(b).\nwhy(', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
+    {
+      name: '-p enables materialization explanations',
+      run: () => {
+        const result = runCli(['-p', '-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
 
-
-    {
-      name: '--no-why suppresses query explanations',
-      run: () => {
-        const result = runCli(['--no-why', '--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
-        assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
-        assertEqual(result.stderr, '', 'stderr');
-      },
-    },
-    {
-      name: '-n suppresses query explanations',
-      run: () => {
-        const result = runCli(['-n', '--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
-        assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
-        assertEqual(result.stderr, '', 'stderr');
-      },
-    },
-    {
-      name: '--no-why suppresses materialization explanations',
-      run: () => {
-        const result = runCli(['--no-why', '-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });
-        assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
-        assertEqual(result.stderr, '', 'stderr');
-      },
-    },
 
     {
       name: 'double dash permits option-shaped file names',
@@ -242,7 +234,7 @@ why(
         fs.writeFileSync(file, 'p(a, b).\nq(X, Y) :- p(X, Y).\n');
         const result = runCli(['--', file]);
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -260,33 +252,34 @@ why(
 function apiCases() {
   return [
     {
-      name: 'run query through public API',
+      name: 'run query through public API without proof by default',
       run: () => {
         const result = run('parent(pat, jan).\nancestor(X, Y) :- parent(X, Y).\n', { query: 'ancestor(pat, Y)' });
-        assertIncludes(result.stdout, 'ancestor(pat, jan).\nwhy(', 'stdout');
+        assertEqual(result.stdout, 'ancestor(pat, jan).\n', 'stdout');
       },
     },
     {
-      name: 'run materialization through public API',
+      name: 'run materialization through public API without proof by default',
       run: () => {
         const result = run('p(a, b).\nq(X, Y) :- p(X, Y).\n');
-        assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
-      },
-    },
-
-
-    {
-      name: 'run query can suppress explanations',
-      run: () => {
-        const result = run('p(a).\np(b).\n', { query: 'p(X)', why: false });
-        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
-      },
-    },
-    {
-      name: 'run materialization can suppress explanations',
-      run: () => {
-        const result = run('p(a, b).\nq(X, Y) :- p(X, Y).\n', { explain: false });
         assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+      },
+    },
+
+
+    {
+      name: 'run query can enable proof explanations',
+      run: () => {
+        const result = run('p(a).\np(b).\n', { query: 'p(X)', proof: true });
+        assertIncludes(result.stdout, 'p(a).\nwhy(', 'stdout');
+        assertIncludes(result.stdout, 'p(b).\nwhy(', 'stdout');
+      },
+    },
+    {
+      name: 'run materialization can enable proof explanations',
+      run: () => {
+        const result = run('p(a, b).\nq(X, Y) :- p(X, Y).\n', { proof: true });
+        assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
       },
     },
 
@@ -295,8 +288,7 @@ function apiCases() {
       run: () => {
         const program = Program.parse('p(a).\np(b).\n');
         const result = run(program, { query: 'p(X)' });
-        assertIncludes(result.stdout, 'p(a).\nwhy(', 'stdout');
-        assertIncludes(result.stdout, 'p(b).\nwhy(', 'stdout');
+        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
       },
     },
     {
@@ -454,7 +446,7 @@ function sectionLabel(name) {
 function runWhy({ program, query, expected }) {
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
-  const result = runCli(['--query', query, programFile]);
+  const result = runCli(['--proof', '--query', query, programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
   const expectedText = expected.replaceAll('__FILE__', path.basename(programFile));
@@ -471,7 +463,7 @@ function runWhy({ program, query, expected }) {
 function runWhyLoose({ program, query }) {
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
-  const result = runCli(['--query', query, programFile]);
+  const result = runCli(['--proof', '--query', query, programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
   Program.parse(result.stdout);

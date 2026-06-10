@@ -1,9 +1,1 @@
 parent(pat, jan).
-why(
-  parent(pat, jan),
-  proof(
-    goal(parent(pat, jan)),
-    by(fact("001_fact_query.pl", clause(1)))
-  )
-).
-

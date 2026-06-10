@@ -1,9 +1,1 @@
 sumall(S, score(_Item, S), 7).
-why(
-  sumall(S, score(_Item, S), 7),
-  proof(
-    goal(sumall(S, score(_Item, S), 7)),
-    by(builtin(sumall, 3))
-  )
-).
-
