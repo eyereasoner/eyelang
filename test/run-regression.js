@@ -171,7 +171,8 @@ why(
         const result = runCli([]);
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'Usage:\n  eyelang [options] [file-or-url.pl|- ...]', 'stdout');
-        assertIncludes(result.stdout, '--proof', 'stdout');
+        assertIncludes(result.stdout, '-p, --proof', 'stdout');
+        assertIncludes(result.stdout, '-s, --stats', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -221,6 +222,28 @@ why(
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+
+
+    {
+      name: '--stats prints solver statistics to stderr',
+      run: () => {
+        const result = runCli(['--stats', '-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+        assertIncludes(result.stderr, 'eyelang stats:\n', 'stderr');
+        assertIncludes(result.stderr, '  solve_goals_calls:', 'stderr');
+      },
+    },
+    {
+      name: '-s prints solver statistics to stderr',
+      run: () => {
+        const result = runCli(['-s', '-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
+        assertIncludes(result.stderr, 'eyelang stats:\n', 'stderr');
+        assertIncludes(result.stderr, '  solve_goals_calls:', 'stderr');
       },
     },
 

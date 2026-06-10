@@ -239,10 +239,10 @@ Predicate names and atom constants use the same lexical form. Namespace-like nam
 
 The CLI is output-oriented and uses `materialize/2` to decide what to print. Embedders can still use the JavaScript API and `Solver` directly for arbitrary goals and arities.
 
-Add `--stats` when you want lightweight solver counters on stderr without changing stdout:
+Add `-s` or `--stats` when you want lightweight solver counters on stderr without changing stdout:
 
 ```sh
-bin/eyelang --stats examples/sudoku.pl
+bin/eyelang -s examples/sudoku.pl
 ```
 
 The playground has matching `--stats` and `--proof` checkboxes, so browser runs can show the same counters or explanations like the CLI.
@@ -500,7 +500,7 @@ node bin/eyelang --help
 Useful profiling smoke test:
 
 ```sh
-bin/eyelang --stats examples/sudoku.pl > /dev/null
+bin/eyelang -s examples/sudoku.pl > /dev/null
 ```
 
 For a release:
@@ -513,7 +513,7 @@ For a release:
 
 ## Performance notes
 
-Use `--stats` for a quick sanity check while optimizing solver changes. It prints counters such as `solve_goals_calls`, `unify_calls`, `deterministic_rule_expansions`, `candidate_lists_selected`, `clause_candidates_considered`, `clauses_tried`, `max_depth`, and `max_solver_call_depth` to stderr, leaving normal output stable for golden-file tests. The `max_solver_call_depth` counter is especially useful for browser regressions, where the VM call stack can be tighter than a command-line run.
+Use `-s` or `--stats` for a quick sanity check while optimizing solver changes. It prints counters such as `solve_goals_calls`, `unify_calls`, `deterministic_rule_expansions`, `candidate_lists_selected`, `clause_candidates_considered`, `clauses_tried`, `max_depth`, and `max_solver_call_depth` to stderr, leaving normal output stable for golden-file tests. The `max_solver_call_depth` counter is especially useful for browser regressions, where the VM call stack can be tighter than a command-line run.
 
 eyelang hashes predicate groups by name and arity, then indexes clauses by scalar argument values. It also builds two-argument composite indexes for scalar pairs and probes those composite indexes without per-lookup heap allocation. This helps both large generated programs with many predicates and selective queries such as:
 

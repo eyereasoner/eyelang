@@ -34,7 +34,7 @@ export async function main(argv) {
       return;
     } else if (!endOptions && (arg === '--proof' || arg === '-p')) {
       options.proof = true;
-    } else if (!endOptions && arg === '--stats') {
+    } else if (!endOptions && (arg === '--stats' || arg === '-s')) {
       options.stats = true;
     } else if (!endOptions && arg.startsWith('-') && arg !== '-') {
       throw new Error(`unknown option: ${arg}`);
@@ -142,7 +142,7 @@ Input:
 Options:
   -h, --help            Show this help text and exit.
   -p, --proof           Enable proof explanations.
-      --stats           Print solver statistics to stderr after execution.
+  -s, --stats           Print solver statistics to stderr after execution.
   -v, --version         Show the package version and exit.
   --                    Stop option parsing; following arguments are treated as files.
 `);
