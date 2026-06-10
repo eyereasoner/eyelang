@@ -2,3 +2,4 @@
 thing([a, b]).
 thing(pair(a, b)).
 answer(list, X) :- thing(X), is_list(X).
+materialize(answer, 2).

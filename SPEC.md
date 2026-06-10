@@ -87,7 +87,7 @@ A **goal** is an atomic formula, a built-in call, or a comma conjunction.
 
 A **source fact** is a fact written directly in the input program. A **new derivation** is a ground consequence found through at least one rule and not merely repeated from the source facts.
 
-The **Herbrand universe** of a program is the set of all ground eyelang terms constructible from the constants and functors in the program, together with the built-in list constructors `[]` and `./2` where lists are used. The **Herbrand base** is the set of all ground atomic formulas whose predicate symbols occur in the program or query and whose arguments are terms from the Herbrand universe.
+The **Herbrand universe** of a program is the set of all ground eyelang terms constructible from the constants and functors in the program, together with the built-in list constructors `[]` and `./2` where lists are used. The **Herbrand base** is the set of all ground atomic formulas whose predicate symbols occur in the program and whose arguments are terms from the Herbrand universe.
 
 ## 2. Design goals
 
@@ -199,7 +199,7 @@ term         ::= variable
 list_items   ::= term ("," term)* ["|" term]
 ```
 
-Here `atom_constant` is a lexical class for symbolic scalar terms, not an atomic formula. Atomic formulas are represented by the grammar alternative `atom_constant "(" ... ")"` when such a compound appears in a clause head, rule body, or query goal.
+Here `atom_constant` is a lexical class for symbolic scalar terms, not an atomic formula. Atomic formulas are represented by the grammar alternative `atom_constant "(" ... ")"` when such a compound appears in a clause head, rule body, or selected goal.
 
 A clause head SHOULD be a compound term. Non-compound heads are parsed but are not useful in the current predicate index.
 
@@ -214,7 +214,7 @@ value(example, nil()).
 
 ### 5.1 Variables
 
-Variables are scoped to a single clause or query. A variable in a rule head and body denotes the same logical variable within that clause.
+Variables are scoped to a single clause or selected goal. A variable in a rule head and body denotes the same logical variable within that clause.
 
 ### 5.2 Atom constants, strings, and numbers
 
@@ -279,7 +279,7 @@ Clauses with the same predicate name and arity define one predicate group. Predi
 
 Goals are solved left-to-right. For a user-defined atomic-formula goal, eyelang selects candidate clauses by predicate name, arity, and available indexes. A candidate clause is freshened, its head is unified with the goal, and then its body is solved.
 
-A conjunction goal succeeds when all conjunct goals succeed in order. A query answer is printed as the resolved query term followed by a period.
+A conjunction goal succeeds when all conjunct goals succeed in order. An answer is printed as the resolved answer term followed by a period.
 
 ### 7.1 Unification
 
@@ -291,7 +291,7 @@ A goal fails when no built-in case or user clause can prove it. eyelang has no e
 
 ### 7.3 Finite search expectation
 
-Programs and queries SHOULD be written so the relevant search space is finite. eyelang includes recursion guards and memoization support, but it is not required to terminate for arbitrary recursive logic programs.
+Programs and selected output goals SHOULD be written so the relevant search space is finite. eyelang includes recursion guards and memoization support, but it is not required to terminate for arbitrary recursive logic programs.
 
 ## 8. Logical reading: Herbrand semantics
 
@@ -317,7 +317,7 @@ Equivalently, the least Herbrand model is obtained by repeatedly applying the im
 
 ### 8.1 Variables and quantification
 
-Variables do not range over external objects, records, pointers, or host-language values. In the logical reading, variables range over Herbrand terms. A rule is implicitly universally quantified over its variables. A query is existential in the usual logic-programming sense: eyelang searches for substitutions of the query variables by Herbrand terms that make the query true with respect to the program.
+Variables do not range over external objects, records, pointers, or host-language values. In the logical reading, variables range over Herbrand terms. A rule is implicitly universally quantified over its variables. A selected goal is existential in the usual logic-programming sense: eyelang searches for substitutions of its variables by Herbrand terms that make the goal true with respect to the program.
 
 ### 8.2 Equality, identity, and unification
 
@@ -329,7 +329,7 @@ Operationally, eyelang uses first-order unification to find substitutions. The i
 
 eyelang's CLI and library evaluator are goal-directed. They try to prove requested goals by resolving them against facts, rules, and built-ins, using clause order, goal order, indexing, memoization, and deterministic built-in execution. This operational strategy is intended to enumerate answers that are true in the least Herbrand model for the pure Horn-clause fragment, but it is not a complete bottom-up model enumerator. Non-terminating recursion or infinite generators can prevent an answer from being found even when the answer belongs to the least Herbrand model.
 
-The no-query CLI output is also a host behavior, not a separate semantics. It asks broad materialization queries, suppresses duplicates, excludes source facts, keeps ground answers, and prints selected consequences. Explicit `--query` gives direct access to the goal-directed solver.
+Default CLI output is also a host behavior, not a separate semantics. It asks broad materialization goals, suppresses duplicates, excludes source facts, keeps ground answers, and prints selected consequences. Embedders can still access the goal-directed solver directly through the implementation API.
 
 ### 8.4 Built-ins and operational extensions
 
@@ -498,7 +498,7 @@ memoize(path, 2).
 materialize(Name, Arity).
 ```
 
-`Name` MUST be an atom constant and `Arity` MUST be a non-negative integer. If a program contains one or more `materialize/2` declarations, no-query CLI output is restricted to those predicate groups. Source facts are still excluded from printed output.
+`Name` MUST be an atom constant and `Arity` MUST be a non-negative integer. If a program contains one or more `materialize/2` declarations, default CLI output is restricted to those predicate groups. Source facts are still excluded from printed output.
 
 Example:
 
@@ -507,7 +507,7 @@ materialize(status, 2).
 materialize(reason, 2).
 ```
 
-`materialize/2` does not affect explicit queries.
+`materialize/2` affects host output selection only; it does not change the logical meaning of the program.
 
 ## 12. eyelang Sockets
 
@@ -515,7 +515,7 @@ A **eyelang Socket** is a declared semantic opening in a eyelang program where f
 
 The term follows the ordinary socket pattern: a socket defines a place where a matching provider can connect. In eyelang, the matching part is knowledge. A socket identifies what shape of knowledge a program expects; a plug identifies which provider supplies it. This separates reasoning logic from knowledge providers and makes composition boundaries visible as eyelang data.
 
-In this specification, sockets are a portable **programming pattern** expressed with ordinary facts. The core solver does not give `socket/2`, `plug/2`, `provides/1`, or `requires/1` special proof-search behavior unless a host explicitly documents such an extension. Because they are ordinary facts, socket declarations remain readable, queryable, explainable, and safe to ignore by hosts that do not validate them.
+In this specification, sockets are a portable **programming pattern** expressed with ordinary facts. The core solver does not give `socket/2`, `plug/2`, `provides/1`, or `requires/1` special proof-search behavior unless a host explicitly documents such an extension. Because they are ordinary facts, socket declarations remain readable, inspectable, explainable, and safe to ignore by hosts that do not validate them.
 
 ### 12.1 Socket vocabulary
 
@@ -566,7 +566,7 @@ ancestor(X, Z) :-
 
 The `ancestor/2` rules do not depend on a particular storage mechanism for `parent/2`. In a small test, the provider may be the same file. In an embedded host, it may be a database adapter, a document extractor, a remote service, or another eyelang module. The socket facts make that boundary explicit without changing the logical meaning of the rules.
 
-When eyelang derives `ancestor(pat, emma)`, the answer explanation can still refer to the source clauses that were actually used, for example facts for `parent/2` and rules for `ancestor/2`. The socket facts add a queryable description of where such knowledge is intended to enter.
+When eyelang derives `ancestor(pat, emma)`, the answer explanation can still refer to the source clauses that were actually used, for example facts for `parent/2` and rules for `ancestor/2`. The socket facts add an inspectable description of where such knowledge is intended to enter.
 
 ### 12.3 Sockets and AI agents
 
@@ -578,13 +578,13 @@ This gives a clear division of labor: AI can help generate, translate, and conne
 
 Normal answer output prints one resolved answer term followed by a period. Strings are double-quoted; atom constants are quoted when needed; lists use list syntax; compound terms use functor notation. Host interfaces MAY provide an option such as `--proof` to add `why/2` explanation facts; this option MUST NOT change the answers found.
 
-Output SHOULD be accepted as eyelang input when it contains only supported term syntax. Explanations are ordinary eyelang facts, so answer output can be read back and queried by eyelang.
+Output SHOULD be accepted as eyelang input when it contains only supported term syntax. Explanations are ordinary eyelang facts, so answer output can be read back and processed by eyelang.
 
-Without `--query`, the host behavior is:
+Default host output behavior is:
 
 1. parse all inputs into one program;
 2. collect source fact lines for duplicate suppression;
-3. if `materialize/2` declarations exist, query those predicate groups; otherwise query all binary predicate groups with at least one rule;
+3. if `materialize/2` declarations exist, solve those predicate groups; otherwise solve all binary predicate groups with at least one rule;
 4. keep only ground answers;
 5. remove answers identical to source facts;
 6. suppress duplicates;
@@ -617,7 +617,7 @@ A conforming standard host also supports:
 
 - `memoize/2` declarations;
 - `materialize/2` declarations;
-- default no-query derived output;
+- default derived output;
 - explanation output;
 - stdin, file, and URL inputs in the CLI.
 
@@ -679,4 +679,4 @@ status(a, open) :- open(a).
 
 URL input uses host networking support when available. Hosts SHOULD treat downloaded programs as untrusted code because they can trigger expensive search.
 
-Programs SHOULD be written with finite search in mind. Broad no-query materialization can be expensive for helper predicates; use explicit `--query` or `materialize/2` declarations when needed.
+Programs SHOULD be written with finite search in mind. Broad default materialization can be expensive for helper predicates; use `materialize/2` declarations and concise output predicates when needed.

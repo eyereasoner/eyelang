@@ -172,13 +172,6 @@
     button.primary { border-color: var(--accent); background: var(--accent); color: white; }
     button.primary:hover { background: var(--accent-strong); }
     button:disabled { opacity: 0.55; cursor: not-allowed; }
-    .query-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .query-row input { width: 100%; }
     .run-options {
       margin-top: 10px;
       align-items: flex-start;
@@ -399,10 +392,6 @@
             <textarea id="programInput" class="program-textarea" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="soft" aria-label="Editable eyelang program"></textarea>
           </div>
         </div>
-        <div class="query-row">
-          <label for="queryInput">Optional <code>--query</code> goal</label>
-          <input id="queryInput" type="text" placeholder="ancestor(pat, X)" spellcheck="false">
-        </div>
         <div class="toolbar run-options">
           <label class="row"><input id="statsToggle" type="checkbox"> include <code>--stats</code> counters</label>
           <label class="row"><input id="proofToggle" type="checkbox"> include <code>--proof</code> explanations</label>
@@ -415,7 +404,7 @@
           <button id="clearSavedButton" type="button">Clear autosave</button>
           <span id="status" class="status" role="status">Idle.</span>
         </div>
-        <p class="small">The playground concatenates loaded background programs before the editor contents. Use the query field and <code>--stats</code> toggle like the CLI. Output is ordinary eyelang syntax: answer facts by default, with <code>why/2</code> explanations added when <code>--proof</code> is selected.</p>
+        <p class="small">The playground concatenates loaded background programs before the editor contents. Use <code>materialize/2</code> declarations to focus output and the <code>--stats</code> toggle for counters. Output is ordinary eyelang syntax: answer facts by default, with <code>why/2</code> explanations added when <code>--proof</code> is selected.</p>
       </div>
     </section>
 
@@ -566,13 +555,12 @@
   "zebra"
 ];
     const DEFAULT_PROGRAM = "% Socrates is mortal.\n\nmaterialize(type, 2).\nmaterialize(is, 2).\n\ntype(socrates, man).\n\ntype(X, mortal) :-\n  type(X, man).\n\nis(test, true) :-\n  type(socrates, mortal).";
-    const STORAGE_KEY = 'eyelang.playground.v6';
+    const STORAGE_KEY = 'eyelang.playground.v7';
 
     const programInput = document.getElementById('programInput');
     const programSyntax = document.getElementById('programSyntax');
     const programGutter = document.getElementById('programGutter');
     const programErrorBand = document.getElementById('programErrorBand');
-    const queryInput = document.getElementById('queryInput');
     const statsToggle = document.getElementById('statsToggle');
     const proofToggle = document.getElementById('proofToggle');
     const commandPreview = document.getElementById('commandPreview');
@@ -943,7 +931,6 @@
       saveTimer = setTimeout(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           program: programInput.value,
-          query: queryInput.value,
           stats: statsToggle.checked,
           proof: proofToggle.checked,
           backgroundPrograms,
@@ -979,7 +966,6 @@
       const args = ['eyelang'];
       if (statsToggle.checked) args.push('--stats');
       if (proofToggle.checked) args.push('--proof');
-      if (queryInput.value.trim()) args.push('--query', shellQuote(queryInput.value.trim()));
       args.push(currentProgramStillMatchesUrl() ? currentProgramUrl : 'input.pl');
       commandPreview.textContent = args.join(' ');
     }
@@ -989,7 +975,6 @@
       if (searchParams.has('url')) {
         const sourceUrl = searchParams.get('url');
         urlInput.value = sourceUrl;
-        queryInput.value = searchParams.get('query') || searchParams.get('q') || '';
         statsToggle.checked = parseFlag(searchParams.get('stats') || searchParams.get('s'));
         proofToggle.checked = parseFlag(searchParams.get('proof') || searchParams.get('pr'));
         updateCommandPreview();
@@ -1006,7 +991,6 @@
       if (params.has('p')) {
         try {
           setProgramValue(decodePayload(params.get('p')));
-          queryInput.value = params.has('q') ? decodePayload(params.get('q')) : '';
           statsToggle.checked = parseFlag(params.get('s'));
           proofToggle.checked = parseFlag(params.get('r'));
           currentProgramUrl = null;
@@ -1018,11 +1002,10 @@
         }
       }
       try {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelang.playground.v4') || localStorage.getItem('eyelang.playground.v3') || localStorage.getItem('eyelang.playground.v2') || localStorage.getItem('eyelang.playground.v1');
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('eyelang.playground.v6') || localStorage.getItem('eyelang.playground.v5') || localStorage.getItem('eyelang.playground.v4') || localStorage.getItem('eyelang.playground.v3') || localStorage.getItem('eyelang.playground.v2') || localStorage.getItem('eyelang.playground.v1');
         if (raw) {
           const payload = JSON.parse(raw);
           setProgramValue(payload.program || DEFAULT_PROGRAM);
-          queryInput.value = payload.query || '';
           statsToggle.checked = Boolean(payload.stats);
           proofToggle.checked = Boolean(payload.proof);
           backgroundPrograms = Array.isArray(payload.backgroundPrograms) ? payload.backgroundPrograms : [];
@@ -1248,7 +1231,6 @@
         type: 'run',
         id: currentRunId,
         program: combinedProgram(),
-        query: queryInput.value,
         stats: statsToggle.checked,
         proof: proofToggle.checked,
       });
@@ -1304,13 +1286,11 @@
       if (currentProgramStillMatchesUrl()) {
         url.search = '';
         url.searchParams.set('url', currentProgramUrl);
-        if (queryInput.value.trim()) url.searchParams.set('query', queryInput.value.trim());
         if (statsToggle.checked) url.searchParams.set('stats', '1');
         if (proofToggle.checked) url.searchParams.set('proof', '1');
       } else {
         const params = new URLSearchParams();
         params.set('p', encodePayload(programInput.value));
-        if (queryInput.value.trim()) params.set('q', encodePayload(queryInput.value));
         if (statsToggle.checked) params.set('s', '1');
         if (proofToggle.checked) params.set('r', '1');
         url.search = '';
@@ -1324,7 +1304,6 @@
     loadExampleButton.addEventListener('click', () => loadIntoEditor(`examples/${exampleSelect.value}.pl`, false).catch(error => setStatus(error.message, 'error')));
     resetButton.addEventListener('click', () => {
       setProgramValue(DEFAULT_PROGRAM);
-      queryInput.value = '';
       statsToggle.checked = false;
       proofToggle.checked = false;
       backgroundPrograms = [];
@@ -1357,6 +1336,8 @@
     copyLinkButton.addEventListener('click', () => copyShareLink().catch(error => setStatus(`Could not copy link: ${error.message}`, 'error')));
     clearSavedButton.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('eyelang.playground.v6');
+      localStorage.removeItem('eyelang.playground.v5');
       localStorage.removeItem('eyelang.playground.v4');
       localStorage.removeItem('eyelang.playground.v3');
       localStorage.removeItem('eyelang.playground.v2');
@@ -1366,7 +1347,6 @@
     programInput.addEventListener('input', () => { clearErrorLine(); updateProgramSyntax(); markProgramEdited(); });
     programInput.addEventListener('scroll', updateProgramHighlight);
     combinedOutput.addEventListener('scroll', () => { outputGutter.scrollTop = combinedOutput.scrollTop; });
-    queryInput.addEventListener('input', saveState);
     statsToggle.addEventListener('change', saveState);
     proofToggle.addEventListener('change', saveState);
 

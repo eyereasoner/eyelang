@@ -1,4 +1,4 @@
-// Aggregation builtins that run a subquery and collect, count, sum, or select the best answers.
+// Aggregation builtins that run a inner goal and collect, count, sum, or select the best answers.
 // Each handler clones the solver so the inner goal can enumerate independently of the outer goal.
 import { compareTerms, copyResolved, isDecimalInteger, lexicalValue, listFromItems, numberTerm, numberTextFromDouble, parseFiniteNumber, unify } from '../term.js';
 
@@ -14,7 +14,7 @@ export const aggregationBuiltins = {
 
 function* findall({ solver, goal, env }) {
   const [template, innerGoal, bag] = goal.args;
-  const collector = solver.cloneForSubquery(10000000);
+  const collector = solver.cloneForInnerGoal(10000000);
   const collected = [];
   for (const answerEnv of collector.solve([innerGoal], env.clone(), 0)) collected.push(copyResolved(template, answerEnv));
   const next = env.clone();
@@ -23,7 +23,7 @@ function* findall({ solver, goal, env }) {
 
 function* countall({ solver, goal, env }) {
   const [innerGoal, count] = goal.args;
-  const collector = solver.cloneForSubquery(10000000);
+  const collector = solver.cloneForInnerGoal(10000000);
   let n = 0;
   for (const _ of collector.solve([innerGoal], env.clone(), 0)) n++;
   const next = env.clone();
@@ -32,7 +32,7 @@ function* countall({ solver, goal, env }) {
 
 function* sumall({ solver, goal, env }) {
   const [template, innerGoal, sum] = goal.args;
-  const collector = solver.cloneForSubquery(10000000);
+  const collector = solver.cloneForInnerGoal(10000000);
   let intSum = 0n;
   let floatMode = false;
   let floatSum = 0;
@@ -55,7 +55,7 @@ function* sumall({ solver, goal, env }) {
 function aggregateBest(wantMin) {
   return function* ({ solver, goal, env }) {
     const [keyTemplate, valueTemplate, innerGoal, bestKey, bestValue] = goal.args;
-    const collector = solver.cloneForSubquery(10000000);
+    const collector = solver.cloneForInnerGoal(10000000);
     let has = false;
     let key = null;
     let value = null;

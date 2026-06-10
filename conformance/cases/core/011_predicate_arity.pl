@@ -3,3 +3,4 @@ p(a).
 p(a, b).
 answer(unary, X) :- p(X).
 answer(binary, pair(X, Y)) :- p(X, Y).
+materialize(answer, 2).

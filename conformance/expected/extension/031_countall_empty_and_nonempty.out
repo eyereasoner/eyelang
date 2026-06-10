@@ -1,1 +1,1 @@
-(countall(item(X), 2), countall(missing(X), 0)).
+answer(counts, counts(2, 0)).

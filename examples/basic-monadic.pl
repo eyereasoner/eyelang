@@ -1,7 +1,7 @@
 % Basic Monadic Benchmark port from EYE reasoning/basic-monadic.
 %
 % This example uses the ten Turtle inputs 1tt1.ttl ... 1tt10.ttl
-% from EYE and the EYE query shape:
+% from EYE and the EYE selected-goal shape:
 %   D0 R D1, D1 R D2, ..., D9 R D0 -> R cycle (D0 ... D9 D0).
 %
 % The expected output contains 1518 distinct cycle relations, matching

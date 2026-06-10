@@ -1,7 +1,7 @@
 // Public JavaScript API surface for embedders and the browser playground.
 // The CLI imports the same parser, program, solver, and term primitives from here.
 export { Program, makeProgram } from './program.js';
-export { parseClauses, parseProgramText, parseQueryGoal } from './parser.js';
+export { parseClauses, parseProgramText } from './parser.js';
 export { Solver } from './solver.js';
 export * from './term.js';
 export { BuiltinRegistry, createDefaultRegistry, getDefaultRegistry } from './builtins/registry.js';
@@ -9,7 +9,6 @@ export { BuiltinRegistry, createDefaultRegistry, getDefaultRegistry } from './bu
 import { Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';
 import { Solver } from './solver.js';
-import { parseQueryGoal } from './parser.js';
 import { whyNoProof, whyProof } from './explain.js';
 import { getDefaultRegistry } from './builtins/registry.js';
 
@@ -20,28 +19,20 @@ export function run(source, options = {}) {
   const runOptions = options.registry ? options : { ...options, registry: getDefaultRegistry() };
   const solver = new Solver(program, runOptions);
   const output = [];
-  if (options.query) {
-    const goal = typeof options.query === 'string' ? parseQueryGoal(options.query) : options.query;
-    for (const env of solver.solve([goal], new Env(), 0)) {
-      output.push(`${termToString(goal, env, true)}.\n`);
-      if (includeWhy) appendExplanation(output, program, copyResolved(goal, env), runOptions.registry);
-    }
-  } else {
-    const goals = program.materializationGoals();
-    const materializedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
-    const facts = program.sourceFactLines(materializedKeys);
-    const seen = new Set();
-    for (const goal of goals) {
-      const localSolver = new Solver(program, runOptions);
-      for (const env of localSolver.solve([goal], new Env(), 0)) {
-        const resolved = copyResolved(goal, env);
-        if (!termIsGround(resolved)) continue;
-        const line = `${termToString(resolved, new Env(), true)}.\n`;
-        if (facts.has(line) || seen.has(line)) continue;
-        seen.add(line);
-        output.push(line);
-        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
-      }
+  const goals = program.materializationGoals();
+  const materializedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
+  const facts = program.sourceFactLines(materializedKeys);
+  const seen = new Set();
+  for (const goal of goals) {
+    const localSolver = new Solver(program, runOptions);
+    for (const env of localSolver.solve([goal], new Env(), 0)) {
+      const resolved = copyResolved(goal, env);
+      if (!termIsGround(resolved)) continue;
+      const line = `${termToString(resolved, new Env(), true)}.\n`;
+      if (facts.has(line) || seen.has(line)) continue;
+      seen.add(line);
+      output.push(line);
+      if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
     }
   }
   return { stdout: output.join(''), stats: solver.stats };

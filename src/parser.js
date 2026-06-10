@@ -399,9 +399,9 @@ export function parseProgramText(source) {
   return parseClauses(source);
 }
 
-export function parseQueryGoal(query) {
-  const clauses = parseClauses(`q(${query}).`);
+export function parseGoalText(text) {
+  const clauses = parseClauses(`zz_goal(${text}).`);
   const head = clauses[0]?.head;
-  if (!head || head.args.length < 1) throw new Error('bad query');
+  if (!head || head.args.length < 1) throw new Error('bad goal');
   return head.args[0];
 }

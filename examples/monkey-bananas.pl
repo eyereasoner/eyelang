@@ -2,7 +2,7 @@
 % input/monkey-bananas.pl.
 %
 % A state is [bananas_location, monkey_location, box_location, on_box,
-% has_bananas].  The query searches bounded move lists and derives successful
+% has_bananas].  The selected output searches bounded move lists and derives successful
 % plans.
 
 materialize(plan, 2).

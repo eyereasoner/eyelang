@@ -46,7 +46,7 @@ async function initialize(requestId) {
 }
 
 async function runEyelang(request) {
-  const { id, program, query, stats, proof = false } = request;
+  const { id, program, stats, proof = false } = request;
   if (active) {
     self.postMessage({
       type: 'result',
@@ -72,7 +72,6 @@ async function runEyelang(request) {
       Program,
       Solver,
       copyResolved,
-      parseQueryGoal,
       termIsGround,
       termToString,
       whyNoProof,
@@ -82,19 +81,7 @@ async function runEyelang(request) {
     phase = 'parsing input';
     const parsed = Program.parse(program || '', { filename: '<playground>', sourceMetadata: proof, markRecursive: proof });
 
-    if (query && query.trim()) {
-      phase = 'parsing query';
-      const goal = parseQueryGoal(query.trim());
-      phase = 'solving query';
-      const solver = new Solver(parsed);
-      const out = [];
-      for (const env of solver.solve([goal], new Env(), 0)) {
-        out.push(`${termToString(goal, env, true)}.\n`);
-        if (proof) appendExplanation(out, parsed, copyResolved(goal, env), whyProof, whyNoProof);
-      }
-      stdout = out.join('');
-      if (stats) stderr = formatStats(solver.stats);
-    } else {
+    {
       phase = 'materializing output';
       const goals = parsed.materializationGoals();
       const materializedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));

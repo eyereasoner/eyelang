@@ -2,3 +2,4 @@
 node([pair(a, b), pair(c, d)]).
 answer(first_key, X) :- node([pair(X, _), pair(c, d)]).
 answer(second_key, X) :- node([pair(a, b), pair(X, d)]).
+materialize(answer, 2).

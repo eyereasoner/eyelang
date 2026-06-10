@@ -9,3 +9,4 @@ answer(minimum, X) :- min(3, 9, X).
 answer(maximum, X) :- max(3, 9, X).
 answer(less_than, true) :- lt(3, 9).
 answer(greater_equal, true) :- ge(9, 9).
+materialize(answer, 2).

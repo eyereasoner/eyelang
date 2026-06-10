@@ -5,10 +5,10 @@
 
 eyelang is a small rule engine for Prolog-style Horn clauses over ordinary terms, lists, arithmetic, strings, and finite search. The command-line executable is `eyelang`.
 
-Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. eyelang output is ordinary eyelang syntax: by default, it prints answer facts only. Pass `--proof` (or `-p`) when you also want each answer followed by a `why/2` explanation fact that records the proof. When no `--query` is supplied, the CLI materializes distinct new binary derivations of the form `p(S, O)`, suppresses repeated source facts, and prints each derived answer. Programs may add `materialize(Name, Arity).` declarations to focus default output on selected predicates.
+Programs write relations directly, for example `ancestor(pat, emma)` or `status(case1, accepted)`. eyelang output is ordinary eyelang syntax: by default, the CLI materializes selected answer facts and prints those facts only. Pass `--proof` (or `-p`) when you also want each answer followed by a `why/2` explanation fact that records the proof. Programs may add `materialize(Name, Arity).` declarations to focus output on selected predicates.
 
 
-Try it in the [browser playground](https://eyereasoner.github.io/eyelang/playground). The playground includes run options equivalent to CLI `--query`, `--stats`, and `--proof`.
+Try it in the [browser playground](https://eyereasoner.github.io/eyelang/playground). The playground includes run options equivalent to CLI `--stats` and `--proof`.
 
 For the normative language definition, including lexical syntax, terms, clauses, goals, built-ins, `memoize/2`, `materialize/2`, and conformance boundaries, read the [eyelang specification](SPEC.md).
 
@@ -34,12 +34,11 @@ Install dependencies, if any, and run the command-line executable:
 npm install
 ```
 
-There is no build step for the CLI. Run examples, explicit queries, multiple inputs, stdin, or a URL:
+There is no build step for the CLI. Run examples, multiple inputs, stdin, or a URL:
 
 ```sh
 bin/eyelang --version
 bin/eyelang examples/ancestor.pl
-bin/eyelang --query 'ancestor(pat, X)' examples/ancestor.pl
 bin/eyelang facts.pl rules.pl
 printf 'works(stdin, true) :- eq(ok, ok).\n' | bin/eyelang -
 bin/eyelang https://raw.githubusercontent.com/eyereasoner/eyelang/refs/heads/main/examples/ancestor.pl
@@ -69,20 +68,14 @@ Run a program and let eyelang print derived binary facts:
 bin/eyelang examples/ancestor.pl
 ```
 
-Run an explicit query:
-
-```sh
-bin/eyelang --query 'ancestor(pat, X)' examples/ancestor.pl
-```
-
 Enable proof explanations when you want machine-readable provenance:
 
 ```sh
-bin/eyelang --proof --query 'ancestor(pat, X)' examples/ancestor.pl
+bin/eyelang --proof examples/ancestor.pl
 bin/eyelang -p examples/ancestor.pl
 ```
 
-eyelang-readable explanations are opt-in proof output. Each `why/2` fact contains a nested abstract proof term, and a blank line separates consecutive explanations. Using eyelang syntax for explanations keeps them in the same language as the answers themselves: they are readable by humans, parseable by eyelang, easy to test, and can be queried, transformed, or explained further like any other eyelang data. For example:
+eyelang-readable explanations are opt-in proof output. Each `why/2` fact contains a nested abstract proof term, and a blank line separates consecutive explanations. Using eyelang syntax for explanations keeps them in the same language as the answers themselves: they are readable by humans, parseable by eyelang, easy to test, and can be transformed or explained further like any other eyelang data. For example:
 
 ```prolog
 type(socrates, mortal).
@@ -103,7 +96,7 @@ why(
 
 ```
 
-The explanation output can itself be read as eyelang input and queried, for example `why(type(socrates, mortal), Proof)`. `--proof` adds only these explanation facts; it does not change the answers found by the solver.
+The explanation output can itself be read as eyelang input; for example, another program can materialize `why/2` facts such as `why(type(socrates, mortal), Proof)`. `--proof` adds only these explanation facts; it does not change the answers found by the solver.
 
 ### Explanation cookbook
 
@@ -112,7 +105,7 @@ eyelang answers can carry their own provenance when proof output is enabled.
 Explain one derived fact:
 
 ```sh
-bin/eyelang --proof --query 'type(socrates, mortal)' examples/socrates.pl
+bin/eyelang --proof examples/socrates.pl
 ```
 
 The output contains the answer and a `why/2` fact. The proof term shows the source rule that produced the answer and the source fact used below it. Source references use `rule("file.pl", clause(N))` and `fact("file.pl", clause(N))`, where `N` is the 1-based clause number in that file.
@@ -130,7 +123,7 @@ status(Case, accepted) :-
 ```
 
 ```sh
-bin/eyelang --query 'status(Case, accepted)' policy.pl
+bin/eyelang --proof policy.pl
 ```
 
 The explanation contains the instantiated answer and the variables that made the rule succeed:
@@ -153,12 +146,10 @@ Use the `uses([...])` list to follow the proof tree. In the policy example it co
 Reuse explanations as data:
 
 ```sh
-bin/eyelang --proof --query 'type(socrates, mortal)' examples/socrates.pl > socrates.why.pl
-bin/eyelang --query 'why(type(socrates, mortal), Proof)' socrates.why.pl
+bin/eyelang --proof examples/socrates.pl > socrates.why.pl
 ```
 
-When a query has no answers, eyelang prints no answers and no explanations. That makes missing proofs explicit without inventing a reason.
-
+The resulting file is ordinary eyelang syntax containing both answers and `why/2` proof facts.
 
 Compose multiple files, stdin, and URLs:
 
@@ -166,12 +157,6 @@ Compose multiple files, stdin, and URLs:
 bin/eyelang facts.pl rules.pl
 printf 'works(stdin, true) :- eq(ok, ok).\n' | bin/eyelang -
 bin/eyelang https://example.test/program.pl
-```
-
-`--query GOAL` parses a single goal. Parenthesized conjunctions are accepted:
-
-```sh
-bin/eyelang --query '(ancestor(pat, X), ancestor(X, emma))' examples/ancestor.pl
 ```
 
 ## Default output
@@ -186,7 +171,7 @@ ancestor(X, Y) :- parent(X, Y).
 ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 ```
 
-Without `--query`, eyelang asks for new ground binary consequences of the shape `p(S, O)`, suppresses duplicates, excludes source facts, sorts the result, and prints Prolog facts:
+By default, eyelang asks for new ground consequences of selected output predicates, suppresses duplicates, excludes source facts, sorts the result, and prints Prolog facts:
 
 ```prolog
 ancestor(jan, emma).
@@ -194,11 +179,11 @@ ancestor(pat, emma).
 ancestor(pat, jan).
 ```
 
-This default is intentionally output-oriented. It is not a complete bottom-up saturation engine. Built-ins and proof search remain goal-directed; use `--query` when you want a specific relation, arity, or non-binary answer.
+This default is intentionally output-oriented. It is not a complete bottom-up saturation engine. Built-ins and proof search remain goal-directed; use `materialize/2` declarations and small output predicates when you want a specific relation, arity, or non-binary answer.
 
 ### Focusing default output
 
-Large examples often have internal helper predicates. Add `materialize(Name, Arity).` declarations to restrict no-query output to selected predicates:
+Large examples often have internal helper predicates. Add `materialize(Name, Arity).` declarations to restrict default output to selected predicates:
 
 ```prolog
 materialize(answer, 2).
@@ -214,7 +199,7 @@ The default output is then:
 answer(case1, accepted).
 ```
 
-`materialize/2` is a declaration, not a logical rule to prove. It does not affect explicit `--query` answers.
+`materialize/2` is a declaration, not a logical rule to prove. It affects which predicates the CLI prints, not the meaning of the rules themselves.
 
 ## Writing programs
 
@@ -250,20 +235,14 @@ materialize(reason, 2).
 
 Predicate names and atom constants use the same lexical form. Namespace-like names should be plain names such as `type`, `person_name`, or `odrl_permission`; colon names are not part of the language.
 
-### Queries remain general
+### Embedding remains general
 
-The default output focuses on materialized binary facts, but the query engine supports arbitrary goals and arities:
-
-```sh
-bin/eyelang --query 'append(A, B, [a, b])' examples/list-collection.pl
-bin/eyelang --query 'ackermann(4, 2, A)' examples/ackermann.pl
-bin/eyelang --query 'once(solution(classic, S))' examples/sudoku.pl
-```
+The CLI is output-oriented and uses `materialize/2` to decide what to print. Embedders can still use the JavaScript API and `Solver` directly for arbitrary goals and arities.
 
 Add `--stats` when you want lightweight solver counters on stderr without changing stdout:
 
 ```sh
-bin/eyelang --stats --query 'once(solution(classic, S))' examples/sudoku.pl
+bin/eyelang --stats examples/sudoku.pl
 ```
 
 The playground has matching `--stats` and `--proof` checkboxes, so browser runs can show the same counters or explanations like the CLI.
@@ -504,7 +483,7 @@ npm run test:regression
 npm run test:examples
 ```
 
-The conformance suite lives in [`conformance/`](conformance/) and is split into `core` and `extension` profiles matching `SPEC.md`. Each case is a small program with optional query text and an exact expected stdout file, so other implementations can reuse the same cases. The regression suite lives in [`test/run-regression.js`](test/run-regression.js) and covers CLI regressions, the public JavaScript API, and white-box invariants for parser, unification, and indexing behavior.
+The conformance suite lives in [`conformance/`](conformance/) and is split into `core` and `extension` profiles matching `SPEC.md`. Each case is a small program with an exact expected stdout file, and some internal conformance cases also include a goal file for testing the embeddable solver, so other implementations can reuse the same cases. The regression suite lives in [`test/run-regression.js`](test/run-regression.js) and covers CLI regressions, the public JavaScript API, and white-box invariants for parser, unification, and indexing behavior.
 
 ## Development and release
 
@@ -521,7 +500,7 @@ node bin/eyelang --help
 Useful profiling smoke test:
 
 ```sh
-bin/eyelang --stats --query 'once(solution(classic, S))' examples/sudoku.pl > /dev/null
+bin/eyelang --stats examples/sudoku.pl > /dev/null
 ```
 
 For a release:
@@ -530,7 +509,7 @@ For a release:
 2. update `README.md` and `SPEC.md`;
 3. regenerate golden outputs if behavior changed;
 4. run `npm test`;
-5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--query GOAL`, `--stats`, and `--proof`.
+5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--stats` and `--proof`.
 
 ## Performance notes
 
@@ -550,8 +529,8 @@ Ground facts use a fast path that avoids freshening and copying a rule body. Rec
 memoize(path, 2).
 ```
 
-For large programs, keep helper predicates selective, bind arguments early, and declare focused output predicates with `materialize/2` when default output would otherwise ask broad helper queries.
+For large programs, keep helper predicates selective, bind arguments early, and declare focused output predicates with `materialize/2` when default output would otherwise solve broad helper goals.
 
 ## Implementation limits
 
-eyelang is intentionally smaller than ISO Prolog. It has no operators, cut, modules, dynamic database updates, DCGs, or complete ISO library. Negation is negation-as-failure through `not/1`. Search is goal-directed and expected to be finite for the supplied program and query. Output explanations are non-normative proof printouts and do not change answer semantics.
+eyelang is intentionally smaller than ISO Prolog. It has no operators, cut, modules, dynamic database updates, DCGs, or complete ISO library. Negation is negation-as-failure through `not/1`. Search is goal-directed and expected to be finite for the selected output goals. Output explanations are non-normative proof printouts and do not change answer semantics.

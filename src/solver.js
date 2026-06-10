@@ -31,7 +31,7 @@ export class Solver {
     };
   }
 
-  cloneForSubquery(solutionLimit = this.solutionLimit) {
+  cloneForInnerGoal(solutionLimit = this.solutionLimit) {
     const solver = new Solver(this.program, { registry: this.registry, maxDepth: this.maxDepth, solutionLimit });
     solver.memo = this.memo;
     return solver;
@@ -114,7 +114,7 @@ export class Solver {
     }
     if (!entry.complete && !entry.computing) {
       entry.computing = true;
-      const collector = this.cloneForSubquery();
+      const collector = this.cloneForInnerGoal();
       for (const answerEnv of collector.solveUserGoalUncached(group, goal, [], env.clone(), depth)) {
         entry.answers.push(goal.args.map((arg) => importResolved(arg, answerEnv)));
       }

@@ -2,3 +2,4 @@
 choice(a).
 choice(b).
 answer(first, X) :- once(choice(X)).
+materialize(answer, 2).

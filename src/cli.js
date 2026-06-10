@@ -1,5 +1,5 @@
 // Command-line interface for eyelang.
-// It loads programs from files, URLs, or stdin, then either materializes derived output or evaluates an explicit query.
+// It loads programs from files, URLs, or stdin, then materializes derived output predicates.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -16,7 +16,6 @@ export async function main(argv) {
   const options = {
     files: [],
     proof: false,
-    query: null,
     stats: false,
     version: false,
   };
@@ -35,9 +34,6 @@ export async function main(argv) {
       return;
     } else if (!endOptions && (arg === '--proof' || arg === '-p')) {
       options.proof = true;
-    } else if (!endOptions && arg === '--query') {
-      if (i + 1 >= argv.length) throw new Error('--query requires an argument');
-      options.query = argv[++i];
     } else if (!endOptions && arg === '--stats') {
       options.stats = true;
     } else if (!endOptions && arg.startsWith('-') && arg !== '-') {
@@ -76,20 +72,18 @@ export async function main(argv) {
   const engine = await loadEngine();
   const program = engine.Program.parseSources(sourceParts, { sourceMetadata: options.proof, markRecursive: options.proof });
 
-  if (options.query != null) await runQuery(engine, program, options.query, options);
-  else await runDefault(engine, program, options);
+  await runDefault(engine, program, options);
 }
 
 async function loadEngine() {
   if (engineModule == null) {
-    const [term, program, solver, parser, registry] = await Promise.all([
+    const [term, program, solver, registry] = await Promise.all([
       import('./term.js'),
       import('./program.js'),
       import('./solver.js'),
-      import('./parser.js'),
       import('./builtins/registry.js'),
     ]);
-    engineModule = { ...term, ...program, ...solver, ...parser, ...registry };
+    engineModule = { ...term, ...program, ...solver, ...registry };
   }
   return engineModule;
 }
@@ -97,21 +91,6 @@ async function loadEngine() {
 async function loadExplanation() {
   if (explanationModule == null) explanationModule = await import('./explain.js');
   return explanationModule;
-}
-
-async function runQuery(engine, program, query, options) {
-  const goal = engine.parseQueryGoal(query);
-  const registry = engine.getDefaultRegistry();
-  const solver = new engine.Solver(program, { registry });
-  const explanation = options.proof ? await loadExplanation() : null;
-
-  for (const env of solver.solve([goal], new engine.Env(), 0)) {
-    process.stdout.write(`${engine.termToString(goal, env, true)}.\n`);
-
-    if (options.proof) writeExplanation(explanation, program, engine.copyResolved(goal, env), registry);
-  }
-
-  if (options.stats) printStats(solver.stats);
 }
 
 async function runDefault(engine, program, options) {
@@ -163,7 +142,6 @@ Input:
 Options:
   -h, --help            Show this help text and exit.
   -p, --proof           Enable proof explanations.
-      --query GOAL      Run GOAL as a query instead of materializing output predicates.
       --stats           Print solver statistics to stderr after execution.
   -v, --version         Show the package version and exit.
   --                    Stop option parsing; following arguments are treated as files.

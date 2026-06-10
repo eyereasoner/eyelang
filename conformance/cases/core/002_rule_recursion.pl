@@ -1,5 +1,7 @@
 % SPEC 6, 7: definite clauses, conjunction, and recursive proof search.
+materialize(ancestor, 2).
 parent(pat, jan).
 parent(jan, emma).
-ancestor(X, Y) :- parent(X, Y).
-ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
+ancestor_any(X, Y) :- parent(X, Y).
+ancestor_any(X, Z) :- parent(X, Y), ancestor_any(Y, Z).
+ancestor(pat, Y) :- ancestor_any(pat, Y).

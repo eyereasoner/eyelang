@@ -30,8 +30,8 @@ import {
   unify,
   variantTerms,
   parseProgramText,
-  parseQueryGoal,
 } from '../src/index.js';
+import { parseGoalText } from '../src/parser.js';
 import { selectClauseCandidates } from '../src/program.js';
 import { TestReporter, isMainModule } from './test-style.js';
 
@@ -61,7 +61,7 @@ function regressionCases() {
       name: '--proof rule fact explanation output',
       run: () => runWhy({
         program: 'type(socrates, man).\ntype(X, mortal) :- type(X, man).\n',
-        query: 'type(socrates, mortal)',
+        goalText: 'type(socrates, mortal)',
         expected: `type(socrates, mortal).
 why(
   type(socrates, mortal),
@@ -84,8 +84,8 @@ why(
     {
       name: '--proof numeric builtin explanation output',
       run: () => runWhy({
-        program: 'p(X) :- between(4, 1000, X).\n',
-        query: 'p(536)',
+        program: 'p(X) :- between(536, 536, X).\n',
+        goalText: 'p(536)',
         expected: `p(536).
 why(
   p(536),
@@ -95,7 +95,7 @@ why(
     bindings([binding("X", 536)]),
     uses([
       proof(
-        goal(between(4, 1000, 536)),
+        goal(between(536, 536, 536)),
         by(builtin(between, 3))
       )
     ])
@@ -108,8 +108,8 @@ why(
     {
       name: '--proof list builtin explanation output',
       run: () => runWhy({
-        program: 'p(X) :- member(X, [a, b]).\n',
-        query: 'p(a)',
+        program: 'p(X) :- member(X, [a]).\n',
+        goalText: 'p(a)',
         expected: `p(a).
 why(
   p(a),
@@ -119,7 +119,7 @@ why(
     bindings([binding("X", a)]),
     uses([
       proof(
-        goal(member(a, [a, b])),
+        goal(member(a, [a])),
         by(builtin(member, 2))
       )
     ])
@@ -134,7 +134,7 @@ why(
       run: () => {
         const result = runWhyLoose({
           program: 'p(ok) :- q(X), r(X).\nq(a).\nq(b).\nr(b).\n',
-          query: 'p(ok)',
+          goalText: 'p(ok)',
         });
         assertIncludes(result.stdout, 'goal(q(b)),\n        by(fact("', 'stdout');
         assertIncludes(result.stdout, 'goal(r(b)),\n        by(fact("', 'stdout');
@@ -146,7 +146,7 @@ why(
       run: () => {
         const result = runWhyLoose({
           program: 'p(ok) :- q(1), q(1).\nq(0).\nq(1) :- q(0).\n',
-          query: 'p(ok)',
+          goalText: 'p(ok)',
         });
         assertIncludes(result.stdout, 'goal(p(ok)),\n    by(rule("', 'stdout');
         assertIncludes(result.stdout, 'goal(q(1)),\n        by(rule("', 'stdout');
@@ -156,12 +156,12 @@ why(
     {
       name: 'EYELANG_LOCAL_TIME fixes local_time builtin',
       run: () => {
-        const result = runCli(['--query', 'local_time(D)', '-'], {
-          input: '',
+        const result = runCli(['-'], {
+          input: 'materialize(local_time_answer, 1).\nlocal_time_answer(D) :- local_time(D).\n',
           env: { EYELANG_LOCAL_TIME: '2024-01-02' },
         });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'local_time("2024-01-02").\n', 'stdout');
+        assertEqual(result.stdout, 'local_time_answer("2024-01-02").\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -171,7 +171,6 @@ why(
         const result = runCli([]);
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'Usage:\n  eyelang [options] [file-or-url.pl|- ...]', 'stdout');
-        assertIncludes(result.stdout, '--query GOAL', 'stdout');
         assertIncludes(result.stdout, '--proof', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
@@ -198,21 +197,20 @@ why(
     {
       name: 'stdin input is accepted',
       run: () => {
-        const result = runCli(['--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
+        const result = runCli(['-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
 
 
     {
-      name: '--proof enables query explanations',
+      name: '--proof enables materialization explanations',
       run: () => {
-        const result = runCli(['--proof', '--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
+        const result = runCli(['--proof', '-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, 'p(a).\nwhy(', 'stdout');
-        assertIncludes(result.stdout, 'p(b).\nwhy(', 'stdout');
+        assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -238,26 +236,11 @@ why(
         assertEqual(result.stderr, '', 'stderr');
       },
     },
-    {
-      name: 'missing query argument fails clearly',
-      run: () => {
-        const result = runCli(['--query']);
-        assertEqual(result.status, 1, 'exit status');
-        assertIncludes(result.stderr, 'eyelang: --query requires an argument', 'stderr');
-      },
-    },
   ];
 }
 
 function apiCases() {
   return [
-    {
-      name: 'run query through public API without proof by default',
-      run: () => {
-        const result = run('parent(pat, jan).\nancestor(X, Y) :- parent(X, Y).\n', { query: 'ancestor(pat, Y)' });
-        assertEqual(result.stdout, 'ancestor(pat, jan).\n', 'stdout');
-      },
-    },
     {
       name: 'run materialization through public API without proof by default',
       run: () => {
@@ -267,14 +250,6 @@ function apiCases() {
     },
 
 
-    {
-      name: 'run query can enable proof explanations',
-      run: () => {
-        const result = run('p(a).\np(b).\n', { query: 'p(X)', proof: true });
-        assertIncludes(result.stdout, 'p(a).\nwhy(', 'stdout');
-        assertIncludes(result.stdout, 'p(b).\nwhy(', 'stdout');
-      },
-    },
     {
       name: 'run materialization can enable proof explanations',
       run: () => {
@@ -286,9 +261,9 @@ function apiCases() {
     {
       name: 'run accepts Program instances',
       run: () => {
-        const program = Program.parse('p(a).\np(b).\n');
-        const result = run(program, { query: 'p(X)' });
-        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        const program = Program.parse('p(a, b).\nq(X, Y) :- p(X, Y).\n');
+        const result = run(program);
+        assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
       },
     },
     {
@@ -306,7 +281,7 @@ function apiCases() {
       run: () => {
         const program = Program.parse('p(a).\np(b).\n');
         const solver = new Solver(program);
-        const goal = parseQueryGoal('p(X)');
+        const goal = parseGoalText('p(X)');
         const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
         assertEqual(answers.join('\n'), 'p(a)\np(b)', 'answers');
       },
@@ -316,7 +291,7 @@ function apiCases() {
       run: () => {
         const program = Program.parse('p(a).\np(b).\np(c).\n');
         const solver = new Solver(program, { solutionLimit: 2 });
-        const goal = parseQueryGoal('p(X)');
+        const goal = parseGoalText('p(X)');
         const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
         assertEqual(answers.join('\n'), 'p(a)\np(b)', 'answers');
       },
@@ -331,7 +306,7 @@ function apiCases() {
         });
         const program = Program.parse('answer(X) :- hello(X).\n');
         const solver = new Solver(program, { registry });
-        const goal = parseQueryGoal('answer(X)');
+        const goal = parseGoalText('answer(X)');
         const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
         assertEqual(answers.join('\n'), 'answer(world)', 'answers');
       },
@@ -376,7 +351,7 @@ function whiteBoxCases() {
     {
       name: 'parser preserves list syntax readback',
       run: () => {
-        const goal = parseQueryGoal('member(X, [a, b])');
+        const goal = parseGoalText('member(X, [a, b])');
         assertEqual(termToString(goal, new Env(), true), 'member(X, [a, b])', 'goal');
       },
     },
@@ -392,9 +367,9 @@ function whiteBoxCases() {
     {
       name: 'variantTerms recognizes alpha-equivalent goals',
       run: () => {
-        const left = parseQueryGoal('edge(X, Y)');
-        const right = parseQueryGoal('edge(A, B)');
-        const nonVariant = parseQueryGoal('edge(A, A)');
+        const left = parseGoalText('edge(X, Y)');
+        const right = parseGoalText('edge(A, B)');
+        const nonVariant = parseGoalText('edge(A, A)');
         assertEqual(variantTerms(left, new Env(), right, new Env()), true, 'variant');
         assertEqual(variantTerms(left, new Env(), nonVariant, new Env()), false, 'non-variant');
       },
@@ -402,7 +377,7 @@ function whiteBoxCases() {
     {
       name: 'flattenConjunction preserves left-to-right order',
       run: () => {
-        const goal = parseQueryGoal('(a, b, c)');
+        const goal = parseGoalText('(a, b, c)');
         const parts = flattenConjunction(goal).map((part) => termToString(part, new Env(), true));
         assertEqual(parts.join(' | '), 'a | b | c', 'order');
       },
@@ -421,7 +396,7 @@ function whiteBoxCases() {
       run: () => {
         const program = Program.parse('edge(a, b).\nedge(c, d).\nedge(X, z).\n');
         const group = program.findGroup('edge', 2);
-        const goal = parseQueryGoal('edge(a, Y)');
+        const goal = parseGoalText('edge(a, Y)');
         const candidates = selectClauseCandidates(group, goal, new Env());
         assertEqual(candidates.primary.length, 1, 'primary bucket length');
         assertEqual(candidates.fallback.length, 1, 'fallback length');
@@ -443,10 +418,12 @@ function sectionLabel(name) {
   return name.toLowerCase();
 }
 
-function runWhy({ program, query, expected }) {
+function runWhy({ program, goalText, expected }) {
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
-  const result = runCli(['--proof', '--query', query, programFile]);
+  const goal = parseGoalText(goalText);
+  fs.appendFileSync(programFile, `\nmaterialize(${goal.name}, ${goal.arity}).\n`);
+  const result = runCli(['--proof', programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
   const expectedText = expected.replaceAll('__FILE__', path.basename(programFile));
@@ -460,10 +437,12 @@ function runWhy({ program, query, expected }) {
   assertIncludes(result.stdout, '\n).\n\n', 'stdout');
 }
 
-function runWhyLoose({ program, query }) {
+function runWhyLoose({ program, goalText }) {
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
-  const result = runCli(['--proof', '--query', query, programFile]);
+  const goal = parseGoalText(goalText);
+  fs.appendFileSync(programFile, `\nmaterialize(${goal.name}, ${goal.arity}).\n`);
+  const result = runCli(['--proof', programFile]);
   assertEqual(result.status, 0, 'exit status');
   assertEqual(result.stderr, '', 'stderr');
   Program.parse(result.stdout);

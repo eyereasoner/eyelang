@@ -37,12 +37,10 @@ function runProfile(reporter, profile) {
 
 function runCase(profile, name, file, casesDir, expectedDir) {
   const programFile = path.join(casesDir, file);
-  const queryFile = path.join(casesDir, `${name}.query`);
   const expected = path.join(expectedDir, `${name}.out`);
   const text = fs.readFileSync(programFile, 'utf8');
   const program = Program.parseSources([{ text, filename: file }], { sourceMetadata: false, markRecursive: false });
-  const options = fs.existsSync(queryFile) ? { query: fs.readFileSync(queryFile, 'utf8').trim() } : {};
-  const actual = run(program, options).stdout;
+  const actual = run(program).stdout;
 
   if (!fs.existsSync(expected)) {
     throw new Error(`missing expected file: ${path.relative(root, expected)}`);

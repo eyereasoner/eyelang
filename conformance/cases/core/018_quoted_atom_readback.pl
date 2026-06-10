@@ -3,3 +3,4 @@ symbol('two words').
 symbol('needs''quote').
 symbol('').
 answer(symbol, X) :- symbol(X).
+materialize(answer, 2).
