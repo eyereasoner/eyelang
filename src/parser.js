@@ -36,6 +36,7 @@ class Parser {
     this.pos = 0;
     this.line = 1;
     this.anonymous = 0;
+    this.sourceMetadata = options.sourceMetadata !== false;
     this.token = this.nextToken();
   }
   peek(offset = 0) {
@@ -256,14 +257,142 @@ class Parser {
       }
       this.expect(TOK.DOT, '.');
       this.advance();
-      clauses.push({ head, body, source: { filename: this.filename, line, clause: clauses.length + 1 } });
+      const clause = { head, body };
+      if (this.sourceMetadata) clause.source = { filename: this.filename, line, clause: clauses.length + 1 };
+      clauses.push(clause);
     }
     return clauses;
   }
 }
 
+
 export function parseClauses(source, options = {}) {
+  if (options.sourceMetadata === false) {
+    const clauses = parseClausesFastNoSource(source);
+    if (clauses) return clauses;
+  }
   return new Parser(source, options).parseProgram();
+}
+
+function isSimpleName(text) {
+  if (!text) return false;
+  const first = text.charCodeAt(0);
+  if (!(first >= 97 && first <= 122)) return false;
+  for (let i = 1; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (!(code === 95 || (code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122))) return false;
+  }
+  return true;
+}
+
+const SIMPLE_NUMBER = /^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
+const SIMPLE_ARG_FORBIDDEN = /[\s()[\]|"']/;
+
+function parseClausesFastNoSource(source) {
+  source = String(source ?? '');
+  const atomCache = new Map();
+  const numberCache = new Map();
+  const stringCache = new Map();
+  const clauses = [];
+  let anonymous = 0;
+  let chunk = '';
+
+  const cached = (cache, key, create) => {
+    const existing = cache.get(key);
+    if (existing) return existing;
+    const value = create(key);
+    cache.set(key, value);
+    return value;
+  };
+  const scalarOrVariable = (text, variables) => {
+    text = text.trim();
+    if (!text) throw new Error('empty simple term');
+    if (text === '_') return variable(`__anon${anonymous++}`);
+    if (isVariableStart(text)) {
+      const existing = variables.get(text);
+      if (existing) return existing;
+      const value = variable(text);
+      variables.set(text, value);
+      return value;
+    }
+    if (SIMPLE_NUMBER.test(text)) return cached(numberCache, text, numberTerm);
+    if (text[0] === '"' && text.endsWith('"')) return cached(stringCache, text.slice(1, -1), stringTerm);
+    return cached(atomCache, text, atom);
+  };
+  const parseBinaryCompound = (text, variables) => {
+    text = text.trim();
+    const open = text.indexOf('(');
+    if (open <= 0 || text[text.length - 1] !== ')') return null;
+    const name = text.slice(0, open).trim();
+    if (!isSimpleName(name)) return null;
+    const inner = text.slice(open + 1, -1);
+    if (inner.includes('(') || inner.includes(')') || inner.includes('[') || inner.includes(']') || inner.includes('|') || inner.includes('"') || inner.includes("'")) return null;
+    const comma = inner.indexOf(',');
+    if (comma < 0 || inner.indexOf(',', comma + 1) >= 0) return null;
+    const left = inner.slice(0, comma).trim();
+    const right = inner.slice(comma + 1).trim();
+    if (!left || !right || SIMPLE_ARG_FORBIDDEN.test(left) || SIMPLE_ARG_FORBIDDEN.test(right)) return null;
+    return compound(name, [scalarOrVariable(left, variables), scalarOrVariable(right, variables)]);
+  };
+  const parseSimple = (text) => {
+    if (!text.endsWith('.') || text.includes('\n')) return null;
+    text = text.slice(0, -1);
+    const variables = new Map();
+    const rule = text.indexOf(':-');
+    if (rule < 0) {
+      const head = parseBinaryCompound(text, variables);
+      return head ? { head, body: [] } : null;
+    }
+    const head = parseBinaryCompound(text.slice(0, rule), variables);
+    const bodyGoal = parseBinaryCompound(text.slice(rule + 2), variables);
+    return head && bodyGoal ? { head, body: [bodyGoal] } : null;
+  };
+
+  const flush = () => {
+    const text = chunk.trim();
+    chunk = '';
+    if (!text) return true;
+    const simple = parseSimple(text);
+    if (simple) {
+      clauses.push(simple);
+      return true;
+    }
+    try {
+      const parsed = new Parser(text, { sourceMetadata: false }).parseProgram();
+      clauses.push(...parsed);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  let lineStart = 0;
+  while (lineStart <= source.length) {
+    let lineEnd = source.indexOf('\n', lineStart);
+    if (lineEnd < 0) lineEnd = source.length;
+    let line = source.slice(lineStart, lineEnd);
+    if (line.endsWith('\r')) line = line.slice(0, -1);
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('%')) {
+      if (!chunk && trimmed.endsWith('.')) {
+        const simple = parseSimple(trimmed);
+        if (simple) clauses.push(simple);
+        else {
+          chunk = line + '\n';
+          if (!flush()) return null;
+        }
+      } else {
+        chunk += line + '\n';
+        if (trimmed.endsWith('.')) {
+          if (!flush()) return null;
+        }
+      }
+    }
+    if (lineEnd === source.length) break;
+    lineStart = lineEnd + 1;
+  }
+  if (chunk.trim() && !flush()) return null;
+  return clauses;
 }
 
 export function parseProgramText(source) {

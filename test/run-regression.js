@@ -217,6 +217,15 @@ why(
       },
     },
     {
+      name: '-n suppresses query explanations',
+      run: () => {
+        const result = runCli(['-n', '--query', 'p(X)', '-'], { input: 'p(a).\np(b).\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'p(a).\np(b).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: '--no-why suppresses materialization explanations',
       run: () => {
         const result = runCli(['--no-why', '-'], { input: 'p(a, b).\nq(X, Y) :- p(X, Y).\n' });

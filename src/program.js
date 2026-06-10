@@ -1,27 +1,33 @@
 // Program representation and clause indexing.
 // Indexes are deliberately conservative: they speed up common scalar arguments but never replace unification as the final check.
-import { ATOM, COMPOUND, Env, compound, deref, flattenConjunction, isScalar, termIsGround, termToString } from './term.js';
+import { ATOM, COMPOUND, Env, compound, deref, flattenConjunction, isScalar, termToString } from './term.js';
 import { parseClauses } from './parser.js';
 
 export class Program {
-  constructor(clauses = []) {
-    this.clauses = clauses.map((clause, index) => ({ ...clause, index, headGround: termIsGround(clause.head) }));
+  constructor(clauses = [], options = {}) {
+    this.clauses = clauses;
     this.groups = new Map();
-    for (const clause of this.clauses) this.indexClause(clause);
-    this.applyDeclarations();
+    this.materializedGroups = new Set();
+    this.hasMaterialize = false;
+    for (let index = 0; index < this.clauses.length; index++) {
+      const clause = this.clauses[index];
+      clause.index = index;
+      this.indexClause(clause);
+    }
+    this.applyDeclarations(options);
   }
   static parse(source, options = {}) {
-    return new Program(parseClauses(source, options));
+    return new Program(parseClauses(source, options), options);
   }
-  static parseSources(sources = []) {
+  static parseSources(sources = [], options = {}) {
     const clauses = [];
     for (const source of sources) {
       const parsed = typeof source === 'string'
-        ? parseClauses(source)
-        : parseClauses(source?.text ?? source?.source ?? '', { filename: source?.filename ?? '<input>' });
+        ? parseClauses(source, options)
+        : parseClauses(source?.text ?? source?.source ?? '', { ...options, filename: source?.filename ?? '<input>' });
       for (const clause of parsed) clauses.push(clause);
     }
-    return new Program(clauses);
+    return new Program(clauses, options);
   }
   makeGroup(name, arity) {
     // A group corresponds to one predicate indicator, for example edge/3.
@@ -61,22 +67,27 @@ export class Program {
   findGroup(name, arity) {
     return this.groups.get(`${name}/${arity}`) ?? null;
   }
-  applyDeclarations() {
+  applyDeclarations(options = {}) {
     for (const clause of this.clauses) {
       const h = clause.head;
-      if (clause.body.length === 0 && h.type === COMPOUND && h.name === 'memoize' && h.arity === 2) {
-        const [name, arity] = h.args;
-        if (name.type === ATOM && arity.type === 'number') {
-          const group = this.findGroup(name.name, Number(arity.name));
-          if (group) group.memoized = true;
-        }
+      if (clause.body.length !== 0 || h.type !== COMPOUND || h.arity !== 2) continue;
+      const [name, arity] = h.args;
+      if (name.type !== ATOM || arity.type !== 'number') continue;
+      const key = `${name.name}/${Number(arity.name)}`;
+      if (h.name === 'memoize') {
+        const group = this.groups.get(key);
+        if (group) group.memoized = true;
+      } else if (h.name === 'materialize') {
+        this.hasMaterialize = true;
+        this.materializedGroups.add(key);
       }
     }
-    this.markRecursivePredicates();
+    if (options.markRecursive !== false) this.markRecursivePredicates();
   }
   markRecursivePredicates() {
-    // Recursion is a group-level hint used by the solver and diagnostics. It is
-    // computed from predicate dependencies rather than from individual clauses.
+    // Recursion is a group-level diagnostic hint. It is computed from predicate
+    // dependencies rather than from individual clauses when callers explicitly ask
+    // for it.
     const groups = [...this.groups.values()];
     const indexByGroup = new Map(groups.map((group, i) => [group, i]));
     const deps = groups.map(() => new Set());
@@ -109,15 +120,10 @@ export class Program {
     }
   }
   hasMaterializeDeclarations() {
-    return this.clauses.some((clause) => clause.body.length === 0 && clause.head.type === COMPOUND && clause.head.name === 'materialize' && clause.head.arity === 2);
+    return this.hasMaterialize;
   }
   groupIsMaterialized(group) {
-    return this.clauses.some((clause) => {
-      const h = clause.head;
-      if (clause.body.length !== 0 || h.type !== COMPOUND || h.name !== 'materialize' || h.arity !== 2) return false;
-      const [name, arity] = h.args;
-      return name.type === ATOM && arity.type === 'number' && name.name === group.name && String(group.arity) === arity.name;
-    });
+    return this.materializedGroups.has(`${group.name}/${group.arity}`);
   }
   groupHasRule(group) {
     return group.clauses.some((clause) => clause.body.length > 0);

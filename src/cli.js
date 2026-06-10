@@ -39,7 +39,7 @@ export async function main(argv) {
       return;
     } else if (!endOptions && arg === '--stats') {
       options.stats = true;
-    } else if (!endOptions && arg === '--no-why') {
+    } else if (!endOptions && (arg === '--no-why' || arg === '-n')) {
       options.why = false;
     } else if (!endOptions && arg === '--query') {
       if (i + 1 >= argv.length) throw new Error('--query requires an argument');
@@ -77,7 +77,7 @@ export async function main(argv) {
     }
   }
 
-  const program = Program.parseSources(sourceParts);
+  const program = Program.parseSources(sourceParts, { sourceMetadata: options.why, markRecursive: options.why });
 
   if (options.query != null) runQuery(program, options.query, options);
   else runDefault(program, options);
@@ -142,10 +142,10 @@ Input:
 
 Options:
   -h, --help            Show this help text and exit.
-  -v, --version         Show the package version and exit.
+  -n, --no-why          Suppress why/2 explanation facts; print answers only.
       --query GOAL      Run GOAL as a query instead of materializing output predicates.
       --stats           Print solver statistics to stderr after execution.
-      --no-why          Suppress why/2 explanation facts; print answers only.
+  -v, --version         Show the package version and exit.
   --                    Stop option parsing; following arguments are treated as files.
 `);
 }
