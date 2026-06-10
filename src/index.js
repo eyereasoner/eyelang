@@ -4,25 +4,27 @@ export { Program, makeProgram } from './program.js';
 export { parseClauses, parseProgramText, parseQueryGoal } from './parser.js';
 export { Solver } from './solver.js';
 export * from './term.js';
-export { BuiltinRegistry, createDefaultRegistry } from './builtins/registry.js';
+export { BuiltinRegistry, createDefaultRegistry, getDefaultRegistry } from './builtins/registry.js';
 
 import { Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { parseQueryGoal } from './parser.js';
 import { whyNoProof, whyProof } from './explain.js';
+import { getDefaultRegistry } from './builtins/registry.js';
 
 export function run(source, options = {}) {
   const includeWhy = options.proof === true || options.why === true || options.explain === true;
   const parseOptions = { ...options, sourceMetadata: includeWhy, markRecursive: includeWhy };
   const program = source instanceof Program ? source : Program.parse(source, parseOptions);
-  const solver = new Solver(program, options);
+  const runOptions = options.registry ? options : { ...options, registry: getDefaultRegistry() };
+  const solver = new Solver(program, runOptions);
   const output = [];
   if (options.query) {
     const goal = typeof options.query === 'string' ? parseQueryGoal(options.query) : options.query;
     for (const env of solver.solve([goal], new Env(), 0)) {
       output.push(`${termToString(goal, env, true)}.\n`);
-      if (includeWhy) appendExplanation(output, program, copyResolved(goal, env));
+      if (includeWhy) appendExplanation(output, program, copyResolved(goal, env), runOptions.registry);
     }
   } else {
     const goals = program.materializationGoals();
@@ -30,7 +32,7 @@ export function run(source, options = {}) {
     const facts = program.sourceFactLines(materializedKeys);
     const seen = new Set();
     for (const goal of goals) {
-      const localSolver = new Solver(program, options);
+      const localSolver = new Solver(program, runOptions);
       for (const env of localSolver.solve([goal], new Env(), 0)) {
         const resolved = copyResolved(goal, env);
         if (!termIsGround(resolved)) continue;
@@ -38,15 +40,15 @@ export function run(source, options = {}) {
         if (facts.has(line) || seen.has(line)) continue;
         seen.add(line);
         output.push(line);
-        if (includeWhy) appendExplanation(output, program, resolved);
+        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
       }
     }
   }
   return { stdout: output.join(''), stats: solver.stats };
 }
 
-function appendExplanation(output, program, resolved) {
-  const proof = whyProof(program, resolved);
+function appendExplanation(output, program, resolved, registry) {
+  const proof = whyProof(program, resolved, { registry });
   output.push(proof.text);
   if (!proof.ok) output.push(whyNoProof(resolved));
 }

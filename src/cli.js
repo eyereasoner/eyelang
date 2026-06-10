@@ -3,17 +3,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-import { Env, copyResolved, termIsGround, termToString } from './term.js';
-import { Program } from './program.js';
-import { Solver } from './solver.js';
-import { parseQueryGoal } from './parser.js';
-import { whyNoProof, whyProof } from './explain.js';
 
-const VERSION = await packageVersion();
+let engineModule = null;
+let explanationModule = null;
 
 export async function main(argv) {
   if (argv.length === 0) {
-    usage(process.stdout);
+    await usage(process.stdout);
     return;
   }
 
@@ -35,7 +31,7 @@ export async function main(argv) {
     } else if (!endOptions && (arg === '--version' || arg === '-v')) {
       options.version = true;
     } else if (!endOptions && (arg === '--help' || arg === '-h')) {
-      usage(process.stdout);
+      await usage(process.stdout);
       return;
     } else if (!endOptions && (arg === '--proof' || arg === '-p')) {
       options.proof = true;
@@ -52,7 +48,7 @@ export async function main(argv) {
   }
 
   if (options.version) {
-    process.stdout.write(`eyelang ${VERSION}\n`);
+    process.stdout.write(`eyelang ${await packageVersion()}\n`);
     return;
   }
 
@@ -77,45 +73,69 @@ export async function main(argv) {
     }
   }
 
-  const program = Program.parseSources(sourceParts, { sourceMetadata: options.proof, markRecursive: options.proof });
+  const engine = await loadEngine();
+  const program = engine.Program.parseSources(sourceParts, { sourceMetadata: options.proof, markRecursive: options.proof });
 
-  if (options.query != null) runQuery(program, options.query, options);
-  else runDefault(program, options);
+  if (options.query != null) await runQuery(engine, program, options.query, options);
+  else await runDefault(engine, program, options);
 }
 
-function runQuery(program, query, options) {
-  const goal = parseQueryGoal(query);
-  const solver = new Solver(program);
+async function loadEngine() {
+  if (engineModule == null) {
+    const [term, program, solver, parser, registry] = await Promise.all([
+      import('./term.js'),
+      import('./program.js'),
+      import('./solver.js'),
+      import('./parser.js'),
+      import('./builtins/registry.js'),
+    ]);
+    engineModule = { ...term, ...program, ...solver, ...parser, ...registry };
+  }
+  return engineModule;
+}
 
-  for (const env of solver.solve([goal], new Env(), 0)) {
-    process.stdout.write(`${termToString(goal, env, true)}.\n`);
+async function loadExplanation() {
+  if (explanationModule == null) explanationModule = await import('./explain.js');
+  return explanationModule;
+}
 
-    if (options.proof) writeExplanation(program, copyResolved(goal, env));
+async function runQuery(engine, program, query, options) {
+  const goal = engine.parseQueryGoal(query);
+  const registry = engine.getDefaultRegistry();
+  const solver = new engine.Solver(program, { registry });
+  const explanation = options.proof ? await loadExplanation() : null;
+
+  for (const env of solver.solve([goal], new engine.Env(), 0)) {
+    process.stdout.write(`${engine.termToString(goal, env, true)}.\n`);
+
+    if (options.proof) writeExplanation(explanation, program, engine.copyResolved(goal, env), registry);
   }
 
   if (options.stats) printStats(solver.stats);
 }
 
-function runDefault(program, options) {
+async function runDefault(engine, program, options) {
   const goals = program.materializationGoals();
   const materializedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
   const facts = program.sourceFactLines(materializedKeys);
   const lines = new Set();
   let lastStats = null;
+  const registry = engine.getDefaultRegistry();
+  const explanation = options.proof ? await loadExplanation() : null;
 
   for (const goal of goals) {
-    const solver = new Solver(program);
+    const solver = new engine.Solver(program, { registry });
 
-    for (const env of solver.solve([goal], new Env(), 0)) {
-      if (!termIsGround(goal, env)) continue;
+    for (const env of solver.solve([goal], new engine.Env(), 0)) {
+      if (!engine.termIsGround(goal, env)) continue;
 
-      const line = `${termToString(goal, env, true)}.\n`;
+      const line = `${engine.termToString(goal, env, true)}.\n`;
       if (facts.has(line) || lines.has(line)) continue;
 
       lines.add(line);
 
       process.stdout.write(line);
-      if (options.proof) writeExplanation(program, copyResolved(goal, env));
+      if (options.proof) writeExplanation(explanation, program, engine.copyResolved(goal, env), registry);
     }
 
     lastStats = solver.stats;
@@ -124,14 +144,14 @@ function runDefault(program, options) {
   if (options.stats && lastStats) printStats(lastStats);
 }
 
-function writeExplanation(program, resolved) {
-  const proof = whyProof(program, resolved);
+function writeExplanation(explanation, program, resolved, registry) {
+  const proof = explanation.whyProof(program, resolved, { registry });
   process.stdout.write(proof.text);
-  if (!proof.ok) process.stdout.write(whyNoProof(resolved));
+  if (!proof.ok) process.stdout.write(explanation.whyNoProof(resolved));
 }
 
-function usage(stream) {
-  stream.write(`eyelang ${VERSION}
+async function usage(stream) {
+  stream.write(`eyelang ${await packageVersion()}
 
 Usage:
   eyelang [options] [file-or-url.pl|- ...]

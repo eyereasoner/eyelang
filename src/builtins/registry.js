@@ -44,3 +44,10 @@ export function createDefaultRegistry() {
   }
   return registry;
 }
+
+let defaultRegistry = null;
+
+export function getDefaultRegistry() {
+  if (defaultRegistry == null) defaultRegistry = createDefaultRegistry();
+  return defaultRegistry;
+}

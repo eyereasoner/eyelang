@@ -2,14 +2,13 @@
 // Example-output test runner.
 // It compares examples byte-for-byte against golden output so answer and proof changes cannot silently alter results.
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { Program, run } from '../src/index.js';
 import { fileURLToPath } from 'node:url';
 import { TestReporter, isMainModule } from './test-style.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const bin = path.join(root, 'bin', 'eyelang');
 const examplesDir = path.join(root, 'examples');
 const expectedDir = path.join(examplesDir, 'output');
 const expectedProofDir = path.join(examplesDir, 'proof');
@@ -39,77 +38,70 @@ const proofExamples = [
 ];
 
 export function runExamples(reporter = new TestReporter()) {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyelang-examples.'));
-  const actualFile = path.join(tmp, 'actual.out');
-  const errFile = path.join(tmp, 'stderr.out');
+  const files = fs.readdirSync(examplesDir)
+    .filter((name) => name.endsWith('.pl'))
+    .sort();
 
-  try {
-    const files = fs.readdirSync(examplesDir)
-      .filter((name) => name.endsWith('.pl'))
-      .sort();
+  reporter.section('Examples');
+  for (const name of files) reporter.test(name, () => runExample(name));
+  reporter.sectionTotal('examples');
 
-    reporter.section('Examples');
-    for (const name of files) reporter.test(name, () => runExample(name, actualFile, errFile));
-    reporter.sectionTotal('examples');
-
-    reporter.section('Proof examples');
-    for (const name of proofExamples) reporter.test(name, () => runProofExample(name, actualFile, errFile));
-    reporter.sectionTotal('proof examples');
-  } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
-  }
+  reporter.section('Proof examples');
+  for (const name of proofExamples) reporter.test(name, () => runProofExample(name));
+  reporter.sectionTotal('proof examples');
 }
 
-function runExample(name, actualFile, errFile) {
-  const program = path.join(examplesDir, name);
+function runExample(name) {
+  const programFile = path.join(examplesDir, name);
   const expected = path.join(expectedDir, name);
-  runAndCompare(name, program, expected, [], actualFile, errFile, 'output');
+  const actual = runProgramExample(programFile, name, { proof: false });
+  compareOutput(name, expected, actual, 'output');
 }
 
-function runProofExample(name, actualFile, errFile) {
-  const program = path.join(examplesDir, name);
+function runProofExample(name) {
+  const programFile = path.join(examplesDir, name);
   const expected = path.join(expectedProofDir, name);
-  runAndCompare(name, program, expected, ['--proof'], actualFile, errFile, 'proof output');
+  const actual = runProgramExample(programFile, name, { proof: true });
+  compareOutput(name, expected, actual, 'proof output');
 }
 
-function runAndCompare(name, program, expected, args, actualFile, errFile, label) {
-  const outFd = fs.openSync(actualFile, 'w');
-  const errFd = fs.openSync(errFile, 'w');
-  const result = spawnSync(process.execPath, [bin, ...args, program], {
-    cwd: root,
-    env: { ...process.env, EYELANG_LOCAL_TIME: fixedExampleDate },
-    stdio: ['ignore', outFd, errFd],
-  });
-  fs.closeSync(outFd);
-  fs.closeSync(errFd);
-
-  if (result.status !== 0) {
-    const stderr = fs.readFileSync(errFile, 'utf8');
-    const stdout = fs.readFileSync(actualFile, 'utf8');
-    throw new Error(`example ${name} ${label} exited with ${result.status}\n${stderr}${stdout}`.trimEnd());
+function runProgramExample(programFile, filename, options) {
+  const oldLocalTime = process.env.EYELANG_LOCAL_TIME;
+  process.env.EYELANG_LOCAL_TIME = fixedExampleDate;
+  try {
+    const text = fs.readFileSync(programFile, 'utf8');
+    const program = Program.parseSources([{ text, filename }], {
+      sourceMetadata: options.proof,
+      markRecursive: options.proof,
+    });
+    return run(program, options).stdout;
+  } finally {
+    if (oldLocalTime == null) delete process.env.EYELANG_LOCAL_TIME;
+    else process.env.EYELANG_LOCAL_TIME = oldLocalTime;
   }
+}
 
+function compareOutput(name, expected, actual, label) {
   if (!fs.existsSync(expected)) {
     throw new Error(`missing expected ${label} file: ${path.relative(root, expected)}`);
   }
 
-  const expectedBuffer = fs.readFileSync(expected);
-  const actualBuffer = fs.readFileSync(actualFile);
-  if (!expectedBuffer.equals(actualBuffer)) {
-    throw new Error(`${label} mismatch for ${name}\n${diffText(expected, actualFile)}`.trimEnd());
+  const expectedText = fs.readFileSync(expected, 'utf8');
+  if (expectedText !== actual) {
+    throw new Error(`${label} mismatch for ${name}\n${diffText(expected, actual)}`.trimEnd());
   }
 }
 
-function diffText(expected, actual) {
-  const diff = spawnSync('diff', ['-u', expected, actual], { encoding: 'utf8' });
+function diffText(expected, actualText) {
+  const diff = spawnSync('diff', ['-u', expected, '-'], { input: actualText, encoding: 'utf8' });
   if (diff.stdout) return diff.stdout;
 
   const expectedText = fs.readFileSync(expected, 'utf8').split('\n');
-  const actualText = fs.readFileSync(actual, 'utf8').split('\n');
-  const limit = Math.max(expectedText.length, actualText.length);
+  const actualLines = actualText.split('\n');
+  const limit = Math.max(expectedText.length, actualLines.length);
   for (let i = 0; i < limit; i++) {
-    if (expectedText[i] !== actualText[i]) {
-      return `first difference at line ${i + 1}\nexpected: ${expectedText[i] ?? '<missing>'}\nactual:   ${actualText[i] ?? '<missing>'}`;
+    if (expectedText[i] !== actualLines[i]) {
+      return `first difference at line ${i + 1}\nexpected: ${expectedText[i] ?? '<missing>'}\nactual:   ${actualLines[i] ?? '<missing>'}`;
     }
   }
 
