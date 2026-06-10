@@ -1,6 +1,6 @@
 {
   "name": "eyelang",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "type": "module",
   "description": "A small rule engine for Prolog-style Horn clauses",
   "keywords": [
