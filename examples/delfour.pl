@@ -13,10 +13,16 @@ materialize(needsLowSugar, 2).
 materialize(derivedFromNeed, 2).
 materialize(outcome, 2).
 materialize(target, 2).
+materialize(metric, 2).
+materialize(threshold, 2).
+materialize(scope, 2).
+materialize(retailer, 2).
+materialize(expiresAt, 2).
 materialize(scannedProduct, 2).
 materialize(suggestedAlternative, 2).
 materialize(headline, 2).
 materialize(note, 2).
+materialize(reason, 2).
 materialize(value, 2).
 materialize(alg, 2).
 materialize(auditEntries, 2).
@@ -243,7 +249,11 @@ derivedFromNeed(insight, Need) :- derived_from_need(insight, Need).
 outcome(decision, Outcome) :- decision(decision, Outcome, _Target).
 target(decision, Target) :- decision(decision, _Outcome, Target).
 scannedProduct(scan, ProductName) :- scanned_product(scan, Product), product_name(Product, ProductName).
-suggestedAlternative(case, Alternative) :- suggested_alternative(case, Alternative).
+suggestedAlternative(case, Name) :- suggested_alternative(case, Alternative), product_name(Alternative, Name).
+threshold(insight, Threshold) :- threshold_display(insight, Threshold).
+scope(insight, "self-scanner @ pick_up_scanner") :- scope_device(insight, "self-scanner"), scope_event(insight, "pick_up_scanner").
+expiresAt(insight, Time) :- expires_at(insight, Time).
+reason(why, "The phone desensitizes a diabetes-related household condition into a scoped low-sugar need, wraps it in an expiring Insight + Policy envelope, signs it, and the scanner consumes that envelope for shopping assistance.") :- authorization_allowed(check).
 headline(banner, Headline) :- banner_headline(banner, Headline).
 note(banner, Note) :- banner_note(banner, Note).
 suggestedAlternative(banner, Name) :- banner_suggested_alternative(banner, Name).
