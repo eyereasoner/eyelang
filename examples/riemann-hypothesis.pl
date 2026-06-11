@@ -18,19 +18,23 @@ materialize(zero_check, 3).
 zeta_zero(z1).
 real_part(z1, 0.5).
 imaginary_part(z1, 14.134725).
+source(z1, "first catalogued non-trivial zero in this example").
 
 zeta_zero(z2).
 real_part(z2, 0.5).
 imaginary_part(z2, 21.02204).
+source(z2, "second catalogued non-trivial zero in this example").
 
 zeta_zero(z3).
 real_part(z3, 0.5).
 imaginary_part(z3, 25.010858).
+source(z3, "third catalogued non-trivial zero in this example").
 
 zeta_zero(t1).
 trivial_zero(t1).
 real_part(t1, -2).
 imaginary_part(t1, 0).
+source(t1, "trivial zero, outside the non-trivial RH check").
 
 % --- Classification rules --------------------------------------------------
 %
@@ -75,7 +79,7 @@ finite_catalog_supports_rh(yes) :-
   not(counterexample_found(yes)).
 
 % --- Materialized audit output --------------------------------------------
-%
+
 % These tiny support facts make the summary rows derived output rather than
 % source facts; eyelang intentionally does not reprint source facts.
 

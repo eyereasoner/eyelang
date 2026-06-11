@@ -23,8 +23,9 @@ For the normative language definition, including lexical syntax, terms, clauses,
 7. [Example catalog](#example-catalog)
 8. [Golden outputs, tests, and conformance](#golden-outputs-tests-and-conformance)
 9. [Development and release](#development-and-release)
-10. [Performance notes](#performance-notes)
-11. [Implementation limits](#implementation-limits)
+10. [Relationship to Eyeling](#relationship-to-eyeling)
+11. [Performance notes](#performance-notes)
+12. [Implementation limits](#implementation-limits)
 
 ## Quick start
 
@@ -436,6 +437,7 @@ The repository includes examples for recursion, graph reachability, finite searc
 | [`quine-mccluskey.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/quine-mccluskey.pl) | Minimizes Boolean terms with Quine-McCluskey. | [`output/quine-mccluskey.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/output/quine-mccluskey.pl) |
 | [`radioactive-decay.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/radioactive-decay.pl) | Computes radioactive decay over time. | [`output/radioactive-decay.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/output/radioactive-decay.pl) |
 | [`resilient-city-orchestration.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/resilient-city-orchestration.pl) | Orchestrates storm-response missions from signals, policy, routes, teams, and portfolio optimization. | [`output/resilient-city-orchestration.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/output/resilient-city-orchestration.pl) |
+| [`riemann-hypothesis.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/riemann-hypothesis.pl) | Checks a finite catalogue of non-trivial zeta zeros against the Riemann-hypothesis condition. | [`output/riemann-hypothesis.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/output/riemann-hypothesis.pl) |
 | [`sat-dpll.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/sat-dpll.pl) | Solves a finite SAT instance. | [`output/sat-dpll.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/output/sat-dpll.pl) |
 | [`security-incident-correlation.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/security-incident-correlation.pl) | Correlates security incidents across signals. | [`output/security-incident-correlation.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/output/security-incident-correlation.pl) |
 | [`service-impact.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/service-impact.pl) | Analyzes service impact over cyclic dependencies. | [`output/service-impact.pl`](https://github.com/eyereasoner/eyelang/blob/main/examples/output/service-impact.pl) |
@@ -514,6 +516,27 @@ For a release:
 3. regenerate golden outputs if behavior changed;
 4. run `npm test`;
 5. publish the repository with `playground.html` and `playground-worker.mjs` if publishing the playground. The playground includes controls equivalent to CLI `--stats` and `--proof`.
+
+## Relationship to Eyeling
+
+[Eyeling](https://github.com/eyereasoner/eyeling) and eyelang share the same goal of small, inspectable rule-based reasoning in JavaScript, but they make different language and implementation trade-offs.
+
+Eyeling is the RDF/Notation3 member of the family. It reads N3-style triples, quoted formulas, forward rules written with `=>`, backward rules written with `<=`, RDF terms, RDF-JS data, and RDF-oriented streams. That makes it the better fit when data interchange with RDF/N3 tools is the main requirement.
+
+eyelang is the compact Prolog-style member of the family. It uses ordinary predicate syntax such as `parent(alice, bob).` and `ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).` This keeps the core syntax close to the ISO-standardized Prolog tradition while deliberately staying much smaller than ISO Prolog. It is a good fit when the problem is naturally relational, goal-directed, finite, and does not need RDF graph interchange.
+
+A useful rule of thumb:
+
+| Use case | Prefer | Why |
+| --- | --- | --- |
+| RDF/N3 data, triples, prefixes, graph terms, RDF-JS, RDF message streams | Eyeling | The surface language and APIs are RDF/Notation3-native. |
+| Compact relational rules over ordinary terms, lists, arithmetic, and finite search | eyelang | The syntax is shorter for non-RDF relation programs and output is ordinary facts. |
+| Human-auditable derivations | Either | Both can emit proof explanations when requested. |
+| Large generated Horn-clause workloads | eyelang | The engine specializes in predicate/arity indexing, scalar argument indexes, fast fact paths, and materialized output goals. |
+
+For the deep taxonomy benchmark, eyelang is substantially faster in current local checks. On one sandbox run, `node bin/eyelang examples/deep-taxonomy-100000.pl > /dev/null` took about `1.60 sec`, while `eyeling` package version `1.28.7` on `examples/deep-taxonomy-100000.n3` took about `4.56 sec` without proof and about `5.04 sec` with proof. Treat those numbers as a smoke comparison rather than a formal benchmark: hardware, Node.js version, package version, and CLI startup all matter.
+
+The projects are therefore complementary rather than replacements for each other: Eyeling optimizes for Semantic Web interoperability and N3 expressiveness; eyelang optimizes for a small standard-looking relational rule language and fast finite goal-directed execution.
 
 ## Performance notes
 
