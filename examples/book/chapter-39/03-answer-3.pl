@@ -1,0 +1,10 @@
+% From The Art of EyeProlog, Chapter 39.
+answer(words, Words) :-
+  trim('  Logic Made Visible  ', Clean),
+  lowercase(Clean, Lower),
+  split(Lower, ' ', Words).
+
+answer(captures, Context) :-
+  matches('Ada Lovelace',
+          '^(?<first>[A-Za-z]+) (?<last>[A-Za-z]+)$',
+          Context).

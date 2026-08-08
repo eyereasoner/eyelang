@@ -2,8 +2,7 @@
   <img src="book-assets/title-page.svg" alt="Front page for The Art of EyeProlog, presenting ISO Prolog rules and inspectable proofs." width="720">
 </p>
 
-**Copyright © 2021–2026 Jos De Roo, KNoWS office of IDLab, Ghent University –
-imec.** This book is licensed under [Creative Commons Attribution 4.0
+This book is licensed under [Creative Commons Attribution 4.0
 International](https://creativecommons.org/licenses/by/4.0/). You may copy,
 share, and adapt it for any purpose, including commercially; please give
 appropriate credit, link to the licence, and indicate changes.
@@ -60,11 +59,10 @@ Robert Kowalski's phrase “algorithm = logic + control” names this separation
 EyeProlog's focused surface makes it unusually easy to see in running examples.
 
 Complete EyeProlog code displays from the book are also available as files under
-[`examples/book/`](https://github.com/eyereasoner/eyeprolog/tree/main/examples/book/), grouped by chapter. From a source checkout,
-use Node.js 18 or newer, install the dependencies, and run the CLI:
+[`examples/book/`](https://github.com/eyereasoner/eyeprolog/tree/main/examples/book/), grouped by chapter. From a source checkout
+with Node.js 18 or newer, run the CLI directly:
 
 ```sh
-npm install
 node bin/eyeprolog.js examples/socrates.pl
 ```
 
@@ -357,16 +355,20 @@ parent(clara, diego).
 Each line is a **fact**. `parent/2` is a relation: the name is `parent` and the
 arity is two. Arity matters. `parent/2` and `parent/3` are different predicates.
 
-A **query declaration** selects the relation whose ground answers EyeProlog prints:
+A host-supplied **query** selects the relation whose ground answers EyeProlog
+prints:
 
 ```eyeprolog
 child(Child, Parent) :- parent(Parent, Child).
+```
+
+```sh
 eyeprolog --goal 'child(X, Y)' program.pl
 ```
 
 The answers are:
 
-```eyeprolog
+```text
 child(byron, ada).
 child(clara, byron).
 child(diego, clara).
@@ -479,7 +481,9 @@ EyeProlog exposes unification as `=/2`:
 
 ```eyeprolog
 same_shape(Pair) :- (Pair = pair(X, X)).
+```
 
+```sh
 eyeprolog --goal 'same_shape(pair(red, red))' program.pl
 eyeprolog --goal 'same_shape(pair(red, blue))' program.pl
 ```
@@ -797,6 +801,9 @@ parent, or a parent of an ancestor:
 ```eyeprolog
 ancestor(X, Y) :- parent(X, Y).
 ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
+```
+
+```sh
 eyeprolog --goal 'ancestor(X, Y)' program.pl
 ```
 
@@ -1222,6 +1229,9 @@ coloring(A, B, C) :-
   (A \= C).
 
 answer(colors(A, B, C)) :- coloring(A, B, C).
+```
+
+```sh
 eyeprolog --goal 'answer(X)' program.pl
 ```
 
@@ -1531,7 +1541,7 @@ A maintainable theory separates:
 - source facts: measurements, records, and asserted relationships;
 - helpers: normalization, classifications, and reachability;
 - decisions: `status/2`, `action/2`, `risk/2`, and `reason/2`;
-- integrity constraints: rules headed by `false`;
+- integrity relations: predicates that return diagnostic invalid-state witnesses;
 - outputs: focused host-supplied goals.
 
 <figure>
@@ -1589,6 +1599,62 @@ A boundary should make four decisions visible:
 - which predicates the imported clauses may define; and
 - which resource limits apply to the resulting query.
 
+### A boundary in four steps
+
+Suppose a host receives one JSON temperature record. The host, not the logic
+program, owns the JSON syntax and the decision to trust that record. A narrow
+adapter can validate the record, map its values into a deliberately small
+Prolog vocabulary, construct the theory, and ask one bounded question:
+
+```js
+import { run } from 'eyeprolog';
+
+const inputText = '{"sensor":"sensor_1","celsius":91}';
+const allowedSensors = new Set(['sensor_1', 'sensor_2']);
+
+function reasoningSource(record) {
+  if (!record || typeof record !== 'object') throw new TypeError('record');
+  if (!allowedSensors.has(record.sensor)) throw new TypeError('sensor');
+  if (!Number.isFinite(record.celsius)) throw new TypeError('celsius');
+  if (record.celsius < -100 || record.celsius > 200) {
+    throw new RangeError('celsius');
+  }
+
+  return `
+reading(${record.sensor}, ${record.celsius}).
+thermal_alert(Sensor) :-
+  reading(Sensor, Celsius),
+  (Celsius >= 80).
+`;
+}
+
+const record = JSON.parse(inputText);
+const result = run(reasoningSource(record), {
+  goal: `thermal_alert(${record.sensor})`,
+  proof: true,
+  maxDepth: 10_000,
+  solutionLimit: 10
+});
+
+console.log(result.stdout);
+```
+
+The allow-list makes interpolation safe here: the external sensor identifier
+can become only one of two known Prolog atoms, and the temperature must be a
+finite number in an accepted range. General text must be encoded with a
+well-tested term constructor or serializer rather than inserted into source.
+The generated program defines only `reading/2` and the fixed domain rule; the
+host supplies the goal and ceilings explicitly.
+
+This small example exposes four different claims:
+
+| Stage | Claim and owner |
+| --- | --- |
+| Parse | the bytes are valid JSON — host parser |
+| Validate | the record has an accepted sensor and temperature — adapter |
+| Convert | the accepted values denote these exact Prolog terms — adapter |
+| Derive | the supplied reading satisfies `thermal_alert/1` — EyeProlog proof |
+
 The proof procedure can explain how supplied clauses support an answer. It
 cannot prove that a file, database, sensor, or remote service was trustworthy.
 That responsibility stays with the host application.
@@ -1602,12 +1668,11 @@ resource limit that prevents an untrusted input from consuming unbounded work.
 The JavaScript API exposes a convenience runner and lower-level types:
 
 ```js
-import { run, Program, Solver } from 'eyeprolog';
+import { run, Program, Solver, parseGoalText } from 'eyeprolog';
 
 const result = run(`
-eyeprolog --goal 'answer(X)' program.pl
 answer(ok) :- ok = ok.
-`);
+`, { goal: 'answer(X)' });
 console.log(result.stdout);
 console.log(result.stats);
 ```
@@ -1627,7 +1692,6 @@ For applications that inspect or prepare a theory before running it, use
 
 ```js
 const source = `
-eyeprolog --goal 'path(a, X)' program.pl
 edge(a, b).
 edge(b, c).
 path(X, Y) :- edge(X, Y).
@@ -1635,9 +1699,10 @@ path(X, Z) :- edge(X, Y), path(Y, Z).
 `;
 
 const program = Program.parse(source, { analyzeNegation: true });
+const goal = parseGoalText('path(a, X)');
 const path = program.findGroup('path', 2);
 
-console.log(program.queries);
+console.log(goal);
 console.log(program.stratifiedNegation);
 console.log(path?.recursive, path?.tabled, path?.tableInputPositions);
 
@@ -1700,9 +1765,8 @@ registry.add(
 );
 
 const result = run(`
-eyeprolog --goal 'answer(X)' program.pl
 answer(X) :- host_status(service, X).
-`, { registry });
+`, { registry, goal: 'answer(X)' });
 ```
 
 Only mark a built-in deterministic when it can produce at most one environment
@@ -2088,8 +2152,8 @@ constructs `s(s(s(...)))` without bound.
 
 ### Negation and aggregation require bounded subsearch
 
-`\+ Goal`, `forall/2`, and aggregates ask the engine to settle a nested
-search. Their meaning is usable only when that search can finish. Before
+`\+ Goal` and aggregates ask the engine to settle a nested search. Their
+meaning is usable only when that search can finish. Before
 writing:
 
 ```eyeprolog
@@ -2282,7 +2346,9 @@ parent(clara, diego).
 
 ancestor(X, Y) :- parent(X, Y).
 ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
+```
 
+```sh
 eyeprolog --goal 'ancestor(ada, Who)' program.pl
 ```
 
@@ -2488,7 +2554,9 @@ verb([helps | Rest], Rest).
 verb([observes | Rest], Rest).
 
 complete_sentence(Words) :- sentence(Words, []).
+```
 
+```sh
 eyeprolog --goal 'complete_sentence([the, robot, helps, a, scientist])' program.pl
 ```
 
@@ -2521,7 +2589,7 @@ evaluate(multiply(Left, Right), Value) :-
   (Value is L * R).
 ```
 
-```eyeprolog
+```sh
 eyeprolog --goal 'evaluate(
     add(number(2), multiply(number(3), number(4))),
     Value
@@ -2777,7 +2845,9 @@ assignment(Worker, Task) :-
   worker(Worker),
   task(Task),
   qualified(Worker, Task).
+```
 
+```sh
 eyeprolog --goal 'assignment(Worker, Task)' program.pl
 ```
 
@@ -2960,7 +3030,9 @@ permit(Person, Zone) :-
 
 reason(Person, Zone, badge_and_training_verified) :-
   permit(Person, Zone).
+```
 
+```sh
 eyeprolog --goal 'permit(Person, Zone)' program.pl
 eyeprolog --goal 'reason(Person, Zone, Reason)' program.pl
 ```
@@ -3097,9 +3169,9 @@ inherits the twentieth century's harder questions. What counts as a formal
 proof? What is an effective procedure? Which truths follow from a finite set
 of axioms? Which questions cannot be decided by any uniform mechanical method?
 
-EyeProlog is a very small descendant of those questions. It is not a foundation
-for all mathematics, a computer algebra system, or an interactive theorem
-prover. Its definite clauses cover only a disciplined fragment of logic.
+EyeProlog inherits a small, practical fragment of that tradition. It is not a
+foundation for all mathematics, a computer algebra system, or an interactive
+theorem prover. Its definite clauses cover only a disciplined fragment of logic.
 Precisely because the fragment is small, however, one can see the ancient
 mathematical acts inside the running machine:
 
@@ -3196,7 +3268,9 @@ triple(A, B, C) :-
   (BB is B * B),
   (Sum is AA + BB),
   (Sum is C * C).
+```
 
+```sh
 eyeprolog --goal 'triple(A, B, C)' program.pl
 ```
 
@@ -3503,7 +3577,9 @@ integer_rectangle(Area, W, H) :-
   between(1, Area, W),
   between(W, Area, H),
   (Area is W * H).
+```
 
+```sh
 eyeprolog --goal 'integer_rectangle(24, W, H)' program.pl
 ```
 
@@ -3534,9 +3610,10 @@ preserves_combine(X, Y) :-
   (IXY = CombinedImages).
 ```
 
-Over a finite carrier, `forall/2` can test the law for every generated pair.
-Over an infinite carrier, finite testing is evidence, not proof. The algebraic
-law must instead follow from definitions or a stronger proof system.
+Over a finite carrier, define a relation for a violating pair and use ISO
+`\+/1` to ask whether that counterexample relation has any answer. Over an
+infinite carrier, finite testing is evidence, not proof. The algebraic law must
+instead follow from definitions or a stronger proof system.
 
 The examples `d3-group.pl`, `matrix-noncommutativity.pl`,
 `group-inverse-uniqueness.pl`, and
@@ -3609,7 +3686,9 @@ counterexample_to_odd_square(N) :-
   (Square is N * N),
   (Remainder is Square mod 2),
   (Remainder \= 1).
+```
 
+```sh
 eyeprolog --goal 'counterexample_to_odd_square(N)' program.pl
 ```
 
@@ -3974,7 +4053,9 @@ edge(b, c).
 
 path(X, Y) :- edge(X, Y).
 path(X, Z) :- edge(X, Y), path(Y, Z).
+```
 
+```sh
 eyeprolog --goal 'path(a, b)' program.pl
 eyeprolog --goal 'path(a, c)' program.pl
 ```
@@ -3987,7 +4068,9 @@ unexpected_path :-
 
 expected_absence :-
   \+ unexpected_path.
+```
 
+```sh
 eyeprolog --goal 'expected_absence' program.pl
 ```
 
@@ -4003,7 +4086,7 @@ golden answer file is an executable specification of the expected answer set.
 
 Suppose `append/3` is intended both to concatenate and to split:
 
-```eyeprolog
+```sh
 eyeprolog --goal 'append([a, b], [c], Whole)' program.pl
 eyeprolog --goal 'append(Prefix, Suffix, [a, b])' program.pl
 ```
@@ -4042,7 +4125,9 @@ bounded_double_law :-
 bounded_double_counterexample :-
   between(-100, 100, N),
   \+ double_is_even(N).
+```
 
+```sh
 eyeprolog --goal 'bounded_double_law' program.pl
 ```
 
@@ -4157,7 +4242,7 @@ Use four views in a fixed order:
 Do not begin with an open query that prints hundreds of answers. Name one
 conclusion that is missing or surprising:
 
-```eyeprolog
+```sh
 eyeprolog --goal 'eligible(alex)' program.pl
 ```
 
@@ -4252,7 +4337,9 @@ candidate_debug(Person, Age) :-
 adult_debug(Person, Age) :-
   candidate_debug(Person, Age),
   (Age >= 18).
+```
 
+```sh
 eyeprolog --goal 'candidate_debug(Person, Age)' program.pl
 eyeprolog --goal 'adult_debug(Person, Age)' program.pl
 ```
@@ -4279,7 +4366,9 @@ optimized_square(N, S) :-
 disagreement(N, S) :-
   reference_square(N, S),
   \+ optimized_square(N, S).
+```
 
+```sh
 eyeprolog --goal 'disagreement(N, S)' program.pl
 ```
 
@@ -5048,7 +5137,7 @@ Supported output syntax is designed to be readable as Prolog input accepted by E
 #### Automatic hybrid reasoning
 
 The program loader detects predicate-dependency cycles, including dependencies
-inside conjunction, `\+/1`, `once/1`, `forall/2`, and aggregate goals.
+inside conjunction, `\+/1`, `once/1`, and aggregate goals.
 Positive recursive components—including directly queried recursive
 relations—are tabled to an answer fixed point before answers are replayed.
 Components with a negative dependency retain guarded ordinary resolution,
@@ -5451,7 +5540,12 @@ JavaScript uses the same registry by default:
 ```js
 import { run } from 'eyeprolog';
 
-const result = run(source);
+const source = `
+answer(Whole) :- append([red, green], [blue], Whole).
+`;
+
+const result = run(source, { goal: 'answer(X)' });
+console.log(result.stdout);
 ```
 
 The mode notation below is descriptive:
@@ -5480,6 +5574,9 @@ answer(square, S) :- (S is 12 * 12).
 answer(day_count, N) :- between(3, 5, N).
 answer(age, D) :- difference('2026-07-28', '2020-05-20', D).
 answer(random_pair, [A,B]) :- random(42, A, S), random(S, B, _).
+```
+
+```sh
 eyeprolog --goal 'answer(Kind, Value)' program.pl
 ```
 
@@ -5530,7 +5627,9 @@ answer(split, pair(Prefix, Suffix)) :-
 
 answer(second, Item) :-
   nth0(1, [a, b, c], Item).
+```
 
+```sh
 eyeprolog --goal 'answer(Kind, Value)' program.pl
 ```
 
@@ -5572,7 +5671,9 @@ answer(captures, Context) :-
   matches('Ada Lovelace',
           '^(?<first>[A-Za-z]+) (?<last>[A-Za-z]+)$',
           Context).
+```
 
+```sh
 eyeprolog --goal 'answer(Kind, Value)' program.pl
 ```
 
@@ -5608,7 +5709,9 @@ answer(best(Name), Cost) :-
   aggregate_min(CandidateCost, CandidateName,
                 cost(CandidateName, CandidateCost),
                 Cost, Name).
+```
 
+```sh
 eyeprolog --goal 'answer(Kind, Value)' program.pl
 ```
 
@@ -5633,7 +5736,9 @@ context_parts(Context, Name, Args) :-
 answer(field(Name, Args)) :-
   message(event_17, Context),
   context_parts(Context, Name, Args).
+```
 
+```sh
 eyeprolog --goal 'answer(X)' program.pl
 ```
 
@@ -6230,8 +6335,8 @@ sentence, mode, finite domain, answer, proof, and revision.
 This book is the single reference for the EyeProlog implementation. Chapters 38–40
 describe its supported ISO Prolog syntax, directives, execution model,
 built-in predicates, and command-line interface. The earlier chapters explain the reasoner, automatic tabling,
-proof terms, warnings, answer formatting, embedding, and external data
-adapters.
+proof terms, warnings, answer formatting, embedding, and explicit host data
+boundaries.
 
 The executable corpus under `test/conformance/` tests the JavaScript
 implementation. Positive programs and exact output cover arithmetic, text relations,
@@ -6247,7 +6352,8 @@ The complete suite must pass before release. The file-based conformance corpus
 contains 710 cases, including 304 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8. Separate exact-output suites check 188 normal
-examples, 60 proof examples, and extracted book displays. The seven-case
+examples and 60 proof examples; all extracted book programs are parsed and
+their declared goals are executed. The seven-case
 playground contract suite imports the production worker, sends real reasoning
 requests through its message protocol, and crawls the served module graph for
 missing assets, bad MIME types, and static Node-only imports. The generated
@@ -6696,7 +6802,7 @@ deadlines.
 | Laboratories 3–4 | Chapters 6–10 and 13 | 4–8 hours each |
 | Laboratories 5–7 | Chapters 19 and 26–29 | 4–8 hours each |
 | Laboratories 8–10 | Chapters 14, 25, and 31–33 | 6–12 hours each |
-| Laboratory 11 | Chapter 15 and `tools/README.md` | 4–8 hours |
+| Laboratory 11 | Chapters 15–16 | 4–8 hours |
 | Laboratory 12 | Chapters 16, 25, and 31–33 | multi-session capstone |
 
 ### Laboratory 1. A family theory
@@ -6990,7 +7096,7 @@ list bound, the prefix/suffix splits are:
 `[a | Tail]` is not yet known to be proper because `Tail` might never resolve
 to a finite chain ending in `[]`.
 
-**Chapter 6.** `is/2`, `is/2`, `is/2`, comparisons, and the recursive
+**Chapter 6.** `is/2`, numeric comparisons, and the recursive
 arithmetic steps require their documented numeric inputs. In
 `between(1, 10, N)`, an unbound `N` is generated from a finite interval; a
 bound `N` is checked for membership in that interval.

@@ -1960,6 +1960,11 @@ function documentationSourceStyleIssues() {
   if (/\bv\d+\.\d+(?:\.\d+)?\b/i.test(text)) {
     issues.push('the-art-of-eyeprolog.md: describe the current system instead of release chronology');
   }
+  for (const block of text.matchAll(/^```eyeprolog\s*\n([\s\S]*?)^```\s*$/gm)) {
+    if (/^\s*(?:eyeprolog|node|npm)\b/m.test(block[1])) {
+      issues.push('the-art-of-eyeprolog.md: keep host commands outside eyeprolog code fences');
+    }
+  }
   return issues;
 }
 
