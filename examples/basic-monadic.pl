@@ -1,6 +1,6 @@
 % Basic Monadic Benchmark port from EYE reasoning/basic-monadic.
 %
-% This example uses the ten Turtle inputs 1tt1.ttl ... 1tt10.ttl
+% This example adapts ten small monadic reasoning cases.
 % from EYE and the EYE selected-goal shape:
 %   D0 R D1, D1 R D2, ..., D9 R D0 -> R cycle (D0 ... D9 D0).
 %

@@ -2,223 +2,73 @@
      width="1000" height="1450" viewBox="0 0 1000 1450"
      role="img" aria-labelledby="title desc">
   <title id="title">The Art of EyeProlog</title>
-  <desc id="desc">Editable SVG cover for The Art of EyeProlog. All text is live text and kept within its surrounding boxes.</desc>
+  <desc id="desc">Minimal book title page with a vector rendering of the EYE logo, the book title, subtitle, and author.</desc>
 
   <defs>
-    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFFDF8"/>
-      <stop offset="100%" stop-color="#FFF0D6"/>
+    <linearGradient id="eye-spectrum" x1="20" y1="4" x2="48" y2="65" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff2738"/>
+      <stop offset="0.28" stop-color="#ff6b25"/>
+      <stop offset="0.47" stop-color="#fff23c"/>
+      <stop offset="0.69" stop-color="#51e523"/>
+      <stop offset="1" stop-color="#38e7a2"/>
     </linearGradient>
+    <linearGradient id="eye-ring" x1="12" y1="23" x2="57" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#efff38"/>
+      <stop offset="0.45" stop-color="#fff947"/>
+      <stop offset="1" stop-color="#bdf02b"/>
+    </linearGradient>
+    <linearGradient id="eye-center" x1="18" y1="25" x2="53" y2="45" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#57d9ca"/>
+      <stop offset="0.45" stop-color="#22bde7"/>
+      <stop offset="1" stop-color="#18b6ec"/>
+    </linearGradient>
+    <clipPath id="eye-orb-clip">
+      <path d="M34 3.5C52 3.5 65.5 17 65.5 34.5S52 65 34 65 3 51.5 3 34.5 16 3.5 34 3.5Z"/>
+    </clipPath>
     <style>
-      .bg { fill: url(#paper); }
-      .navy { fill: #17324D; }
-      .green { fill: #008EAA; }
-      .wine { fill: #C8A100; }
-      .gold { fill: #E2BA22; }
-      .cream { fill: #FFFDF8; }
-      .navy-stroke { stroke: #17324D; fill: none; }
-      .green-stroke { stroke: #008EAA; fill: none; }
-      .wine-stroke { stroke: #C8A100; fill: none; }
-      .gold-stroke { stroke: #E2BA22; fill: none; }
-      .thin { stroke-width: 2; }
-      .mid { stroke-width: 3; }
-      .thick { stroke-width: 5; }
-      .round { stroke-linecap: round; stroke-linejoin: round; }
-      .title1 { fill:#17324D; font-family: Georgia, 'Times New Roman', serif; font-size:64px; font-weight:500; }
-      .title2 { font-family: 'Avenir Next', Avenir, 'Trebuchet MS', Helvetica, Arial, sans-serif; font-size:112px; font-weight:700; letter-spacing:-4px; }
-      .logo-eye { fill:#008EAA; stroke:#17324D; stroke-width:1.2; paint-order:stroke fill; }
-      .logo-prolog { fill:#E2BA22; stroke:#C8A100; stroke-width:1.6; paint-order:stroke fill; }
-      .subtitle { fill:#008EAA; font-family: Georgia, 'Times New Roman', serif; font-size:28px; }
-      .author { fill:#C8A100; font-family: Georgia, 'Times New Roman', serif; font-size:25px; }
-      .section { font-family: Georgia, 'Times New Roman', serif; font-size:20px; font-weight:700; letter-spacing:2px; }
-      .smallserif { font-family: Georgia, 'Times New Roman', serif; font-size:18px; }
-      .paneltitle { font-family: Georgia, 'Times New Roman', serif; font-size:21px; font-weight:700; letter-spacing:0.4px; }
-      .code { fill:#17324D; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:18px; }
-      .codesm { fill:#17324D; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:15px; }
-      .label { fill:#17324D; font-family: Georgia, 'Times New Roman', serif; font-size:21px; }
-      .node { fill:#FFFDF8; stroke:#17324D; stroke-width:3; }
-      .rdfnode { fill:#78AFC0; stroke:#008EAA; stroke-width:3; }
-      .panel { fill:#FFFDF8; fill-opacity:0.96; stroke-width:3.5; }
-      .softbox { fill:#EAF8FA; stroke:#17324D; stroke-width:2.2; }
+      .title-small {
+        fill: #17324d;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 52px;
+        letter-spacing: 8px;
+      }
+      .title-main {
+        fill: #17324d;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 108px;
+        font-weight: 600;
+        letter-spacing: -3px;
+      }
+      .subtitle {
+        fill: #3f6371;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 30px;
+      }
+      .author {
+        fill: #17324d;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 28px;
+        letter-spacing: 3px;
+      }
     </style>
   </defs>
 
-  <rect width="1000" height="1450" class="bg"/>
+  <rect width="1000" height="1450" fill="#fffdf8"/>
 
-  <!-- header -->
-  <g id="header">
-    <text x="500" y="105" text-anchor="middle" class="title1">The Art of</text>
-    <text x="500" y="238" text-anchor="middle" class="title2">
-      <tspan class="logo-eye">Eye</tspan><tspan class="logo-prolog">Prolog</tspan>
-    </text>
+  <!-- Native SVG rendering of the original EYE rainbow mark. -->
+  <svg x="340" y="180" width="320" height="320" viewBox="0 0 68 68"
+       role="img" aria-label="EYE logo">
+    <g clip-path="url(#eye-orb-clip)">
+      <rect width="68" height="68" fill="url(#eye-spectrum)"/>
+      <ellipse cx="34" cy="35" rx="30" ry="14.5"
+               transform="rotate(11 34 35)" fill="url(#eye-ring)"/>
+      <ellipse cx="34" cy="35" rx="22.5" ry="9.2"
+               transform="rotate(11 34 35)" fill="url(#eye-center)"/>
+    </g>
+  </svg>
 
-    <line x1="110" y1="274" x2="445" y2="274" class="gold-stroke thin round"/>
-    <path d="M500 265 L509 274 L500 283 L491 274 Z" class="gold"/>
-    <line x1="555" y1="274" x2="890" y2="274" class="gold-stroke thin round"/>
-
-    <text x="500" y="325" text-anchor="middle" class="subtitle">Standards-based relations, search, and explanations</text>
-
-    <line x1="300" y1="372" x2="405" y2="372" class="gold-stroke thin round"/>
-    <text x="500" y="381" text-anchor="middle" class="author">Jos De Roo</text>
-    <line x1="595" y1="372" x2="700" y2="372" class="gold-stroke thin round"/>
-  </g>
-
-  <!-- upper labels -->
-  <g id="labels">
-    <text x="210" y="455" text-anchor="middle" class="section wine">ISO PROLOG</text>
-    <text x="210" y="480" text-anchor="middle" class="smallserif wine">(RULES)</text>
-    <text x="790" y="455" text-anchor="middle" class="section green">RDF 1.2</text>
-    <text x="790" y="480" text-anchor="middle" class="smallserif green">(LINKED DATA)</text>
-  </g>
-
-  <!-- hero diagrams -->
-  <g id="prolog-rules">
-    <rect x="80" y="510" width="220" height="180" rx="18"
-          fill="#FFFDF8" stroke="#C8A100" stroke-width="3"/>
-    <text x="100" y="552" class="codesm" style="font-size:14px">path(X, Y) :-</text>
-    <text x="122" y="580" class="codesm" style="font-size:14px">edge(X, Y).</text>
-    <text x="100" y="615" class="codesm" style="font-size:14px">path(X, Y) :-</text>
-    <text x="122" y="643" class="codesm" style="font-size:14px">edge(X, Z),</text>
-    <text x="122" y="671" class="codesm" style="font-size:14px">path(Z, Y).</text>
-  </g>
-
-  <g id="rdf-graph">
-    <line x1="735" y1="535" x2="805" y2="575" class="green-stroke mid round"/>
-    <line x1="805" y1="575" x2="765" y2="640" class="green-stroke mid round"/>
-    <line x1="805" y1="575" x2="875" y2="610" class="green-stroke mid round"/>
-    <line x1="765" y1="640" x2="835" y2="690" class="green-stroke mid round"/>
-    <circle cx="735" cy="535" r="17" class="rdfnode"/>
-    <circle cx="805" cy="575" r="17" class="rdfnode"/>
-    <circle cx="765" cy="640" r="17" class="rdfnode"/>
-    <circle cx="875" cy="610" r="17" class="rdfnode"/>
-    <circle cx="835" cy="690" r="17" class="rdfnode"/>
-
-    <rect x="748" y="500" width="116" height="40" rx="8" fill="#FFF9E8" stroke="#17324D" stroke-width="2"/>
-    <text x="806" y="526" text-anchor="middle" class="smallserif navy">ex:Alice</text>
-
-    <rect x="855" y="558" width="118" height="40" rx="8" fill="#FFF9E8" stroke="#17324D" stroke-width="2"/>
-    <text x="914" y="584" text-anchor="middle" class="smallserif navy">ex:knows</text>
-
-    <rect x="846" y="682" width="106" height="40" rx="8" fill="#FFF9E8" stroke="#17324D" stroke-width="2"/>
-    <text x="899" y="708" text-anchor="middle" class="smallserif navy">ex:Bob</text>
-  </g>
-
-  <!-- abstract bridge -->
-  <g id="bridge">
-    <path d="M320 710 C338 560, 410 500, 500 500 C590 500, 662 560, 680 710"
-          fill="none" stroke="#F6D978" stroke-width="62" stroke-linecap="round"/>
-    <path d="M320 710 C338 560, 410 500, 500 500 C590 500, 662 560, 680 710"
-          class="navy-stroke mid round"/>
-
-    <path d="M442 488 L558 488 L572 556 L428 556 Z" fill="#FFF4BF" stroke="#17324D" stroke-width="3"/>
-    <text x="500" y="523" text-anchor="middle" class="section" style="font-size:14px; letter-spacing:0.5px;"><tspan class="logo-eye">EYE</tspan><tspan class="logo-prolog">PROLOG</tspan></text>
-
-    <rect x="290" y="690" width="68" height="148" rx="7" fill="#FFF4BF" stroke="#17324D" stroke-width="3"/>
-    <rect x="278" y="676" width="92" height="22" rx="5" fill="#F6D978" stroke="#17324D" stroke-width="3"/>
-    <rect x="276" y="830" width="96" height="24" rx="5" fill="#F6D978" stroke="#17324D" stroke-width="3"/>
-    <line x1="306" y1="708" x2="306" y2="824" class="gold-stroke thin"/>
-    <line x1="342" y1="708" x2="342" y2="824" class="gold-stroke thin"/>
-
-    <rect x="642" y="690" width="68" height="148" rx="7" fill="#FFF4BF" stroke="#17324D" stroke-width="3"/>
-    <rect x="630" y="676" width="92" height="22" rx="5" fill="#F6D978" stroke="#17324D" stroke-width="3"/>
-    <rect x="628" y="830" width="96" height="24" rx="5" fill="#F6D978" stroke="#17324D" stroke-width="3"/>
-    <line x1="658" y1="708" x2="658" y2="824" class="gold-stroke thin"/>
-    <line x1="694" y1="708" x2="694" y2="824" class="gold-stroke thin"/>
-  </g>
-
-  <!-- proof tree -->
-  <g id="proof-tree">
-    <circle cx="500" cy="590" r="18" fill="#FFFDF8" stroke="#008EAA" stroke-width="3"/>
-    <circle cx="455" cy="660" r="18" fill="#FFFDF8" stroke="#008EAA" stroke-width="3"/>
-    <circle cx="545" cy="660" r="18" fill="#FFFDF8" stroke="#008EAA" stroke-width="3"/>
-    <circle cx="420" cy="730" r="18" fill="#FFFDF8" stroke="#008EAA" stroke-width="3"/>
-    <circle cx="500" cy="730" r="18" fill="#FFFDF8" stroke="#008EAA" stroke-width="3"/>
-    <circle cx="580" cy="730" r="18" fill="#FFFDF8" stroke="#008EAA" stroke-width="3"/>
-    <path d="M500 608 L455 642 M500 608 L545 642 M455 678 L420 712 M455 678 L500 712 M545 678 L580 712"
-          class="green-stroke mid round"/>
-    <line x1="500" y1="752" x2="500" y2="790" class="green-stroke mid round" stroke-dasharray="4 8"/>
-    <path d="M491 785 L500 796 L509 785" class="green-stroke mid round"/>
-    <circle cx="500" cy="824" r="29" fill="#008EAA" stroke="#17324D" stroke-width="3"/>
-    <path d="M486 825 L497 836 L516 810" fill="none" stroke="#FFFDF8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-
-  <line x1="70" y1="875" x2="930" y2="875" class="gold-stroke thin"/>
-  <circle cx="500" cy="875" r="6" class="gold"/>
-
-  <!-- panels -->
-  <g id="panel1">
-    <rect x="45" y="925" width="280" height="360" rx="28" class="panel" stroke="#C8A100"/>
-    <circle cx="185" cy="925" r="38" fill="#FFFDF8" stroke="#C8A100" stroke-width="3"/>
-    <text x="185" y="936" text-anchor="middle" class="code wine" style="font-size:27px">:-</text>
-    <text x="185" y="990" text-anchor="middle" class="paneltitle wine" style="font-size:20px">1. ISO PROLOG RULES</text>
-
-    <text x="75" y="1050" class="codesm">path(X, Y) :-</text>
-    <text x="100" y="1080" class="codesm">edge(X, Y).</text>
-
-    <text x="75" y="1130" class="codesm">path(X, Y) :-</text>
-    <text x="100" y="1160" class="codesm">edge(X, Z),</text>
-    <text x="100" y="1190" class="codesm">path(Z, Y).</text>
-
-    <line x1="75" y1="1220" x2="295" y2="1220" class="wine-stroke thin"/>
-    <text x="185" y="1250" text-anchor="middle" class="smallserif wine" style="font-size:16px">clauses · unification · recursion</text>
-  </g>
-
-  <g id="panel2">
-    <rect x="340" y="925" width="320" height="360" rx="28" class="panel" stroke="#008EAA"/>
-    <circle cx="500" cy="925" r="38" fill="#FFFDF8" stroke="#008EAA" stroke-width="3"/>
-    <circle cx="484" cy="925" r="6" class="rdfnode"/>
-    <circle cx="516" cy="908" r="6" class="rdfnode"/>
-    <circle cx="520" cy="942" r="6" class="rdfnode"/>
-    <path d="M490 922 L510 911 M490 928 L514 939 M516 914 L519 936" class="green-stroke thin round"/>
-    <text x="500" y="990" text-anchor="middle" class="paneltitle green">2. RDF 1.2 DATASET</text>
-
-    <circle cx="405" cy="1060" r="18" class="rdfnode"/>
-    <circle cx="500" cy="1060" r="18" class="rdfnode"/>
-    <circle cx="595" cy="1060" r="18" class="rdfnode"/>
-    <line x1="423" y1="1060" x2="482" y2="1060" class="green-stroke mid round"/>
-    <line x1="518" y1="1060" x2="577" y2="1060" class="green-stroke mid round"/>
-
-    <rect x="375" y="1110" width="250" height="38" rx="8" fill="#EAF8FA" stroke="#008EAA" stroke-width="2"/>
-    <text x="500" y="1135" text-anchor="middle" class="codesm">ex:alice ex:knows ex:bob</text>
-
-    <rect x="375" y="1160" width="250" height="54" rx="8" fill="#EAF8FA" stroke="#008EAA" stroke-width="2"/>
-    <text x="500" y="1183" text-anchor="middle" class="codesm" style="font-size:13px">named graphs · literals</text>
-    <text x="500" y="1202" text-anchor="middle" class="codesm" style="font-size:13px">triple terms</text>
-
-    <text x="500" y="1250" text-anchor="middle" class="smallserif green" style="font-size:16px">linked data remains RDF</text>
-  </g>
-
-  <g id="panel3">
-    <rect x="675" y="925" width="280" height="360" rx="28" class="panel" stroke="#17324D"/>
-    <circle cx="815" cy="925" r="38" fill="#FFFDF8" stroke="#17324D" stroke-width="3"/>
-    <rect x="807" y="903" width="16" height="12" rx="2" fill="#FFFDF8" stroke="#17324D" stroke-width="2"/>
-    <rect x="790" y="934" width="16" height="12" rx="2" fill="#FFFDF8" stroke="#17324D" stroke-width="2"/>
-    <rect x="824" y="934" width="16" height="12" rx="2" fill="#FFFDF8" stroke="#17324D" stroke-width="2"/>
-    <path d="M815 915 V926 M798 926 H832 M798 926 V934 M832 926 V934" class="navy-stroke thin round"/>
-    <text x="815" y="990" text-anchor="middle" class="paneltitle navy">3. ANSWERS &amp; PROOFS</text>
-
-    <rect x="758" y="1038" width="114" height="38" rx="8" class="softbox"/>
-    <text x="815" y="1062" text-anchor="middle" class="codesm">path(a, X)</text>
-
-    <rect x="700" y="1122" width="104" height="38" rx="8" class="softbox"/>
-    <rect x="826" y="1122" width="104" height="38" rx="8" class="softbox"/>
-    <text x="752" y="1146" text-anchor="middle" class="codesm">edge(a,b)</text>
-    <text x="878" y="1146" text-anchor="middle" class="codesm">path(b,X)</text>
-
-    <rect x="824" y="1206" width="106" height="38" rx="8" class="softbox"/>
-    <text x="877" y="1230" text-anchor="middle" class="codesm">edge(b,c)</text>
-
-    <path d="M815 1076 L752 1122 M815 1076 L878 1122 M878 1160 L877 1206" class="navy-stroke mid round"/>
-    <text x="877" y="1268" text-anchor="middle" class="codesm" style="font-size:22px">…</text>
-  </g>
-
-  <!-- footer -->
-  <g id="footer">
-    <line x1="145" y1="1350" x2="285" y2="1350" class="gold-stroke thin round"/>
-    <circle cx="310" cy="1350" r="4" class="gold"/>
-    <text x="500" y="1360" text-anchor="middle" class="subtitle" style="font-size:20px; font-style:italic;">ISO Prolog rules over RDF linked data</text>
-    <circle cx="690" cy="1350" r="4" class="gold"/>
-    <line x1="715" y1="1350" x2="855" y2="1350" class="gold-stroke thin round"/>
-    <path d="M500 1390 L510 1400 L500 1410 L490 1400 Z" class="green"/>
-  </g>
+  <text x="500" y="625" text-anchor="middle" class="title-small">THE ART OF</text>
+  <text x="500" y="755" text-anchor="middle" class="title-main">EyeProlog</text>
+  <text x="500" y="830" text-anchor="middle" class="subtitle">ISO Prolog with inspectable proofs</text>
+  <text x="500" y="1260" text-anchor="middle" class="author">JOS DE ROO</text>
 </svg>

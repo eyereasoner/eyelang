@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.6.0",
+  "version": "1.0.0",
   "description": "EyeProlog turns facts and rules into answers and proofs.",
   "type": "module",
   "main": "./index.js",
@@ -54,8 +54,5 @@
     "test:playground": "node test/run-playground.mjs",
     "preversion": "npm test && node test/run-conformance-report.mjs conformance-report.md",
     "postversion": "git push origin HEAD --follow-tags"
-  },
-  "dependencies": {
-    "rdf-parse": "^5.0.0"
   }
 }

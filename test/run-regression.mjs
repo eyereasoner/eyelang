@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import publicDefaultApi from '../index.js';
 import * as publicApi from '../src/index.js';
 import {
   run as runEyeProlog,
@@ -699,6 +700,10 @@ function apiCases() {
     {
       name: 'public type declarations match runtime exports',
       run: () => assertArrayEqual(declaredValueExportNames(), runtimeExportNames(), 'public value exports'),
+    },
+    {
+      name: 'default export type declarations match runtime exports',
+      run: () => assertArrayEqual(declaredDefaultExportNames(), runtimeDefaultExportNames(), 'default export values'),
     },
     {
       name: 'run queries through public API without proof by default',
@@ -1888,11 +1893,24 @@ function runtimeExportNames() {
   return Object.keys(publicApi).sort();
 }
 
+function runtimeDefaultExportNames() {
+  return Object.keys(publicDefaultApi).sort();
+}
+
 function declaredValueExportNames() {
   const dts = fs.readFileSync(path.join(packageRoot, 'index.d.ts'), 'utf8');
   return [...dts.matchAll(/^export\s+(?:declare\s+)?(?:class|function|const)\s+([A-Za-z_][A-Za-z0-9_]*)/gm)]
     .map((match) => match[1])
     .filter((name, index, names) => names.indexOf(name) === index)
+    .sort();
+}
+
+function declaredDefaultExportNames() {
+  const dts = fs.readFileSync(path.join(packageRoot, 'index.d.ts'), 'utf8');
+  const declaration = dts.match(/declare const eyeprolog: \{([\s\S]*?)\n\};/);
+  if (declaration == null) throw new Error('default export declaration not found');
+  return [...declaration[1].matchAll(/^\s+([A-Za-z_][A-Za-z0-9_]*): typeof /gm)]
+    .map((match) => match[1])
     .sort();
 }
 

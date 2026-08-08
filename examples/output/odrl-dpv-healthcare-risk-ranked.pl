@@ -1,1 +1,0 @@
-healthcare_risk_report([rank(1, dpv_risk(consent_risk, 100, high, h1, require_explicit_consent)), rank(2, dpv_risk(sharing_risk, 100, high, h2, require_deidentification)), rank(3, dpv_risk(retention_risk, 70, moderate, h4, limit_retention_to_1095_days))]).

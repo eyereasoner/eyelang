@@ -220,6 +220,8 @@ declare const eyeprolog: {
   Solver: typeof Solver;
   BuiltinRegistry: typeof BuiltinRegistry;
   PrologError: typeof PrologError;
+  HaltSignal: typeof HaltSignal;
+  StreamManager: typeof StreamManager;
   variable: typeof variable;
   atom: typeof atom;
   stringTerm: typeof stringTerm;
@@ -252,6 +254,7 @@ declare const eyeprolog: {
   compareNumberText: typeof compareNumberText;
   makeProgram: typeof makeProgram;
   parseClauses: typeof parseClauses;
+  parseGoalText: typeof parseGoalText;
   parseProgramText: typeof parseProgramText;
   createDefaultRegistry: typeof createDefaultRegistry;
   createEyePrologRegistry: typeof createEyePrologRegistry;

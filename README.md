@@ -3,14 +3,14 @@
 [![npm version](https://img.shields.io/npm/v/eyeprolog.svg)](https://www.npmjs.com/package/eyeprolog)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21446308-blue.svg)](https://doi.org/10.5281/zenodo.21446308)
 
-EyeProlog combines ISO Prolog and W3C RDF 1.2 to turn portable rules and linked data into answers and inspectable proofs.
+EyeProlog turns portable ISO Prolog programs into answers and inspectable proofs.
 
 **[Book — *The Art of EyeProlog*](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog)** ·
 **[Why EyeProlog?](https://eyereasoner.github.io/eyeprolog/why-eyeprolog)** ·
 **[Playground](https://eyereasoner.github.io/eyeprolog/playground)**
 
 The book is the reference for the language, command line, JavaScript API,
-RDF 1.2 support, examples, proofs, conformance, and implementation.
+examples, proofs, conformance, and implementation.
 
 ## Quick start
 
@@ -18,9 +18,8 @@ EyeProlog requires Node.js 18 or newer.
 
 ```sh
 npm install --global eyeprolog
-eyeprolog examples/socrates.pl
-eyeprolog --proof examples/socrates.pl
-eyeprolog --goal 'type(socrates, mortal)' examples/socrates.pl
+printf 'human(socrates).\nmortal(X) :- human(X).\n' |
+  eyeprolog --proof --goal 'mortal(socrates)' -
 ```
 
 Programs may declare their default queries with `%% goal:` comments.
@@ -34,19 +33,7 @@ EyeProlog adds 44 public library predicates to its 127-entry ISO core registry.
 `src/eyeprolog-common-library.pl`; both are autoloaded in Node and the
 browser. None requires host support. Other Prolog systems should load only
 `eyeprolog-library.pl`, which avoids redefining their common list predicates.
-Portable text predicates use ISO atoms or character lists; the
-RDF tools emit lexical values as ISO atoms as well.
-
-## RDF 1.2
-
-```sh
-node tools/rdf-to-pl.mjs --rules rules.pl data.ttl -o program.pl
-eyeprolog program.pl > derived.pl
-node tools/pl-to-rdf.mjs derived.pl -o derived.nq
-```
-
-See the book for RDF mappings, graphs, triple terms, reifiers, annotations,
-formats, and policy examples.
+Portable text predicates use ISO atoms or character lists.
 
 ## Development
 

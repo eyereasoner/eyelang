@@ -45,8 +45,8 @@ Case names may be nested in category directories such as `arithmetic/`, `strings
 
 ## Running the suite
 
-Run all tests, including conformance, regression, documentation sync, API, RDF
-tools, examples, and book examples:
+Run all tests, including conformance, regression, documentation sync, API,
+examples, and book examples:
 
 ```sh
 npm test
@@ -95,7 +95,7 @@ are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 The corpus has 304 cases in `iso/` and 710 file-based conformance cases in
 total. The generated `conformance-report.md` is the authoritative source for
 current category totals. Together with regression, documentation-sync, API,
-RDF-tool, example, and book-example checks, `npm test` is the release gate.
+example, and book-example checks, `npm test` is the release gate.
 
 ## Updating expected output
 

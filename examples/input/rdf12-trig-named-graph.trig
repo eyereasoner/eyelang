@@ -1,8 +1,0 @@
-VERSION "1.2"
-
-@prefix ex: <https://example.org/> .
-
-ex:family {
-  ex:alice ex:parent ex:bob .
-  ex:bob ex:parent ex:carol .
-}

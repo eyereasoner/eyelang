@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="book-assets/title-page.svg" alt="Front page for The Art of EyeProlog, presenting its dual foundation in ISO Prolog rules and RDF linked data." width="720">
+  <img src="book-assets/title-page.svg" alt="Front page for The Art of EyeProlog, presenting ISO Prolog rules and inspectable proofs." width="720">
 </p>
 
 **Copyright © 2021–2026 Jos De Roo, KNoWS office of IDLab, Ghent University –
@@ -17,7 +17,7 @@ the two.
 
 This book is also the reference for the EyeProlog implementation. EyeProlog is a
 standards-based reasoning system: programs use the documented and tested ISO
-Prolog profile, while RDF 1.2 provides an interoperable data boundary.
+Prolog profile.
 Chapters 38–40 define the supported ISO Prolog profile, built-ins, and execution interface,
 describe every supported built-in predicate, and document the command-line
 interface. The explanatory chapters give the reasoning and operational context
@@ -29,21 +29,18 @@ selected and clauses are tried. The first tells us what answers are justified;
 the second tells us whether and how the machine will find them. Learning to
 program with EyeProlog means learning to move comfortably between these views.
 
-The name *EyeProlog* reflects the two standards at its foundation: ISO Prolog for
-executable rules and W3C RDF for linked data. EyeProlog implements a broad ISO
-Prolog profile with facts, clauses, terms, lists,
+EyeProlog implements a broad ISO Prolog profile with facts, clauses, terms, lists,
 control, arithmetic, dynamic predicates, operators, streams, and standard
 built-ins. Automatic
-tabling, explicit integrity checks, proof output, and RDF adapters are implementation
+tabling, explicit integrity checks, and proof output are implementation
 capabilities around that standards-based foundation. EyeProlog does not attempt to
 claim formal certification of every ISO processor edge case.
 
 Standards are crucial because knowledge and rules often outlive the software
-that first processes them. Using ISO Prolog for programs and RDF 1.2 for
-interchange keeps the representation teachable, inspectable, and portable
-across tools. EyeProlog aims to provide a compact implementation of those standards
-with explanations and practical host integration, not another proprietary rule
-language.
+that first processes them. Using ISO Prolog keeps programs teachable,
+inspectable, and portable across processors. EyeProlog aims to provide a compact
+implementation of that standard with explanations and practical host
+integration, not another proprietary rule language.
 
 This places EyeProlog in a tradition that joins automated deduction, database
 querying, and programming. Jacques Herbrand's doctoral work made ground terms
@@ -129,8 +126,7 @@ tricks. By the end, a reader should be able to:
    without quietly changing their meaning;
 5. test conclusions, detect inconsistent inputs explicitly, and inspect proofs
    as evidence; and
-6. connect a Prolog rule set to JavaScript and RDF without hiding the knowledge
-   boundary.
+6. connect a Prolog rule set to JavaScript without hiding the host boundary.
 
 That is the stake in the ground: a focused implementation of standard Prolog
 is enough to teach the large ideas when semantics, execution, and evidence
@@ -183,11 +179,11 @@ of seriousness.
 
 | Reader | Suggested route | What to postpone |
 | --- | --- | --- |
-| New to programming | Chapters 1–10, 11–12, 18–20, then Laboratories 1–4 | The formal parts of Chapter 3, embedding, RDF, and Parts V–VI |
+| New to programming | Chapters 1–10, 11–12, 18–20, then Laboratories 1–4 | The formal parts of Chapter 3, embedding, and Parts V–VI |
 | Programmer new to logic | Parts I–II, Chapters 11–13 and 17–25, then Part VII | Detailed history and mathematical foundations on the first pass |
 | Experienced Prolog programmer | Chapters 3, 7, 11–13, 16–17, and 31–33 | Introductory syntax and list material |
 | Knowledge engineer | Chapters 7, 11–16, 25, 31–33, then Laboratories 9–12 | Symbolic mathematics unless it serves the domain |
-| Mathematics reader | Chapters 1–5, 19, and 26–30 | Embedding and RDF until an application needs them |
+| Mathematics reader | Chapters 1–5, 19, and 26–30 | Embedding until an application needs it |
 | Instructor or study group | Parts I–III, one route through Part V or VI, then selected laboratories | Reference chapters until reference work begins |
 
 On a first pass, treat sections marked **Deeper foundations** as optional. They
@@ -255,7 +251,7 @@ Chapters 11–16
 - [12. Integrity checks as ordinary predicates](#12-integrity-checks-as-ordinary-predicates)
 - [13. Termination, tabling, and performance](#13-termination-tabling-and-performance)
 - [14. Knowledge engineering](#14-knowledge-engineering)
-- [15. RDF 1.2 as the interoperable data boundary](#15-rdf-12-as-the-interoperable-data-boundary)
+- [15. Explicit data boundaries](#15-explicit-data-boundaries)
 - [16. Embedding EyeProlog](#16-embedding-eyeprolog)
 
 ### Part IV — The craft of logic programming
@@ -1579,76 +1575,27 @@ concept, decision, and integrity. Place each predicate in a column, then list
 the measurements and policy thresholds that a proof cannot authenticate by
 itself.
 
-## 15. RDF 1.2 as the interoperable data boundary
+## 15. Explicit data boundaries
 
-EyeProlog keeps RDF 1.2 at an explicit standards boundary. Adapter tools translate
-datasets into ordinary `rdf(Subject, Predicate, Object, Graph)` facts, allowing
-standard RDF data to be queried by the supported ISO Prolog profile:
+EyeProlog deliberately keeps external integration outside the reasoning core.
+An embedder validates input, converts it to ordinary Prolog terms and clauses,
+and then asks the solver a focused goal. This keeps parsing a business format,
+authenticating a source, and deriving a conclusion as three separate jobs.
 
-This chapter is an application route, not a prerequisite for Part IV. Readers
-who do not work with Web data can retain one principle—translate external data
-at an explicit boundary—and continue at Chapter 17.
+A boundary should make four decisions visible:
 
-RDF is a data model before it is a file format. Its basic unit is a directed,
-labeled statement identified with Web IRIs; concrete syntaxes such as Turtle,
-JSON-LD, and RDF/XML are different ways to serialize that model. Datasets add
-named graphs, and RDF 1.2 adds triple terms, annotations, and directional language strings.
-Keeping the adapter explicit prevents serialization concerns from leaking into
-ordinary Prolog rules and makes the boundary between Web identity and local
-logical terms visible.
+- which external values are accepted;
+- how they map to finite Prolog terms;
+- which predicates the imported clauses may define; and
+- which resource limits apply to the resulting query.
 
-The four-argument representation is intentionally conservative. It does not
-claim that an RDF graph and a Prolog rule set have the same semantics. It
-preserves RDF terms and graph membership as data, after which Prolog rules may
-derive application-specific conclusions. This separation matters because RDF
-normally supports open-world data integration, whereas a Prolog rule may use a
-closed finite relation, negation as failure, or an explicit integrity relation.
+The proof procedure can explain how supplied clauses support an answer. It
+cannot prove that a file, database, sensor, or remote service was trustworthy.
+That responsibility stays with the host application.
 
-<figure>
-  <img src="book-assets/rdf-adapter-pipeline.svg" alt="Several RDF formats pass through an explicit adapter into Prolog rules and derived N-Quads.">
-  <figcaption>The adapter preserves web data structure at the boundary while the reasoning core continues to work with ordinary explicit terms and rules.</figcaption>
-</figure>
-
-```sh
-node tools/rdf-to-pl.mjs --rules rules.pl data.trig -o program.pl
-eyeprolog program.pl > derived.pl
-node tools/pl-to-rdf.mjs derived.pl -o derived.nq
-```
-
-Supported inputs include RDF 1.2 Turtle, TriG, N-Triples, N-Quads, RDF/XML,
-JSON-LD, RDFa, Microdata, Notation3, and SHACL Compact Syntax. For stdin, supply
-`--format`; use `--base` for relative IRIs.
-
-| RDF value | Prolog term |
-| --- | --- |
-| IRI | `iri(Value)` |
-| Blank node | `bnode(Scope, Label)` |
-| Typed literal | `literal(Value, datatype(IRI))` |
-| Language string | `literal(Value, lang(Language))` |
-| Directional string | `literal(Value, lang(Language, ltr))` or `lang(Language, rtl)` |
-| RDF 1.2 triple term | `triple(Subject, Predicate, Object)` |
-| Default graph | `default_graph` |
-
-Scopes distinguish blank nodes from different documents. Triple terms may
-nest, and named graphs occupy the fourth argument. Turtle annotation syntax is
-expanded at the adapter boundary: the base triple remains asserted, a reifier
-is related to its triple term by `rdf:reifies`, and annotation properties are
-ordinary triples about that reifier. The annotation shorthand itself does not
-survive because RDF abstract syntax records the resulting graph, not the
-surface spelling that produced it.
-
-```eyeprolog
-rdf(S, iri("https://example/ancestor"), O, G) :-
-  rdf(S, iri("https://example/parent"), O, G).
-```
-
-By default, source quads support inference but are not copied to output. Pass
-`--include-source` to retain them. Output is RDF 1.2 N-Quads. See
-[`tools/README.md`](tools/README.md) for the full adapter contract.
-
-**Checkpoint.** For one RDF statement, identify its subject, predicate, object,
-and graph term after conversion. Then explain why preserving a triple term as
-nested data does not assert that nested triple as a global EyeProlog fact.
+**Checkpoint.** Choose one external record used by an application. State what
+the host validates, the Prolog term it constructs, the goal it asks, and the
+resource limit that prevents an untrusted input from consuming unbounded work.
 
 ## 16. Embedding EyeProlog
 
@@ -1712,8 +1659,6 @@ contains collision-free, self-contained portable extensions.
 predicates that Trealla, Scryer, and many other systems already provide. The
 paired `src/eyeprolog-autoload.js` module autoloads both pure-Prolog files in
 Node and the browser.
-The RDF tools emit IRI and literal lexical values as ISO atoms, matching the
-portable text API without a host representation adapter.
 
 Normal CLI, JavaScript, `Solver`, proof replay, and the browser playground use
 the EyeProlog registry; `src/playground-worker.js` reaches the same integration
@@ -1778,54 +1723,6 @@ Those ceilings are operational safeguards. If one is reached, report an
 incomplete computation rather than turning truncation into a negative domain
 conclusion.
 
-### Sockets: naming the knowledge boundary
-
-Rules often outlive the source of their facts. Today `parent/2` may be written
-in the same file as `ancestor/2`; tomorrow it may come from a database adapter,
-a document extractor, or an agent. An **EyeProlog Socket** gives that opening a
-name and a contract:
-
-<figure>
-  <img src="book-assets/sockets-providers.svg" alt="A file, database, and AI extractor connect through one predicate contract to Prolog rules.">
-  <figcaption>A socket separates a stable reasoning contract from interchangeable providers; supplied claims remain Prolog terms that proofs can cite.</figcaption>
-</figure>
-
-```eyeprolog
-socket(family_source, provides(predicate(parent, 2))).
-plug(family_file, family_source).
-
-parent(pat, jan).
-parent(jan, emma).
-
-ancestor(X, Y) :- parent(X, Y).
-ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
-```
-
-The portable vocabulary is deliberately small:
-
-```eyeprolog
-socket(Name, Contract).
-plug(Provider, Name).
-provides(Signature).
-requires(Signature).
-```
-
-These are ordinary facts, not magic solver directives. A host may validate or
-act on them, but the core proof procedure does not. This modest design is
-useful: a host that knows nothing about sockets can still read the program,
-reason with the supplied clauses, and explain its answers. A host that does
-know about them can check that a provider offers the promised predicate.
-
-Sockets are particularly valuable at an AI boundary. A model can propose
-claims, but the claims should enter the theory as visible facts or rules. The
-socket states what kind of knowledge may enter; EyeProlog checks and combines the
-result; `why/2` records which supplied clauses actually supported an answer.
-
-**Checkpoint.** Name three separate responsibilities in an embedded service:
-what the host validates before constructing terms, what EyeProlog derives from
-those terms, and what resource limits may interrupt the run. None can safely
-stand in for the other two.
-
 ## Part III summary
 
 Part III moved from obtaining answers to trusting them:
@@ -1835,8 +1732,8 @@ Part III moved from obtaining answers to trusting them:
 - automatic tabling computes fixed points for eligible positive recursion;
 - indexing and ready filters improve control without changing intended meaning;
 - knowledge engineering separates sources, concepts, decisions, and reasons;
-- RDF adapters preserve external distinctions at an explicit boundary;
-- embedding and sockets divide logical derivation from host authority.
+- explicit host boundaries divide input validation from logical derivation;
+- embedding keeps host authority outside the proof procedure.
 
 You should now be able to distinguish proof trees from search trees, state what
 an integrity query establishes, explain the finite-answer argument behind tabling, and name
@@ -1853,11 +1750,9 @@ than the general systems in that literature, but inherits their central
 insight: remembering a recursive question can change termination without
 changing what the relation says.
 
-In parallel, deductive databases and Semantic Web systems asked where facts
-come from, how vocabularies align, and how derived claims retain provenance.
-EYE belongs to that proof-producing Semantic Web tradition. EyeProlog adopts the
-expectation that conclusions should be inspectable while implementing a
-focused ISO Prolog profile and explicit RDF 1.2 adapters.
+In parallel, deductive databases asked where facts come from and how derived
+claims retain provenance. EyeProlog adopts the expectation that conclusions
+should be inspectable while implementing a focused ISO Prolog profile.
 
 The historical lesson is architectural. A proof procedure can attest that a
 conclusion follows from supplied clauses. It cannot authenticate a database,
@@ -3129,7 +3024,7 @@ decision can be reconstructed under the rules that actually governed it.
 2. Model `denial/3` without assuming every failed permit has the same reason.
 3. Add a two-person escort rule and identify duplicate-proof cases.
 4. Write an integrity relation for badges assigned to multiple people.
-5. Design a source socket for badge facts and state what the host must validate.
+5. Define the validation the host must perform before supplying badge facts.
 6. Run the case with `--proof` and decide which helpers improve the explanation.
 
 **Checkpoint.** Reconstruct one permit decision from a preserved source
@@ -5278,9 +5173,8 @@ remain observable.
 For ISO terms, the standard term order is variables, numbers, atoms, then compounds;
 compound terms compare by arity, functor, and arguments. Within the numeric
 category, floats precede integers; floats compare by finite numeric value and
-integers compare exactly. Host-created
-RDF lexical strings are an internal extension ranked between atoms and
-compounds; double-quoted Prolog source never creates that extension.
+integers compare exactly. Double-quoted Prolog source follows the
+`double_quotes` flag and never creates an extra host-only scalar category.
 
 ### Term construction and inspection
 
@@ -5645,12 +5539,8 @@ eyeprolog --goal 'answer(Kind, Value)' program.pl
 The portable text API uses **ISO atoms or proper lists of one-character atoms**.
 A generated text result defaults to an atom. Double-quoted source text uses the
 ISO representation selected by `double_quotes`; with the default `chars`, it is
-already a proper character list accepted by this API. The RDF tools emit lexical
-forms as atoms while preserving RDF distinctions in the surrounding `iri/1`,
-`literal/2`, datatype, language, and direction terms. Their private host adapter
-may encounter an internal RDF string value, but that value is converted at the
-boundary and is never produced by double-quoted Prolog syntax. The 48-predicate
-portable file itself has no STRING or JavaScript dependency.
+already a proper character list accepted by this API. The 44-predicate portable
+library itself has no STRING or JavaScript dependency.
 
 | Predicate and principal mode | Behavior |
 | --- | --- |
@@ -5919,7 +5809,7 @@ Review questions:
 5. What does automatic tabling solve, and what does it not solve?
 6. Why is proof output useful when the answer is already known?
 7. When should a host query an `invalid/1` relation before domain decisions?
-8. What does an explicit RDF adapter preserve about the core language?
+8. Why should external data conversion remain outside the reasoning core?
 9. In what sense is a ground query answer an existential witness?
 10. Why are partial correctness, completeness, and termination three different
     claims?
@@ -5931,14 +5821,14 @@ Review questions:
 ### Further examples
 
 <figure>
-  <img src="book-assets/example-landscape.svg" alt="A map connects EyeProlog examples across mathematics, search, planning, policy, science, program analysis, symbolic systems, and RDF.">
+  <img src="book-assets/example-landscape.svg" alt="A map connects EyeProlog examples across mathematics, search, planning, policy, science, program analysis, and symbolic systems.">
   <figcaption>The corpus is a connected landscape. Every path leads from a readable source program to checked answers and, for selected examples, checked proofs.</figcaption>
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **204 self-contained runnable programs**. Every
+top-level directory contains **188 self-contained runnable programs**. Every
 source program has an exact answer file under
-[examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **71 selected programs** have a checked
+[examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **60 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
 itself rather than merely naming it.
 
@@ -6020,8 +5910,6 @@ studies.
 | [Herbrand witnesses](https://github.com/eyereasoner/eyeprolog/blob/main/examples/herbrand-witnesses.pl) | Functional witness terms make existential structure and syntactic identity visible in both answers and derivations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/herbrand-witnesses.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/herbrand-witnesses.pl) |
 | [Reusable built-ins](https://github.com/eyereasoner/eyeprolog/blob/main/examples/reusable-builtins.pl) | Arithmetic, strings, lists, and term inspection compose through ordinary variables. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/reusable-builtins.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/reusable-builtins.pl) |
 | [Skolem Functions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/skolem-functions.pl) | Skolem functional terms in rule heads. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/skolem-functions.pl) |
-| [Socket Age](https://github.com/eyereasoner/eyeprolog/blob/main/examples/socket-age.pl) | Socket and plug declarations for an age-reasoning module with registry, policy, and clock providers. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/socket-age.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/socket-age.pl) |
-| [Socket Family](https://github.com/eyereasoner/eyeprolog/blob/main/examples/socket-family.pl) | Socket and plug declarations for a family-reasoning module that expects a `parent/2` provider. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/socket-family.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/socket-family.pl) |
 | [Socrates](https://github.com/eyereasoner/eyeprolog/blob/main/examples/socrates.pl) | A fact and one rule turn the classical syllogism into a ground derivation. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/socrates.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/socrates.pl) |
 | [UUID](https://github.com/eyereasoner/eyeprolog/blob/main/examples/uuid.pl) | `uuid/3` reproducibly creates one version 4 UUID atom from explicit random state; the example validates its canonical shape. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/uuid.pl) |
 | [Witch](https://github.com/eyereasoner/eyeprolog/blob/main/examples/witch.pl) | Burn the witch, adapted from Eyeling's examples/witch.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/witch.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/witch.pl) |
@@ -6235,16 +6123,10 @@ decisions, reasons, integrity conditions, and proof.
 | [Clinical-trial screening](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clinical-trial-screening.pl) | Inclusion and exclusion criteria produce an evidence-backed eligibility result. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clinical-trial-screening.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/clinical-trial-screening.pl) |
 | [Data negotiation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/data-negotiation.pl) | Offered and required data conditions derive an agreement or mismatch. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/data-negotiation.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/data-negotiation.pl) |
 | [Deontic Logic](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deontic-logic.pl) | Deontic logic: obligations, prohibitions, compensations, and violations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/deontic-logic.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/deontic-logic.pl) |
-| [DPV–ODRL purpose mapping](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dpv-odrl-purpose-mapping.pl) | A [Turtle process and policy](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/dpv-odrl-purpose-mapping.ttl) uses DPV and ODRL namespaces. A [small rule file](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/dpv-odrl-purpose-mapping-rules.pl) verifies the controller, recipient, data, processing, purpose, and legal-basis correspondences. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dpv-odrl-purpose-mapping.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/dpv-odrl-purpose-mapping.pl) |
 | [GDPR compliance](https://github.com/eyereasoner/eyeprolog/blob/main/examples/gdpr-compliance.pl) | Purpose, basis, and processing facts support compliance conclusions. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/gdpr-compliance.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/gdpr-compliance.pl) |
 | [Illegitimate Reasoning](https://github.com/eyereasoner/eyeprolog/blob/main/examples/illegitimate-reasoning.pl) | Illegitimate reasoning detector. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/illegitimate-reasoning.pl) |
 | [Integrity check](https://github.com/eyereasoner/eyeprolog/blob/main/examples/integrity-check.pl) | An explicit invalid-state relation reports contradictory input and a diagnostic status. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/integrity-check.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/integrity-check.pl) |
 | [Nixon Diamond](https://github.com/eyereasoner/eyeprolog/blob/main/examples/nixon-diamond.pl) | Nixon diamond: two independent defaults support incompatible conclusions. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/nixon-diamond.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/nixon-diamond.pl) |
-| [ODRL–DPV–FPV trust flow](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-fpv-trust-flow.pl) | A [Turtle dataset](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-dpv-fpv-trust-flow.ttl) holds the ODRL policy, trust scores, and requested flows. A [rule file](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-dpv-fpv-trust-flow-rules.pl) deterministically reports permit, review, and deny outcomes. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-fpv-trust-flow.pl) |
-| [Healthcare ODRL–DPV risk](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-healthcare-risk-ranked.pl) | A [Turtle healthcare policy](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-dpv-healthcare-risk-ranked.ttl) supplies ODRL permissions and DPV-style risk profiles. A [rule file](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-dpv-healthcare-risk-ranked-rules.pl) detects missing safeguards and returns a deterministic ranking. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-healthcare-risk-ranked.pl) |
-| [ODRL–DPV risk ranking](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-risk-ranked.pl) | A [Turtle agreement](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-dpv-risk-ranked.ttl) supplies ODRL permissions, a prohibition, and DPV-style needs. A [rule file](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-dpv-risk-ranked-rules.pl) derives, scores, and ranks consumer risks. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-risk-ranked.pl) |
-| [Advanced ODRL policy from Turtle](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-policy-advanced-from-turtle.pl) | A Turtle policy supplies an assignee, purpose and spatial constraints, a de-identification duty, and a transfer prohibition. A [rule file](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-policy-advanced-rules.pl) deterministically reports a permit with duty, a constraint denial, and a prohibition denial. | [policy](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-policy-advanced.ttl) · [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-policy-advanced-from-turtle.pl) |
-| [ODRL policy from Turtle](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-policy-from-turtle.pl) | An ODRL permission, target, action, and purpose constraint are loaded from [Turtle](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-policy.ttl) and reduced to one deterministic permit decision by a [small rule file](https://github.com/eyereasoner/eyeprolog/blob/main/examples/input/odrl-policy-rules.pl). | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-policy-from-turtle.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/odrl-policy-from-turtle.pl) |
 | [Trust-flow provenance threshold](https://github.com/eyereasoner/eyeprolog/blob/main/examples/trust-flow-provenance-threshold.pl) | Provenance and trust values remain premises of the derived threshold decision, including its arithmetic and comparison steps. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/trust-flow-provenance-threshold.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/trust-flow-provenance-threshold.pl) |
 | [Workplace compliance](https://github.com/eyereasoner/eyeprolog/blob/main/examples/workplace-compliance.pl) | Training, role, and workplace conditions feed a compact compliance theory. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/workplace-compliance.pl) |
 
@@ -6291,30 +6173,6 @@ For each scientific example, write a five-column audit: quantity, unit, source,
 equation, and approximation. A machine-checked derivation is only as
 interpretable as that modeling boundary.
 
-#### RDF 1.2 and knowledge boundaries
-
-These programs are generated from RDF inputs by the repository tools. Follow
-the source data, generated EyeProlog facts, rules, answers, and serialized RDF as
-one adapter pipeline.
-
-| Program | RDF feature | Checked answer |
-| --- | --- | --- |
-| [Aliases and namespaces](https://github.com/eyereasoner/eyeprolog/blob/main/examples/aliases-and-namespaces.pl) | Explicit name relations avoid adding hidden namespace semantics to the core. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/aliases-and-namespaces.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/aliases-and-namespaces.pl) |
-| [Alignment Demo](https://github.com/eyereasoner/eyeprolog/blob/main/examples/alignment-demo.pl) | Broader and narrower concept alignments, their transitive closure, and roll-up queries. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/alignment-demo.pl) |
-| [Context Association](https://github.com/eyereasoner/eyeprolog/blob/main/examples/context-association.pl) | Context association adapted from Eyeling context-association.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/context-association.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/context-association.pl) |
-| [Annotated claim resolution](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-annotated-claims.pl) | Conflicting bridge-status claims are ranked from annotation confidence and source trust before one auditable action is chosen. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-annotated-claims.pl) |
-| [Annotated triple](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-annotation.pl) | Annotation syntax asserts the base triple and expands provenance metadata through an explicit reifier. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-annotation.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/rdf12-annotation.pl) |
-| [Directional language](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-directional-language.pl) | Language direction remains explicit in the lossless literal encoding. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-directional-language.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/rdf12-directional-language.pl) |
-| [Nested triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-nested-triple-term.pl) | Triple terms occur recursively without becoming asserted facts merely by nesting. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-nested-triple-term.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/rdf12-nested-triple-term.pl) |
-| [TriG graph join](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-graph-join.pl) | Rules join facts while retaining their graph-sensitive representation. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-graph-join.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/rdf12-trig-graph-join.pl) |
-| [TriG named graph](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-named-graph.pl) | The fourth `rdf/4` argument preserves graph identity. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-named-graph.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/rdf12-trig-named-graph.pl) |
-| [TriG triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-triple-term.pl) | RDF 1.2 triple terms and dataset graph structure appear together. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-triple-term.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/rdf12-trig-triple-term.pl) |
-| [Triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-triple-term.pl) | An RDF 1.2 triple term is represented as nested EyeProlog data and projected by a rule. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-triple-term.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/rdf12-triple-term.pl) |
-| [Web names](https://github.com/eyereasoner/eyeprolog/blob/main/examples/web-names.pl) | Quoted web identifiers remain atom constants in ordinary Prolog terms. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/web-names.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/web-names.pl) |
-
-The original RDF fixtures and adapter rules are available in
-[examples/input](https://github.com/eyereasoner/eyeprolog/tree/main/examples/input/). Chapter 15 explains why the conversion is
-an explicit boundary instead of extra syntax inside the reasoning core.
 
 #### Large integrated cases
 
@@ -6338,13 +6196,13 @@ hand.
 
 #### Running and extending the corpus
 
-Run all 204 normal answer goldens and the 71 selected proof goldens with:
+Run all 188 normal answer goldens and the 60 selected proof goldens with:
 
 ```sh
 npm run test:examples
 ```
 
-Run the complete conformance, regression, RDF-tool, example, and proof corpus
+Run the complete conformance, regression, example, and proof corpus
 with:
 
 ```sh
@@ -6388,8 +6246,8 @@ node test/run-conformance-report.mjs
 The complete suite must pass before release. The file-based conformance corpus
 contains 710 cases, including 304 focused ISO
 cases derived from the success, failure, mode, and error behavior in
-ISO/IEC 13211-1 clauses 7 and 8. Separate exact-output suites check 204 normal
-examples, 71 proof examples, and extracted book displays. The seven-case
+ISO/IEC 13211-1 clauses 7 and 8. Separate exact-output suites check 188 normal
+examples, 60 proof examples, and extracted book displays. The seven-case
 playground contract suite imports the production worker, sends real reasoning
 requests through its message protocol, and crawls the served module graph for
 missing assets, bad MIME types, and static Node-only imports. The generated
@@ -6459,10 +6317,6 @@ unbounded terms. URL inputs also cross a network and trust boundary.
 Applications should restrict accepted sources and impose suitable input-size,
 time, depth, memory, and solution limits. Proof output can be larger than
 answer output and needs its own budget.
-
-Sockets do not grant authority by themselves. They describe expected
-knowledge; the embedding host remains responsible for authenticating a
-provider and validating what it supplies.
 
 ## 43. Glossary and notes for continued study
 
@@ -6586,13 +6440,6 @@ specifications.
   43(1), 1996, pp. 20–74. A foundational treatment of tabled logic-program
   evaluation. EyeProlog's automatic positive tabling is smaller in scope, but the
   shared-call and fixed-point intuitions are closely related.
-
-- W3C, [*RDF 1.2 Concepts and Abstract
-  Data Model*](https://www.w3.org/TR/rdf12-concepts/) and
-  [*RDF 1.2 N-Quads*](https://www.w3.org/TR/rdf12-n-quads/). These
-  specifications define the RDF terms, datasets, triple terms, directional
-  language strings, and output syntax represented by the adapters in Chapter
-  15.
 
 - Dörthe Arndt and Stephan Mennicke,
   [“Notation3 as an Existential Rule
@@ -6791,9 +6638,6 @@ the solver.
 
 **Search tree.** The tree of successful, failed, and repeated alternatives
 explored while seeking answers.
-
-**Socket.** A named declaration of an expected knowledge boundary to be
-satisfied by an embedding host or provider.
 
 **Source fact.** A fact explicitly present in loaded input, as opposed to a
 derived conclusion.
@@ -7038,24 +6882,24 @@ equations represented by built-ins, and thresholds in an intelligible order.
 **Reflect:** what has been proved conditionally, and what empirical claim
 remains outside formal logic?
 
-### Laboratory 11. An RDF knowledge boundary
+### Laboratory 11. An input boundary
 
-**Build:** start with a small Turtle or TriG fixture, convert it to `rdf/4`
-facts, derive one new relation, and serialize the result.
+**Build:** start with a small external record, validate it in JavaScript,
+convert it to ordinary Prolog facts, and derive one new relation.
 
 **Requirements:**
 
-- preserve IRIs, literals, graph identity, and one RDF 1.2 feature;
-- keep adapter rules separate from domain rules;
+- define the accepted external fields and value domains;
+- keep conversion code separate from domain rules;
 - query the generated Prolog program with EyeProlog directly;
-- compare the final N-Quads with a checked golden;
+- compare the final answer with a checked golden;
 - document what the host authenticates.
 
-**Acceptance:** the round trip retains the selected RDF term distinctions, and
-nested triple data is not accidentally asserted as a global fact.
+**Acceptance:** invalid records are rejected before solving, valid records map
+to explicit finite terms, and the checked answer has an inspectable proof.
 
-**Reflect:** what simplicity does the explicit adapter preserve in the EyeProlog
-core?
+**Reflect:** which claims belong to host validation and which are established
+by the Prolog derivation?
 
 ### Laboratory 12. A release-quality reasoning service
 
@@ -7185,7 +7029,7 @@ are often collapsed:
 | 12 | ordinary absence, invalid theory, process exit, and resource failure |
 | 13 | structural descent, finite table growth, and unbounded term construction |
 | 14 | source evidence, derived concepts, policy decisions, and integrity |
-| 15 | RDF term preservation, graph membership, and application-specific inference |
+| 15 | host validation, explicit term conversion, and logical derivation |
 | 16 | host validation, solver derivation, proof retention, and operational ceilings |
 | 17 | ground meaning, intended mode, answer set, first answer, and proof shape |
 | 18 | examples, near misses, finite generators, invariants, and presentation |

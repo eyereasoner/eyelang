@@ -1,1 +1,0 @@
-consumer_risk_report([rank(1, dpv_risk(deletion_risk, 100, high, c1, require_notice_before_deletion)), rank(2, dpv_risk(sharing_risk, 97, high, c3, require_explicit_consent)), rank(3, dpv_risk(terms_risk, 85, high, c2, require_14_days_notice)), rank(4, dpv_risk(portability_risk, 70, moderate, c4, permit_data_export))]).

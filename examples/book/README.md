@@ -85,15 +85,6 @@ npm run generate
 
 - [01-heating.pl](chapter-14/01-heating.pl)
 
-## Chapter 15: RDF 1.2 as the interoperable data boundary
-
-- [01-rdf.pl](chapter-15/01-rdf.pl)
-
-## Chapter 16: Embedding EyeProlog
-
-- [01-socket.pl](chapter-16/01-socket.pl) — Sockets: naming the knowledge boundary
-- [02-socket-2.pl](chapter-16/02-socket-2.pl)
-
 ## Chapter 17: Logic and control
 
 - [01-path.pl](chapter-17/01-path.pl)

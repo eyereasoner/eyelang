@@ -34,4 +34,4 @@ use Unicode scalar values.
 
 This is an executable conformance matrix, not a certification issued by an
 independent standards body. Release gating runs the ISO cases together with the
-full regression, API, documentation, example, RDF, and browser suites.
+full regression, API, documentation, example, and browser suites.

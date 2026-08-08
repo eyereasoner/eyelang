@@ -33,7 +33,7 @@
   <rect class="stage s4" x="540" y="105" width="160" height="235" rx="16"/>
   <text class="number" x="620" y="143" text-anchor="middle">8–11</text>
   <text class="label" x="620" y="176" text-anchor="middle">DOMAINS</text>
-  <text class="small" x="620" y="207" text-anchor="middle">analysis · policy</text><text class="small" x="620" y="229" text-anchor="middle">science · RDF</text>
+  <text class="small" x="620" y="207" text-anchor="middle">analysis · policy</text><text class="small" x="620" y="229" text-anchor="middle">science · models</text>
   <text class="small" x="620" y="290" text-anchor="middle">preserve evidence</text><text class="small" x="620" y="313" text-anchor="middle">and boundaries</text>
 
   <rect class="stage s5" x="720" y="85" width="150" height="275" rx="18"/>
