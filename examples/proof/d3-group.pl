@@ -16,8 +16,8 @@ why(
             by(builtin(findall, 3))
           ),
           proof(
-            goal(sort_unique([], [])),
-            by(library(sort_unique, 2))
+            goal(sort([], [])),
+            by(builtin(sort, 2))
           )
         ])
       )
@@ -43,8 +43,8 @@ why(
             by(builtin(findall, 3))
           ),
           proof(
-            goal(sort_unique([], [])),
-            by(library(sort_unique, 2))
+            goal(sort([], [])),
+            by(builtin(sort, 2))
           )
         ])
       ),

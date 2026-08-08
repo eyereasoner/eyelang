@@ -1,4 +1,4 @@
-% Eyelet-inspired Eulerian path example using findall/3 and sort_unique/2.
+% Eyelet-inspired Eulerian path example using findall/3 and sort/2.
 %
 % The graph is undirected; edges have identifiers so the trail consumes each
 % physical edge exactly once even when vertices are revisited.  The remaining
@@ -49,15 +49,15 @@ odd_degree(V) :-
 
 odd_vertices(Odds) :-
   findall(V, odd_degree(V), Raw),
-  sort_unique(Raw, Odds).
+  sort(Raw, Odds).
 
 all_edges(Edges) :-
   findall(E, edge(E, _a, _b), Raw),
-  sort_unique(Raw, Edges).
+  sort(Raw, Edges).
 
 vertices(Vertices) :-
   findall(V, vertex(V), Raw),
-  sort_unique(Raw, Vertices).
+  sort(Raw, Vertices).
 
 eulerian_start(Start) :-
   odd_vertices([Start, _end]).

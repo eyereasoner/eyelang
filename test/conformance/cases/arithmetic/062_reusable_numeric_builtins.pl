@@ -7,5 +7,5 @@ answer(floor, X) :- (X is floor(3.9)).
 answer(ceiling, X) :- (X is ceiling(3.1)).
 answer(trunc, X) :- (X is truncate(-3.9)).
 answer(exp, X) :- (X is exp(0)).
-answer(tan, X) :- tan(0, X).
-answer(atan2, X) :- atan2(0, -1, X).
+answer(tan, X) :- X is tan(0).
+answer(atan2, X) :- X is atan2(0, -1).

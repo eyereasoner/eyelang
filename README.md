@@ -29,8 +29,8 @@ proper list of one-character atoms (`chars`), matching Trealla and Scryer.
 
 ## Portable library
 
-EyeProlog adds 50 public library predicates to its 115-predicate ISO profile.
-**All 50 are ordinary Prolog clauses** across `src/eyeprolog-library.pl` and
+EyeProlog adds 44 public library predicates to its 127-entry ISO core registry.
+**All 44 are ordinary Prolog clauses** across `src/eyeprolog-library.pl` and
 `src/eyeprolog-common-library.pl`; both are autoloaded in Node and the
 browser. None requires host support. Other Prolog systems should load only
 `eyeprolog-library.pl`, which avoids redefining their common list predicates.

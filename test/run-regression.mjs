@@ -1019,12 +1019,12 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 115, 'EyeProlog registry contains only ISO host definitions');
+        assertEqual(library.defs.size, 127, 'EyeProlog registry contains only ISO host definitions');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 0, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 50, 'portable Prolog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 44, 'portable Prolog library count');
         assertEqual(eyePrologNativeLibraryIndicators.length, 0, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.join(','), '', 'no EyeProlog library predicate requires host support');
-        assertEqual(eyePrologLibraryIndicators.length, 50, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 44, 'complete EyeProlog library surface');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');

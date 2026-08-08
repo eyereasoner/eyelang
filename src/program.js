@@ -107,9 +107,12 @@ export class Program {
     builder.finish();
   }
   defineOperator(priority, specifier, name) {
+    const operatorClass = ['fx', 'fy'].includes(specifier) ? ['fx', 'fy']
+      : ['xf', 'yf'].includes(specifier) ? ['xf', 'yf']
+        : ['xfx', 'xfy', 'yfx'];
+    for (const existing of operatorClass) this.operators.delete(`${existing}\u0000${name}`);
     const key = `${specifier}\u0000${name}`;
-    if (priority === 0) this.operators.delete(key);
-    else this.operators.set(key, { priority, specifier, name });
+    if (priority !== 0) this.operators.set(key, { priority, specifier, name });
   }
   static parse(source, options = {}) {
     return buildProgramFromSources([source], options);

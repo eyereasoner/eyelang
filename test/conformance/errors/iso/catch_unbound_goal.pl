@@ -1,4 +1,4 @@
 %% goal: answer
 
 answer :-
-    catch(Goal, Ball, true).
+    catch(Goal, no_match, true).

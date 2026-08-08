@@ -3,3 +3,4 @@ answer(count_high, 2).
 answer(sum_alice, 16).
 answer(best_score, pair(9, result(alice, math))).
 answer(lowest_pair, pair([5, bob], math)).
+answer(max_tie_first, first).

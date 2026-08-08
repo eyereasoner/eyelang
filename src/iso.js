@@ -1,5 +1,4 @@
-// Built-ins in EyeProlog's documented ISO compatibility profile. This is a
-// deliberately incomplete profile, not the complete standard environment.
+// ISO/IEC 13211-1:1995 core built-ins, including Technical Corrigenda 1-3.
 import {
   ATOM, COMPOUND, NUMBER, STRING, VAR, Env,
   atom, compareTerms, compound, copyResolved, deref, emptyList,
@@ -50,6 +49,7 @@ export const isoBuiltins = {
     registry.add('=', 2, unification, { deterministic: true });
     registry.add('unify_with_occurs_check', 2, unification, { deterministic: true });
     registry.add('\\=', 2, nonUnification, { deterministic: true });
+    registry.add('subsumes_term', 2, subsumesTermBuiltin, { deterministic: true });
     registry.add('==', 2, identity, { deterministic: true });
     registry.add('\\==', 2, nonIdentity, { deterministic: true });
 
@@ -61,6 +61,8 @@ export const isoBuiltins = {
     registry.add('@=<', 2, orderBuiltin((n) => n <= 0), { deterministic: true });
     registry.add('@>', 2, orderBuiltin((n) => n > 0), { deterministic: true });
     registry.add('@>=', 2, orderBuiltin((n) => n >= 0), { deterministic: true });
+    registry.add('sort', 2, sortBuiltin, { deterministic: true });
+    registry.add('keysort', 2, keysortBuiltin, { deterministic: true });
 
     registry.add('functor', 3, functorBuiltin, { deterministic: true });
     registry.add('arg', 3, argBuiltin, { deterministic: true });
@@ -76,6 +78,7 @@ export const isoBuiltins = {
     registry.add('asserta', 1, assertBuiltin(true), { deterministic: true });
     registry.add('assertz', 1, assertBuiltin(false), { deterministic: true });
     registry.add('retract', 1, retractBuiltin);
+    registry.add('retractall', 1, retractAllBuiltin, { deterministic: true });
     registry.add('abolish', 1, abolishBuiltin, { deterministic: true });
     registry.add('current_predicate', 1, currentPredicateBuiltin);
     registry.add('current_prolog_flag', 2, currentPrologFlagBuiltin);
@@ -139,6 +142,7 @@ export const isoBuiltins = {
     registry.add('number_codes', 2, numberCodesBuiltin, { deterministic: true });
 
     registry.add('call', 1, callBuiltin);
+    for (let arity = 2; arity <= 8; arity++) registry.add('call', arity, callClosureBuiltin);
     registry.add('catch', 3, catchBuiltin);
     registry.add('throw', 1, throwBuiltin, { deterministic: true });
     registry.add('\\+', 1, negationBuiltin, { deterministic: true });
@@ -163,6 +167,46 @@ function* unification({ goal, env }) {
 }
 function* nonUnification({ goal, env }) {
   if (!unify(goal.args[0], goal.args[1], env.clone())) yield env;
+}
+
+function termVariableNames(term, env, names = new Set(), seen = new Set()) {
+  term = deref(term, env);
+  if (term.type === VAR) {
+    names.add(term.name);
+  } else if (term.type === COMPOUND && !seen.has(term)) {
+    seen.add(term);
+    for (const arg of term.args) termVariableNames(arg, env, names, seen);
+  }
+  return names;
+}
+
+function subsumesTerm(general, specific, env) {
+  general = copyResolved(general, env);
+  specific = copyResolved(specific, env);
+  const protectedVariables = termVariableNames(specific, new Env());
+  const substitutions = new Map();
+  const pending = [[general, specific]];
+  while (pending.length) {
+    let [left, right] = pending.pop();
+    if (left.type === VAR && substitutions.has(left.name)) left = substitutions.get(left.name);
+    if (left.type === VAR) {
+      // A variable shared with Specific may not be changed by the one-sided
+      // substitution required by subsumes_term/2.
+      if (protectedVariables.has(left.name)) {
+        if (right.type !== VAR || right.name !== left.name) return false;
+      } else {
+        substitutions.set(left.name, right);
+      }
+      continue;
+    }
+    if (left.type !== right.type || left.name !== right.name || left.arity !== right.arity) return false;
+    for (let i = left.arity - 1; i >= 0; i--) pending.push([left.args[i], right.args[i]]);
+  }
+  return true;
+}
+
+function* subsumesTermBuiltin({ goal, env }) {
+  if (subsumesTerm(goal.args[0], goal.args[1], env)) yield env;
 }
 function* identity({ goal, env }) {
   if (identical(goal.args[0], goal.args[1], env)) yield env;
@@ -194,7 +238,30 @@ const typeTests = {
   compound: unaryTest((t) => t.type === COMPOUND),
   callable: unaryTest((t) => t.type === ATOM || t.type === COMPOUND),
   ground: unaryTest((t, env) => termIsGround(t, env)),
+  acyclic_term: unaryTest((t, env) => termIsAcyclic(t, env)),
 };
+
+function termIsAcyclic(term, env) {
+  const active = new Set();
+  const complete = new Set();
+  const stack = [[term, false]];
+  while (stack.length) {
+    const [candidate, leaving] = stack.pop();
+    const resolved = deref(candidate, env);
+    if (resolved.type !== COMPOUND) continue;
+    if (leaving) {
+      active.delete(resolved);
+      complete.add(resolved);
+      continue;
+    }
+    if (active.has(resolved)) return false;
+    if (complete.has(resolved)) continue;
+    active.add(resolved);
+    stack.push([resolved, true]);
+    for (let i = resolved.arity - 1; i >= 0; i--) stack.push([resolved.args[i], false]);
+  }
+  return true;
+}
 
 function resolvedOrder(left, right, env) {
   return compareTerms(copyResolved(left, env), copyResolved(right, env));
@@ -213,6 +280,58 @@ function orderBuiltin(test) {
   return function* ({ goal, env }) {
     if (test(resolvedOrder(goal.args[0], goal.args[1], env))) yield env;
   };
+}
+
+function listKind(term, env) {
+  let cursor = deref(term, env);
+  const seen = new Set();
+  while (cursor.type === COMPOUND && cursor.name === '.' && cursor.arity === 2) {
+    if (seen.has(cursor)) return 'nonlist';
+    seen.add(cursor);
+    cursor = deref(cursor.args[1], env);
+  }
+  if (cursor.type === VAR) return 'partial';
+  return cursor.type === ATOM && cursor.name === '[]' ? 'list' : 'nonlist';
+}
+
+function requireProperList(term, env) {
+  const value = deref(term, env);
+  const kind = listKind(value, env);
+  if (kind === 'partial') throw new PrologError('instantiation_error');
+  if (kind !== 'list') throw new PrologError('type_error(list)', value);
+  return properListItems(value, env);
+}
+
+function validateListOutput(term, env) {
+  const value = deref(term, env);
+  if (listKind(value, env) === 'nonlist') throw new PrologError('type_error(list)', value);
+}
+
+function* sortBuiltin({ goal, env }) {
+  const items = requireProperList(goal.args[0], env);
+  validateListOutput(goal.args[1], env);
+  const sorted = [...items].sort((a, b) => resolvedOrder(a, b, env));
+  const unique = [];
+  for (const item of sorted) {
+    if (unique.length === 0 || resolvedOrder(unique[unique.length - 1], item, env) !== 0) unique.push(item);
+  }
+  const next = env.clone();
+  if (unify(goal.args[1], listFromItems(unique), next)) yield next;
+}
+
+function* keysortBuiltin({ goal, env }) {
+  const items = requireProperList(goal.args[0], env);
+  validateListOutput(goal.args[1], env);
+  for (const item of items) {
+    const resolved = deref(item, env);
+    if (resolved.type !== COMPOUND || resolved.name !== '-' || resolved.arity !== 2) {
+      throw new PrologError('type_error(pair)', resolved);
+    }
+  }
+  // Modern ECMAScript specifies a stable Array#sort, as required by keysort/2.
+  const sorted = [...items].sort((a, b) => resolvedOrder(deref(a, env).args[0], deref(b, env).args[0], env));
+  const next = env.clone();
+  if (unify(goal.args[1], listFromItems(sorted), next)) yield next;
 }
 
 function requireInteger(term, env) {
@@ -436,7 +555,7 @@ function* retractBuiltin({ solver, goal, env }) {
   requireClauseHead(parts.head);
   const group = solver.program.findGroup(parts.head.name, parts.head.arity);
   if (solver.registry.get(parts.head.name, parts.head.arity) || (group && !group.dynamic)) {
-    throw new PrologError('permission_error(access, static_procedure)', procedureIndicator(parts.head));
+    throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(parts.head));
   }
   if (!group) return;
   // ISO logical update view: this call keeps the clauses that were visible
@@ -452,6 +571,23 @@ function* retractBuiltin({ solver, goal, env }) {
     solver.program.removeDynamicClause(group, clause);
     yield next;
   }
+}
+
+function* retractAllBuiltin({ solver, goal, env }) {
+  const head = deref(goal.args[0], env);
+  requireClauseHead(head);
+  const group = solver.program.findGroup(head.name, head.arity);
+  if (solver.registry.get(head.name, head.arity) || (group && !group.dynamic)) {
+    throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
+  }
+  if (group) {
+    for (const clause of [...group.clauses]) {
+      if (unify(head, freshCopy(clause.head, new Env()), env.clone())) {
+        solver.program.removeDynamicClause(group, clause);
+      }
+    }
+  }
+  yield env;
 }
 
 function predicateIndicatorParts(term, env) {
@@ -548,8 +684,23 @@ function* opBuiltin({ solver, goal, env }) {
   const priority = operatorPriority(goal.args[0], env);
   const specifier = operatorSpecifier(goal.args[1], env);
   for (const name of operatorNames(goal.args[2], env)) {
-    if (name.name === ',' || name.name === '|') {
+    if (name.name === ',') {
       throw new PrologError('permission_error(modify, operator)', name);
+    }
+    if (name.name === '[]' || name.name === '{}') {
+      throw new PrologError('permission_error(create, operator)', name);
+    }
+    if (name.name === '|' && priority !== 0 &&
+        (!(specifier === 'xfx' || specifier === 'xfy' || specifier === 'yfx') || priority < 1001)) {
+      throw new PrologError('permission_error(create, operator)', name);
+    }
+    const infix = specifier === 'xfx' || specifier === 'xfy' || specifier === 'yfx';
+    const postfix = specifier === 'xf' || specifier === 'yf';
+    if (priority !== 0 && [...solver.program.operators.values()].some((definition) =>
+      definition.name === name.name &&
+      ((infix && (definition.specifier === 'xf' || definition.specifier === 'yf')) ||
+       (postfix && (definition.specifier === 'xfx' || definition.specifier === 'xfy' || definition.specifier === 'yfx'))))) {
+      throw new PrologError('permission_error(create, operator)', name);
     }
     solver.program.defineOperator(priority, specifier, name.name);
   }
@@ -659,6 +810,7 @@ function optionAtom(option, name) {
 function openOptions(term, env) {
   const result = {};
   for (const option of optionList(term, env)) {
+    if (option.type === VAR) throw new PrologError('instantiation_error');
     let value;
     if ((value = optionAtom(option, 'type'))) {
       value = deref(value, env);
@@ -673,10 +825,12 @@ function openOptions(term, env) {
       result.alias = value.name;
     } else if ((value = optionAtom(option, 'reposition'))) {
       value = deref(value, env);
+      if (value.type === VAR) throw new PrologError('instantiation_error');
       if (value.type !== ATOM || !['true', 'false'].includes(value.name)) throw new PrologError('domain_error(stream_option)', option);
       result.reposition = value.name === 'true';
     } else if ((value = optionAtom(option, 'eof_action'))) {
       value = deref(value, env);
+      if (value.type === VAR) throw new PrologError('instantiation_error');
       if (value.type !== ATOM || !['error', 'eof_code', 'reset'].includes(value.name)) throw new PrologError('domain_error(stream_option)', option);
       result.eof_action = value.name;
     } else {
@@ -690,6 +844,8 @@ function* openBuiltin({ solver, goal, env }) {
   const path = requireAtom(goal.args[0], env);
   const mode = requireAtom(goal.args[1], env);
   if (!['read', 'write', 'append'].includes(mode.name)) throw new PrologError('domain_error(io_mode)', mode);
+  const streamTarget = deref(goal.args[2], env);
+  if (streamTarget.type !== VAR) throw new PrologError('uninstantiation_error', streamTarget);
   const options = goal.arity === 3 ? {} : openOptions(goal.args[3], env);
   if (options.alias && solver.io.resolve(options.alias)) throw new PrologError('permission_error(open, source_sink)', atom(options.alias));
   let stream;
@@ -706,8 +862,10 @@ function* openBuiltin({ solver, goal, env }) {
 function* closeBuiltin({ solver, goal, env }) {
   if (goal.arity === 2) {
     for (const option of optionList(goal.args[1], env)) {
+      if (option.type === VAR) throw new PrologError('instantiation_error');
       const force = optionAtom(option, 'force');
       const value = force && deref(force, env);
+      if (value?.type === VAR) throw new PrologError('instantiation_error');
       if (!value || value.type !== ATOM || !['true', 'false'].includes(value.name)) {
         throw new PrologError('domain_error(close_option)', option);
       }
@@ -958,6 +1116,7 @@ function* readTermBuiltin({ solver, goal, env }) {
   };
   visit(term);
   for (const option of options) {
+    if (option.type === VAR) throw new PrologError('instantiation_error');
     if (option.type !== COMPOUND || option.arity !== 1) throw new PrologError('domain_error(read_option)', option);
     let value;
     if (option.name === 'variables') {
@@ -1007,12 +1166,14 @@ function writeVariableNames(value, env, option) {
       throw new PrologError('domain_error(write_option)', option);
     }
     const name = deref(pair.args[0], env);
-    const target = pair.args[1];
+    const target = deref(pair.args[1], env);
     if (name.type === VAR) throw new PrologError('instantiation_error');
-    if (name.type !== ATOM || target.type !== VAR) {
+    if (name.type !== ATOM) {
       throw new PrologError('domain_error(write_option)', option);
     }
-    names.set(target.name, name.name);
+    // Corrigendum 3 permits any term on the right. Only variables can name a
+    // variable being written; retain the leftmost applicable entry.
+    if (target.type === VAR && !names.has(target.name)) names.set(target.name, name.name);
   }
   return names;
 }
@@ -1020,6 +1181,7 @@ function writeVariableNames(value, env, option) {
 function termWriteOptions(term, env, mode = 'write') {
   const result = defaultTermWriteOptions(mode);
   for (const option of optionList(term, env)) {
+    if (option.type === VAR) throw new PrologError('instantiation_error');
     if (option.type !== COMPOUND || option.arity !== 1) {
       throw new PrologError('domain_error(write_option)', option);
     }
@@ -1367,6 +1529,17 @@ function* callBuiltin({ solver, goal, env }) {
     solver.absorbStatsFrom(child);
   }
 }
+function* callClosureBuiltin({ solver, goal, env }) {
+  const closure = callable(goal.args[0], env);
+  const existing = closure.type === COMPOUND ? closure.args : [];
+  const invoked = compound(closure.name, [...existing, ...goal.args.slice(1)]);
+  const child = solver.cloneForInnerGoal();
+  try {
+    yield* child.solve([invoked], env, 0);
+  } finally {
+    solver.absorbStatsFrom(child);
+  }
+}
 function formalErrorTerm(error) {
   const parse = (text) => {
     const open = text.indexOf('(');
@@ -1388,16 +1561,20 @@ function formalErrorTerm(error) {
     return compound(name, args);
   };
   let formal = parse(error.formal);
-  if (error.culprit != null && formal.type === COMPOUND) {
-    formal = compound(formal.name, [...formal.args, error.culprit]);
+  if (error.culprit != null) {
+    if (formal.type === COMPOUND) formal = compound(formal.name, [...formal.args, error.culprit]);
+    else if (formal.type === ATOM && formal.name === 'uninstantiation_error') {
+      formal = compound(formal.name, [error.culprit]);
+    }
   }
   return compound('error', [formal, atom('eyeprolog')]);
 }
 function* catchBuiltin({ solver, goal, env }) {
-  const protectedGoal = callable(goal.args[0], env);
   const child = solver.cloneForInnerGoal();
   try {
-    yield* child.solve([protectedGoal], env.clone(), 0);
+    // Corrigendum 2 removed catch/3's own callability errors so that errors
+    // raised while converting/executing the protected goal are catchable.
+    yield* child.solve([callable(goal.args[0], env)], env.clone(), 0);
   } catch (error) {
     const ball = error instanceof ThrownTerm
       ? error.term
@@ -1489,7 +1666,7 @@ function evaluateOperation(term, args) {
   }
   if (arity === 1 && ['abs', 'sign', 'float', 'truncate', 'round', 'ceiling', 'floor',
     'float_integer_part', 'float_fractional_part',
-    'sin', 'cos', 'atan', 'exp', 'log', 'sqrt'].includes(name)) {
+    'sin', 'cos', 'atan', 'asin', 'acos', 'tan', 'exp', 'log', 'sqrt'].includes(name)) {
     const a = Number(args[0].value);
     if (name === 'abs' && args[0].integer) return { integer: true, value: args[0].value < 0n ? -args[0].value : args[0].value };
     if (name === 'sign' && args[0].integer) return { integer: true, value: args[0].value < 0n ? -1n : args[0].value > 0n ? 1n : 0n };
@@ -1504,40 +1681,73 @@ function evaluateOperation(term, args) {
     }
     const fn = name === 'float' ? (x) => x : name === 'abs' ? Math.abs : name === 'sign' ? Math.sign : Math[name];
     const value = fn(a);
-    if (!Number.isFinite(value)) throw new PrologError('evaluation_error(undefined)');
+    if (Number.isNaN(value) || (name === 'log' && a === 0)) throw new PrologError('evaluation_error(undefined)');
+    if (!Number.isFinite(value)) throw new PrologError('evaluation_error(float_overflow)');
+    if (value === 0 && a !== 0 && name === 'exp') throw new PrologError('evaluation_error(underflow)');
     return { integer: false, value };
   }
   if (arity !== 2) throw new PrologError('type_error(evaluable)', compound('/', [atom(name), numberTerm(arity)]));
   const bothInteger = args[0].integer && args[1].integer;
   const a = args[0].value, b = args[1].value;
-  if (['//', 'div', 'mod', 'rem', '/\\', '\\/', '<<', '>>'].includes(name) && !bothInteger) {
+  if (['//', 'div', 'mod', 'rem', '/\\', '\\/', 'xor', '<<', '>>'].includes(name) && !bothInteger) {
     const invalid = !args[0].integer ? args[0] : args[1];
     throw new PrologError('type_error(integer)', numericTerm(invalid));
   }
-  if (bothInteger && name === '^' && b >= 0n) return { integer: true, value: a ** b };
-  if (bothInteger && ['+', '-', '*', '//', 'div', 'mod', 'rem', '/\\', '\\/', '<<', '>>'].includes(name)) {
+  if (bothInteger && name === '^') {
+    if (b >= 0n) return { integer: true, value: a ** b };
+    if (a === 0n) throw new PrologError('evaluation_error(undefined)');
+    if (a === 1n) return { integer: true, value: 1n };
+    if (a === -1n) return { integer: true, value: (-b) % 2n === 0n ? 1n : -1n };
+    // Corrigendum 3: the defined real result needs a floating-point base.
+    throw new PrologError('type_error(float)', numericTerm(args[0]));
+  }
+  if (bothInteger && ['+', '-', '*', '//', 'div', 'mod', 'rem', '/\\', '\\/', 'xor', '<<', '>>'].includes(name)) {
     if ((name === '//' || name === 'div' || name === 'mod' || name === 'rem') && b === 0n) throw new PrologError('evaluation_error(zero_divisor)');
     if (name === '+') return { integer: true, value: a + b };
     if (name === '-') return { integer: true, value: a - b };
     if (name === '*') return { integer: true, value: a * b };
-    if (name === '//' || name === 'div') return { integer: true, value: a / b };
+    if (name === '//') return { integer: true, value: a / b };
+    if (name === 'div') {
+      const quotient = a / b;
+      const remainder = a % b;
+      return { integer: true, value: remainder !== 0n && ((a < 0n) !== (b < 0n)) ? quotient - 1n : quotient };
+    }
     if (name === 'rem') return { integer: true, value: a % b };
     if (name === 'mod') return { integer: true, value: ((a % b) + b) % b };
     if (name === '/\\') return { integer: true, value: a & b };
     if (name === '\\/') return { integer: true, value: a | b };
+    if (name === 'xor') return { integer: true, value: a ^ b };
     if (name === '<<') return { integer: true, value: a << b };
     if (name === '>>') return { integer: true, value: a >> b };
   }
   const x = Number(a), y = Number(b);
+  if ((!Number.isFinite(x) || !Number.isFinite(y)) && name !== 'max' && name !== 'min') {
+    throw new PrologError('evaluation_error(float_overflow)');
+  }
   if (name === '/' && y === 0) throw new PrologError('evaluation_error(zero_divisor)');
   let value;
-  if (name === '+') value = x + y;
+  if (name === 'max' || name === 'min') {
+    const chooseLeft = name === 'max' ? x >= y : x <= y;
+    return chooseLeft ? args[0] : args[1];
+  }
+  if (name === 'atan2') {
+    if (x === 0 && y === 0) throw new PrologError('evaluation_error(undefined)');
+    value = Math.atan2(x, y);
+  }
+  else if (name === '+') value = x + y;
   else if (name === '-') value = x - y;
   else if (name === '*') value = x * y;
   else if (name === '/') value = x / y;
   else if (name === '**' || name === '^') value = Math.pow(x, y);
   else throw new PrologError('type_error(evaluable)', compound('/', [atom(name), numberTerm(arity)]));
-  if (!Number.isFinite(value)) throw new PrologError('evaluation_error(undefined)');
+  if (Number.isNaN(value)) throw new PrologError('evaluation_error(undefined)');
+  if (!Number.isFinite(value)) throw new PrologError('evaluation_error(float_overflow)');
+  const underflow = value === 0 && (
+    (name === '*' && x !== 0 && y !== 0) ||
+    (name === '/' && x !== 0) ||
+    ((name === '**' || name === '^') && x !== 0)
+  );
+  if (underflow) throw new PrologError('evaluation_error(underflow)');
   return { integer: false, value };
 }
 export function arithmeticValueTerm(value) {

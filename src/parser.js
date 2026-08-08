@@ -177,6 +177,20 @@ class Parser {
       ? [nameTerm.name]
       : listAtomNames(nameTerm);
     if (names == null) throw new Error(`parse line ${line}: operator name must be an atom or list of atoms`);
+    for (const name of names) {
+      if (name === ',' || name === '[]' || name === '{}') {
+        throw new Error(`parse line ${line}: operator ${name} cannot be modified`);
+      }
+      if (name === '|' && priority !== 0 &&
+          (!(specifierTerm.name === 'xfx' || specifierTerm.name === 'xfy' || specifierTerm.name === 'yfx') || priority < 1001)) {
+        throw new Error(`parse line ${line}: invalid bar operator`);
+      }
+      const infix = ['xfx', 'xfy', 'yfx'].includes(specifierTerm.name);
+      const postfix = ['xf', 'yf'].includes(specifierTerm.name);
+      if (priority !== 0 && ((infix && this.postfixOperators.has(name)) || (postfix && this.infixOperators.has(name)))) {
+        throw new Error(`parse line ${line}: invalid operator class combination for ${name}`);
+      }
+    }
     for (const name of names) this.defineOperator(priority, specifierTerm.name, name);
     return true;
   }
@@ -187,6 +201,11 @@ class Parser {
         value.type === 'atom' && ['chars', 'codes', 'atom'].includes(value.name)) {
       this.parserFlagState.doubleQuotes = value.name;
     }
+  }
+  operatorTokenName(token = this.token) {
+    if (token.type === TOK.ATOM) return token.text;
+    if (token.type === TOK.STRING && this.parserFlagState.doubleQuotes === 'atom') return token.text;
+    return null;
   }
   peek(offset = 0) {
     return this.source[this.pos + offset] ?? '';
@@ -399,14 +418,14 @@ class Parser {
     const items = [];
     let tail = null;
     while (true) {
-      items.push(this.parseTerm());
+      items.push(this.parseTerm(0, false, false));
       if (this.token.type === TOK.COMMA) {
         this.advance();
         continue;
       }
       if (this.token.type === TOK.BAR) {
         this.advance();
-        tail = this.parseTerm();
+        tail = this.parseTerm(0, false, false);
         this.expect(TOK.RBRACKET, ']');
         this.advance();
         break;
@@ -431,22 +450,22 @@ class Parser {
     this.advance();
     return compound('{}', [term]);
   }
-  parseTerm(minPrecedence = 0, allowComma = false) {
-    let left = this.parsePrefixTerm(minPrecedence);
+  parseTerm(minPrecedence = 0, allowComma = false, allowBar = true) {
+    let left = this.parsePrefixTerm(minPrecedence, allowBar);
     let strictPostfixPrecedence = null;
     while (true) {
       const op = this.token.type === TOK.COMMA && allowComma
         ? ','
+        : this.token.type === TOK.BAR && allowBar ? '|'
         : this.token.type === TOK.IF ? ':-'
-        : this.token.type === TOK.ATOM && !this.token.quoted ? this.token.text : null;
+        : this.operatorTokenName();
       const info = op == null ? null : this.infixOperators.get(op);
       if (!info || info.precedence < minPrecedence) {
-        const postfix = this.token.type === TOK.ATOM && !this.token.quoted
-          ? this.postfixOperators.get(this.token.text)
-          : null;
+        const postfixName = this.operatorTokenName();
+        const postfix = postfixName == null ? null : this.postfixOperators.get(postfixName);
         if (!postfix || postfix.precedence < minPrecedence ||
             (strictPostfixPrecedence === postfix.precedence)) break;
-        const name = this.token.text;
+        const name = postfixName;
         this.advance();
         left = compound(name, [left]);
         strictPostfixPrecedence = postfix.strict ? postfix.precedence : null;
@@ -454,13 +473,14 @@ class Parser {
       }
       strictPostfixPrecedence = null;
       this.advance();
-      const right = this.parseTerm(info.associativity === 'right' ? info.precedence : info.precedence + 1, allowComma);
+      const right = this.parseTerm(info.associativity === 'right' ? info.precedence : info.precedence + 1, allowComma, allowBar);
       left = compound(op, [left, right]);
       if (info.associativity === 'none') {
         const nextOp = this.token.type === TOK.COMMA && allowComma
           ? ','
+          : this.token.type === TOK.BAR && allowBar ? '|'
           : this.token.type === TOK.IF ? ':-'
-          : this.token.type === TOK.ATOM && !this.token.quoted ? this.token.text : null;
+          : this.operatorTokenName();
         if (this.infixOperators.get(nextOp)?.precedence === info.precedence) {
           throw new Error(`parse line ${this.token.line}: non-associative operator ${op} requires parentheses`);
         }
@@ -468,10 +488,10 @@ class Parser {
     }
     return left;
   }
-  parsePrefixTerm(minPrecedence = 0) {
-    if (this.token.type === TOK.ATOM && !this.token.quoted &&
-        this.prefixOperators.get(this.token.text)?.precedence >= minPrecedence) {
-      const op = this.token.text;
+  parsePrefixTerm(minPrecedence = 0, allowBar = true) {
+    const operatorName = this.operatorTokenName();
+    if (operatorName != null && this.prefixOperators.get(operatorName)?.precedence >= minPrecedence) {
+      const op = operatorName;
       const info = this.prefixOperators.get(op);
       this.advance();
       // Graphic operators can also be ordinary atom data in a term, as in
@@ -486,7 +506,7 @@ class Parser {
         this.advance();
         const args = [];
         while (true) {
-          args.push(this.parseTerm(0, false));
+          args.push(this.parseTerm(0, false, false));
           if (this.token.type !== TOK.COMMA) break;
           this.advance();
         }
@@ -494,7 +514,7 @@ class Parser {
         this.advance();
         return compound(op, args);
       }
-      return compound(op, [this.parseTerm(info.precedence + (info.strict ? 1 : 0), false)]);
+      return compound(op, [this.parseTerm(info.precedence + (info.strict ? 1 : 0), false, allowBar)]);
     }
     if (this.token.type === TOK.LPAREN) return this.parseParenthesizedTerm();
     if (this.token.type === TOK.LBRACKET) return this.parseList();
@@ -516,7 +536,7 @@ class Parser {
             throw new Error(`parse line ${this.token.line}: zero-arity compound syntax is not supported; use atom ${JSON.stringify(value)} for arity zero data`);
           }
           while (true) {
-            args.push(this.parseTerm(0, false));
+            args.push(this.parseTerm(0, false, false));
             if (this.token.type !== TOK.COMMA) break;
             this.advance();
           }
@@ -549,7 +569,7 @@ class Parser {
           throw new Error(`parse line ${this.token.line}: zero-arity compound syntax is not supported; use atom ${JSON.stringify(name)} for arity zero data`);
         }
         while (true) {
-          args.push(this.parseTerm(0, false));
+          args.push(this.parseTerm(0, false, false));
           if (this.token.type === TOK.COMMA) {
             this.advance();
             continue;

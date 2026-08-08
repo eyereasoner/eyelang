@@ -7,6 +7,8 @@ supported ISO Prolog profile, built-ins, extensions, and reasoner behavior.
 
 The suite is intentionally file-based. Exact standard output, errors, warnings,
 and proof output test the behavior of the JavaScript implementation.
+[ISO-MATRIX.md](ISO-MATRIX.md) maps normative clause families and all three
+corrigenda to representative executable cases.
 
 “Conformance” here means conformance to EyeProlog's documented ISO compatibility
 profile and implementation extensions. The default registry covers the exact
@@ -90,7 +92,7 @@ Selected cases are adapted from the ISO and standard-core suites of Scryer
 Prolog, Trealla Prolog, and SWI-Prolog. Their upstream identifiers and licenses
 are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 
-The corpus has 280 cases in `iso/` and 686 file-based conformance cases in
+The corpus has 304 cases in `iso/` and 710 file-based conformance cases in
 total. The generated `conformance-report.md` is the authoritative source for
 current category totals. Together with regression, documentation-sync, API,
 RDF-tool, example, and book-example checks, `npm test` is the release gate.

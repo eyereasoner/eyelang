@@ -50,7 +50,7 @@ complex_asin([A, B], [C, D]) :-
   (E is Z10 / 2),
   (Z11 is Z5 + Z9),
   (F is Z11 / 2),
-  asin(E, C),
+  (C is asin(E)),
   (Z12 is F ** 2),
   (Z13 is Z12 - 1),
   (Z14 is Z13 ** 0.5),
@@ -71,7 +71,7 @@ complex_acos([A, B], [C, D]) :-
   (E is Z10 / 2),
   (Z11 is Z5 + Z9),
   (F is Z11 / 2),
-  acos(E, C),
+  (C is acos(E)),
   (Z12 is F ** 2),
   (Z13 is Z12 - 1),
   (Z14 is Z13 ** 0.5),
@@ -86,7 +86,7 @@ complex_polar([X, Y], [R, Tp]) :-
   (R is Z3 ** 0.5),
   (Z4 is abs(X)),
   (Z5 is Z4 / R),
-  acos(Z5, T),
+  (T is acos(Z5)),
   complex_dial(X, Y, T, Tp).
 
 complex_dial(X, Y, T, Tp) :-

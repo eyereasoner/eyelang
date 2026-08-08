@@ -8,12 +8,7 @@ export const eyePrologNativeLibraryIndicators = Object.freeze([]);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
   'uuid/3',
   'difference/3',
-  'apply/3',
   'maplist/3',
-  'tan/2',
-  'asin/2',
-  'acos/2',
-  'atan2/3',
   'lt/2',
   'gt/2',
   'le/2',
@@ -51,7 +46,6 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'min_list/2',
   'max_list/2',
   'list_to_set/2',
-  'sort_unique/2',
   'countall/2',
   'sumall/3',
   'aggregate_min/5',
@@ -70,7 +64,7 @@ const libraryFiles = [
 ];
 const libraryCacheKey = isNode
   ? null
-  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260807b');
+  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260808a');
 const librarySources = await Promise.all(libraryFiles.map(async (filename) => ({
   filename,
   source: await loadLibrarySource(libraryFileUrl(filename)),

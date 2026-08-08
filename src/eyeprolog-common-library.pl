@@ -7,7 +7,7 @@
 
 maplist(_, [], []).
 maplist(Closure, [A|As], [B|Bs]) :-
-    apply(Closure, A, B),
+    call(Closure, A, B),
     maplist(Closure, As, Bs).
 
 append([], Ys, Ys).

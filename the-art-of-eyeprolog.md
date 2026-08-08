@@ -905,7 +905,7 @@ reverse_go([X | Xs], Acc, Reversed) :-
 
 No mutation occurs; every call receives a new term. EyeProlog also includes
 `member/2`, `append/3`, `select/3`, `nth0/3`, `reverse/2`, `length/2`,
-`sort_unique/2`, slicing helpers, and numeric summaries. Improper lists such as
+ISO `sort/2`, slicing helpers, and numeric summaries. Improper lists such as
 `[a | Tail]` are valid terms, but operations requiring a proper finite list
 fail unless the tail is `[]`.
 
@@ -1106,8 +1106,8 @@ Choose a collector from the question, not from convenience:
 
 Counting solutions is not necessarily counting distinct domain objects: two
 proofs may resolve the visible value in the same way. When identity matters,
-collect the identifying template and deliberately canonicalize it with
-`sort_unique/2`; when derivation multiplicity matters, retain the duplicates. Making
+collect the identifying template and deliberately canonicalize it with ISO
+`sort/2`; when derivation multiplicity matters, retain the duplicates. Making
 that decision explicit prevents a database-style summary from silently
 changing the question.
 
@@ -4798,12 +4798,12 @@ Here `Region` deliberately remains free and produces one answer per region;
 `Seller` is hidden from grouping. This distinction matters whenever a
 collection unexpectedly arrives as several answers.
 
-Integer arithmetic has similarly precise choices. In EyeProlog's supported
-profile, `div` and `//` both truncate the quotient toward zero. With a positive
-divisor, `mod` returns a nonnegative modulo while `rem` keeps the dividend's
-sign. For `-7` and `3`, the quotient is `-2`, but the two remainders are `2`
-and `-1`. Bitwise conjunction, disjunction, complement, and shifts require
-integers.
+Integer arithmetic has similarly precise choices. `//` truncates the quotient
+toward zero, while Corrigendum 2's `div` takes the mathematical floor. With a
+positive divisor, `mod` returns a nonnegative modulo while `rem` keeps the
+dividend's sign. For `-7` and `3`, `//` is `-2`, `div` is `-3`, and the two
+remainders are `2` and `-1`. Bitwise conjunction, disjunction, exclusive-or,
+complement, and shifts require integers.
 
 Run the focused examples:
 
@@ -5195,17 +5195,17 @@ profile. Where a predicate is defined by ISO/IEC 13211-1:1995, EyeProlog uses it
 standard predicate indicator; the registry also includes a few later or common
 compatibility predicates identified below. Arithmetic is expressed through
 `is/2` rather than output arguments on arithmetic predicates. The registry
-contains 115 name/arity entries across 94 names.
+contains 127 name/arity entries across 99 names.
 
 | Family | Registered predicate indicators |
 | --- | --- |
-| Control and exceptions | `true/0`, `fail/0`, `false/0`, `!/0`, `call/1`, `\+/1`, `once/1`, `repeat/0`, `;/2`, `->/2`, `catch/3`, `throw/1`, `halt/0`, `halt/1` |
-| Unification and identity | `=/2`, `unify_with_occurs_check/2`, `\=/2`, `==/2`, `\==/2` |
-| Type tests | `var/1`, `nonvar/1`, `atom/1`, `integer/1`, `float/1`, `number/1`, `atomic/1`, `compound/1`, `callable/1`, `ground/1` |
-| Profile term order | `compare/3`, `@</2`, `@=</2`, `@>/2`, `@>=/2` |
+| Control and exceptions | `true/0`, `fail/0`, `false/0`, `!/0`, `call/1`, `call/2`, `call/3`, `call/4`, `call/5`, `call/6`, `call/7`, `call/8`, `\+/1`, `once/1`, `repeat/0`, `;/2`, `->/2`, `catch/3`, `throw/1`, `halt/0`, `halt/1` |
+| Unification and identity | `=/2`, `unify_with_occurs_check/2`, `\=/2`, `subsumes_term/2`, `==/2`, `\==/2` |
+| Type tests | `var/1`, `nonvar/1`, `atom/1`, `integer/1`, `float/1`, `number/1`, `atomic/1`, `compound/1`, `callable/1`, `ground/1`, `acyclic_term/1` |
+| Term order | `compare/3`, `@</2`, `@=</2`, `@>/2`, `@>=/2`, `sort/2`, `keysort/2` |
 | Term inspection | `functor/3`, `arg/3`, `=../2`, `copy_term/2`, `term_variables/2` |
 | Collection | `findall/3`, `bagof/3`, `setof/3` |
-| Database and information | `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, `abolish/1`, `current_predicate/1` |
+| Database and information | `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, `retractall/1`, `abolish/1`, `current_predicate/1` |
 | Operators, conversion, and flags | `op/3`, `current_op/3`, `char_conversion/2`, `current_char_conversion/2`, `current_prolog_flag/2`, `set_prolog_flag/2` |
 | Atomic terms | `atom_length/2`, `atom_concat/3`, `sub_atom/5`, `atom_chars/2`, `atom_codes/2`, `char_code/2`, `number_chars/2`, `number_codes/2` |
 | Stream control | `open/3`, `open/4`, `close/1`, `close/2`, `current_input/1`, `current_output/1`, `set_input/1`, `set_output/1`, `flush_output/0`, `flush_output/1`, `stream_property/2`, `set_stream_position/2`, `at_end_of_stream/0`, `at_end_of_stream/1` |
@@ -5242,6 +5242,7 @@ collision because other Prolog systems commonly reject it while loading.
 | `fail`, `false` | Always fail. `false/0` is provided as a compatibility alias and is also forbidden as a source-clause head. |
 | `!` | Commits to choices made since entry into the current predicate invocation. It does not erase alternatives belonging to an enclosing caller. |
 | `call(+Goal)` | Calls an atom or compound goal. An unbound argument raises *instantiation_error*; another non-callable term raises *type_error(callable)*. |
+| `call(+Closure,?Arg,...)` | `call/2` through `call/8` append their extra arguments to an atom or compound closure, as specified by Corrigendum 2. |
 | `\+(+Goal)` | Negation as finite failure. It succeeds once when `Goal` has no solution and never exports bindings made while testing `Goal`. Bind variables needed by the test first. |
 | `once(+Goal)` | Returns only the first solution of `Goal`, or fails when there is none. |
 | `repeat` | Produces an unbounded sequence of successes; normally paired with a test, cut, exception, or `halt/0`. |
@@ -5264,18 +5265,20 @@ remain observable.
 | `?Left = ?Right` | Unifies two terms and returns the resulting bindings. EyeProlog rejects direct and indirect cyclic bindings. |
 | `unify_with_occurs_check(?Left,?Right)` | Performs occurs-check-safe unification. Because ordinary EyeProlog unification is already cycle-safe, it has the same successful bindings as `=/2`. |
 | `?Left \= ?Right` | Succeeds only when the terms cannot unify at call time. It is a test, not a delayed disequality constraint. |
+| `subsumes_term(+General,+Specific)` | Tests one-sided syntactic unification without binding either argument. Variables in `Specific` remain unchanged. |
 | `?Left == ?Right`, `?Left \== ?Right` | Test term identity or non-identity without binding variables. Two distinct unbound variables are not identical. |
 | `var(?Term)`, `nonvar(?Term)` | Test whether the dereferenced term is or is not an unbound variable. |
 | `atom(?Term)`, `integer(?Term)`, `float(?Term)`, `number(?Term)` | Test the corresponding scalar category. Integer values retain arbitrary precision; finite noninteger numeric values are floats. |
-| `atomic(?Term)`, `compound(?Term)`, `callable(?Term)`, `ground(?Term)` | Test for an ISO atomic term, a compound, a callable atom/compound, or a term containing no unbound variables. A default double-quoted value is a list and is therefore compound unless it is empty. |
-| `compare(?Order,+Left,+Right)` | Unifies `Order` with `<`, `=`, or `>` according to profile term order. A supplied order must be one of those atoms. |
+| `atomic(?Term)`, `compound(?Term)`, `callable(?Term)`, `ground(?Term)`, `acyclic_term(?Term)` | Test for an ISO atomic term, a compound, a callable atom/compound, a term containing no unbound variables, or a finite acyclic term. A default double-quoted value is a list and is therefore compound unless it is empty. |
+| `compare(?Order,+Left,+Right)` | Unifies `Order` with `<`, `=`, or `>` according to standard term order. A supplied order must be one of those atoms. |
 | `Left @< Right`, `Left @=< Right`, `Left @> Right`, `Left @>= Right` | Compare terms without arithmetic evaluation or bindings. These calls are semidet. |
+| `sort(+List,?Sorted)` | Sorts by standard term order and removes identical duplicates. |
+| `keysort(+Pairs,?Sorted)` | Stably sorts `Key-Value` pairs by key without removing duplicates. |
 
-For ISO terms, the profile term order is variables, numbers, atoms, then compounds;
+For ISO terms, the standard term order is variables, numbers, atoms, then compounds;
 compound terms compare by arity, functor, and arguments. Within the numeric
 category, floats precede integers; floats compare by finite numeric value and
-integers compare exactly. This is intentionally documented as EyeProlog's
-profile order rather than claimed as the complete ISO term order. Host-created
+integers compare exactly. Host-created
 RDF lexical strings are an internal extension ranked between atoms and
 compounds; double-quoted Prolog source never creates that extension.
 
@@ -5314,6 +5317,7 @@ partial list.
 | `clause(+Head,?Body)` | Enumerates fresh copies of source clauses matching the callable `Head`; facts have body `true`. Access to built-ins raises *permission_error(access,private_procedure)*. |
 | `asserta(+Clause)`, `assertz(+Clause)` | Insert a copied fact or rule at the beginning or end of a predicate declared *dynamic/1*. Static and built-in procedures cannot be modified. |
 | `retract(+Clause)` | Removes matching dynamic clauses one at a time on backtracking. A call sees the logical update view captured when it began. A fact pattern matches facts only. |
+| `retractall(+Head)` | Removes every matching clause from a dynamic procedure, succeeds when none match, and keeps the empty dynamic procedure known. |
 | `abolish(+Name/+Arity)` | Removes a dynamic procedure and its clauses. The indicator must contain an atom and a nonnegative representable integer. |
 | `current_predicate(?Name/?Arity)` | Enumerates predicate groups present in the loaded program, including empty dynamic groups. It does not enumerate registry-only built-ins. |
 
@@ -5452,14 +5456,14 @@ convert their operands to finite JavaScript numbers.
 | Literals and constants | Integer and finite floating-point literals; `pi` and `e` produce floating-point constants. |
 | Unary arithmetic | Unary `+`, unary `-`, and integer bitwise complement `\`. |
 | Basic binary arithmetic | `+`, `-`, and `*` preserve integers when both operands are integers. `/` produces a float and rejects a zero divisor. |
-| Exponentiation | `Base ^ Exponent` remains an integer for nonnegative integer operands; otherwise `^` and `**` use floating-point exponentiation. |
-| Integer division | `//` and `div` require integers, reject zero divisors, and round toward zero as reported by `integer_rounding_function`. |
+| Exponentiation | `Base ^ Exponent` remains an integer for nonnegative integer operands. Corrigendum 3 requires a float base for most negative integer exponents; `**` is floating-point exponentiation. |
+| Integer division | `//` and `div` require integers and reject zero divisors. `//` rounds toward zero as reported by `integer_rounding_function`; `div` rounds down. |
 | Integer remainder | `rem` is the truncating remainder; `mod` normalizes the result with the divisor's sign. Both require integers and a nonzero divisor. |
-| Bit operations | Integer `\/\`, `\\/`, `<<`, and `>>`, plus unary `\`. |
+| Bit operations | Integer `/\`, `\/`, `xor`, `<<`, and `>>`, plus unary `\`. |
 | Numeric normalization | `abs`, `sign`, and `float`. Integer `abs` and `sign` preserve integer results; `float` produces a float. |
 | Rounding | `truncate`, `round`, `ceiling`, and `floor` produce integers. |
 | Float decomposition | `float_integer_part` and `float_fractional_part` require a float and return floats. |
-| Transcendental functions | `sin`, `cos`, `atan`, `exp`, `log`, and `sqrt` produce finite floats. |
+| Min/max and transcendental functions | `min`, `max`, `sin`, `cos`, `atan`, `asin`, `acos`, `atan2`, `tan`, `exp`, `log`, and `sqrt`; `pi` is the Corrigendum 2 constant. |
 
 Arithmetic comparisons evaluate both operands. Standard term-order predicates
 (`@<`, `@=<`, `@>`, `@>=`) compare terms without arithmetic evaluation.
@@ -5502,12 +5506,12 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **50 library predicate indicators** in addition to the 115
-indicators in its isolated ISO profile. **All 50 are ordinary Prolog clauses**
+EyeProlog exposes **44 library predicate indicators** in addition to the 127
+indicators in its isolated ISO profile. **All 44 are ordinary Prolog clauses**
 across `src/eyeprolog-library.pl` and `src/eyeprolog-common-library.pl`; none
 is a native host predicate. The resulting
-normal EyeProlog language surface is therefore **165 public predicate
-indicators**. Internally, the runtime registry contains only the 115 ISO
+normal EyeProlog language surface is therefore **171 public predicate
+indicators**. Internally, the runtime registry contains only the 127 ISO
 definitions; the EyeProlog relations are autoloaded source clauses.
 
 The two Prolog files are autoloaded once into every `Program` used with the
@@ -5525,11 +5529,11 @@ standard fallback relation.
 
 | Family | Registered predicate indicators |
 | --- | --- |
-| Meta-call and mapping | `apply/3`, `maplist/3` |
-| Arithmetic and generation | `tan/2`, `asin/2`, `acos/2`, `atan2/3`, `between/3`, `smallest_divisor_from/3`, `random/3` |
+| Meta-call and mapping | `maplist/3` |
+| Arithmetic and generation | `between/3`, `smallest_divisor_from/3`, `random/3` |
 | Comparison | `lt/2`, `le/2`, `gt/2`, `ge/2` |
 | Identifiers and dates | `uuid/3`, `difference/3` |
-| Lists | `append/3`, `member/2`, `select/3`, `last/2`, `nth0/3`, `nth1/3`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4`, `reverse/2`, `length/2`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `sort_unique/2` |
+| Lists | `append/3`, `member/2`, `select/3`, `last/2`, `nth0/3`, `nth1/3`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4`, `reverse/2`, `length/2`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2` |
 | Text and pattern matching | `string_concat/3`, `contains/2`, `matches/2`, `matches/3`, `split/3`, `join/3`, `substring/4`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2` |
 | Aggregation | `countall/2`, `sumall/3`, `aggregate_min/5`, `aggregate_max/5` |
 
@@ -5573,7 +5577,6 @@ the corresponding predicate.
 
 | Predicates and principal modes | Behavior |
 | --- | --- |
-| `tan/2`, `asin/2`, `acos/2`, `atan2/3` | Floating-point functions not supplied as evaluable functions by ISO/IEC 13211-1. |
 | `lt(+A,+B)`, `le(+A,+B)`, `gt(+A,+B)`, `ge(+A,+B)` | Compare integers exactly, finite numeric text numerically, `PnYnMnD` duration text component-wise, and other lexical values by string order. These differ from ISO arithmetic comparison and standard term order. |
 | `random(+Seed0,-Value,-Seed)` | Portable Park-Miller generator with explicit state. `Value` is in `[0,1)`; pass the returned integer `Seed` to the next call. The same initial integer seed always reproduces the same sequence. |
 | `difference(+End,+Start,-Duration)` | Portable Prolog. Computes a nonnegative calendar difference between ISO date atoms/character lists and returns atom `'PnYnMnD'`. Invalid dates or an end before the start fail. |
@@ -5615,8 +5618,7 @@ zero-based, nonnegative safe integers.
 | `\+ member(+Item,+List)` | Succeeds only when `Item` does not unify with any member. Use it after binding the item and list. |
 | `nth0(?Index,+List,?Item)` | Checks a bound zero-based index or enumerates indexes and their items. |
 | `nth1(?Index,+List,?Item)` | Checks a bound one-based index or enumerates one-based indexes and items. |
-| `apply(+Closure,+A,+B)` | Extends a closure with two arguments using ISO `=../2`, then invokes it through ISO `call/1`. |
-| `maplist(+Closure,+List1,?List2)` | Applies a two-argument closure pairwise through `apply/3`; partially applied compound closures are supported. |
+| `maplist(+Closure,+List1,?List2)` | Applies a two-argument closure pairwise through ISO `call/3`; partially applied compound closures are supported. |
 | `[Head|Tail] = List` | Decomposes a nonempty list directly with ISO unification; no library wrapper is needed. |
 | `set_nth0(+Index,+List,+Item,-NewList)` | Replaces one existing position without mutating the input list. |
 | `last(+List,?Last)` | Returns the final element of a nonempty proper list. |
@@ -5627,7 +5629,6 @@ zero-based, nonnegative safe integers.
 | `sum_list(+List,-Sum)` | Sums numeric elements with ISO `is/2`. The empty sum is `0`; invalid arithmetic raises the corresponding ISO error. |
 | `min_list(+List,-Min)`, `max_list(+List,-Max)` | Select by EyeProlog term order, not numeric coercion. Empty lists fail. |
 | `list_to_set(+List,-Set)` | Removes later structural duplicates while preserving first-occurrence order. |
-| `sort_unique(+List,-Set)` | Sorts by standard term order and removes structural duplicates without colliding with engines that protect `sort/2`. |
 
 ```eyeprolog
 answer(split, pair(Prefix, Suffix)) :-
@@ -5983,7 +5984,7 @@ mode at a time.
 
 | Program | Standard facility | Checked answer |
 | --- | --- | --- |
-| [Combinatorics Findall Sort](https://github.com/eyereasoner/eyeprolog/blob/main/examples/combinatorics-findall-sort.pl) | Eyelet-inspired combinations example using findall/3 and `sort_unique/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/combinatorics-findall-sort.pl) |
+| [Combinatorics Findall Sort](https://github.com/eyereasoner/eyeprolog/blob/main/examples/combinatorics-findall-sort.pl) | Eyelet-inspired combinations example using `findall/3` and ISO `sort/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/combinatorics-findall-sort.pl) |
 | [Floating Point](https://github.com/eyereasoner/eyeprolog/blob/main/examples/floating-point.pl) | Floating-point arithmetic and comparisons. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/floating-point.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/floating-point.pl) |
 | [Atomic conversion](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-atomic-conversion.pl) | Atom splitting, character atoms, Unicode codes, and numeric parsing. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-atomic-conversion.pl) |
 | [Control and errors](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-control-and-errors.pl) | `call/1`, `once/1`, cut, if-then-else, `throw/1`, and `catch/3`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-control-and-errors.pl) |
@@ -6061,7 +6062,7 @@ finite search space, and which constraint removes which branches?
 
 | Program | Search design | Checked answer |
 | --- | --- | --- |
-| [Dijkstra Findall Sort](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dijkstra-findall-sort.pl) | Eyelet-inspired Dijkstra example using findall/3 and `sort_unique/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dijkstra-findall-sort.pl) |
+| [Dijkstra Findall Sort](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dijkstra-findall-sort.pl) | Eyelet-inspired Dijkstra example using `findall/3` and ISO `sort/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dijkstra-findall-sort.pl) |
 | [Dijkstra](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dijkstra.pl) | Weighted path enumeration adapted from Eyeling dijkstra.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dijkstra.pl) |
 | [DONALD + GERALD = ROBERT](https://github.com/eyereasoner/eyeprolog/blob/main/examples/donald-gerald-robert.pl) | All ten decimal digits are assigned to ten distinct letters. Right-to-left carry propagation cuts a naive 10! search space to one solution. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/donald-gerald-robert.pl) |
 | [Enigma1225](https://github.com/eyereasoner/eyeprolog/blob/main/examples/enigma1225.pl) | New Scientist Enigma 1225, retaining the best board in one pass with `aggregate_max/5`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/enigma1225.pl) |
@@ -6385,7 +6386,7 @@ node test/run-conformance-report.mjs
 ```
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 686 cases, including 280 focused ISO
+contains 710 cases, including 304 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8. Separate exact-output suites check 204 normal
 examples, 71 proof examples, and extracted book displays. The seven-case
@@ -6424,8 +6425,9 @@ environment—are listed in Chapter 39. The profile includes control and
 exceptions, term operations, arithmetic, grouped solutions, dynamic clauses,
 operators, atomic-term processing, flags, character conversion, streams,
 character/byte and term I/O, initialization, source inclusion, and
-termination. `compare/3`, `callable/1`, `ground/1`, and `term_variables/2` are
-additional compatibility conveniences.
+termination. Corrigendum 2 additions—including `subsumes_term/2`,
+`acyclic_term/1`, `sort/2`, `keysort/2`, `term_variables/2`, `retractall/1`,
+and `call/2-8`—are part of that baseline rather than extensions.
 
 This breadth is not a formal certification of every processor requirement.
 The executable examples are EyeProlog-profile programs using host-supplied goals,
@@ -6439,8 +6441,7 @@ The remaining qualifications are:
 - double-quoted text follows `double_quotes` exactly; the default `chars` value
   matches Trealla and Scryer and may be changed to `codes` or `atom`;
 - `write_term/2-3` implements `quoted/1`, `ignore_ops/1`, `numbervars/1`,
-  and `variable_names/1`; other write options and some option/error precedence
-  combinations remain outside the profile;
+  and `variable_names/1`, including Corrigendum 3 option validation and traversal rules;
 - unification consistently performs an occurs check, rejecting rational-tree
   bindings accepted as extensions by some systems.
 

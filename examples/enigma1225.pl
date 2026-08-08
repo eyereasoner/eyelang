@@ -89,7 +89,7 @@ eval_matrix(Matrix, FreqSorted) :-
     setof(E, member(E, Entries), Set),
     maplist(count_var(Entries), Set, Multiplicities),
     zip(Multiplicities, Set, Frequencies),
-    sort_unique(Frequencies, FreqSorted),
+    sort(Frequencies, FreqSorted),
     maplist(snd, FreqSorted, VarsSorted),
     length(VarsSorted, NVars),
     from_to(1, NVars, VarsSorted).

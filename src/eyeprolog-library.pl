@@ -35,7 +35,7 @@ eyeprolog__atomic_chars(Value, Chars) :-
     eyeprolog__char_list(Value),
     Value = Chars.
 
-% ---------- core/meta ----------
+% ---------- core helpers ----------
 
 eyeprolog__append([], Ys, Ys).
 eyeprolog__append([X|Xs], Ys, [X|Zs]) :- eyeprolog__append(Xs, Ys, Zs).
@@ -43,28 +43,7 @@ eyeprolog__append([X|Xs], Ys, [X|Zs]) :- eyeprolog__append(Xs, Ys, Zs).
 eyeprolog__member(X, [X|_]).
 eyeprolog__member(X, [_|Xs]) :- eyeprolog__member(X, Xs).
 
-apply(Closure, A, B) :-
-    Closure =.. Parts,
-    eyeprolog__append(Parts, [A, B], CallParts),
-    Goal =.. CallParts,
-    call(Goal).
-
 % ---------- arithmetic helpers ----------
-
-tan(X, Y) :- Y is sin(X) / cos(X).
-
-asin(1, Y) :- Y is pi / 2.
-asin(-1, Y) :- Y is -pi / 2.
-asin(X, Y) :- X > -1, X < 1, Y is atan(X / sqrt(1 - X * X)).
-
-acos(X, Y) :- asin(X, A), Y is pi / 2 - A.
-
-atan2(Y, X, A) :- X > 0, A is atan(Y / X).
-atan2(Y, X, A) :- X < 0, Y >= 0, A is atan(Y / X) + pi.
-atan2(Y, X, A) :- X < 0, Y < 0, A is atan(Y / X) - pi.
-atan2(Y, 0, A) :- Y > 0, A is pi / 2.
-atan2(Y, 0, A) :- Y < 0, A is -pi / 2.
-atan2(0, 0, 0).
 
 eyeprolog__atom_number(Text, Number) :-
     eyeprolog__text_chars(Text, Chars),
@@ -724,17 +703,6 @@ eyeprolog__list_to_set([X|Xs], Seen, [X|Set]) :-
 eyeprolog__identical_member(X, [Y|_]) :- X == Y.
 eyeprolog__identical_member(X, [_|Ys]) :- eyeprolog__identical_member(X, Ys).
 
-sort_unique(List, Sorted) :- eyeprolog__sort(List, [], Sorted).
-eyeprolog__sort([], Sorted, Sorted).
-eyeprolog__sort([X|Xs], Acc, Sorted) :-
-    eyeprolog__insert_sorted(X, Acc, Next),
-    eyeprolog__sort(Xs, Next, Sorted).
-
-eyeprolog__insert_sorted(X, [], [X]).
-eyeprolog__insert_sorted(X, [Y|Ys], [Y|Ys]) :- X == Y.
-eyeprolog__insert_sorted(X, [Y|Ys], [X,Y|Ys]) :- X @< Y.
-eyeprolog__insert_sorted(X, [Y|Ys], [Y|Zs]) :- X @> Y, eyeprolog__insert_sorted(X, Ys, Zs).
-
 % ---------- aggregation ----------
 
 sumall(Expression, Goal, Sum) :-
@@ -742,29 +710,14 @@ sumall(Expression, Goal, Sum) :-
     eyeprolog__sum_list(Values, 0, Sum).
 
 aggregate_min(Key, Value, Goal, BestKey, BestValue) :-
-    findall(pair(Key, Value), Goal, Pairs),
-    eyeprolog__aggregate_min(Pairs, BestKey, BestValue).
-
-eyeprolog__aggregate_min([pair(K,V)|Pairs], BestKey, BestValue) :-
-    eyeprolog__aggregate_min_rest(Pairs, K, V, BestKey, BestValue).
-eyeprolog__aggregate_min_rest([], K, V, K, V).
-eyeprolog__aggregate_min_rest([pair(K,V)|Pairs], CK, _, BK, BV) :-
-    K @< CK,
-    eyeprolog__aggregate_min_rest(Pairs, K, V, BK, BV).
-eyeprolog__aggregate_min_rest([pair(K,_)|Pairs], CK, CV, BK, BV) :-
-    K @>= CK,
-    eyeprolog__aggregate_min_rest(Pairs, CK, CV, BK, BV).
+    findall(Key-Value, Goal, Pairs),
+    keysort(Pairs, [BestKey-BestValue|_]).
 
 aggregate_max(Key, Value, Goal, BestKey, BestValue) :-
-    findall(pair(Key, Value), Goal, Pairs),
-    eyeprolog__aggregate_max(Pairs, BestKey, BestValue).
+    findall(Key-Value, Goal, Pairs),
+    eyeprolog__reverse(Pairs, [], ReversePairs),
+    keysort(ReversePairs, Sorted),
+    eyeprolog__last_pair(Sorted, BestKey-BestValue).
 
-eyeprolog__aggregate_max([pair(K,V)|Pairs], BestKey, BestValue) :-
-    eyeprolog__aggregate_max_rest(Pairs, K, V, BestKey, BestValue).
-eyeprolog__aggregate_max_rest([], K, V, K, V).
-eyeprolog__aggregate_max_rest([pair(K,V)|Pairs], CK, _, BK, BV) :-
-    K @> CK,
-    eyeprolog__aggregate_max_rest(Pairs, K, V, BK, BV).
-eyeprolog__aggregate_max_rest([pair(K,_)|Pairs], CK, CV, BK, BV) :-
-    K @=< CK,
-    eyeprolog__aggregate_max_rest(Pairs, CK, CV, BK, BV).
+eyeprolog__last_pair([Pair], Pair).
+eyeprolog__last_pair([_|Pairs], Pair) :- eyeprolog__last_pair(Pairs, Pair).
