@@ -580,14 +580,14 @@ function documentationSyncCases() {
       run: () => assertArrayEqual(bookEyePrologLibraryNames(), registeredEyePrologLibraryNames(), 'EyeProlog library predicates'),
     },
     {
-      name: 'README links to the book and the book documents runtime boundaries',
+      name: 'README cover links to the book and the book documents runtime boundaries',
       run: () => {
         const readme = fs.readFileSync(path.join(packageRoot, 'README.md'), 'utf8');
         const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
         assertIncludes(
           readme,
-          '[Book — *The Art of EyeProlog*](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog)',
-          'README links to the book',
+          '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
+          'README cover links to the book',
         );
         for (const filename of ['src/iso.js', 'src/eyeprolog-autoload.js', 'src/playground-worker.js']) {
           assertEqual(fs.existsSync(path.join(packageRoot, filename)), true, `${filename} exists`);

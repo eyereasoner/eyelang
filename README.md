@@ -7,13 +7,13 @@ EyeProlog turns portable ISO Prolog programs into answers and inspectable proofs
 
 <p align="center">
   <a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">
-    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog" width="180">
+    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog" width="240">
   </a>
 </p>
 
-**[Book — *The Art of EyeProlog*](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog)** ·
-**[Why EyeProlog?](https://eyereasoner.github.io/eyeprolog/why-eyeprolog)** ·
-**[Playground](https://eyereasoner.github.io/eyeprolog/playground)**
+**[Why EyeProlog?](https://eyereasoner.github.io/eyeprolog/why-eyeprolog)** — Discover its purpose and design.
+
+**[Playground](https://eyereasoner.github.io/eyeprolog/playground)** — Run EyeProlog in your browser.
 
 The book is the reference for the language, command line, JavaScript API,
 examples, proofs, conformance, and implementation.
