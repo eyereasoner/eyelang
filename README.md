@@ -5,6 +5,12 @@
 
 EyeProlog turns portable ISO Prolog programs into answers and inspectable proofs.
 
+<p align="center">
+  <a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">
+    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog" width="180">
+  </a>
+</p>
+
 **[Book — *The Art of EyeProlog*](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog)** ·
 **[Why EyeProlog?](https://eyereasoner.github.io/eyeprolog/why-eyeprolog)** ·
 **[Playground](https://eyereasoner.github.io/eyeprolog/playground)**
