@@ -11,6 +11,7 @@ import {
 import { PrologError } from './iso.js';
 import { currentWorkingDirectory, fs, path } from './platform.js';
 import { standardLibrarySources } from './standard-library.js';
+import { expandDcgRuleClause } from './dcg.js';
 
 const DEFER_PROGRAM_BUILD = Symbol('deferProgramBuild');
 const FAST_PARSE_ABORT = Symbol('fastParseAbort');
@@ -663,6 +664,8 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     batch.length = 0;
   };
   const accept = (clause) => {
+    const grammarClause = expandDcgRuleClause(clause, context.module);
+    if (grammarClause) clause = grammarClause;
     const moduleDeclaration = moduleDirective(clause);
     if (moduleDeclaration) {
       flush();
@@ -690,9 +693,9 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     }
     const include = includeDirective(clause);
     if (!include) {
-      clause.module = context.module;
+      clause.module ??= context.module;
       if (!isDirectiveClause(clause)) {
-        for (const goal of clause.body) annotateGoalModule(goal, context.module);
+        for (const goal of clause.body) annotateGoalModule(goal, clause.module);
       }
       batch.push(clause);
       if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
@@ -759,9 +762,14 @@ function moduleExportIndicators(term) {
   if (items == null) return null;
   const indicators = [];
   for (const item of items) {
-    if (item.type !== COMPOUND || item.name !== '/' || item.arity !== 2) return null;
+    if (item.type !== COMPOUND || !['/', '//'].includes(item.name) || item.arity !== 2) return null;
     const indicator = predicateIndicator(item.args[0], item.args[1]);
     if (!indicator) return null;
+    if (item.name === '//') {
+      indicator.arity += 2;
+      indicator.key = `${indicator.name}/${indicator.arity}`;
+      indicator.nonterminalArity = indicator.arity - 2;
+    }
     indicators.push(indicator);
   }
   return indicators;
@@ -844,10 +852,19 @@ function dynamicDirectiveIndicators(clause) {
   if (directive.type !== COMPOUND || directive.name !== 'dynamic' || directive.arity !== 1) return [];
   const terms = properListItems(directive.args[0], new Env()) ?? flattenDirectiveSequence(directive.args[0]);
   return terms.map((indicator) =>
-    indicator.type === COMPOUND && indicator.name === '/' && indicator.arity === 2
-      ? predicateIndicator(indicator.args[0], indicator.args[1])
+    indicator.type === COMPOUND && ['/', '//'].includes(indicator.name) && indicator.arity === 2
+      ? nonterminalOrPredicateIndicator(indicator)
       : null
   ).filter(Boolean);
+}
+
+function nonterminalOrPredicateIndicator(term) {
+  const indicator = predicateIndicator(term.args[0], term.args[1]);
+  if (!indicator || term.name !== '//') return indicator;
+  indicator.arity += 2;
+  indicator.key = `${indicator.name}/${indicator.arity}`;
+  indicator.nonterminalArity = indicator.arity - 2;
+  return indicator;
 }
 
 function flattenDirectiveSequence(term) {

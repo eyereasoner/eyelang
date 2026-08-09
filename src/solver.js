@@ -61,6 +61,7 @@ export class Solver {
     this.io = options.io ?? new StreamManager(options.ioOptions);
     this.solveStacks = [];
     this.active = [];
+    this.cutEpoch = 0;
     this.memo = new Map();
     this.tableCoordinator = null;
     this.groundChainSuccess = new Set();
@@ -215,10 +216,12 @@ export class Solver {
         // be run early as pure filters. Stop at internal sentinels so rule-body
         // active guards are released before the caller's remaining goals are seen.
         const selectedIndex = selectReadyDeterministicBuiltin(goals, env, this.registry);
-        const goal = goals[selectedIndex];
+        const goal = deref(goals[selectedIndex], env);
         const rest = selectedIndex === 0 ? goals.slice(1) : [...goals.slice(0, selectedIndex), ...goals.slice(selectedIndex + 1)];
         if (goal.type === 'atom' && goal.name === '!' && goal.arity === 0) {
           const marker = active[active.length - 1] ?? null;
+          this.cutEpoch++;
+          if (marker) marker.cutEpoch = (marker.cutEpoch ?? 0) + 1;
           for (const solveStack of this.solveStacks) {
             for (let i = solveStack.length - 1; i >= 0; i--) {
               if (marker == null || solveStack[i].active?.includes(marker)) solveStack.splice(i, 1);
@@ -247,7 +250,9 @@ export class Solver {
           continue;
         }
 
+        if (goal.type === 'var') throw new PrologError('instantiation_error');
         const callable = goal.type === COMPOUND || goal.type === 'atom';
+        if (!callable) throw new PrologError('type_error(callable)', goal);
         const def = callable ? this.registry.get(goal.name, goal.arity) : null;
         this.active = active;
         if (def && builtinIsReadyOrAuthoritative(def, this, goal, env)) {
@@ -274,7 +279,6 @@ export class Solver {
         }
 
         this.stats.solve_one_goal_calls++;
-        if (!callable) break;
         const group = this.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
         if (!group) {
           if (this.prologFlags.get('unknown')?.value?.name === 'error') {

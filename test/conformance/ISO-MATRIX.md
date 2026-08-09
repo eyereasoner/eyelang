@@ -1,4 +1,4 @@
-# ISO/IEC 13211-1 conformance matrix
+# ISO Prolog conformance matrix
 
 The normative baseline for the `iso/` corpus is ISO/IEC 13211-1:1995 plus
 Technical Corrigenda 1:2007, 2:2012, and 3:2017. This matrix links the standard
@@ -18,6 +18,8 @@ case totals.
 | 8.16 atomic processing | atoms, characters, codes and number conversion with prescribed errors | `atomic_term_processing`, focused forward/reverse cases, Logtalk-derived error cases |
 | 8.17 flags and hooks | required flags, mutation permissions, halt and character conversion | `exceptions_and_flags`, `remaining_builtins_and_directives`, flag error cases |
 | Clause 9 evaluable functors | integer, float, rounding, transcendental and bitwise operations | `arithmetic`, `corrigenda_arithmetic`, `corrigenda_atan2_zero`, `corrigenda_integer_negative_power` |
+| ISO/IEC 13211-2 modules | module declarations, exports, imports, qualification, meta-predicate context | `modules/qualified_call`, `modules/selective_library_import`, `dcg_module_nonterminal_indicator` |
+| ISO/IEC TS 13211-3 grammar rules | `-->`, terminal sequences, grammar control constructs, semicontexts, nonterminal indicators, `phrase/2-3` | `dcg_terminals_and_remainder`, `dcg_control_constructs`, `dcg_call_phrase_semicontext`, DCG error cases |
 
 Corrigendum-specific coverage includes double-quoted atom operator priority
 (Cor.1); the added predicates and evaluable functors, bar-operator rules,

@@ -127,7 +127,7 @@ npm run generate
 - [01-tree.pl](chapter-22/01-tree.pl)
 - [02-tree_member.pl](chapter-22/02-tree_member.pl)
 - [03-mirror.pl](chapter-22/03-mirror.pl) — Transforming a tree
-- [04-sentence.pl](chapter-22/04-sentence.pl) — A grammar without special syntax
+- [04-sentence.pl](chapter-22/04-sentence.pl) — A standard definite clause grammar
 - [05-evaluate.pl](chapter-22/05-evaluate.pl) — Interpreting an expression
 - [06-lookup.pl](chapter-22/06-lookup.pl)
 - [07-simplify.pl](chapter-22/07-simplify.pl) — Rewriting symbolic expressions
@@ -233,6 +233,7 @@ npm run generate
 ## Chapter 38: Language and ISO profile
 
 - [01-city.pl](chapter-38/01-city.pl)
+- [02-look_ahead.pl](chapter-38/02-look_ahead.pl) — ISO Part 3 definite clause grammars
 
 ## Chapter 39: Built-in predicates by programming role
 

@@ -7,6 +7,7 @@ import {
 } from './term.js';
 import { createParserOperatorState, parseClauses } from './parser.js';
 import { formatTermForWrite } from './write.js';
+import { emptyTerminalSequence, expandDcgBody, isListOrPartialList } from './dcg.js';
 
 let isoFresh = 0;
 
@@ -150,6 +151,8 @@ export const isoBuiltins = {
     registry.add('repeat', 0, repeatBuiltin);
     registry.add(';', 2, disjunctionBuiltin);
     registry.add('->', 2, ifThenBuiltin);
+    registry.add('phrase', 2, phraseBuiltin);
+    registry.add('phrase', 3, phraseBuiltin);
 
     registry.add('is', 2, isBuiltin, { deterministic: true });
     registry.add('=:=', 2, arithmeticComparison((n) => n === 0), { deterministic: true });
@@ -1545,6 +1548,38 @@ function* callClosureBuiltin({ solver, goal, env }) {
     solver.absorbStatsFrom(child);
   }
 }
+
+function* phraseBuiltin({ solver, goal, env }) {
+  const grammarBody = deref(goal.args[0], env);
+  if (grammarBody.type === VAR) throw new PrologError('instantiation_error');
+  if (grammarBody.type !== ATOM && grammarBody.type !== COMPOUND) {
+    throw new PrologError('type_error(callable)', grammarBody);
+  }
+
+  const input = goal.args[1];
+  const requestedOutput = goal.arity === 2 ? emptyTerminalSequence() : goal.args[2];
+  if (!isListOrPartialList(input, env)) {
+    throw new PrologError('type_error(terminal_sequence)', deref(input, env));
+  }
+  if (!isListOrPartialList(requestedOutput, env)) {
+    throw new PrologError('type_error(terminal_sequence)', deref(requestedOutput, env));
+  }
+
+  // Delay the final output unification to keep phrase/3 steadfast in its
+  // third argument, as required by the Part 3 execution model.
+  const finalOutput = variable(`\u0000phrase:${++isoFresh}`);
+  const expanded = expandDcgBody(grammarBody, input, finalOutput, {
+    env,
+    module: goal.module ?? grammarBody.module ?? 'user',
+  });
+  const finish = compound('=', [finalOutput, requestedOutput]);
+  const child = solver.cloneForInnerGoal();
+  try {
+    yield* child.solve([expanded, finish], env, 0);
+  } finally {
+    solver.absorbStatsFrom(child);
+  }
+}
 function formalErrorTerm(error) {
   const parse = (text) => {
     const open = text.indexOf('(');
@@ -1625,7 +1660,14 @@ function* disjunctionBuiltin({ solver, goal, env }) {
     yield* solver.solve([callable(goal.args[1], env)], env.clone(), 0);
     return;
   }
+  const marker = solver.active[solver.active.length - 1] ?? null;
+  const markerCutEpoch = marker?.cutEpoch ?? 0;
+  const solverCutEpoch = solver.cutEpoch;
   yield* solver.solve([callable(goal.args[0], env)], env.clone(), 0);
+  const cutThisScope = marker == null
+    ? solver.cutEpoch !== solverCutEpoch
+    : (marker.cutEpoch ?? 0) !== markerCutEpoch;
+  if (cutThisScope) return;
   yield* solver.solve([callable(goal.args[1], env)], env.clone(), 0);
 }
 function* ifThenBuiltin({ solver, goal, env }) {

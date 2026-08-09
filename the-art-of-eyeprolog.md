@@ -1758,7 +1758,8 @@ truncate search; it does not prove that no further answer exists.
 ### Implementation boundary
 
 The source layout mirrors the language boundary. `src/iso.js` contains the
-isolated ISO processor predicates and registry. `src/lib/eyeprolog.pl` contains
+isolated ISO processor predicates and registry. `src/dcg.js` implements the
+shared ISO Part 3 grammar-rule and dynamic-body expansion. `src/lib/eyeprolog.pl` contains
 collision-free portable extensions, while `src/lib/lists.pl` supplies common
 list relations. Both are ordinary ISO/IEC 13211-2 modules, organized like
 Scryer's `src/lib` and registered for `library(Name)` by
@@ -2594,40 +2595,37 @@ and exchanges left and right at every level. It also suggests a structural
 induction. The empty tree is its own mirror; if both recursive calls are
 correct, the constructed parent is correct.
 
-### A grammar without special syntax
+### A standard definite clause grammar
 
-A recognizer can relate an input list to its unconsumed suffix. The pair of
-arguments makes sequencing explicit:
+ISO/IEC TS 13211-3 definite clause grammar rules describe a sequence while the
+processor supplies the pair of difference-list arguments used for execution:
 
 ```eyeprolog
-sentence(Input, Rest) :-
-  noun_phrase(Input, AfterNoun),
-  verb_phrase(AfterNoun, Rest).
+sentence --> noun_phrase, verb_phrase.
 
-noun_phrase([the | Input], Rest) :- noun(Input, Rest).
-noun_phrase([a | Input], Rest) :- noun(Input, Rest).
+noun_phrase --> [the], noun.
+noun_phrase --> [a], noun.
 
-noun([robot | Rest], Rest).
-noun([scientist | Rest], Rest).
+noun --> [robot].
+noun --> [scientist].
 
-verb_phrase(Input, Rest) :-
-  verb(Input, AfterVerb),
-  noun_phrase(AfterVerb, Rest).
+verb_phrase --> verb, noun_phrase.
 
-verb([helps | Rest], Rest).
-verb([observes | Rest], Rest).
+verb --> [helps].
+verb --> [observes].
 
-complete_sentence(Words) :- sentence(Words, []).
+complete_sentence(Words) :- phrase(sentence, Words).
 ```
 
 ```sh
 eyeprolog --goal 'complete_sentence([the, robot, helps, a, scientist])' program.pl
 ```
 
-The first argument is the list before a phrase and the second is the suffix
-after it. Composition is variable sharing: the suffix returned by
-`noun_phrase/2` becomes the input of `verb_phrase/2`. This is the central idea
-behind difference-list grammars, expressed without dedicated notation.
+The expansion of `sentence//0` is an ordinary `sentence/2` relation: its first
+extra argument is the sequence before parsing and its second is the suffix.
+Composition shares the suffix from `noun_phrase//0` with the input to
+`verb_phrase//0`. `phrase/2` requires complete consumption; `phrase/3` exposes
+the remaining sequence.
 
 The same relation can be a bounded generator when vocabulary and output length
 are constrained by surrounding relations. An unconstrained
@@ -5178,7 +5176,8 @@ The long catalogs are meant to be entered locally, not memorized linearly.
 
 The standards baseline is ISO/IEC 13211-1:1995, as corrected by Technical
 Corrigenda 1:2007, 2:2012, and 3:2017, together with the module facilities of
-ISO/IEC 13211-2. EyeProlog implements the compatibility profile documented
+ISO/IEC 13211-2 and definite clause grammars from ISO/IEC TS 13211-3:2025.
+EyeProlog implements the compatibility profile documented
 here; it does not claim certification as a complete conforming processor.
 
 Prolog source accepted by EyeProlog is UTF-8. `%` starts a line comment and
@@ -5244,6 +5243,7 @@ lowered to ordinary compound terms:
 
 - prefix: `\+`, unary `+`, unary `-`, and `\`;
 - control: `,`, `;`, and `->`;
+- grammar rules: `-->` and the Part 3 alternative `|`;
 - unification and comparison: `=`, `\=`, `==`, `\==`, `@<`, `@=<`, `@>`,
   `@>=`, `is`, `=:=`, `=\=`, `<`, `=<`, `>`, and `>=`;
 - arithmetic: `+`, `-`, `*`, `/`, `//`, `div`, `mod`, `rem`, `/\`, `\/`,
@@ -5278,8 +5278,8 @@ negation.
 
 EyeProlog supports cut, operator declarations, dynamic database updates, grouped
 solutions, exceptions, flags, initialization and inclusion directives, and
-standard stream and term I/O. ISO Part 2 modules complement this Part 1 core;
-DCG notation remains outside the profile.
+standard stream and term I/O. ISO Part 2 modules and Part 3 definite clause
+grammars complement this Part 1 core.
 
 ### ISO Part 2 modules
 
@@ -5315,6 +5315,38 @@ imports every export; `use_module/2` imports only its indicator list, including
 an empty list when only qualified calls are wanted. `Module:Goal` selects a
 module explicitly. Repeated module loads are idempotent, while conflicting
 imports and requests for predicates that a module does not export are errors.
+
+### ISO Part 3 definite clause grammars
+
+A grammar rule `Head --> Body.` is prepared as an ordinary predicate with two
+additional difference-list arguments. Parameterized nonterminals retain their
+written arguments, so `token(Type)//1` is implemented by `token/3`.
+Nonterminal indicators can be exported and imported through modules:
+
+```text
+:- module(vocabulary, [word//1]).
+
+word(noun) --> [robot] | [scientist].
+```
+
+The required grammar constructs are terminal lists, `[]`, sequencing with
+comma, alternatives with `;` or `|`, if-then-else, embedded goals `{Goal}`,
+`call//1`, `phrase//1`, and `!//0`. Semicontexts provide look-ahead by restoring
+terminals to the remaining sequence:
+
+```eyeprolog
+look_ahead(X), [X] --> [X].
+```
+
+`phrase(+Body,?Sequence)` accepts or generates a complete sequence.
+`phrase(+Body,?Sequence,?Rest)` leaves `Rest` unconsumed and is steadfast in
+that argument. A variable body raises `instantiation_error`; a non-callable
+body raises `type_error(callable)`. EyeProlog performs the optional Part 3
+terminal-sequence checks and reports `type_error(terminal_sequence)`.
+
+Part 3 leaves `\+//1` and standalone `->//2` implementation dependent.
+EyeProlog uses non-consuming negation (`\+ Body` tests from the current state)
+and threads the state produced by the condition into the then-grammar.
 
 ### Directives and protected built-ins
 
@@ -5379,7 +5411,7 @@ profile. Where a predicate is defined by ISO/IEC 13211-1:1995, EyeProlog uses it
 standard predicate indicator; the registry also includes a few later or common
 compatibility predicates identified below. Arithmetic is expressed through
 `is/2` rather than output arguments on arithmetic predicates. The registry
-contains 127 name/arity entries across 99 names.
+contains 129 name/arity entries across 100 names.
 
 | Role | Registered predicate indicators |
 | --- | --- |
@@ -5389,6 +5421,7 @@ contains 127 name/arity entries across 99 names.
 | Term order | `compare/3`, `@</2`, `@=</2`, `@>/2`, `@>=/2`, `sort/2`, `keysort/2` |
 | Term inspection | `functor/3`, `arg/3`, `=../2`, `copy_term/2`, `term_variables/2` |
 | Collection | `findall/3`, `bagof/3`, `setof/3` |
+| Grammar processing | `phrase/2`, `phrase/3` |
 | Database and information | `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, `retractall/1`, `abolish/1`, `current_predicate/1` |
 | Operators, conversion, and flags | `op/3`, `current_op/3`, `char_conversion/2`, `current_char_conversion/2`, `current_prolog_flag/2`, `set_prolog_flag/2` |
 | Atomic terms | `atom_length/2`, `atom_concat/3`, `sub_atom/5`, `atom_chars/2`, `atom_codes/2`, `char_code/2`, `number_chars/2`, `number_codes/2` |
@@ -5441,6 +5474,19 @@ collision because other Prolog systems commonly reject it while loading.
 if-then-else commitment described above. Cuts and committed conditions are
 operational controls; use ordinary relations when all alternatives should
 remain observable.
+
+### Definite clause grammar processing
+
+| Predicate and principal call | Behavior |
+| --- | --- |
+| `phrase(+Body,?Sequence)` | Parses or generates `Sequence` with a Part 3 grammar body and requires complete consumption. |
+| `phrase(+Body,?Sequence,?Rest)` | Parses or generates a prefix described by `Body` and unifies `Rest` with the unconsumed terminal sequence. The final unification is delayed so the third argument is steadfast. |
+
+Grammar rules are expanded during program preparation and therefore appear to
+the solver as ordinary predicates with two extra arguments. Dynamic grammar
+bodies passed to `phrase/2-3` use the same expansion rules. This includes
+module qualification and the caller module used by embedded or meta-called
+nonterminals.
 
 ### Unification, type tests, and term order
 
@@ -5689,12 +5735,12 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **44 library predicate indicators** in addition to the 127
+EyeProlog exposes **44 library predicate indicators** in addition to the 129
 indicators in its isolated ISO profile. **All 44 are ordinary Prolog clauses**
 across `src/lib/eyeprolog.pl` and `src/lib/lists.pl`; none
 is a native host predicate. The resulting
-normal EyeProlog language surface is therefore **171 public predicate
-indicators**. Internally, the runtime registry contains only the 127 ISO
+normal EyeProlog language surface is therefore **173 public predicate
+indicators**. Internally, the runtime registry contains only the 129 ISO
 definitions; the EyeProlog relations are module source clauses.
 
 The two Prolog files declare `eyeprolog` and `lists` with `module/2`. A program
@@ -6141,7 +6187,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **188 self-contained runnable programs**. Every
+top-level directory contains **189 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **60 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -6193,6 +6239,7 @@ mode at a time.
 | [Floating Point](https://github.com/eyereasoner/eyeprolog/blob/main/examples/floating-point.pl) | Floating-point arithmetic and comparisons. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/floating-point.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/floating-point.pl) |
 | [Atomic conversion](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-atomic-conversion.pl) | Atom splitting, character atoms, Unicode codes, and numeric parsing. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-atomic-conversion.pl) |
 | [Control and errors](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-control-and-errors.pl) | `call/1`, `once/1`, cut, if-then-else, `throw/1`, and `catch/3`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-control-and-errors.pl) |
+| [DCG command parser](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dcg-command-parser.pl) | A Part 3 grammar parses token lists into application terms, generates tokens, preserves a remainder, and rejects malformed input. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dcg-command-parser.pl) |
 | [Dynamic database](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl) | Initialization and ordered updates to a declared dynamic procedure. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-dynamic-database.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/iso-dynamic-database.pl) |
 | [Grouped solutions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-grouped-solutions.pl) | `findall/3`, `bagof/3`, `setof/3`, existential qualification, and `clause/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-grouped-solutions.pl) |
 | [Integer arithmetic](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-integer-arithmetic.pl) | Integer quotient/remainder choices plus bit operations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-integer-arithmetic.pl) |
@@ -6511,7 +6558,7 @@ hand.
 
 #### Running and extending the corpus
 
-Run all 188 normal answer goldens and the 60 selected proof goldens with:
+Run all 189 normal answer goldens and the 60 selected proof goldens with:
 
 ```sh
 npm run test:examples
@@ -6559,9 +6606,10 @@ node test/run-conformance-report.mjs
 ```
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 710 cases, including 304 focused ISO
+contains 719 cases, including 313 focused ISO
 cases derived from the success, failure, mode, and error behavior in
-ISO/IEC 13211-1 clauses 7 and 8. Separate exact-output suites check 188 normal
+ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
+Separate exact-output suites check 189 normal
 examples and 60 proof examples; all extracted book programs are parsed and
 their declared goals are executed. The seven-case
 playground contract suite imports the production worker, sends real reasoning
@@ -6590,18 +6638,20 @@ Run the browser contract independently with:
 npm run test:playground
 ```
 
-### Supported ISO Prolog profile
+### Supported ISO Prolog implementation
 
-EyeProlog executes a documented and tested **ISO compatibility profile** based on
-ISO/IEC 13211-1:1995 and its three technical corrigenda. The exact supported
-predicate indicators—not a claim about the standard's complete processor
-environment—are listed in Chapter 39. The profile includes control and
+EyeProlog executes a documented and tested ISO Prolog implementation based on
+ISO/IEC 13211-1:1995 and its three technical corrigenda, ISO/IEC 13211-2:2000,
+and ISO/IEC TS 13211-3:2025. The exact supported predicate indicators are
+listed in Chapter 39. The implementation includes control and
 exceptions, term operations, arithmetic, grouped solutions, dynamic clauses,
 operators, atomic-term processing, flags, character conversion, streams,
 character/byte and term I/O, initialization, source inclusion, and
 termination. Corrigendum 2 additions—including `subsumes_term/2`,
 `acyclic_term/1`, `sort/2`, `keysort/2`, `term_variables/2`, `retractall/1`,
-and `call/2-8`—are part of that baseline rather than extensions.
+and `call/2-8`—are part of that baseline rather than extensions. Part 2 module
+identity and imports and Part 3 grammar expansion and `phrase/2-3` are likewise
+standard language facilities.
 
 This breadth is not a formal certification of every processor requirement.
 The executable examples are EyeProlog-profile programs using host-supplied goals,
@@ -6610,7 +6660,7 @@ The remaining qualifications are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
   `ready`;
-- ISO Part 2 modules are supported; DCG notation remains outside the profile;
+- ISO Part 2 modules and ISO/IEC TS 13211-3 definite clause grammars are supported;
 - variables cannot occupy functor or predicate position;
 - double-quoted text follows `double_quotes` exactly; the default `chars` value
   matches Trealla and Scryer and may be changed to `codes` or `atom`;

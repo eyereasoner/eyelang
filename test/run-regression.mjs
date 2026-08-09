@@ -595,7 +595,7 @@ function documentationSyncCases() {
           '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
           'README cover links to the book',
         );
-        for (const filename of ['src/iso.js', 'src/standard-library.js', 'src/lib/eyeprolog.pl', 'src/lib/lists.pl', 'src/playground-worker.js']) {
+        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/standard-library.js', 'src/lib/eyeprolog.pl', 'src/lib/lists.pl', 'src/playground-worker.js']) {
           assertEqual(fs.existsSync(path.join(packageRoot, filename)), true, `${filename} exists`);
           assertIncludes(book, filename, `book documents ${filename}`);
         }
@@ -1030,7 +1030,9 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 127, 'EyeProlog registry contains only ISO host definitions');
+        assertEqual(library.defs.size, 129, 'EyeProlog registry contains only ISO host definitions');
+        assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
+        assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 0, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 44, 'portable Prolog library count');
         assertEqual(eyePrologNativeLibraryIndicators.length, 0, 'native host library count');
@@ -1109,6 +1111,26 @@ portable_check(A, B, C) :- lowercase('HELLO', A), replace('banana', 'na', 'NA', 
         assertEqual(program.findGroup('hidden', 1)?.module, 'user', 'same-named user predicate remains local');
         assertEqual(run(program, { goals: ['answer(Tone, Hidden)', 'qualified(Status)'] }).stdout,
           'answer(blue, user_local).\nqualified(ok).\n', 'module execution');
+      },
+    },
+    {
+      name: 'Part 3 nonterminal indicators import through Part 2 modules',
+      run: () => {
+        const directory = path.join(tmp, `dcg-modules-${++tmpCounter}`);
+        fs.mkdirSync(directory);
+        fs.writeFileSync(path.join(directory, 'vocabulary.pl'), [
+          ':- module(vocabulary, [word//1]).',
+          'word(hello) --> [hello].',
+          '',
+        ].join('\n'));
+        const source = [
+          ":- use_module('vocabulary.pl', [word//1]).",
+          'answer(X) :- phrase(word(X), [hello]).',
+          '',
+        ].join('\n');
+        const program = Program.parseSources([{ text: source, filename: 'main.pl', baseDir: directory }]);
+        assertEqual(program.findGroup('word', 3)?.module, 'vocabulary', 'word//1 imports expanded word/3');
+        assertEqual(run(program, { goal: 'answer(X)' }).stdout, 'answer(hello).\n', 'imported grammar execution');
       },
     },
     {

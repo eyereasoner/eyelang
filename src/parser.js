@@ -39,6 +39,8 @@ const graphicAtomChars = '#$&*+-./<=>@^~\\;:';
 // canonical notation. Commas remain separators except inside parentheses.
 const INFIX_OPERATORS = new Map([
   [':-', { precedence: 2, associativity: 'none' }],
+  ['-->', { precedence: 2, associativity: 'none' }],
+  ['|', { precedence: 4, associativity: 'right' }],
   [';', { precedence: 5, associativity: 'right' }],
   ['->', { precedence: 7, associativity: 'right' }],
   [',', { precedence: 10, associativity: 'right' }],
@@ -82,7 +84,8 @@ const PREFIX_OPERATORS = new Map([
 ]);
 
 export const ISO_OPERATOR_DEFINITIONS = [
-  [1200, 'xfx', ':-'], [1200, 'fx', ':-'],
+  [1200, 'xfx', ':-'], [1200, 'fx', ':-'], [1200, 'xfx', '-->'],
+  [1105, 'xfy', '|'],
   [1100, 'xfy', ';'], [1050, 'xfy', '->'], [1000, 'xfy', ','],
   [900, 'fy', '\\+'],
   ...['=', '=..', '\\=', '==', '\\==', '@<', '@=<', '@>', '@>=', 'is',
@@ -618,7 +621,25 @@ class Parser {
         accept(clause);
         continue;
       }
-      const head = this.parseTerm(3);
+      let head = this.parseTerm(3);
+      // ISO/IEC TS 13211-3 grammar rules use -->/2 at the same top-level
+      // priority as clauses.  The left side may include an unparenthesized
+      // semicontext: NonTerminal, Terminals --> Body.
+      if (this.token.type === TOK.COMMA) {
+        this.advance();
+        head = compound(',', [head, this.parseTerm(3)]);
+      }
+      if (this.operatorTokenName() === '-->') {
+        this.advance();
+        const grammarBody = this.parseTerm(0, true);
+        this.expect(TOK.DOT, '.');
+        this.advance();
+        const clause = { head: compound('-->', [head, grammarBody]), body: [] };
+        clauseNumber++;
+        if (this.sourceMetadata) clause.source = { filename: this.filename, line, clause: clauseNumber };
+        accept(clause);
+        continue;
+      }
       const body = [];
       if (this.token.type === TOK.IF) {
         this.advance();

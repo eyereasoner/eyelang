@@ -18,7 +18,8 @@ language gives programs recognizable semantics without inventing another rule
 syntax.
 
 EyeProlog implements the Part 1 core together with Technical Corrigenda 1, 2,
-and 3. Its executable conformance matrix and tests document the supported
+and 3, Part 2 modules, and the Part 3 definite clause grammar specification.
+Its executable conformance matrix and tests document the supported
 behavior. This is extensive implementation evidence, not certification by an
 independent standards body.
 
@@ -31,6 +32,7 @@ keeps a narrow architecture:
 - one solver with automatic tabling for eligible positive recursion;
 - the ISO built-in registry;
 - lean portable ISO Part 2 library modules;
+- ISO Part 3 definite clause grammars and `phrase/2-3`;
 - optional proof explanations; and
 - the same implementation in Node.js and the browser.
 
@@ -79,5 +81,7 @@ visible enough to understand.
 ## References
 
 - [ISO/IEC 13211-1:1995 — Prolog, Part 1: General core](https://www.iso.org/standard/21413.html)
+- [ISO/IEC 13211-2:2000 — Prolog, Part 2: Modules](https://www.iso.org/standard/20775.html)
+- [ISO/IEC TS 13211-3:2025 — Prolog, Part 3: Definite clause grammar rules](https://www.iso.org/standard/83635.html)
 - [The Art of EyeProlog](the-art-of-eyeprolog.md)
 - [EyeProlog README](README.md)

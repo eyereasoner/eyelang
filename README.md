@@ -33,9 +33,19 @@ Programs may declare their default queries with `%% goal:` comments.
 Double-quoted text follows the ISO `double_quotes` flag and defaults to a
 proper list of one-character atoms (`chars`), matching Trealla and Scryer.
 
-## Standard library modules
+## ISO modules and definite clause grammars
 
-EyeProlog adds 44 public library predicates to its 127-entry ISO core registry.
+EyeProlog implements ISO/IEC 13211-2 modules and the grammar rules and
+`phrase/2-3` predicates of ISO/IEC TS 13211-3:2025. For example:
+
+```prolog
+sentence --> [hello], noun.
+noun --> [world] | [prolog].
+
+%% goal: phrase(sentence, Words)
+```
+
+EyeProlog also adds 44 public library predicates to its 129-entry ISO registry.
 **All 44 are ordinary Prolog clauses** in `src/lib/eyeprolog.pl` and
 `src/lib/lists.pl`. They are ISO/IEC 13211-2 modules, loaded explicitly with
 `use_module(library(eyeprolog))` or `use_module(library(lists))`, following the

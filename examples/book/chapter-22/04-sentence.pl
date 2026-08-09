@@ -1,19 +1,15 @@
-% From The Art of EyeProlog, Chapter 22 — A grammar without special syntax.
-sentence(Input, Rest) :-
-  noun_phrase(Input, AfterNoun),
-  verb_phrase(AfterNoun, Rest).
+% From The Art of EyeProlog, Chapter 22 — A standard definite clause grammar.
+sentence --> noun_phrase, verb_phrase.
 
-noun_phrase([the | Input], Rest) :- noun(Input, Rest).
-noun_phrase([a | Input], Rest) :- noun(Input, Rest).
+noun_phrase --> [the], noun.
+noun_phrase --> [a], noun.
 
-noun([robot | Rest], Rest).
-noun([scientist | Rest], Rest).
+noun --> [robot].
+noun --> [scientist].
 
-verb_phrase(Input, Rest) :-
-  verb(Input, AfterVerb),
-  noun_phrase(AfterVerb, Rest).
+verb_phrase --> verb, noun_phrase.
 
-verb([helps | Rest], Rest).
-verb([observes | Rest], Rest).
+verb --> [helps].
+verb --> [observes].
 
-complete_sentence(Words) :- sentence(Words, []).
+complete_sentence(Words) :- phrase(sentence, Words).
