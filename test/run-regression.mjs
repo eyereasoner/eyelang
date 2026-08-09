@@ -204,17 +204,80 @@ why(
       },
     },
     {
-      name: 'help with no arguments',
+      name: '-h shows CLI help',
       run: () => {
-        const result = runCli([]);
+        const result = runCli(['-h']);
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, 'Usage:\n  eyeprolog [options] [file-or-url.pl|- ...]', 'stdout');
+        assertIncludes(result.stdout, 'Usage:\n  eyeprolog\n  eyeprolog [options] [file-or-url.pl|- ...]', 'stdout');
+        assertIncludes(result.stdout, 'With no arguments, start a Prolog REPL.', 'stdout');
         assertIncludes(result.stdout, '-p, --proof', 'stdout');
         assertIncludes(result.stdout, '-s, --stats', 'stdout');
         assertIncludes(result.stdout, '-v, --version', 'stdout');
         assertIncludes(result.stdout, '-w, --warnings', 'stdout');
         assertIncludes(result.stdout, '-v, --version         Show the package version and exit.\n  -w, --warnings        Print non-fatal portability warnings to stderr.', 'stdout');
         assertIncludes(result.stdout, 'Read an EyeProlog program', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'bare CLI starts a REPL with truth, failure, and bindings',
+      run: () => {
+        const result = runCli([], { input: 'true.\nfalse.\nX = hello.\nhalt.\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    true.\n?-    false.\n?-    X = hello.\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL enumerates and stops answers like the Scryer top level',
+      run: () => {
+        const result = runCli([], {
+          input: '(X = a; X = b).\n;\n(X = one; X = two).\n\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    X = a\n;  X = b.\n?-    X = one\n;  ... .\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL accepts multiline period-terminated queries',
+      run: () => {
+        const result = runCli([], { input: '(X =\n  one).\nhalt.\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?- |       X = one.\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL consult shorthand loads local Prolog files',
+      run: () => {
+        const filename = path.join(tmp, `repl-consult-${++tmpCounter}.pl`);
+        fs.writeFileSync(filename, 'color(red).\ncolor(blue).\n');
+        const result = runCli([], {
+          input: `[${sourceAtom(filename)}].\ncolor(X).\n;\nhalt.\n`,
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    true.\n?-    X = red\n;  X = blue.\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL use_module imports Part 2 library predicates',
+      run: () => {
+        const result = runCli([], {
+          input: 'append(X, Y, [1, 2, 3, 4]).\nuse_module(library(lists)).\nappend(X, Y, [1, 2, 3, 4]).\n\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    false.\n?-    true.\n?-    X = [], Y = [1, 2, 3, 4]\n;  ... .\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL halt status is returned by the CLI',
+      run: () => {
+        const result = runCli([], { input: 'halt(7).\n' });
+        assertEqual(result.status, 7, 'exit status');
+        assertEqual(result.stdout, '?- ', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },

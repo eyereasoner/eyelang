@@ -25,6 +25,18 @@ EyeProlog requires Node.js 18 or newer.
 
 ```sh
 npm install --global eyeprolog
+eyeprolog
+?- use_module(library(lists)).
+   true.
+?- member(X, [prolog, logic]).
+   X = prolog
+;  X = logic.
+?- halt.
+```
+
+For a non-interactive run:
+
+```sh
 printf 'human(socrates).\nmortal(X) :- human(X).\n' |
   eyeprolog --proof --goal 'mortal(socrates)' -
 ```

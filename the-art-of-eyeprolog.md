@@ -6015,8 +6015,33 @@ search behavior.
 </figure>
 
 ```text
+eyeprolog
 eyeprolog [options] [file-or-url.pl|- ...]
 ```
+
+### Interactive queries
+
+Run `eyeprolog` without arguments to enter the interactive top level. Queries
+may span lines and end with a full stop, as in Scryer Prolog:
+
+```text
+?- use_module(library(lists)).
+   true.
+?- member(X, [prolog, logic]).
+   X = prolog
+;  X = logic.
+?- halt.
+```
+
+When another answer exists in an interactive terminal, press `;`, Space, or
+`n` to ask for it immediately; no Return is needed. Return or `.` stops
+enumeration, `a` enumerates all remaining answers, `f` enumerates the next
+five, and `h` displays the answer-control help. A
+period-terminated query with no solutions prints `false.`; a solution without
+visible variable bindings prints `true.`. Use `[file].` or `['file.pl'].` to
+consult local source, and `halt.` or `halt(Status).` to leave the top level.
+Up and Down recall queries from the current session. Explicit `eyeprolog -h`
+displays command-line help.
 
 ### Selecting goals
 
@@ -6056,8 +6081,8 @@ make the observed question explicit.
 Short flags may be combined, so `-pw` is equivalent to `-p -w`.
 
 Inputs may be local files, HTTP(S) URLs, or one `-` for stdin. The bare command
-`eyeprolog` prints help. When options are present but no input is named, stdin is
-used; writing `-` explicitly is clearer in scripts. Multiple sources are
+`eyeprolog` starts the REPL. When options are present but no input is named,
+stdin is used; writing `-` explicitly is clearer in scripts. Multiple sources are
 parsed as one program, so facts, rules, and directives can be separated across
 files. A relative `include/1` inside a local file resolves from that file's
 directory.

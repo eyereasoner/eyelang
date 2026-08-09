@@ -10,7 +10,14 @@ let explanationModule = null;
 
 export async function main(argv) {
   if (argv.length === 0) {
-    await usage(process.stdout);
+    const engine = await loadEngine();
+    const { runRepl } = await import('./repl.js');
+    const exitCode = await runRepl(engine, {
+      input: process.stdin,
+      output: process.stdout,
+      errorOutput: process.stderr,
+    });
+    if (exitCode !== 0) process.exitCode = exitCode;
     return;
   }
 
@@ -109,15 +116,16 @@ export async function main(argv) {
 
 async function loadEngine() {
   if (engineModule == null) {
-    const [term, parser, program, solver, iso, library] = await Promise.all([
+    const [term, parser, program, solver, iso, library, write] = await Promise.all([
       import('./term.js'),
       import('./parser.js'),
       import('./program.js'),
       import('./solver.js'),
       import('./iso.js'),
       import('./standard-library.js'),
+      import('./write.js'),
     ]);
-    engineModule = { ...term, ...parser, ...program, ...solver, ...iso, ...library };
+    engineModule = { ...term, ...parser, ...program, ...solver, ...iso, ...library, ...write };
   }
   return engineModule;
 }
@@ -186,7 +194,11 @@ async function usage(stream) {
   stream.write(`eyeprolog ${await packageVersion()}
 
 Usage:
+  eyeprolog
   eyeprolog [options] [file-or-url.pl|- ...]
+
+Interactive:
+  With no arguments, start a Prolog REPL. Use eyeprolog -h for help.
 
 Input:
   file-or-url.pl        Read an EyeProlog program from a local file or http(s) URL.
