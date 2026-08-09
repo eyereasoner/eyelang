@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Monkey and bananas planning problem, adapted from Eyelet's
 % input/monkey-bananas.pl.
 %

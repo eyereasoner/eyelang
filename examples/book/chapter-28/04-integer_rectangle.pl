@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 28.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 integer_rectangle(Area, W, H) :-
   between(1, Area, W),
   between(W, Area, H),

@@ -235,21 +235,30 @@ export function unify(left, right, env) {
 }
 
 export function cloneTerm(term) {
-  if (term.type === COMPOUND && term.arity === 0) return atom(term.name);
-  return new Term(term.type, term.name, term.args.map(cloneTerm));
+  const cloned = term.type === COMPOUND && term.arity === 0
+    ? atom(term.name)
+    : new Term(term.type, term.name, term.args.map(cloneTerm));
+  if (term.module != null) cloned.module = term.module;
+  return cloned;
 }
 
 export function freshTerm(term, suffix) {
   if (term.type === VAR) return variable(`${term.name}#${suffix}`);
-  if (term.type === COMPOUND && term.arity === 0) return atom(term.name);
-  return new Term(term.type, term.name, term.args.map((arg) => freshTerm(arg, suffix)));
+  const fresh = term.type === COMPOUND && term.arity === 0
+    ? atom(term.name)
+    : new Term(term.type, term.name, term.args.map((arg) => freshTerm(arg, suffix)));
+  if (term.module != null) fresh.module = term.module;
+  return fresh;
 }
 
 export function copyResolved(term, env) {
   const resolved = deref(term, env);
   if (resolved.type === VAR) return variable(resolved.name);
-  if (resolved.type === COMPOUND && resolved.arity === 0) return atom(resolved.name);
-  return new Term(resolved.type, resolved.name, resolved.args.map((arg) => copyResolved(arg, env)));
+  const copied = resolved.type === COMPOUND && resolved.arity === 0
+    ? atom(resolved.name)
+    : new Term(resolved.type, resolved.name, resolved.args.map((arg) => copyResolved(arg, env)));
+  if (resolved.module != null) copied.module = resolved.module;
+  return copied;
 }
 
 export function termIsGround(term, env = new Env()) {
@@ -376,6 +385,9 @@ export function termToString(term, env = new Env(), quoteStrings = true, options
   if (resolved.type === COMPOUND && resolved.arity === 0) return writeAtom(resolved.name);
   if (resolved.type === COMPOUND && resolved.name === '{}' && resolved.arity === 1) {
     return `{${termToString(resolved.args[0], env, true, options)}}`;
+  }
+  if (resolved.type === COMPOUND && resolved.name === ':' && resolved.arity === 2) {
+    return `${termToString(resolved.args[0], env, true, options)}:${termToString(resolved.args[1], env, true, options)}`;
   }
   if (isConjunction(resolved)) {
     const parts = [];

@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 29 — Examples suggest; proofs compel.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 counterexample_to_odd_square(N) :-
   between(1, 100, N),
   (1 is N mod 2),

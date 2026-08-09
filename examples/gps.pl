@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % GPS route-planning example translated from Eyeling's gps.n3.
 % The map is stored as quoted formula data and projected with ordinary term
 % traversal and =../2. Route

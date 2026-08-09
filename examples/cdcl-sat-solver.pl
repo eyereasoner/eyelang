@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % A tiny CDCL-style SAT trace with one learned clause.
 %
 % Industrial CDCL solvers use watched literals, mutable trails, non-chronological

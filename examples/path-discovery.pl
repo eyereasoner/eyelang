@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Generic path discovery over the air-routes graph.
 % Add route_request(FromLabel, ToLabel, MaxStopOvers) facts to answer other routes.
 % MaxStopOvers is converted to a leg limit, and the recursive search keeps a

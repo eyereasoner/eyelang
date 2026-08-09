@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 32 — Create diagnostic relations.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 candidate_debug(Person, Age) :-
   age(Person, Age).
 

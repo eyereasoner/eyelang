@@ -10,11 +10,16 @@ import {
 } from './parser.js';
 import { PrologError } from './iso.js';
 import { currentWorkingDirectory, fs, path } from './platform.js';
+import { standardLibrarySources } from './standard-library.js';
 
 const DEFER_PROGRAM_BUILD = Symbol('deferProgramBuild');
 const FAST_PARSE_ABORT = Symbol('fastParseAbort');
 const PROGRAM_BUILD_BATCH_SIZE = 16384;
 const EMPTY_CLAUSE_BODY = Object.freeze([]);
+
+function modulePredicateKey(module, name, arity) {
+  return module === 'user' ? `${name}/${arity}` : `${module}:${name}/${arity}`;
+}
 
 class CompactBinaryClause {
   constructor(headName, head0Type, head0Name, head1Type, head1Name,
@@ -89,6 +94,9 @@ export class Program {
   constructor(clauses = [], options = {}) {
     this.clauses = [];
     this.groups = new Map();
+    this.modules = new Map([['user', { name: 'user', exports: new Map(), filename: '<input>' }]]);
+    this.moduleImports = new Map();
+    this.moduleMetaPredicates = new Map();
     this.dynamicPredicates = new Set();
     this.operators = new Map();
     for (const [priority, specifier, name] of ISO_OPERATOR_DEFINITIONS) {
@@ -120,7 +128,7 @@ export class Program {
   static parseSources(sources = [], options = {}) {
     return buildProgramFromSources(sources, options);
   }
-  makeGroup(name, arity) {
+  makeGroup(name, arity, module = 'user') {
     // A group corresponds to one predicate indicator, for example edge/3.
     // Compact single-argument indexes are built eagerly. Wider combinations
     // are constructed on first use, avoiding eager O(arity^2) pair tables while
@@ -128,6 +136,8 @@ export class Program {
     const group = {
       name,
       arity,
+      module,
+      metaArgumentPositions: this.moduleMetaPredicates.get(module)?.get(`${name}/${arity}`) ?? [],
       clauses: [],
       argIndexes: Array.from({ length: arity }, makeArgumentIndex),
       demandIndexes: new Map(),
@@ -136,7 +146,7 @@ export class Program {
       recursive: false,
       tableInputPositions: [],
       scalarFactsOnly: true,
-      dynamic: this.dynamicPredicates.has(`${name}/${arity}`),
+      dynamic: this.dynamicPredicates.has(modulePredicateKey(module, name, arity)),
       negationStratum: null,
     };
     return group;
@@ -148,10 +158,11 @@ export class Program {
     const head = clause.head;
     if (!initialBuild) assertHeadIsDefinable(head);
     if (head.type !== ATOM && head.type !== COMPOUND) return;
-    const key = `${head.name}/${head.arity}`;
+    const module = clause.module ?? 'user';
+    const key = modulePredicateKey(module, head.name, head.arity);
     let group = this.groups.get(key);
     if (!group) {
-      group = this.makeGroup(head.name, head.arity);
+      group = this.makeGroup(head.name, head.arity, module);
       this.groups.set(key, group);
     }
     clause.groundHead = termHasNoVariables(head);
@@ -167,24 +178,66 @@ export class Program {
     const clausePosition = group.clauses.length - 1;
     for (let i = 0; i < head.arity; i++) indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition);
   }
-  findGroup(name, arity) {
-    return this.groups.get(`${name}/${arity}`) ?? null;
+  findGroup(name, arity, module = 'user') {
+    const direct = this.groups.get(modulePredicateKey(module, name, arity));
+    if (direct) return direct;
+    const importedModule = this.moduleImports.get(module)?.get(`${name}/${arity}`);
+    return importedModule == null
+      ? null
+      : this.groups.get(modulePredicateKey(importedModule, name, arity)) ?? null;
   }
-  ensureDynamicGroup(name, arity) {
+  defineModule(name, exports, filename = '<input>') {
+    const indicators = new Map(exports.map((indicator) => [`${indicator.name}/${indicator.arity}`, indicator]));
+    this.modules.set(name, { name, exports: indicators, filename });
+  }
+  importModule(target, source, requested = null) {
+    const definition = this.modules.get(source);
+    if (!definition) throw new PrologError('existence_error(module)', atom(source));
+    const imports = this.moduleImports.get(target) ?? new Map();
+    const selected = requested ?? [...definition.exports.values()];
+    for (const indicator of selected) {
+      const key = `${indicator.name}/${indicator.arity}`;
+      if (!definition.exports.has(key)) {
+        throw new PrologError('existence_error(procedure)', compound('/', [atom(indicator.name), numberTerm(indicator.arity)]));
+      }
+      const previous = imports.get(key);
+      if (previous != null && previous !== source) {
+        throw new PrologError('permission_error(import, procedure)', compound('/', [atom(indicator.name), numberTerm(indicator.arity)]));
+      }
+      imports.set(key, source);
+    }
+    this.moduleImports.set(target, imports);
+  }
+  defineMetaPredicate(module, template) {
+    if (template.type !== COMPOUND) return;
+    const positions = [];
+    for (let index = 0; index < template.args.length; index++) {
+      const spec = template.args[index];
+      if ((spec.type === 'number' && /^\d+$/.test(spec.name)) ||
+          (spec.type === ATOM && spec.name === ':')) positions.push(index);
+    }
+    const definitions = this.moduleMetaPredicates.get(module) ?? new Map();
+    definitions.set(`${template.name}/${template.arity}`, positions);
+    this.moduleMetaPredicates.set(module, definitions);
+    const group = this.groups.get(modulePredicateKey(module, template.name, template.arity));
+    if (group) group.metaArgumentPositions = positions;
+  }
+  ensureDynamicGroup(name, arity, module = 'user') {
     assertPredicateIsDefinable(name, arity);
-    const key = `${name}/${arity}`;
+    const key = modulePredicateKey(module, name, arity);
     let group = this.groups.get(key);
     if (!group) {
       this.dynamicPredicates.add(key);
       this.mutable = true;
-      group = this.makeGroup(name, arity);
+      group = this.makeGroup(name, arity, module);
       group.dynamic = true;
       this.groups.set(key, group);
     }
     return group;
   }
   insertDynamicClause(clause, atStart = false) {
-    const group = this.ensureDynamicGroup(clause.head.name, clause.head.arity);
+    clause.module ??= clause.head.module ?? 'user';
+    const group = this.ensureDynamicGroup(clause.head.name, clause.head.arity, clause.module);
     clause.index = this.clauses.length;
     clause.groundHead = termHasNoVariables(clause.head);
     clause.scalarHead = clause.head.type === COMPOUND && clause.head.args.every(isScalar);
@@ -204,8 +257,8 @@ export class Program {
     this.noteMutation(clause.body.length > 0);
     return true;
   }
-  abolishDynamicGroup(name, arity) {
-    const key = `${name}/${arity}`;
+  abolishDynamicGroup(name, arity, module = 'user') {
+    const key = modulePredicateKey(module, name, arity);
     const group = this.groups.get(key);
     if (!group) return;
     const removed = new Set(group.clauses);
@@ -234,7 +287,7 @@ export class Program {
       for (const clause of group.clauses) {
         if (isCompactBinaryClause(clause)) {
           if (clause.bodyName != null) {
-            const dep = this.groups.get(`${clause.bodyName}/2`);
+            const dep = this.findGroup(clause.bodyName, 2, group.module);
             if (dep) deps[groupIndex].add(indexByGroup.get(dep));
           }
           continue;
@@ -242,12 +295,12 @@ export class Program {
         for (const goal of clause.body) {
           const directKey = directGoalDependencyKey(goal);
           if (directKey) {
-            const dep = this.groups.get(directKey);
+            const dep = this.findGroup(goal.name, goal.arity, goal.module ?? group.module);
             if (dep) deps[groupIndex].add(indexByGroup.get(dep));
             continue;
           }
           for (const dependency of collectGoalDependencies(goal, false)) {
-            const dep = this.groups.get(dependency.key);
+            const dep = this.findGroup(dependency.name, dependency.arity, dependency.module ?? group.module);
             if (dep) {
               const dependencyIndex = indexByGroup.get(dep);
               deps[groupIndex].add(dependencyIndex);
@@ -259,6 +312,8 @@ export class Program {
     }
     for (const group of groups) {
       const start = indexByGroup.get(group);
+      const standardLibraryModule = group.module !== 'user' &&
+        this.modules.get(group.module)?.filename?.startsWith('src/lib/');
       const seen = new Set();
       const stack = [start];
       let recursive = false;
@@ -271,20 +326,23 @@ export class Program {
           if (!seen.has(next)) stack.push(next);
         }
       }
-      group.recursive = recursive;
-      group.tableInputPositions = recursive
+      // Bundled libraries use their written ISO control directly. User modules
+      // still receive EyeProlog's automatic cycle analysis and tabling.
+      const plannedRecursive = recursive && !standardLibraryModule;
+      group.recursive = plannedRecursive;
+      group.tableInputPositions = plannedRecursive
         ? inferStructuralInputPositions(group)
         : [];
       // Recursive predicates are proved with tabling automatically, keeping
       // search control inside the engine. Cycles through negation retain
       // guarded resolution because positive least-fixed-point tabling is not
       // sound for an unstratified negative component.
-      group.cutRecursive = recursive && componentHasCut(start, deps, groups);
-      const linearNumeric = recursive && hasLinearNumericRecursion(group) &&
+      group.cutRecursive = plannedRecursive && componentHasCut(start, deps, groups);
+      const linearNumeric = plannedRecursive && hasLinearNumericRecursion(group) &&
         (isPiAccumulator(group) || isPortableBetweenGenerator(group));
       group.linearNumeric = linearNumeric;
       group.fastPi = linearNumeric && isPiAccumulator(group);
-      group.tabled = recursive &&
+      group.tabled = plannedRecursive &&
         !componentHasNegativeEdge(start, deps, negativeEdges) &&
         !group.cutRecursive &&
         !linearNumeric;
@@ -295,9 +353,9 @@ export class Program {
     // Stratified negation is a portability diagnostic. A program is stratified
     // when no predicate depends negatively on itself, directly or indirectly.
     const groups = [...this.groups.values()];
-    const groupKeys = new Map(groups.map((group) => [group, `${group.name}/${group.arity}`]));
-    const groupByKey = new Map(groups.map((group) => [`${group.name}/${group.arity}`, group]));
-    const indexByKey = new Map(groups.map((group, i) => [`${group.name}/${group.arity}`, i]));
+    const groupKeys = new Map(groups.map((group) => [group, modulePredicateKey(group.module, group.name, group.arity)]));
+    const groupByKey = new Map(groups.map((group) => [modulePredicateKey(group.module, group.name, group.arity), group]));
+    const indexByKey = new Map(groups.map((group, i) => [modulePredicateKey(group.module, group.name, group.arity), i]));
     const edges = [];
 
     for (const group of groups) {
@@ -305,8 +363,9 @@ export class Program {
       for (const clause of group.clauses) {
         for (const goal of clause.body) {
           for (const dep of collectGoalDependencies(goal, false)) {
-            if (!groupByKey.has(dep.key)) continue;
-            edges.push({ from, to: dep.key, negative: dep.negative });
+            const target = this.findGroup(dep.name, dep.arity, dep.module ?? group.module);
+            if (!target) continue;
+            edges.push({ from, to: groupKeys.get(target), negative: dep.negative });
           }
         }
       }
@@ -416,10 +475,11 @@ class ProgramBuilder {
 
       if (isCompactBinaryClause(clause)) {
         assertPredicateIsDefinable(clause.headName, 2);
-        const key = `${clause.headName}/2`;
+        const module = clause.module ?? 'user';
+        const key = modulePredicateKey(module, clause.headName, 2);
         let group = key === lastGroupKey ? lastGroup : program.groups.get(key);
         if (!group) {
-          group = program.makeGroup(clause.headName, 2);
+          group = program.makeGroup(clause.headName, 2, module);
           program.groups.set(key, group);
         }
         lastGroupKey = key;
@@ -438,10 +498,11 @@ class ProgramBuilder {
         assertHeadIsDefinable(clause.head);
         const head = clause.head;
         if (head.type !== ATOM && head.type !== COMPOUND) continue;
-        const key = `${head.name}/${head.arity}`;
+        const module = clause.module ?? 'user';
+        const key = modulePredicateKey(module, head.name, head.arity);
         let group = key === lastGroupKey ? lastGroup : program.groups.get(key);
         if (!group) {
-          group = program.makeGroup(head.name, head.arity);
+          group = program.makeGroup(head.name, head.arity, module);
           program.groups.set(key, group);
         }
         lastGroupKey = key;
@@ -466,11 +527,13 @@ class ProgramBuilder {
 
   addDirectiveClause(clause) {
     const program = this.program;
+    const module = clause.module ?? 'user';
     for (const indicator of dynamicDirectiveIndicators(clause)) {
       assertDynamicIndicatorIsDefinable(indicator);
-      program.dynamicPredicates.add(indicator.key);
-      this.declaredDynamicIndicators.set(indicator.key, indicator);
-      const existing = program.groups.get(indicator.key);
+      const key = modulePredicateKey(module, indicator.name, indicator.arity);
+      program.dynamicPredicates.add(key);
+      this.declaredDynamicIndicators.set(key, { ...indicator, key, module });
+      const existing = program.groups.get(key);
       if (existing) existing.dynamic = true;
     }
 
@@ -480,7 +543,18 @@ class ProgramBuilder {
     }
 
     const directive = clause.head.args[0];
-    if (directive?.type === COMPOUND && directive.name === 'initialization' && directive.arity === 1) {
+    if (directive?.type === COMPOUND && directive.name === 'module' && directive.arity === 2) {
+      const name = directive.args[0];
+      const exports = moduleExportIndicators(directive.args[1]);
+      if (name.type !== ATOM) throw new PrologError('type_error(atom)', name);
+      if (exports == null) throw new PrologError('type_error(list)', directive.args[1]);
+      program.defineModule(name.name, exports, clause.source?.filename ?? clause.moduleFilename ?? '<input>');
+    } else if (directive?.type === COMPOUND && directive.name === 'meta_predicate' && directive.arity === 1) {
+      for (const template of flattenDirectiveSequence(directive.args[0])) {
+        program.defineMetaPredicate(module, template);
+      }
+    } else if (directive?.type === COMPOUND && directive.name === 'initialization' && directive.arity === 1) {
+      annotateGoalModule(directive.args[0], module);
       program.initializations.push(directive.args[0]);
     } else if (directive?.type === COMPOUND && directive.name === 'set_prolog_flag' && directive.arity === 2) {
       program.prologFlagDirectives.push(directive.args);
@@ -499,7 +573,7 @@ class ProgramBuilder {
     // to an unknown predicate.
     for (const indicator of this.declaredDynamicIndicators.values()) {
       if (!program.groups.has(indicator.key)) {
-        program.groups.set(indicator.key, program.makeGroup(indicator.name, indicator.arity));
+        program.groups.set(indicator.key, program.makeGroup(indicator.name, indicator.arity, indicator.module));
       }
     }
     program.mutable = program.dynamicPredicates.size > 0;
@@ -521,7 +595,11 @@ function buildProgramFromSources(sources, options) {
   // source require the full parser (for example because it defines custom
   // operators), the partial builder is simply discarded and the source set is
   // rebuilt once with the general streaming parser.
-  if (options.sourceMetadata === false) {
+  const hasModuleDirectives = sources.some((source) => {
+    const text = typeof source === 'string' ? source : source?.text ?? source?.source ?? '';
+    return /:-\s*(?:module|use_module)\s*\(/.test(text);
+  });
+  if (options.sourceMetadata === false && !hasModuleDirectives) {
     const builder = new ProgramBuilder(options);
     if (loadSourcesIntoBuilder(builder, sources, options, true)) return builder.finish();
   }
@@ -533,6 +611,7 @@ function buildProgramFromSources(sources, options) {
 
 function loadSourcesIntoBuilder(builder, sources, options, fast) {
   const ensured = new Set();
+  const loadedModules = new Set();
   const operatorState = createParserOperatorState();
   const parserFlagState = { doubleQuotes: options.doubleQuotes ?? 'chars' };
   const prepared = sources.map((source) => ({
@@ -548,7 +627,8 @@ function loadSourcesIntoBuilder(builder, sources, options, fast) {
       const text = typeof item.source === 'string'
         ? item.source
         : item.source?.text ?? item.source?.source ?? '';
-      if (!loadSourceIntoBuilder(builder, text, item.options, ensured, fast)) return false;
+      const context = { module: 'user' };
+      if (!loadSourceIntoBuilder(builder, text, item.options, ensured, loadedModules, fast, context)) return false;
     }
     builder.program.doubleQuotes = parserFlagState.doubleQuotes;
     return true;
@@ -575,7 +655,7 @@ function sourcePath(options) {
   return path.resolve(base, filename);
 }
 
-function loadSourceIntoBuilder(builder, source, options, ensured, fast) {
+function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules, fast, context) {
   const batch = [];
   const flush = () => {
     if (batch.length === 0) return;
@@ -583,8 +663,37 @@ function loadSourceIntoBuilder(builder, source, options, ensured, fast) {
     batch.length = 0;
   };
   const accept = (clause) => {
+    const moduleDeclaration = moduleDirective(clause);
+    if (moduleDeclaration) {
+      flush();
+      clause.module = moduleDeclaration.name;
+      clause.moduleFilename = options.filename ?? '<input>';
+      builder.addClauses([clause]);
+      context.module = moduleDeclaration.name;
+      loadedModules.add(moduleDeclaration.name);
+      return;
+    }
+    const use = useModuleDirective(clause);
+    if (use) {
+      flush();
+      clause.module = context.module;
+      builder.addClauses([clause]);
+      const loaded = readModuleSource(use.designation, options);
+      if (!loadedModules.has(loaded.name)) {
+        const childContext = { module: loaded.name };
+        if (!loadSourceIntoBuilder(builder, loaded.text, loaded.options, ensured, loadedModules, fast, childContext)) {
+          throw FAST_PARSE_ABORT;
+        }
+      }
+      builder.program.importModule(context.module, loaded.name, use.imports);
+      return;
+    }
     const include = includeDirective(clause);
     if (!include) {
+      clause.module = context.module;
+      if (!isDirectiveClause(clause)) {
+        for (const goal of clause.body) annotateGoalModule(goal, context.module);
+      }
       batch.push(clause);
       if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
       return;
@@ -592,7 +701,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, fast) {
     flush();
     const child = readIncludedSource(include, options, ensured);
     if (!child) return;
-    if (!loadSourceIntoBuilder(builder, child.text, child.options, ensured, fast)) {
+    if (!loadSourceIntoBuilder(builder, child.text, child.options, ensured, loadedModules, fast, context)) {
       throw FAST_PARSE_ABORT;
     }
   };
@@ -604,6 +713,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, fast) {
         headName, head0Type, head0Name, head1Type, head1Name,
         bodyName, body0Type, body0Name, body1Type, body1Name,
       ));
+      batch[batch.length - 1].module = context.module;
       if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
     };
     const parsed = tryParseClausesFastInto(source, accept, acceptBinary, options);
@@ -622,6 +732,78 @@ function includeDirective(clause) {
     (directive.name === 'include' || directive.name === 'ensure_loaded')
     ? directive
     : null;
+}
+
+function moduleDirective(clause) {
+  if (isCompactBinaryClause(clause) || !isDirectiveClause(clause)) return null;
+  const directive = clause.head.args[0];
+  if (directive?.type !== COMPOUND || directive.name !== 'module' || directive.arity !== 2) return null;
+  if (directive.args[0].type !== ATOM) throw new PrologError('type_error(atom)', directive.args[0]);
+  if (moduleExportIndicators(directive.args[1]) == null) {
+    throw new PrologError('type_error(list)', directive.args[1]);
+  }
+  return { name: directive.args[0].name };
+}
+
+function useModuleDirective(clause) {
+  if (isCompactBinaryClause(clause) || !isDirectiveClause(clause)) return null;
+  const directive = clause.head.args[0];
+  if (directive?.type !== COMPOUND || directive.name !== 'use_module' || ![1, 2].includes(directive.arity)) return null;
+  const imports = directive.arity === 2 ? moduleExportIndicators(directive.args[1]) : null;
+  if (directive.arity === 2 && imports == null) throw new PrologError('type_error(list)', directive.args[1]);
+  return { designation: directive.args[0], imports };
+}
+
+function moduleExportIndicators(term) {
+  const items = properListItems(term, new Env());
+  if (items == null) return null;
+  const indicators = [];
+  for (const item of items) {
+    if (item.type !== COMPOUND || item.name !== '/' || item.arity !== 2) return null;
+    const indicator = predicateIndicator(item.args[0], item.args[1]);
+    if (!indicator) return null;
+    indicators.push(indicator);
+  }
+  return indicators;
+}
+
+function readModuleSource(designation, options) {
+  if (designation.type === COMPOUND && designation.name === 'library' && designation.arity === 1 &&
+      designation.args[0].type === ATOM) {
+    const name = designation.args[0].name;
+    const registered = standardLibrarySources.get(name);
+    if (!registered) throw new PrologError('existence_error(source_sink)', designation);
+    return {
+      name,
+      text: registered.source,
+      options: { ...options, filename: registered.filename, baseDir: 'src/lib' },
+    };
+  }
+  if (designation.type !== ATOM) throw new PrologError('type_error(source_sink)', designation);
+  if (!fs || !path) throw new PrologError('permission_error(access, source_sink)', designation);
+  const base = options.baseDir ?? currentWorkingDirectory();
+  const filename = path.resolve(base, designation.name);
+  let text;
+  try {
+    text = fs.readFileSync(filename, 'utf8');
+  } catch (_) {
+    throw new PrologError('existence_error(source_sink)', designation);
+  }
+  const declaration = parseClauses(text, { filename, sourceMetadata: false }).map(moduleDirective).find(Boolean);
+  if (!declaration) throw new PrologError('existence_error(module)', designation);
+  return { name: declaration.name, text, options: { ...options, filename, baseDir: path.dirname(filename) } };
+}
+
+function annotateGoalModule(term, module) {
+  if (!term || (term.type !== ATOM && term.type !== COMPOUND)) return term;
+  term.module = module;
+  const callableArguments = (term.name === ',' || term.name === ';' || term.name === '->') ? term.args
+    : (['call', 'once', '\\+', 'not', 'catch', 'forall', 'findall', 'bagof', 'setof',
+      'countall', 'sumall', 'aggregate_min', 'aggregate_max', 'maplist'].includes(term.name)
+      ? term.args
+      : []);
+  for (const arg of callableArguments) annotateGoalModule(arg, module);
+  return term;
 }
 
 function readIncludedSource(directive, options, ensured) {
@@ -875,7 +1057,7 @@ function directGoalDependencyKey(goal) {
 }
 
 function collectGoalDependencies(goal, negated) {
-  if (goal.type === ATOM) return [{ key: `${goal.name}/0`, negative: negated }];
+  if (goal.type === ATOM) return [{ key: `${goal.name}/0`, name: goal.name, arity: 0, module: goal.module, negative: negated }];
   if (goal.type !== COMPOUND) return [];
   if (goal.name === ',' && goal.arity === 2) {
     return [
@@ -902,7 +1084,7 @@ function collectGoalDependencies(goal, negated) {
   if ((goal.name === 'aggregate_min' || goal.name === 'aggregate_max') && goal.arity === 5) {
     return collectGoalDependencies(goal.args[2], negated);
   }
-  return [{ key: `${goal.name}/${goal.arity}`, negative: negated }];
+  return [{ key: `${goal.name}/${goal.arity}`, name: goal.name, arity: goal.arity, module: goal.module, negative: negated }];
 }
 
 function stronglyConnectedComponents(adjacency) {

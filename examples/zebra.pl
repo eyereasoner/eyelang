@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Zebra puzzle, adapted from Eyelet's input/zebra.pl.
 %
 % Five houses are represented as house(Color, Nationality, Pet, Beverage,

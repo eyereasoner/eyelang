@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Blocks-world planning without cut.
 %
 % A finite-depth planner searches for a five-move plan over five blocks.  States

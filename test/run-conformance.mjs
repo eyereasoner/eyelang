@@ -11,6 +11,12 @@ import { goalsFromSource } from './goal-metadata.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const filterArg = process.argv[2] ?? null;
+const libraryCall = /\b(?:uuid|difference|maplist|lt|gt|le|ge|between|smallest_divisor_from|random|matches|split|replace|lowercase|uppercase|trim|number_string|atom_string|term_string|append|string_concat|contains|join|substring|member|select|last|nth0|nth1|set_nth0|take|drop|slice|reverse|length|sum_list|min_list|max_list|list_to_set|countall|sumall|aggregate_min|aggregate_max)\s*\(/;
+
+function withStandardModules(text) {
+  if (!libraryCall.test(text) || text.includes('use_module(library(')) return text;
+  return `:- use_module(library(eyeprolog)).\n:- use_module(library(lists)).\n${text}`;
+}
 
 export function runConformance(reporter = new TestReporter(), requestedFilter = null) {
   const filter = requestedFilter ?? filterArg;
@@ -81,7 +87,7 @@ function runCase(name, file) {
   const programFile = path.join(casesDir, file);
   const expected = path.join(expectedDir, `${name}.pl`);
   const text = fs.readFileSync(programFile, 'utf8');
-  const program = Program.parseSources([{ text, filename: file }], { sourceMetadata: false });
+  const program = Program.parseSources([{ text: withStandardModules(text), filename: file }], { sourceMetadata: false });
   const actual = run(program, { goals: goalsFromSource(text), registry: file.startsWith('iso/') ? createDefaultRegistry() : undefined }).stdout;
 
   compareExpectedFile(expected, actual, name, 'output');
@@ -96,7 +102,7 @@ function runErrorCase(name, file) {
   let actual = null;
 
   try {
-    const program = Program.parseSources([{ text, filename: file }], { sourceMetadata: false });
+    const program = Program.parseSources([{ text: withStandardModules(text), filename: file }], { sourceMetadata: false });
     run(program, { goals: goalsFromSource(text), registry: file.startsWith('iso/') ? createDefaultRegistry() : undefined });
   } catch (error) {
     actual = `${error?.message ?? String(error)}\n`;
@@ -116,7 +122,7 @@ function runWarningCase(name, file) {
   // These cases used to start a fresh Node process for each CLI invocation.
   // Exercise the same parser and runner in-process; CLI argument handling is
   // covered by regression tests, while this corpus verifies engine warnings.
-  const program = Program.parseSources([{ text, filename: '<stdin>' }], {
+  const program = Program.parseSources([{ text: withStandardModules(text), filename: '<stdin>' }], {
     sourceMetadata: false,
   });
   const stderr = formatWarnings(program);
@@ -132,7 +138,7 @@ function runProofCase(name, file) {
   const programFile = path.join(proofsDir, file);
   const expected = path.join(expectedDir, `${name}.pl`);
   const text = fs.readFileSync(programFile, 'utf8');
-  const program = Program.parseSources([{ text, filename: '<stdin>' }], {
+  const program = Program.parseSources([{ text: withStandardModules(text), filename: '<stdin>' }], {
     sourceMetadata: true,
   });
   const stdout = run(program, { goals: goalsFromSource(text), proof: true }).stdout;

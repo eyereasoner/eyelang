@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % A pandigital cryptarithm: DONALD + GERALD = ROBERT.
 %
 % Ten distinct letters must use all ten decimal digits. A naive assignment

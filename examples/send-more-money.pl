@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Cryptarithm search for SEND + MORE = MONEY.
 %
 % The solver assigns distinct decimal digits to letters while enforcing the

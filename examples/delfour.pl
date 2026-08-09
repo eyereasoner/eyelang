@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Delfour insight-economy case adapted from Eyeling delfour.n3.
 % The original N3 emits a Markdown answer.  This eyeprolog
 % translation derives the same authorization, shopping banner, alternative, and

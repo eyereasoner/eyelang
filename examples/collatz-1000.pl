@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Collatz conjecture suite translated from Eyeling's examples/collatz-1000.n3.
 % It enumerates starts N = 1000, 999, ..., 1 by deriving N = 1000 - N0
 % from a repeat relation, then querys each full trajectory.

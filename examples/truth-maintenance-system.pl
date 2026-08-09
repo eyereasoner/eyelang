@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % A tiny assumption-based truth maintenance system.
 %
 % An environment is a set of assumptions.  Justifications derive beliefs from

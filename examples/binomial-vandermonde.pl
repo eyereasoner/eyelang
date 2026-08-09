@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Binomial coefficients and Vandermonde's identity.
 %
 % choose(N,K,C) is computed by a multiplicative recurrence, then vandermonde/5 checks

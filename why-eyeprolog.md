@@ -30,12 +30,13 @@ keeps a narrow architecture:
 - one parser and term model;
 - one solver with automatic tabling for eligible positive recursion;
 - the ISO built-in registry;
-- a lean portable Prolog library;
+- lean portable ISO Part 2 library modules;
 - optional proof explanations; and
 - the same implementation in Node.js and the browser.
 
-The library does not wrap facilities already available in the ISO core. Common
-relations such as list processing remain ordinary Prolog clauses, while
+The modules do not wrap facilities already available in the ISO core. Common
+relations such as list processing remain ordinary Prolog clauses imported with
+`use_module/1-2`, while
 standard sorting, arithmetic, meta-calls, streams, and database operations use
 their ISO definitions directly.
 
@@ -71,7 +72,7 @@ and integrations that can live outside the reasoning engine.
 ## The durable idea
 
 EyeProlog demonstrates that a useful proof-producing reasoner can be built from
-a complete standard core, a small portable library, and an ordinary JavaScript
+a complete standard core, small portable modules, and an ordinary JavaScript
 API. Its value is not feature count; it is that the language boundary stays
 visible enough to understand.
 

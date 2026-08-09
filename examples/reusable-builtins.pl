@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Reusable builtin tour for text, list, numeric, and quantifier helpers.
 %
 % Each report/2 clause demonstrates a small reusable operation: trimming and

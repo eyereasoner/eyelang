@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Stable-marriage search with explicit blocking-pair detection.
 %
 % matching/1 enumerates one-to-one pairings for four men and four women.  A

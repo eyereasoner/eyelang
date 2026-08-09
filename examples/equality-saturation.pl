@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Bounded equality saturation over tiny arithmetic expression terms.
 %
 % Real equality-saturation engines use mutable e-graphs, union-find classes,

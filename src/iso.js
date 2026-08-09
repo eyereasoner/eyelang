@@ -490,7 +490,7 @@ function* clauseBuiltin({ solver, goal, env }) {
   if (solver.registry.get(head.name, head.arity)) {
     throw new PrologError('permission_error(access, private_procedure)', indicator);
   }
-  const group = solver.program.findGroup(head.name, head.arity);
+  const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
   if (!group) return;
   for (const clause of group.clauses) {
     const pair = compound('$clause', [clause.head, clauseBodyTerm(clause.body)]);
@@ -526,8 +526,8 @@ function procedureIndicator(head) {
   return compound('/', [atom(head.name), numberTerm(head.arity)]);
 }
 
-function assertModifiable(solver, head) {
-  const group = solver.program.findGroup(head.name, head.arity);
+function assertModifiable(solver, head, module = 'user') {
+  const group = solver.program.findGroup(head.name, head.arity, head.module ?? module);
   if (solver.registry.get(head.name, head.arity) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
@@ -538,10 +538,11 @@ function assertBuiltin(atStart) {
     const parts = clauseParts(goal.args[0], env);
     requireClauseHead(parts.head);
     const body = convertAssertedBody(parts.body);
-    assertModifiable(solver, parts.head);
+    assertModifiable(solver, parts.head, goal.module ?? 'user');
     const copied = freshCopy(compound('$clause', [parts.head, body]), env);
     solver.program.insertDynamicClause({
       head: copied.args[0],
+      module: copied.args[0].module ?? goal.module ?? 'user',
       body: copied.args[1].type === ATOM && copied.args[1].name === 'true'
         ? []
         : [copied.args[1]],
@@ -553,7 +554,7 @@ function assertBuiltin(atStart) {
 function* retractBuiltin({ solver, goal, env }) {
   const parts = clauseParts(goal.args[0], env);
   requireClauseHead(parts.head);
-  const group = solver.program.findGroup(parts.head.name, parts.head.arity);
+  const group = solver.program.findGroup(parts.head.name, parts.head.arity, parts.head.module ?? goal.module ?? 'user');
   if (solver.registry.get(parts.head.name, parts.head.arity) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(parts.head));
   }
@@ -576,7 +577,7 @@ function* retractBuiltin({ solver, goal, env }) {
 function* retractAllBuiltin({ solver, goal, env }) {
   const head = deref(goal.args[0], env);
   requireClauseHead(head);
-  const group = solver.program.findGroup(head.name, head.arity);
+  const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
   if (solver.registry.get(head.name, head.arity) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
@@ -609,11 +610,12 @@ function predicateIndicatorParts(term, env) {
 
 function* abolishBuiltin({ solver, goal, env }) {
   const target = predicateIndicatorParts(goal.args[0], env);
-  const group = solver.program.findGroup(target.name, target.arity);
+  const module = goal.module ?? 'user';
+  const group = solver.program.findGroup(target.name, target.arity, module);
   if (solver.registry.get(target.name, target.arity) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', target.indicator);
   }
-  solver.program.abolishDynamicGroup(target.name, target.arity);
+  solver.program.abolishDynamicGroup(target.name, target.arity, module);
   yield env;
 }
 
@@ -1519,7 +1521,9 @@ function callable(term, env) {
 function resolveCallable(term, env) {
   const resolved = deref(term, env);
   if (resolved.type !== COMPOUND) return resolved;
-  return compound(resolved.name, resolved.args.map((arg) => resolveCallable(arg, env)));
+  const callable = compound(resolved.name, resolved.args.map((arg) => resolveCallable(arg, env)));
+  if (resolved.module != null) callable.module = resolved.module;
+  return callable;
 }
 function* callBuiltin({ solver, goal, env }) {
   const child = solver.cloneForInnerGoal();
@@ -1533,6 +1537,7 @@ function* callClosureBuiltin({ solver, goal, env }) {
   const closure = callable(goal.args[0], env);
   const existing = closure.type === COMPOUND ? closure.args : [];
   const invoked = compound(closure.name, [...existing, ...goal.args.slice(1)]);
+  if (closure.module != null) invoked.module = closure.module;
   const child = solver.cloneForInnerGoal();
   try {
     yield* child.solve([invoked], env, 0);

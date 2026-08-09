@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % DPLL-style SAT solving for a small CNF formula.
 %
 % The example keeps the solver itself in EyeProlog.  It recursively assigns

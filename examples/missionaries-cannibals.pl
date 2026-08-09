@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Missionaries-and-cannibals river crossing as guarded state-space search.
 %
 % A state records missionaries and cannibals on the left bank plus the boat side.

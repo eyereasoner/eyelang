@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Observability example: parse unstructured service logs with named regex
 % captures, then reason over the extracted context to correlate events that
 % share a W3C trace id.

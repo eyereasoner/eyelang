@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Prime ranges and Euler totient over finite integer domains.
 %
 % The source example combines prime search with Euler's totient function.  This

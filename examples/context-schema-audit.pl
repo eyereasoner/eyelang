@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Context schema audit.
 %
 % The audit rule does not know predicate names or arities in advance. It walks

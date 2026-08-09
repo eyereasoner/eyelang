@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % New Scientist puzzle Enigma 1225
 % Original code from https://www.sciencedirect.com/science/article/pii/S0898122106002057
 %

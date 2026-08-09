@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Register allocation as bounded graph coloring with spilling.
 %
 % Production allocators combine liveness analysis, interference graphs, register

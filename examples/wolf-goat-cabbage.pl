@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Wolf, goat and cabbage puzzle, adapted from Eyelet's
 % input/wolf-goat-cabbage.pl.
 %

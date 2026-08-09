@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Stirling numbers of the second kind and Bell numbers.
 %
 % The Stirling count S(N,K) is computed with the inclusion-exclusion formula

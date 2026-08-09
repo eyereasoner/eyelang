@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % N-Queens puzzle
 % See https://en.wikipedia.org/wiki/Eight_queens_puzzle
 % Original code at https://hanslen.github.io/2016/05/02/AI-problem-N-queens-problem-%E2%80%93-solved-in-prolog/

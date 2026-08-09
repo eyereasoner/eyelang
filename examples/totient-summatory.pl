@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Euler totients and coprimality by automatically tabled Euclidean gcd.
 %
 % phi(N) is modeled directly as the count of integers K in 1..N with gcd(N,K)=1.

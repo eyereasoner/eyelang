@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Bounded Knuth-Bendix-style completion for append/2 terms.
 %
 % Full Knuth-Bendix completion orients equations, generates all critical pairs,

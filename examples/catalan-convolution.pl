@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Catalan numbers by automatically tabled convolution.
 %
 % catalan(N,C) sums all splits of N-1 into left and right substructures.  The same

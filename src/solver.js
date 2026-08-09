@@ -5,11 +5,18 @@ import {
   numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variantTerms,
 } from './term.js';
 import { PrologError } from './iso.js';
-import { ensureEyePrologLibrary, getEyePrologRegistry } from './eyeprolog-autoload.js';
+import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program.js';
 import { StreamManager } from './io.js';
 
 let freshCounter = 0;
+
+function qualifyTerm(term, module) {
+  if (!term || (term.type !== COMPOUND && term.type !== 'atom')) return term;
+  term.module = module;
+  for (const arg of term.args) qualifyTerm(arg, module);
+  return term;
+}
 
 export function nextFreshId() {
   return ++freshCounter;
@@ -18,7 +25,7 @@ export function nextFreshId() {
 export class Solver {
   constructor(program, options = {}) {
     this.registry = options.registry ?? getEyePrologRegistry();
-    this.program = this.registry?.eyePrologLibrary ? ensureEyePrologLibrary(program) : program;
+    this.program = program;
     this.mutableProgram = program.mutable === true;
     this.programRevision = this.program.revision ?? 0;
     this.maxDepth = options.maxDepth ?? 100000;
@@ -226,6 +233,19 @@ export class Solver {
           depth++;
           continue;
         }
+        if (goal.type === COMPOUND && goal.name === ':' && goal.arity === 2) {
+          const module = deref(goal.args[0], env);
+          if (module.type === 'var') throw new PrologError('instantiation_error');
+          if (module.type !== 'atom') throw new PrologError('type_error(atom)', module);
+          const qualified = deref(goal.args[1], env);
+          if (qualified.type !== COMPOUND && qualified.type !== 'atom') {
+            throw new PrologError('type_error(callable)', qualified);
+          }
+          qualifyTerm(qualified, module.name);
+          goals = [qualified, ...rest];
+          depth++;
+          continue;
+        }
 
         const callable = goal.type === COMPOUND || goal.type === 'atom';
         const def = callable ? this.registry.get(goal.name, goal.arity) : null;
@@ -255,7 +275,7 @@ export class Solver {
 
         this.stats.solve_one_goal_calls++;
         if (!callable) break;
-        const group = this.program.findGroup(goal.name, goal.arity);
+        const group = this.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
         if (!group) {
           if (this.prologFlags.get('unknown')?.value?.name === 'error') {
             throw new PrologError(
@@ -265,11 +285,12 @@ export class Solver {
           }
           break;
         }
+        qualifyMetaArguments(goal, group);
 
         if (group.tabled) {
           const key = memoKey(goal, env, group);
           if (key.hasBound) {
-            const mapKey = `${goal.name}/${goal.arity}:${key.text}`;
+            const mapKey = `${group.module}:${goal.name}/${goal.arity}:${key.text}`;
             let entry = this.memo.get(mapKey);
             if (!entry) {
               entry = makeMemoEntry();
@@ -319,8 +340,9 @@ export class Solver {
     this.stats.solve_one_goal_calls++;
     if (depth > this.maxDepth || this.solutionsSeen >= this.solutionLimit) return;
     if (goal.type !== COMPOUND && goal.type !== 'atom') return;
-    const group = this.program.findGroup(goal.name, goal.arity);
+    const group = this.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
     if (!group) return;
+    qualifyMetaArguments(goal, group);
     if (group.tabled) {
       yield* this.solveMemoizedGoal(group, goal, rest, env, depth);
       return;
@@ -381,6 +403,16 @@ export class Solver {
     this.active.pop();
   }
 
+}
+
+function qualifyMetaArguments(goal, group) {
+  const callerModule = goal.module ?? 'user';
+  for (const index of group.metaArgumentPositions ?? []) {
+    const argument = goal.args[index];
+    if (argument && (argument.type === COMPOUND || argument.type === 'atom')) {
+      qualifyTerm(argument, callerModule);
+    }
+  }
 }
 
 function defaultPrologFlags(unknown = 'error') {
@@ -545,7 +577,7 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
     if (goal.type !== COMPOUND) break;
     const def = solver.registry.get(goal.name, goal.arity);
     if (def) break;
-    const group = solver.program.findGroup(goal.name, goal.arity);
+    const group = solver.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
     if (!group || group.tabled || !group.scalarFactsOnly) break;
     groups.push(group);
     runLength++;
@@ -823,7 +855,7 @@ function tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, 
       return true;
     }
     const resolvedNextGoal = match.nextGoal;
-    const nextGroup = solver.program.findGroup(resolvedNextGoal.name, resolvedNextGoal.arity);
+    const nextGroup = solver.program.findGroup(resolvedNextGoal.name, resolvedNextGoal.arity, resolvedNextGoal.module ?? 'user');
     if (!nextGroup) return false;
 
     currentGoal = resolvedNextGoal;

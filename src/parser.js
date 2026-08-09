@@ -58,6 +58,7 @@ const INFIX_OPERATORS = new Map([
   ['=<', { precedence: 20, associativity: 'none' }],
   ['>', { precedence: 20, associativity: 'none' }],
   ['>=', { precedence: 20, associativity: 'none' }],
+  [':', { precedence: 25, associativity: 'right' }],
   ['+', { precedence: 30, associativity: 'left' }],
   ['-', { precedence: 30, associativity: 'left' }],
   ['/\\', { precedence: 30, associativity: 'left' }],
@@ -290,7 +291,10 @@ class Parser {
       this.pos += 2;
       return { type: TOK.IF, text: ':-', line };
     }
-    if (ch === ':') throw new Error('colon names are not supported; use name or prefix_name');
+    if (ch === ':') {
+      this.take();
+      return { type: TOK.ATOM, text: ':', line };
+    }
 
     if (ch === '"' || ch === "'") {
       const quote = this.take();
@@ -594,8 +598,9 @@ class Parser {
         this.advance();
         const directive = this.parseTerm();
         const supportedDirective = directive.type === 'compound' && (
-          (['dynamic', 'multifile', 'discontiguous', 'initialization', 'include', 'ensure_loaded'].includes(directive.name) && directive.arity === 1) ||
-          (['char_conversion', 'set_prolog_flag'].includes(directive.name) && directive.arity === 2)
+          (['dynamic', 'multifile', 'discontiguous', 'initialization', 'include', 'ensure_loaded',
+            'use_module', 'meta_predicate'].includes(directive.name) && directive.arity === 1) ||
+          (['char_conversion', 'set_prolog_flag', 'module', 'use_module'].includes(directive.name) && directive.arity === 2)
         );
         const operator = this.applyOperatorDirective(directive, line);
         if (!supportedDirective && !operator) {
@@ -605,7 +610,10 @@ class Parser {
         this.applyParserFlagDirective(directive);
         this.advance();
         const clause = { head: compound(':-', [directive]), body: [] };
-        clauseNumber++;
+        // Module loading declarations describe the compilation unit rather
+        // than an executable source clause, so they do not shift proof clause
+        // numbers in the importing file.
+        if (!['module', 'use_module', 'meta_predicate'].includes(directive.name)) clauseNumber++;
         if (this.sourceMetadata) clause.source = { filename: this.filename, line, clause: clauseNumber };
         accept(clause);
         continue;

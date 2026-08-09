@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Weighted path enumeration adapted from Eyeling dijkstra.n3.
 %
 % The Eyeling source uses collect/sort built-ins for Dijkstra's queue.  This

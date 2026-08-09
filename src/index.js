@@ -14,11 +14,11 @@ export {
 export {
   createEyePrologRegistry,
   getEyePrologRegistry,
-  ensureEyePrologLibrary,
+  standardLibrarySources,
   eyePrologLibraryIndicators,
   eyePrologNativeLibraryIndicators,
   eyePrologPortableLibraryIndicators,
-} from './eyeprolog-autoload.js';
+} from './standard-library.js';
 export { StreamManager } from './io.js';
 
 import { ATOM, COMPOUND, VAR, Env, copyResolved, termIsGround, termToString } from './term.js';
@@ -26,7 +26,7 @@ import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { whyNoProof, whyProof } from './explain.js';
 import { HaltSignal, PrologError } from './iso.js';
-import { getEyePrologRegistry } from './eyeprolog-autoload.js';
+import { getEyePrologRegistry } from './standard-library.js';
 import { parseGoalText } from './parser.js';
 
 export function run(source, options = {}) {

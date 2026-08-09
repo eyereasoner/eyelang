@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 26 — Answers are existential witnesses.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 triple(A, B, C) :-
   between(1, 20, A),
   between(A, 20, B),

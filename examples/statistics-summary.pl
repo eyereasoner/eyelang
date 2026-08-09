@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Population statistics for a small numeric sample.
 %
 % The sample is the textbook data set [2,4,4,4,5,5,7,9], whose population

@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % A tiny automatically tabled chart parser for a context-free grammar.
 %
 % span(Sentence, Category, Start, End) is the dynamic-programming chart item:

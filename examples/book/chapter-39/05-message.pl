@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 39.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 message(event_17,
         (severity(high), source(sensor_3), reading(temp, 91))).
 

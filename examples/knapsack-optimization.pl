@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % 0/1 knapsack optimization with aggregate_max/5.
 %
 % subset/2 enumerates candidate expedition packs; total_weight/2 and total_value/2

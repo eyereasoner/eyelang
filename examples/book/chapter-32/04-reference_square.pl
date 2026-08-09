@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 32 — Compare specification and implementation.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 reference_square(N, S) :-
   between(0, 20, N),
   (S is N * N).

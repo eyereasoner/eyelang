@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Allen interval calculus adapted from Eyeling allen-interval-calculus.n3.
 % Eyeling demonstrates dateTime and duration built-ins; this eyeprolog version
 % uses integer hour offsets so the interval rules remain pure Horn clauses.

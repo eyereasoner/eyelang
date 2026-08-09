@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Weighted interval scheduling via automatically tabled dynamic programming.
 %
 % Intervals are ordered by finish time.  best_from(I,Best) compares the two

@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Matrix-chain multiplication order by automatically tabled interval dynamic programming.
 %
 % cost(I, J, Cost) is the minimum scalar multiplication cost for matrices I..J.

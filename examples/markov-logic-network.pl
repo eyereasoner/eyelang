@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Markov Logic Network style scoring over a tiny finite domain.
 %
 % EyeProlog is deterministic, so this is not a probabilistic MLN engine.  The

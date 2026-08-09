@@ -33,14 +33,14 @@ Programs may declare their default queries with `%% goal:` comments.
 Double-quoted text follows the ISO `double_quotes` flag and defaults to a
 proper list of one-character atoms (`chars`), matching Trealla and Scryer.
 
-## Portable library
+## Standard library modules
 
 EyeProlog adds 44 public library predicates to its 127-entry ISO core registry.
-**All 44 are ordinary Prolog clauses** across `src/eyeprolog-library.pl` and
-`src/eyeprolog-common-library.pl`; both are autoloaded in Node and the
-browser. None requires host support. Other Prolog systems should load only
-`eyeprolog-library.pl`, which avoids redefining their common list predicates.
-Portable text predicates use ISO atoms or character lists.
+**All 44 are ordinary Prolog clauses** in `src/lib/eyeprolog.pl` and
+`src/lib/lists.pl`. They are ISO/IEC 13211-2 modules, loaded explicitly with
+`use_module(library(eyeprolog))` or `use_module(library(lists))`, following the
+layout used by Scryer Prolog. None requires host support. Portable text
+predicates use ISO atoms or character lists.
 
 ## Development
 

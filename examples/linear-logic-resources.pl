@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Linear logic emulation with explicit consumable resources.
 %
 % EyeProlog predicates are reusable Horn clauses, so this example represents the

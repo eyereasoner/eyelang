@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Built-ins use one native spelling each, while vocabulary-style predicate names
 % remain ordinary user predicates.
 %

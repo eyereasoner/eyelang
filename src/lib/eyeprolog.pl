@@ -1,7 +1,42 @@
+/** EyeProlog portable extensions. */
+
+:- module(eyeprolog, [
+    uuid/3,
+    difference/3,
+    lt/2,
+    gt/2,
+    le/2,
+    ge/2,
+    between/3,
+    smallest_divisor_from/3,
+    random/3,
+    matches/3,
+    split/3,
+    replace/4,
+    lowercase/2,
+    uppercase/2,
+    trim/2,
+    number_string/2,
+    atom_string/2,
+    term_string/2,
+    string_concat/3,
+    contains/2,
+    matches/2,
+    join/3,
+    substring/4,
+    set_nth0/4,
+    take/3,
+    drop/3,
+    slice/4,
+    sumall/3,
+    aggregate_min/5,
+    aggregate_max/5
+]).
+
 % EyeProlog portable library.
 %
-% This file is autoloaded for the EyeProlog runtime and is intentionally
-% written against the project's ISO compatibility profile.  Text-facing
+% This module is loaded explicitly with use_module(library(eyeprolog)) and is
+% written against the project's ISO compatibility profile. Text-facing
 % predicates accept ISO atoms or proper lists of one-character atoms; newly
 % produced text defaults to atoms. Every public predicate in this file uses
 % only the project's ISO Prolog profile; none requires host support.

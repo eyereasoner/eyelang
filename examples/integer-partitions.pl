@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Integer partition counts by tabled dynamic programming.
 %
 % partitions(N, K, Count) counts unordered sums of N using parts no larger than K.

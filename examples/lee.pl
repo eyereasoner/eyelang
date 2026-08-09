@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Lee routing for VLSI circuits
 % Code from the book "The Art of Prolog" Chapter 16
 

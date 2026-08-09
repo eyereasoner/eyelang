@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Four-colour search for the European Union neighbour graph.
 %
 % This is a finite executable version of the source map-colouring example.  The

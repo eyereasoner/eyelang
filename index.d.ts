@@ -52,11 +52,13 @@ export interface EyePrologClause {
   index?: number;
   filename?: string;
   clauseNumber?: number;
+  module?: string;
 }
 
 export interface EyePrologPredicateGroup {
   name: string;
   arity: number;
+  module: string;
   clauses: EyePrologClause[];
   argIndexes: unknown[];
   demandIndexes: Map<string, unknown>;
@@ -90,6 +92,8 @@ export class Program {
   constructor(clauses?: EyePrologClause[], options?: EyePrologRunOptions);
   clauses: EyePrologClause[];
   groups: Map<string, EyePrologPredicateGroup>;
+  modules: Map<string, { name: string; exports: Map<string, unknown>; filename: string }>;
+  moduleImports: Map<string, Map<string, string>>;
   doubleQuotes: 'chars' | 'codes' | 'atom';
   negationDependencies: Array<{ from: string; to: string; negative: boolean }>;
   negationStratificationErrors: Array<{ from: string; to: string }>;
@@ -98,7 +102,7 @@ export class Program {
   static parseSources(sources?: Array<string | EyePrologSourcePart>, options?: EyePrologRunOptions): Program;
   makeGroup(name: string, arity: number): EyePrologPredicateGroup;
   indexClause(clause: EyePrologClause): void;
-  findGroup(name: string, arity: number): EyePrologPredicateGroup | null;
+  findGroup(name: string, arity: number, module?: string): EyePrologPredicateGroup | null;
   markRecursivePredicates(): void;
   analyzeNegationStratification(): Array<{ from: string; to: string }>;
   assertStratifiedNegation(): true;
@@ -189,7 +193,7 @@ export function createDefaultRegistry(): BuiltinRegistry;
 export function createEyePrologRegistry(): BuiltinRegistry;
 export function getDefaultRegistry(): BuiltinRegistry;
 export function getEyePrologRegistry(): BuiltinRegistry;
-export function ensureEyePrologLibrary(program: Program): Program;
+export const standardLibrarySources: ReadonlyMap<string, { filename: string; source: string }>;
 export const eyePrologLibraryIndicators: readonly string[];
 export const eyePrologNativeLibraryIndicators: readonly string[];
 export const eyePrologPortableLibraryIndicators: readonly string[];
@@ -260,7 +264,7 @@ declare const eyeprolog: {
   createEyePrologRegistry: typeof createEyePrologRegistry;
   getDefaultRegistry: typeof getDefaultRegistry;
   getEyePrologRegistry: typeof getEyePrologRegistry;
-  ensureEyePrologLibrary: typeof ensureEyePrologLibrary;
+  standardLibrarySources: typeof standardLibrarySources;
   eyePrologLibraryIndicators: typeof eyePrologLibraryIndicators;
   eyePrologNativeLibraryIndicators: typeof eyePrologNativeLibraryIndicators;
   eyePrologPortableLibraryIndicators: typeof eyePrologPortableLibraryIndicators;

@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Dog-license compliance rule adapted from Eyeling dog.n3.
 %
 % hasDog/2 records individual dogs.  dogCount/2 uses countall/2 to aggregate all

@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Tiny job-shop scheduling benchmark.
 %
 % Three jobs each require one mill operation and one lathe operation, with fixed

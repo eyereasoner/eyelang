@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 /* ───────────────────────────────────────────────────────────────────────────
    Quine-McCluskey Logic Minimizer for Eyelet
    

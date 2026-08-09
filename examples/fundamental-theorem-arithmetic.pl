@@ -1,3 +1,6 @@
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 % Adapted from Eyeling's fundamental-theorem-arithmetic.n3.
 % Compute a prime factorization by repeated smallest-divisor decomposition,
 % then check product reconstruction and primality of the distinct factors.
@@ -37,7 +40,7 @@ divides(A, B) :-
   (B > 0),
   (0 is B mod A).
 
-% smallest_divisor_from/3 is supplied by eyeprolog-library.pl. Its
+% smallest_divisor_from/3 is exported by library(eyeprolog). Its
 % implementation is plain Prolog and avoids repeating a long trial scan for
 % values that are prime.
 

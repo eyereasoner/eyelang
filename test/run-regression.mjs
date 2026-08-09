@@ -50,14 +50,20 @@ const bin = path.join(packageRoot, 'bin', 'eyeprolog.js');
 const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
 let tmp = null;
 let tmpCounter = 0;
+const libraryCall = /\b(?:uuid|difference|maplist|lt|gt|le|ge|between|smallest_divisor_from|random|matches|split|replace|lowercase|uppercase|trim|number_string|atom_string|term_string|append|string_concat|contains|join|substring|member|select|last|nth0|nth1|set_nth0|take|drop|slice|reverse|length|sum_list|min_list|max_list|list_to_set|countall|sumall|aggregate_min|aggregate_max)\s*\(/;
+
+function withStandardModules(source) {
+  if (!libraryCall.test(source) || source.includes('use_module(library(') || source.includes(':- module(')) return source;
+  return `:- use_module(library(eyeprolog)).\n:- use_module(library(lists)).\n${source}`;
+}
 
 function run(source, options = {}) {
   const programSource = Array.isArray(source) ? source.join('\n') : source;
-  const text = programSource instanceof Program ? programSource : String(programSource);
+  const text = programSource instanceof Program ? programSource : withStandardModules(String(programSource));
   const goals = options.goals ?? (options.goal == null
     ? (programSource instanceof Program ? [] : goalsFromSource(text))
     : [options.goal]);
-  return runEyeProlog(programSource, { ...options, goals });
+  return runEyeProlog(programSource instanceof Program ? programSource : text, { ...options, goals });
 }
 
 function sourceAtom(value) {
@@ -213,10 +219,10 @@ why(
       },
     },
     {
-      name: 'CLI loads EyeProlog library predicates by default',
+      name: 'CLI loads an explicitly imported standard library module',
       run: () => {
         const result = runCli(['-'], {
-          input: '%% goal: answer(X)\nanswer(X) :- member(X, [library]).\n',
+          input: ':- use_module(library(lists), [member/2]).\n%% goal: answer(X)\nanswer(X) :- member(X, [library]).\n',
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, 'answer(library).\n', 'stdout');
@@ -589,7 +595,7 @@ function documentationSyncCases() {
           '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
           'README cover links to the book',
         );
-        for (const filename of ['src/iso.js', 'src/eyeprolog-autoload.js', 'src/playground-worker.js']) {
+        for (const filename of ['src/iso.js', 'src/standard-library.js', 'src/lib/eyeprolog.pl', 'src/lib/lists.pl', 'src/playground-worker.js']) {
           assertEqual(fs.existsSync(path.join(packageRoot, filename)), true, `${filename} exists`);
           assertIncludes(book, filename, `book documents ${filename}`);
         }
@@ -965,16 +971,16 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
-      name: 'run loads the EyeProlog library by default',
+      name: 'run executes an explicitly imported list module',
       run: () => {
-        const result = run('answer(X) :- append([a], [b], X).', { goal: 'answer(X)' });
+        const result = run(':- use_module(library(lists), [append/3]).\nanswer(X) :- append([a], [b], X).', { goal: 'answer(X)' });
         assertEqual(result.stdout, 'answer("ab").\n', 'stdout');
       },
     },
     {
-      name: 'Solver loads the EyeProlog library by default',
+      name: 'Solver executes an explicitly imported list module',
       run: () => {
-        const program = Program.parse('answer(X) :- append([a], [b], X).');
+        const program = Program.parse(':- use_module(library(lists)).\nanswer(X) :- append([a], [b], X).');
         const solver = new Solver(program);
         const goal = parseGoalText('answer(X)');
         const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
@@ -1045,32 +1051,30 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
-      name: 'EyeProlog portable library autoloads Prolog clauses',
+      name: 'ISO Part 2 library modules load Prolog clauses explicitly',
       run: () => {
-        const program = Program.parse('answer(X) :- append([a], [b], X).');
+        const program = Program.parse(':- use_module(library(lists)).\n:- use_module(library(eyeprolog)).\nanswer(X) :- append([a], [b], X).');
         const solver = new Solver(program);
         assertEqual(solver.program, program, 'solver keeps original program object');
-        assertEqual(Boolean(program.findGroup('append', 3)), true, 'append/3 is autoloaded as a clause group');
-        assertEqual(program.findGroup('append', 3).clauses.every((clause) => clause.eyePrologLibraryPortable === true), true, 'append clauses are marked portable library clauses');
-        const betweenGenerator = program.findGroup('eyeprolog__between', 3);
-        assertEqual(betweenGenerator.cutRecursive, true, 'portable between generator has deterministic recursive control');
-        assertEqual(betweenGenerator.tabled, false, 'portable between generator avoids suffix answer tables');
-        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'eyeprolog-library.pl')), true, 'portable Prolog source exists');
-        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'eyeprolog-autoload.js')), true, 'portable source autoloader exists');
-        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'eyeprolog-common-library.pl')), true, 'pure-Prolog common library exists');
+        assertEqual(program.findGroup('append', 3)?.module, 'lists', 'append/3 is imported from library(lists)');
+        const betweenGenerator = program.findGroup('eyeprolog__between', 3, 'eyeprolog');
+        assertEqual(betweenGenerator.recursive, false, 'bundled module keeps its written ISO recursive control');
+        assertEqual(betweenGenerator.tabled, false, 'bundled module avoids implicit answer tables');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'eyeprolog.pl')), true, 'portable module exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'standard-library.js')), true, 'standard module registry exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'lists.pl')), true, 'lists module exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'eyeprolog-autoload.js')), false, 'obsolete autoloader is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'library-source.js')), false, 'duplicate source loader is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'portable-library.js')), false, 'obsolete duplicate module remains absent');
-        assertEqual(run(program, { goal: 'answer(X)' }).stdout, 'answer("ab").\n', 'autoloaded append execution');
-        assertEqual(Boolean(program.findGroup('random', 3)), true, 'random/3 is autoloaded as a clause group');
+        assertEqual(run(program, { goal: 'answer(X)' }).stdout, 'answer("ab").\n', 'imported append execution');
+        assertEqual(program.findGroup('random', 3)?.module, 'eyeprolog', 'random/3 is imported from library(eyeprolog)');
       },
     },
     {
       name: 'portable library executes against the ISO-only registry',
       run: () => {
-        const portableSource = fs.readFileSync(path.join(packageRoot, 'src', 'eyeprolog-library.pl'), 'utf8');
-        const commonSource = fs.readFileSync(path.join(packageRoot, 'src', 'eyeprolog-common-library.pl'), 'utf8');
-        const program = Program.parse(`${portableSource}
-${commonSource}
+        const program = Program.parse(`:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
 portable_check(A, B, C) :- lowercase('HELLO', A), replace('banana', 'na', 'NA', B), append([x], [y], C).
 `);
         const solver = new Solver(program, { registry: createDefaultRegistry() });
@@ -1080,6 +1084,31 @@ portable_check(A, B, C) :- lowercase('HELLO', A), replace('banana', 'na', 'NA', 
         assertEqual(Boolean(program.findGroup('uuid', 3)), true, 'uuid/3 is implemented in the portable file');
         assertEqual(program.findGroup('uuid', 1), null, 'obsolete uuid/1 is absent');
         assertEqual(program.findGroup('local_time', 1), null, 'local_time/1 is absent from the library');
+      },
+    },
+    {
+      name: 'Part 2 modules isolate predicates and support selective imports',
+      run: () => {
+        const directory = path.join(tmp, `modules-${++tmpCounter}`);
+        fs.mkdirSync(directory);
+        fs.writeFileSync(path.join(directory, 'colors.pl'), [
+          ':- module(colors, [tone/1]).',
+          'tone(blue).',
+          'hidden(module_private).',
+          '',
+        ].join('\n'));
+        const source = [
+          ":- use_module('colors.pl', [tone/1]).",
+          'hidden(user_local).',
+          'answer(Tone, Hidden) :- tone(Tone), hidden(Hidden).',
+          'qualified(ok) :- colors:tone(blue).',
+          '',
+        ].join('\n');
+        const program = Program.parseSources([{ text: source, filename: 'main.pl', baseDir: directory }]);
+        assertEqual(program.findGroup('tone', 1)?.module, 'colors', 'selective import resolves exported predicate');
+        assertEqual(program.findGroup('hidden', 1)?.module, 'user', 'same-named user predicate remains local');
+        assertEqual(run(program, { goals: ['answer(Tone, Hidden)', 'qualified(Status)'] }).stdout,
+          'answer(blue, user_local).\nqualified(ok).\n', 'module execution');
       },
     },
     {
@@ -1627,6 +1656,7 @@ function bookReferenceDocumentationIssues() {
 }
 
 function runWhy({ program, goalText, expected }) {
+  program = withStandardModules(program);
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
   const goal = parseGoalText(goalText);
@@ -1644,6 +1674,7 @@ function runWhy({ program, goalText, expected }) {
 }
 
 function runWhyLoose({ program, goalText }) {
+  program = withStandardModules(program);
   const programFile = path.join(tmp, `${++tmpCounter}.pl`);
   fs.writeFileSync(programFile, program);
   const goal = parseGoalText(goalText);

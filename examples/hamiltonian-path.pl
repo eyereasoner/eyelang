@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % Hamiltonian path, adapted from Eyelet's input/hamiltonian-path.pl.
 %
 % The graph is the same six-vertex undirected graph.  eyeprolog spells the finite

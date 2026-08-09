@@ -40,7 +40,7 @@ for (const match of book.matchAll(/^(## \d+\. ([^\n]+)|# ([^\n]+)|```eyeprolog\n
   const firstClause = source
     .split('\n')
     .map((line) => line.trim())
-    .find((line) => line && !line.startsWith('%'));
+    .find((line) => line && !line.startsWith('%') && !line.startsWith(':-'));
   const predicate = firstClause?.match(/^([a-z][a-z0-9_]*)\s*(?:\(|\.)/)?.[1] ?? 'program';
   const section = [...preceding.matchAll(/^### ([^\n]+)$/gm)].at(-1)?.[1] ?? '';
   chapter.examples.push({ predicate, section, source });

@@ -29,7 +29,7 @@ export async function runPlayground(reporter = new TestReporter()) {
 
   await reporter.testAsync('worker loads append/3 from the EyeProlog library', async () => {
     const result = executePlaygroundRequest({
-      source: 'answer(X) :- append([a], [b], X).\n',
+      source: ':- use_module(library(lists)).\nanswer(X) :- append([a], [b], X).\n',
       options: { goal: 'answer(X)' },
     }, deterministicClock());
     assertEqual(result.ok, true, 'worker result status');
@@ -39,11 +39,11 @@ export async function runPlayground(reporter = new TestReporter()) {
 
   await reporter.testAsync('worker keeps the EyeProlog library across runs', async () => {
     const first = executePlaygroundRequest({
-      source: 'answer(X) :- reverse([a, b, c], X).\n',
+      source: ':- use_module(library(lists)).\nanswer(X) :- reverse([a, b, c], X).\n',
       options: { goal: 'answer(X)' },
     });
     const second = executePlaygroundRequest({
-      source: 'answer(X) :- member(X, [red, green]).\n',
+      source: ':- use_module(library(lists)).\nanswer(X) :- member(X, [red, green]).\n',
       options: { goal: 'answer(X)' },
     });
     assertEqual(first.stdout, 'answer("cba").\n', 'first worker output');
@@ -56,7 +56,7 @@ export async function runPlayground(reporter = new TestReporter()) {
     installPlaygroundWorker(scope);
     scope.onmessage({
       data: {
-        source: 'answer(X) :- append([], [ok], X).\n',
+        source: ':- use_module(library(lists)).\nanswer(X) :- append([], [ok], X).\n',
         options: { goal: 'answer(X)', stats: true },
       },
     });
@@ -82,8 +82,8 @@ export async function runPlayground(reporter = new TestReporter()) {
         ['playground.html', 'text/html'],
         ['src/playground-worker.js', 'text/javascript'],
         ['src/index.js', 'text/javascript'],
-        ['src/eyeprolog-library.pl', 'text/plain'],
-        ['src/eyeprolog-common-library.pl', 'text/plain'],
+        ['src/lib/eyeprolog.pl', 'text/plain'],
+        ['src/lib/lists.pl', 'text/plain'],
         ['examples/socrates.pl', 'text/plain'],
       ];
       for (const [relative, contentType] of expected) {
@@ -98,7 +98,7 @@ export async function runPlayground(reporter = new TestReporter()) {
     await withStaticServer(async (baseUrl) => {
       const modules = await crawlModuleGraph(new URL('src/playground-worker.js?playground=test', baseUrl));
       assert(modules.size >= 10, `expected a substantial worker module graph, got ${modules.size}`);
-      assert([...modules].some((url) => url.includes('/src/eyeprolog-autoload.js')), 'EyeProlog autoloader missing from worker graph');
+      assert([...modules].some((url) => url.includes('/src/standard-library.js')), 'standard module registry missing from worker graph');
       assert([...modules].some((url) => url.includes('/src/solver.js')), 'solver missing from worker graph');
     });
   });

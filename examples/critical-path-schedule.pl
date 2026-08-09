@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Critical-path scheduling for a small project network.
 %
 % earliest_start/2 is the maximum finish time over all predecessors; finish_time/2

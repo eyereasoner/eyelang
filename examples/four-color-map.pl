@@ -1,3 +1,5 @@
+:- use_module(library(lists)).
+
 % EYE reasoning-inspired example: four-colour map check for the European Union.
 %
 % The source EYE example encodes the EU neighbourhood map and an answer assigning

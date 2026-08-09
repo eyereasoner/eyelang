@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 27 — Structural induction and data design.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 list_length([], 0).
 list_length([_ | Tail], N) :-
   list_length(Tail, M),

@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 39.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 cost(a, 8).
 cost(b, 3).
 cost(c, 3).

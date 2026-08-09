@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Gregorian Easter computus adapted from Eyeling's easter.n3.
 % Each case is a year in a sample decade.  The rules derive the Meeus/Jones/
 % Butcher remainders, the final month/day, and a separate window check showing

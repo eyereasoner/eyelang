@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Goldbach's_conjecture
 % See https://en.wikipedia.org/wiki/Goldbach%27s_conjecture:
 % every positive even number greater than 2 is the sum of two prime numbers

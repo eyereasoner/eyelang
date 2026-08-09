@@ -1,4 +1,7 @@
 % From The Art of EyeProlog, Chapter 26 — The least model as mathematical closure.
+:- use_module(library(eyeprolog)).
+:- use_module(library(lists)).
+
 edge(a, b).
 edge(b, c).
 

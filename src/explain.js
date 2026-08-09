@@ -4,7 +4,7 @@
 // human-readable and machine-readable.
 import { ATOM, COMPOUND, Env, Term, VAR, deref, flattenConjunction, freshTerm, termToString, unify, variantTerms } from './term.js';
 import { selectClauseCandidates } from './program.js';
-import { getEyePrologRegistry } from './eyeprolog-autoload.js';
+import { getEyePrologRegistry } from './standard-library.js';
 import { Solver, nextFreshId } from './solver.js';
 
 export function whyProof(program, goal, options = {}) {
@@ -67,14 +67,14 @@ function* proveGoalAll(program, goal, env, depth, maxDepth, registry, active) {
 
   if (goal.type !== ATOM && goal.type !== COMPOUND) return;
 
-  const group = program.findGroup(goal.name, goal.arity);
+  const group = program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
   if (!group) return;
 
-  // Keep proof output useful when a public EyeProlog library predicate is
-  // implemented by the autoloaded Prolog library.  The implementation remains
+  // Keep proof output useful when a public library predicate is implemented by
+  // a standard Prolog module. The implementation remains
   // ordinary clauses, but explanations collapse its private helper expansion
   // behind an explicit library(Name, Arity) boundary.
-  if (group.clauses.some((clause) => clause.eyePrologLibraryPortable === true)) {
+  if (group.module !== 'user' && program.modules.get(group.module)?.filename?.startsWith('src/lib/')) {
     const solver = new Solver(program, { registry });
     for (const next of solver.solve([goal], env.clone(), 0)) {
       const proofEnv = next.clone ? next.clone() : next;

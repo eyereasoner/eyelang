@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Convergents of sqrt(2) by automatically tabled recurrence.
 %
 % conv(N, P, Q) gives the Nth numerator/denominator pair for [1; 2, 2, ...].

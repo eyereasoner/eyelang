@@ -1,3 +1,5 @@
+:- use_module(library(eyeprolog)).
+
 % Pell equation x^2 - 2y^2 = 1 by automatically tabled recurrence.
 %
 % The fundamental solution (3,2) induces a linear recurrence for all positive
