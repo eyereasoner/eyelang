@@ -9,6 +9,13 @@ identifies its upstream test names. The cases were rewritten for EyeProlog's
 file-based query and exact-output harness and are therefore modified from the
 upstream files.
 
+Part 3 grammar cases are additionally adapted from Logtalk's
+`tests/logtalk/methods/phrase_2_3/tests.lgt` and
+`tests/logtalk/dcgs/tests.lgt` suites. Object and unit-test scaffolding was
+removed, translator-only assertions were converted to executable grammar
+behavior where possible, and expected list errors follow the Part 3
+`terminal_sequence` terminology used by EyeProlog.
+
 Copyright 1998-2026 Paulo Moura <pmoura@logtalk.org>
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use

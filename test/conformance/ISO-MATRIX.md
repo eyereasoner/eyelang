@@ -19,7 +19,7 @@ case totals.
 | 8.17 flags and hooks | required flags, mutation permissions, halt and character conversion | `exceptions_and_flags`, `remaining_builtins_and_directives`, flag error cases |
 | Clause 9 evaluable functors | integer, float, rounding, transcendental and bitwise operations | `arithmetic`, `corrigenda_arithmetic`, `corrigenda_atan2_zero`, `corrigenda_integer_negative_power` |
 | ISO/IEC 13211-2 modules | module declarations, exports, imports, qualification, meta-predicate context | `modules/qualified_call`, `modules/selective_library_import`, `dcg_module_nonterminal_indicator` |
-| ISO/IEC TS 13211-3 grammar rules | `-->`, terminal sequences, grammar control constructs, semicontexts, nonterminal indicators, `phrase/2-3` | `dcg_terminals_and_remainder`, `dcg_control_constructs`, `dcg_call_phrase_semicontext`, DCG error cases |
+| ISO/IEC TS 13211-3 grammar rules | `-->`, terminal and partial sequences, grammar control constructs, semicontexts, nonterminal indicators, modules, `phrase/2-3`, steadfastness and errors | `dcg_terminals_and_remainder`, `dcg_control_constructs`, `dcg_partial_sequences`, `dcg_phrase_steadfastness`, `dcg_dynamic_nonterminal_indicator`, `logtalk_dcg_phrase_identity`, `logtalk_dcg_semicontexts`, DCG error and precedence cases |
 
 Corrigendum-specific coverage includes double-quoted atom operator priority
 (Cor.1); the added predicates and evaluable functors, bar-operator rules,

@@ -1,0 +1,1 @@
+error(type_error(terminal_sequence), b)

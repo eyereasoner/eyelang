@@ -96,6 +96,10 @@ export function expandDcgBody(body, input, output, options = {}) {
     return goal;
   }
 
+  // Empty braces are the empty embedded-goal sequence. Like {true}, they
+  // consume no terminals and leave the grammar state unchanged.
+  if (body.type === ATOM && body.name === '{}') return equality(input, output);
+
   if (isTerminalSequence(body)) return terminalsGoal(body, input, output, env);
 
   if (body.type === COMPOUND && body.name === ',' && body.arity === 2) {
