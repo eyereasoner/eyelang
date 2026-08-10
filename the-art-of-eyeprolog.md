@@ -6046,13 +6046,13 @@ displays command-line help.
 ### Selecting goals
 
 A Prolog source file states facts, rules, and ISO directives; the command line
-selects what to solve. Supply `--goal` followed by a callable Prolog goal:
+selects what to solve. Supply `-g` or `--goal` followed by a callable Prolog goal:
 
 ```sh
 eyeprolog --goal 'ancestor(ada, Who)' examples/ancestor.pl
 ```
 
-Repeat `--goal` to request several result relations in one run. EyeProlog prints
+Repeat `-g` or `--goal` to request several result relations in one run. EyeProlog prints
 their ground answers in the order the goals were supplied.
 
 For a self-running example, place the host goal in an ordinary comment:
@@ -6061,8 +6061,8 @@ For a self-running example, place the host goal in an ordinary comment:
 %% goal: ancestor(ada, Who)
 ```
 
-When no `--goal` option is present, the CLI reads these comments from all input
-sources and runs them in source order. An explicit `--goal` overrides them.
+When no `-g` or `--goal` option is present, the CLI reads these comments from all
+input sources and runs them in source order. An explicit goal option overrides them.
 Because `%% goal:` is a comment rather than a Prolog directive, another ISO
 processor may ignore it and the program remains portable Prolog text. External
 goals are still preferable when a script, shell history, or API call should
@@ -6075,7 +6075,7 @@ make the observed question explicit.
 | `-s`, `--stats` | Print solver counters to stderr |
 | `-v`, `--version` | Print the package version |
 | `-w`, `--warnings` | Print non-fatal portability warnings |
-| `--goal Goal` | Solve a callable goal; may be repeated; overrides `%% goal:` comments |
+| `-g`, `--goal Goal` | Solve a callable goal; may be repeated; overrides `%% goal:` comments |
 | `--` | Treat following arguments as inputs |
 
 Short flags may be combined, so `-pw` is equivalent to `-p -w`.

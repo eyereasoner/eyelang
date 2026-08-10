@@ -210,6 +210,7 @@ why(
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'Usage:\n  eyeprolog\n  eyeprolog [options] [file-or-url.pl|- ...]', 'stdout');
         assertIncludes(result.stdout, 'With no arguments, start a Prolog REPL.', 'stdout');
+        assertIncludes(result.stdout, '-g, --goal goal', 'stdout');
         assertIncludes(result.stdout, '-p, --proof', 'stdout');
         assertIncludes(result.stdout, '-s, --stats', 'stdout');
         assertIncludes(result.stdout, '-v, --version', 'stdout');
@@ -364,6 +365,31 @@ why(
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, 'answer(explicit, selected).\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: '-g supplies an explicit CLI goal',
+      run: () => {
+        const input = [
+          '%% goal: answer(metadata, X)',
+          'value(metadata, ignored).',
+          'value(explicit, selected).',
+          'answer(Kind, Value) :- value(Kind, Value).',
+          '',
+        ].join('\n');
+        const result = runCli(['-g', 'answer(explicit, X)', '-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'answer(explicit, selected).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: '-g requires a goal argument',
+      run: () => {
+        const result = runCli(['-g']);
+        assertEqual(result.status, 1, 'exit status');
+        assertEqual(result.stdout, '', 'stdout');
+        assertEqual(result.stderr, 'eyeprolog: option -g requires a goal\n', 'stderr');
       },
     },
 

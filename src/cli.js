@@ -48,9 +48,9 @@ export async function main(argv) {
       options.version = true;
     } else if (!endOptions && (arg === '--warnings' || arg === '-w')) {
       options.warnings = true;
-    } else if (!endOptions && arg === '--goal') {
+    } else if (!endOptions && (arg === '--goal' || arg === '-g')) {
       const goal = argv[++i];
-      if (goal == null) throw new Error('option --goal requires a goal');
+      if (goal == null) throw new Error(`option ${arg} requires a goal`);
       options.goals.push(goal);
     } else if (!endOptions && arg.startsWith('-') && !arg.startsWith('--') && arg.length > 2) {
       const flags = arg.slice(1);
@@ -210,7 +210,7 @@ Options:
   -s, --stats           Print solver statistics to stderr after execution.
   -v, --version         Show the package version and exit.
   -w, --warnings        Print non-fatal portability warnings to stderr.
-  --goal goal           Solve goal and print its ground answers; may be repeated.
+  -g, --goal goal       Solve goal and print its ground answers; may be repeated.
                         If omitted, use %% goal: comments from the inputs.
   --                    Stop option parsing; following arguments are treated as files.
 `);
