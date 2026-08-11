@@ -3,10 +3,12 @@
 // unlike the former autoloader, no clauses are added unless use_module/1 or
 // use_module/2 requests their module.
 import { createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
+import { clpzBuiltins } from './clpz.js';
 import { fs, isNode } from './platform.js';
 
 const moduleFiles = Object.freeze({
   aggregate: 'aggregate.pl',
+  clpz: 'clpz.pl',
   comparison: 'comparison.pl',
   dates: 'dates.pl',
   iso_ext: 'iso_ext.pl',
@@ -20,7 +22,7 @@ const moduleFiles = Object.freeze({
 
 const cacheKey = isNode
   ? null
-  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260811a');
+  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260811b');
 
 export const standardLibrarySources = new Map(await Promise.all(
   Object.entries(moduleFiles).map(async ([name, filename]) => [name, {
@@ -42,7 +44,14 @@ function libraryUrl(filename) {
   return url;
 }
 
-export const eyePrologNativeLibraryIndicators = Object.freeze(['call_nth/2', 'freeze/2']);
+export const eyePrologNativeLibraryIndicators = Object.freeze([
+  'call_nth/2', 'freeze/2',
+  '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
+  '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
+  'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'sum/3',
+  'scalar_product/4', 'labeling/2', 'label/1', 'indomain/1', 'chain/2',
+  'element/3', 'fd_var/1', 'fd_inf/2', 'fd_sup/2', 'fd_size/2', 'fd_dom/2',
+]);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
   'sumall/3', 'aggregate_min/5', 'aggregate_max/5',
   'lt/2', 'gt/2', 'le/2', 'ge/2', 'difference/3',
@@ -65,6 +74,7 @@ export const eyePrologLibraryIndicators = Object.freeze([
 export function createEyePrologRegistry() {
   const registry = createDefaultRegistry();
   eyePrologLibraryBuiltins.register(registry);
+  clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;
 }

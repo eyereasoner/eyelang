@@ -815,7 +815,18 @@ c4 ?- call((!;1)).
           input: 'a(ok) :- true.\nb.\n',
         });
         assertEqual(succeeding.status, 0, 'succeeding conjunction status');
-        assertEqual(succeeding.stdout, '(a(ok), b).\n', 'succeeding conjunction stdout');
+        assertEqual(succeeding.stdout, 'a(ok), b.\n', 'succeeding conjunction stdout');
+      },
+    },
+    {
+      name: 'CLI answers render nested active operators with precedence',
+      run: () => {
+        const result = runCli(['--goal', 'answer(Domain)', '-'], {
+          input: ':- use_module(library(clpz)).\nanswer(Domain) :- X in 2..4 \\/ 7, fd_dom(X, Domain).\n',
+        });
+        assertEqual(result.status, 0, 'operator answer status');
+        assertEqual(result.stdout, 'answer(2..4 \\/ 7).\n', 'operator answer stdout');
+        assertEqual(result.stderr, '', 'operator answer stderr');
       },
     },
     {
@@ -887,8 +898,8 @@ c4 ?- call((!;1)).
           `read_codes(ok) :- set_prolog_flag(double_quotes, codes), open(${sourceAtom(quotesPath)}, read, S, []), read(S, [97, 98]), close(S).`,
           '',
         ].join('\n');
-        assertEqual(run(source, { goal: 'read_univ(T)' }).stdout, "read_univ('=..'(foo, [bar])).\n", 'univ term');
-        assertEqual(run(source, { goal: 'read_custom(T)' }).stdout, 'read_custom(likes(alice, bob)).\n', 'custom operator term');
+        assertEqual(run(source, { goal: 'read_univ(T)' }).stdout, 'read_univ(foo =.. [bar]).\n', 'univ term');
+        assertEqual(run(source, { goal: 'read_custom(T)' }).stdout, 'read_custom(alice likes bob).\n', 'custom operator term');
         assertEqual(run(source, { goal: 'read_invalid(ok)' }).stdout, 'read_invalid(ok).\n', 'invalid dotted term');
         assertEqual(run(source, { goal: 'read_codes(ok)' }).stdout, 'read_codes(ok).\n', 'double_quotes read flag');
       },
@@ -1137,7 +1148,7 @@ function apiCases() {
           '%% goal: answer(X)',
           'answer(X) :- saved(ready), X = (a joins b joins c).',
         ].join('\n'));
-        assertEqual(result.stdout, 'answer(joins(a, joins(b, c))).\n', 'stdout');
+        assertEqual(result.stdout, 'answer(a joins b joins c).\n', 'stdout');
       },
     },
     {
@@ -1427,19 +1438,20 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 131, 'EyeProlog registry contains ISO definitions and two private library adapters');
+        assertEqual(library.defs.size, 145, 'EyeProlog registry contains ISO definitions and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 2, 'public native EyeProlog builtin count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 31, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 60, 'portable Prolog library count');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 2, 'native host library count');
-        assertEqual(eyePrologNativeLibraryIndicators.join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 62, 'complete EyeProlog library surface');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 31, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
+        assertEqual(eyePrologLibraryIndicators.length, 91, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
         assertEqual(registry.get('eyeprolog__freeze', 2), null, 'private freeze adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__freeze', 2)), true, 'private freeze adapter is registered for EyeProlog');
+        assertEqual(Boolean(library.get('eyeprolog__clpz_labeling', 2)), true, 'private CLP(Z) labeling adapter is registered');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');
@@ -1464,6 +1476,7 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'eyeprolog.pl')), false, 'obsolete umbrella module is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'standard-library.js')), true, 'standard module registry exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'aggregate.pl')), true, 'aggregate module exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'clpz.pl')), true, 'CLP(Z) module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'iso_ext.pl')), true, 'ISO extension module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'lists.pl')), true, 'lists module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'prologue.pl')), true, 'Prologue module exists');
@@ -1509,7 +1522,27 @@ answer(Count, Bag, Pairs, Same) :-
         assertEqual(program.findGroup('forall', 2)?.module, 'iso_ext', 'forall/2 module');
         assertEqual(program.findGroup('findall', 4)?.module, 'iso_ext', 'findall/4 module');
         assertEqual(run(program, { goal: 'answer(Count, Bag, Pairs, Same)' }).stdout,
-          "answer(2, [a, b, tail], ['-'(1, 2), '-'(2, 3)], true).\n", 'ISO extension answer');
+          'answer(2, [a, b, tail], [1 - 2, 2 - 3], true).\n', 'ISO extension answer');
+      },
+    },
+    {
+      name: 'CLP(Z) module keeps finite constraints logical through labeling',
+      run: () => {
+        const program = Program.parse(`:- use_module(library(clpz)).
+answer(X, Y, B) :-
+  [X, Y] ins 1..4,
+  X + Y #= 5,
+  X #< Y,
+  all_distinct([X, Y]),
+  chain(#<, [X, Y]),
+  B in 0..1,
+  B #<==> X #= 1,
+  labeling([ff, down], [X, Y, B]).
+contradiction :- Z in 1..3, Z = 4.
+`);
+        assertEqual(program.findGroup('labeling', 2)?.module, 'clpz', 'labeling/2 module');
+        assertEqual(run(program, { goals: ['answer(X, Y, B)', 'contradiction'] }).stdout,
+          'answer(1, 4, 1).\nanswer(2, 3, 0).\n', 'CLP(Z) constrained answers');
       },
     },
     {

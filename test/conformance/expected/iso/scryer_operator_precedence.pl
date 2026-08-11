@@ -1,1 +1,1 @@
-scryer_operator_precedence(fy(yf(1)), fy(yfx(1, 2)), xfy(1, yf(2)), fy(fy(0))).
+scryer_operator_precedence(fy 1 yf, fy 1 yfx 2, 1 xfy 2 yf, fy fy 0).

@@ -1,6 +1,7 @@
 // Program representation and clause indexing.
 // Indexes are deliberately conservative: they speed up common scalar arguments but never replace unification as the final check.
 import { ATOM, COMPOUND, VAR, Env, atom, compound, deref, flattenConjunction, isScalar, numberTerm, properListItems, termToString, variable } from './term.js';
+import { formatTermForWrite } from './write.js';
 import {
   ISO_OPERATOR_DEFINITIONS,
   createParserOperatorState,
@@ -440,16 +441,21 @@ export class Program {
   sourceFactLines(predicateKeys = null, options = {}) {
     const lines = new Set();
     const env = new Env();
+    const writeOptions = {
+      ...options,
+      operators: options.operators ?? [...this.operators.values()],
+      quoted: true,
+    };
     for (const clause of this.clauses) {
       if (isCompactBinaryClause(clause)) {
         if (clause.bodyName != null) continue;
         if (predicateKeys && !predicateKeys.has(`${clause.headName}/2`)) continue;
-        lines.add(`${termToString(clause.head, env, true, options)}.\n`);
+        lines.add(`${formatTermForWrite(clause.head, env, writeOptions)}.\n`);
         continue;
       }
       if (clause.body.length !== 0 || (clause.head.type !== ATOM && clause.head.type !== COMPOUND)) continue;
       if (predicateKeys && !predicateKeys.has(`${clause.head.name}/${clause.head.arity}`)) continue;
-      lines.add(`${termToString(clause.head, env, true, options)}.\n`);
+      lines.add(`${formatTermForWrite(clause.head, env, writeOptions)}.\n`);
     }
     return lines;
   }

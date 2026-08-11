@@ -22,13 +22,14 @@ export {
 export { StreamManager } from './io.js';
 export { runQuads } from './quads.js';
 
-import { ATOM, COMPOUND, VAR, Env, copyResolved, termIsGround, termToString } from './term.js';
+import { ATOM, COMPOUND, VAR, Env, copyResolved, termIsGround } from './term.js';
 import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { whyNoProof, whyProof } from './explain.js';
 import { HaltSignal, PrologError } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { parseGoalText } from './parser.js';
+import { formatTermForWrite } from './write.js';
 
 export function run(source, options = {}) {
   const includeWhy = options.proof === true || options.why === true || options.explain === true;
@@ -51,6 +52,8 @@ export function run(source, options = {}) {
   const goals = normalizeGoals(options, solver);
   const writeOptions = {
     doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+    operators: [...program.operators.values()],
+    quoted: true,
   };
   const queriedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
   const facts = program.sourceFactLines(queriedKeys, writeOptions);
@@ -65,8 +68,10 @@ export function run(source, options = {}) {
         if (!termIsGround(resolved)) continue;
         const currentWriteOptions = {
           doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+          operators: [...program.operators.values()],
+          quoted: true,
         };
-        const line = `${termToString(resolved, new Env(), true, currentWriteOptions)}.\n`;
+        const line = `${formatTermForWrite(resolved, new Env(), currentWriteOptions)}.\n`;
         if (facts.has(line) || seen.has(line)) continue;
         seen.add(line);
         output.push(line);

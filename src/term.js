@@ -46,6 +46,7 @@ export class Env {
       cache: null,
     };
     this._delays = null;
+    this._clpz = null;
   }
   clone() {
     // Most speculative environments are either rejected without a binding or
@@ -56,6 +57,7 @@ export class Env {
     const clone = Object.create(Env.prototype);
     clone._state = this._state;
     clone._delays = this._delays;
+    clone._clpz = this._clpz;
     return clone;
   }
   has(name) {

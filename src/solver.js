@@ -8,6 +8,7 @@ import { PrologError } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program.js';
 import { StreamManager } from './io.js';
+import { clpzStateConsistent } from './clpz.js';
 
 let freshCounter = 0;
 
@@ -224,6 +225,7 @@ export class Solver {
         }
 
         if (goals.length === 0) {
+          if (!clpzStateConsistent(env)) break;
           this.solutionsSeen++;
           this.stats.completed_goal_lists++;
           this.active = active;

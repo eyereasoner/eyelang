@@ -1,1 +1,1 @@
-clause_results(insect(ant), ['-'(ant, true), '-'(bee, true)]).
+clause_results(insect(ant), [ant - true, bee - true]).

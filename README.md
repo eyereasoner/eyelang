@@ -91,12 +91,13 @@ noun --> [world] | [prolog].
 %% goal: phrase(sentence, Words)
 ```
 
-EyeProlog also adds 62 public library predicate indicators to its 129-entry ISO
+EyeProlog also adds 91 public library predicate indicators to its 129-entry ISO
 profile. **60 are implemented entirely as ordinary Prolog clauses** in focused
-modules under `src/lib/`; `call_nth/2` and `freeze/2` use private host adapters
-for their control behavior.
+modules under `src/lib/`; the control predicates and finite-domain
+`library(clpz)` kernel use backtrackable host support.
 They are ISO/IEC 13211-2 modules loaded explicitly by purpose, such as
-`library(lists)`, `library(strings)`, or `library(aggregate)`. Portable text
+`library(lists)`, `library(strings)`, `library(aggregate)`, or `library(clpz)`.
+Portable text
 predicates use ISO atoms or character lists. The old catch-all
 `library(eyeprolog)` module is no longer needed.
 

@@ -5,6 +5,7 @@ import {
 } from './term.js';
 
 const graphicAtomCharacters = new Set('!#$&*+-/<=>@^~\\'.split(''));
+const compactInfixOperators = new Set([':', '..']);
 
 function atomNeedsQuotes(name) {
   if (!name) return true;
@@ -65,6 +66,28 @@ function writeString(value) {
   return out + '"';
 }
 
+function quotedListText(term, env, doubleQuotes) {
+  if (doubleQuotes !== 'chars' && doubleQuotes !== 'codes') return null;
+  const characters = [];
+  let cursor = term;
+  while (true) {
+    cursor = deref(cursor, env);
+    if (isEmptyList(cursor)) return characters.length === 0 ? null : characters.join('');
+    if (!isCons(cursor)) return null;
+    const item = deref(cursor.args[0], env);
+    if (doubleQuotes === 'chars') {
+      if (item.type !== ATOM || Array.from(item.name).length !== 1) return null;
+      characters.push(item.name);
+    } else {
+      if (item.type !== NUMBER || !/^\d+$/.test(item.name)) return null;
+      const code = BigInt(item.name);
+      if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) return null;
+      characters.push(String.fromCodePoint(Number(code)));
+    }
+    cursor = cursor.args[1];
+  }
+}
+
 function writeNumberedVariable(index) {
   if (!Number.isSafeInteger(index) || index < 0) return null;
   const letter = String.fromCharCode(65 + (index % 26));
@@ -117,6 +140,8 @@ function format(term, env, options, table, maxPriority = 1200) {
   }
 
   if (!options.ignoreOps && isCons(resolved)) {
+    const quotedText = quotedListText(resolved, env, options.doubleQuotes);
+    if (quotedText != null) return writeString(quotedText);
     const parts = [];
     let cursor = resolved;
     while (true) {
@@ -149,7 +174,9 @@ function format(term, env, options, table, maxPriority = 1200) {
         const rightPriority = specifier === 'xfy' ? priority : priority - 1;
         const left = format(resolved.args[0], env, options, table, leftPriority);
         const right = format(resolved.args[1], env, options, table, rightPriority);
-        text = resolved.name === ',' ? `${left}, ${right}` : `${left} ${token} ${right}`;
+        text = resolved.name === ',' ? `${left}, ${right}`
+          : compactInfixOperators.has(resolved.name) ? `${left}${token}${right}`
+            : `${left} ${token} ${right}`;
       }
       return priority > maxPriority ? `(${text})` : text;
     }
@@ -165,6 +192,7 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
     quoted: options.quoted === true,
     ignoreOps: options.ignoreOps === true,
     numbervars: options.numbervars !== false,
+    doubleQuotes: options.doubleQuotes,
     variableNames: options.variableNames instanceof Map ? options.variableNames : new Map(),
   };
   return format(term, env, normalized, operatorTable(options.operators), 1200);

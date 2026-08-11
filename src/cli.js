@@ -173,6 +173,8 @@ async function runDefault(engine, program, options) {
   const queriedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
   const writeOptions = {
     doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+    operators: [...program.operators.values()],
+    quoted: true,
   };
   const facts = program.sourceFactLines(queriedKeys, writeOptions);
   const lines = new Set();
@@ -186,8 +188,10 @@ async function runDefault(engine, program, options) {
 
         const currentWriteOptions = {
           doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+          operators: [...program.operators.values()],
+          quoted: true,
         };
-        const line = `${engine.termToString(goal, env, true, currentWriteOptions)}.\n`;
+        const line = `${engine.formatTermForWrite(goal, env, currentWriteOptions)}.\n`;
         if (facts.has(line) || lines.has(line)) continue;
 
         lines.add(line);

@@ -1,1 +1,1 @@
-answer('-'(x, y)).
+answer(x - y).

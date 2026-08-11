@@ -50,6 +50,19 @@ export async function runPlayground(reporter = new TestReporter()) {
     assertEqual(second.stdout, 'answer(red).\nanswer(green).\n', 'second worker output');
   });
 
+  await reporter.testAsync('worker runs finite-domain CLP(Z) programs', async () => {
+    const result = executePlaygroundRequest({
+      source: [
+        ':- use_module(library(clpz)).',
+        'answer(X, Y) :- [X, Y] ins 1..3, X #< Y, X + Y #= 4, labeling([ff], [X, Y]).',
+        '',
+      ].join('\n'),
+      options: { goal: 'answer(X, Y)' },
+    });
+    assertEqual(result.ok, true, 'CLP(Z) worker result status');
+    assertEqual(result.stdout, 'answer(1, 3).\n', 'CLP(Z) worker output');
+  });
+
   await reporter.testAsync('worker message protocol returns serializable results', async () => {
     const messages = [];
     const scope = { postMessage: (message) => messages.push(message) };

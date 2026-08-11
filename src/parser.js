@@ -1,6 +1,6 @@
 // Tokenizer and recursive-descent parser for the EyeProlog source language.
 // It preserves the compact Prolog-like syntax while producing Term objects for the solver.
-import { atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
+import { ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
 
 const TOK = {
   EOF: 'eof', ATOM: 'atom', VAR: 'var', STRING: 'string', NUMBER: 'number',
@@ -38,49 +38,49 @@ const graphicAtomChars = '#$&*+-./<=>@^~\\:';
 // ISO operator syntax is lowered to the same ordinary compound terms used by
 // canonical notation. Commas remain separators except inside parentheses.
 const INFIX_OPERATORS = new Map([
-  [':-', { precedence: 2, associativity: 'none' }],
-  ['-->', { precedence: 2, associativity: 'none' }],
-  ['|', { precedence: 4, associativity: 'right' }],
-  [';', { precedence: 5, associativity: 'right' }],
-  ['->', { precedence: 7, associativity: 'right' }],
-  [',', { precedence: 10, associativity: 'right' }],
-  ['=', { precedence: 20, associativity: 'none' }],
-  ['=..', { precedence: 20, associativity: 'none' }],
-  ['\\=', { precedence: 20, associativity: 'none' }],
-  ['==', { precedence: 20, associativity: 'none' }],
-  ['\\==', { precedence: 20, associativity: 'none' }],
-  ['@<', { precedence: 20, associativity: 'none' }],
-  ['@=<', { precedence: 20, associativity: 'none' }],
-  ['@>', { precedence: 20, associativity: 'none' }],
-  ['@>=', { precedence: 20, associativity: 'none' }],
-  ['is', { precedence: 20, associativity: 'none' }],
-  ['=:=', { precedence: 20, associativity: 'none' }],
-  ['=\\=', { precedence: 20, associativity: 'none' }],
-  ['<', { precedence: 20, associativity: 'none' }],
-  ['=<', { precedence: 20, associativity: 'none' }],
-  ['>', { precedence: 20, associativity: 'none' }],
-  ['>=', { precedence: 20, associativity: 'none' }],
-  [':', { precedence: 25, associativity: 'right' }],
-  ['+', { precedence: 30, associativity: 'left' }],
-  ['-', { precedence: 30, associativity: 'left' }],
-  ['/\\', { precedence: 30, associativity: 'left' }],
-  ['\\/', { precedence: 30, associativity: 'left' }],
-  ['*', { precedence: 40, associativity: 'left' }],
-  ['/', { precedence: 40, associativity: 'left' }],
-  ['//', { precedence: 40, associativity: 'left' }],
-  ['div', { precedence: 40, associativity: 'left' }],
-  ['mod', { precedence: 40, associativity: 'left' }],
-  ['rem', { precedence: 40, associativity: 'left' }],
-  ['<<', { precedence: 40, associativity: 'left' }],
-  ['>>', { precedence: 40, associativity: 'left' }],
-  ['**', { precedence: 50, associativity: 'none' }],
-  ['^', { precedence: 50, associativity: 'right' }],
+  [':-', { precedence: 1, associativity: 'none' }],
+  ['-->', { precedence: 1, associativity: 'none' }],
+  ['|', { precedence: 96, associativity: 'right' }],
+  [';', { precedence: 101, associativity: 'right' }],
+  ['->', { precedence: 151, associativity: 'right' }],
+  [',', { precedence: 201, associativity: 'right' }],
+  ['=', { precedence: 501, associativity: 'none' }],
+  ['=..', { precedence: 501, associativity: 'none' }],
+  ['\\=', { precedence: 501, associativity: 'none' }],
+  ['==', { precedence: 501, associativity: 'none' }],
+  ['\\==', { precedence: 501, associativity: 'none' }],
+  ['@<', { precedence: 501, associativity: 'none' }],
+  ['@=<', { precedence: 501, associativity: 'none' }],
+  ['@>', { precedence: 501, associativity: 'none' }],
+  ['@>=', { precedence: 501, associativity: 'none' }],
+  ['is', { precedence: 501, associativity: 'none' }],
+  ['=:=', { precedence: 501, associativity: 'none' }],
+  ['=\\=', { precedence: 501, associativity: 'none' }],
+  ['<', { precedence: 501, associativity: 'none' }],
+  ['=<', { precedence: 501, associativity: 'none' }],
+  ['>', { precedence: 501, associativity: 'none' }],
+  ['>=', { precedence: 501, associativity: 'none' }],
+  [':', { precedence: 601, associativity: 'right' }],
+  ['+', { precedence: 701, associativity: 'left' }],
+  ['-', { precedence: 701, associativity: 'left' }],
+  ['/\\', { precedence: 701, associativity: 'left' }],
+  ['\\/', { precedence: 701, associativity: 'left' }],
+  ['*', { precedence: 801, associativity: 'left' }],
+  ['/', { precedence: 801, associativity: 'left' }],
+  ['//', { precedence: 801, associativity: 'left' }],
+  ['div', { precedence: 801, associativity: 'left' }],
+  ['mod', { precedence: 801, associativity: 'left' }],
+  ['rem', { precedence: 801, associativity: 'left' }],
+  ['<<', { precedence: 801, associativity: 'left' }],
+  ['>>', { precedence: 801, associativity: 'left' }],
+  ['**', { precedence: 1001, associativity: 'none' }],
+  ['^', { precedence: 1001, associativity: 'right' }],
 ]);
 const PREFIX_OPERATORS = new Map([
-  ['\\+', 15],
-  ['+', 45],
-  ['-', 45],
-  ['\\', 45],
+  ['\\+', 301],
+  ['+', 1001],
+  ['-', 1001],
+  ['\\', 1001],
 ]);
 
 export const ISO_OPERATOR_DEFINITIONS = [
@@ -95,6 +95,14 @@ export const ISO_OPERATOR_DEFINITIONS = [
   ...['*', '/', '//', 'div', 'mod', 'rem', '<<', '>>'].map((name) => [400, 'yfx', name]),
   [200, 'xfx', '**'], [200, 'xfy', '^'],
   [200, 'fy', '+'], [200, 'fy', '-'], [200, 'fy', '\\'],
+];
+
+const CLPZ_OPERATOR_DEFINITIONS = [
+  [760, 'yfx', '#<==>'], [750, 'xfy', '#==>'], [750, 'yfx', '#<=='],
+  [740, 'yfx', '#\\/'], [730, 'yfx', '#\\'], [720, 'yfx', '#/\\'],
+  [710, 'fy', '#\\'],
+  ...['#>', '#<', '#>=', '#=<', '#=', '#\\=', 'in', 'ins'].map((name) => [700, 'xfx', name]),
+  [450, 'xfx', '..'],
 ];
 
 function operatorStrength(priority) {
@@ -204,6 +212,15 @@ class Parser {
     if (flag.type === 'atom' && flag.name === 'double_quotes' &&
         value.type === 'atom' && ['chars', 'codes', 'atom'].includes(value.name)) {
       this.parserFlagState.doubleQuotes = value.name;
+    }
+  }
+  applyImportedLibraryOperators(directive) {
+    if (directive.type !== COMPOUND || directive.name !== 'use_module' || ![1, 2].includes(directive.arity)) return;
+    const designation = directive.args[0];
+    if (designation?.type !== COMPOUND || designation.name !== 'library' || designation.arity !== 1 ||
+        designation.args[0]?.type !== ATOM || designation.args[0].name !== 'clpz') return;
+    for (const [priority, specifier, name] of CLPZ_OPERATOR_DEFINITIONS) {
+      this.defineOperator(priority, specifier, name);
     }
   }
   operatorTokenName(token = this.token) {
@@ -666,6 +683,7 @@ class Parser {
         }
         this.expect(TOK.DOT, '.');
         this.applyParserFlagDirective(directive);
+        this.applyImportedLibraryOperators(directive);
         this.advance();
         const clause = { head: compound(':-', [directive]), body: [] };
         // Module loading declarations describe the compilation unit rather

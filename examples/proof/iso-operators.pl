@@ -14,7 +14,7 @@ why(
   )
 ).
 
-report(observations, and(humidity, temperature)).
+report(observations, humidity and temperature).
 why(
   report(observations, and(humidity, temperature)),
   proof(
