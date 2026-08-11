@@ -6352,7 +6352,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **205 self-contained runnable programs**. Every
+top-level directory contains **206 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -6408,6 +6408,7 @@ mode at a time.
 | [Dynamic database](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl) | Initialization and ordered updates to a declared dynamic procedure. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-dynamic-database.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/iso-dynamic-database.pl) |
 | [Grouped solutions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-grouped-solutions.pl) | `findall/3`, `bagof/3`, `setof/3`, existential qualification, and `clause/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-grouped-solutions.pl) |
 | [Integer arithmetic](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-integer-arithmetic.pl) | Integer quotient/remainder choices plus bit operations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-integer-arithmetic.pl) |
+| [ISO extension pipeline audit](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-extension-pipeline-audit.pl) | A bounded pipeline audit composing every `library(iso_ext)` relation: nested counting, universal validation, successor generation, difference-list collection, and schema comparison modulo variable names. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-extension-pipeline-audit.pl) |
 | [ISO extensions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-extensions.pl) | Common control, collection, integer, and term-variant extensions from `library(iso_ext)`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-extensions.pl) |
 | [Operators](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-operators.pl) | Custom syntax, standard term order, and operator-table inspection. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-operators.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/iso-operators.pl) |
 | [Reflective terms](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-reflective-terms.pl) | Term shape, construction, copying, variables, identity, and standard order. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-reflective-terms.pl) |
