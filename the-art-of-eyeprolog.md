@@ -79,6 +79,30 @@ Then ask for the derivations:
 node bin/eyeprolog.js --proof examples/socrates.pl
 ```
 
+To use the published package, first verify that `node --version` reports Node.js
+18 or newer. Upgrade an older runtime through a Node version manager or the
+[official Node.js download](https://nodejs.org/en/download). A current Linux
+distribution can still expose an older Node.js package.
+
+The package can be launched without a global installation:
+
+```sh
+npx --yes eyeprolog
+```
+
+For a persistent command without administrator access, install into a
+user-owned prefix:
+
+```sh
+npm install --global --prefix "$HOME/.local" eyeprolog
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Persist the `PATH` export in the appropriate shell startup file. Do not use
+`sudo npm install`; npm's
+[EACCES guidance](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally/)
+recommends a Node version manager or a user-owned npm prefix.
+
 Readers who do not want to install anything can begin in the
 [browser playground](https://eyereasoner.github.io/eyeprolog/playground). Paste
 the source of `examples/socrates.pl` into the editor and run it. The playground

@@ -517,6 +517,27 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'npm can install the CLI under a user-owned prefix',
+      run: () => {
+        const prefix = path.join(tmp, `npm-prefix-${++tmpCounter}`);
+        const installed = spawnSync('npm', [
+          'install', '--global', '--prefix', prefix, '--loglevel=silent', '--no-audit', '--no-fund', '.',
+        ], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          env: { ...process.env, npm_config_update_notifier: 'false' },
+        });
+        assertEqual(installed.status, 0, 'install exit status');
+        const executable = process.platform === 'win32'
+          ? path.join(prefix, 'eyeprolog.cmd')
+          : path.join(prefix, 'bin', 'eyeprolog');
+        const result = spawnSync(executable, ['--version'], { encoding: 'utf8' });
+        assertEqual(result.status, 0, 'installed CLI exit status');
+        assertEqual(result.stdout, `eyeprolog ${pkg.version}\n`, 'installed CLI stdout');
+        assertEqual(result.stderr, '', 'installed CLI stderr');
+      },
+    },
+    {
       name: 'stdin input is accepted',
       run: () => {
         const result = runCli(['-'], { input: '%% goal: q(X, Y)\np(a, b).\nq(X, Y) :- p(X, Y).\n' });
@@ -977,6 +998,22 @@ function documentationSyncCases() {
         const binText = fs.readFileSync(binPath, 'utf8');
         assertEqual(binText.startsWith('#!/usr/bin/env node\n'), true, 'bin shebang');
         assertArrayEqual(misleadingDependencyInstallDocs(), [], 'misleading dependency install docs');
+      },
+    },
+    {
+      name: 'installation docs avoid unsupported Node and global npm permission traps',
+      run: () => {
+        assertEqual(pkg.engines?.node, '>=18', 'supported Node range');
+        for (const filename of ['README.md', 'the-art-of-eyeprolog.md']) {
+          const text = fs.readFileSync(path.join(packageRoot, filename), 'utf8');
+          assertIncludes(text, 'node --version', `${filename} checks Node version`);
+          assertIncludes(text, 'npx --yes eyeprolog', `${filename} offers a non-global launch`);
+          assertIncludes(text, 'npm install --global --prefix "$HOME/.local" eyeprolog', `${filename} uses a user prefix`);
+          assertIncludes(text, 'https://nodejs.org/en/download', `${filename} links Node upgrades`);
+          assertIncludes(text, 'https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally/', `${filename} links npm EACCES guidance`);
+          assertEqual(text.includes('sudo npm install'), true, `${filename} explicitly warns against sudo npm`);
+          assertEqual(/^\s*sudo npm install/m.test(text), false, `${filename} never recommends sudo npm`);
+        }
       },
     },
   ];

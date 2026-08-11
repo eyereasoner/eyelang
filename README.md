@@ -21,11 +21,22 @@ examples, proofs, conformance, and implementation.
 
 ## Quick start
 
-EyeProlog requires Node.js 18 or newer.
+EyeProlog requires Node.js 18 or newer. Check the active runtime before
+installing:
 
 ```sh
-npm install --global eyeprolog
-eyeprolog
+node --version
+```
+
+If it reports an older release, upgrade through a Node version manager or the
+[official Node.js download](https://nodejs.org/en/download) and check again.
+Distribution packages can provide an older Node.js even on a current operating
+system.
+
+Run EyeProlog without a global installation:
+
+```sh
+npx --yes eyeprolog
 ?- use_module(library(lists)).
    true.
 ?- member(X, [prolog, logic]).
@@ -34,11 +45,25 @@ eyeprolog
 ?- halt.
 ```
 
+For a persistent `eyeprolog` command without administrator access, install it
+under a user-owned prefix and put that prefix's `bin` directory on `PATH`:
+
+```sh
+npm install --global --prefix "$HOME/.local" eyeprolog
+export PATH="$HOME/.local/bin:$PATH"
+eyeprolog
+```
+
+Add the `PATH` export to your shell startup file to keep it across sessions.
+Do not use `sudo npm install`; npm's
+[EACCES guidance](https://docs.npmjs.com/resolving-eacces-permissions-errors-when-installing-packages-globally/)
+also recommends a Node version manager or a user-owned npm prefix.
+
 For a non-interactive run:
 
 ```sh
 printf 'human(socrates).\nmortal(X) :- human(X).\n' |
-  eyeprolog --proof --goal 'mortal(socrates)' -
+  npx --yes eyeprolog --proof --goal 'mortal(socrates)' -
 ```
 
 Programs may declare their default queries with `%% goal:` comments.
