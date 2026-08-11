@@ -104,6 +104,7 @@ export class Program {
       this.defineOperator(priority, specifier, name);
     }
     this.initializations = [];
+    this.quads = [];
     this.prologFlagDirectives = [];
     this.charConversionDirectives = [];
     this.doubleQuotes = options.doubleQuotes ?? 'chars';
@@ -471,6 +472,12 @@ class ProgramBuilder {
     let lastGroup = this.lastGroup;
 
     for (const clause of clauses) {
+      if (clause?.kind === 'quad') {
+        const module = clause.module ?? 'user';
+        annotateGoalModule(clause.query, module);
+        program.quads.push({ ...clause, module });
+        continue;
+      }
       clause.index = program.clauses.length;
       program.clauses.push(clause);
 
@@ -664,6 +671,12 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     batch.length = 0;
   };
   const accept = (clause) => {
+    if (clause?.kind === 'quad') {
+      flush();
+      clause.module = context.module;
+      builder.addClauses([clause]);
+      return;
+    }
     const grammarClause = expandDcgRuleClause(clause, context.module);
     if (grammarClause) clause = grammarClause;
     const moduleDeclaration = moduleDirective(clause);

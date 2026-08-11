@@ -45,6 +45,15 @@ Programs may declare their default queries with `%% goal:` comments.
 Double-quoted text follows the ISO `double_quotes` flag and defaults to a
 proper list of one-character atoms (`chars`), matching Trealla and Scryer.
 
+Portable unit tests can be embedded as quads—a query followed by its expected
+top-level answer—and run with `eyeprolog --quads program.pl`:
+
+```prolog
+member_test ?- member(X, [prolog, logic]).
+   X = prolog
+;  X = logic.
+```
+
 ## ISO modules and definite clause grammars
 
 EyeProlog implements ISO/IEC 13211-2 modules and the grammar rules and

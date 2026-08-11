@@ -20,6 +20,7 @@ export {
   eyePrologPortableLibraryIndicators,
 } from './standard-library.js';
 export { StreamManager } from './io.js';
+export { runQuads } from './quads.js';
 
 import { ATOM, COMPOUND, VAR, Env, copyResolved, termIsGround, termToString } from './term.js';
 import { Program } from './program.js';

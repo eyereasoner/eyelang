@@ -184,6 +184,81 @@ why(
       },
     },
     {
+      name: 'parser records embedded quads without indexing them as clauses',
+      run: () => {
+        const source = `p(1).\n\nnamed ?- p(X).\n   X = 1.\n\nq(2).\n`;
+        const program = Program.parseSources([{ text: source, filename: 'embedded-quads.pl' }]);
+        assertEqual(program.clauses.length, 2, 'ordinary clause count');
+        assertEqual(program.quads.length, 1, 'quad count');
+        assertEqual(program.quads[0].id.name, 'named', 'quad label');
+        assertEqual(program.quads[0].source.filename, 'embedded-quads.pl', 'quad filename');
+        assertEqual(program.quads[0].source.line, 3, 'quad line');
+        assertEqual(Boolean(program.findGroup('p', 1)), true, 'preceding clause indexed');
+        assertEqual(Boolean(program.findGroup('q', 1)), true, 'following clause indexed');
+        assertEqual(Boolean(program.findGroup('?-', 2)), false, 'quad is inert');
+      },
+    },
+    {
+      name: 'runQuads checks portable answer descriptions',
+      run: () => {
+        const source = `p(1).\np(2).\np(3).\n\n` +
+          `ordered ?- p(X).\n   X = 1 ; X = 2 ; X = 3.\n\n` +
+          `?- p(4).\n   false.\n\n` +
+          `?- X = 1.\n   X = 2, unexpected.\n\n` +
+          `?- p(X).\n   X = 1, ... .\n\n` +
+          `?- atom_length(1, L).\n   type_error(atom, 1).\n\n` +
+          `?- atom_length(1, L).\n   error(type_error(atom, 1), _).\n\n` +
+          `?- throw(ball).\n   throw(ball).\n\n` +
+          `?- write(ok), nl.\n   outputs("ok\\n"), true.\n\n` +
+          `?- get_char(C).\n   inputs("a"), C = a.\n\n` +
+          `?- get_char(C).\n   inputs("ab"), C = a, unexpected.\n\n` +
+          `?- X = 1.\n   X = 2, unexpected.\n   X = 1.\n\n` +
+          `?- catch(throw(ball), E, true).\n   E = ball | error(system_error, ...).\n`;
+        const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'quads.pl' }]));
+        assertEqual(result.total, 12, 'quad total');
+        assertEqual(result.passed, 12, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 12 run, 12 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
+      name: 'runQuads rejects malformed answer substitutions',
+      run: () => {
+        const source = `?- X = f(Y), Y = 1.\n   X = f(Y), Y = 1.\n`;
+        const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'malformed-quad.pl' }]));
+        assertEqual(result.total, 1, 'quad total');
+        assertEqual(result.failed, 1, 'quad failed');
+        assertIncludes(result.stdout, 'quads: MALFORMED malformed-quad.pl:1', 'malformed report');
+      },
+    },
+    {
+      name: 'runQuads reports annotations that cannot be checked safely',
+      run: () => {
+        const result = publicApi.runQuads(`?- repeat, fail.\n   loops.\n`);
+        assertEqual(result.results[0].kind, 'unsupported', 'quad result');
+        assertIncludes(result.stdout, 'quads: UNSUPPORTED <input>:1', 'unsupported report');
+      },
+    },
+    {
+      name: '--quads runs embedded tests and reports failures through exit status',
+      run: () => {
+        const passing = runCli(['--quads', '-'], {
+          input: `p(ok).\n\nsmoke ?- p(X).\n   X = ok.\n`,
+        });
+        assertEqual(passing.status, 0, 'passing quad exit status');
+        assertEqual(passing.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'passing quad stdout');
+        assertEqual(passing.stderr, '', 'passing quad stderr');
+
+        const failing = runCli(['-q', '-'], {
+          input: `p(actual).\n\nsmoke ?- p(X).\n   X = expected.\n`,
+        });
+        assertEqual(failing.status, 1, 'failing quad exit status');
+        assertIncludes(failing.stdout, 'quads: FAILED smoke, <stdin>:3', 'failing quad report');
+        assertIncludes(failing.stdout, 'quads: 1 run, 0 passed, 1 failed.', 'failing quad summary');
+        assertEqual(failing.stderr, '', 'failing quad stderr');
+      },
+    },
+    {
       name: 'seeded random/3 sequence is reproducible',
       run: () => {
         const result = run(
@@ -212,6 +287,7 @@ why(
         assertIncludes(result.stdout, 'With no arguments, start a Prolog REPL.', 'stdout');
         assertIncludes(result.stdout, '-g, --goal goal', 'stdout');
         assertIncludes(result.stdout, '-p, --proof', 'stdout');
+        assertIncludes(result.stdout, '-q, --quads', 'stdout');
         assertIncludes(result.stdout, '-s, --stats', 'stdout');
         assertIncludes(result.stdout, '-v, --version', 'stdout');
         assertIncludes(result.stdout, '-w, --warnings', 'stdout');

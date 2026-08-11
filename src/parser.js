@@ -277,6 +277,14 @@ class Parser {
     const line = this.line;
     const ch = this.peek();
     if (!ch) return { type: TOK.EOF, text: '', line };
+    if (this.source.startsWith('...', this.pos) && this.peek(3) !== '.') {
+      this.pos += 3;
+      return { type: TOK.ATOM, text: '...', line };
+    }
+    if (ch === '?' && this.peek(1) === '-') {
+      this.pos += 2;
+      return { type: TOK.ATOM, text: '?-', line };
+    }
     if (ch === '!') {
       this.take();
       return { type: TOK.ATOM, text: '!', line };
@@ -591,12 +599,47 @@ class Parser {
     }
     throw new Error(`parse line ${this.token.line}: bad term`);
   }
+  sourceLineIsIndented(line) {
+    let start = 0;
+    for (let current = 1; current < line; current++) {
+      const newline = this.source.indexOf('\n', start);
+      if (newline < 0) return false;
+      start = newline + 1;
+    }
+    return this.source[start] === ' ' || this.source[start] === '\t';
+  }
+  parseQuad(id, line, accept) {
+    const query = this.parseTerm(0, true);
+    this.expect(TOK.DOT, '.');
+    this.advance();
+
+    const answers = [];
+    while (this.token.type !== TOK.EOF && this.sourceLineIsIndented(this.token.line)) {
+      answers.push(this.parseTerm(0, true));
+      this.expect(TOK.DOT, '.');
+      this.advance();
+    }
+    if (answers.length === 0) throw new Error(`parse line ${line}: quad requires an indented answer description`);
+
+    accept({
+      kind: 'quad',
+      id,
+      query,
+      answers,
+      source: { filename: this.filename, line },
+    });
+  }
   parseProgram(emit = null) {
     const clauses = emit ? null : [];
     let clauseNumber = 0;
     const accept = emit ?? ((clause) => clauses.push(clause));
     while (this.token.type !== TOK.EOF) {
       const line = this.token.line;
+      if (this.operatorTokenName() === '?-') {
+        this.advance();
+        this.parseQuad(null, line, accept);
+        continue;
+      }
       if (this.token.type === TOK.IF) {
         this.advance();
         const directive = this.parseTerm();
@@ -622,6 +665,11 @@ class Parser {
         continue;
       }
       let head = this.parseTerm(3);
+      if (this.operatorTokenName() === '?-') {
+        this.advance();
+        this.parseQuad(head, line, accept);
+        continue;
+      }
       // ISO/IEC TS 13211-3 grammar rules use -->/2 at the same top-level
       // priority as clauses.  The left side may include an unparenthesized
       // semicontext: NonTerminal, Terminals --> Body.

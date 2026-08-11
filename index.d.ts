@@ -55,6 +55,29 @@ export interface EyePrologClause {
   module?: string;
 }
 
+export interface EyePrologQuad {
+  kind: 'quad';
+  id: EyePrologTerm | null;
+  query: EyePrologTerm;
+  answers: EyePrologTerm[];
+  module?: string;
+  source: { filename: string; line: number };
+}
+
+export interface EyePrologQuadResult {
+  ok: boolean;
+  kind?: 'failed' | 'malformed' | 'bad_identifier' | 'unsupported';
+  expected?: EyePrologTerm;
+}
+
+export interface EyePrologQuadRunResult {
+  stdout: string;
+  total: number;
+  passed: number;
+  failed: number;
+  results: EyePrologQuadResult[];
+}
+
 export interface EyePrologPredicateGroup {
   name: string;
   arity: number;
@@ -94,6 +117,7 @@ export class Program {
   groups: Map<string, EyePrologPredicateGroup>;
   modules: Map<string, { name: string; exports: Map<string, unknown>; filename: string }>;
   moduleImports: Map<string, Map<string, string>>;
+  quads: EyePrologQuad[];
   doubleQuotes: 'chars' | 'codes' | 'atom';
   negationDependencies: Array<{ from: string; to: string; negative: boolean }>;
   negationStratificationErrors: Array<{ from: string; to: string }>;
@@ -186,8 +210,8 @@ export function numberTextFromDouble(value: number): string | null;
 export function compareNumberText(left: string, right: string): number;
 
 export function makeProgram(source: string, options?: EyePrologRunOptions): Program;
-export function parseClauses(source: string, options?: EyePrologRunOptions): EyePrologClause[];
-export function parseProgramText(source: string, options?: EyePrologRunOptions): EyePrologClause[];
+export function parseClauses(source: string, options?: EyePrologRunOptions): Array<EyePrologClause | EyePrologQuad>;
+export function parseProgramText(source: string, options?: EyePrologRunOptions): Array<EyePrologClause | EyePrologQuad>;
 export function parseGoalText(source: string, options?: EyePrologRunOptions): EyePrologTerm;
 export function createDefaultRegistry(): BuiltinRegistry;
 export function createEyePrologRegistry(): BuiltinRegistry;
@@ -208,6 +232,7 @@ export class HaltSignal extends Error {
   constructor(code?: number);
 }
 export function run(source: string | Program, options?: EyePrologRunOptions): EyePrologRunResult;
+export function runQuads(source: string | Program, options?: EyePrologRunOptions & { initialize?: boolean }): EyePrologQuadRunResult;
 export function whyProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): { ok: boolean; text: string };
 export function whyNoProof(goal: EyePrologTerm): string;
 export function explainProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): { ok: boolean; text: string };
@@ -269,6 +294,7 @@ declare const eyeprolog: {
   eyePrologNativeLibraryIndicators: typeof eyePrologNativeLibraryIndicators;
   eyePrologPortableLibraryIndicators: typeof eyePrologPortableLibraryIndicators;
   run: typeof run;
+  runQuads: typeof runQuads;
   whyProof: typeof whyProof;
   whyNoProof: typeof whyNoProof;
   explainProof: typeof explainProof;

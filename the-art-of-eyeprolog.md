@@ -6072,13 +6072,14 @@ make the observed question explicit.
 | --- | --- |
 | `-h`, `--help` | Show usage |
 | `-p`, `--proof` | Print `why/2` explanations |
+| `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
 | `-s`, `--stats` | Print solver counters to stderr |
 | `-v`, `--version` | Print the package version |
 | `-w`, `--warnings` | Print non-fatal portability warnings |
 | `-g`, `--goal Goal` | Solve a callable goal; may be repeated; overrides `%% goal:` comments |
 | `--` | Treat following arguments as inputs |
 
-Short flags may be combined, so `-pw` is equivalent to `-p -w`.
+Short flags may be combined, so `-pqw` is equivalent to `-p -q -w`.
 
 Inputs may be local files, HTTP(S) URLs, or one `-` for stdin. The bare command
 `eyeprolog` starts the REPL. When options are present but no input is named,
@@ -6112,6 +6113,56 @@ golden file or another EyeProlog input. Warnings and statistics go to stderr so
 they do not corrupt that logical stream. A successful run normally exits with
 status zero; loading, syntax, option, and other uncaught errors use status `1`. `halt/0-1` can deliberately choose the
 process status from inside a program.
+
+### Embedded quad tests
+
+A quad places a query directly before a description of its expected top-level
+answer. The answer is ordinary Prolog syntax rather than quoted text or a
+comment, so a small test reads like the interaction it checks:
+
+```eyeprolog
+color(red).
+color(green).
+
+colors ?- color(X).
+   X = red
+;  X = green.
+
+?- color(blue).
+   false.
+```
+
+Run all quads in a file with `eyeprolog --quads file.pl` or `eyeprolog -q
+file.pl`. A label such as `colors` is optional. Loading the file normally only
+records its quads; it does not execute them or add their queries and answers as
+program clauses. A quad run prints a summary and exits with status `1` when any
+description fails.
+
+Answer descriptions support ordered answers separated by `;`, acceptable
+alternatives separated by `|`, `true`, `false`, standard error descriptions,
+and the `unexpected` annotation for an answer that must not occur (`inattendue`
+is its synonym). `...` and `ad_infinitum` accept further answers. Multiple
+indented descriptions after one query must all hold. `inputs/1` supplies and
+checks consumed characters; `outputs/1` checks emitted characters. `sto` marks
+an answer description that this finite-tree implementation skips. The
+nontermination and advanced stream annotations `loops`, `peeks/1`, and `waits`,
+and the unordered `other_answer_sequence` annotation, are not executed by the
+current runner.
+
+The JavaScript API exposes the same operation without process I/O:
+
+```js
+import { Program, runQuads } from 'eyeprolog';
+
+const program = Program.parse(source);
+const report = runQuads(program);
+console.log(report.passed, report.failed, report.stdout);
+```
+
+The syntax follows the “queries using answer descriptions” convention used by
+Trealla and the ISO Prolog working examples. Because answer descriptions are
+layout-sensitive, indent every description while keeping ordinary clause heads
+and the next quad query at the left margin.
 
 Statistics are comparative evidence, not a score in isolation. Preserve the
 program, input, runtime version, selected query, answers, and counters together.

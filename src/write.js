@@ -9,6 +9,7 @@ const graphicAtomCharacters = new Set('!#$&*+-/<=>@^~\\'.split(''));
 function atomNeedsQuotes(name) {
   if (!name) return true;
   if (name === '[]' || name === '{}') return false;
+  if (name === '...') return false;
   if (name === '\\+' || name === '+' || name === '-' || name === '\\') return true;
   if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return false;
   for (const ch of name) if (!graphicAtomCharacters.has(ch)) return true;

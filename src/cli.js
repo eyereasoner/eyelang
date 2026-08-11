@@ -24,6 +24,7 @@ export async function main(argv) {
   const options = {
     files: [],
     proof: false,
+    quads: false,
     stats: false,
     version: false,
     warnings: false,
@@ -42,6 +43,8 @@ export async function main(argv) {
       return;
     } else if (!endOptions && (arg === '--proof' || arg === '-p')) {
       options.proof = true;
+    } else if (!endOptions && (arg === '--quads' || arg === '-q')) {
+      options.quads = true;
     } else if (!endOptions && (arg === '--stats' || arg === '-s')) {
       options.stats = true;
     } else if (!endOptions && (arg === '--version' || arg === '-v')) {
@@ -55,13 +58,14 @@ export async function main(argv) {
     } else if (!endOptions && arg.startsWith('-') && !arg.startsWith('--') && arg.length > 2) {
       const flags = arg.slice(1);
       for (const flag of flags) {
-        if (!'hpsvw'.includes(flag)) throw new Error(`unknown option: ${arg}`);
+        if (!'hpqsvw'.includes(flag)) throw new Error(`unknown option: ${arg}`);
       }
       if (flags.includes('h')) {
         await usage(process.stdout);
         return;
       }
       if (flags.includes('p')) options.proof = true;
+      if (flags.includes('q')) options.quads = true;
       if (flags.includes('s')) options.stats = true;
       if (flags.includes('v')) options.version = true;
       if (flags.includes('w')) options.warnings = true;
@@ -102,7 +106,7 @@ export async function main(argv) {
     }
   }
 
-  if (options.goals.length === 0) {
+  if (options.goals.length === 0 && !options.quads) {
     for (const source of sourceParts) options.goals.push(...goalsFromSource(source.text));
   }
 
@@ -111,12 +115,17 @@ export async function main(argv) {
 
   if (options.warnings) printWarnings(program);
 
-  await runDefault(engine, program, options);
+  if (!options.quads || options.goals.length > 0) await runDefault(engine, program, options);
+  if (options.quads) {
+    const result = engine.runQuads(program, { initialize: options.goals.length === 0 });
+    process.stdout.write(result.stdout);
+    if (result.failed > 0) process.exitCode = 1;
+  }
 }
 
 async function loadEngine() {
   if (engineModule == null) {
-    const [term, parser, program, solver, iso, library, write] = await Promise.all([
+    const [term, parser, program, solver, iso, library, write, quads] = await Promise.all([
       import('./term.js'),
       import('./parser.js'),
       import('./program.js'),
@@ -124,8 +133,9 @@ async function loadEngine() {
       import('./iso.js'),
       import('./standard-library.js'),
       import('./write.js'),
+      import('./quads.js'),
     ]);
-    engineModule = { ...term, ...parser, ...program, ...solver, ...iso, ...library, ...write };
+    engineModule = { ...term, ...parser, ...program, ...solver, ...iso, ...library, ...write, ...quads };
   }
   return engineModule;
 }
@@ -207,6 +217,7 @@ Input:
 Options:
   -h, --help            Show this help text and exit.
   -p, --proof           Enable proof explanations.
+  -q, --quads           Run embedded quad tests and fail if any do not hold.
   -s, --stats           Print solver statistics to stderr after execution.
   -v, --version         Show the package version and exit.
   -w, --warnings        Print non-fatal portability warnings to stderr.
