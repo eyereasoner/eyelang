@@ -12,6 +12,8 @@ import {
 import { PrologError } from './iso.js';
 
 const MAX_ENUMERATED_DOMAIN = 100000;
+const domainCacheByState = new WeakMap();
+const mutableDomainEnvs = new WeakSet();
 
 export const clpzBuiltins = {
   register(registry) {
@@ -193,23 +195,28 @@ function rootVariableName(term, env) {
   return term.type === VAR ? term.name : null;
 }
 
-function domainsForRoot(root, env) {
-  const domains = [];
-  for (const [name, values] of storeOf(env).domains) {
-    if (rootVariableName(variable(name), env) === root) domains.push(values);
+function domainsByRoot(env) {
+  const store = storeOf(env);
+  const cached = domainCacheByState.get(env._state);
+  if (cached?.domains === store.domains) return cached.roots;
+  const roots = new Map();
+  for (const [name, values] of store.domains) {
+    const resolvedRoot = rootVariableName(variable(name), env);
+    if (resolvedRoot == null) continue;
+    const current = roots.get(resolvedRoot);
+    roots.set(resolvedRoot, current == null ? values : intersectValues(current, values));
   }
-  return domains;
+  domainCacheByState.set(env._state, { domains: store.domains, roots });
+  return roots;
 }
 
 function intersectValues(left, right) {
-  const allowed = new Set(right.map(String));
-  return left.filter((value) => allowed.has(String(value)));
+  const allowed = new Set(right);
+  return left.filter((value) => allowed.has(value));
 }
 
 function domainForRoot(root, env) {
-  const domains = domainsForRoot(root, env);
-  if (domains.length === 0) return null;
-  return domains.slice(1).reduce(intersectValues, domains[0]);
+  return domainsByRoot(env).get(root) ?? null;
 }
 
 function constrainTermDomain(next, term, values) {
@@ -230,9 +237,14 @@ function narrowTermDomain(next, term, values) {
   const changed = existing == null || existing.length !== narrowed.length ||
     existing.some((value, index) => value !== narrowed[index]);
   if (!changed) return { ok: true, changed: false };
-  const domains = new Map(storeOf(next).domains);
-  domains.set(resolved.name, narrowed);
-  updateStore(next, { domains });
+  if (mutableDomainEnvs.has(next)) {
+    storeOf(next).domains.set(resolved.name, narrowed);
+    domainCacheByState.delete(next._state);
+  } else {
+    const domains = new Map(storeOf(next).domains);
+    domains.set(resolved.name, narrowed);
+    updateStore(next, { domains });
+  }
   if (narrowed.length === 1 && !unify(resolved, numberTerm(narrowed[0].toString()), next)) {
     return { ok: false, changed: false };
   }
@@ -650,9 +662,143 @@ function bindLinearEquality(left, right, env) {
   return { ok: unify(variable(name), numberTerm(value.toString()), env), changed: true };
 }
 
+function hasDistinctMatching(domains, forcedIndex = -1, forcedValue = null) {
+  const matchedByValue = new Map();
+  if (forcedIndex >= 0) {
+    if (!domains[forcedIndex].some((value) => value === forcedValue)) return false;
+    matchedByValue.set(forcedValue, forcedIndex);
+  }
+  const indices = domains
+    .map((_, index) => index)
+    .filter((index) => index !== forcedIndex)
+    .sort((left, right) => domains[left].length - domains[right].length);
+
+  function augment(index, seen) {
+    for (const value of domains[index]) {
+      if (seen.has(value)) continue;
+      seen.add(value);
+      const previous = matchedByValue.get(value);
+      if (previous == null ||
+          (previous !== forcedIndex && augment(previous, seen))) {
+        matchedByValue.set(value, index);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  return indices.every((index) => augment(index, new Set()));
+}
+
+function popcount32(value) {
+  value >>>= 0;
+  value -= (value >>> 1) & 0x55555555;
+  value = (value & 0x33333333) + ((value >>> 2) & 0x33333333);
+  return (((value + (value >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
+}
+
+function hallSetDomains(domains) {
+  const valueIndices = new Map();
+  for (const domain of domains) {
+    for (const value of domain) {
+      if (!valueIndices.has(value)) valueIndices.set(value, valueIndices.size);
+      if (valueIndices.size > 30) return null;
+    }
+  }
+  const masks = domains.map((domain) => domain.reduce(
+    (mask, value) => mask | (1 << valueIndices.get(value)), 0));
+  const removed = new Array(domains.length).fill(0);
+  const subsetLimit = 2 ** domains.length;
+  for (let subset = 1; subset < subsetLimit; subset++) {
+    let union = 0;
+    for (let index = 0; index < domains.length; index++) {
+      if (subset & (1 << index)) union |= masks[index];
+    }
+    const variableCount = popcount32(subset);
+    const valueCount = popcount32(union);
+    if (valueCount < variableCount) return false;
+    if (valueCount !== variableCount) continue;
+    for (let index = 0; index < domains.length; index++) {
+      if (!(subset & (1 << index))) removed[index] |= union;
+    }
+  }
+  return domains.map((domain, index) => domain.filter(
+    (value) => !(removed[index] & (1 << valueIndices.get(value)))));
+}
+
+function propagateAllDistinct(global, env) {
+  const bound = new Set();
+  const variables = new Set();
+  for (const term of global.terms) {
+    const resolved = deref(term, env);
+    if (resolved.type === VAR) {
+      if (variables.has(resolved.name)) return { ok: false, changed: false };
+      variables.add(resolved.name);
+      continue;
+    }
+    const value = integerValue(resolved, env);
+    if (bound.has(value)) return { ok: false, changed: false };
+    bound.add(value);
+  }
+
+  let changed = false;
+  for (const term of global.terms) {
+    const resolved = deref(term, env);
+    if (resolved.type !== VAR) continue;
+    const domain = domainForRoot(resolved.name, env);
+    if (domain == null) continue;
+    const result = narrowTermDomain(env, term, domain.filter((value) => !bound.has(value)));
+    if (!result.ok) return { ok: false, changed: false };
+    changed ||= result.changed;
+  }
+
+  // Exhaustive Hall-set filtering is allocation-free in its inner loop for the
+  // small all_distinct/1 groups common in puzzles. Fall back to matching-based
+  // support when the compact bit-set representation is not applicable.
+  if (global.terms.length <= 16) {
+    const domains = global.terms.map((term) => {
+      const resolved = deref(term, env);
+      if (resolved.type === NUMBER) return [integerValue(resolved, env)];
+      if (resolved.type !== VAR) return null;
+      return domainForRoot(resolved.name, env);
+    });
+    if (domains.every((domain) => domain != null)) {
+      const hallDomains = global.terms.length <= 12 ? hallSetDomains(domains) : null;
+      if (hallDomains === false || (hallDomains == null && !hasDistinctMatching(domains))) {
+        return { ok: false, changed: false };
+      }
+      for (let index = 0; index < global.terms.length; index++) {
+        const resolved = deref(global.terms[index], env);
+        if (resolved.type !== VAR) continue;
+        const supported = hallDomains == null
+          ? domains[index].filter((value) => hasDistinctMatching(domains, index, value))
+          : hallDomains[index];
+        const result = narrowTermDomain(env, global.terms[index], supported);
+        if (!result.ok) return { ok: false, changed: false };
+        changed ||= result.changed;
+        domains[index] = supported;
+      }
+    }
+  }
+  return { ok: true, changed };
+}
+
 function propagate(env) {
   const store = env._clpz;
   if (!store) return true;
+  // A propagation pass owns one domain-map copy. Individual narrowings can
+  // then update that private copy instead of cloning the whole map each time.
+  updateStore(env, { domains: new Map(store.domains) });
+  mutableDomainEnvs.add(env);
+  try {
+    return propagateMutable(env);
+  } finally {
+    mutableDomainEnvs.delete(env);
+  }
+}
+
+function propagateMutable(env) {
+  const store = env._clpz;
   let changed;
   do {
     changed = false;
@@ -665,7 +811,11 @@ function propagate(env) {
       }
     }
     for (const global of store.globals) {
-      if (global.kind === 'nvalue') {
+      if (global.kind === 'allDistinct') {
+        const result = propagateAllDistinct(global, env);
+        if (!result.ok) return false;
+        changed ||= result.changed;
+      } else if (global.kind === 'nvalue') {
         const values = global.terms.map((term) => expressionValue(term, env));
         const known = new Set(values.filter((value) => value != null).map(String));
         const unresolved = values.filter((value) => value == null).length;

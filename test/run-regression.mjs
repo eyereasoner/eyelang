@@ -1540,10 +1540,13 @@ answer(X, Y, B) :-
   B #<==> X #= 1,
   labeling([ff, down], [X, Y, B]).
 contradiction :- Z in 1..3, Z = 4.
+pruned(Domain) :- [X, Y] ins 1..3, all_distinct([X, Y]), X #= 2, fd_dom(Y, Domain).
+hall(Domain) :- [X, Y] ins 1..2, Z in 1..3, all_distinct([X, Y, Z]), fd_dom(Z, Domain).
+repeated(X) :- X in 1..3, all_distinct([X, X]).
 `);
         assertEqual(program.findGroup('labeling', 2)?.module, 'clpz', 'labeling/2 module');
-        assertEqual(run(program, { goals: ['answer(X, Y, B)', 'contradiction'] }).stdout,
-          'answer(1, 4, 1).\nanswer(2, 3, 0).\n', 'CLP(Z) constrained answers');
+        assertEqual(run(program, { goals: ['answer(X, Y, B)', 'contradiction', 'pruned(Domain)', 'hall(Domain)', 'repeated(X)'] }).stdout,
+          'answer(1, 4, 1).\nanswer(2, 3, 0).\npruned(1 \\/ 3).\nhall(3).\n', 'CLP(Z) constrained answers');
       },
     },
     {
