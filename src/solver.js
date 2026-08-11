@@ -281,6 +281,12 @@ export class Solver {
         this.stats.solve_one_goal_calls++;
         const group = this.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
         if (!group) {
+          if (goal.name === '-->' && goal.arity === 2) {
+            throw new PrologError(
+              'existence_error(procedure)',
+              compound('/', [compound('-->', []), numberTerm(2)]),
+            );
+          }
           if (this.prologFlags.get('unknown')?.value?.name === 'error') {
             throw new PrologError(
               'existence_error(procedure)',

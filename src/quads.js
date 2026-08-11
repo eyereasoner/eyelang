@@ -192,12 +192,21 @@ function executeQuery(program, query, input, maxSolutions, options) {
   const solver = new Solver(program, {
     ...options,
     registry: options.registry ?? getEyePrologRegistry(),
-    solutionLimit: Math.max(1, maxSolutions),
+    // The solver's counter also observes completed nested searches (for
+    // example each arm of a DCG disjunction).  Bound the public iterator here
+    // instead of letting those internal completions consume the quad's answer
+    // allowance.
+    solutionLimit: Math.max(maxSolutions, options.solutionLimit ?? 10000000),
     ioOptions: {
       input,
       write: (text) => { pendingOutput += String(text); },
     },
   });
+  // Undefined predicates are test failures rather than silent negative
+  // answers unless the source explicitly selected another unknown policy.
+  if (!(program.prologFlagDirectives ?? []).some(([flag]) => flag.type === ATOM && flag.name === 'unknown')) {
+    solver.prologFlags.get('unknown').value = atom('error');
+  }
   const solutions = [];
   let error = null;
   let tailOutput = '';

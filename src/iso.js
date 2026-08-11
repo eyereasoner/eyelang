@@ -7,7 +7,7 @@ import {
 } from './term.js';
 import { createParserOperatorState, parseClauses } from './parser.js';
 import { formatTermForWrite } from './write.js';
-import { emptyTerminalSequence, expandDcgBody, isListOrPartialList } from './dcg.js';
+import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 
 let isoFresh = 0;
 
@@ -490,7 +490,7 @@ function* clauseBuiltin({ solver, goal, env }) {
   if (head.type !== ATOM && head.type !== COMPOUND) throw new PrologError('type_error(callable)', head);
   callableOrVariable(goal.args[1], env);
   const indicator = compound('/', [atom(head.name), numberTerm(head.arity)]);
-  if (solver.registry.get(head.name, head.arity)) {
+  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(head)) {
     throw new PrologError('permission_error(access, private_procedure)', indicator);
   }
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
@@ -529,9 +529,13 @@ function procedureIndicator(head) {
   return compound('/', [atom(head.name), numberTerm(head.arity)]);
 }
 
+function isGrammarRuleProcedure(head) {
+  return head.name === '-->' && head.arity === 2;
+}
+
 function assertModifiable(solver, head, module = 'user') {
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? module);
-  if (solver.registry.get(head.name, head.arity) || (group && !group.dynamic)) {
+  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
 }
@@ -558,7 +562,7 @@ function* retractBuiltin({ solver, goal, env }) {
   const parts = clauseParts(goal.args[0], env);
   requireClauseHead(parts.head);
   const group = solver.program.findGroup(parts.head.name, parts.head.arity, parts.head.module ?? goal.module ?? 'user');
-  if (solver.registry.get(parts.head.name, parts.head.arity) || (group && !group.dynamic)) {
+  if (solver.registry.get(parts.head.name, parts.head.arity) || isGrammarRuleProcedure(parts.head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(parts.head));
   }
   if (!group) return;
@@ -581,7 +585,7 @@ function* retractAllBuiltin({ solver, goal, env }) {
   const head = deref(goal.args[0], env);
   requireClauseHead(head);
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
-  if (solver.registry.get(head.name, head.arity) || (group && !group.dynamic)) {
+  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
   if (group) {
@@ -615,7 +619,7 @@ function* abolishBuiltin({ solver, goal, env }) {
   const target = predicateIndicatorParts(goal.args[0], env);
   const module = goal.module ?? 'user';
   const group = solver.program.findGroup(target.name, target.arity, module);
-  if (solver.registry.get(target.name, target.arity) || (group && !group.dynamic)) {
+  if (solver.registry.get(target.name, target.arity) || isGrammarRuleProcedure(target) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', target.indicator);
   }
   solver.program.abolishDynamicGroup(target.name, target.arity, module);
@@ -1519,7 +1523,18 @@ function callable(term, env) {
   term = resolveCallable(term, env);
   if (term.type === VAR) throw new PrologError('instantiation_error');
   if (term.type !== ATOM && term.type !== COMPOUND) throw new PrologError('type_error(callable)', term);
+  validateControlCallable(term, term);
   return term;
+}
+function validateControlCallable(term, culprit) {
+  if (term.type !== COMPOUND || ![',', ';', '->'].includes(term.name) || term.arity !== 2) return;
+  for (const argument of term.args) {
+    if (argument.type === VAR) throw new PrologError('instantiation_error');
+    if (argument.type !== ATOM && argument.type !== COMPOUND) {
+      throw new PrologError('type_error(callable)', culprit);
+    }
+    validateControlCallable(argument, culprit);
+  }
 }
 function resolveCallable(term, env) {
   const resolved = deref(term, env);
@@ -1555,14 +1570,14 @@ function* phraseBuiltin({ solver, goal, env }) {
   if (grammarBody.type !== ATOM && grammarBody.type !== COMPOUND) {
     throw new PrologError('type_error(callable)', grammarBody);
   }
-
   const input = goal.args[1];
   const requestedOutput = goal.arity === 2 ? emptyTerminalSequence() : goal.args[2];
+  validateDcgEmbeddedGoals(grammarBody, input, requestedOutput);
   if (!isListOrPartialList(input, env)) {
-    throw new PrologError('type_error(terminal_sequence)', deref(input, env));
+    throw new PrologError('type_error(list)', deref(input, env));
   }
   if (!isListOrPartialList(requestedOutput, env)) {
-    throw new PrologError('type_error(terminal_sequence)', deref(requestedOutput, env));
+    throw new PrologError('type_error(list)', deref(requestedOutput, env));
   }
 
   // Delay the final output unification to keep phrase/3 steadfast in its

@@ -33,7 +33,7 @@ function isPlainAtomStartCode(code) {
   return code >= 97 && code <= 122;
 }
 
-const graphicAtomChars = '#$&*+-./<=>@^~\\;:';
+const graphicAtomChars = '#$&*+-./<=>@^~\\:';
 
 // ISO operator syntax is lowered to the same ordinary compound terms used by
 // canonical notation. Commas remain separators except inside parentheses.
@@ -285,9 +285,21 @@ class Parser {
       this.pos += 2;
       return { type: TOK.ATOM, text: '?-', line };
     }
+    if (ch === '.' && this.peek(1) &&
+        !isWhitespaceCode(this.peek(1).charCodeAt(0)) &&
+        this.peek(1) !== '%' && !(this.peek(1) === '/' && this.peek(2) === '*')) {
+      const start = this.pos;
+      this.take();
+      while (isGraphicAtomCode(this.peek().charCodeAt(0))) this.take();
+      return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
+    }
     if (ch === '!') {
       this.take();
       return { type: TOK.ATOM, text: '!', line };
+    }
+    if (ch === ';') {
+      this.take();
+      return { type: TOK.ATOM, text: ';', line };
     }
 
     const punct = {

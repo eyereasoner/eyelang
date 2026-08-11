@@ -199,6 +199,19 @@ why(
       },
     },
     {
+      name: 'parser separates compact ISO solo tokens and atom dots',
+      run: () => {
+        const program = Program.parse(
+          `compact ?- call((!;\\+1)).\n   true.\n\n` +
+          `dot ?- functor([_],.,2).\n   true.\n`,
+        );
+        assertEqual(program.quads.length, 2, 'quad count');
+        assertEqual(program.quads[0].query.args[0].name, ';', 'disjunction');
+        assertEqual(program.quads[0].query.args[0].args[1].name, '\\+', 'negation');
+        assertEqual(program.quads[1].query.args[1].name, '.', 'dot atom');
+      },
+    },
+    {
       name: 'runQuads checks portable answer descriptions',
       run: () => {
         const source = `p(1).\np(2).\np(3).\n\n` +
@@ -219,6 +232,81 @@ why(
         assertEqual(result.passed, 12, 'quad passed');
         assertEqual(result.failed, 0, 'quad failed');
         assertEqual(result.stdout, 'quads: 12 run, 12 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
+      name: 'runQuads matches the corrected ISO phrase quad boundaries',
+      run: () => {
+        const source = String.raw`c2 ?- call((1,fail)).
+   type_error(callable,(1,fail)).
+
+c3 ?- call((fail,1)).
+   type_error(callable,(fail,1)).
+
+c4 ?- call((!;1)).
+   type_error(callable,(!;1)).
+
+24 ?- asserta((a-->b)).
+   permission_error(modify,static_procedure,(-->)/2).
+
+25 ?- clause((a-->b),B).
+   permission_error(access,private_procedure,(-->)/2).
+
+26 ?- (X-->Y).
+   existence_error(procedure,(-->)/2).
+
+5 ?- phrase([a|b],L).
+   type_error(list,[a|b]).
+
+10 ?- phrase(([a],{1}),[]).
+   type_error(callable,(...,...)).
+
+37 ?- phrase((!,[a],{1}),[]).
+   type_error(callable,(...,...)).
+
+12 ?- phrase('|'([],[a]),[a]).
+   true.
+
+14 ?- phrase(([a];[]),L).
+   L=[a] ; L=[].
+
+15 ?- phrase({fail,1},L).
+   type_error(callable,((fail,1),...)).
+
+29 ?- phrase(([a],\+1),[]).
+   false.
+
+30 ?- phrase(([a],\+1;[]),[]).
+   true.
+
+31 ?- phrase(phrase(phrase,[]),L).
+   existence_error(procedure,phrase/4).
+
+32 ?- phrase(call([]),[]).
+   existence_error(procedure,[]/2).
+
+41 ?- phrase([],non_list).
+   type_error(list,non_list).
+
+42 ?- phrase([],[a|non_list]).
+   type_error(list,[a|non_list]).
+
+43 ?- phrase([],L,non_list).
+   type_error(list,non_list).
+
+44 ?- phrase([],L,[a|non_list]).
+   type_error(list,[a|non_list]).
+
+46 ?- phrase((1,{2}),[]).
+   type_error(callable,1).
+
+47 ?- phrase(({2},1),[]).
+   type_error(callable,1).
+`;
+        const result = publicApi.runQuads(source);
+        assertEqual(result.total, 22, 'quad total');
+        assertEqual(result.passed, 22, 'quad passed');
+        assertEqual(result.stdout, 'quads: 22 run, 22 passed, 0 failed.\n', 'quad report');
       },
     },
     {

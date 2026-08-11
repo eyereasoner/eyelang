@@ -1,1 +1,1 @@
-error(type_error(terminal_sequence), b)
+error(type_error(list), b)

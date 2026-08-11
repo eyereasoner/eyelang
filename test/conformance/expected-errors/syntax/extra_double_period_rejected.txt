@@ -1,1 +1,1 @@
-parse line 1: bad term
+parse line 1: expected ., got ..

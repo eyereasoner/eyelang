@@ -37,14 +37,14 @@ function terminalItems(term, env = new Env()) {
   const seen = new Set();
   let cursor = deref(term, env);
   while (cursor.type === COMPOUND && cursor.name === '.' && cursor.arity === 2) {
-    if (seen.has(cursor)) throw new PrologError('type_error(terminal_sequence)', original);
+    if (seen.has(cursor)) throw new PrologError('type_error(list)', original);
     seen.add(cursor);
     items.push(cursor.args[0]);
     cursor = deref(cursor.args[1], env);
   }
   if (cursor.type === ATOM && cursor.name === '[]') return items;
   if (cursor.type === VAR) throw new PrologError('instantiation_error');
-  throw new PrologError('type_error(terminal_sequence)', original);
+  throw new PrologError('type_error(list)', original);
 }
 
 function terminalsGoal(terminals, input, output, env) {
@@ -155,8 +155,12 @@ export function expandDcgBody(body, input, output, options = {}) {
   // definitions and documents these choices in its conformance profile.
   if (body.type === COMPOUND && body.name === '\\+' && body.arity === 1) {
     const ignored = freshDcgVariable('negated');
+    const negated = body.args[0];
+    const expandedNegated = negated.type === ATOM || negated.type === COMPOUND || negated.type === VAR
+      ? expandDcgBody(negated, input, ignored, options)
+      : negated;
     return conjunction(
-      compound('\\+', [expandDcgBody(body.args[0], input, ignored, options)]),
+      compound('\\+', [expandedNegated]),
       equality(input, output),
     );
   }
@@ -173,6 +177,50 @@ export function expandDcgBody(body, input, output, options = {}) {
     throw new PrologError('type_error(callable)', body);
   }
   return appendStateArguments(body, input, output, module);
+}
+
+// Embedded goals are validated before the translated grammar is executed.
+// This keeps a non-callable goal visible even when an earlier terminal or
+// branch would otherwise prevent the host goal from being reached.
+export function validateDcgEmbeddedGoals(body, input, output) {
+  const invalidBody = invalidDcgControl(body);
+  if (invalidBody != null) throw new PrologError('type_error(callable)', invalidBody);
+
+  const visit = (term) => {
+    if (term.type !== COMPOUND) return;
+    if (term.name === '{}' && term.arity === 1) {
+      if (invalidControlGoal(term.args[0])) {
+        // Report the translated host-language conjunction, matching the
+        // convention used by Trealla and the ISO Part 3 quad corpus.
+        throw new PrologError('type_error(callable)', conjunction(term.args[0], equality(input, output)));
+      }
+      return;
+    }
+    if ([',', ';', '|', '->', '\\+'].includes(term.name)) {
+      for (const argument of term.args) visit(argument);
+    }
+  };
+  visit(body);
+}
+
+function invalidDcgControl(term) {
+  if (term.type !== ATOM && term.type !== COMPOUND && term.type !== VAR) return term;
+  if (term.type !== COMPOUND || ![',', ';', '|', '->'].includes(term.name)) return null;
+  for (const argument of term.args) {
+    if (argument.type === COMPOUND && argument.name === '{}' && argument.arity === 1) continue;
+    const invalid = invalidDcgControl(argument);
+    if (invalid != null) return invalid;
+  }
+  return null;
+}
+
+function invalidControlGoal(goal) {
+  if (goal.type === VAR) return false;
+  if (goal.type !== ATOM && goal.type !== COMPOUND) return true;
+  if (goal.type === COMPOUND && [',', ';', '->'].includes(goal.name) && goal.arity === 2) {
+    return goal.args.some(invalidControlGoal);
+  }
+  return false;
 }
 
 function splitGrammarHead(head) {

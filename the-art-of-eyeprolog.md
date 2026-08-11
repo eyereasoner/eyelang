@@ -5341,8 +5341,8 @@ look_ahead(X), [X] --> [X].
 `phrase(+Body,?Sequence)` accepts or generates a complete sequence.
 `phrase(+Body,?Sequence,?Rest)` leaves `Rest` unconsumed and is steadfast in
 that argument. A variable body raises `instantiation_error`; a non-callable
-body raises `type_error(callable)`. EyeProlog performs the optional Part 3
-terminal-sequence checks and reports `type_error(terminal_sequence)`.
+body raises `type_error(callable)`. EyeProlog performs terminal-sequence checks
+and reports the portable ISO `type_error(list)` error term.
 
 Part 3 leaves `\+//1` and standalone `->//2` implementation dependent.
 EyeProlog uses non-consuming negation (`\+ Body` tests from the current state)
@@ -6137,6 +6137,10 @@ file.pl`. A label such as `colors` is optional. Loading the file normally only
 records its quads; it does not execute them or add their queries and answers as
 program clauses. A quad run prints a summary and exits with status `1` when any
 description fails.
+
+Unless the source explicitly selects another `unknown` flag, quad execution
+uses `unknown=error`, so an undefined predicate is reported rather than being
+accepted as a negative answer.
 
 Answer descriptions support ordered answers separated by `;`, acceptable
 alternatives separated by `|`, `true`, `false`, standard error descriptions,
