@@ -6212,7 +6212,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **190 self-contained runnable programs**. Every
+top-level directory contains **204 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -6521,6 +6521,29 @@ decisions, reasons, integrity conditions, and proof.
 When studying a policy proof, circle every premise imported from outside the
 theory. The derivation validates the transition from those premises to the
 decision; it does not authenticate the source by itself.
+
+#### RDF 1.2 and policy roundtrips
+
+These programs combine generated `rdf/4` source facts with ISO Prolog rules
+adapted from the `rdf-prolog-roundtrip` example corpus. Each query materializes
+ground RDF-shaped results that can be serialized back to RDF.
+
+| Program | Roundtrip idea | Checked answer |
+| --- | --- | --- |
+| [DPV–ODRL purpose mapping](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dpv-odrl-purpose-mapping.pl) | Verify six correspondences between a DPV process and an ODRL policy. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dpv-odrl-purpose-mapping.pl) |
+| [ODRL–DPV–FPV trust flow](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-fpv-trust-flow.pl) | Combine policy rules and trust scores into permit, review, and deny decisions. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-fpv-trust-flow.pl) |
+| [ODRL–DPV healthcare risk ranking](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-healthcare-risk-ranked.pl) | Detect and rank healthcare-policy risks with clauses and mitigations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-healthcare-risk-ranked.pl) |
+| [ODRL–DPV consumer risk ranking](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-risk-ranked.pl) | Score consumer-policy conflicts and return a deterministic risk ranking. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-risk-ranked.pl) |
+| [ODRL policy](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-policy.pl) | Read one purpose-constrained permission from an ODRL policy graph. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-policy.pl) |
+| [Advanced ODRL policy](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-policy-advanced.pl) | Evaluate permission, duty, constraint failure, and prohibition outcomes. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-policy-advanced.pl) |
+| [RDF 1.2 annotated claims](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-annotated-claims.pl) | Rank conflicting annotated claims by confidence and source trust. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-annotated-claims.pl) |
+| [RDF 1.2 annotation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-annotation.pl) | Recover an asserted triple together with its reifier and annotations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-annotation.pl) |
+| [RDF 1.2 directional language](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-directional-language.pl) | Preserve language and base-direction metadata in derived labels. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-directional-language.pl) |
+| [RDF 1.2 nested triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-nested-triple-term.pl) | Match nested triple terms and derive the innermost relationship. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-nested-triple-term.pl) |
+| [RDF 1.2 TriG graph join](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-graph-join.pl) | Join default-graph metadata with measurements from a named graph. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-graph-join.pl) |
+| [RDF 1.2 TriG named graph](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-named-graph.pl) | Derive ancestor relationships inside the source named graph. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-named-graph.pl) |
+| [RDF 1.2 TriG triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-triple-term.pl) | Project a triple term while retaining its named-graph context. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-triple-term.pl) |
+| [RDF 1.2 triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-triple-term.pl) | Project a triple term into an ordinary asserted relationship. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-triple-term.pl) |
 
 #### Science, engineering, and numerical models
 
