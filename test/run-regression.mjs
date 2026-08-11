@@ -310,6 +310,19 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'runQuads passes the complete vendored ISO phrase quad corpus',
+      run: () => {
+        const source = fs.readFileSync(path.join(testRoot, 'fixtures', 'phrase_quad.pl'), 'utf8');
+        const result = publicApi.runQuads(Program.parseSources([{
+          text: source,
+          filename: 'test/fixtures/phrase_quad.pl',
+        }]));
+        assertEqual(result.total, 58, 'quad total');
+        assertEqual(result.passed, 58, 'quad passed');
+        assertEqual(result.stdout, 'quads: 58 run, 58 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: 'runQuads rejects malformed answer substitutions',
       run: () => {
         const source = `?- X = f(Y), Y = 1.\n   X = f(Y), Y = 1.\n`;
