@@ -323,6 +323,21 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'runQuads passes the complete vendored Prolog Prologue quad corpus',
+      run: () => {
+        const filename = path.join(testRoot, 'fixtures', 'prologue_quad_runner.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        const result = publicApi.runQuads(Program.parseSources([{
+          text: source,
+          filename,
+          baseDir: path.dirname(filename),
+        }]));
+        assertEqual(result.total, 33, 'quad total');
+        assertEqual(result.passed, 33, 'quad passed');
+        assertEqual(result.stdout, 'quads: 33 run, 33 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: 'runQuads rejects malformed answer substitutions',
       run: () => {
         const source = `?- X = f(Y), Y = 1.\n   X = f(Y), Y = 1.\n`;
@@ -861,7 +876,7 @@ function documentationSyncCases() {
           '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
           'README cover links to the book',
         );
-        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/standard-library.js', 'src/lib/eyeprolog.pl', 'src/lib/lists.pl', 'src/playground-worker.js']) {
+        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/standard-library.js', 'src/lib/eyeprolog.pl', 'src/lib/lists.pl', 'src/lib/prologue.pl', 'src/playground-worker.js']) {
           assertEqual(fs.existsSync(path.join(packageRoot, filename)), true, `${filename} exists`);
           assertIncludes(book, filename, `book documents ${filename}`);
         }
@@ -1300,10 +1315,10 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 0, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 44, 'portable Prolog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 46, 'portable Prolog library count');
         assertEqual(eyePrologNativeLibraryIndicators.length, 0, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.join(','), '', 'no EyeProlog library predicate requires host support');
-        assertEqual(eyePrologLibraryIndicators.length, 44, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 46, 'complete EyeProlog library surface');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');
@@ -1331,6 +1346,7 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'eyeprolog.pl')), true, 'portable module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'standard-library.js')), true, 'standard module registry exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'lists.pl')), true, 'lists module exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'prologue.pl')), true, 'Prologue module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'eyeprolog-autoload.js')), false, 'obsolete autoloader is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'library-source.js')), false, 'duplicate source loader is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'portable-library.js')), false, 'obsolete duplicate module remains absent');

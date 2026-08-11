@@ -66,12 +66,12 @@ noun --> [world] | [prolog].
 %% goal: phrase(sentence, Words)
 ```
 
-EyeProlog also adds 44 public library predicates to its 129-entry ISO registry.
-**All 44 are ordinary Prolog clauses** in `src/lib/eyeprolog.pl` and
-`src/lib/lists.pl`. They are ISO/IEC 13211-2 modules, loaded explicitly with
-`use_module(library(eyeprolog))` or `use_module(library(lists))`, following the
-layout used by Scryer Prolog. None requires host support. Portable text
-predicates use ISO atoms or character lists.
+EyeProlog also adds 46 public library predicates to its 129-entry ISO registry.
+**All 46 are ordinary Prolog clauses** in `src/lib/eyeprolog.pl`,
+`src/lib/lists.pl`, and `src/lib/prologue.pl`. They are ISO/IEC 13211-2 modules,
+loaded explicitly with `use_module(library(eyeprolog))`,
+`use_module(library(lists))`, or `use_module(library(prologue))`. None requires
+host support. Portable text predicates use ISO atoms or character lists.
 
 ## Development
 

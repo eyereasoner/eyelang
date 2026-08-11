@@ -8,6 +8,7 @@ import { fs, isNode } from './platform.js';
 const moduleFiles = Object.freeze({
   eyeprolog: 'eyeprolog.pl',
   lists: 'lists.pl',
+  prologue: 'prologue.pl',
 });
 
 const cacheKey = isNode
@@ -36,14 +37,14 @@ function libraryUrl(filename) {
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([]);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
-  'uuid/3', 'difference/3', 'maplist/3', 'lt/2', 'gt/2', 'le/2', 'ge/2',
+  'uuid/3', 'difference/3', 'maplist/2', 'maplist/3', 'lt/2', 'gt/2', 'le/2', 'ge/2',
   'between/3', 'smallest_divisor_from/3', 'random/3', 'matches/3', 'split/3',
   'replace/4', 'lowercase/2', 'uppercase/2', 'trim/2', 'number_string/2',
   'atom_string/2', 'term_string/2', 'append/3', 'string_concat/3', 'contains/2',
   'matches/2', 'join/3', 'substring/4', 'member/2', 'select/3', 'last/2',
   'nth0/3', 'nth1/3', 'set_nth0/4', 'take/3', 'drop/3', 'slice/4', 'reverse/2',
   'length/2', 'sum_list/2', 'min_list/2', 'max_list/2', 'list_to_set/2',
-  'countall/2', 'sumall/3', 'aggregate_min/5', 'aggregate_max/5',
+  'countall/2', 'succ/2', 'sumall/3', 'aggregate_min/5', 'aggregate_max/5',
 ]);
 export const eyePrologLibraryIndicators = Object.freeze([...eyePrologPortableLibraryIndicators]);
 
