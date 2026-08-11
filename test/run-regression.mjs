@@ -323,6 +323,20 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'runQuads passes the complete vendored number_chars continuation corpus',
+      run: () => {
+        const filename = path.join(testRoot, 'fixtures', 'number_chars_cont_quad.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        const result = publicApi.runQuads(Program.parseSources([{
+          text: source,
+          filename,
+        }]));
+        assertEqual(result.total, 72, 'quad total');
+        assertEqual(result.passed, 72, 'quad passed');
+        assertEqual(result.stdout, 'quads: 72 run, 72 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: 'runQuads passes the complete vendored Prolog Prologue quad corpus',
       run: () => {
         const filename = path.join(testRoot, 'fixtures', 'prologue_quad_runner.pl');

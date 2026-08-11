@@ -5,7 +5,7 @@ import {
   isDecimalInteger, listFromItems, numberTerm, numberTextFromDouble,
   properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
-import { createParserOperatorState, parseClauses } from './parser.js';
+import { createParserOperatorState, parseClauses, parseGoalText } from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 
@@ -1406,12 +1406,129 @@ function* charCodeBuiltin({ goal, env }) {
   } else if (unify(goal.args[0], atom(String.fromCodePoint(Number(code.name))), next)) yield next;
 }
 
+function skipNumberLayout(text, start) {
+  let position = start;
+  while (true) {
+    while (position < text.length && /[\u0009-\u000d\u0020]/.test(text[position])) {
+      position++;
+    }
+    if (text[position] === '%') {
+      const newline = text.indexOf('\n', position + 1);
+      if (newline < 0) return text.length;
+      position = newline + 1;
+      continue;
+    }
+    if (text.startsWith('/*', position)) {
+      const end = text.indexOf('*/', position + 2);
+      if (end < 0) return text.length;
+      position = end + 2;
+      continue;
+    }
+    return position;
+  }
+}
+
+function quotedNumberSign(text, start) {
+  if (text[start] !== "'") return null;
+  let position = start + 1;
+  let value = '';
+  while (position < text.length) {
+    let character = text[position++];
+    if (character === "'") {
+      if (text[position] === "'") {
+        position++;
+        value += "'";
+        continue;
+      }
+      return { value, position };
+    }
+    if (character !== '\\') {
+      value += character;
+      continue;
+    }
+    if (position >= text.length) return null;
+    character = text[position++];
+    if (character === '\n') continue;
+    const controls = { a: '\x07', b: '\b', r: '\r', f: '\f', t: '\t', n: '\n', v: '\v' };
+    if (controls[character] != null) {
+      value += controls[character];
+      continue;
+    }
+    value += character;
+  }
+  return null;
+}
+
 function parseIsoNumber(text) {
-  const trimmed = text.replace(/^[\u0009-\u000d\u0020]+/, '');
-  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(trimmed)) return null;
-  if (/^[+-]?\d+$/.test(trimmed)) return numberTerm(BigInt(trimmed).toString());
-  const value = Number(trimmed);
-  return Number.isFinite(value) ? numberTerm(numberTextFromDouble(value)) : null;
+  // number_chars/2 accepts leading layout, but its character list must end
+  // with the numeric token itself rather than trailing layout text.
+  if (text.length === 0 || /[\u0009-\u000d\u0020]$/.test(text)) return null;
+  let position = skipNumberLayout(text, 0);
+  let sign = '';
+
+  if (text[position] === '-') {
+    if (/[\u0009-\u000d\u0020]/.test(text[position + 1] ?? '')) {
+      position = skipNumberLayout(text, position + 1);
+      sign = '-';
+    }
+  } else {
+    const quoted = quotedNumberSign(text, position);
+    if (quoted?.value === '-') {
+      position = skipNumberLayout(text, quoted.position);
+      sign = '-';
+    }
+  }
+
+  const numericText = `${sign}${text.slice(position)}`;
+  // ISO floating-point syntax requires a decimal fraction before an exponent.
+  if (/^-?\d+[eE][+-]?\d+$/.test(numericText)) return null;
+  try {
+    const parsed = parseGoalText(`number_chars_value(${numericText})`);
+    if (parsed.type !== COMPOUND || parsed.name !== 'number_chars_value' ||
+        parsed.arity !== 1 || parsed.args[0].type !== NUMBER) return null;
+    const value = parsed.args[0];
+    if (isDecimalInteger(value.name)) return numberTerm(BigInt(value.name).toString());
+    const finite = Number(value.name);
+    if (!Number.isFinite(finite)) return null;
+    return numberTerm(numberTextFromDouble(finite));
+  } catch (_) {
+    return null;
+  }
+}
+
+function sameNumber(left, right) {
+  const leftInteger = isDecimalInteger(left.name);
+  const rightInteger = isDecimalInteger(right.name);
+  if (leftInteger || rightInteger) {
+    return leftInteger && rightInteger && BigInt(left.name) === BigInt(right.name);
+  }
+  const leftValue = Number(left.name);
+  const rightValue = Number(right.name);
+  return Number.isFinite(leftValue) && Number.isFinite(rightValue) && leftValue === rightValue;
+}
+
+function numberListText(list, env, kind, valueIsBound) {
+  const whole = deref(list, env);
+  const { items, tail } = listElements(list, env);
+  const proper = tail.type === ATOM && tail.name === '[]';
+  if (tail.type !== VAR && !proper) throw new PrologError('type_error(list)', whole);
+
+  const invalid = items.find((item) => item.type !== VAR &&
+    (kind === 'chars' ? !oneChar(item) : !validCharacterCode(item)));
+  if (invalid) {
+    if (kind === 'chars') throw new PrologError('type_error(character)', invalid);
+    if (invalid.type !== NUMBER || !isDecimalInteger(invalid.name)) {
+      throw new PrologError('type_error(integer)', invalid);
+    }
+    throw new PrologError('representation_error(character_code)');
+  }
+
+  const hasVariable = tail.type === VAR || items.some((item) => item.type === VAR);
+  if (!valueIsBound && hasVariable) throw new PrologError('instantiation_error');
+  if (hasVariable) return null;
+  return items.map((item) => kind === 'chars'
+    ? item.name
+    : String.fromCodePoint(Number(item.name))).join('');
 }
 
 function numberListBuiltin(kind) {
@@ -1420,14 +1537,21 @@ function numberListBuiltin(kind) {
     if (value.type !== VAR && value.type !== NUMBER) throw new PrologError('type_error(number)', value);
     const list = deref(goal.args[1], env);
     if (value.type === VAR && list.type === VAR) throw new PrologError('instantiation_error');
+    const text = numberListText(list, env, kind, value.type === NUMBER);
     const next = env.clone();
     if (value.type === NUMBER) {
+      if (text != null) {
+        const parsed = parseIsoNumber(text);
+        if (parsed == null) throw new PrologError('syntax_error(number)');
+        if (sameNumber(value, parsed)) yield next;
+        return;
+      }
       const items = characters(value.name).map((ch) =>
         kind === 'chars' ? atom(ch) : numberTerm(ch.codePointAt(0)));
       if (unify(goal.args[1], listFromItems(items), next)) yield next;
       return;
     }
-    const parsed = parseIsoNumber(listToAtomInput(list, env, kind));
+    const parsed = parseIsoNumber(text);
     if (parsed == null) throw new PrologError('syntax_error(number)');
     if (unify(goal.args[0], parsed, next)) yield next;
   };

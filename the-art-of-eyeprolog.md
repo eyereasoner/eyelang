@@ -5636,7 +5636,7 @@ quoted_atom("ab").           % quoted_atom(ab)
 | `sub_atom(+Atom,?Before,?Length,?After,?SubAtom)` | Enumerates substrings and their Unicode-code-point offsets. Supplied counts must be nonnegative integers. |
 | `atom_chars(?Atom,?Chars)`, `atom_codes(?Atom,?Codes)` | Convert between an atom and a proper list of one-character atoms or Unicode scalar codes. At least one side must be instantiated. |
 | `char_code(?Character,?Code)` | Converts one character atom and one Unicode scalar code. Surrogates and values outside `0..0x10ffff` raise a representation error. |
-| `number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)` | Convert finite numbers to canonical text or parse a proper character/code list. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*. |
+| `number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)` | Convert finite numbers to canonical text or parse a proper character/code list using ISO numeric-token syntax, including radix integers, character-code constants, and leading layout. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*. |
 
 Conversions accept partial output lists when the atomic input is known, but
 constructing an atom or number requires a complete proper list with no unbound

@@ -622,7 +622,21 @@ number_string(Number, Text) :-
 number_string(Number, Text) :-
     var(Number),
     eyeprolog__text_chars(Text, Chars),
-    catch(number_chars(Number, Chars), _, fail).
+    catch(number_chars(Number, Chars), _,
+        catch(( eyeprolog__integer_exponent_chars(Chars, Expanded),
+                number_chars(Number, Expanded)
+              ), _, fail)).
+
+eyeprolog__integer_exponent_chars(Chars, Expanded) :-
+    eyeprolog__split_exponent(Chars, Mantissa, Marker, Exponent),
+    number_chars(Integer, Mantissa),
+    integer(Integer),
+    eyeprolog__append(Mantissa, ['.','0',Marker|Exponent], Expanded).
+
+eyeprolog__split_exponent([e|Exponent], [], e, Exponent).
+eyeprolog__split_exponent(['E'|Exponent], [], 'E', Exponent).
+eyeprolog__split_exponent([C|Chars], [C|Mantissa], Marker, Exponent) :-
+    eyeprolog__split_exponent(Chars, Mantissa, Marker, Exponent).
 
 atom_string(Atom, Text) :-
     atom(Atom),
