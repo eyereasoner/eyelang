@@ -164,6 +164,15 @@ export const isoBuiltins = {
   }
 };
 
+// call_nth/2 is a Prologue library predicate with control behavior that cannot
+// be expressed portably as ordinary Prolog clauses.  Keep the public wrapper
+// in library(prologue) and expose only this private adapter to the host registry.
+export const eyePrologLibraryBuiltins = {
+  register(registry) {
+    registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
+  },
+};
+
 function* unification({ goal, env }) {
   const next = env.clone();
   if (unify(goal.args[0], goal.args[1], next)) yield next;
@@ -1559,6 +1568,36 @@ function* callClosureBuiltin({ solver, goal, env }) {
   const child = solver.cloneForInnerGoal();
   try {
     yield* child.solve([invoked], env, 0);
+  } finally {
+    solver.absorbStatsFrom(child);
+  }
+}
+
+function* callNthBuiltin({ solver, goal, env }) {
+  const requestedTerm = deref(goal.args[1], env);
+  // Zero is the one Nth value that fails before Goal is inspected.
+  if (requestedTerm.type === NUMBER && isDecimalInteger(requestedTerm.name) && BigInt(requestedTerm.name) === 0n) return;
+
+  const invoked = callable(goal.args[0], env);
+  let requested = null;
+  if (requestedTerm.type !== VAR) {
+    if (requestedTerm.type !== NUMBER || !isDecimalInteger(requestedTerm.name)) {
+      throw new PrologError('type_error(integer)', requestedTerm);
+    }
+    requested = BigInt(requestedTerm.name);
+    if (requested < 0n) throw new PrologError('domain_error(not_less_than_zero)', requestedTerm);
+  }
+
+  const child = solver.cloneForInnerGoal();
+  let nth = 0n;
+  try {
+    for (const answerEnv of child.solve([invoked], env, 0)) {
+      nth++;
+      if (requested != null && nth < requested) continue;
+      const next = answerEnv.clone();
+      if (unify(goal.args[1], numberTerm(nth.toString()), next)) yield next;
+      if (requested != null) return;
+    }
   } finally {
     solver.absorbStatsFrom(child);
   }

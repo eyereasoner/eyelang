@@ -50,7 +50,7 @@ const bin = path.join(packageRoot, 'bin', 'eyeprolog.js');
 const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
 let tmp = null;
 let tmpCounter = 0;
-const libraryCall = /\b(?:uuid|difference|maplist|lt|gt|le|ge|between|smallest_divisor_from|random|matches|split|replace|lowercase|uppercase|trim|number_string|atom_string|term_string|append|string_concat|contains|join|substring|member|select|last|nth0|nth1|set_nth0|take|drop|slice|reverse|length|sum_list|min_list|max_list|list_to_set|countall|sumall|aggregate_min|aggregate_max)\s*\(/;
+const libraryCall = /\b(?:uuid|difference|maplist|foldl|call_nth|lt|gt|le|ge|between|smallest_divisor_from|random|matches|split|replace|lowercase|uppercase|trim|number_string|atom_string|term_string|append|string_concat|contains|join|substring|member|select|last|nth0|nth1|set_nth0|take|drop|slice|reverse|length|sum_list|min_list|max_list|list_to_set|countall|sumall|aggregate_min|aggregate_max)\s*\(/;
 
 function withStandardModules(source) {
   if (!libraryCall.test(source) || source.includes('use_module(library(') || source.includes(':- module(')) return source;
@@ -335,6 +335,36 @@ c4 ?- call((!;1)).
         assertEqual(result.total, 33, 'quad total');
         assertEqual(result.passed, 33, 'quad passed');
         assertEqual(result.stdout, 'quads: 33 run, 33 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
+      name: 'runQuads passes the authoritative Prologue call_nth quad corpus',
+      run: () => {
+        const filename = path.join(testRoot, 'fixtures', 'prologue_call_nth_quad_runner.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        const result = publicApi.runQuads(Program.parseSources([{
+          text: source,
+          filename,
+          baseDir: path.dirname(filename),
+        }]));
+        assertEqual(result.total, 13, 'quad total');
+        assertEqual(result.passed, 13, 'quad passed');
+        assertEqual(result.stdout, 'quads: 13 run, 13 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
+      name: 'runQuads covers the remaining finite Prologue examples and arities',
+      run: () => {
+        const filename = path.join(testRoot, 'fixtures', 'prologue_extended_quad_runner.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        const result = publicApi.runQuads(Program.parseSources([{
+          text: source,
+          filename,
+          baseDir: path.dirname(filename),
+        }]));
+        assertEqual(result.total, 37, 'quad total');
+        assertEqual(result.passed, 37, 'quad passed');
+        assertEqual(result.stdout, 'quads: 37 run, 37 passed, 0 failed.\n', 'quad report');
       },
     },
     {
@@ -1348,14 +1378,17 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 129, 'EyeProlog registry contains only ISO host definitions');
+        assertEqual(library.defs.size, 130, 'EyeProlog registry contains ISO definitions and one private library adapter');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 0, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 46, 'portable Prolog library count');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 0, 'native host library count');
-        assertEqual(eyePrologNativeLibraryIndicators.join(','), '', 'no EyeProlog library predicate requires host support');
-        assertEqual(eyePrologLibraryIndicators.length, 46, 'complete EyeProlog library surface');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 1, 'public native EyeProlog builtin count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 56, 'portable Prolog library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 1, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.join(','), 'call_nth/2', 'control predicate requiring host support');
+        assertEqual(eyePrologLibraryIndicators.length, 57, 'complete EyeProlog library surface');
+        assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
+        assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
+        assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');

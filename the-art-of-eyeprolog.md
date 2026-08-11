@@ -5761,22 +5761,25 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **46 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **All 46 are ordinary Prolog clauses**
-across `src/lib/eyeprolog.pl`, `src/lib/lists.pl`, and `src/lib/prologue.pl`; none
-is a native host predicate. The resulting
-normal EyeProlog language surface is therefore **175 public predicate
-indicators**. Internally, the runtime registry contains only the 129 ISO
-definitions; the EyeProlog relations are module source clauses.
+EyeProlog exposes **57 library predicate indicators** in addition to the 129
+indicators in its isolated ISO profile. **56 are implemented entirely as
+ordinary Prolog clauses** across `src/lib/eyeprolog.pl`, `src/lib/lists.pl`, and
+`src/lib/prologue.pl`. The Prologue `call_nth/2` clause delegates its solution
+numbering to one private host adapter. The resulting normal EyeProlog language
+surface is therefore **186 public predicate indicators**. Internally, the
+runtime registry contains the 129 ISO definitions plus that private adapter;
+the remaining EyeProlog relations are module source clauses.
 
 The three Prolog files declare `eyeprolog`, `lists`, and `prologue` with
 `module/2`. A program loads them explicitly with
 `use_module(library(eyeprolog))`, `use_module(library(lists))`, or
 `use_module(library(prologue))`; `use_module/2` can select a smaller import
-list. The last module implements the predicates exercised by the working-draft
-Prologue quad corpus.
-`src/standard-library.js` only registers the module sources for Node and browser
-resolution and never adds clauses implicitly.
+list. The last module implements p.p.1 through p.p.11 of the
+[working-draft Prologue](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue),
+with the published `call_nth/2` quads and finite examples retained as offline
+regressions. `src/standard-library.js` registers the module sources and private
+control adapter for Node and browser resolution, and never adds clauses
+implicitly.
 The isolated ISO-only registry remains
 available through `createDefaultRegistry()` and `getDefaultRegistry()` for
 conformance work and advanced embedders. Module-local predicate identity keeps
@@ -5788,7 +5791,7 @@ private helpers and same-named predicates in different modules separate.
 | --- | --- |
 | `library(lists)` | `maplist/3`, `append/3`, `member/2`, `select/3`, `last/2`, `nth0/3`, `nth1/3`, `reverse/2`, `length/2`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `countall/2` |
 | `library(eyeprolog)` | `uuid/3`, `difference/3`, `lt/2`, `le/2`, `gt/2`, `ge/2`, `between/3`, `smallest_divisor_from/3`, `random/3`, `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4`, `sumall/3`, `aggregate_min/5`, `aggregate_max/5` |
-| `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2` |
+| `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` |
 
 <!-- eyeprolog-library-catalog:end -->
 
@@ -5915,7 +5918,7 @@ eyeprolog --goal 'answer(Kind, Value)' program.pl
 The portable text API uses **ISO atoms or proper lists of one-character atoms**.
 A generated text result defaults to an atom. Double-quoted source text uses the
 ISO representation selected by `double_quotes`; with the default `chars`, it is
-already a proper character list accepted by this API. The 46-predicate portable
+already a proper character list accepted by this API. The 56-predicate portable
 library itself has no STRING or JavaScript dependency.
 
 | Predicate and principal mode | Behavior |
