@@ -6212,9 +6212,9 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **189 self-contained runnable programs**. Every
+top-level directory contains **190 self-contained runnable programs**. Every
 source program has an exact answer file under
-[examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **60 selected programs** have a checked
+[examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
 itself rather than merely naming it.
 
@@ -6297,6 +6297,7 @@ studies.
 | [Herbrand witnesses](https://github.com/eyereasoner/eyeprolog/blob/main/examples/herbrand-witnesses.pl) | Functional witness terms make existential structure and syntactic identity visible in both answers and derivations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/herbrand-witnesses.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/herbrand-witnesses.pl) |
 | [Reusable built-ins](https://github.com/eyereasoner/eyeprolog/blob/main/examples/reusable-builtins.pl) | Arithmetic, strings, lists, and term inspection compose through ordinary variables. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/reusable-builtins.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/reusable-builtins.pl) |
 | [Skolem Functions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/skolem-functions.pl) | Skolem functional terms in rule heads. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/skolem-functions.pl) |
+| [SNAF](https://github.com/eyereasoner/eyeprolog/blob/main/examples/snaf.pl) | Negation as failure establishes that Alice does not hate Bob before deriving that she hates Nobody. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/snaf.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/snaf.pl) |
 | [Socrates](https://github.com/eyereasoner/eyeprolog/blob/main/examples/socrates.pl) | A fact and one rule turn the classical syllogism into a ground derivation. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/socrates.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/socrates.pl) |
 | [UUID](https://github.com/eyereasoner/eyeprolog/blob/main/examples/uuid.pl) | `uuid/3` reproducibly creates one version 4 UUID atom from explicit random state; the example validates its canonical shape. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/uuid.pl) |
 | [Witch](https://github.com/eyereasoner/eyeprolog/blob/main/examples/witch.pl) | Burn the witch, adapted from Eyeling's examples/witch.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/witch.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/witch.pl) |

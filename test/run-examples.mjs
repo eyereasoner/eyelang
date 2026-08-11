@@ -42,6 +42,7 @@ export const proofExamples = [
   'list-collection.pl',
   'proof-contrapositive.pl',
   'reusable-builtins.pl',
+  'snaf.pl',
   'socrates.pl',
   'spacecraft-battery-diagnosis.pl',
   'term-tools.pl',
