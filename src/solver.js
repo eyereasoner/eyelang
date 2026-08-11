@@ -29,6 +29,10 @@ export class Solver {
     this.mutableProgram = program.mutable === true;
     this.programRevision = this.program.revision ?? 0;
     this.maxDepth = options.maxDepth ?? 100000;
+    this.depthLimitExceeded = false;
+    this.maxInferences = options.maxInferences ?? Infinity;
+    this.inferences = 0;
+    this.inferenceLimitExceeded = false;
     this.solutionLimit = options.solutionLimit ?? 10000000;
     this.solutionsSeen = 0;
     this.prologFlags = options.prologFlags ?? defaultPrologFlags(this.registry?.eyePrologLibrary ? 'fail' : 'error');
@@ -83,6 +87,7 @@ export class Solver {
     const solver = new Solver(this.program, {
       registry: this.registry,
       maxDepth: this.maxDepth,
+      maxInferences: this.maxInferences,
       solutionLimit,
       prologFlags: this.prologFlags,
       charConversions: this.charConversions,
@@ -110,6 +115,8 @@ export class Solver {
 
   absorbStatsFrom(child) {
     if (!child || child === this || !child.stats) return;
+    this.depthLimitExceeded ||= child.depthLimitExceeded;
+    this.inferenceLimitExceeded ||= child.inferenceLimitExceeded;
     for (const [key, value] of Object.entries(child.stats)) {
       if (key === 'max_depth' || key === 'max_goal_count') {
         this.stats[key] = Math.max(this.stats[key] ?? 0, value ?? 0);
@@ -140,6 +147,11 @@ export class Solver {
       registeredStack = stack;
       this.solveStacks.push(stack);
       while (stack.length) {
+      this.inferences++;
+      if (this.inferences > this.maxInferences) {
+        this.inferenceLimitExceeded = true;
+        break;
+      }
       const frame = stack.pop();
       this.syncProgramRevision();
       if (frame.kind === 'resumeBuiltin') {
@@ -185,11 +197,31 @@ export class Solver {
       let active = frame.active;
 
       while (true) {
+        this.inferences++;
+        if (this.inferences > this.maxInferences) {
+          this.inferenceLimitExceeded = true;
+          stack.length = 0;
+          break;
+        }
         this.syncProgramRevision();
         this.stats.solve_goals_calls++;
         this.stats.max_depth = Math.max(this.stats.max_depth, depth);
         this.stats.max_goal_count = Math.max(this.stats.max_goal_count, goals.length);
-        if (depth > this.maxDepth || this.solutionsSeen >= this.solutionLimit) break;
+        if (depth > this.maxDepth) {
+          this.depthLimitExceeded = true;
+          break;
+        }
+        if (this.solutionsSeen >= this.solutionLimit) break;
+
+        const readyDelays = env.takeReadyDelays();
+        if (readyDelays.length > 0) {
+          const awakened = readyDelays.map(({ goal, module }) => {
+            const delayed = copyResolved(goal, env);
+            qualifyTerm(delayed, module);
+            return delayed;
+          });
+          goals = [...awakened, ...goals];
+        }
 
         if (goals.length === 0) {
           this.solutionsSeen++;
@@ -348,7 +380,11 @@ export class Solver {
 
   *solveUserGoal(goal, rest, env, depth) {
     this.stats.solve_one_goal_calls++;
-    if (depth > this.maxDepth || this.solutionsSeen >= this.solutionLimit) return;
+    if (depth > this.maxDepth) {
+      this.depthLimitExceeded = true;
+      return;
+    }
+    if (this.solutionsSeen >= this.solutionLimit) return;
     if (goal.type !== COMPOUND && goal.type !== 'atom') return;
     const group = this.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
     if (!group) return;

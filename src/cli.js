@@ -110,6 +110,16 @@ export async function main(argv) {
     for (const source of sourceParts) options.goals.push(...goalsFromSource(source.text));
   }
 
+  // The ISO Prolog working-example quad files assume the Prologue predicates
+  // are available as system predicates and therefore contain no use_module/1
+  // directive. Import their portable EyeProlog counterparts in quad mode.
+  if (options.quads) {
+    sourceParts.unshift({
+      text: ':- use_module(library(prologue)).\n',
+      filename: '<quad-prelude>',
+    });
+  }
+
   const engine = await loadEngine();
   let program = engine.Program.parseSources(sourceParts, { sourceMetadata: options.proof });
 

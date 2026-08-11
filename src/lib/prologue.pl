@@ -19,6 +19,7 @@
     nth1/3,
     nth1/4,
     call_nth/2,
+    freeze/2,
     foldl/4,
     foldl/5,
     foldl/6,
@@ -33,6 +34,7 @@
 :- meta_predicate(maplist(6, '?', '?', '?', '?', '?', '?')).
 :- meta_predicate(maplist(7, '?', '?', '?', '?', '?', '?', '?')).
 :- meta_predicate(call_nth(0, '?')).
+:- meta_predicate(freeze('?', 0)).
 :- meta_predicate(foldl(3, '?', '?', '?')).
 :- meta_predicate(foldl(4, '?', '?', '?', '?')).
 :- meta_predicate(foldl(5, '?', '?', '?', '?', '?')).
@@ -158,6 +160,8 @@ nth1(N, List, Elem, Rest) :-
     N \== 0.
 
 call_nth(Goal, Nth) :- eyeprolog__call_nth(Goal, Nth).
+
+freeze(Var, Goal) :- eyeprolog__freeze(Var, Goal).
 
 foldl(_, [], Acc, Acc).
 foldl(Closure, [A|As], Acc0, Acc) :-

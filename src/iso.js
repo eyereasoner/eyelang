@@ -164,12 +164,13 @@ export const isoBuiltins = {
   }
 };
 
-// call_nth/2 is a Prologue library predicate with control behavior that cannot
-// be expressed portably as ordinary Prolog clauses.  Keep the public wrapper
-// in library(prologue) and expose only this private adapter to the host registry.
+// These Prologue library predicates have control behavior that cannot be
+// expressed portably as ordinary Prolog clauses. Keep their public wrappers in
+// library(prologue) and expose only private adapters to the host registry.
 export const eyePrologLibraryBuiltins = {
   register(registry) {
     registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
+    registry.add('eyeprolog__freeze', 2, freezeBuiltin, { eyePrologLibrary: true });
   },
 };
 
@@ -1725,6 +1726,22 @@ function* callNthBuiltin({ solver, goal, env }) {
   } finally {
     solver.absorbStatsFrom(child);
   }
+}
+
+function* freezeBuiltin({ solver, goal, env }) {
+  const watched = deref(goal.args[0], env);
+  if (watched.type !== VAR) {
+    const child = solver.cloneForInnerGoal();
+    try {
+      yield* child.solve([callable(goal.args[1], env)], env, 0);
+    } finally {
+      solver.absorbStatsFrom(child);
+    }
+    return;
+  }
+  const next = env.clone();
+  next.delay(watched.name, goal.args[1], goal.module ?? 'user');
+  yield next;
 }
 
 function* phraseBuiltin({ solver, goal, env }) {

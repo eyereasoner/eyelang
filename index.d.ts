@@ -11,6 +11,7 @@ export interface EyePrologRunOptions {
   why?: boolean;
   explain?: boolean;
   maxDepth?: number;
+  maxInferences?: number;
   solutionLimit?: number;
   registry?: BuiltinRegistry;
   sourceMetadata?: boolean;
@@ -161,6 +162,10 @@ export class Solver {
   program: Program;
   registry: BuiltinRegistry;
   maxDepth: number;
+  depthLimitExceeded: boolean;
+  maxInferences: number;
+  inferences: number;
+  inferenceLimitExceeded: boolean;
   solutionLimit: number;
   solutionsSeen: number;
   active: unknown[];

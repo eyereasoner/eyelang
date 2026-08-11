@@ -56,12 +56,16 @@ function checkQuad(program, quad, options) {
 
 function checkDescription(program, quad, description, options) {
   const alternatives = splitOperator(description, '|');
-  for (const alternative of alternatives) {
+  // Probe an explicitly accepted nontermination outcome before alternatives
+  // that would run the same query without a bound.
+  const ordered = [...alternatives].sort((left, right) =>
+    Number(alternativeDescribesLoop(right)) - Number(alternativeDescribesLoop(left)));
+  for (const alternative of ordered) {
     const malformed = malformedAlternative(quad.query, alternative);
     if (malformed != null) return { ok: false, kind: 'malformed', expected: malformed };
   }
   let unsupported = null;
-  for (const alternative of alternatives) {
+  for (const alternative of ordered) {
     const checked = checkAlternative(program, quad, alternative, options);
     if (checked.ok) return checked;
     if (checked.kind === 'unsupported') unsupported ??= checked;
@@ -86,7 +90,10 @@ function checkAlternative(program, quad, alternative, options) {
   const maxSolutions = inputSpecs.length > 0
     ? 1
     : moreAt < 0 ? describedCount + 1 : Math.max(describedCount, 1);
-  const actual = executeQuery(program, quad.query, input, maxSolutions, options);
+  const actual = executeQuery(program, quad.query, input, maxSolutions, {
+    ...options,
+    detectLoops: leaves.some((leaf) => leaf.loops),
+  });
 
   if (inputSpecs.length > 0) {
     const leaf = leaves[0];
@@ -137,6 +144,7 @@ function describeLeaf(term) {
     sto: false,
     false: false,
     truth: false,
+    loops: false,
     error: null,
     input: null,
     output: null,
@@ -149,7 +157,8 @@ function describeLeaf(term) {
       if (item.name === 'unexpected' || item.name === 'inattendue') leaf.unexpected = true;
       else if (item.name === '...' || item.name === 'ad_infinitum') leaf.more = true;
       else if (item.name === 'sto') leaf.sto = true;
-      else if (item.name === 'loops' || item.name === 'waits' || item.name === 'other_answer_sequence') {
+      else if (item.name === 'loops') leaf.loops = true;
+      else if (item.name === 'waits' || item.name === 'other_answer_sequence') {
         leaf.unsupported ??= item;
       } else if (item.name === 'false') leaf.false = true;
       else if (item.name === 'true') leaf.truth = true;
@@ -181,7 +190,7 @@ function describeLeaf(term) {
     if (isErrorDescription(item)) leaf.error = item;
     else leaf.malformed ??= item;
   }
-  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.truth || leaf.false || leaf.error != null || leaf.output != null;
+  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.truth || leaf.false || leaf.loops || leaf.error != null || leaf.output != null;
   if (!leaf.hasExpectation && !leaf.more && !leaf.sto && leaf.unsupported == null) leaf.malformed ??= term;
   if ([leaf.false, leaf.truth, leaf.error != null].filter(Boolean).length > 1) leaf.malformed ??= term;
   return leaf;
@@ -192,6 +201,8 @@ function executeQuery(program, query, input, maxSolutions, options) {
   const solver = new Solver(program, {
     ...options,
     registry: options.registry ?? getEyePrologRegistry(),
+    maxDepth: options.detectLoops ? (options.loopMaxDepth ?? 1000) : options.maxDepth,
+    maxInferences: options.detectLoops ? (options.loopMaxInferences ?? 10000) : options.maxInferences,
     // The solver's counter also observes completed nested searches (for
     // example each arm of a DCG disjunction).  Bound the public iterator here
     // instead of letting those internal completions consume the quad's answer
@@ -225,10 +236,17 @@ function executeQuery(program, query, input, maxSolutions, options) {
     error = { term: errorTerm(caught), output: pendingOutput };
   }
   const inputPosition = solver.io.resolve('user_input')?.position ?? 0;
-  return { solutions, error, tailOutput, inputPosition };
+  return {
+    solutions,
+    error,
+    tailOutput,
+    inputPosition,
+    loops: solver.depthLimitExceeded || solver.inferenceLimitExceeded,
+  };
 }
 
 function matchLeaf(query, leaf, actual, position) {
+  if (leaf.loops) return actual.loops;
   if (leaf.false) {
     return position >= actual.solutions.length && actual.error == null && outputMatches(leaf.output, actual.tailOutput);
   }
@@ -239,6 +257,10 @@ function matchLeaf(query, leaf, actual, position) {
   const solution = actual.solutions[position];
   if (!solution || !outputMatches(leaf.output, solution.output)) return false;
   return substitutionMatches(query, leaf.bindings, solution.env);
+}
+
+function alternativeDescribesLoop(alternative) {
+  return splitOperator(alternative, ';').some((term) => describeLeaf(term).loops);
 }
 
 function substitutionMatches(query, bindings, actualEnv) {

@@ -45,6 +45,7 @@ export class Env {
       cacheValue: undefined,
       cache: null,
     };
+    this._delays = null;
   }
   clone() {
     // Most speculative environments are either rejected without a binding or
@@ -54,6 +55,7 @@ export class Env {
     // occasionally flattened.
     const clone = Object.create(Env.prototype);
     clone._state = this._state;
+    clone._delays = this._delays;
     return clone;
   }
   has(name) {
@@ -124,6 +126,24 @@ export class Env {
       cacheValue: undefined,
       cache: null,
     };
+  }
+  delay(name, goal, module = 'user') {
+    const delays = new Map(this._delays ?? []);
+    delays.set(name, [...(delays.get(name) ?? []), { goal, module }]);
+    this._delays = delays;
+  }
+  takeReadyDelays() {
+    if (this._delays == null || this._delays.size === 0) return [];
+    const ready = [];
+    let remaining = this._delays;
+    for (const [name, delays] of this._delays) {
+      if (deref(variable(name), this).type === VAR) continue;
+      if (remaining === this._delays) remaining = new Map(this._delays);
+      remaining.delete(name);
+      ready.push(...delays);
+    }
+    if (ready.length > 0) this._delays = remaining;
+    return ready;
   }
 }
 

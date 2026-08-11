@@ -367,6 +367,28 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'CLI passes the complete authoritative length quad corpus',
+      run: () => {
+        const filename = path.join(testRoot, 'fixtures', 'length_quad.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        assertEqual(Program.parse(source).quads.length, 37, 'vendored quad total');
+        const result = runCli(['-q', filename]);
+        assertEqual(result.status, 0, 'quad exit status');
+        assertEqual(result.stdout, 'quads: 37 run, 37 passed, 0 failed.\n', 'quad report');
+        assertEqual(result.stderr, '', 'quad stderr');
+      },
+    },
+    {
+      name: 'Prologue freeze wakes delayed goals with their bindings',
+      run: () => {
+        const result = runEyeProlog(
+          ':- use_module(library(prologue)).\nwake(X, Y) :- freeze(X, Y = awake), X = ready.\n',
+          { goal: 'wake(X, Y)' },
+        );
+        assertEqual(result.stdout, 'wake(ready, awake).\n', 'freeze answer');
+      },
+    },
+    {
       name: 'runQuads covers the remaining finite Prologue examples and arities',
       run: () => {
         const filename = path.join(testRoot, 'fixtures', 'prologue_extended_quad_runner.pl');
@@ -392,11 +414,11 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'runQuads reports annotations that cannot be checked safely',
+      name: 'runQuads recognizes bounded nontermination descriptions',
       run: () => {
         const result = publicApi.runQuads(`?- repeat, fail.\n   loops.\n`);
-        assertEqual(result.results[0].kind, 'unsupported', 'quad result');
-        assertIncludes(result.stdout, 'quads: UNSUPPORTED <input>:1', 'unsupported report');
+        assertEqual(result.passed, 1, 'quad passed');
+        assertEqual(result.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'quad report');
       },
     },
     {
@@ -1392,17 +1414,19 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 130, 'EyeProlog registry contains ISO definitions and one private library adapter');
+        assertEqual(library.defs.size, 131, 'EyeProlog registry contains ISO definitions and two private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 1, 'public native EyeProlog builtin count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 2, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 56, 'portable Prolog library count');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 1, 'native host library count');
-        assertEqual(eyePrologNativeLibraryIndicators.join(','), 'call_nth/2', 'control predicate requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 57, 'complete EyeProlog library surface');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 2, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
+        assertEqual(eyePrologLibraryIndicators.length, 58, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
+        assertEqual(registry.get('eyeprolog__freeze', 2), null, 'private freeze adapter is absent from ISO registry');
+        assertEqual(Boolean(library.get('eyeprolog__freeze', 2)), true, 'private freeze adapter is registered for EyeProlog');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');

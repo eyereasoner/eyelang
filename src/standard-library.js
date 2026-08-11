@@ -35,7 +35,7 @@ function libraryUrl(filename) {
   return url;
 }
 
-export const eyePrologNativeLibraryIndicators = Object.freeze(['call_nth/2']);
+export const eyePrologNativeLibraryIndicators = Object.freeze(['call_nth/2', 'freeze/2']);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
   'uuid/3', 'difference/3', 'maplist/2', 'maplist/3', 'maplist/4', 'maplist/5',
   'maplist/6', 'maplist/7', 'maplist/8', 'lt/2', 'gt/2', 'le/2', 'ge/2',
