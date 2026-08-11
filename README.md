@@ -91,7 +91,7 @@ noun --> [world] | [prolog].
 %% goal: phrase(sentence, Words)
 ```
 
-EyeProlog also adds 91 public library predicate indicators to its 129-entry ISO
+EyeProlog also adds 99 public library predicate indicators to its 129-entry ISO
 profile. **60 are implemented entirely as ordinary Prolog clauses** in focused
 modules under `src/lib/`; the control predicates and finite-domain
 `library(clpz)` kernel use backtrackable host support.

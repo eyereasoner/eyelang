@@ -1438,20 +1438,21 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 145, 'EyeProlog registry contains ISO definitions and private library adapters');
+        assertEqual(library.defs.size, 152, 'EyeProlog registry contains ISO definitions and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 31, 'public native EyeProlog builtin count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 39, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 60, 'portable Prolog library count');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 31, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 39, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 91, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 99, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
         assertEqual(registry.get('eyeprolog__freeze', 2), null, 'private freeze adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__freeze', 2)), true, 'private freeze adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__clpz_labeling', 2)), true, 'private CLP(Z) labeling adapter is registered');
+        assertEqual(Boolean(library.get('eyeprolog__clpz_global_cardinality', 3)), true, 'private CLP(Z) cardinality adapter is registered');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');
@@ -1543,6 +1544,19 @@ contradiction :- Z in 1..3, Z = 4.
         assertEqual(program.findGroup('labeling', 2)?.module, 'clpz', 'labeling/2 module');
         assertEqual(run(program, { goals: ['answer(X, Y, B)', 'contradiction'] }).stdout,
           'answer(1, 4, 1).\nanswer(2, 3, 0).\n', 'CLP(Z) constrained answers');
+      },
+    },
+    {
+      name: 'CLP(Z) finite global constraints match the portable example',
+      run: () => {
+        const filename = path.join(packageRoot, 'examples', 'clpz-global-constraints.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        const program = Program.parseSources([{ text: source, filename }]);
+        assertEqual(program.findGroup('tuples_in', 2)?.module, 'clpz', 'tuples_in/2 module');
+        assertEqual(program.findGroup('global_cardinality', 3)?.module, 'clpz', 'global_cardinality/3 module');
+        assertEqual(program.findGroup('circuit', 1)?.module, 'clpz', 'circuit/1 module');
+        const expected = fs.readFileSync(path.join(packageRoot, 'examples', 'output', 'clpz-global-constraints.pl'), 'utf8');
+        assertEqual(run(program, { goal: 'advanced_clpz(X0, X1)' }).stdout, expected, 'global constraint answers');
       },
     },
     {

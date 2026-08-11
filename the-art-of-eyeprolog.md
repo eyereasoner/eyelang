@@ -5762,14 +5762,14 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **91 library predicate indicators** in addition to the 129
+EyeProlog exposes **99 library predicate indicators** in addition to the 129
 indicators in its isolated ISO profile. **60 are implemented entirely as
-ordinary Prolog clauses** in focused modules under `src/lib/`. The remaining 31
+ordinary Prolog clauses** in focused modules under `src/lib/`. The remaining 39
 are public wrappers around backtrackable host support: Prologue `call_nth/2` and
-`freeze/2`, plus the 29-predicate finite-domain `library(clpz)` kernel. The
-resulting normal EyeProlog language surface is therefore **220 public predicate
+`freeze/2`, plus the 37-predicate finite-domain `library(clpz)` kernel. The
+resulting normal EyeProlog language surface is therefore **228 public predicate
 indicators**. Internally, the runtime registry contains the 129 ISO definitions
-plus 16 private library adapters; public relations remain module source clauses.
+plus 23 private library adapters; public relations remain module source clauses.
 
 The sources are `src/lib/aggregate.pl`, `src/lib/clpz.pl`, `src/lib/comparison.pl`,
 `src/lib/dates.pl`, `src/lib/iso_ext.pl`, `src/lib/lists.pl`,
@@ -5799,7 +5799,7 @@ between solution branches.
 | Module | Exported predicate indicators |
 | --- | --- |
 | `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` |
-| `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `sum/3`, `scalar_product/4`, `labeling/2`, `label/1`, `indomain/1`, `chain/2`, `element/3`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2` |
+| `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `chain/2`, `element/3`, `zcompare/3`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2` |
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
 | `library(dates)` | `difference/3` |
 | `library(iso_ext)` | `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2` |
@@ -5816,10 +5816,13 @@ between solution branches.
 programming over integers. Its first implementation step provides finite
 interval and union domains, arithmetic and reified constraints, backtrackable
 labeling with `ff`, `up`, and `down`, global distinctness, linear sums and
-scalar products, chains, elements, and domain reflection. Constraints are kept
-in the logical environment, so failed alternatives cannot leak domains into
-later branches. The full Trealla library also contains additional global
-constraints and unbounded-domain propagation that are not yet exported here.
+scalar products, chains, elements, value counting, extensional tuple tables,
+lexicographic chains, serialized schedules, global cardinality with costs,
+Hamiltonian circuits, three-way comparison, and domain reflection. Constraints
+are kept in the logical environment, so failed alternatives cannot leak domains
+into later branches. The full Trealla library also contains automata,
+cumulative and two-dimensional scheduling constraints, and unbounded-domain
+propagation that are not yet exported here.
 
 `library(iso_ext)` collects extensions commonly found in mature Prolog
 systems. `forall/2` checks an action for every solution of a condition;
@@ -6362,7 +6365,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **209 self-contained runnable programs**. Every
+top-level directory contains **210 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -6411,6 +6414,7 @@ mode at a time.
 | Program | Standard facility | Checked answer |
 | --- | --- | --- |
 | [CLP(Z) factorial](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-factorial.pl) | Declarative predecessor and product constraints propagate a factorial without mode-sensitive `is/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-factorial.pl) |
+| [CLP(Z) global constraints](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-global-constraints.pl) | Compatibility tables, lexicographic and serialized schedules, global cardinality with costs, circuits, value counting, and integer comparison. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-global-constraints.pl) |
 | [CLP(Z) N-queens](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-n-queens.pl) | Six-queens using finite domains, delayed diagonal constraints, `all_distinct/1`, and first-fail labeling. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-n-queens.pl) |
 | [CLP(Z) resource allocation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-resource-allocation.pl) | Resource assignment using `element/3`, `sum/3`, `scalar_product/4`, reification, labeling options, and domain reflection. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-resource-allocation.pl) |
 | [Combinatorics Findall Sort](https://github.com/eyereasoner/eyeprolog/blob/main/examples/combinatorics-findall-sort.pl) | Eyelet-inspired combinations example using `findall/3` and ISO `sort/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/combinatorics-findall-sort.pl) |

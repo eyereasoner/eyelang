@@ -19,10 +19,17 @@ export const clpzBuiltins = {
     registry.add('eyeprolog__clpz_in', 2, inBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_ins', 2, insBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_all_distinct', 1, allDistinctBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__clpz_nvalue', 2, nvalueBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_sum', 3, sumBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_scalar_product', 4, scalarProductBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__clpz_tuples_in', 2, tuplesInBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__clpz_lex_chain', 1, lexChainBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__clpz_serialized', 2, serializedBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__clpz_global_cardinality', 3, globalCardinalityBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__clpz_circuit', 1, circuitBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_chain', 2, chainBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_element', 3, elementBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__clpz_zcompare', 3, zcompareBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_labeling', 2, labelingBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_fd_var', 1, fdVarBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__clpz_fd_inf', 2, fdBoundBuiltin('inf'), { deterministic: true, eyePrologLibrary: true });
@@ -206,20 +213,30 @@ function domainForRoot(root, env) {
 }
 
 function constrainTermDomain(next, term, values) {
+  const result = narrowTermDomain(next, term, values);
+  return result.ok && clpzStateConsistent(next);
+}
+
+function narrowTermDomain(next, term, values) {
   const resolved = deref(term, next);
   if (resolved.type === NUMBER) {
     const value = integerValue(resolved, next);
-    return values.some((candidate) => candidate === value);
+    return { ok: values.some((candidate) => candidate === value), changed: false };
   }
   if (resolved.type !== VAR) throw new PrologError('type_error(integer)', resolved);
   const existing = domainForRoot(resolved.name, next);
   const narrowed = existing == null ? values : intersectValues(existing, values);
-  if (narrowed.length === 0) return false;
+  if (narrowed.length === 0) return { ok: false, changed: false };
+  const changed = existing == null || existing.length !== narrowed.length ||
+    existing.some((value, index) => value !== narrowed[index]);
+  if (!changed) return { ok: true, changed: false };
   const domains = new Map(storeOf(next).domains);
   domains.set(resolved.name, narrowed);
   updateStore(next, { domains });
-  if (narrowed.length === 1 && !unify(resolved, numberTerm(narrowed[0].toString()), next)) return false;
-  return clpzStateConsistent(next);
+  if (narrowed.length === 1 && !unify(resolved, numberTerm(narrowed[0].toString()), next)) {
+    return { ok: false, changed: false };
+  }
+  return { ok: true, changed: true };
 }
 
 function* inBuiltin({ goal, env }) {
@@ -248,9 +265,34 @@ function listArgument(term, env) {
   return items;
 }
 
+function nestedListArgument(term, env) {
+  return listArgument(term, env).map((item) => listArgument(item, env));
+}
+
+function integerListArgument(term, env) {
+  return listArgument(term, env).map((item) => {
+    const value = integerValue(item, env);
+    if (value == null) throw new PrologError('instantiation_error');
+    return value;
+  });
+}
+
+function integerRange(lower, upper) {
+  const values = [];
+  for (let value = BigInt(lower); value <= BigInt(upper); value++) values.push(value);
+  return values;
+}
+
 function* allDistinctBuiltin({ goal, env }) {
   const next = env.clone();
   if (addGlobal(next, { kind: 'allDistinct', terms: listArgument(goal.args[0], env) })) yield next;
+}
+
+function* nvalueBuiltin({ goal, env }) {
+  const terms = listArgument(goal.args[1], env);
+  const next = env.clone();
+  if (!constrainTermDomain(next, goal.args[0], integerRange(terms.length === 0 ? 0 : 1, terms.length))) return;
+  if (addGlobal(next, { kind: 'nvalue', count: goal.args[0], terms })) yield next;
 }
 
 function* sumBuiltin({ goal, env }) {
@@ -269,6 +311,93 @@ function* scalarProductBuiltin({ goal, env }) {
   if (addGlobal(next, { kind: 'scalarProduct', coefficients, terms, relation, value: goal.args[3] })) yield next;
 }
 
+function* tuplesInBuiltin({ goal, env }) {
+  const tuples = nestedListArgument(goal.args[0], env);
+  const relation = nestedListArgument(goal.args[1], env).map((row) => row.map((item) => {
+    const value = integerValue(item, env);
+    if (value == null) throw new PrologError('instantiation_error');
+    return value;
+  }));
+  const next = env.clone();
+  if (addGlobal(next, { kind: 'tuplesIn', tuples, relation })) yield next;
+}
+
+function* lexChainBuiltin({ goal, env }) {
+  const lists = nestedListArgument(goal.args[0], env);
+  if (lists.some((list) => list.length !== (lists[0]?.length ?? 0))) return;
+  const next = env.clone();
+  if (addGlobal(next, { kind: 'lexChain', lists })) yield next;
+}
+
+function* serializedBuiltin({ goal, env }) {
+  const starts = listArgument(goal.args[0], env);
+  const durations = integerListArgument(goal.args[1], env);
+  if (starts.length !== durations.length) throw new PrologError('domain_error(same_length)');
+  if (durations.some((duration) => duration < 0n)) throw new PrologError('domain_error(not_less_than_zero)');
+  const next = env.clone();
+  if (addGlobal(next, { kind: 'serialized', starts, durations })) yield next;
+}
+
+function gccPairs(term, env) {
+  const pairs = listArgument(term, env).map((pair) => {
+    const resolved = deref(pair, env);
+    if (resolved.type !== COMPOUND || resolved.name !== '-' || resolved.arity !== 2) {
+      throw new PrologError('domain_error(gcc_pair)', resolved);
+    }
+    const key = integerValue(resolved.args[0], env);
+    if (key == null) throw new PrologError('instantiation_error');
+    return { key, count: resolved.args[1] };
+  });
+  const keys = new Set(pairs.map(({ key }) => key.toString()));
+  if (keys.size !== pairs.length) throw new PrologError('domain_error(gcc_unique_key_pairs)', deref(term, env));
+  return pairs;
+}
+
+function gccOptions(term, env, rowCount, columnCount) {
+  let cost = null;
+  let matrix = null;
+  for (const option of listArgument(term, env)) {
+    const resolved = deref(option, env);
+    if (resolved.type === COMPOUND && resolved.name === 'consistency' && resolved.arity === 1 &&
+        deref(resolved.args[0], env).type === ATOM && deref(resolved.args[0], env).name === 'value') continue;
+    if (resolved.type === COMPOUND && resolved.name === 'cost' && resolved.arity === 2 && cost == null) {
+      cost = resolved.args[0];
+      matrix = nestedListArgument(resolved.args[1], env).map((row) => row.map((item) => {
+        const value = integerValue(item, env);
+        if (value == null) throw new PrologError('instantiation_error');
+        return value;
+      }));
+      if (matrix.length !== rowCount || matrix.some((row) => row.length !== columnCount)) {
+        throw new PrologError('domain_error(gcc_cost_matrix)', resolved.args[1]);
+      }
+      continue;
+    }
+    throw new PrologError('domain_error(global_cardinality_option)', resolved);
+  }
+  return { cost, matrix };
+}
+
+function* globalCardinalityBuiltin({ goal, env }) {
+  const terms = listArgument(goal.args[0], env);
+  const pairs = gccPairs(goal.args[1], env);
+  const options = gccOptions(goal.args[2], env, terms.length, pairs.length);
+  const keys = pairs.map(({ key }) => key).sort(compareBigInt);
+  const next = env.clone();
+  for (const term of terms) if (!constrainTermDomain(next, term, keys)) return;
+  for (const { count } of pairs) if (!constrainTermDomain(next, count, integerRange(0, terms.length))) return;
+  if (addGlobal(next, { kind: 'globalCardinality', terms, pairs, ...options })) yield next;
+}
+
+function* circuitBuiltin({ goal, env }) {
+  const terms = listArgument(goal.args[0], env);
+  const next = env.clone();
+  if (terms.length > 0) {
+    const values = integerRange(1, terms.length);
+    for (const term of terms) if (!constrainTermDomain(next, term, values)) return;
+  }
+  if (addGlobal(next, { kind: 'circuit', terms })) yield next;
+}
+
 function* chainBuiltin({ goal, env }) {
   const terms = listArgument(goal.args[1], env);
   const relation = relationName(goal.args[0], env);
@@ -282,6 +411,70 @@ function* elementBuiltin({ goal, env }) {
   if (addGlobal(next, { kind: 'element', index: goal.args[0], terms: listArgument(goal.args[1], env), value: goal.args[2] })) yield next;
 }
 
+function* zcompareBuiltin({ goal, env }) {
+  const next = env.clone();
+  if (addGlobal(next, { kind: 'zcompare', order: goal.args[0], left: goal.args[1], right: goal.args[2] })) yield next;
+}
+
+function tupleCandidates(tuple, relation, env) {
+  return relation.filter((row) => row.length === tuple.length && row.every((candidate, index) => {
+    const resolved = deref(tuple[index], env);
+    if (resolved.type === NUMBER) return integerValue(resolved, env) === candidate;
+    if (resolved.type !== VAR) throw new PrologError('type_error(integer)', resolved);
+    const domain = domainForRoot(resolved.name, env);
+    return domain == null || domain.some((value) => value === candidate);
+  }));
+}
+
+function lexPairTruth(left, right, env) {
+  if (left.length !== right.length) return false;
+  for (let index = 0; index < left.length; index++) {
+    const a = expressionValue(left[index], env);
+    const b = expressionValue(right[index], env);
+    if (a == null || b == null) return true;
+    if (a < b) return true;
+    if (a > b) return false;
+  }
+  return true;
+}
+
+function circuitTruth(terms, env) {
+  if (terms.length === 0) return true;
+  const values = terms.map((term) => expressionValue(term, env));
+  const seenValues = new Set();
+  for (let index = 0; index < values.length; index++) {
+    const value = values[index];
+    if (value == null) continue;
+    if (value < 1n || value > BigInt(values.length)) return false;
+    if (values.length > 1 && value === BigInt(index + 1)) return false;
+    const key = value.toString();
+    if (seenValues.has(key)) return false;
+    seenValues.add(key);
+  }
+  if (values.some((value) => value == null)) return true;
+  const visited = new Set();
+  let node = 1;
+  for (let step = 0; step < values.length; step++) {
+    if (visited.has(node)) return false;
+    visited.add(node);
+    node = Number(values[node - 1]);
+  }
+  return node === 1 && visited.size === values.length;
+}
+
+function orderAtom(term, env) {
+  const resolved = deref(term, env);
+  if (resolved.type === VAR) return null;
+  if (resolved.type !== ATOM || !['<', '=', '>'].includes(resolved.name)) {
+    throw new PrologError('domain_error(order)', resolved);
+  }
+  return resolved.name;
+}
+
+function comparedOrder(left, right) {
+  return left < right ? '<' : left > right ? '>' : '=';
+}
+
 function globalTruth(global, env) {
   if (global.kind === 'allDistinct') {
     const seen = new Set();
@@ -293,6 +486,14 @@ function globalTruth(global, env) {
       seen.add(key);
     }
     return true;
+  }
+  if (global.kind === 'nvalue') {
+    const values = global.terms.map((term) => expressionValue(term, env));
+    const known = new Set(values.filter((value) => value != null).map(String));
+    const count = expressionValue(global.count, env);
+    if (count == null) return true;
+    if (count < BigInt(known.size) || count > BigInt(known.size + values.filter((value) => value == null).length)) return false;
+    return values.some((value) => value == null) || count === BigInt(known.size);
   }
   if (global.kind === 'sum') {
     const values = global.terms.map((term) => expressionValue(term, env));
@@ -309,6 +510,54 @@ function globalTruth(global, env) {
     for (let i = 0; i < values.length; i++) total += integerValue(global.coefficients[i], env) * values[i];
     return relationTruth(relationTerm(global.relation, numberTerm(total.toString()), global.value), env) !== false;
   }
+  if (global.kind === 'tuplesIn') {
+    return global.tuples.every((tuple) => tupleCandidates(tuple, global.relation, env).length > 0);
+  }
+  if (global.kind === 'lexChain') {
+    for (let index = 1; index < global.lists.length; index++) {
+      if (!lexPairTruth(global.lists[index - 1], global.lists[index], env)) return false;
+    }
+    return true;
+  }
+  if (global.kind === 'serialized') {
+    for (let left = 0; left < global.starts.length; left++) {
+      const a = expressionValue(global.starts[left], env);
+      if (a == null) continue;
+      for (let right = left + 1; right < global.starts.length; right++) {
+        const b = expressionValue(global.starts[right], env);
+        if (b == null) continue;
+        if (a + global.durations[left] > b && b + global.durations[right] > a) return false;
+      }
+    }
+    return true;
+  }
+  if (global.kind === 'globalCardinality') {
+    const values = global.terms.map((term) => expressionValue(term, env));
+    for (const { key, count: countTerm } of global.pairs) {
+      const known = values.filter((value) => value === key).length;
+      const possible = global.terms.filter((term, index) => {
+        if (values[index] != null) return false;
+        const resolved = deref(term, env);
+        const domain = resolved.type === VAR ? domainForRoot(resolved.name, env) : null;
+        return domain == null || domain.some((value) => value === key);
+      }).length;
+      const count = expressionValue(countTerm, env);
+      if (count != null && (count < BigInt(known) || count > BigInt(known + possible))) return false;
+      if (possible === 0 && count != null && count !== BigInt(known)) return false;
+    }
+    if (global.cost != null && values.every((value) => value != null)) {
+      let total = 0n;
+      for (let row = 0; row < values.length; row++) {
+        const column = global.pairs.findIndex(({ key }) => key === values[row]);
+        if (column < 0) return false;
+        total += global.matrix[row][column];
+      }
+      const cost = expressionValue(global.cost, env);
+      if (cost != null && cost !== total) return false;
+    }
+    return true;
+  }
+  if (global.kind === 'circuit') return circuitTruth(global.terms, env);
   if (global.kind === 'chain') {
     for (let i = 1; i < global.terms.length; i++) {
       const truth = relationTruth(relationTerm(global.relation, global.terms[i - 1], global.terms[i]), env);
@@ -324,6 +573,12 @@ function globalTruth(global, env) {
     const left = expressionValue(selected, env);
     const right = expressionValue(global.value, env);
     return left == null || right == null || left === right;
+  }
+  if (global.kind === 'zcompare') {
+    const order = orderAtom(global.order, env);
+    const left = expressionValue(global.left, env);
+    const right = expressionValue(global.right, env);
+    return order == null || left == null || right == null || order === comparedOrder(left, right);
   }
   return true;
 }
@@ -410,7 +665,82 @@ function propagate(env) {
       }
     }
     for (const global of store.globals) {
-      if (global.kind === 'element') {
+      if (global.kind === 'nvalue') {
+        const values = global.terms.map((term) => expressionValue(term, env));
+        const known = new Set(values.filter((value) => value != null).map(String));
+        const unresolved = values.filter((value) => value == null).length;
+        const result = narrowTermDomain(env, global.count, integerRange(known.size, known.size + unresolved));
+        if (!result.ok) return false;
+        changed ||= result.changed;
+      } else if (global.kind === 'tuplesIn') {
+        for (const tuple of global.tuples) {
+          const candidates = tupleCandidates(tuple, global.relation, env);
+          if (candidates.length === 0) return false;
+          for (let index = 0; index < tuple.length; index++) {
+            const values = [...new Set(candidates.map((row) => row[index].toString()))].map(BigInt).sort(compareBigInt);
+            const result = narrowTermDomain(env, tuple[index], values);
+            if (!result.ok) return false;
+            changed ||= result.changed;
+          }
+        }
+      } else if (global.kind === 'globalCardinality') {
+        const values = global.terms.map((term) => expressionValue(term, env));
+        for (const { key, count: countTerm } of global.pairs) {
+          const known = values.filter((value) => value === key).length;
+          const possibleTerms = global.terms.filter((term, index) => {
+            if (values[index] != null) return false;
+            const resolved = deref(term, env);
+            const domain = resolved.type === VAR ? domainForRoot(resolved.name, env) : null;
+            return domain == null || domain.some((value) => value === key);
+          });
+          const countResult = narrowTermDomain(env, countTerm, integerRange(known, known + possibleTerms.length));
+          if (!countResult.ok) return false;
+          changed ||= countResult.changed;
+          const count = expressionValue(countTerm, env);
+          if (count === BigInt(known)) {
+            for (const term of possibleTerms) {
+              const resolved = deref(term, env);
+              if (resolved.type !== VAR) continue;
+              const domain = domainForRoot(resolved.name, env);
+              const result = narrowTermDomain(env, term, domain.filter((value) => value !== key));
+              if (!result.ok) return false;
+              changed ||= result.changed;
+            }
+          } else if (count === BigInt(known + possibleTerms.length)) {
+            for (const term of possibleTerms) {
+              const result = narrowTermDomain(env, term, [key]);
+              if (!result.ok) return false;
+              changed ||= result.changed;
+            }
+          }
+        }
+        if (global.cost != null && values.every((value) => value != null)) {
+          let total = 0n;
+          for (let row = 0; row < values.length; row++) {
+            const column = global.pairs.findIndex(({ key }) => key === values[row]);
+            if (column < 0) return false;
+            total += global.matrix[row][column];
+          }
+          const result = bindExpressionEquality(global.cost, numberTerm(total.toString()), env);
+          if (!result.ok) return false;
+          changed ||= result.changed;
+        }
+      } else if (global.kind === 'zcompare') {
+        const order = orderAtom(global.order, env);
+        const left = expressionValue(global.left, env);
+        const right = expressionValue(global.right, env);
+        if (left != null && right != null) {
+          const resolvedOrder = atom(comparedOrder(left, right));
+          if (order == null) {
+            if (!unify(global.order, resolvedOrder, env)) return false;
+            changed = true;
+          } else if (order !== resolvedOrder.name) return false;
+        } else if (order === '=') {
+          const result = bindLinearEquality(global.left, global.right, env);
+          if (!result.ok) return false;
+          changed ||= result.changed;
+        }
+      } else if (global.kind === 'element') {
         const index = expressionValue(global.index, env);
         if (index != null) {
           if (index < 1n || index > BigInt(global.terms.length)) return false;

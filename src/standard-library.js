@@ -22,7 +22,7 @@ const moduleFiles = Object.freeze({
 
 const cacheKey = isNode
   ? null
-  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260811b');
+  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260811c');
 
 export const standardLibrarySources = new Map(await Promise.all(
   Object.entries(moduleFiles).map(async ([name, filename]) => [name, {
@@ -48,9 +48,11 @@ export const eyePrologNativeLibraryIndicators = Object.freeze([
   'call_nth/2', 'freeze/2',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
-  'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'sum/3',
-  'scalar_product/4', 'labeling/2', 'label/1', 'indomain/1', 'chain/2',
-  'element/3', 'fd_var/1', 'fd_inf/2', 'fd_sup/2', 'fd_size/2', 'fd_dom/2',
+  'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'nvalue/2', 'sum/3',
+  'scalar_product/4', 'tuples_in/2', 'labeling/2', 'label/1',
+  'indomain/1', 'lex_chain/1', 'serialized/2', 'global_cardinality/2',
+  'global_cardinality/3', 'circuit/1', 'chain/2', 'element/3', 'zcompare/3',
+  'fd_var/1', 'fd_inf/2', 'fd_sup/2', 'fd_size/2', 'fd_dom/2',
 ]);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
   'sumall/3', 'aggregate_min/5', 'aggregate_max/5',

@@ -465,6 +465,7 @@
           "chart-parser",
           "clinical-trial-screening",
           "clpz-factorial",
+          "clpz-global-constraints",
           "clpz-n-queens",
           "clpz-resource-allocation",
           "collatz-1000",
@@ -961,7 +962,7 @@
       runButton.disabled = true;
       stopButton.disabled = false;
 
-      const workerUrl = new URL('./src/playground-worker.js?playground=20260807b', location.href);
+      const workerUrl = new URL('./src/playground-worker.js?playground=20260811c', location.href);
       activeWorker = new Worker(workerUrl, { type: 'module' });
       const worker = activeWorker;
       const request = {
