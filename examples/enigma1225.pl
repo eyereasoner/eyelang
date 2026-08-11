@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 % New Scientist puzzle Enigma 1225

@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(strings)).
 
 % Observability example: parse unstructured service logs with named regex
 % captures, then reason over the extracted context to correlate events that

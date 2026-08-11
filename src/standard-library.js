@@ -6,14 +6,21 @@ import { createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
 import { fs, isNode } from './platform.js';
 
 const moduleFiles = Object.freeze({
-  eyeprolog: 'eyeprolog.pl',
+  aggregate: 'aggregate.pl',
+  comparison: 'comparison.pl',
+  dates: 'dates.pl',
+  iso_ext: 'iso_ext.pl',
   lists: 'lists.pl',
+  primes: 'primes.pl',
   prologue: 'prologue.pl',
+  random: 'random.pl',
+  strings: 'strings.pl',
+  uuid: 'uuid.pl',
 });
 
 const cacheKey = isNode
   ? null
-  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260809a');
+  : (new URL(import.meta.url).searchParams.get('playground') ?? '20260811a');
 
 export const standardLibrarySources = new Map(await Promise.all(
   Object.entries(moduleFiles).map(async ([name, filename]) => [name, {
@@ -37,16 +44,18 @@ function libraryUrl(filename) {
 
 export const eyePrologNativeLibraryIndicators = Object.freeze(['call_nth/2', 'freeze/2']);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
-  'uuid/3', 'difference/3', 'maplist/2', 'maplist/3', 'maplist/4', 'maplist/5',
-  'maplist/6', 'maplist/7', 'maplist/8', 'lt/2', 'gt/2', 'le/2', 'ge/2',
-  'between/3', 'smallest_divisor_from/3', 'random/3', 'matches/3', 'split/3',
+  'sumall/3', 'aggregate_min/5', 'aggregate_max/5',
+  'lt/2', 'gt/2', 'le/2', 'ge/2', 'difference/3',
+  'maplist/2', 'maplist/3', 'maplist/4', 'maplist/5',
+  'maplist/6', 'maplist/7', 'maplist/8', 'between/3',
+  'smallest_divisor_from/3', 'random/3', 'matches/3', 'split/3',
   'replace/4', 'lowercase/2', 'uppercase/2', 'trim/2', 'number_string/2',
   'atom_string/2', 'term_string/2', 'append/3', 'string_concat/3', 'contains/2',
   'matches/2', 'join/3', 'substring/4', 'member/2', 'select/3', 'last/2',
   'nth0/3', 'nth0/4', 'nth1/3', 'nth1/4', 'set_nth0/4', 'take/3', 'drop/3', 'slice/4', 'reverse/2',
   'length/2', 'sum_list/2', 'min_list/2', 'max_list/2', 'list_to_set/2',
   'countall/2', 'succ/2', 'foldl/4', 'foldl/5', 'foldl/6',
-  'sumall/3', 'aggregate_min/5', 'aggregate_max/5',
+  'forall/2', 'cfor/3', 'findall/4', 'variant/2', 'uuid/3',
 ]);
 export const eyePrologLibraryIndicators = Object.freeze([
   ...eyePrologPortableLibraryIndicators,

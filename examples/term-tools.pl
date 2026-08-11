@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(strings)).
 
 % Term-tool builtins for inspecting, constructing, rendering, and validating
 % structured terms.

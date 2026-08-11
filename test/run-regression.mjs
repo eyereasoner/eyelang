@@ -54,7 +54,16 @@ const libraryCall = /\b(?:uuid|difference|maplist|foldl|call_nth|lt|gt|le|ge|bet
 
 function withStandardModules(source) {
   if (!libraryCall.test(source) || source.includes('use_module(library(') || source.includes(':- module(')) return source;
-  return `:- use_module(library(eyeprolog)).\n:- use_module(library(lists)).\n${source}`;
+  return `:- use_module(library(aggregate)).
+:- use_module(library(comparison)).
+:- use_module(library(dates)).
+:- use_module(library(lists)).
+:- use_module(library(primes)).
+:- use_module(library(prologue), [between/3]).
+:- use_module(library(random)).
+:- use_module(library(strings)).
+:- use_module(library(uuid)).
+${source}`;
 }
 
 function run(source, options = {}) {
@@ -963,7 +972,11 @@ function documentationSyncCases() {
           '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
           'README cover links to the book',
         );
-        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/standard-library.js', 'src/lib/eyeprolog.pl', 'src/lib/lists.pl', 'src/lib/prologue.pl', 'src/playground-worker.js']) {
+        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/standard-library.js',
+          'src/lib/aggregate.pl', 'src/lib/comparison.pl', 'src/lib/dates.pl',
+          'src/lib/iso_ext.pl', 'src/lib/lists.pl', 'src/lib/primes.pl', 'src/lib/prologue.pl',
+          'src/lib/random.pl', 'src/lib/strings.pl', 'src/lib/uuid.pl',
+          'src/playground-worker.js']) {
           assertEqual(fs.existsSync(path.join(packageRoot, filename)), true, `${filename} exists`);
           assertIncludes(book, filename, `book documents ${filename}`);
         }
@@ -1418,10 +1431,10 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 2, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 56, 'portable Prolog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 60, 'portable Prolog library count');
         assertEqual(eyePrologNativeLibraryIndicators.length, 2, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 58, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 62, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
@@ -1444,28 +1457,29 @@ open(X) :- candidate(X), \\+ closed(X).
     {
       name: 'ISO Part 2 library modules load Prolog clauses explicitly',
       run: () => {
-        const program = Program.parse(':- use_module(library(lists)).\n:- use_module(library(eyeprolog)).\nanswer(X) :- append([a], [b], X).');
+        const program = Program.parse(':- use_module(library(lists)).\n:- use_module(library(random)).\nanswer(X) :- append([a], [b], X).');
         const solver = new Solver(program);
         assertEqual(solver.program, program, 'solver keeps original program object');
         assertEqual(program.findGroup('append', 3)?.module, 'lists', 'append/3 is imported from library(lists)');
-        const betweenGenerator = program.findGroup('eyeprolog__between', 3, 'eyeprolog');
-        assertEqual(betweenGenerator.recursive, false, 'bundled module keeps its written ISO recursive control');
-        assertEqual(betweenGenerator.tabled, false, 'bundled module avoids implicit answer tables');
-        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'eyeprolog.pl')), true, 'portable module exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'eyeprolog.pl')), false, 'obsolete umbrella module is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'standard-library.js')), true, 'standard module registry exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'aggregate.pl')), true, 'aggregate module exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'iso_ext.pl')), true, 'ISO extension module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'lists.pl')), true, 'lists module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'prologue.pl')), true, 'Prologue module exists');
+        assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'lib', 'strings.pl')), true, 'strings module exists');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'eyeprolog-autoload.js')), false, 'obsolete autoloader is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'library-source.js')), false, 'duplicate source loader is absent');
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'portable-library.js')), false, 'obsolete duplicate module remains absent');
         assertEqual(run(program, { goal: 'answer(X)' }).stdout, 'answer("ab").\n', 'imported append execution');
-        assertEqual(program.findGroup('random', 3)?.module, 'eyeprolog', 'random/3 is imported from library(eyeprolog)');
+        assertEqual(program.findGroup('random', 3)?.module, 'random', 'random/3 is imported from library(random)');
       },
     },
     {
       name: 'portable library executes against the ISO-only registry',
       run: () => {
-        const program = Program.parse(`:- use_module(library(eyeprolog)).
+        const program = Program.parse(`:- use_module(library(strings)).
+:- use_module(library(uuid)).
 :- use_module(library(lists)).
 portable_check(A, B, C) :- lowercase('HELLO', A), replace('banana', 'na', 'NA', B), append([x], [y], C).
 `);
@@ -1473,9 +1487,29 @@ portable_check(A, B, C) :- lowercase('HELLO', A), replace('banana', 'na', 'NA', 
         const goal = parseGoalText('portable_check(A, B, C)');
         const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
         assertEqual(answers.join('\n'), 'portable_check(hello, baNANA, "xy")', 'ISO-only portable execution');
-        assertEqual(Boolean(program.findGroup('uuid', 3)), true, 'uuid/3 is implemented in the portable file');
+        assertEqual(Boolean(program.findGroup('uuid', 3)), true, 'uuid/3 is implemented in the portable module');
         assertEqual(program.findGroup('uuid', 1), null, 'obsolete uuid/1 is absent');
         assertEqual(program.findGroup('local_time', 1), null, 'local_time/1 is absent from the library');
+      },
+    },
+    {
+      name: 'ISO extension module provides portable control and collection relations',
+      run: () => {
+        const program = Program.parse(`:- use_module(library(iso_ext)).
+item(a).
+item(b).
+answer(Count, Bag, Pairs, Same) :-
+  forall(item(X), atom(X)),
+  countall(item(_), Count),
+  findall(X, item(X), Bag, [tail]),
+  findall(N-S, (cfor(1, 2, N), succ(N, S)), Pairs),
+  variant(node(A, A), node(B, B)),
+  Same = true.
+`);
+        assertEqual(program.findGroup('forall', 2)?.module, 'iso_ext', 'forall/2 module');
+        assertEqual(program.findGroup('findall', 4)?.module, 'iso_ext', 'findall/4 module');
+        assertEqual(run(program, { goal: 'answer(Count, Bag, Pairs, Same)' }).stdout,
+          "answer(2, [a, b, tail], ['-'(1, 2), '-'(2, 3)], true).\n", 'ISO extension answer');
       },
     },
     {

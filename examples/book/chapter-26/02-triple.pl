@@ -1,5 +1,5 @@
 % From The Art of EyeProlog, Chapter 26 — Answers are existential witnesses.
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 triple(A, B, C) :-

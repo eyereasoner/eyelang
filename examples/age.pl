@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(dates)).
 
 % Age checker adapted from Eyeling.
 % The example combines date literals, ISO-8601 duration values, an explicit

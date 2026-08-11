@@ -1,4 +1,5 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 % Bounded equality saturation over tiny arithmetic expression terms.
@@ -62,7 +63,7 @@ candidate_expression(Candidate) :-
 % their children.  The numeric range is deliberately bounded for the generated
 % constants in this example.
 expr_cost(x, 1).
-expr_cost(N, 1) :- between(0, 20, N).
+expr_cost(N, 1) :- integer(N), between(0, 20, N).
 expr_cost(add(A, B), Cost) :-
   expr_cost(A, A_cost),
   expr_cost(B, B_cost),

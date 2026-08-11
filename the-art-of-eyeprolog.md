@@ -519,7 +519,7 @@ structurally equal.
 Compound terms retain domain structure:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 measurement(battery_1, sample(17, volts(28.4), amps(12.1))).
@@ -559,7 +559,7 @@ subquestions used to establish its head.
 A rule has a head and a comma-separated body:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 eligible(Person) :-
@@ -591,7 +591,7 @@ an answer. Much of the craft in this book consists of keeping one reading
 steady while improving the other.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 adult(Person) :-
@@ -887,7 +887,7 @@ Keep the selected query and its generators finite.
 A relation can construct a witness:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 path(X, Y, [X, Y]) :- edge(X, Y).
@@ -1010,7 +1010,7 @@ infix operator syntax:
 </figure>
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 next(X, Y) :- (Y is X + 1).
@@ -1037,7 +1037,7 @@ safe_reading(Sensor, Value) :-
 already-bound value:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 square(N, Square) :-
@@ -1126,7 +1126,7 @@ completeness assumption needed before calling either result “allowed.”
 Finite aggregation asks about a solution set:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 findall(Template, Goal, List).
@@ -1135,7 +1135,7 @@ sumall(Value, Goal, Sum).
 ```
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 outgoing_costs(Node, Costs) :-
@@ -1171,7 +1171,7 @@ changing the question.
 Optimization can retain only a best solution:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 best_route(From, To, Route, Cost) :-
@@ -1219,12 +1219,12 @@ arg(Index, Term, Value).
 `arg/3` uses one-based indexes. Prefer direct pattern matching when the shape
 is known; use inspection for generic transformations.
 
-Text is best normalized at the model boundary. The `library(eyeprolog)` module
+Text is best normalized at the model boundary. The `library(strings)` module
 uses ISO-friendly atoms or proper lists of one-character atoms for its text
 arguments; newly produced text is an atom:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(strings)).
 :- use_module(library(lists)).
 
 normalized(Input, Words) :-
@@ -1242,7 +1242,7 @@ it does not create a separate Prolog string type.
 Parenthesized comma terms can serve as context data:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 message(event_17, (severity(high), source(sensor_3), reading(temp, 91))).
@@ -1297,7 +1297,7 @@ Place cheap, selective constraints as soon as their inputs are bound. For
 state-transition problems, represent state and moves explicitly:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 plan(State, State, _, []).
@@ -1402,7 +1402,7 @@ eyeprolog --proof examples/socrates.pl
 ```
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 why(
@@ -1783,10 +1783,10 @@ truncate search; it does not prove that no further answer exists.
 
 The source layout mirrors the language boundary. `src/iso.js` contains the
 isolated ISO processor predicates and registry. `src/dcg.js` implements the
-shared ISO Part 3 grammar-rule and dynamic-body expansion. `src/lib/eyeprolog.pl` contains
-collision-free portable extensions, while `src/lib/lists.pl` supplies common
-list relations. Both are ordinary ISO/IEC 13211-2 modules, organized like
-Scryer's `src/lib` and registered for `library(Name)` by
+shared ISO Part 3 grammar-rule and dynamic-body expansion. Focused files under
+`src/lib/` contain the portable extensions, with `src/lib/lists.pl` supplying
+common list relations. They are ordinary ISO/IEC 13211-2 modules, organized
+like Trealla's `library/` and registered for `library(Name)` by
 `src/standard-library.js` in Node and the browser.
 The browser entry point `src/playground-worker.js` uses that same program and
 module-loading path in a dedicated worker.
@@ -1914,7 +1914,7 @@ ideally preserve the first while improving the second. In practice, modeful
 built-ins and incomplete searches mean that programmers must reason about both.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 path(X, Y) :- edge(X, Y).
@@ -1940,7 +1940,7 @@ Conjunction is logically commutative, but its textual order guides search.
 These two rules have the same intended ground consequences:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 adult(Person) :- person(Person), age(Person, Age), (Age >= 18).
@@ -1959,7 +1959,7 @@ they can be found cheaply, provided doing so does not starve a necessary base
 case. A recursive clause that calls itself before consuming input is a warning:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 % Poor control: recursion starts before one list cell is exposed.
@@ -2049,7 +2049,7 @@ Suppose packages must be routed through compatible hubs. Start with sentences
 that contain no variables:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 routeable(parcel_7, hub_north).
@@ -2062,7 +2062,7 @@ a ground sentence becomes ambiguity in every rule built on it.
 Now name the evidence:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 routeable(Parcel, Hub) :-
@@ -2485,7 +2485,7 @@ binds `Y` to `byron`, the second goal is the selective
 Repeated variables impose equality through unification:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 loop_edge(Node) :- edge(Node, Node).
@@ -2499,7 +2499,7 @@ shared variable makes equal endpoints part of the pattern being matched.
 Suppose a later goal fails:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 eligible(Person) :-
@@ -2580,7 +2580,7 @@ tree(
 A structural relation follows the representation:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 tree_member(X, tree(X, _, _)).
@@ -2688,7 +2688,7 @@ literal evaluations support one multiplication and one addition.
 An extension can add variables and an explicit environment:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 lookup(Name, [binding(Name, Value) | _], Value).
@@ -2764,7 +2764,7 @@ duplicate work, or alter proof shape.
 Start with:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 adult(Person) :-
@@ -2777,7 +2777,7 @@ adult_age(Age) :- (Age >= 18).
 Unfolding `adult_age/1` gives:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 adult(Person) :-
@@ -2794,7 +2794,7 @@ alternative. If it is recursive, unrestricted unfolding may never finish.
 Folding moves in the other direction. Suppose decisions repeat:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 can_board(Person) :-
@@ -2813,7 +2813,7 @@ can_enter_lounge(Person) :-
 Name the shared concept:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 traveler_in_good_standing(Person) :-
@@ -2963,7 +2963,7 @@ a policy for repeated states, and a witness representation. A simple graph
 path carries visited nodes:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 simple_path(From, To, Path) :-
@@ -2987,7 +2987,7 @@ bound, such as maximum steps or cost.
 These questions have very different costs:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 reachable(From, To).
@@ -3005,7 +3005,7 @@ the caller's need.
 An optimal answer requires a finite candidate relation and a comparison key:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 best_plan(Request, Plan, Cost) :-
@@ -3084,7 +3084,7 @@ it can only make the chosen answers precise.
 Represent observations without embedding decisions:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 person(ada).
@@ -3102,7 +3102,7 @@ records harder to detect.
 Build vocabulary that reads like the policy:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 active_badge(Person, Badge) :-
@@ -3138,7 +3138,7 @@ about the knowledge boundary, not a matter of syntax.
 ### Decision, reasons, and proof
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 permit(Person, Zone) :-
@@ -3379,7 +3379,7 @@ methods.
 Consider a relation for a Pythagorean triple:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 triple(A, B, C) :-
@@ -3417,7 +3417,7 @@ a witness only when its clauses and control actually reach one.
 The normal answer
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 triple(3, 4, 5).
@@ -3447,7 +3447,7 @@ of this operation is the least Herbrand model.
 For
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 edge(a, b).
@@ -3551,7 +3551,7 @@ Lists carry their induction principle in their syntax:
 A relation following that structure is easy to reason about:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 list_length([], 0).
@@ -3672,7 +3672,7 @@ permutations repeats the same geometric object six times. Ordering the sides
 removes the symmetry:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 triangle(A, B, C) :-
@@ -3699,7 +3699,7 @@ which distinctions belong to the problem and which are artifacts of notation.
 A function privileges one direction. An equation or relation contains several:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 rectangle(W, H, Area) :- (Area is W * H).
@@ -3710,7 +3710,7 @@ it from width and height. With a finite generator it can also search for
 factorizations:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 integer_rectangle(Area, W, H) :-
@@ -3741,7 +3741,7 @@ as a testable relation. For a symbolic mapping `image/2` and operation
 `combine/3`:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 preserves_combine(X, Y) :-
@@ -3823,7 +3823,7 @@ theorem over an unbounded domain.
 This boundary can be written directly:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 counterexample_to_odd_square(N) :-
@@ -4194,7 +4194,7 @@ empty? No test framework can choose the definition for you.
 Queries naturally record positive expectations:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 edge(a, b).
@@ -4262,7 +4262,7 @@ Examples test selected points. A finite generated property tests every point
 in a declared scope:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 double(N, D) :- (D is N + N).
@@ -4410,7 +4410,7 @@ Rewrite the domain sentence first.
 Consider:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 eligible(Person) :-
@@ -4429,7 +4429,7 @@ The intended mathematics is easy to recognize, but `>=/2` sees an unbound
 Reordering the goals repairs the operational mode:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 eligible(Person) :-
@@ -4489,7 +4489,7 @@ open.
 Temporary helpers can expose intermediate concepts:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 candidate_debug(Person, Age) :-
@@ -4516,7 +4516,7 @@ compare it with the optimized one. The reference may be slow; its purpose is
 clarity.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 reference_square(N, S) :-
@@ -4600,7 +4600,7 @@ being written.
 variables.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 assigned_badge(alex, badge_17).
@@ -4618,7 +4618,7 @@ domain rule.
 rules depend only on the normalized layer.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(strings)).
 :- use_module(library(lists)).
 
 source_role(person_7, 'Doctor').
@@ -4640,7 +4640,7 @@ explanation until none can be reasoned about separately.
 in dependency order, then construct a witness or reason.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 chosen_pair(pair(X, Y), reason(sum_is_ten)) :-
@@ -4660,7 +4660,7 @@ needed for explanation or later computation.
 evidence summary.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 path(X, Y, [X, Y]) :- edge(X, Y).
@@ -4748,7 +4748,7 @@ misleading.
 arguments.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 invalid_badge_assignment(Badge, PersonA, PersonB) :-
@@ -4952,7 +4952,7 @@ there are no solutions. `setof/3` has the same grouping rule, then sorts and
 deduplicates each group. The `^/2` notation marks a goal variable existential:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 regional_total(Region, Total) :-
@@ -5215,7 +5215,7 @@ Unquoted names deliberately use ASCII spelling. Unicode belongs inside quoted
 atoms and double-quoted lists:
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 city('München').
@@ -5332,8 +5332,9 @@ answer(Tone, Hidden) :- tone(Tone), hidden(Hidden).
 qualified(ok) :- colors:tone(blue).
 ```
 
-`use_module(library(lists))` and `use_module(library(eyeprolog))` resolve the
-bundled modules in Node and the browser. Atom source designations such as
+Imports such as `use_module(library(lists))` and
+`use_module(library(strings))` resolve the bundled modules in Node and the
+browser. Atom source designations such as
 `'colors.pl'` resolve relative to the importing file in Node. `use_module/1`
 imports every export; `use_module/2` imports only its indicator list, including
 an empty list when only qualified calls are wanted. `Module:Goal` selects a
@@ -5761,20 +5762,23 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **58 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **56 are implemented entirely as
-ordinary Prolog clauses** across `src/lib/eyeprolog.pl`, `src/lib/lists.pl`, and
-`src/lib/prologue.pl`. The Prologue `call_nth/2` and `freeze/2` clauses delegate
+EyeProlog exposes **62 library predicate indicators** in addition to the 129
+indicators in its isolated ISO profile. **60 are implemented entirely as
+ordinary Prolog clauses** in focused modules under `src/lib/`. The Prologue
+`call_nth/2` and `freeze/2` clauses delegate
 their control behavior to private host adapters. The resulting normal EyeProlog
-language surface is therefore **187 public predicate indicators**. Internally, the
+language surface is therefore **191 public predicate indicators**. Internally, the
 runtime registry contains the 129 ISO definitions plus those two private adapters;
 the remaining EyeProlog relations are module source clauses.
 
-The three Prolog files declare `eyeprolog`, `lists`, and `prologue` with
-`module/2`. A program loads them explicitly with
-`use_module(library(eyeprolog))`, `use_module(library(lists))`, or
-`use_module(library(prologue))`; `use_module/2` can select a smaller import
-list. The last module implements p.p.1 through p.p.11 of the
+The sources are `src/lib/aggregate.pl`, `src/lib/comparison.pl`,
+`src/lib/dates.pl`, `src/lib/iso_ext.pl`, `src/lib/lists.pl`,
+`src/lib/primes.pl`, `src/lib/prologue.pl`, `src/lib/random.pl`,
+`src/lib/strings.pl`, and `src/lib/uuid.pl`. Each declares a same-named module
+with `module/2`; there is no catch-all `library(eyeprolog)`. A program imports
+only the modules it needs, and
+`use_module/2` can select an even smaller indicator list. The Prologue
+module implements p.p.1 through p.p.11 of the
 [working-draft Prologue](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue),
 with the published Prologue, `call_nth/2`, and `length/2` quads retained as
 offline regressions. `src/standard-library.js` registers the module sources and private
@@ -5794,11 +5798,25 @@ between solution branches.
 
 | Module | Exported predicate indicators |
 | --- | --- |
-| `library(lists)` | `maplist/3`, `append/3`, `member/2`, `select/3`, `last/2`, `nth0/3`, `nth1/3`, `reverse/2`, `length/2`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `countall/2` |
-| `library(eyeprolog)` | `uuid/3`, `difference/3`, `lt/2`, `le/2`, `gt/2`, `ge/2`, `between/3`, `smallest_divisor_from/3`, `random/3`, `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4`, `sumall/3`, `aggregate_min/5`, `aggregate_max/5` |
+| `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` |
+| `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
+| `library(dates)` | `difference/3` |
+| `library(iso_ext)` | `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2` |
+| `library(lists)` | `maplist/3`, `append/3`, `member/2`, `select/3`, `last/2`, `nth0/3`, `nth1/3`, `reverse/2`, `length/2`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `countall/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
+| `library(primes)` | `smallest_divisor_from/3` |
 | `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` |
+| `library(random)` | `random/3` |
+| `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` |
+| `library(uuid)` | `uuid/3` |
 
 <!-- eyeprolog-library-catalog:end -->
+
+`library(iso_ext)` collects extensions commonly found in mature Prolog
+systems. `forall/2` checks an action for every solution of a condition;
+`cfor/3` enumerates an inclusive evaluated integer range; `succ/2` relates
+adjacent nonnegative integers; `findall/4` collects into a difference list;
+and `variant/2` recognizes terms equal up to variable renaming. Its portable
+`countall/2` counts solutions without exposing a template.
 
 `uuid(+Seed0,-UUID,-Seed)` creates a version 4 UUID atom using `random/3`.
 Passing the returned seed to the next call produces the next UUID; restarting
@@ -5849,7 +5867,9 @@ the corresponding predicate.
 | `difference(+End,+Start,-Duration)` | Portable Prolog. Computes a nonnegative calendar difference between ISO date atoms/character lists and returns atom `'PnYnMnD'`. Invalid dates or an end before the start fail. |
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(dates)).
+:- use_module(library(prologue), [between/3]).
+:- use_module(library(random)).
 :- use_module(library(lists)).
 
 answer(square, S) :- (S is 12 * 12).
@@ -5869,16 +5889,16 @@ expresses them: for example, `R is A + B`, `R is abs(A)`, and
 modulo, powers, sine, cosine, exponential, logarithm, and the ISO rounding
 functions.
 
-The bundled EyeProlog library layer defines `between/3` and
-`smallest_divisor_from/3` as ordinary Prolog clauses. They are available after
-importing `library(eyeprolog)`. Choose the smaller or
+The bundled library layer defines `between/3` in `library(prologue)` and
+`smallest_divisor_from/3` in `library(primes)` as ordinary Prolog clauses.
+Choose the smaller or
 larger of two arithmetic values directly with ISO control, for example
 `(A =< B -> Min = A ; Min = B)` or `(A >= B -> Max = A ; Max = B)`.
 
 #### List relations
 
 These relations are the actual Prolog implementations in
-`src/lib/lists.pl` and `src/lib/eyeprolog.pl`. Every list-consuming relation below expects a
+`src/lib/lists.pl`. Every list-consuming relation below expects a
 proper list unless explicitly stated otherwise. Indexes and counts are
 zero-based, nonnegative safe integers.
 
@@ -5904,7 +5924,7 @@ zero-based, nonnegative safe integers.
 | `list_to_set(+List,-Set)` | Removes later structural duplicates while preserving first-occurrence order. |
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 answer(split, pair(Prefix, Suffix)) :-
@@ -5947,7 +5967,7 @@ subset rather than JavaScript regular-expression semantics. Use a host predicate
 when an application genuinely requires a full host regex engine.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(strings)).
 :- use_module(library(lists)).
 
 answer(words, Words) :-
@@ -5983,12 +6003,11 @@ ISO `findall/3` is present in both registries. The EyeProlog library aggregates 
 the same scoping principle: variables created inside the nested search do not
 leak except through the declared templates and outputs.
 
-There are no `not/1` or `forall/2` semantic host conveniences. Use ISO `\+/1`;
-define a named counterexample relation for universal checks. `once/1` is
-supplied directly by the ISO registry.
+There is no `not/1` alias; use ISO `\+/1`. `forall/2` is available from
+`library(iso_ext)`, and `once/1` is supplied directly by the ISO registry.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 cost(a, 8).
@@ -6012,7 +6031,7 @@ A comma-context needs no special native predicate. A small program relation can
 walk its members, and ISO `=../2` can expose any member's name and argument list.
 
 ```eyeprolog
-:- use_module(library(eyeprolog)).
+
 :- use_module(library(lists)).
 
 message(event_17,
@@ -6039,6 +6058,32 @@ eyeprolog --goal 'answer(X)' program.pl
 The ISO profile includes `functor/3`, `arg/3`, and `=../2`. Use `=../2` for whole-argument-list
 decomposition and construction, `=/2` for unification, and `\=/2` for
 non-unifiability; redundant aliases are not registered.
+
+#### Typical ISO extensions
+
+Import `library(iso_ext)` when a program needs portable solution counting,
+universal checks, inclusive integer generation, difference-list collection,
+or variant comparison:
+
+```eyeprolog
+:- use_module(library(iso_ext)).
+
+task(parse).
+task(check).
+task(report).
+
+extension_answer(all_tasks_are_atoms, true) :-
+  forall(task(Task), atom(Task)).
+
+extension_answer(numbered, Pairs) :-
+  findall(N-S, (cfor(1, 3, N), succ(N, S)), Pairs).
+
+extension_answer(with_tail, Tasks) :-
+  findall(Task, task(Task), Tasks, [done]).
+
+extension_answer(same_shape, true) :-
+  variant(node(X, X), node(Y, Y)).
+```
 
 ## 40. Running EyeProlog: command line and corpus
 
@@ -6307,7 +6352,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **204 self-contained runnable programs**. Every
+top-level directory contains **205 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -6363,6 +6408,7 @@ mode at a time.
 | [Dynamic database](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl) | Initialization and ordered updates to a declared dynamic procedure. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-dynamic-database.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/iso-dynamic-database.pl) |
 | [Grouped solutions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-grouped-solutions.pl) | `findall/3`, `bagof/3`, `setof/3`, existential qualification, and `clause/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-grouped-solutions.pl) |
 | [Integer arithmetic](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-integer-arithmetic.pl) | Integer quotient/remainder choices plus bit operations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-integer-arithmetic.pl) |
+| [ISO extensions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-extensions.pl) | Common control, collection, integer, and term-variant extensions from `library(iso_ext)`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-extensions.pl) |
 | [Operators](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-operators.pl) | Custom syntax, standard term order, and operator-table inspection. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-operators.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/iso-operators.pl) |
 | [Reflective terms](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-reflective-terms.pl) | Term shape, construction, copying, variables, identity, and standard order. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-reflective-terms.pl) |
 | [Term I/O](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-term-io.pl) | Text-stream lifecycle, canonical writing, reading, metadata, and end state. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-term-io.pl) |

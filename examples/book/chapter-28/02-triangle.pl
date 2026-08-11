@@ -1,5 +1,5 @@
 % From The Art of EyeProlog, Chapter 28 — Symmetry reduces search.
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 triangle(A, B, C) :-

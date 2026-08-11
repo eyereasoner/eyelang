@@ -242,6 +242,7 @@ npm run generate
 - [03-answer-3.pl](chapter-39/03-answer-3.pl)
 - [04-cost.pl](chapter-39/04-cost.pl)
 - [05-message.pl](chapter-39/05-message.pl)
+- [06-task.pl](chapter-39/06-task.pl)
 
 ## Chapter 40: Running EyeProlog: command line and corpus
 

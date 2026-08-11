@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 
 % Collatz conjecture suite translated from Eyeling's examples/collatz-1000.n3.
 % It enumerates starts N = 1000, 999, ..., 1 by deriving N = 1000 - N0

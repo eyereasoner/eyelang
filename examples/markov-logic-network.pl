@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 
 % Markov Logic Network style scoring over a tiny finite domain.
 %

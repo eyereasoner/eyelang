@@ -1,5 +1,5 @@
 % From The Art of EyeProlog, Chapter 32 — Compare specification and implementation.
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 reference_square(N, S) :-

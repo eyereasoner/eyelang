@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 11.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 why(

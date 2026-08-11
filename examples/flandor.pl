@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(strings)).
 
 % Flandor insight-economy case adapted from Eyeling flandor.n3.
 % The original N3 renders a Markdown ARC report.  This eyeprolog translation keeps

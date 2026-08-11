@@ -1,4 +1,5 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
+:- use_module(library(prologue), [between/3]).
 
 % Convergents of sqrt(2) by automatically tabled recurrence.
 %

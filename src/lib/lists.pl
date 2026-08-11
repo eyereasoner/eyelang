@@ -14,7 +14,11 @@
     min_list/2,
     max_list/2,
     list_to_set/2,
-    countall/2
+    countall/2,
+    set_nth0/4,
+    take/3,
+    drop/3,
+    slice/4
 ]).
 
 :- meta_predicate(maplist(2, '?', '?')).
@@ -49,46 +53,68 @@ nth0(N, [_|Xs], X) :- nonvar(N), N > 0, N1 is N - 1, nth0(N1, Xs, X).
 
 nth1(N, List, X) :- nth0(N0, List, X), N is N0 + 1.
 
-reverse(List, Reversed) :- eyeprolog__reverse(List, [], Reversed).
+reverse(List, Reversed) :- lists__reverse(List, [], Reversed).
 
-length(List, Length) :- nonvar(List), eyeprolog__length_count(List, 0, Length).
-length(List, Length) :- var(List), integer(Length), Length >= 0, eyeprolog__length_make(Length, List).
+length(List, Length) :- nonvar(List), lists__length_count(List, 0, Length).
+length(List, Length) :- var(List), integer(Length), Length >= 0, lists__length_make(Length, List).
 
-sum_list(List, Sum) :- eyeprolog__sum_list(List, 0, Sum).
+sum_list(List, Sum) :- lists__sum_list(List, 0, Sum).
 
-min_list([X|Xs], Min) :- eyeprolog__min_list(Xs, X, Min).
+min_list([X|Xs], Min) :- lists__min_list(Xs, X, Min).
 
-max_list([X|Xs], Max) :- eyeprolog__max_list(Xs, X, Max).
+max_list([X|Xs], Max) :- lists__max_list(Xs, X, Max).
 
-list_to_set(List, Set) :- eyeprolog__list_to_set(List, [], Set).
+list_to_set(List, Set) :- lists__list_to_set(List, [], Set).
 
-countall(Goal, Count) :- findall(1, Goal, Ones), eyeprolog__length_count(Ones, 0, Count).
+countall(Goal, Count) :- findall(1, Goal, Ones), lists__length_count(Ones, 0, Count).
 
-eyeprolog__reverse([], Acc, Acc).
-eyeprolog__reverse([X|Xs], Acc, Out) :- eyeprolog__reverse(Xs, [X|Acc], Out).
+set_nth0(0, [_|Xs], X, [X|Xs]).
+set_nth0(N, [Y|Ys], X, [Y|Zs]) :-
+    N > 0,
+    N1 is N - 1,
+    set_nth0(N1, Ys, X, Zs).
 
-eyeprolog__length_count([], N, N).
-eyeprolog__length_count([_|Xs], N0, N) :- N1 is N0 + 1, eyeprolog__length_count(Xs, N1, N).
-eyeprolog__length_make(0, []).
-eyeprolog__length_make(N, [_|Xs]) :- N > 0, N1 is N - 1, eyeprolog__length_make(N1, Xs).
+take(0, _, []).
+take(N, [X|Xs], [X|Ys]) :-
+    N > 0,
+    N1 is N - 1,
+    take(N1, Xs, Ys).
 
-eyeprolog__sum_list([], Sum, Sum).
-eyeprolog__sum_list([X|Xs], Acc, Sum) :- Next is Acc + X, eyeprolog__sum_list(Xs, Next, Sum).
+drop(0, Xs, Xs).
+drop(N, [_|Xs], Ys) :-
+    N > 0,
+    N1 is N - 1,
+    drop(N1, Xs, Ys).
 
-eyeprolog__min_list([], Min, Min).
-eyeprolog__min_list([X|Xs], Current, Min) :- X @< Current, eyeprolog__min_list(Xs, X, Min).
-eyeprolog__min_list([X|Xs], Current, Min) :- X @>= Current, eyeprolog__min_list(Xs, Current, Min).
+slice(Start, Count, List, Slice) :-
+    drop(Start, List, Tail),
+    take(Count, Tail, Slice).
 
-eyeprolog__max_list([], Max, Max).
-eyeprolog__max_list([X|Xs], Current, Max) :- X @> Current, eyeprolog__max_list(Xs, X, Max).
-eyeprolog__max_list([X|Xs], Current, Max) :- X @=< Current, eyeprolog__max_list(Xs, Current, Max).
+lists__reverse([], Acc, Acc).
+lists__reverse([X|Xs], Acc, Out) :- lists__reverse(Xs, [X|Acc], Out).
 
-eyeprolog__list_to_set([], _, []).
-eyeprolog__list_to_set([X|Xs], Seen, Set) :-
-    eyeprolog__identical_member(X, Seen), !,
-    eyeprolog__list_to_set(Xs, Seen, Set).
-eyeprolog__list_to_set([X|Xs], Seen, [X|Set]) :-
-    eyeprolog__list_to_set(Xs, [X|Seen], Set).
+lists__length_count([], N, N).
+lists__length_count([_|Xs], N0, N) :- N1 is N0 + 1, lists__length_count(Xs, N1, N).
+lists__length_make(0, []).
+lists__length_make(N, [_|Xs]) :- N > 0, N1 is N - 1, lists__length_make(N1, Xs).
 
-eyeprolog__identical_member(X, [Y|_]) :- X == Y.
-eyeprolog__identical_member(X, [_|Ys]) :- eyeprolog__identical_member(X, Ys).
+lists__sum_list([], Sum, Sum).
+lists__sum_list([X|Xs], Acc, Sum) :- Next is Acc + X, lists__sum_list(Xs, Next, Sum).
+
+lists__min_list([], Min, Min).
+lists__min_list([X|Xs], Current, Min) :- X @< Current, lists__min_list(Xs, X, Min).
+lists__min_list([X|Xs], Current, Min) :- X @>= Current, lists__min_list(Xs, Current, Min).
+
+lists__max_list([], Max, Max).
+lists__max_list([X|Xs], Current, Max) :- X @> Current, lists__max_list(Xs, X, Max).
+lists__max_list([X|Xs], Current, Max) :- X @=< Current, lists__max_list(Xs, Current, Max).
+
+lists__list_to_set([], _, []).
+lists__list_to_set([X|Xs], Seen, Set) :-
+    lists__identical_member(X, Seen), !,
+    lists__list_to_set(Xs, Seen, Set).
+lists__list_to_set([X|Xs], Seen, [X|Set]) :-
+    lists__list_to_set(Xs, [X|Seen], Set).
+
+lists__identical_member(X, [Y|_]) :- X == Y.
+lists__identical_member(X, [_|Ys]) :- lists__identical_member(X, Ys).

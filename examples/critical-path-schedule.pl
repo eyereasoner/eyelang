@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 
 % Critical-path scheduling for a small project network.
 %

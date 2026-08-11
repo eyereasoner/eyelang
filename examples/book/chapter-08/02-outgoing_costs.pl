@@ -1,5 +1,5 @@
 % From The Art of EyeProlog, Chapter 8.
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 outgoing_costs(Node, Costs) :-

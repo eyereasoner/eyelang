@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 % DPLL-style SAT solving for a small CNF formula.

@@ -1,4 +1,5 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(primes)).
+:- use_module(library(prologue), [between/3]).
 
 % Goldbach's_conjecture
 % See https://en.wikipedia.org/wiki/Goldbach%27s_conjecture:

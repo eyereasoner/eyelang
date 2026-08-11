@@ -1,5 +1,7 @@
 % From The Art of EyeProlog, Chapter 39 — The EyeProlog library.
-:- use_module(library(eyeprolog)).
+:- use_module(library(dates)).
+:- use_module(library(prologue), [between/3]).
+:- use_module(library(random)).
 :- use_module(library(lists)).
 
 answer(square, S) :- (S is 12 * 12).

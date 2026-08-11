@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 6.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 next(X, Y) :- (Y is X + 1).

@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 25 — Source and concept layers.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 person(ada).

@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 10.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 plan(State, State, _, []).

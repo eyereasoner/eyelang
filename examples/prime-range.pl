@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 % Prime ranges and Euler totient over finite integer domains.

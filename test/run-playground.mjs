@@ -82,8 +82,16 @@ export async function runPlayground(reporter = new TestReporter()) {
         ['playground.html', 'text/html'],
         ['src/playground-worker.js', 'text/javascript'],
         ['src/index.js', 'text/javascript'],
-        ['src/lib/eyeprolog.pl', 'text/plain'],
+        ['src/lib/aggregate.pl', 'text/plain'],
+        ['src/lib/comparison.pl', 'text/plain'],
+        ['src/lib/dates.pl', 'text/plain'],
+        ['src/lib/iso_ext.pl', 'text/plain'],
         ['src/lib/lists.pl', 'text/plain'],
+        ['src/lib/primes.pl', 'text/plain'],
+        ['src/lib/prologue.pl', 'text/plain'],
+        ['src/lib/random.pl', 'text/plain'],
+        ['src/lib/strings.pl', 'text/plain'],
+        ['src/lib/uuid.pl', 'text/plain'],
         ['examples/socrates.pl', 'text/plain'],
       ];
       for (const [relative, contentType] of expected) {

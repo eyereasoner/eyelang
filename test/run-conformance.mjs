@@ -15,7 +15,16 @@ const libraryCall = /\b(?:uuid|difference|maplist|lt|gt|le|ge|between|smallest_d
 
 function withStandardModules(text) {
   if (!libraryCall.test(text) || text.includes('use_module(library(')) return text;
-  return `:- use_module(library(eyeprolog)).\n:- use_module(library(lists)).\n${text}`;
+  return `:- use_module(library(aggregate)).
+:- use_module(library(comparison)).
+:- use_module(library(dates)).
+:- use_module(library(lists)).
+:- use_module(library(primes)).
+:- use_module(library(prologue), [between/3]).
+:- use_module(library(random)).
+:- use_module(library(strings)).
+:- use_module(library(uuid)).
+${text}`;
 }
 
 export function runConformance(reporter = new TestReporter(), requestedFilter = null) {

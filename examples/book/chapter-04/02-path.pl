@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 4 — Constructing the recursive argument.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 path(X, Y, [X, Y]) :- edge(X, Y).

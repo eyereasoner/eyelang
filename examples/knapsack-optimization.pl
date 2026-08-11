@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
 % 0/1 knapsack optimization with aggregate_max/5.

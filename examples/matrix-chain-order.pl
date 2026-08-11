@@ -1,4 +1,5 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(aggregate)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 % Matrix-chain multiplication order by automatically tabled interval dynamic programming.

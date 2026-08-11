@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 25.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 active_badge(Person, Badge) :-

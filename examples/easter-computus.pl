@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 
 % Gregorian Easter computus adapted from Eyeling's easter.n3.
 % Each case is a year in a sample decade.  The rules derive the Meeus/Jones/

@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 % Missionaries-and-cannibals river crossing as guarded state-space search.

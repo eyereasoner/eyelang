@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 25 — Decision, reasons, and proof.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 permit(Person, Zone) :-

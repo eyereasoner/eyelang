@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(strings)).
 :- use_module(library(lists)).
 
 % Delfour insight-economy case adapted from Eyeling delfour.n3.

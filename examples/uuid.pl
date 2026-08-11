@@ -1,4 +1,4 @@
-:- use_module(library(eyeprolog)).
+:- use_module(library(uuid)).
 :- use_module(library(lists)).
 
 % uuid/3 creates a version 4 UUID atom from explicit random state.

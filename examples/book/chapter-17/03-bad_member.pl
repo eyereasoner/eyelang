@@ -1,5 +1,4 @@
 % From The Art of EyeProlog, Chapter 17.
-:- use_module(library(eyeprolog)).
 :- use_module(library(lists)).
 
 % Poor control: recursion starts before one list cell is exposed.
