@@ -17,6 +17,8 @@ export interface EyePrologRunOptions {
   sourceMetadata?: boolean;
   strictNegation?: boolean;
   analyzeNegation?: boolean;
+  /** Restrict parsing and execution to ISO/IEC 13211-1:1995 plus Corrigenda 1-3. */
+  isoStrict?: boolean;
   /** Initial ISO interpretation of double-quoted list notation. Defaults to chars. */
   doubleQuotes?: 'chars' | 'codes' | 'atom';
   ioOptions?: {
@@ -120,6 +122,7 @@ export class Program {
   moduleImports: Map<string, Map<string, string>>;
   quads: EyePrologQuad[];
   doubleQuotes: 'chars' | 'codes' | 'atom';
+  strictIso: boolean;
   negationDependencies: Array<{ from: string; to: string; negative: boolean }>;
   negationStratificationErrors: Array<{ from: string; to: string }>;
   stratifiedNegation: boolean;
@@ -155,12 +158,14 @@ export class BuiltinRegistry {
   eyePrologLibrary?: boolean;
   add(name: string, arity: number, handler: BuiltinHandler, options?: Partial<BuiltinDefinition>): this;
   get(name: string, arity: number): BuiltinDefinition | null;
+  remove(name: string, arity: number): this;
 }
 
 export class Solver {
   constructor(program: Program, options?: EyePrologRunOptions);
   program: Program;
   registry: BuiltinRegistry;
+  isoStrict: boolean;
   maxDepth: number;
   depthLimitExceeded: boolean;
   maxInferences: number;
@@ -219,8 +224,10 @@ export function parseClauses(source: string, options?: EyePrologRunOptions): Arr
 export function parseProgramText(source: string, options?: EyePrologRunOptions): Array<EyePrologClause | EyePrologQuad>;
 export function parseGoalText(source: string, options?: EyePrologRunOptions): EyePrologTerm;
 export function createDefaultRegistry(): BuiltinRegistry;
+export function createStrictIsoRegistry(): BuiltinRegistry;
 export function createEyePrologRegistry(): BuiltinRegistry;
 export function getDefaultRegistry(): BuiltinRegistry;
+export function getStrictIsoRegistry(): BuiltinRegistry;
 export function getEyePrologRegistry(): BuiltinRegistry;
 export const standardLibrarySources: ReadonlyMap<string, { filename: string; source: string }>;
 export const eyePrologLibraryIndicators: readonly string[];
@@ -291,8 +298,10 @@ declare const eyeprolog: {
   parseGoalText: typeof parseGoalText;
   parseProgramText: typeof parseProgramText;
   createDefaultRegistry: typeof createDefaultRegistry;
+  createStrictIsoRegistry: typeof createStrictIsoRegistry;
   createEyePrologRegistry: typeof createEyePrologRegistry;
   getDefaultRegistry: typeof getDefaultRegistry;
+  getStrictIsoRegistry: typeof getStrictIsoRegistry;
   getEyePrologRegistry: typeof getEyePrologRegistry;
   standardLibrarySources: typeof standardLibrarySources;
   eyePrologLibraryIndicators: typeof eyePrologLibraryIndicators;

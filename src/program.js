@@ -10,7 +10,7 @@ import {
   parseClausesInto,
   tryParseClausesFastInto,
 } from './parser.js';
-import { PrologError } from './iso.js';
+import { PrologError, getStrictIsoRegistry } from './iso.js';
 import { currentWorkingDirectory, fs, path } from './platform.js';
 import { standardLibrarySources } from './standard-library.js';
 import { expandDcgRuleClause } from './dcg.js';
@@ -101,8 +101,12 @@ export class Program {
     this.moduleImports = new Map();
     this.moduleMetaPredicates = new Map();
     this.dynamicPredicates = new Set();
+    this.strictIso = options.isoStrict === true;
     this.operators = new Map();
-    for (const definitions of [ISO_OPERATOR_DEFINITIONS, QUAD_OPERATOR_DEFINITIONS]) {
+    const predefinedOperatorSets = this.strictIso
+      ? [ISO_OPERATOR_DEFINITIONS]
+      : [ISO_OPERATOR_DEFINITIONS, QUAD_OPERATOR_DEFINITIONS];
+    for (const definitions of predefinedOperatorSets) {
       for (const [priority, specifier, name] of definitions) {
         this.defineOperator(priority, specifier, name);
       }
@@ -162,7 +166,7 @@ export class Program {
   }
   _indexClause(clause, initialBuild) {
     const head = clause.head;
-    if (!initialBuild) assertHeadIsDefinable(head);
+    if (!initialBuild) assertHeadIsDefinable(head, this.strictIso);
     if (head.type !== ATOM && head.type !== COMPOUND) return;
     const module = clause.module ?? 'user';
     const key = modulePredicateKey(module, head.name, head.arity);
@@ -229,7 +233,7 @@ export class Program {
     if (group) group.metaArgumentPositions = positions;
   }
   ensureDynamicGroup(name, arity, module = 'user') {
-    assertPredicateIsDefinable(name, arity);
+    assertPredicateIsDefinable(name, arity, this.strictIso);
     const key = modulePredicateKey(module, name, arity);
     let group = this.groups.get(key);
     if (!group) {
@@ -280,7 +284,7 @@ export class Program {
   noteMutation(reanalyze = false) {
     this._revisionState.value++;
     this._negationAnalysis = null;
-    if (reanalyze) this.markRecursivePredicates();
+    if (reanalyze && !this.strictIso) this.markRecursivePredicates();
   }
   markRecursivePredicates() {
     // Recursion analysis drives automatic tabling and is always part of program setup.
@@ -467,7 +471,7 @@ export class Program {
 class ProgramBuilder {
   constructor(options = {}, program = null) {
     this.options = options;
-    this.program = program ?? new Program([], { [DEFER_PROGRAM_BUILD]: true });
+    this.program = program ?? new Program([], { ...options, [DEFER_PROGRAM_BUILD]: true });
     this.declaredDynamicIndicators = new Map();
     this.lastGroupKey = null;
     this.lastGroup = null;
@@ -491,7 +495,7 @@ class ProgramBuilder {
       program.clauses.push(clause);
 
       if (isCompactBinaryClause(clause)) {
-        assertPredicateIsDefinable(clause.headName, 2);
+        assertPredicateIsDefinable(clause.headName, 2, program.strictIso);
         const module = clause.module ?? 'user';
         const key = modulePredicateKey(module, clause.headName, 2);
         let group = key === lastGroupKey ? lastGroup : program.groups.get(key);
@@ -512,7 +516,7 @@ class ProgramBuilder {
       }
 
       if (!isDirectiveClause(clause)) {
-        assertHeadIsDefinable(clause.head);
+        assertHeadIsDefinable(clause.head, program.strictIso);
         const head = clause.head;
         if (head.type !== ATOM && head.type !== COMPOUND) continue;
         const module = clause.module ?? 'user';
@@ -546,7 +550,7 @@ class ProgramBuilder {
     const program = this.program;
     const module = clause.module ?? 'user';
     for (const indicator of dynamicDirectiveIndicators(clause)) {
-      assertDynamicIndicatorIsDefinable(indicator);
+      assertDynamicIndicatorIsDefinable(indicator, program.strictIso);
       const key = modulePredicateKey(module, indicator.name, indicator.arity);
       program.dynamicPredicates.add(key);
       this.declaredDynamicIndicators.set(key, { ...indicator, key, module });
@@ -597,7 +601,11 @@ class ProgramBuilder {
 
     // Static indexes are built while clauses stream into the builder. Dynamic
     // updates still rebuild only the affected predicate group.
-    program.markRecursivePredicates();
+    // Strict ISO core mode follows ordinary ISO clause selection rather than
+    // EyeProlog's automatic recursion guards, numeric recursion shortcuts, or
+    // tabled fixed points.  Leaving the recursion-planning fields at their
+    // neutral defaults preserves the standard depth-first execution model.
+    if (!program.strictIso) program.markRecursivePredicates();
     if (this.options.analyzeNegation === true || this.options.strictNegation === true) {
       program.analyzeNegationStratification();
     }
@@ -629,7 +637,7 @@ function buildProgramFromSources(sources, options) {
 function loadSourcesIntoBuilder(builder, sources, options, fast) {
   const ensured = new Set();
   const loadedModules = new Set();
-  const operatorState = createParserOperatorState();
+  const operatorState = createParserOperatorState([], true, { isoStrict: options.isoStrict === true });
   const parserFlagState = { doubleQuotes: options.doubleQuotes ?? 'chars' };
   const prepared = sources.map((source) => ({
     source,
@@ -686,7 +694,10 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       builder.addClauses([clause]);
       return;
     }
-    const grammarClause = expandDcgRuleClause(clause, context.module);
+    // Grammar-rule expansion belongs to ISO/IEC TS 13211-3 rather than the
+    // Part 1 strict-core language.  In strict core mode -->/2 remains the
+    // ordinary predefined operator term from Table 7 and is not rewritten.
+    const grammarClause = builder.program.strictIso ? null : expandDcgRuleClause(clause, context.module);
     if (grammarClause) clause = grammarClause;
     const moduleDeclaration = moduleDirective(clause);
     if (moduleDeclaration) {
@@ -911,16 +922,23 @@ function operatorDirective(clause) {
   };
 }
 
-function assertHeadIsDefinable(head) {
-  if (head.type === ATOM) assertPredicateIsDefinable(head.name, head.arity);
+function assertHeadIsDefinable(head, strictIso = false) {
+  if (head.type === ATOM || head.type === COMPOUND) {
+    assertPredicateIsDefinable(head.name, head.arity, strictIso);
+  }
 }
 
-function assertDynamicIndicatorIsDefinable(indicator) {
-  assertPredicateIsDefinable(indicator.name, indicator.arity);
+function assertDynamicIndicatorIsDefinable(indicator, strictIso = false) {
+  assertPredicateIsDefinable(indicator.name, indicator.arity, strictIso);
 }
 
-function assertPredicateIsDefinable(name, arity) {
-  if (name === 'false' && arity === 0) {
+function assertPredicateIsDefinable(name, arity, strictIso = false) {
+  // false/0 is standardized as a static built-in by Corrigendum 2 and cannot
+  // be redefined in either profile.  Strict core mode extends the same ISO
+  // rule to every Part-1 built-in/control construct; the normal EyeProlog
+  // profile keeps its historical source-compatibility behavior.
+  if ((name === 'false' && arity === 0) ||
+      (strictIso && (getStrictIsoRegistry().get(name, arity) || (name === ',' && arity === 2)))) {
     throw staticProcedureModificationError(name, arity);
   }
 }

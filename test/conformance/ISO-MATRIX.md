@@ -3,11 +3,12 @@
 The normative baseline for the `iso/` corpus is ISO/IEC 13211-1:1995 plus
 Technical Corrigenda 1:2007, 2:2012, and 3:2017. This matrix links the standard
 families to executable coverage; `conformance-report.md` supplies the generated
-case totals.
+case totals. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) tracks the processor-level
+compliance audit and the remaining work before a full conformance claim.
 
 | Standard area | Implementation | Representative executable coverage |
 | --- | --- | --- |
-| Clause 6 lexical and term syntax | tokenizer, operator parser, lists, curly terms, quotes, numeric syntax, comments | `scryer_lexical_terms`, `lexical_and_curly_terms`, `double_quoted_lists`, `corrigendum1_double_quote_operator`, syntax error cases |
+| Clause 6 lexical and term syntax | tokenizer, operator parser, lists, curly terms, quotes, numeric syntax, comments | `scryer_lexical_terms`, `lexical_and_curly_terms`, `double_quoted_lists`, `corrigendum1_double_quote_operator`, `wg17_syntax_high_risk`, syntax error cases |
 | Clause 7 term order and unification | finite-tree unification, identity, standard order, errors | `unification_control_information`, `swipl_occurs_check`, `term_modes_and_ordering`, `logtalk_compare_standard_order` |
 | Clause 7 control and exceptions | call, cut, conjunction, disjunction, if-then-else, catch and throw | `cut_control`, `control_and_terms`, `exceptions_and_flags`, `corrigenda_catch_callability`, `throw_copies_ball` |
 | 8.2-8.5 term predicates | unification, Corrigendum 2 tests, comparison, sorting, creation and decomposition | `corrigenda_term_predicates`, `corrigenda_sort_keysort`, `logtalk_arg_unification`, `logtalk_univ`, associated error cases |
@@ -30,10 +31,11 @@ integer powers (Cor.3).
 Implementation-defined choices are documented in *The Art of EyeProlog*:
 integers and arity are unbounded by the Prolog model (subject to host memory),
 ordinary unification performs an occurs check, `double_quotes` defaults to
-`chars`, unknown procedures default to `error`, `//` rounds toward zero,
-floating-point operations use finite ECMAScript numbers, and character codes
-use Unicode scalar values.
+`chars`, strict core mode uses ISO `unknown=error` while normal EyeProlog
+defaults `unknown` to `fail`, `//` rounds toward zero, floating-point operations
+use finite ECMAScript numbers, and character codes use Unicode scalar values.
 
 This is an executable conformance matrix, not a certification issued by an
-independent standards body. Release gating runs the ISO cases together with the
-full regression, API, documentation, example, and browser suites.
+independent standards body. Release gating runs the ISO cases and the dedicated
+Part 1 strict-core suite together with the full regression, API, documentation,
+example, and browser suites.

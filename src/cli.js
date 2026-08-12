@@ -26,6 +26,7 @@ export async function main(argv) {
     proof: false,
     quads: false,
     stats: false,
+    isoStrict: false,
     version: false,
     warnings: false,
     goals: [],
@@ -47,6 +48,8 @@ export async function main(argv) {
       options.quads = true;
     } else if (!endOptions && (arg === '--stats' || arg === '-s')) {
       options.stats = true;
+    } else if (!endOptions && arg === '--iso-strict') {
+      options.isoStrict = true;
     } else if (!endOptions && (arg === '--version' || arg === '-v')) {
       options.version = true;
     } else if (!endOptions && (arg === '--warnings' || arg === '-w')) {
@@ -78,6 +81,24 @@ export async function main(argv) {
 
   if (options.version) {
     process.stdout.write(`eyeprolog ${await packageVersion()}\n`);
+    return;
+  }
+
+  if (options.isoStrict && options.quads) {
+    throw new Error('--iso-strict cannot be combined with --quads');
+  }
+
+  if (options.isoStrict && options.files.length === 0 && options.goals.length === 0 &&
+      !options.proof && !options.stats && !options.warnings) {
+    const engine = await loadEngine();
+    const { runRepl } = await import('./repl.js');
+    const exitCode = await runRepl(engine, {
+      input: process.stdin,
+      output: process.stdout,
+      errorOutput: process.stderr,
+      isoStrict: true,
+    });
+    if (exitCode !== 0) process.exitCode = exitCode;
     return;
   }
 
@@ -121,7 +142,10 @@ export async function main(argv) {
   }
 
   const engine = await loadEngine();
-  let program = engine.Program.parseSources(sourceParts, { sourceMetadata: options.proof });
+  let program = engine.Program.parseSources(sourceParts, {
+    sourceMetadata: options.proof || options.isoStrict,
+    isoStrict: options.isoStrict,
+  });
 
   if (options.warnings) printWarnings(program);
 
@@ -156,15 +180,18 @@ async function loadExplanation() {
 }
 
 async function runDefault(engine, program, options) {
-  const registry = engine.getEyePrologRegistry();
+  const registry = options.isoStrict ? engine.getStrictIsoRegistry() : engine.getEyePrologRegistry();
   const solver = new engine.Solver(program, {
     registry,
+    isoStrict: options.isoStrict,
     ioOptions: { write: (text) => process.stdout.write(String(text)) },
   });
   program = solver.program;
   const goals = options.goals.map((text) => {
     const goal = engine.parseGoalText(text, {
       doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+      operatorDefinitions: [...program.operators.values()],
+      isoStrict: options.isoStrict,
     });
     if (goal.type === 'var') throw new engine.PrologError('instantiation_error');
     if (goal.type !== 'atom' && goal.type !== 'compound') throw new engine.PrologError('type_error(callable)', goal);
@@ -233,6 +260,8 @@ Options:
   -p, --proof           Enable proof explanations.
   -q, --quads           Run embedded quad tests and fail if any do not hold.
   -s, --stats           Print solver statistics to stderr after execution.
+  --iso-strict          Use ISO/IEC 13211-1 core + Corrigenda 1-3 only;
+                        reject EyeProlog language extensions and disable automatic tabling.
   -v, --version         Show the package version and exit.
   -w, --warnings        Print non-fatal portability warnings to stderr.
   -g, --goal goal       Solve goal and print its ground answers; may be repeated.

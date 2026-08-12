@@ -20,7 +20,7 @@ export async function runRepl(engine, options = {}) {
   const errorOutput = options.errorOutput ?? process.stderr;
   const reader = new LineReader(input, output);
   const sources = [];
-  let state = makeState(engine, sources, output);
+  let state = makeState(engine, sources, output, options);
   let exitCode = 0;
 
   try {
@@ -32,17 +32,17 @@ export async function runRepl(engine, options = {}) {
 
       try {
         const goal = parseGoal(engine, state, text);
-        if (isUseModuleGoal(goal)) {
+        if (!options.isoStrict && isUseModuleGoal(goal)) {
           sources.push({ text: `:- ${text}.\n`, filename: '<repl>' });
-          state = makeState(engine, sources, output);
+          state = makeState(engine, sources, output, options);
           state.solver.runInitializations();
           output.write('   true.\n');
           continue;
         }
-        const consultFiles = consultDesignations(engine, goal);
+        const consultFiles = options.isoStrict ? null : consultDesignations(engine, goal);
         if (consultFiles != null) {
           for (const filename of consultFiles) sources.push(await readSource(filename));
-          state = makeState(engine, sources, output);
+          state = makeState(engine, sources, output, options);
           state.solver.runInitializations();
           output.write('   true.\n');
           continue;
@@ -142,13 +142,15 @@ class LineReader {
   }
 }
 
-function makeState(engine, sources, output) {
-  const program = engine.Program.parseSources(sources);
+function makeState(engine, sources, output, options = {}) {
+  const strictIso = options.isoStrict === true;
+  const program = engine.Program.parseSources(sources, { strictIso, sourceMetadata: strictIso });
   const solver = new engine.Solver(program, {
-    registry: engine.getEyePrologRegistry(),
+    registry: strictIso ? engine.getStrictIsoRegistry() : engine.getEyePrologRegistry(),
+    isoStrict: strictIso,
     ioOptions: { write: (text) => output.write(String(text)) },
   });
-  return { program: solver.program, solver };
+  return { program: solver.program, solver, strictIso };
 }
 
 async function readQuery(reader) {
@@ -244,6 +246,7 @@ function parseGoal(engine, state, text) {
   const goal = engine.parseGoalText(text, {
     doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
     operatorDefinitions: [...state.program.operators.values()],
+    isoStrict: state.strictIso,
   });
   if (goal.type === 'var') throw new engine.PrologError('instantiation_error');
   if (goal.type !== 'atom' && goal.type !== 'compound') {

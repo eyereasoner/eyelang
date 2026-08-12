@@ -79,6 +79,27 @@ member_test ?- member(X, [prolog, logic]).
 ;  X = logic.
 ```
 
+## Strict ISO/IEC 13211-1 core
+
+For portability and conformance work, run the Part 1 core with Technical
+Corrigenda 1–3 in strict mode:
+
+```sh
+eyeprolog --iso-strict
+eyeprolog --iso-strict --goal 'p(X)' program.pl
+```
+
+The equivalent JavaScript option is `isoStrict: true`. Strict mode rejects
+EyeProlog language extensions, Part 2 module directives, and Part 3 grammar-rule
+expansion/`phrase/2-3`; it also removes the EyeProlog `occurs_check` flag and
+disables automatic tabling. Normal mode is unchanged and continues to support
+modules, DCGs, quads, libraries, proofs, and the other documented extensions.
+
+The auditable processor-requirement checklist lives in
+[`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
+EyeProlog does not yet claim independent certification or closure of every
+normative Part 1 requirement.
+
 ## ISO modules and definite clause grammars
 
 EyeProlog implements ISO/IEC 13211-2 modules and the grammar rules and

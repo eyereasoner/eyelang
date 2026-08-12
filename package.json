@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.1.29",
+  "version": "1.2.0",
   "description": "EyeProlog turns facts and rules into answers and proofs.",
   "type": "module",
   "main": "./index.js",
@@ -49,6 +49,7 @@
     "generate": "node tools/extract-book-examples.mjs",
     "test:eyeprolog": "node test/run-all.mjs",
     "test:conformance": "node test/run-conformance.mjs",
+    "test:iso-strict": "node test/run-iso-strict.mjs",
     "test:examples": "node test/run-examples.mjs",
     "test:regression": "node test/run-regression.mjs",
     "test:playground": "node test/run-playground.mjs",

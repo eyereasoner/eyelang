@@ -139,12 +139,16 @@ function defineParserOperator(state, priority, specifier, name) {
   }
 }
 
-export function createParserOperatorState(definitions = [], includeDefaults = true) {
+export function createParserOperatorState(definitions = [], includeDefaults = true, options = {}) {
   const state = {
     infixOperators: includeDefaults ? new Map(INFIX_OPERATORS) : new Map(),
     prefixOperators: includeDefaults ? new Map(PREFIX_OPERATORS) : new Map(),
     postfixOperators: new Map(),
   };
+  // The infix ?-/2 form is an EyeProlog quad extension.  ISO 13211-1
+  // predefines only the 1200 fx ?- operator; strict core mode starts from that
+  // table and still permits an explicit op/3 directive to add an infix form.
+  if (options.isoStrict === true) state.infixOperators.delete('?-');
   for (const definition of definitions) {
     const [priority, specifier, name] = Array.isArray(definition)
       ? definition
@@ -162,6 +166,7 @@ class Parser {
     this.line = 1;
     this.anonymous = 0;
     this.sourceMetadata = options.sourceMetadata !== false;
+    this.strictIso = options.isoStrict === true;
     this.parserFlagState = options.parserFlagState ?? {
       doubleQuotes: options.doubleQuotes ?? 'chars',
     };
@@ -171,6 +176,7 @@ class Parser {
     const operatorState = options.operatorState ?? createParserOperatorState(
       options.operatorDefinitions ?? [],
       options.includeDefaultOperators !== false,
+      { isoStrict: this.strictIso },
     );
     this.infixOperators = operatorState.infixOperators;
     this.prefixOperators = operatorState.prefixOperators;
@@ -685,6 +691,19 @@ class Parser {
     while (this.token.type !== TOK.EOF) {
       const line = this.token.line;
       if (this.operatorTokenName() === '?-') {
+        if (this.strictIso) {
+          // In Part 1, ?- is the predefined 1200 fx operator.  A strict-core
+          // source therefore reads it as an ordinary term rather than giving
+          // it EyeProlog's top-level quad meaning.
+          const head = this.parseTerm(0, true);
+          this.expect(TOK.DOT, '.');
+          this.advance();
+          const clause = { head, body: [] };
+          clauseNumber++;
+          if (this.sourceMetadata) clause.source = { filename: this.filename, line, clause: clauseNumber };
+          accept(clause);
+          continue;
+        }
         this.advance();
         this.parseQuad(null, line, accept);
         continue;
@@ -692,13 +711,19 @@ class Parser {
       if (this.token.type === TOK.IF) {
         this.advance();
         const directive = this.parseTerm();
-        const supportedDirective = directive.type === 'compound' && (
-          (['dynamic', 'multifile', 'discontiguous', 'initialization', 'include', 'ensure_loaded',
-            'use_module', 'meta_predicate'].includes(directive.name) && directive.arity === 1) ||
-          (['char_conversion', 'set_prolog_flag', 'module', 'use_module'].includes(directive.name) && directive.arity === 2)
+        const coreDirective = directive.type === 'compound' && (
+          (['dynamic', 'multifile', 'discontiguous', 'initialization', 'include', 'ensure_loaded'].includes(directive.name) && directive.arity === 1) ||
+          (['char_conversion', 'set_prolog_flag'].includes(directive.name) && directive.arity === 2)
         );
+        const extensionDirective = directive.type === 'compound' && (
+          (['use_module', 'meta_predicate'].includes(directive.name) && directive.arity === 1) ||
+          (['module', 'use_module'].includes(directive.name) && directive.arity === 2)
+        );
+        if (this.strictIso && extensionDirective) {
+          throw new Error(`parse line ${line}: implementation-specific directive ${directive.name}/${directive.arity} is not available in strict ISO core mode`);
+        }
         const operator = this.applyOperatorDirective(directive, line);
-        if (!supportedDirective && !operator) {
+        if (!coreDirective && !extensionDirective && !operator) {
           throw new Error(`parse line ${line}: bad term`);
         }
         this.expect(TOK.DOT, '.');
@@ -716,6 +741,22 @@ class Parser {
       }
       let head = this.parseTerm(3);
       if (this.operatorTokenName() === '?-') {
+        if (this.strictIso) {
+          // There is no predefined infix ?-/2 in strict core mode.  If a
+          // conforming source explicitly introduced one with op/3, read it as
+          // an ordinary operator term rather than as a quad label.
+          const info = this.infixOperators.get('?-');
+          if (!info) throw new Error(`parse line ${line}: expected ., got ?-`);
+          this.advance();
+          const right = this.parseTerm(info.associativity === 'right' ? info.precedence : info.precedence + 1, true);
+          const clause = { head: compound('?-', [head, right]), body: [] };
+          this.expect(TOK.DOT, '.');
+          this.advance();
+          clauseNumber++;
+          if (this.sourceMetadata) clause.source = { filename: this.filename, line, clause: clauseNumber };
+          accept(clause);
+          continue;
+        }
         this.advance();
         this.parseQuad(head, line, accept);
         continue;

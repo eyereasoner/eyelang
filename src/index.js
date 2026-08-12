@@ -7,7 +7,9 @@ export * from './term.js';
 export {
   BuiltinRegistry,
   createDefaultRegistry,
+  createStrictIsoRegistry,
   getDefaultRegistry,
+  getStrictIsoRegistry,
   HaltSignal,
   PrologError,
 } from './iso.js';
@@ -26,16 +28,23 @@ import { ATOM, COMPOUND, VAR, Env, copyResolved, termIsGround } from './term.js'
 import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { whyNoProof, whyProof } from './explain.js';
-import { HaltSignal, PrologError } from './iso.js';
+import { HaltSignal, PrologError, getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { parseGoalText } from './parser.js';
 import { formatTermForWrite } from './write.js';
 
 export function run(source, options = {}) {
   const includeWhy = options.proof === true || options.why === true || options.explain === true;
-  const parseOptions = { ...options, sourceMetadata: includeWhy };
+  const requestedStrictIso = options.isoStrict === true;
+  if (source instanceof Program && requestedStrictIso && source.strictIso !== true) {
+    throw new Error('strict ISO mode requires a Program parsed with isoStrict: true');
+  }
+  const parseOptions = { ...options, sourceMetadata: includeWhy || requestedStrictIso };
   let program = source instanceof Program ? source : Program.parse(source, parseOptions);
-  const runOptions = options.registry ? options : { ...options, registry: getEyePrologRegistry() };
+  const strictIso = requestedStrictIso || program.strictIso === true;
+  const runOptions = strictIso
+    ? { ...options, isoStrict: true, registry: getStrictIsoRegistry() }
+    : options.registry ? options : { ...options, registry: getEyePrologRegistry() };
   const output = [];
   const solver = new Solver(program, {
     ...runOptions,
@@ -91,6 +100,8 @@ function normalizeGoals(options, solver) {
     const goal = typeof requestedGoal === 'string'
       ? parseGoalText(requestedGoal, {
           doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+          operatorDefinitions: [...solver.program.operators.values()],
+          isoStrict: solver.isoStrict,
         })
       : requestedGoal;
     if (goal.type === VAR) throw new PrologError('instantiation_error');

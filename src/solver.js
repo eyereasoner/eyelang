@@ -4,7 +4,7 @@ import {
   COMPOUND, Env, compound, copyResolved, deref, emptyList, flattenConjunction, freshTerm,
   numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variantTerms,
 } from './term.js';
-import { PrologError } from './iso.js';
+import { PrologError, getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program.js';
 import { StreamManager } from './io.js';
@@ -34,8 +34,12 @@ function raiseOccursCheckError(left, right, env) {
 
 export class Solver {
   constructor(program, options = {}) {
-    this.registry = options.registry ?? getEyePrologRegistry();
     this.program = program;
+    this.isoStrict = options.isoStrict === true || program.strictIso === true;
+    // A strict processor mode must not silently admit host-registered
+    // implementation-specific predicates.  Use the Part 1 + corrigenda
+    // registry even when an embedder supplied the normal EyeProlog registry.
+    this.registry = this.isoStrict ? getStrictIsoRegistry() : (options.registry ?? getEyePrologRegistry());
     this.mutableProgram = program.mutable === true;
     this.programRevision = this.program.revision ?? 0;
     this.maxDepth = options.maxDepth ?? 100000;
@@ -45,7 +49,12 @@ export class Solver {
     this.inferenceLimitExceeded = false;
     this.solutionLimit = options.solutionLimit ?? 10000000;
     this.solutionsSeen = 0;
-    this.prologFlags = options.prologFlags ?? defaultPrologFlags(this.registry?.eyePrologLibrary ? 'fail' : 'error');
+    this.prologFlags = options.prologFlags ?? defaultPrologFlags(this.registry?.eyePrologLibrary ? 'fail' : 'error', this.isoStrict);
+    if (this.isoStrict) {
+      for (const name of [...this.prologFlags.keys()]) {
+        if (!ISO_CORE_FLAG_NAMES.has(name)) this.prologFlags.delete(name);
+      }
+    }
     this.occursCheckHandler = (left, right, env) => {
       if (this.prologFlags.get('occurs_check')?.value?.name === 'error') {
         raiseOccursCheckError(left, right, env);
@@ -104,6 +113,7 @@ export class Solver {
       maxDepth: this.maxDepth,
       maxInferences: this.maxInferences,
       solutionLimit,
+      isoStrict: this.isoStrict,
       prologFlags: this.prologFlags,
       charConversions: this.charConversions,
       io: this.io,
@@ -479,8 +489,13 @@ function qualifyMetaArguments(goal, group) {
   }
 }
 
-function defaultPrologFlags(unknown = 'error') {
-  return new Map([
+const ISO_CORE_FLAG_NAMES = new Set([
+  'bounded', 'integer_rounding_function', 'char_conversion', 'debug',
+  'max_integer', 'min_integer', 'max_arity', 'unknown', 'double_quotes',
+]);
+
+function defaultPrologFlags(unknown = 'error', strictIso = false) {
+  const flags = new Map([
     ['bounded', { value: compound('false', []), allowed: ['false'], changeable: false }],
     ['integer_rounding_function', { value: compound('toward_zero', []), allowed: ['toward_zero'], changeable: false }],
     ['char_conversion', { value: compound('on', []), allowed: ['on', 'off'], changeable: true }],
@@ -492,6 +507,8 @@ function defaultPrologFlags(unknown = 'error') {
     ['double_quotes', { value: compound('chars', []), allowed: ['chars', 'codes', 'atom'], changeable: true }],
     ['occurs_check', { value: compound('true', []), allowed: ['true', 'error'], changeable: true }],
   ]);
+  if (strictIso) flags.delete('occurs_check');
+  return flags;
 }
 
 

@@ -15,10 +15,12 @@ executable cases.
 profile and implementation extensions. The default registry covers the exact
 predicate indicators listed in Appendix B of the book across the supported
 ISO/IEC 13211-1:1995, ISO/IEC 13211-2:2000, and ISO/IEC TS 13211-3:2025
-standard families. This suite is still not an independent certification of
-every processor requirement, lexical edge, option combination, or prescribed
-error precedence. Cases under `iso/` identify standards-derived behavior;
-other directories cover EyeProlog host contracts and extensions.
+standard families. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the explicit
+processor-requirement ledger for the Part 1 strict-core audit. This suite is
+still not an independent certification of every processor requirement, lexical
+edge, option combination, or prescribed error precedence. Cases under `iso/`
+identify standards-derived behavior; other directories cover EyeProlog host
+contracts and extensions.
 
 All conformance files live under topic directories such as `arithmetic/`, `lists/`, `syntax/`, or `variables/`; new top-level numbered files should not be added. The report uses those directories as coverage categories.
 
@@ -60,6 +62,12 @@ Run only the conformance suite:
 node test/run-conformance.mjs
 ```
 
+Run the Part 1 + Corrigenda strict-core processor gate:
+
+```sh
+npm run test:iso-strict
+```
+
 Summarize conformance coverage by category:
 
 ```sh
@@ -94,7 +102,7 @@ Selected cases are adapted from the ISO and standard-core suites of Logtalk,
 Scryer Prolog, Trealla Prolog, and SWI-Prolog. Their upstream identifiers and licenses
 are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 
-The corpus has 375 cases in `iso/` and 781 file-based conformance cases in
+The corpus has 376 cases in `iso/` and 782 file-based conformance cases in
 total. The generated `conformance-report.md` is the authoritative source for
 current category totals. Together with regression, documentation-sync, API,
 example, and book-example checks, `npm test` is the release gate.

@@ -18,6 +18,7 @@ import {
   Env,
   BuiltinRegistry,
   createDefaultRegistry,
+  getStrictIsoRegistry,
   getEyePrologRegistry,
   eyePrologLibraryIndicators,
   eyePrologNativeLibraryIndicators,
@@ -1057,6 +1058,115 @@ c4 ?- call((!;1)).
         const infix = parseGoalText('(label ?- true)');
         assertEqual(infix.name, '?-', 'quad query functor');
         assertEqual(infix.arity, 2, 'quad query arity');
+      },
+    },
+    {
+      name: 'strict ISO core mode exposes only the Part 1 registry and flag surface',
+      run: () => {
+        const program = Program.parse('', { isoStrict: true });
+        const solver = new Solver(program, { isoStrict: true });
+        const registry = getStrictIsoRegistry();
+        assertEqual(Boolean(registry.get('subsumes_term', 2)), true, 'Corrigendum 2 predicate');
+        assertEqual(Boolean(registry.get('phrase', 2)), false, 'Part 3 phrase excluded');
+        assertEqual(Boolean(registry.get('phrase', 3)), false, 'Part 3 phrase/3 excluded');
+        assertEqual(Boolean(registry.get('true', 0)), true, 'Part 1 true/0');
+        assertEqual(solver.prologFlags.has('occurs_check'), false, 'implementation-specific flag excluded');
+        assertEqual(solver.prologFlags.get('unknown')?.value?.name, 'error', 'ISO unknown default');
+      },
+    },
+    {
+      name: 'strict ISO core mode keeps prefix ?- but removes the predefined quad infix form',
+      run: () => {
+        const program = Program.parse('', { isoStrict: true });
+        assertEqual(program.operators.has('fx\u0000?-'), true, 'ISO ?-/1');
+        assertEqual(program.operators.has('xfx\u0000?-'), false, 'quad ?-/2');
+        const added = Program.parse(':- op(1200,xfx,?-).\nleft ?- right.\n', { isoStrict: true });
+        assertEqual(Boolean(added.findGroup('?-', 2)), true, 'explicit conforming op/3 may add ?-/2');
+        assertEqual(added.quads.length, 0, 'strict source never records quads');
+      },
+    },
+    {
+      name: 'strict ISO core mode rejects EyeProlog module directives',
+      run: () => {
+        let caught = null;
+        try {
+          Program.parse(':- use_module(library(lists)).\n', { isoStrict: true });
+        } catch (error) {
+          caught = error;
+        }
+        if (!caught) throw new Error('strict ISO source unexpectedly accepted use_module/1');
+        assertIncludes(caught.message, 'implementation-specific directive use_module/1', 'strict directive error');
+      },
+    },
+    {
+      name: 'strict ISO core mode does not expand Part 3 grammar rules',
+      run: () => {
+        const strict = Program.parse('sentence --> [a].\n', { isoStrict: true });
+        const normal = Program.parse('sentence --> [a].\n');
+        assertEqual(Boolean(strict.findGroup('-->', 2)), true, 'strict -->/2 ordinary predicate');
+        assertEqual(Boolean(strict.findGroup('sentence', 2)), false, 'strict no DCG expansion');
+        assertEqual(Boolean(normal.findGroup('sentence', 2)), true, 'normal DCG expansion');
+      },
+    },
+    {
+      name: 'strict ISO core mode rejects clauses for standardized built-ins',
+      run: () => {
+        let caught = null;
+        try {
+          Program.parse('true.\n', { isoStrict: true });
+        } catch (error) {
+          caught = error;
+        }
+        if (!caught) throw new Error('strict ISO source unexpectedly redefined true/0');
+        assertEqual(caught.formal, 'permission_error(modify, static_procedure)', 'strict static-procedure error');
+      },
+    },
+    {
+      name: 'strict ISO clause/2 keeps static procedures private and dynamic procedures public',
+      run: () => {
+        const staticProgram = Program.parse('p.\n', { isoStrict: true });
+        const staticSolver = new Solver(staticProgram, { isoStrict: true });
+        let caught = null;
+        try {
+          [...staticSolver.solve([parseGoalText('clause(p,B)', { isoStrict: true })], new Env(), 0)];
+        } catch (error) {
+          caught = error;
+        }
+        if (!caught) throw new Error('strict clause/2 unexpectedly inspected a static procedure');
+        assertEqual(caught.formal, 'permission_error(access, private_procedure)', 'static clause privacy');
+
+        const dynamicProgram = Program.parse(':- dynamic(p/0).\np.\n', { isoStrict: true });
+        const dynamicSolver = new Solver(dynamicProgram, { isoStrict: true });
+        const answers = [...dynamicSolver.solve([parseGoalText('clause(p,B)', { isoStrict: true })], new Env(), 0)];
+        assertEqual(answers.length, 1, 'dynamic clause answer count');
+      },
+    },
+    {
+      name: 'strict ISO core mode disables automatic tabling and recursion guards',
+      run: () => {
+        const strict = Program.parse('p :- p.\n', { isoStrict: true });
+        const normal = Program.parse('p :- p.\n');
+        const strictGroup = strict.findGroup('p', 0);
+        const normalGroup = normal.findGroup('p', 0);
+        assertEqual(strictGroup?.recursive, false, 'strict recursive planner disabled');
+        assertEqual(strictGroup?.tabled, false, 'strict tabling disabled');
+        assertEqual(normalGroup?.recursive, true, 'normal recursion detected');
+      },
+    },
+    {
+      name: '--iso-strict rejects quad execution mode',
+      run: () => {
+        const result = runCli(['--iso-strict', '--quads', '-'], { input: '' });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, '--iso-strict cannot be combined with --quads', 'stderr');
+      },
+    },
+    {
+      name: '--iso-strict rejects extension directives from source input',
+      run: () => {
+        const result = runCli(['--iso-strict', '-'], { input: ':- use_module(library(lists)).\n' });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'implementation-specific directive use_module/1', 'stderr');
       },
     },
     {

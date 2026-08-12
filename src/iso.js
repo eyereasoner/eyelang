@@ -508,11 +508,18 @@ function* clauseBuiltin({ solver, goal, env }) {
   if (head.type !== ATOM && head.type !== COMPOUND) throw new PrologError('type_error(callable)', head);
   callableOrVariable(goal.args[1], env);
   const indicator = compound('/', [atom(head.name), numberTerm(head.arity)]);
-  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(head)) {
+  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head)) {
     throw new PrologError('permission_error(access, private_procedure)', indicator);
   }
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
   if (!group) return;
+  // ISO 7.5.3 makes dynamic procedures public and static user-defined
+  // procedures private by default.  EyeProlog's normal profile keeps static
+  // clauses inspectable for proof tooling; strict core mode restores the ISO
+  // access rule used by clause/2.
+  if (solver.isoStrict && !group.dynamic) {
+    throw new PrologError('permission_error(access, private_procedure)', indicator);
+  }
   for (const clause of group.clauses) {
     const pair = compound('$clause', [clause.head, clauseBodyTerm(clause.body)]);
     const copied = freshCopy(pair, new Env());
@@ -547,13 +554,13 @@ function procedureIndicator(head) {
   return compound('/', [atom(head.name), numberTerm(head.arity)]);
 }
 
-function isGrammarRuleProcedure(head) {
-  return head.name === '-->' && head.arity === 2;
+function isGrammarRuleProcedure(solver, head) {
+  return !solver.isoStrict && head.name === '-->' && head.arity === 2;
 }
 
 function assertModifiable(solver, head, module = 'user') {
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? module);
-  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(head) || (group && !group.dynamic)) {
+  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
 }
@@ -580,7 +587,7 @@ function* retractBuiltin({ solver, goal, env }) {
   const parts = clauseParts(goal.args[0], env);
   requireClauseHead(parts.head);
   const group = solver.program.findGroup(parts.head.name, parts.head.arity, parts.head.module ?? goal.module ?? 'user');
-  if (solver.registry.get(parts.head.name, parts.head.arity) || isGrammarRuleProcedure(parts.head) || (group && !group.dynamic)) {
+  if (solver.registry.get(parts.head.name, parts.head.arity) || isGrammarRuleProcedure(solver, parts.head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(parts.head));
   }
   if (!group) return;
@@ -603,7 +610,7 @@ function* retractAllBuiltin({ solver, goal, env }) {
   const head = deref(goal.args[0], env);
   requireClauseHead(head);
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
-  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(head) || (group && !group.dynamic)) {
+  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
   if (group) {
@@ -637,7 +644,7 @@ function* abolishBuiltin({ solver, goal, env }) {
   const target = predicateIndicatorParts(goal.args[0], env);
   const module = goal.module ?? 'user';
   const group = solver.program.findGroup(target.name, target.arity, module);
-  if (solver.registry.get(target.name, target.arity) || isGrammarRuleProcedure(target) || (group && !group.dynamic)) {
+  if (solver.registry.get(target.name, target.arity) || isGrammarRuleProcedure(solver, target) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', target.indicator);
   }
   solver.program.abolishDynamicGroup(target.name, target.arity, module);
@@ -2057,6 +2064,11 @@ export class BuiltinRegistry {
   get(name, arity) {
     return this.defs.get(`${name}/${arity}`) ?? null;
   }
+
+  remove(name, arity) {
+    this.defs.delete(`${name}/${arity}`);
+    return this;
+  }
 }
 
 export function createDefaultRegistry() {
@@ -2065,9 +2077,24 @@ export function createDefaultRegistry() {
   return registry;
 }
 
+// ISO/IEC 13211-1:1995 + Corrigenda 1-3 only.  phrase/2-3 and grammar-rule
+// expansion belong to the separate grammar-rule specification, while the
+// EyeProlog standard-library/CLP(Z) adapters are registered elsewhere.
+export function createStrictIsoRegistry() {
+  return createDefaultRegistry()
+    .remove('phrase', 2)
+    .remove('phrase', 3);
+}
+
 let defaultRegistry = null;
+let strictIsoRegistry = null;
 
 export function getDefaultRegistry() {
   if (defaultRegistry == null) defaultRegistry = createDefaultRegistry();
   return defaultRegistry;
+}
+
+export function getStrictIsoRegistry() {
+  if (strictIsoRegistry == null) strictIsoRegistry = createStrictIsoRegistry();
+  return strictIsoRegistry;
 }

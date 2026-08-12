@@ -1822,9 +1822,10 @@ module-loading path in a dedicated worker.
 Normal CLI, JavaScript, `Solver`, proof replay, and the browser playground use
 the same module loader. A library is added to a `Program` only when its source
 uses `use_module/1` or `use_module/2`; exported predicates are imported into the
-calling module and private predicates remain module-local. Advanced embedders
-and conformance tests can still select the ISO-only registry explicitly. All
-paths share the parser, term representation, solver, streams, and proof machinery.
+calling module and private predicates remain module-local. Advanced embedders and conformance tests can select
+`getStrictIsoRegistry()` together with `isoStrict: true` for the Part 1 +
+Corrigenda strict surface. All paths share the parser, term representation,
+solver, streams, and proof machinery.
 
 ### Extending the built-in registry
 
@@ -4919,7 +4920,10 @@ The supported ISO Prolog profile includes processor-facing facilities that
 become important in reusable libraries, language tools, long-running
 applications, and file boundaries. Earlier chapters use its relational core;
 this part makes control, reflection, state, operators, and streams explicit.
-Isolated mode and error cases live in `test/conformance/cases/iso/`. The
+For Part 1 portability work, EyeProlog also provides a strict core mode:
+`--iso-strict` on the CLI or `isoStrict: true` in the JavaScript API restricts
+the language/runtime surface to ISO/IEC 13211-1:1995 plus Technical Corrigenda
+1–3. Isolated mode and error cases live in `test/conformance/cases/iso/`. The
 examples here compose those operations into programs worth changing and
 rerunning.
 
@@ -5663,13 +5667,14 @@ silently changing a static program.
 | `double_quotes` | `chars` | `chars`, `codes`, `atom` | yes |
 | `occurs_check` | `true` | `true`, `error` | yes |
 
-The isolated ISO-only registry defaults `unknown` to `error`; the normal
-EyeProlog environment defaults it to `fail`. The `occurs_check` flag is an
-EyeProlog diagnostic extension rather than an ISO-defined core flag; its
-`true` default preserves the engine's finite-tree unification, while `error`
-reports STO attempts. Operator and flag directives are processed per program
-rather than changing global JavaScript state. The `double_quotes` setting affects subsequent source text, included
-files, command-line and API goal text, and terms read by `read_term/*`:
+Strict ISO core mode defaults `unknown` to `error`; the normal EyeProlog
+environment defaults it to `fail`. The `occurs_check` flag is an EyeProlog
+diagnostic extension rather than an ISO-defined core flag: it is absent in
+strict mode, while normal mode keeps its `true` default and optional `error`
+diagnostic for STO attempts. Operator and flag directives are processed per
+program rather than changing global JavaScript state. The `double_quotes`
+setting affects subsequent source text, included files, command-line and API
+goal text, and terms read by `read_term/*`:
 
 ```text
 % Default: a list of one-character atoms.
@@ -5847,9 +5852,11 @@ with the published Prologue, `call_nth/2`, and `length/2` quads retained as
 offline regressions. `src/standard-library.js` registers the module sources and
 private control and constraint adapters for Node and browser resolution, and never adds clauses
 implicitly.
-The isolated ISO-only registry remains
-available through `createDefaultRegistry()` and `getDefaultRegistry()` for
-conformance work and advanced embedders. Module-local predicate identity keeps
+The core registry remains available through `createDefaultRegistry()` and
+`getDefaultRegistry()` for low-level embedding. The stricter Part 1 +
+Corrigenda registry is exposed as `createStrictIsoRegistry()` and
+`getStrictIsoRegistry()` and is paired with `isoStrict: true` when a complete
+strict-language boundary is required. Module-local predicate identity keeps
 private helpers and same-named predicates in different modules separate.
 
 `freeze(?Term,:Goal)` runs `Goal` immediately when `Term` is already nonvariable;
@@ -6236,6 +6243,7 @@ make the observed question explicit.
 | `-h`, `--help` | Show usage |
 | `-p`, `--proof` | Print `why/2` explanations |
 | `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
+| `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions and disable automatic tabling |
 | `-s`, `--stats` | Print solver counters to stderr |
 | `-v`, `--version` | Print the package version |
 | `-w`, `--warnings` | Print non-fatal portability warnings |
@@ -6243,13 +6251,31 @@ make the observed question explicit.
 | `--` | Treat following arguments as inputs |
 
 Short flags may be combined, so `-pqw` is equivalent to `-p -q -w`.
+`--iso-strict` cannot be combined with `--quads`, because quads and their
+predefined infix `(?-)/2` form are an EyeProlog testing extension. Strict mode
+retains the Part 1 prefix `(?-)/1` operator and treats `-->/2` as ordinary Part
+1 operator syntax; it does not perform Part 3 grammar-rule expansion or expose
+`phrase/2-3`. Part 2 module directives and EyeProlog libraries are rejected,
+the implementation-specific `occurs_check` flag is absent, and automatic
+tabling/recursion guards are disabled. Normal mode is unchanged and continues
+to support Parts 2–3 and EyeProlog extensions.
 
 Inputs may be local files, HTTP(S) URLs, or one `-` for stdin. The bare command
-`eyeprolog` starts the REPL. When options are present but no input is named,
-stdin is used; writing `-` explicitly is clearer in scripts. Multiple sources are
-parsed as one program, so facts, rules, and directives can be separated across
-files. A relative `include/1` inside a local file resolves from that file's
-directory.
+`eyeprolog` starts the normal REPL; `eyeprolog --iso-strict` starts the strict
+core REPL. When options are present but no input is named, stdin is normally
+used, but the strict-mode-only invocation is reserved for the REPL, so write
+`eyeprolog --iso-strict -` explicitly when strict source should come from
+stdin. Multiple sources are parsed as one program, so facts, rules, and
+directives can be separated across files. A relative `include/1` inside a local
+file resolves from that file's directory.
+
+For example:
+
+```sh
+eyeprolog --iso-strict --goal 'p(X)' program.pl
+eyeprolog --iso-strict
+printf 'p(a).\n' | eyeprolog --iso-strict --goal 'p(X)' -
+```
 
 ### A reproducible run
 
@@ -6882,11 +6908,18 @@ syntax. Separate corpora cover expected errors, warnings, and proofs:
 
 ```sh
 npm run test:conformance
+npm run test:iso-strict
 node test/run-conformance-report.mjs
 ```
 
+`test/conformance/ISO-COMPLIANCE.md` is the processor-requirement ledger for the
+Part 1 conformance audit. It distinguishes implemented/tested families from
+requirements whose normative `shall` clauses, option combinations, or error
+precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
+maps language families to representative executable cases.
+
 The complete suite must pass before release. The file-based conformance corpus
-contains 781 cases, including 375 focused ISO
+contains 782 cases, including 376 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 189 normal
@@ -6923,20 +6956,27 @@ npm run test:playground
 EyeProlog executes a documented and tested ISO Prolog implementation based on
 ISO/IEC 13211-1:1995 and its three technical corrigenda, ISO/IEC 13211-2:2000,
 and ISO/IEC TS 13211-3:2025. The exact supported predicate indicators are
-listed in Chapter 39. The implementation includes control and
-exceptions, term operations, arithmetic, grouped solutions, dynamic clauses,
-operators, atomic-term processing, flags, character conversion, streams,
-character/byte and term I/O, initialization, source inclusion, and
-termination. Corrigendum 2 additions—including `subsumes_term/2`,
-`acyclic_term/1`, `sort/2`, `keysort/2`, `term_variables/2`, `retractall/1`,
-and `call/2-8`—are part of that baseline rather than extensions. Part 2 module
-identity and imports and Part 3 grammar expansion and `phrase/2-3` are likewise
-standard language facilities.
+listed in Chapter 39. The normal profile includes control and exceptions, term
+operations, arithmetic, grouped solutions, dynamic clauses, operators,
+atomic-term processing, flags, character conversion, streams, character/byte
+and term I/O, initialization, source inclusion, Part 2 modules, Part 3 grammar
+rules, and EyeProlog extensions.
 
-This breadth is not a formal certification of every processor requirement.
-The executable examples are EyeProlog-profile programs using host-supplied goals,
-character lists, explicit integrity relations, automatic tabling, and the EyeProlog library.
-The remaining qualifications are:
+For a Part 1 conformance boundary, `--iso-strict` (or API option
+`isoStrict: true`) limits the processor to ISO/IEC 13211-1:1995 plus Technical
+Corrigenda 1–3. Corrigendum 2 additions—including `subsumes_term/2`,
+`acyclic_term/1`, `sort/2`, `keysort/2`, `term_variables/2`, `retractall/1`,
+and `call/2-8`—remain part of that strict baseline. Part 2 modules, Part 3 DCG
+expansion/`phrase/2-3`, quads, EyeProlog libraries, the `occurs_check` flag,
+and automatic tabling are outside that Part 1 strict surface.
+
+This release establishes the strict-mode mechanism required for the ongoing
+conformance audit; it does **not** yet claim that every processor requirement
+has been independently certified. `test/conformance/ISO-COMPLIANCE.md` tracks
+the remaining normative audit work. The executable examples are mostly
+EyeProlog-profile programs using host-supplied goals, character lists, explicit
+integrity relations, automatic tabling, and the EyeProlog library. The
+remaining qualifications are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
   `ready`;
@@ -6952,8 +6992,10 @@ The remaining qualifications are:
 Write terms explicitly, keep variables uppercase or underscore-prefixed, and
 quote atom names that are neither lowercase plain names nor graphic tokens.
 These boundaries distinguish implemented ISO functionality from certification.
-The EyeProlog corpus verifies this documented profile; it is not an independent
-certification that every conforming Prolog text will run unchanged.
+The EyeProlog corpus verifies this documented profile and strict-core boundary.
+A public full-conformance claim is deferred until the compliance ledger has no
+unresolved normative audits and external conformity runs have no unexplained
+deviations.
 
 ### Security and resource use
 
