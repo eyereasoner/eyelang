@@ -2,6 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
+import { formalErrorTerm } from './iso.js';
 
 const ANSWER_HELP = `
 SPACE, "n" or ";": next solution, if any
@@ -425,46 +426,17 @@ function formatError(engine, state, error) {
     const env = new engine.Env();
     const variableNames = new Map();
     let generated = 0;
-    if (error.formalTerm != null) {
-      collectUnboundVariables(engine, error.formalTerm, env, variableNames, () => `_${letterName(generated++)}`);
-      if (error.contextTerm != null) {
-        collectUnboundVariables(engine, error.contextTerm, env, variableNames, () => `_${letterName(generated++)}`);
-      }
-      const formal = engine.formatTermForWrite(error.formalTerm, env, {
-        quoted: true,
-        operators: [...state.program.operators.values()],
-        variableNames,
-      });
-      if (error.contextTerm != null) {
-        const context = engine.formatTermForWrite(error.contextTerm, env, {
-          quoted: true,
-          operators: [...state.program.operators.values()],
-          variableNames,
-        });
-        return `error(${formal}, ${context}).`;
-      }
-      return `error(${formal}).`;
-    }
-    if (error.culprit != null) {
-      collectUnboundVariables(engine, error.culprit, env, variableNames, () => `_${letterName(generated++)}`);
-    }
-    if (error.contextTerm != null) {
-      collectUnboundVariables(engine, error.contextTerm, env, variableNames, () => `_${letterName(generated++)}`);
-    }
-    const culprit = error.culprit == null ? '' : `, ${engine.formatTermForWrite(error.culprit, env, {
+    // ISO 7.12.1 represents processor errors as error(ErrorTerm, ImpDef).
+    // Reuse the same conversion as catch/3 so uncaught errors at the top
+    // level cannot lose the implementation-defined context or misplace a
+    // culprit as the second argument of error/2.
+    const term = formalErrorTerm(error);
+    collectUnboundVariables(engine, term, env, variableNames, () => `_${letterName(generated++)}`);
+    return `${engine.formatTermForWrite(term, env, {
       quoted: true,
       operators: [...state.program.operators.values()],
       variableNames,
-    })}`;
-    if (error.contextTerm != null) {
-      const context = engine.formatTermForWrite(error.contextTerm, env, {
-        quoted: true,
-        operators: [...state.program.operators.values()],
-        variableNames,
-      });
-      return `error(${error.formal}${culprit}, ${context}).`;
-    }
-    return `error(${error.formal}${culprit}).`;
+    })}.`;
   }
   const message = error?.message ?? String(error);
   return message.endsWith('.') ? message : `${message}.`;

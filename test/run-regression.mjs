@@ -533,8 +533,23 @@ c4 ?- call((!;1)).
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
-          '?-    error(type_error(list), [1, [], _A | 2]).\n' +
-          '?-    error(type_error(list), [1, [], _A | 2]).\n' +
+          '?-    error(type_error(list, [1, [], _A | 2]), eyeprolog).\n' +
+          '?-    error(type_error(list, [1, [], _A | 2]), eyeprolog).\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL uncaught ISO errors retain the error/2 implementation context',
+      run: () => {
+        const result = runCli([], {
+          input: '_ is _.\ncatch(_ is _, error(Error, Imp_def), true).\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    error(instantiation_error, eyeprolog).\n' +
+          '?-    Error = instantiation_error, Imp_def = eyeprolog.\n' +
           '?- ',
           'stdout');
         assertEqual(result.stderr, '', 'stderr');

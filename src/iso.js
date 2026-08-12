@@ -1783,7 +1783,7 @@ function* phraseBuiltin({ solver, goal, env }) {
     solver.absorbStatsFrom(child);
   }
 }
-function formalErrorTerm(error) {
+export function formalErrorTerm(error) {
   const context = error.contextTerm ?? atom('eyeprolog');
   if (error.formalTerm != null) return compound('error', [error.formalTerm, context]);
   const parse = (text) => {

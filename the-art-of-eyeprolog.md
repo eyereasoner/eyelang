@@ -5803,11 +5803,14 @@ instances whose message contains the corresponding Prolog error term.
 `error(Formal,eyeprolog)` term. `throw/1` copies its ball before unwinding: bound
 parts are preserved, repeated variables remain shared within the copied ball,
 and unbound variables are fresh with respect to the protected goal and catcher.
-Catchable error terms follow the same variable-freshening rule. At the interactive
-top level, variables that occur in an uncaught ISO error are rendered with fresh
-answer names such as `_A` rather than reusing query-variable spellings such as
-`X` or `Xx`; this keeps the displayed error consistent with the copied exception
-term. An unmatched ball or error continues outward.
+Catchable error terms follow the same variable-freshening rule. The interactive
+top level uses the same ISO error envelope for uncaught processor errors, so an
+ordinary runtime error is displayed as `error(Formal,eyeprolog)` rather than
+dropping the implementation-defined second argument. Variables that occur in an
+uncaught ISO error are rendered with fresh answer names such as `_A` rather than
+reusing query-variable spellings such as `X` or `Xx`; this keeps the displayed
+error consistent with the copied exception term. An unmatched ball or error
+continues outward.
 
 Streams belong to one solver run and are shared by nested calls, exceptions,
 and solution collectors. `user_input` and `user_output` are always present.
