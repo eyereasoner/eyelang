@@ -4,6 +4,7 @@ import { ATOM, COMPOUND, VAR, Env, atom, compound, deref, flattenConjunction, is
 import { formatTermForWrite } from './write.js';
 import {
   ISO_OPERATOR_DEFINITIONS,
+  QUAD_OPERATOR_DEFINITIONS,
   createParserOperatorState,
   parseClauses,
   parseClausesInto,
@@ -101,8 +102,10 @@ export class Program {
     this.moduleMetaPredicates = new Map();
     this.dynamicPredicates = new Set();
     this.operators = new Map();
-    for (const [priority, specifier, name] of ISO_OPERATOR_DEFINITIONS) {
-      this.defineOperator(priority, specifier, name);
+    for (const definitions of [ISO_OPERATOR_DEFINITIONS, QUAD_OPERATOR_DEFINITIONS]) {
+      for (const [priority, specifier, name] of definitions) {
+        this.defineOperator(priority, specifier, name);
+      }
     }
     this.initializations = [];
     this.quads = [];

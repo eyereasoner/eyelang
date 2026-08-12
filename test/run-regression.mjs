@@ -951,6 +951,32 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'ISO query operator and quad infix extension are visible through current_op/3',
+      run: () => {
+        assertEqual(
+          run('', { goal: 'current_op(Priority, Specifier, ?-)' }).stdout,
+          "current_op(1200, fx, '?-').\ncurrent_op(1200, xfx, '?-').\n",
+          'query operator definitions',
+        );
+        assertEqual(
+          run('', { goal: 'current_op(1200, fx, ?-)' }).stdout,
+          "current_op(1200, fx, '?-').\n",
+          'ISO query prefix operator',
+        );
+        assertEqual(
+          run('', { goal: 'current_op(1200, xfx, ?-)' }).stdout,
+          "current_op(1200, xfx, '?-').\n",
+          'quad query infix operator',
+        );
+        const prefix = parseGoalText('(?- true)');
+        assertEqual(prefix.name, '?-', 'prefix query functor');
+        assertEqual(prefix.arity, 1, 'prefix query arity');
+        const infix = parseGoalText('(label ?- true)');
+        assertEqual(infix.name, '?-', 'quad query functor');
+        assertEqual(infix.arity, 2, 'quad query arity');
+      },
+    },
+    {
       name: 'term input keeps dotted operators intact and uses program operators',
       run: () => {
         const univPath = path.join(tmp, `read-univ-${++tmpCounter}.term`);

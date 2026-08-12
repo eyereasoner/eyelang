@@ -5,3 +5,10 @@
 operator_atoms(Priority, Specifier, List) :-
     current_op(Priority, Specifier, :-),
     List = [:-,-].
+
+% ISO 6.3.4.4, Table 7: ?- is a predefined 1200 fx operator.
+
+%% goal: query_prefix_operator(ok)
+
+query_prefix_operator(ok) :-
+    current_op(1200, fx, ?-).

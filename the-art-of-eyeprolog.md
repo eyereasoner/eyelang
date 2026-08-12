@@ -5124,7 +5124,13 @@ parsing of subsequent text, place them before their first use. ISO argument
 syntax also permits an atom that is currently an operator to appear directly
 as a functional argument or list element, so forms such as
 `current_op(Priority, Specifier, :-)` and `[:-,-]` are valid without quoting
-or parenthesizing those operator atoms.
+or parenthesizing those operator atoms. The ISO initial operator table also
+contains `?-` at priority 1200 with specifier `fx`, so
+`current_op(1200, fx, ?-)` succeeds. EyeProlog's embedded quad syntax permits
+an optional label before the query marker (`Label ?- Query.`), so while quad
+syntax is supported it additionally exposes `?-` at priority 1200 with
+specifier `xfx` as an implementation-specific operator. Consequently
+`current_op(Priority, Specifier, ?-)` enumerates both definitions.
 
 Run [`iso-dynamic-database.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl)
 for an explicitly stateful queue and
@@ -5290,8 +5296,10 @@ clause ends in a period. The grammar above gives the canonical term shapes.
 The initial operator table contains the following ISO-style operators, all
 lowered to ordinary compound terms:
 
-- prefix: `\+`, unary `+`, unary `-`, and `\`;
+- prefix: ISO `?-`, `\+`, unary `+`, unary `-`, and `\`;
 - control: `,`, `;`, and `->`;
+- quad syntax extension: `?-` is also a priority-1200 `xfx` operator so a
+  label may precede a quad query;
 - grammar rules: `-->` and the Part 3 alternative `|`;
 - unification and comparison: `=`, `\=`, `==`, `\==`, `@<`, `@=<`, `@>`,
   `@>=`, `is`, `=:=`, `=\=`, `<`, `=<`, `>`, and `>=`;

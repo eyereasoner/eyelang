@@ -39,6 +39,7 @@ const graphicAtomChars = '#$&*+-./<=>@^~\\:';
 // canonical notation. Commas remain separators except inside parentheses.
 const INFIX_OPERATORS = new Map([
   [':-', { precedence: 1, associativity: 'none' }],
+  ['?-', { precedence: 1, associativity: 'none' }], // quad label extension
   ['-->', { precedence: 1, associativity: 'none' }],
   ['|', { precedence: 96, associativity: 'right' }],
   [';', { precedence: 101, associativity: 'right' }],
@@ -77,14 +78,15 @@ const INFIX_OPERATORS = new Map([
   ['^', { precedence: 1001, associativity: 'right' }],
 ]);
 const PREFIX_OPERATORS = new Map([
-  ['\\+', 301],
-  ['+', 1001],
-  ['-', 1001],
-  ['\\', 1001],
+  ['?-', { precedence: 1, strict: true }],
+  ['\\+', { precedence: 301, strict: false }],
+  ['+', { precedence: 1001, strict: false }],
+  ['-', { precedence: 1001, strict: false }],
+  ['\\', { precedence: 1001, strict: false }],
 ]);
 
 export const ISO_OPERATOR_DEFINITIONS = [
-  [1200, 'xfx', ':-'], [1200, 'fx', ':-'], [1200, 'xfx', '-->'],
+  [1200, 'xfx', ':-'], [1200, 'fx', ':-'], [1200, 'fx', '?-'], [1200, 'xfx', '-->'],
   [1105, 'xfy', '|'],
   [1100, 'xfy', ';'], [1050, 'xfy', '->'], [1000, 'xfy', ','],
   [900, 'fy', '\\+'],
@@ -95,6 +97,13 @@ export const ISO_OPERATOR_DEFINITIONS = [
   ...['*', '/', '//', 'div', 'mod', 'rem', '<<', '>>'].map((name) => [400, 'yfx', name]),
   [200, 'xfx', '**'], [200, 'xfy', '^'],
   [200, 'fy', '+'], [200, 'fy', '-'], [200, 'fy', '\\'],
+];
+
+// EyeProlog's embedded quad syntax permits an optional label before `?-`.
+// That makes `?-` an implementation-specific xfx operator in addition to its
+// ISO 1200 fx definition.
+export const QUAD_OPERATOR_DEFINITIONS = [
+  [1200, 'xfx', '?-'],
 ];
 
 const CLPZ_OPERATOR_DEFINITIONS = [
@@ -133,9 +142,7 @@ function defineParserOperator(state, priority, specifier, name) {
 export function createParserOperatorState(definitions = [], includeDefaults = true) {
   const state = {
     infixOperators: includeDefaults ? new Map(INFIX_OPERATORS) : new Map(),
-    prefixOperators: includeDefaults
-      ? new Map([...PREFIX_OPERATORS].map(([name, precedence]) => [name, { precedence, strict: false }]))
-      : new Map(),
+    prefixOperators: includeDefaults ? new Map(PREFIX_OPERATORS) : new Map(),
     postfixOperators: new Map(),
   };
   for (const definition of definitions) {
