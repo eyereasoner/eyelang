@@ -415,21 +415,43 @@ function formatError(engine, state, error) {
     let generated = 0;
     if (error.formalTerm != null) {
       collectUnboundVariables(engine, error.formalTerm, env, variableNames, () => `_${letterName(generated++)}`);
+      if (error.contextTerm != null) {
+        collectUnboundVariables(engine, error.contextTerm, env, variableNames, () => `_${letterName(generated++)}`);
+      }
       const formal = engine.formatTermForWrite(error.formalTerm, env, {
         quoted: true,
         operators: [...state.program.operators.values()],
         variableNames,
       });
+      if (error.contextTerm != null) {
+        const context = engine.formatTermForWrite(error.contextTerm, env, {
+          quoted: true,
+          operators: [...state.program.operators.values()],
+          variableNames,
+        });
+        return `error(${formal}, ${context}).`;
+      }
       return `error(${formal}).`;
     }
     if (error.culprit != null) {
       collectUnboundVariables(engine, error.culprit, env, variableNames, () => `_${letterName(generated++)}`);
+    }
+    if (error.contextTerm != null) {
+      collectUnboundVariables(engine, error.contextTerm, env, variableNames, () => `_${letterName(generated++)}`);
     }
     const culprit = error.culprit == null ? '' : `, ${engine.formatTermForWrite(error.culprit, env, {
       quoted: true,
       operators: [...state.program.operators.values()],
       variableNames,
     })}`;
+    if (error.contextTerm != null) {
+      const context = engine.formatTermForWrite(error.contextTerm, env, {
+        quoted: true,
+        operators: [...state.program.operators.values()],
+        variableNames,
+      });
+      return `error(${error.formal}${culprit}, ${context}).`;
+    }
     return `error(${error.formal}${culprit}).`;
   }
   const message = error?.message ?? String(error);

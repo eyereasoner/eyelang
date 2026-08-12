@@ -1784,7 +1784,8 @@ function* phraseBuiltin({ solver, goal, env }) {
   }
 }
 function formalErrorTerm(error) {
-  if (error.formalTerm != null) return compound('error', [error.formalTerm, atom('eyeprolog')]);
+  const context = error.contextTerm ?? atom('eyeprolog');
+  if (error.formalTerm != null) return compound('error', [error.formalTerm, context]);
   const parse = (text) => {
     const open = text.indexOf('(');
     if (open === -1) return atom(text);
@@ -1811,7 +1812,7 @@ function formalErrorTerm(error) {
       formal = compound(formal.name, [error.culprit]);
     }
   }
-  return compound('error', [formal, atom('eyeprolog')]);
+  return compound('error', [formal, context]);
 }
 function* catchBuiltin({ solver, goal, env }) {
   const child = solver.cloneForInnerGoal();

@@ -785,14 +785,21 @@ subject-to-occurs-check (STO). EyeProlog's default remains the sound finite-tree
 behavior above. For diagnosis, EyeProlog additionally provides the
 implementation-specific flag `occurs_check`; setting it to `error` turns a
 normal unification that would otherwise fail because of the occurs check into
-an exception:
+a representation error:
 
 ```eyeprolog
 :- set_prolog_flag(occurs_check, error).
 
 sto_example :- X = wrapper(X).
-% error(occurs_check(_A, wrapper(_A)))
+% error(representation_error(term), [])
 ```
+
+The ISO error mechanism wraps an error term together with an
+implementation-defined context term. For this implementation-specific STO
+diagnostic EyeProlog uses `representation_error(term)` and currently uses the
+empty list `[]` as that context. This reports that the cyclic result of a
+succeeding STO unification cannot be represented by EyeProlog's finite-tree
+term model, without exposing a non-standard `occurs_check/2` error term.
 
 The supported values are `true` (the default finite-tree behavior) and `error`
 (STO detection). EyeProlog deliberately does not provide `occurs_check=false`,

@@ -1,7 +1,7 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  COMPOUND, Env, compound, copyResolved, deref, flattenConjunction, freshTerm,
+  COMPOUND, Env, compound, copyResolved, deref, emptyList, flattenConjunction, freshTerm,
   numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variantTerms,
 } from './term.js';
 import { PrologError } from './iso.js';
@@ -24,8 +24,11 @@ export function nextFreshId() {
 }
 
 function raiseOccursCheckError(left, right, env) {
-  const error = new PrologError('occurs_check');
-  error.formalTerm = copyResolved(compound('occurs_check', [left, right]), env);
+  // occurs_check=error is an implementation-specific STO diagnostic.  Report
+  // the unrepresentable cyclic result through the standard error envelope.
+  // Keep the implementation-defined context empty for stable, portable output.
+  const error = new PrologError('representation_error(term)');
+  error.contextTerm = emptyList();
   throw error;
 }
 

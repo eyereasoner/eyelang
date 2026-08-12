@@ -523,7 +523,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'occurs_check error mode detects STO while ISO occurs-check unification still fails',
+      name: 'occurs_check error mode reports representation_error(term) while ISO occurs-check unification still fails',
       run: () => {
         const filename = path.join(tmp, `occurs-check-${++tmpCounter}.pl`);
         fs.writeFileSync(filename, ':- set_prolog_flag(occurs_check, error).\nsame(X, X).\n');
@@ -544,11 +544,11 @@ c4 ?- call((!;1)).
         assertEqual(result.stdout,
           '?-    Mode = true.\n' +
           '?-    true.\n' +
-          '?-    error(occurs_check(_A, f(_A))).\n' +
-          '?-    E = error(occurs_check(_A, g(_A)), eyeprolog).\n' +
+          '?-    error(representation_error(term), []).\n' +
+          '?-    E = error(representation_error(term), []).\n' +
           '?-    false.\n' +
           '?-    true.\n' +
-          '?-    error(occurs_check(_A, k(_A))).\n' +
+          '?-    error(representation_error(term), []).\n' +
           '?-    true.\n' +
           '?-    false.\n' +
           '?- ',
