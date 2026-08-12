@@ -1814,7 +1814,7 @@ function* catchBuiltin({ solver, goal, env }) {
     const ball = error instanceof ThrownTerm
       ? error.term
       : error instanceof PrologError
-        ? formalErrorTerm(error)
+        ? freshCopy(formalErrorTerm(error), new Env())
         : null;
     if (ball == null) throw error;
     const recovered = env.clone();
@@ -1827,7 +1827,9 @@ function* catchBuiltin({ solver, goal, env }) {
 function* throwBuiltin({ goal, env }) {
   const ball = deref(goal.args[0], env);
   if (ball.type === VAR) throw new PrologError('instantiation_error');
-  throw new ThrownTerm(copyResolved(ball, env));
+  // ISO throw/1 copies the thrown term before control unwinds. Freshen
+  // variables so the catcher cannot retain aliases to the protected goal.
+  throw new ThrownTerm(freshCopy(ball, env));
 }
 function* onceBuiltin({ solver, goal, env }) {
   const child = solver.cloneForInnerGoal(1);

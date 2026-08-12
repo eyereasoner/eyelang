@@ -57,7 +57,7 @@ export async function runRepl(engine, options = {}) {
           exitCode = error.code;
           break;
         }
-        output.write(`   ${formatError(error)}\n`);
+        output.write(`   ${formatError(engine, state, error)}\n`);
       }
     }
   } catch (error) {
@@ -368,13 +368,15 @@ function queryVariables(goal) {
 
 function formatAnswer(engine, state, variables, env) {
   const bindings = [];
+  const queryVariableNames = new Set(variables.map((variable) => variable.name));
   const names = new Map(variables.map((variable) => [variable.name, variable.name]));
   let generated = 0;
 
   for (const variable of variables) collectUnboundVariables(engine, variable, env, names, () => `_${letterName(generated++)}`);
   for (const variable of variables) {
     const value = engine.deref(variable, env);
-    if (value.type === 'var' && value.name === variable.name) continue;
+    if (value.type === 'var' &&
+        (value.name === variable.name || !queryVariableNames.has(value.name))) continue;
     bindings.push(`${variable.name} = ${engine.formatTermForWrite(value, env, {
       quoted: true,
       operators: [...state.program.operators.values()],
@@ -406,7 +408,21 @@ function letterName(index) {
   return suffix === 0 ? letter : `${letter}${suffix}`;
 }
 
-function formatError(error) {
+function formatError(engine, state, error) {
+  if (error?.name === 'PrologError') {
+    const env = new engine.Env();
+    const variableNames = new Map();
+    let generated = 0;
+    if (error.culprit != null) {
+      collectUnboundVariables(engine, error.culprit, env, variableNames, () => `_${letterName(generated++)}`);
+    }
+    const culprit = error.culprit == null ? '' : `, ${engine.formatTermForWrite(error.culprit, env, {
+      quoted: true,
+      operators: [...state.program.operators.values()],
+      variableNames,
+    })}`;
+    return `error(${error.formal}${culprit}).`;
+  }
   const message = error?.message ?? String(error);
   return message.endsWith('.') ? message : `${message}.`;
 }

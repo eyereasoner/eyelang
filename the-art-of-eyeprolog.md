@@ -5749,8 +5749,14 @@ instances whose message contains the corresponding Prolog error term.
 | *syntax_error(number)*, *syntax_error(read_term)* | Lexical number conversion or streamed term parsing failed. |
 
 `catch/3` converts a `PrologError` into a catchable
-`error(Formal,eyeprolog)` term. A user ball from `throw/1` is delivered as-is.
-An unmatched ball or error continues outward.
+`error(Formal,eyeprolog)` term. `throw/1` copies its ball before unwinding: bound
+parts are preserved, repeated variables remain shared within the copied ball,
+and unbound variables are fresh with respect to the protected goal and catcher.
+Catchable error terms follow the same variable-freshening rule. At the interactive
+top level, variables that occur in an uncaught ISO error are rendered with fresh
+answer names such as `_A` rather than reusing query-variable spellings such as
+`X` or `Xx`; this keeps the displayed error consistent with the copied exception
+term. An unmatched ball or error continues outward.
 
 Streams belong to one solver run and are shared by nested calls, exceptions,
 and solution collectors. `user_input` and `user_output` are always present.
@@ -6815,7 +6821,7 @@ node test/run-conformance-report.mjs
 ```
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 779 cases, including 373 focused ISO
+contains 780 cases, including 374 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 189 normal

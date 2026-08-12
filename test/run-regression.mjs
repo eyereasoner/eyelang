@@ -497,6 +497,32 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL hides aliases to fresh throw variables while preserving query aliases',
+      run: () => {
+        const result = runCli([], {
+          input: 'catch(throw(g(X)),g(V),true).\nX = Y.\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    true.\n?-    X = Y.\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL freshens variables displayed in uncaught ISO errors',
+      run: () => {
+        const result = runCli([], {
+          input: 'number_chars(V,[1,[],X|2]).\nnumber_chars(V,[1,[],Xx|2]).\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    error(type_error(list), [1, [], _A | 2]).\n' +
+          '?-    error(type_error(list), [1, [], _A | 2]).\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL enumerates and stops answers like the Scryer top level',
       run: () => {
         const result = runCli([], {
