@@ -164,11 +164,33 @@ async function readQuery(reader) {
   }
 }
 
+function quotedEscapeEnd(source, index) {
+  const escaped = source[index + 1] ?? '';
+  if (!escaped) return index;
+
+  // ISO 6.4.2.1 octal and hexadecimal escapes are terminated by a
+  // backslash.  Consume that terminator as part of the escape so the REPL
+  // scanner does not mistake it for an escape of the following quote.
+  if (escaped === 'x') {
+    let cursor = index + 2;
+    while (/^[0-9A-Fa-f]$/.test(source[cursor] ?? '')) cursor++;
+    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
+  }
+  if (/^[0-7]$/.test(escaped)) {
+    let cursor = index + 1;
+    while (/^[0-7]$/.test(source[cursor] ?? '')) cursor++;
+    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
+  }
+
+  // Meta escapes, symbolic control escapes, and continuation escapes consume
+  // one character after the backslash.  The parser performs validity checks.
+  return index + 1;
+}
+
 function terminalFullStop(source) {
   let quote = null;
   let lineComment = false;
   let blockComment = false;
-  let escaped = false;
   let depth = 0;
 
   for (let i = 0; i < source.length; i++) {
@@ -186,10 +208,8 @@ function terminalFullStop(source) {
       continue;
     }
     if (quote != null) {
-      if (escaped) {
-        escaped = false;
-      } else if (ch === '\\') {
-        escaped = true;
+      if (ch === '\\') {
+        i = quotedEscapeEnd(source, i);
       } else if (ch === quote) {
         if (next === quote) i++;
         else quote = null;

@@ -618,6 +618,22 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL recognizes ISO octal and hexadecimal escapes in quoted atoms',
+      run: () => {
+        const result = runCli([], {
+          input: "writeq('\\7\\').\nwriteq('\\x7\\').\nwriteq('\\a').\nhalt.\n",
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          "?- '\\a'   true.\n" +
+          "?- '\\a'   true.\n" +
+          "?- '\\a'   true.\n" +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL accepts multiline period-terminated queries',
       run: () => {
         const result = runCli([], { input: '(X =\n  one).\nhalt.\n' });

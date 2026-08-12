@@ -5268,8 +5268,11 @@ city('München').
 message("café").
 ```
 
-Inside a quoted atom, a single quote is doubled: `'don''t'`. Double-quoted lists support
-the common escapes `\n`, `\t`, `\"`, and `\\`. Whitespace is insignificant
+Inside a quoted atom, a single quote is doubled: `'don''t'`. Quoted characters
+support the ISO symbolic control escapes such as `\a`, `\n`, and `\t`, and numeric
+octal or hexadecimal escapes are terminated by a backslash; for example, `'\7\'`
+and `'\x7\'` both denote the alert character. Double-quoted lists use the same
+quoted-character escapes. Whitespace is insignificant
 between tokens, and a `%` comment continues to the end of its line. Doubling
 the active delimiter is also accepted inside either quoted form, so `""`
 inside double-quoted notation denotes one literal double quote character.
