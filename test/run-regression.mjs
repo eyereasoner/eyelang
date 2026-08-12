@@ -244,6 +244,24 @@ why(
       },
     },
     {
+      name: 'runQuads distinguishes query variables from renamed throw variables',
+      run: () => {
+        const source = `?- throw(g(X)).\n` +
+          `   throw(g(_X)).\n` +
+          `   throw(g(X)), unexpected.\n`;
+        const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'throw-copy-quad.pl' }]));
+        assertEqual(result.total, 1, 'quad total');
+        assertEqual(result.passed, 1, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'quad report');
+
+        const forbiddenFresh = publicApi.runQuads(
+          `?- throw(g(X)).\n   throw(g(_X)), unexpected.\n`,
+        );
+        assertEqual(forbiddenFresh.failed, 1, 'fresh thrown variable is detected');
+      },
+    },
+    {
       name: 'runQuads matches the corrected ISO phrase quad boundaries',
       run: () => {
         const source = String.raw`c2 ?- call((1,fail)).

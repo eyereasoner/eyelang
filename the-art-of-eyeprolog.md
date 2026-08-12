@@ -6300,7 +6300,11 @@ accepted as a negative answer.
 Answer descriptions support ordered answers separated by `;`, acceptable
 alternatives separated by `|`, `true`, `false`, standard error descriptions,
 and the `unexpected` annotation for an answer that must not occur (`inattendue`
-is its synonym). `...` and `ad_infinitum` accept further answers. Multiple
+is its synonym). Variables named in the query keep their identity inside answer
+descriptions; variables introduced only by a description are fresh. For example,
+a query `throw(g(X))` is described by `throw(g(_X))`, while
+`throw(g(X)), unexpected` verifies that ISO `throw/1` did not retain the query
+variable in the renamed exception term. `...` and `ad_infinitum` accept further answers. Multiple
 indented descriptions after one query must all hold. `inputs/1` supplies and
 checks consumed characters; `outputs/1` checks emitted characters. `sto` marks
 an answer description that this finite-tree implementation skips. `loops` is

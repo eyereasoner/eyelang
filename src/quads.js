@@ -106,6 +106,11 @@ function checkAlternative(program, quad, alternative, options) {
     if (leaf.more && !leaf.hasExpectation) return { ok: true };
     const matches = matchLeaf(quad.query, leaf, actual, position);
     if (leaf.unexpected ? matches : !matches) return { ok: false };
+    // An unexpected error description is a negative assertion about that
+    // particular error pattern.  A different exception may be present and is
+    // checked by other descriptions; do not make the final 'no error' test
+    // turn a successful negative match back into a failure.
+    if (leaf.unexpected && leaf.error != null) return { ok: true };
     if (leaf.more) return { ok: true };
     if (!leaf.unexpected && (leaf.false || leaf.error != null)) {
       return { ok: position === leaves.length - 1 };
@@ -252,7 +257,7 @@ function matchLeaf(query, leaf, actual, position) {
   }
   if (leaf.error != null) {
     return position === actual.solutions.length && actual.error != null &&
-      errorMatches(leaf.error, actual.error.term) && outputMatches(leaf.output, actual.error.output);
+      errorMatches(query, leaf.error, actual.error.term) && outputMatches(leaf.output, actual.error.output);
   }
   const solution = actual.solutions[position];
   if (!solution || !outputMatches(leaf.output, solution.output)) return false;
@@ -297,12 +302,15 @@ function namedVariables(term) {
   return found;
 }
 
-function patternVariant(pattern, patternEnv, actual, actualEnv, pairs = new Map(), reverse = new Map()) {
+function patternVariant(
+  pattern, patternEnv, actual, actualEnv, pairs = new Map(), reverse = new Map(), fixedPatternNames = null,
+) {
   pattern = deref(pattern, patternEnv);
   actual = deref(actual, actualEnv);
   if (pattern.type === ATOM && pattern.name === '...') return true;
   if (pattern.type === VAR || actual.type === VAR) {
     if (pattern.type !== VAR || actual.type !== VAR) return false;
+    if (fixedPatternNames?.has(pattern.name)) return pattern.name === actual.name;
     const paired = pairs.get(pattern.name);
     const reversed = reverse.get(actual.name);
     if (paired != null || reversed != null) return paired === actual.name && reversed === pattern.name;
@@ -312,7 +320,9 @@ function patternVariant(pattern, patternEnv, actual, actualEnv, pairs = new Map(
   }
   if (pattern.type !== actual.type || pattern.name !== actual.name || pattern.arity !== actual.arity) return false;
   for (let index = 0; index < pattern.arity; index++) {
-    if (!patternVariant(pattern.args[index], patternEnv, actual.args[index], actualEnv, pairs, reverse)) return false;
+    if (!patternVariant(
+      pattern.args[index], patternEnv, actual.args[index], actualEnv, pairs, reverse, fixedPatternNames,
+    )) return false;
   }
   return true;
 }
@@ -334,16 +344,26 @@ function errorTerm(error) {
   return compound('error', [atom('system_error'), variable('$quad_context')]);
 }
 
-function errorMatches(expected, actual) {
+function errorMatches(query, expected, actual) {
+  // Variables named in the query keep their identity in answer descriptions.
+  // Seed both directions so a query variable can match only that same query
+  // variable, while variables introduced by the description (for example _X)
+  // remain fresh pattern variables.  This is especially important for throw/1:
+  // ISO requires the thrown ball to be a renamed copy, so throw(g(_X)) may
+  // describe throw(g(X)), but throw(g(X)) must not.
+  const queryNames = new Set(namedVariables(query).map((item) => item.name));
+  const matches = (pattern, term) => patternVariant(
+    pattern, new Env(), term, new Env(), new Map(), new Map(), queryNames);
+
   if (expected.type === COMPOUND && expected.name === 'throw' && expected.arity === 1 &&
       actual.type === COMPOUND && actual.name === '$quad_thrown' && actual.arity === 1) {
-    return patternVariant(expected.args[0], new Env(), actual.args[0], new Env());
+    return matches(expected.args[0], actual.args[0]);
   }
   if (actual.type !== COMPOUND || actual.name !== 'error' || actual.arity !== 2) return false;
   if (expected.type === COMPOUND && expected.name === 'error' && expected.arity === 2) {
-    return patternVariant(expected, new Env(), actual, new Env());
+    return matches(expected, actual);
   }
-  return patternVariant(expected, new Env(), actual.args[0], new Env());
+  return matches(expected, actual.args[0]);
 }
 
 function isErrorDescription(term) {
