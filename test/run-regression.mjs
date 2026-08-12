@@ -523,6 +523,40 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'occurs_check error mode detects STO while ISO occurs-check unification still fails',
+      run: () => {
+        const filename = path.join(tmp, `occurs-check-${++tmpCounter}.pl`);
+        fs.writeFileSync(filename, ':- set_prolog_flag(occurs_check, error).\nsame(X, X).\n');
+        const result = runCli([], {
+          input:
+            'current_prolog_flag(occurs_check, Mode).\n' +
+            'set_prolog_flag(occurs_check, error).\n' +
+            'X = f(X).\n' +
+            'catch((Y = g(Y)), E, true).\n' +
+            'unify_with_occurs_check(Z, h(Z)).\n' +
+            `[${sourceAtom(filename)}].\n` +
+            'same(W, k(W)).\n' +
+            'set_prolog_flag(occurs_check, true).\n' +
+            'Q = q(Q).\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    Mode = true.\n' +
+          '?-    true.\n' +
+          '?-    error(occurs_check(_A, f(_A))).\n' +
+          '?-    E = error(occurs_check(_A, g(_A)), eyeprolog).\n' +
+          '?-    false.\n' +
+          '?-    true.\n' +
+          '?-    error(occurs_check(_A, k(_A))).\n' +
+          '?-    true.\n' +
+          '?-    false.\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL enumerates and stops answers like the Scryer top level',
       run: () => {
         const result = runCli([], {

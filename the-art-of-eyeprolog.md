@@ -780,6 +780,27 @@ fails rather than constructing a cyclic term:
 (X = wrapper(X)).
 ```
 
+ISO classifies unifications whose outcome depends on an occurs check as
+subject-to-occurs-check (STO). EyeProlog's default remains the sound finite-tree
+behavior above. For diagnosis, EyeProlog additionally provides the
+implementation-specific flag `occurs_check`; setting it to `error` turns a
+normal unification that would otherwise fail because of the occurs check into
+an exception:
+
+```eyeprolog
+:- set_prolog_flag(occurs_check, error).
+
+sto_example :- X = wrapper(X).
+% error(occurs_check(_A, wrapper(_A)))
+```
+
+The supported values are `true` (the default finite-tree behavior) and `error`
+(STO detection). EyeProlog deliberately does not provide `occurs_check=false`,
+because its term model does not construct cyclic terms. The ISO predicate
+`unify_with_occurs_check/2` is independent of the diagnostic flag: it continues
+to perform finite-tree unification and fails on `unify_with_occurs_check(X,
+wrapper(X))` even when `occurs_check` is `error`.
+
 ### Meaning is not the search strategy
 
 EyeProlog's evaluator is goal-directed. It resolves selected goals against facts,
@@ -5610,11 +5631,14 @@ silently changing a static program.
 | `max_arity` | `unbounded` | `unbounded` | no |
 | `unknown` | `fail` | `error`, `fail`, `warning` | yes |
 | `double_quotes` | `chars` | `chars`, `codes`, `atom` | yes |
+| `occurs_check` | `true` | `true`, `error` | yes |
 
 The isolated ISO-only registry defaults `unknown` to `error`; the normal
-EyeProlog environment defaults it to `fail`. Operator and flag
-directives are processed per program rather than changing global JavaScript
-state. The `double_quotes` setting affects subsequent source text, included
+EyeProlog environment defaults it to `fail`. The `occurs_check` flag is an
+EyeProlog diagnostic extension rather than an ISO-defined core flag; its
+`true` default preserves the engine's finite-tree unification, while `error`
+reports STO attempts. Operator and flag directives are processed per program
+rather than changing global JavaScript state. The `double_quotes` setting affects subsequent source text, included
 files, command-line and API goal text, and terms read by `read_term/*`:
 
 ```text

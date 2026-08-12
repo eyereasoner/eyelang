@@ -48,7 +48,7 @@ export const isoBuiltins = {
     registry.add('!', 0, succeed, { deterministic: true });
 
     registry.add('=', 2, unification, { deterministic: true });
-    registry.add('unify_with_occurs_check', 2, unification, { deterministic: true });
+    registry.add('unify_with_occurs_check', 2, unificationWithOccursCheck, { deterministic: true });
     registry.add('\\=', 2, nonUnification, { deterministic: true });
     registry.add('subsumes_term', 2, subsumesTermBuiltin, { deterministic: true });
     registry.add('==', 2, identity, { deterministic: true });
@@ -177,6 +177,14 @@ export const eyePrologLibraryBuiltins = {
 function* unification({ goal, env }) {
   const next = env.clone();
   if (unify(goal.args[0], goal.args[1], next)) yield next;
+}
+function* unificationWithOccursCheck({ goal, env }) {
+  const next = env.clone();
+  // ISO unify_with_occurs_check/2 always performs finite-tree unification.
+  // The implementation-specific occurs_check=error mode applies to normal
+  // unification, but must not turn this ISO predicate's ordinary failure into
+  // an exception.
+  if (unify(goal.args[0], goal.args[1], next, { occursCheck: 'fail' })) yield next;
 }
 function* nonUnification({ goal, env }) {
   if (!unify(goal.args[0], goal.args[1], env.clone())) yield env;
@@ -1776,6 +1784,7 @@ function* phraseBuiltin({ solver, goal, env }) {
   }
 }
 function formalErrorTerm(error) {
+  if (error.formalTerm != null) return compound('error', [error.formalTerm, atom('eyeprolog')]);
   const parse = (text) => {
     const open = text.indexOf('(');
     if (open === -1) return atom(text);

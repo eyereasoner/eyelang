@@ -47,6 +47,7 @@ export class Env {
     };
     this._delays = null;
     this._clpz = null;
+    this._occursCheckHandler = null;
   }
   clone() {
     // Most speculative environments are either rejected without a binding or
@@ -58,7 +59,12 @@ export class Env {
     clone._state = this._state;
     clone._delays = this._delays;
     clone._clpz = this._clpz;
+    clone._occursCheckHandler = this._occursCheckHandler;
     return clone;
+  }
+  setOccursCheckHandler(handler) {
+    this._occursCheckHandler = typeof handler === 'function' ? handler : null;
+    return this;
   }
   has(name) {
     return this.get(name) !== undefined;
@@ -207,11 +213,12 @@ function occurs(variableName, term, env) {
   return false;
 }
 
-export function unify(left, right, env) {
+export function unify(left, right, env, options = {}) {
   // Iterative unification avoids deep JavaScript recursion on long lists or
   // deeply nested compounds. The occurs check gives EyeProlog finite-tree
   // unification: a variable cannot be bound to a term containing itself.
   // Bindings are written into the supplied Env.
+  const occursCheckHandler = options.occursCheck === 'fail' ? null : env?._occursCheckHandler;
   const stack = [[left, right]];
   while (stack.length) {
     let [a, b] = stack.pop();
@@ -226,12 +233,18 @@ export function unify(left, right, env) {
       continue;
     }
     if (a.type === VAR) {
-      if (occurs(a.name, b, env)) return false;
+      if (occurs(a.name, b, env)) {
+        occursCheckHandler?.(a, b, env);
+        return false;
+      }
       env.bind(a.name, b);
       continue;
     }
     if (b.type === VAR) {
-      if (occurs(b.name, a, env)) return false;
+      if (occurs(b.name, a, env)) {
+        occursCheckHandler?.(b, a, env);
+        return false;
+      }
       env.bind(b.name, a);
       continue;
     }

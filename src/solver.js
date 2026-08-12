@@ -23,6 +23,12 @@ export function nextFreshId() {
   return ++freshCounter;
 }
 
+function raiseOccursCheckError(left, right, env) {
+  const error = new PrologError('occurs_check');
+  error.formalTerm = copyResolved(compound('occurs_check', [left, right]), env);
+  throw error;
+}
+
 export class Solver {
   constructor(program, options = {}) {
     this.registry = options.registry ?? getEyePrologRegistry();
@@ -37,6 +43,11 @@ export class Solver {
     this.solutionLimit = options.solutionLimit ?? 10000000;
     this.solutionsSeen = 0;
     this.prologFlags = options.prologFlags ?? defaultPrologFlags(this.registry?.eyePrologLibrary ? 'fail' : 'error');
+    this.occursCheckHandler = (left, right, env) => {
+      if (this.prologFlags.get('occurs_check')?.value?.name === 'error') {
+        raiseOccursCheckError(left, right, env);
+      }
+    };
     this.charConversions = options.charConversions ?? new Map();
     if (!options.prologFlags) {
       if (['chars', 'codes', 'atom'].includes(program.doubleQuotes)) {
@@ -140,6 +151,7 @@ export class Solver {
 
   *solve(goals, env = new Env(), depth = 0) {
     if (!Array.isArray(goals)) goals = [goals];
+    env.setOccursCheckHandler(this.occursCheckHandler);
 
     const savedActive = this.active;
     let registeredStack = null;
@@ -194,6 +206,7 @@ export class Solver {
 
       goals = frame.goals;
       env = frame.env;
+      env.setOccursCheckHandler(this.occursCheckHandler);
       depth = frame.depth;
       let active = frame.active;
 
@@ -474,6 +487,7 @@ function defaultPrologFlags(unknown = 'error') {
     ['max_arity', { value: compound('unbounded', []), allowed: ['unbounded'], changeable: false }],
     ['unknown', { value: compound(unknown, []), allowed: ['error', 'fail', 'warning'], changeable: true }],
     ['double_quotes', { value: compound('chars', []), allowed: ['chars', 'codes', 'atom'], changeable: true }],
+    ['occurs_check', { value: compound('true', []), allowed: ['true', 'error'], changeable: true }],
   ]);
 }
 

@@ -413,6 +413,15 @@ function formatError(engine, state, error) {
     const env = new engine.Env();
     const variableNames = new Map();
     let generated = 0;
+    if (error.formalTerm != null) {
+      collectUnboundVariables(engine, error.formalTerm, env, variableNames, () => `_${letterName(generated++)}`);
+      const formal = engine.formatTermForWrite(error.formalTerm, env, {
+        quoted: true,
+        operators: [...state.program.operators.values()],
+        variableNames,
+      });
+      return `error(${formal}).`;
+    }
     if (error.culprit != null) {
       collectUnboundVariables(engine, error.culprit, env, variableNames, () => `_${letterName(generated++)}`);
     }
