@@ -5131,7 +5131,12 @@ parsing of subsequent text, place them before their first use. ISO argument
 syntax also permits an atom that is currently an operator to appear directly
 as a functional argument or list element, so forms such as
 `current_op(Priority, Specifier, :-)` and `[:-,-]` are valid without quoting
-or parenthesizing those operator atoms. The ISO initial operator table also
+or parenthesizing those operator atoms. Term output observes the same `arg`
+rule: with `quoted(true)`, an operator atom is not quoted merely because it is
+an operator when it occurs as a functional argument or list element. Thus
+`writeq([:-,-])` emits `[:-,-]`, and `writeq(f(;,'|',';;'))` emits
+`f(;,'|',';;')`; the bar stays quoted because ISO treats the unquoted `|`
+token as a list separator rather than an atom. The ISO initial operator table also
 contains `?-` at priority 1200 with specifier `fx`, so
 `current_op(1200, fx, ?-)` succeeds. EyeProlog's embedded quad syntax permits
 an optional label before the query marker (`Label ?- Query.`), so while quad
@@ -5171,7 +5176,10 @@ write_event(Path, Event) :-
 
 The period is essential when another Prolog processor will read the result as
 a term. `write/1-2` uses readable conventional syntax, `writeq/1-2` quotes
-where needed, and `write_canonical/1-2` exposes canonical structure.
+where needed, and `write_canonical/1-2` exposes canonical structure. ISO term
+output uses only the separator characters needed by the syntax, so functional
+arguments and list elements are emitted compactly; for example `writeq([a,b])`
+outputs `[a,b]`.
 `write_term/2-3` supports `quoted/1`, `ignore_ops/1`, `numbervars/1`, and
 `variable_names/1`.
 

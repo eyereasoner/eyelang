@@ -124,11 +124,18 @@ function chooseOperator(term, table) {
   return null;
 }
 
-function format(term, env, options, table, maxPriority = 1200) {
+function format(term, env, options, table, maxPriority = 1200, context = 'term') {
   const resolved = deref(term, env);
   if (resolved.type === VAR) return options.variableNames.get(resolved.name) ?? writeVariable(resolved.name);
   if (resolved.type === STRING) return writeString(resolved.name);
-  if (resolved.type === ATOM) return options.quoted ? writeAtom(resolved.name) : resolved.name;
+  if (resolved.type === ATOM) {
+    if (!options.quoted) return resolved.name;
+    // ISO 6.3.3.1 gives functional arguments and list elements a special
+    // `arg` production: an atom that is a current operator is valid there
+    // without quoting. Keep lexical exceptions such as `|` quoted.
+    if (options.operatorAtomsAsArgs && context === 'argument' && table.has(resolved.name)) return operatorName(resolved.name);
+    return writeAtom(resolved.name);
+  }
   if (resolved.type === NUMBER) return resolved.name;
 
   if (options.numbervars && resolved.type === COMPOUND && resolved.name === '$VAR' && resolved.arity === 1) {
@@ -146,9 +153,13 @@ function format(term, env, options, table, maxPriority = 1200) {
     let cursor = resolved;
     while (true) {
       cursor = deref(cursor, env);
-      if (isEmptyList(cursor)) return `[${parts.join(', ')}]`;
-      if (!isCons(cursor)) return `[${parts.join(', ')} | ${format(cursor, env, options, table, 999)}]`;
-      parts.push(format(cursor.args[0], env, options, table, 999));
+      const separator = options.compact ? ',' : ', ';
+      if (isEmptyList(cursor)) return `[${parts.join(separator)}]`;
+      if (!isCons(cursor)) {
+        const tailSeparator = options.compact ? '|' : ' | ';
+        return `[${parts.join(separator)}${tailSeparator}${format(cursor, env, options, table, 999, 'argument')}]`;
+      }
+      parts.push(format(cursor.args[0], env, options, table, 999, 'argument'));
       cursor = cursor.args[1];
     }
   }
@@ -183,8 +194,8 @@ function format(term, env, options, table, maxPriority = 1200) {
   }
 
   const name = options.quoted ? writeAtom(resolved.name) : resolved.name;
-  const args = resolved.args.map((arg) => format(arg, env, options, table, 999));
-  return `${name}(${args.join(', ')})`;
+  const args = resolved.args.map((arg) => format(arg, env, options, table, 999, 'argument'));
+  return `${name}(${args.join(options.compact ? ',' : ', ')})`;
 }
 
 export function formatTermForWrite(term, env = new Env(), options = {}) {
@@ -194,6 +205,8 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
     numbervars: options.numbervars !== false,
     doubleQuotes: options.doubleQuotes,
     variableNames: options.variableNames instanceof Map ? options.variableNames : new Map(),
+    compact: options.compact === true,
+    operatorAtomsAsArgs: options.operatorAtomsAsArgs === true,
   };
   return format(term, env, normalized, operatorTable(options.operators), 1200);
 }

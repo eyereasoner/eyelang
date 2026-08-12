@@ -951,6 +951,23 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'ISO writeq preserves operator atoms in argument syntax',
+      run: () => {
+        const source = [
+          'emit_operator_arguments :-',
+          "  writeq([:-,-]), put_char('|'),",
+          "  writeq(f(*)), put_char('|'),",
+          "  writeq(f(;,'|',';;')).",
+          '',
+        ].join('\n');
+        assertEqual(
+          run(source, { goal: 'emit_operator_arguments' }).stdout,
+          "[:-,-]|f(*)|f(;,'|',';;')emit_operator_arguments.\n",
+          'operator argument output',
+        );
+      },
+    },
+    {
       name: 'ISO query operator and quad infix extension are visible through current_op/3',
       run: () => {
         assertEqual(
@@ -1020,7 +1037,7 @@ c4 ?- call((!;1)).
         ].join('\n');
         assertEqual(
           run(source, { goal: 'emit' }).stdout,
-          "hello world|'hello world'|a + b * c|'+'(a, *(b, c))|hello world|'hello world'|+(a, b)|a + b|A|$VAR(0)|pair(Left, Right)emit.\n",
+          "hello world|'hello world'|a + b * c|'+'(a,*(b,c))|hello world|'hello world'|+(a,b)|a + b|A|$VAR(0)|pair(Left,Right)emit.\n",
           'stdout',
         );
       },

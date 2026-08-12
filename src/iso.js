@@ -1164,9 +1164,9 @@ function* readTermBuiltin({ solver, goal, env }) {
   yield next;
 }
 function defaultTermWriteOptions(mode) {
-  if (mode === 'writeq') return { quoted: true, ignoreOps: false, numbervars: true, variableNames: new Map() };
-  if (mode === 'canonical') return { quoted: true, ignoreOps: true, numbervars: false, variableNames: new Map() };
-  return { quoted: false, ignoreOps: false, numbervars: true, variableNames: new Map() };
+  if (mode === 'writeq') return { quoted: true, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true };
+  if (mode === 'canonical') return { quoted: true, ignoreOps: true, numbervars: false, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true };
+  return { quoted: false, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true };
 }
 
 function writeOptionBoolean(value, env, option) {
