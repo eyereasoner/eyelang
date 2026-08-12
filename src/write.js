@@ -208,5 +208,8 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
     compact: options.compact === true,
     operatorAtomsAsArgs: options.operatorAtomsAsArgs === true,
   };
-  return format(term, env, normalized, operatorTable(options.operators), 1200);
+  const maxPriority = Number.isInteger(options.maxPriority)
+    ? Math.max(0, Math.min(1200, options.maxPriority))
+    : 1200;
+  return format(term, env, normalized, operatorTable(options.operators), maxPriority);
 }

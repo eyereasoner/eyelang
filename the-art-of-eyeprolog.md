@@ -6191,7 +6191,11 @@ When another answer exists in an interactive terminal, press `;`, Space, or
 enumeration, `a` enumerates all remaining answers, `f` enumerates the next
 five, and `h` displays the answer-control help. A
 period-terminated query with no solutions prints `false.`; a solution without
-visible variable bindings prints `true.`. Use `[file].` or `['file.pl'].` to
+visible variable bindings prints `true.`. Answer substitutions are rendered as
+valid Prolog syntax under the current operator table: when a bound value would
+not be a valid right operand of the displayed `=/2`, EyeProlog adds parentheses,
+for example `T = (a = b).` rather than the invalid `T = a = b.`. Use `[file].`
+or `['file.pl'].` to
 consult local source, and `halt.` or `halt(Status).` to leave the top level.
 Up and Down recall queries from the current session. Explicit `eyeprolog -h`
 displays command-line help.

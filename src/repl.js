@@ -370,6 +370,17 @@ function formatAnswer(engine, state, variables, env) {
   const bindings = [];
   const queryVariableNames = new Set(variables.map((variable) => variable.name));
   const names = new Map(variables.map((variable) => [variable.name, variable.name]));
+  const operators = [...state.program.operators.values()];
+  // Answer substitutions are displayed as `Variable = Value`.  Format Value
+  // in the right-operand context of the active infix `=/2` definition so an
+  // operator term such as `a = b` is parenthesized rather than producing the
+  // invalid `T = a = b`.  ISO does not standardize a top level, but the term
+  // syntax used by the display must still respect the current operator table.
+  const equality = operators.find((definition) =>
+    definition.name === '=' && ['xfx', 'xfy', 'yfx'].includes(definition.specifier));
+  const valueMaxPriority = equality == null
+    ? 699
+    : equality.specifier === 'xfy' ? equality.priority : equality.priority - 1;
   let generated = 0;
 
   for (const variable of variables) collectUnboundVariables(engine, variable, env, names, () => `_${letterName(generated++)}`);
@@ -379,8 +390,9 @@ function formatAnswer(engine, state, variables, env) {
         (value.name === variable.name || !queryVariableNames.has(value.name))) continue;
     bindings.push(`${variable.name} = ${engine.formatTermForWrite(value, env, {
       quoted: true,
-      operators: [...state.program.operators.values()],
+      operators,
       variableNames: names,
+      maxPriority: valueMaxPriority,
     })}`);
   }
   return bindings.length === 0 ? 'true' : bindings.join(', ');

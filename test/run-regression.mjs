@@ -586,6 +586,23 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL parenthesizes operator-valued answer substitutions',
+      run: () => {
+        const result = runCli([], {
+          input: 'T = (a=b).\nU = (a,b).\nV = (a;b).\nW = (a+b).\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    T = (a = b).\n' +
+          '?-    U = (a, b).\n' +
+          '?-    V = (a ; b).\n' +
+          '?-    W = a + b.\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL accepts multiline period-terminated queries',
       run: () => {
         const result = runCli([], { input: '(X =\n  one).\nhalt.\n' });
