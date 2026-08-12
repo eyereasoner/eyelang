@@ -5120,7 +5120,11 @@ The fact is exactly `reports(sensor_7, temperature)`. Priority determines
 binding strength, and `fx`, `fy`, `xf`, `yf`, `xfx`, `xfy`, and `yfx`
 determine position and associativity. `current_op/3` inspects the table;
 `op(0, Specifier, Name)` removes a definition. Because declarations affect
-parsing of subsequent text, place them before their first use.
+parsing of subsequent text, place them before their first use. ISO argument
+syntax also permits an atom that is currently an operator to appear directly
+as a functional argument or list element, so forms such as
+`current_op(Priority, Specifier, :-)` and `[:-,-]` are valid without quoting
+or parenthesizing those operator atoms.
 
 Run [`iso-dynamic-database.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl)
 for an explicitly stateful queue and
@@ -6845,7 +6849,7 @@ node test/run-conformance-report.mjs
 ```
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 780 cases, including 374 focused ISO
+contains 781 cases, including 375 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 189 normal

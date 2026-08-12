@@ -225,6 +225,11 @@ class Parser {
   }
   operatorTokenName(token = this.token) {
     if (token.type === TOK.ATOM) return token.text;
+    // `:-` has its own token because it also introduces clauses/directives,
+    // but ISO 6.3.3.1 still permits an operator atom as an argument. Treat the
+    // token as the ordinary operator name while parsing terms; the surrounding
+    // grammar decides whether it is operator notation or atom data.
+    if (token.type === TOK.IF) return ':-';
     if (token.type === TOK.STRING && this.parserFlagState.doubleQuotes === 'atom') return token.text;
     return null;
   }
@@ -533,6 +538,14 @@ class Parser {
     return left;
   }
   parsePrefixTerm(minPrecedence = 0, allowBar = true) {
+    // `:-` is tokenized specially so the program grammar can recognize clause
+    // and directive markers. In term argument position, however, ISO 6.3.3.1
+    // permits an operator atom directly as an `arg`; a leading `:-` cannot be
+    // prefix operator notation at argument priority, so it denotes the atom.
+    if (this.token.type === TOK.IF) {
+      this.advance();
+      return atom(':-');
+    }
     const operatorName = this.operatorTokenName();
     if (operatorName != null && this.prefixOperators.get(operatorName)?.precedence >= minPrecedence) {
       const op = operatorName;

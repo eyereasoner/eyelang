@@ -94,7 +94,7 @@ Selected cases are adapted from the ISO and standard-core suites of Logtalk,
 Scryer Prolog, Trealla Prolog, and SWI-Prolog. Their upstream identifiers and licenses
 are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 
-The corpus has 374 cases in `iso/` and 780 file-based conformance cases in
+The corpus has 375 cases in `iso/` and 781 file-based conformance cases in
 total. The generated `conformance-report.md` is the authoritative source for
 current category totals. Together with regression, documentation-sync, API,
 example, and book-example checks, `npm test` is the release gate.

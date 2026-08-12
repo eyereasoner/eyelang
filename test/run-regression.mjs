@@ -941,6 +941,16 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'ISO operator atoms are valid functional and list arguments',
+      run: () => {
+        const source = [
+          'operator_argument(ok) :- current_op(1200, xfx, :-), [:-,-] = [:-,-].',
+          '',
+        ].join('\n');
+        assertEqual(run(source, { goal: 'operator_argument(ok)' }).stdout, 'operator_argument(ok).\n', 'operator argument syntax');
+      },
+    },
+    {
       name: 'term input keeps dotted operators intact and uses program operators',
       run: () => {
         const univPath = path.join(tmp, `read-univ-${++tmpCounter}.term`);
