@@ -2064,6 +2064,21 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
+      name: 'solver has no implicit solution limit',
+      run: () => {
+        const program = Program.parse('p(a).\n');
+        const solver = new Solver(program);
+        assertEqual(String(solver.solutionLimit), 'Infinity', 'default solution limit');
+        // Crossing the former 10,000,000-answer ceiling must not make an
+        // otherwise available answer disappear. This exercises the boundary
+        // without making the regression suite enumerate ten million answers.
+        solver.solutionsSeen = 10_000_000;
+        const goal = parseGoalText('p(X)');
+        const answers = [...solver.solve([goal], new Env(), 0)].map((env) => termToString(goal, env, true));
+        assertEqual(answers.join('\n'), 'p(a)', 'answer beyond former default ceiling');
+      },
+    },
+    {
       name: 'solver honors solution limits',
       run: () => {
         const program = Program.parse('p(a).\np(b).\np(c).\n');

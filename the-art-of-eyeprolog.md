@@ -1805,7 +1805,13 @@ const solver = new Solver(program, {
 ```
 
 The limits are safety ceilings, not logical declarations. Reaching one may
-truncate search; it does not prove that no further answer exists.
+truncate search; it does not prove that no further answer exists. At the `Solver`
+API boundary, `solutionLimit` is opt-in: if it is omitted, ordinary solving and
+child searches that inherit the solver limit do not stop after a fixed number of
+solutions. This matters for re-executable goals such as `repeat/0` and for
+library relations such as `call_nth/2`; an implementation safety threshold must
+not turn a still re-executable search into logical failure. Embedders that need
+a finite answer budget should pass `solutionLimit` explicitly.
 
 ### Implementation boundary
 

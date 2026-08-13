@@ -47,7 +47,10 @@ export class Solver {
     this.maxInferences = options.maxInferences ?? Infinity;
     this.inferences = 0;
     this.inferenceLimitExceeded = false;
-    this.solutionLimit = options.solutionLimit ?? 10000000;
+    // Do not impose an implicit answer cap. Infinite and very large searches are
+    // part of normal Prolog semantics; callers that need a resource bound can
+    // still supply solutionLimit explicitly.
+    this.solutionLimit = options.solutionLimit ?? Infinity;
     this.solutionsSeen = 0;
     this.prologFlags = options.prologFlags ?? defaultPrologFlags('error', this.isoStrict);
     if (this.isoStrict) {
