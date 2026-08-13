@@ -6216,8 +6216,21 @@ not be a valid right operand of the displayed `=/2`, EyeProlog adds parentheses,
 for example `T = (a = b).` rather than the invalid `T = a = b.`. Use `[file].`
 or `['file.pl'].` to
 consult local source, and `halt.` or `halt(Status).` to leave the top level.
-Up and Down recall queries from the current session. Explicit `eyeprolog -h`
-displays command-line help.
+A direct top-level `read/1-2` or `read_term/2-3` from `user_input` requests the
+next full-stop-terminated Prolog term with a `|: ` input prompt instead of
+treating the interactive input stream as already exhausted. For example:
+
+```text
+?- read(X).
+|: hello.
+   X = hello.
+```
+
+The top-level prompt itself is a host-interface convention rather than part of
+ISO/IEC 13211-1; the term that follows it is parsed by the same ISO term-input
+machinery as `read/1-2` and `read_term/2-3` on other text streams. Up and Down
+recall queries from the current session. Explicit `eyeprolog -h` displays
+command-line help.
 
 ### Selecting goals
 

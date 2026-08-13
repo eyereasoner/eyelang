@@ -672,6 +672,29 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL read predicates consume following interactive term input',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'read(X).\n' +
+            'foo.\n' +
+            'read_term(Y, []).\n' +
+            "'\\7\\'.\n" +
+            'read(user_input, Z).\n' +
+            'bar.\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?- |:    X = foo.\n' +
+          "?- |:    Y = '\\a'.\n" +
+          '?- |:    Z = bar.\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL accepts multiline period-terminated queries',
       run: () => {
         const result = runCli([], { input: '(X =\n  one).\nhalt.\n' });

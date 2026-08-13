@@ -48,6 +48,7 @@ export async function runRepl(engine, options = {}) {
           continue;
         }
 
+        await prepareInteractiveTermInput(state, goal, reader);
         const result = await solveQuery(engine, state, goal, reader, output);
         if (result?.halted) {
           exitCode = result.code;
@@ -162,6 +163,57 @@ async function readQuery(reader) {
     source += `${line}\n`;
     const end = terminalFullStop(source);
     if (end >= 0) return source.slice(0, end);
+    prompt = '|    ';
+  }
+}
+
+async function prepareInteractiveTermInput(state, goal, reader) {
+  const stream = interactiveTermInputStream(state, goal);
+  if (stream == null || terminalFullStop(String(stream.content).slice(stream.position)) >= 0) return;
+
+  const text = await readInteractiveTerm(reader);
+  if (text == null) return;
+  stream.content += text;
+  stream.pastEnd = false;
+}
+
+function interactiveTermInputStream(state, goal) {
+  if (goal.type !== 'compound') return null;
+  let reference = null;
+  if (goal.name === 'read' && goal.arity === 1) {
+    reference = state.solver.io.currentInput;
+  } else if (goal.name === 'read' && goal.arity === 2) {
+    reference = explicitInputReference(goal.args[0]);
+  } else if (goal.name === 'read_term' && goal.arity === 2) {
+    reference = state.solver.io.currentInput;
+  } else if (goal.name === 'read_term' && goal.arity === 3) {
+    reference = explicitInputReference(goal.args[0]);
+  } else {
+    return null;
+  }
+
+  const stream = reference == null ? null : state.solver.io.resolve(reference);
+  return stream?.standard && stream.alias === 'user_input' && stream.mode === 'read' ? stream : null;
+}
+
+function explicitInputReference(term) {
+  if (term.type === 'atom') return term.name;
+  if (term.type === 'compound' && term.name === '$stream' && term.arity === 1 &&
+      term.args[0].type === 'number' && /^\d+$/.test(term.args[0].name)) {
+    return Number(term.args[0].name);
+  }
+  return null;
+}
+
+async function readInteractiveTerm(reader) {
+  let source = '';
+  let prompt = '|: ';
+  while (true) {
+    const line = await reader.read(prompt);
+    if (line == null) return source.trim() ? source : null;
+    source += `${line}\n`;
+    const end = terminalFullStop(source);
+    if (end >= 0) return source.slice(0, end + 1) + '\n';
     prompt = '|    ';
   }
 }
