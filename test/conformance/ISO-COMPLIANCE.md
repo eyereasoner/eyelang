@@ -38,7 +38,7 @@ error-ordering alternative to an individual executable assertion.
 | 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction, if-then, catch/throw, renamed-copy tests. |
 | 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Exceptional-value/error-precedence matrix remains to be exhaustively enumerated. |
 | 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, Corrigendum 3 writer cases. Full option cross-product remains open. |
-| 7.11 — flags | audit | Required Part 1 flags implemented. Strict mode excludes the EyeProlog `occurs_check` extension and uses ISO `unknown=error`. |
+| 7.11 — flags | audit | Required Part 1 flags implemented. Normal and strict modes use the ISO `unknown=error` default; strict mode excludes the EyeProlog `occurs_check` extension. |
 | 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax families and focused error cases. Complete prescribed-error ordering remains open. |
 | 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. Mode/error matrix is not yet one-row-per-standard-row. |
 | Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Host floating-point representation choices remain documented implementation-defined behavior. |

@@ -5667,18 +5667,23 @@ silently changing a static program.
 | `max_integer` | `unbounded` | `unbounded` | no |
 | `min_integer` | `unbounded` | `unbounded` | no |
 | `max_arity` | `unbounded` | `unbounded` | no |
-| `unknown` | `fail` | `error`, `fail`, `warning` | yes |
+| `unknown` | `error` | `error`, `fail`, `warning` | yes |
 | `double_quotes` | `chars` | `chars`, `codes`, `atom` | yes |
 | `occurs_check` | `true` | `true`, `error` | yes |
 
-Strict ISO core mode defaults `unknown` to `error`; the normal EyeProlog
-environment defaults it to `fail`. The `occurs_check` flag is an EyeProlog
-diagnostic extension rather than an ISO-defined core flag: it is absent in
-strict mode, while normal mode keeps its `true` default and optional `error`
-diagnostic for STO attempts. Operator and flag directives are processed per
-program rather than changing global JavaScript state. The `double_quotes`
-setting affects subsequent source text, included files, command-line and API
-goal text, and terms read by `read_term/*`:
+Both normal EyeProlog and strict ISO core mode use the ISO `unknown=error`
+default. Interactive `set_prolog_flag/2` changes are retained when the REPL
+consults another file or imports a module instead of being reset by the host
+rebuild of the program. Programs that intentionally treat an undefined
+predicate as failure must opt in with `set_prolog_flag(unknown, fail)`; bundled
+examples and non-ISO corpus cases that depend on that policy do so explicitly.
+The `occurs_check` flag is an EyeProlog diagnostic
+extension rather than an ISO-defined core flag: it is absent in strict mode,
+while normal mode keeps its `true` default and optional `error` diagnostic for
+STO attempts. Operator and flag directives are processed per program rather
+than changing global JavaScript state. The `double_quotes` setting affects
+subsequent source text, included files, command-line and API goal text, and
+terms read by `read_term/*`:
 
 ```text
 % Default: a list of one-character atoms.

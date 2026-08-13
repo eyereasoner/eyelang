@@ -717,13 +717,47 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL preserves runtime unknown flag across consultation',
+      run: () => {
+        const filename = path.join(tmp, `repl-empty-${++tmpCounter}.pl`);
+        fs.writeFileSync(filename, '');
+        const result = runCli([], {
+          input:
+            'current_prolog_flag(unknown, V).\n' +
+            'set_prolog_flag(unknown, fail).\n' +
+            `[${sourceAtom(filename)}].\n` +
+            'current_prolog_flag(unknown, V).\n' +
+            'set_prolog_flag(unknown, error).\n' +
+            `[${sourceAtom(filename)}].\n` +
+            'missing_after_consult.\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    V = error.\n' +
+          '?-    true.\n' +
+          '?-    true.\n' +
+          '?-    V = fail.\n' +
+          '?-    true.\n' +
+          '?-    true.\n' +
+          '?-    error(existence_error(procedure, missing_after_consult / 0), eyeprolog).\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL use_module imports Part 2 library predicates',
       run: () => {
         const result = runCli([], {
           input: 'append(X, Y, [1, 2, 3, 4]).\nuse_module(library(lists)).\nappend(X, Y, [1, 2, 3, 4]).\n\nhalt.\n',
         });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, '?-    false.\n?-    true.\n?-    X = [], Y = [1, 2, 3, 4]\n;  ... .\n?- ', 'stdout');
+        assertEqual(result.stdout,
+          '?-    error(existence_error(procedure, append / 3), eyeprolog).\n' +
+          '?-    true.\n' +
+          '?-    X = [], Y = [1, 2, 3, 4]\n;  ... .\n?- ',
+          'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -1118,6 +1152,19 @@ c4 ?- call((!;1)).
         const infix = parseGoalText('(label ?- true)');
         assertEqual(infix.name, '?-', 'quad query functor');
         assertEqual(infix.arity, 2, 'quad query arity');
+      },
+    },
+    {
+      name: 'normal EyeProlog uses the ISO unknown=error default',
+      run: () => {
+        const program = Program.parse('');
+        const solver = new Solver(program, { registry: getEyePrologRegistry() });
+        assertEqual(solver.prologFlags.get('unknown')?.value?.name, 'error', 'normal unknown default');
+        assertEqual(
+          run('', { goal: 'current_prolog_flag(unknown, V)' }).stdout,
+          'current_prolog_flag(unknown, error).\n',
+          'public runner unknown default',
+        );
       },
     },
     {

@@ -49,7 +49,7 @@ export class Solver {
     this.inferenceLimitExceeded = false;
     this.solutionLimit = options.solutionLimit ?? 10000000;
     this.solutionsSeen = 0;
-    this.prologFlags = options.prologFlags ?? defaultPrologFlags(this.registry?.eyePrologLibrary ? 'fail' : 'error', this.isoStrict);
+    this.prologFlags = options.prologFlags ?? defaultPrologFlags('error', this.isoStrict);
     if (this.isoStrict) {
       for (const name of [...this.prologFlags.keys()]) {
         if (!ISO_CORE_FLAG_NAMES.has(name)) this.prologFlags.delete(name);

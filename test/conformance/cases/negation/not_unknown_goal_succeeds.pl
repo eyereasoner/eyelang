@@ -1,3 +1,5 @@
+:- set_prolog_flag(unknown, fail).
+
 % Negation succeeds when its inner goal has no solution.
 %% goal: answer(X0)
 

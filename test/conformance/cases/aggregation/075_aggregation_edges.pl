@@ -1,3 +1,5 @@
+:- set_prolog_flag(unknown, fail).
+
 % Reference 9.1: aggregation handles empty result sets, structured templates, and ordered best answers.
 %% goal: answer(X0, X1)
 

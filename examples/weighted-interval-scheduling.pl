@@ -82,3 +82,5 @@ weighted_interval_answer(chosen_interval, interval(I, Start, Finish, Value)) :-
   chosen_from(1, I),
   interval(I, Start, Finish, Value).
 weighted_interval_answer(candidate_count, Count) :- countall(interval(_i, _start, _finish, _value), Count).
+
+:- set_prolog_flag(unknown, fail).

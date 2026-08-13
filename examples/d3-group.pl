@@ -102,3 +102,5 @@ subgroupCount(d3_group, Count) :-
   length(Groups, Count).
 
 reason(d3_group, "findall enumerates candidate subgroups and sort gives canonical subgroup order").
+
+:- set_prolog_flag(unknown, fail).

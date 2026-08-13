@@ -34,7 +34,7 @@ export async function runRepl(engine, options = {}) {
         const goal = parseGoal(engine, state, text);
         if (!options.isoStrict && isUseModuleGoal(goal)) {
           sources.push({ text: `:- ${text}.\n`, filename: '<repl>' });
-          state = makeState(engine, sources, output, options);
+          state = makeState(engine, sources, output, options, state);
           state.solver.runInitializations();
           output.write('   true.\n');
           continue;
@@ -42,17 +42,22 @@ export async function runRepl(engine, options = {}) {
         const consultFiles = options.isoStrict ? null : consultDesignations(engine, goal);
         if (consultFiles != null) {
           for (const filename of consultFiles) sources.push(await readSource(filename));
-          state = makeState(engine, sources, output, options);
+          state = makeState(engine, sources, output, options, state);
           state.solver.runInitializations();
           output.write('   true.\n');
           continue;
         }
 
-        await prepareInteractiveTermInput(state, goal, reader);
-        const result = await solveQuery(engine, state, goal, reader, output);
-        if (result?.halted) {
-          exitCode = result.code;
-          break;
+        const flagsBefore = snapshotFlagValues(state.solver);
+        try {
+          await prepareInteractiveTermInput(state, goal, reader);
+          const result = await solveQuery(engine, state, goal, reader, output);
+          if (result?.halted) {
+            exitCode = result.code;
+            break;
+          }
+        } finally {
+          rememberFlagOverrides(state, flagsBefore);
         }
       } catch (error) {
         if (error?.name === 'HaltSignal') {
@@ -143,7 +148,7 @@ class LineReader {
   }
 }
 
-function makeState(engine, sources, output, options = {}) {
+function makeState(engine, sources, output, options = {}, previousState = null) {
   const strictIso = options.isoStrict === true;
   const program = engine.Program.parseSources(sources, { strictIso, sourceMetadata: strictIso });
   const solver = new engine.Solver(program, {
@@ -151,7 +156,25 @@ function makeState(engine, sources, output, options = {}) {
     isoStrict: strictIso,
     ioOptions: { write: (text) => output.write(String(text)) },
   });
-  return { program: solver.program, solver, strictIso };
+  const flagOverrides = new Map(previousState?.flagOverrides ?? []);
+  for (const [name, value] of flagOverrides) {
+    const definition = solver.prologFlags.get(name);
+    if (definition?.changeable && definition.allowed.includes(value)) {
+      definition.value = engine.atom(value);
+    }
+  }
+  return { program: solver.program, solver, strictIso, flagOverrides };
+}
+
+function snapshotFlagValues(solver) {
+  return new Map([...solver.prologFlags].map(([name, definition]) => [name, definition.value?.name]));
+}
+
+function rememberFlagOverrides(state, before) {
+  for (const [name, definition] of state.solver.prologFlags) {
+    const value = definition.value?.name;
+    if (before.get(name) !== value) state.flagOverrides.set(name, value);
+  }
 }
 
 async function readQuery(reader) {

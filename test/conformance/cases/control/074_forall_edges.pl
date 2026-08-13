@@ -1,3 +1,5 @@
+:- set_prolog_flag(unknown, fail).
+
 % Reference 9.1: forall/2 succeeds for every generated binding, including the empty generator case.
 %% goal: answer(X0, X1)
 

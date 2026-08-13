@@ -72,3 +72,5 @@ residual_program(Name, Residual) :- program(Name, Expr, Env), pe(Env, Expr, Resi
 
 partialEvalAnswer(residual(Name), Residual) :- residual_program(Name, Residual).
 partialEvalAnswer(note, "static inputs are folded while dynamic variables remain as residual code") :- residual_program(poly_y, _).
+
+:- set_prolog_flag(unknown, fail).

@@ -66,3 +66,5 @@ four_color_answer(european_union, Coloring) :-
   place_order(Places),
   place_pairs(Places, Coloring),
   once(color_places(Coloring)).
+
+:- set_prolog_flag(unknown, fail).

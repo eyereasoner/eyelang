@@ -31,9 +31,9 @@ integer powers (Cor.3).
 Implementation-defined choices are documented in *The Art of EyeProlog*:
 integers and arity are unbounded by the Prolog model (subject to host memory),
 ordinary unification performs an occurs check, `double_quotes` defaults to
-`chars`, strict core mode uses ISO `unknown=error` while normal EyeProlog
-defaults `unknown` to `fail`, `//` rounds toward zero, floating-point operations
-use finite ECMAScript numbers, and character codes use Unicode scalar values.
+`chars`, both strict core mode and normal EyeProlog use the ISO
+`unknown=error` default, `//` rounds toward zero, floating-point operations use
+finite ECMAScript numbers, and character codes use Unicode scalar values.
 
 This is an executable conformance matrix, not a certification issued by an
 independent standards body. Release gating runs the ISO cases and the dedicated
