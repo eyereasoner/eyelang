@@ -11,3 +11,5 @@ a :- b, c
 wg17_operator_precedence.
 '.'(a,[])
 wg17_canonical_list.
+'\0\'
+wg17_zero_character_escape.

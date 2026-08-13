@@ -672,6 +672,31 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'writeq preserves the NUL character with an ISO octal escape',
+      run: () => {
+        const result = runCli([], {
+          input: "writeq('\\0\\').\nhalt.\n",
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, "?- '\\0\\'   true.\n?- ", 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL rejects non-octal numeric escapes without waiting for continuation',
+      run: () => {
+        const result = runCli([], {
+          input: "'\\8\\'.\nhalt.\n",
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    parse line 1: bad octal escape.\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL read predicates consume following interactive term input',
       run: () => {
         const result = runCli([], {
@@ -1311,6 +1336,16 @@ c4 ?- call((!;1)).
           }).stdout,
           "answer('\\a').\n",
           'read/1 user_input numeric escape',
+        );
+
+        const invalidOctal = String.fromCharCode(39, 92, 56, 92, 39, 46);
+        assertEqual(
+          run('answer(T) :- catch(read(T), E, T=E).\n', {
+            goal: 'answer(T)',
+            ioOptions: { input: invalidOctal },
+          }).stdout,
+          'answer(error(syntax_error(read_term), eyeprolog)).\n',
+          'read/1 rejects non-octal numeric escape',
         );
       },
     },

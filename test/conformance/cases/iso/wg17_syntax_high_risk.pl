@@ -1,6 +1,6 @@
 % High-risk ISO syntax/write regressions, independently derived from
 % ISO/IEC 13211-1 clauses 6.3, 6.4 and 7.10 and cross-checked against the
-% public WG17 conformity-testing syntax cases (#1, #14-15, #28-31, #33-34).
+% public WG17 conformity-testing syntax cases (#1, #14-15, #28-31, #33-34, #301).
 
 %% goal: wg17_numeric_escape
 wg17_numeric_escape :-
@@ -24,3 +24,7 @@ wg17_operator_precedence :-
 %% goal: wg17_canonical_list
 wg17_canonical_list :-
     write_canonical([a]), nl.
+
+%% goal: wg17_zero_character_escape
+wg17_zero_character_escape :-
+    writeq('\0\'), nl.

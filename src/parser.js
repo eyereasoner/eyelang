@@ -303,6 +303,10 @@ class Parser {
       if (this.take() !== '\\') throw new Error(`parse line ${line}: bad octal escape`);
       return String.fromCodePoint(Number.parseInt(digits, 8));
     }
+    // A backslash followed by a decimal digit is numeric-escape syntax, but
+    // ISO octal digits are limited to 0..7.  Do not reinterpret \8 or \9 as
+    // implementation-specific one-character escapes.
+    if (/^[0-9]$/.test(escaped)) throw new Error(`parse line ${line}: bad octal escape`);
     return escaped;
   }
   nextToken() {

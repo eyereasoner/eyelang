@@ -22,6 +22,7 @@ function quoteAtom(name) {
   for (const ch of name) {
     if (ch === "'") out += "''";
     else if (ch === '\\') out += '\\\\';
+    else if (ch === '\x00') out += '\\0\\';
     else if (ch === '\x07') out += '\\a';
     else if (ch === '\b') out += '\\b';
     else if (ch === '\r') out += '\\r';
@@ -59,6 +60,7 @@ function writeString(value) {
   let out = '"';
   for (const ch of value) {
     if (ch === '"' || ch === '\\') out += `\\${ch}`;
+    else if (ch === '\x00') out += '\\0\\';
     else if (ch === '\x07') out += '\\a';
     else if (ch === '\b') out += '\\b';
     else if (ch === '\r') out += '\\r';

@@ -253,9 +253,12 @@ function quotedEscapeEnd(source, index) {
     while (/^[0-9A-Fa-f]$/.test(source[cursor] ?? '')) cursor++;
     return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
   }
-  if (/^[0-7]$/.test(escaped)) {
+  if (/^[0-9]$/.test(escaped)) {
     let cursor = index + 1;
-    while (/^[0-7]$/.test(source[cursor] ?? '')) cursor++;
+    // Scan all decimal digits here, including 8 and 9.  This scanner only
+    // locates the end of a candidate quoted escape; the parser remains
+    // authoritative and rejects non-octal digits.
+    while (/^[0-9]$/.test(source[cursor] ?? '')) cursor++;
     return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
   }
 

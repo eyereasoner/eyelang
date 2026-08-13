@@ -5279,7 +5279,10 @@ message("café").
 Inside a quoted atom, a single quote is doubled: `'don''t'`. Quoted characters
 support the ISO symbolic control escapes such as `\a`, `\n`, and `\t`, and numeric
 octal or hexadecimal escapes are terminated by a backslash; for example, `'\7\'`
-and `'\x7\'` both denote the alert character. Double-quoted lists use the same
+and `'\x7\'` both denote the alert character. The NUL character, when present in
+the processor character set, is written readably as `'\0\'`; digits `8` and `9`
+are not octal digits, so forms such as `'\8\'` are syntax errors rather than
+continuation input. Double-quoted lists use the same
 quoted-character escapes. Whitespace is insignificant
 between tokens, and a `%` comment continues to the end of its line. Doubling
 the active delimiter is also accepted inside either quoted form, so `""`
@@ -6946,7 +6949,7 @@ precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 782 cases, including 376 focused ISO
+contains 783 cases, including 377 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 189 normal
