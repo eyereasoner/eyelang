@@ -222,6 +222,43 @@ why(
       },
     },
     {
+      name: 'quad parser treats operator and functional ?- notation equivalently',
+      run: () => {
+        const labelled = Program.parse(
+          `0,passes
+  ?- X = 1.
+     X = 1.
+`,
+        );
+        assertEqual(labelled.quads.length, 1, 'labelled quad count');
+        assertEqual(labelled.clauses.length, 0, 'labelled quad clause count');
+        assertEqual(labelled.quads[0].id.name, ',', 'comma label functor');
+        assertEqual(labelled.quads[0].query.name, '=', 'labelled quad query');
+        const labelledReport = publicApi.runQuads(labelled);
+        assertEqual(labelledReport.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'labelled quad report');
+
+        const functional = Program.parse(
+          `?-(','(0,passes),=(X,1)).
+   X = 1.
+`,
+        );
+        assertEqual(functional.quads.length, 1, 'functional quad count');
+        assertEqual(functional.clauses.length, 0, 'functional quad clause count');
+        assertEqual(functional.quads[0].id.name, ',', 'functional comma label functor');
+        assertEqual(functional.quads[0].query.name, '=', 'functional quad query');
+        assertEqual(termToString(functional.quads[0].id), termToString(labelled.quads[0].id),
+          'operator and functional labels are equivalent');
+        assertEqual(termToString(functional.quads[0].query), termToString(labelled.quads[0].query),
+          'operator and functional queries are equivalent');
+        const functionalReport = publicApi.runQuads(functional);
+        assertEqual(functionalReport.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'functional quad report');
+
+        const strict = Program.parse(`?-(','(0,passes),=(X,1)).\n`, { isoStrict: true });
+        assertEqual(strict.quads.length, 0, 'strict mode has no quads');
+        assertEqual(strict.clauses.length, 1, 'strict functional ?-/2 remains an ordinary term');
+      },
+    },
+    {
       name: 'runQuads checks portable answer descriptions',
       run: () => {
         const source = `p(1).\np(2).\np(3).\n\n` +

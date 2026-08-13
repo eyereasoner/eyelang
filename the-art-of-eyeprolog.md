@@ -5146,7 +5146,11 @@ contains `?-` at priority 1200 with specifier `fx`, so
 an optional label before the query marker (`Label ?- Query.`), so while quad
 syntax is supported it additionally exposes `?-` at priority 1200 with
 specifier `xfx` as an implementation-specific operator. Consequently
-`current_op(Priority, Specifier, ?-)` enumerates both definitions.
+`current_op(Priority, Specifier, ?-)` enumerates both definitions. At top level in the normal EyeProlog profile, the quad marker is recognized
+after term parsing, so equivalent syntax stays equivalent: `Label ?- Query.`
+and canonical `?-(Label, Query).` denote the same labelled quad when followed
+by its indented answer descriptions. In `--iso-strict` mode this quad
+interpretation is disabled, and `?-/2` remains ordinary Prolog term syntax.
 
 Run [`iso-dynamic-database.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl)
 for an explicitly stateful queue and
@@ -6361,7 +6365,10 @@ console.log(report.passed, report.failed, report.stdout);
 The syntax follows the “queries using answer descriptions” convention used by
 Trealla and the ISO Prolog working examples. Because answer descriptions are
 layout-sensitive, indent every description while keeping ordinary clause heads
-and the next quad query at the left margin.
+and the next quad query at the left margin. A comma may be part of a quad label,
+including across layout before `?-`. Canonical functional notation is
+semantically equivalent: `?-(Label, Query).` followed by the same indented
+answer descriptions creates the same labelled quad as `Label ?- Query.`.
 
 Statistics are comparative evidence, not a score in isolation. Preserve the
 program, input, runtime version, selected query, answers, and counters together.

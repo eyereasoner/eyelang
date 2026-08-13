@@ -663,8 +663,7 @@ class Parser {
     }
     return this.source[start] === ' ' || this.source[start] === '\t';
   }
-  parseQuad(id, line, accept) {
-    const query = this.parseTerm(0, true);
+  parseQuadAnswers(id, query, line, accept) {
     this.expect(TOK.DOT, '.');
     this.advance();
 
@@ -684,28 +683,38 @@ class Parser {
       source: { filename: this.filename, line },
     });
   }
+  parseQuad(id, line, accept) {
+    const query = this.parseTerm(0, true);
+    this.parseQuadAnswers(id, query, line, accept);
+  }
+  parseQuadTerm(term, line, accept) {
+    if (term.type !== COMPOUND || term.name !== '?-' || ![1, 2].includes(term.arity)) return false;
+    const id = term.arity === 2 ? term.args[0] : null;
+    const query = term.args[term.arity - 1];
+    this.parseQuadAnswers(id, query, line, accept);
+    return true;
+  }
   parseProgram(emit = null) {
     const clauses = emit ? null : [];
     let clauseNumber = 0;
     const accept = emit ?? ((clause) => clauses.push(clause));
     while (this.token.type !== TOK.EOF) {
       const line = this.token.line;
-      if (this.operatorTokenName() === '?-') {
-        if (this.strictIso) {
-          // In Part 1, ?- is the predefined 1200 fx operator.  A strict-core
-          // source therefore reads it as an ordinary term rather than giving
-          // it EyeProlog's top-level quad meaning.
-          const head = this.parseTerm(0, true);
-          this.expect(TOK.DOT, '.');
+      // In the normal EyeProlog profile, canonical functional ?-/1 and
+      // ?-/2 notation denotes the same quad marker as the corresponding
+      // operator notation.  Keep the existing operator-form query parsing so
+      // a query containing comma remains wholly to the right of `?-`, while
+      // functional notation is parsed as a term and then decomposed by arity.
+      if (this.operatorTokenName() === '?-' && !this.strictIso) {
+        if (this.peek() === '(') {
+          const quadTerm = this.parseTerm(0, true);
+          if (!this.parseQuadTerm(quadTerm, line, accept)) {
+            throw new Error(`parse line ${line}: bad quad term`);
+          }
+        } else {
           this.advance();
-          const clause = { head, body: [] };
-          clauseNumber++;
-          if (this.sourceMetadata) clause.source = { filename: this.filename, line, clause: clauseNumber };
-          accept(clause);
-          continue;
+          this.parseQuad(null, line, accept);
         }
-        this.advance();
-        this.parseQuad(null, line, accept);
         continue;
       }
       if (this.token.type === TOK.IF) {
@@ -740,6 +749,13 @@ class Parser {
         continue;
       }
       let head = this.parseTerm(3);
+      // Both a quad label and a TS 13211-3 semicontext may contain an
+      // unparenthesized comma before their priority-1200 operator.  Assemble
+      // that left operand before deciding whether the marker is ?- or -->.
+      if (this.token.type === TOK.COMMA) {
+        this.advance();
+        head = compound(',', [head, this.parseTerm(3)]);
+      }
       if (this.operatorTokenName() === '?-') {
         if (this.strictIso) {
           // There is no predefined infix ?-/2 in strict core mode.  If a
@@ -760,13 +776,6 @@ class Parser {
         this.advance();
         this.parseQuad(head, line, accept);
         continue;
-      }
-      // ISO/IEC TS 13211-3 grammar rules use -->/2 at the same top-level
-      // priority as clauses.  The left side may include an unparenthesized
-      // semicontext: NonTerminal, Terminals --> Body.
-      if (this.token.type === TOK.COMMA) {
-        this.advance();
-        head = compound(',', [head, this.parseTerm(3)]);
       }
       if (this.operatorTokenName() === '-->') {
         this.advance();
