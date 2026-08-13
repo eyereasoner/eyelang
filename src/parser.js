@@ -165,6 +165,7 @@ class Parser {
     this.pos = 0;
     this.line = 1;
     this.anonymous = 0;
+    this.variables = new Map();
     this.sourceMetadata = options.sourceMetadata !== false;
     this.strictIso = options.isoStrict === true;
     this.parserFlagState = options.parserFlagState ?? {
@@ -633,7 +634,12 @@ class Parser {
       const name = this.token.text;
       this.advance();
       if (name === '_') return variable(`__anon${this.anonymous++}`);
-      return variable(name);
+      let term = this.variables.get(name);
+      if (term == null) {
+        term = variable(name);
+        this.variables.set(name, term);
+      }
+      return term;
     }
     if (this.token.type === TOK.STRING) {
       const value = this.token.text;

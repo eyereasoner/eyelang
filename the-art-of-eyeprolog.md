@@ -1811,7 +1811,10 @@ child searches that inherit the solver limit do not stop after a fixed number of
 solutions. This matters for re-executable goals such as `repeat/0` and for
 library relations such as `call_nth/2`; an implementation safety threshold must
 not turn a still re-executable search into logical failure. Embedders that need
-a finite answer budget should pass `solutionLimit` explicitly.
+a finite answer budget should pass `solutionLimit` explicitly. Host capacity
+failures that V8 reports as `Map maximum size exceeded` or `Set maximum size
+exceeded` are normalized at the solver boundary to the ISO error
+`resource_error(finite_memory)` instead of leaking a JavaScript `RangeError`.
 
 ### Implementation boundary
 
@@ -5611,8 +5614,16 @@ nonterminals.
 For ISO terms, the standard term order is variables, numbers, atoms, then compounds;
 compound terms compare by arity, functor, and arguments. Within the numeric
 category, floats precede integers; floats compare by finite numeric value and
-integers compare exactly. Double-quoted Prolog source follows the
-`double_quotes` flag and never creates an extra host-only scalar category.
+integers compare exactly. ISO leaves the ordering of two distinct variables
+implementation dependent, subject to stability while a sorted list is being
+created. EyeProlog assigns a creation ordinal to each logical variable and
+carries that ordinal on the variable term itself; repeated occurrences share it
+within parsing or clause-freshening scope. It therefore does not keep a
+process-global table of every fresh variable name ever created, so long-running
+generators can create and discard fresh variables without growing an unrelated
+host `Map`. Double-quoted Prolog source
+follows the `double_quotes` flag and never creates an extra host-only scalar
+category.
 
 ### Term construction and inspection
 

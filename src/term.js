@@ -6,8 +6,10 @@ export const STRING = 'string';
 export const NUMBER = 'number';
 export const COMPOUND = 'compound';
 const EMPTY_ARGS = Object.freeze([]);
+// Variable term order is carried by the variable objects themselves.  Do not
+// retain a process-global name registry: runtime clause freshening can create
+// an unbounded sequence of names in an otherwise constant-space computation.
 let variableOrder = 0;
-const variableOrders = new Map();
 
 export class Term {
   constructor(type, name, args = []) {
@@ -20,10 +22,9 @@ export class Term {
   }
 }
 
-export const variable = (name) => {
+export const variable = (name, order = null) => {
   const term = new Term(VAR, name, EMPTY_ARGS);
-  if (!variableOrders.has(term.name)) variableOrders.set(term.name, ++variableOrder);
-  term.order = variableOrders.get(term.name);
+  term.order = order ?? ++variableOrder;
   return term;
 };
 export const atom = (name) => new Term(ATOM, name, EMPTY_ARGS);
@@ -270,6 +271,7 @@ export function unify(left, right, env, options = {}) {
 }
 
 export function cloneTerm(term) {
+  if (term.type === VAR) return variable(term.name, term.order);
   const cloned = term.type === COMPOUND && term.arity === 0
     ? atom(term.name)
     : new Term(term.type, term.name, term.args.map(cloneTerm));
@@ -277,18 +279,25 @@ export function cloneTerm(term) {
   return cloned;
 }
 
-export function freshTerm(term, suffix) {
-  if (term.type === VAR) return variable(`${term.name}#${suffix}`);
+export function freshTerm(term, suffix, variables = new Map()) {
+  if (term.type === VAR) {
+    let fresh = variables.get(term.name);
+    if (fresh == null) {
+      fresh = variable(`${term.name}#${suffix}`);
+      variables.set(term.name, fresh);
+    }
+    return fresh;
+  }
   const fresh = term.type === COMPOUND && term.arity === 0
     ? atom(term.name)
-    : new Term(term.type, term.name, term.args.map((arg) => freshTerm(arg, suffix)));
+    : new Term(term.type, term.name, term.args.map((arg) => freshTerm(arg, suffix, variables)));
   if (term.module != null) fresh.module = term.module;
   return fresh;
 }
 
 export function copyResolved(term, env) {
   const resolved = deref(term, env);
-  if (resolved.type === VAR) return variable(resolved.name);
+  if (resolved.type === VAR) return variable(resolved.name, resolved.order);
   const copied = resolved.type === COMPOUND && resolved.arity === 0
     ? atom(resolved.name)
     : new Term(resolved.type, resolved.name, resolved.args.map((arg) => copyResolved(arg, env)));
@@ -517,9 +526,13 @@ export function compareTerms(left, right) {
     return compareNumberText(left.name, right.name);
   }
   if (left.type === VAR) {
+    if (left.name === right.name) return 0;
     const leftOrder = left.order ?? 0;
     const rightOrder = right.order ?? 0;
-    return leftOrder < rightOrder ? -1 : leftOrder > rightOrder ? 1 : 0;
+    if (leftOrder !== rightOrder) return leftOrder < rightOrder ? -1 : 1;
+    // Explicitly copied order values are permitted internally; keep the
+    // implementation-defined variable order total even in that case.
+    return left.name < right.name ? -1 : 1;
   }
   if (left.type === ATOM || left.type === STRING) return left.name < right.name ? -1 : left.name > right.name ? 1 : 0;
   if (left.arity !== right.arity) return left.arity < right.arity ? -1 : 1;

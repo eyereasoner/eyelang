@@ -398,6 +398,8 @@ export class Solver {
         break;
       }
       }
+    } catch (error) {
+      throw normalizeHostResourceError(error);
     } finally {
       const stackIndex = this.solveStacks.indexOf(registeredStack);
       if (stackIndex >= 0) this.solveStacks.splice(stackIndex, 1);
@@ -450,8 +452,9 @@ export class Solver {
         }
         if (headCannotMatch(goal, clause.head, env)) continue;
         const id = nextFreshId();
-        const freshHead = freshTerm(clause.head, id);
-        const freshBody = clause.body.map((term) => freshTerm(term, id));
+        const freshVariables = new Map();
+        const freshHead = freshTerm(clause.head, id, freshVariables);
+        const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
         const next = env.clone();
         this.stats.unify_calls++;
         if (!unify(goal, freshHead, next)) continue;
@@ -480,6 +483,19 @@ export class Solver {
     this.active.pop();
   }
 
+}
+
+function normalizeHostResourceError(error) {
+  if (error?.name !== 'RangeError') return error;
+  const message = String(error?.message ?? '');
+  // V8 reports exhausted Map/Set capacity as a host RangeError.  ISO 7.12.2 h
+  // requires processor resource exhaustion to surface as resource_error/1,
+  // with the resource atom implementation dependent.  EyeProlog uses the
+  // finite_memory spelling already accepted by its ISO conformance corpus.
+  if (/^(?:Map|Set) maximum size exceeded$/.test(message)) {
+    return new PrologError('resource_error(finite_memory)');
+  }
+  return error;
 }
 
 function qualifyMetaArguments(goal, group) {
@@ -601,8 +617,9 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
       }
       if (headCannotMatch(goal, clause.head, env)) continue;
       const id = nextFreshId();
-      const freshHead = freshTerm(clause.head, id);
-      const freshBody = clause.body.map((term) => freshTerm(term, id));
+      const freshVariables = new Map();
+      const freshHead = freshTerm(clause.head, id, freshVariables);
+      const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
       const next = env.clone();
       solver.stats.unify_calls++;
       if (!unify(goal, freshHead, next)) continue;
@@ -1233,7 +1250,7 @@ function copyResolvedWithKey(term, env, variables) {
       id = variables.size;
       variables.set(value.name, id);
     }
-    return { term: termModuleCache.variable(value.name), key: `var:${id}` };
+    return { term: termModuleCache.variable(value.name, value.order), key: `var:${id}` };
   }
   if (!value.args?.length) {
     return {

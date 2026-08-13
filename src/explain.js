@@ -101,8 +101,9 @@ function* proveGoalAll(program, goal, env, depth, maxDepth, registry, active) {
     for (let candidateIndex = 0; candidateIndex < clauseCandidateLength(pass); candidateIndex++) {
       const clause = clauseCandidateAt(pass, candidateIndex);
       const id = nextFreshId();
-      const freshHead = freshTerm(clause.head, id);
-      const freshBody = clause.body.map((term) => freshTerm(term, id));
+      const freshVariables = new Map();
+      const freshHead = freshTerm(clause.head, id, freshVariables);
+      const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
       const next = env.clone();
       if (!unify(goal, freshHead, next)) continue;
 
