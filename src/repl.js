@@ -1,5 +1,6 @@
 // Interactive top level for the eyeprolog command.
 import fs from 'node:fs/promises';
+import { readSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { formalErrorTerm } from './iso.js';
@@ -20,7 +21,7 @@ export async function runRepl(engine, options = {}) {
   const errorOutput = options.errorOutput ?? process.stderr;
   const reader = new LineReader(input, output);
   const sources = [];
-  let state = makeState(engine, sources, output, options);
+  let state = makeState(engine, sources, output, options, null, reader);
   let exitCode = 0;
 
   try {
@@ -34,7 +35,7 @@ export async function runRepl(engine, options = {}) {
         const goal = parseGoal(engine, state, text);
         if (!options.isoStrict && isUseModuleGoal(goal)) {
           sources.push({ text: `:- ${text}.\n`, filename: '<repl>' });
-          state = makeState(engine, sources, output, options, state);
+          state = makeState(engine, sources, output, options, state, reader);
           runWithTerminalSignals(reader, () => state.solver.runInitializations());
           output.write('   true.\n');
           continue;
@@ -42,7 +43,7 @@ export async function runRepl(engine, options = {}) {
         const consultFiles = options.isoStrict ? null : consultDesignations(engine, goal);
         if (consultFiles != null) {
           for (const filename of consultFiles) sources.push(await readSource(filename));
-          state = makeState(engine, sources, output, options, state);
+          state = makeState(engine, sources, output, options, state, reader);
           runWithTerminalSignals(reader, () => state.solver.runInitializations());
           output.write('   true.\n');
           continue;
@@ -78,6 +79,8 @@ export async function runRepl(engine, options = {}) {
 }
 
 class LineReader {
+  static syncWait = new Int32Array(new SharedArrayBuffer(4));
+
   constructor(input, output) {
     this.input = input;
     this.output = output;
@@ -142,6 +145,57 @@ class LineReader {
     return control;
   }
 
+  canReadTermSynchronously() {
+    return this.terminal && Number.isInteger(this.input.fd);
+  }
+
+  readInteractiveTermSync() {
+    if (!this.canReadTermSynchronously()) return null;
+    let source = '';
+    let prompt = '|: ';
+    while (true) {
+      this.output.write(prompt);
+      const line = this.readTerminalLineSync();
+      if (line == null) return source.trim() ? source : null;
+      source += `${line}\n`;
+      const end = terminalFullStop(source);
+      if (end >= 0) return source.slice(0, end + 1) + '\n';
+      prompt = '|    ';
+    }
+  }
+
+  readTerminalLineSync() {
+    const byte = Buffer.allocUnsafe(1);
+    const bytes = [];
+    while (true) {
+      let count;
+      try {
+        count = readSync(this.input.fd, byte, 0, 1, null);
+      } catch (error) {
+        // Node keeps terminal fds non-blocking.  Once readline is suspended,
+        // a synchronous read can therefore report EAGAIN while waiting for
+        // the user. Sleep briefly and retry; terminal signals still retain
+        // their native action because no readline signal handler is installed.
+        if (error?.code === 'EAGAIN' || error?.code === 'EWOULDBLOCK') {
+          Atomics.wait(LineReader.syncWait, 0, 0, 10);
+          continue;
+        }
+        throw error;
+      }
+      // In canonical terminal mode Ctrl-D on an empty line makes read(2)
+      // return zero bytes.  Scope that EOF to the current Prolog read rather
+      // than closing the outer readline iterator / top-level loop.
+      if (count === 0) {
+        return bytes.length === 0 ? null : Buffer.from(bytes).toString('utf8');
+      }
+      if (byte[0] === 10) {
+        if (bytes.at(-1) === 13) bytes.pop();
+        return Buffer.from(bytes).toString('utf8');
+      }
+      bytes.push(byte[0]);
+    }
+  }
+
   suspendForComputation() {
     if (!this.terminal || !this.readline) return false;
     // Node readline installs terminal signal handling while the interface is
@@ -175,7 +229,7 @@ function runWithTerminalSignals(reader, operation) {
   }
 }
 
-function makeState(engine, sources, output, options = {}, previousState = null) {
+function makeState(engine, sources, output, options = {}, previousState = null, reader = null) {
   const strictIso = options.isoStrict === true;
   const program = engine.Program.parseSources(sources, { strictIso, sourceMetadata: strictIso });
   const solver = new engine.Solver(program, {
@@ -183,6 +237,14 @@ function makeState(engine, sources, output, options = {}, previousState = null) 
     isoStrict: strictIso,
     ioOptions: { write: (text) => output.write(String(text)) },
   });
+  const userInput = solver.io.resolve('user_input');
+  if (userInput && reader?.canReadTermSynchronously()) {
+    // The solver is synchronous.  While pullSolution() has readline suspended,
+    // let ISO term input request a complete terminal term exactly when read/1-2
+    // or read_term/2-3 actually executes.  This also works inside conjunctions
+    // and user predicates instead of only when read/* is the whole REPL goal.
+    userInput.interactiveReadTerm = () => reader.readInteractiveTermSync();
+  }
   const flagOverrides = new Map(previousState?.flagOverrides ?? []);
   for (const [name, value] of flagOverrides) {
     const definition = solver.prologFlags.get(name);
@@ -218,6 +280,10 @@ async function readQuery(reader) {
 }
 
 async function prepareInteractiveTermInput(state, goal, reader) {
+  // Real terminals are serviced on demand from readTermFromStream() while the
+  // synchronous solver is running.  Keep the older async preloader only as a
+  // fallback for piped/non-TTY REPL tests and scripted input.
+  if (reader.canReadTermSynchronously()) return;
   const stream = interactiveTermInputStream(state, goal);
   if (stream == null || terminalFullStop(String(stream.content).slice(stream.position)) >= 0) return;
 

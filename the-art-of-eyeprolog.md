@@ -6228,21 +6228,27 @@ not be a valid right operand of the displayed `=/2`, EyeProlog adds parentheses,
 for example `T = (a = b).` rather than the invalid `T = a = b.`. Use `[file].`
 or `['file.pl'].` to
 consult local source, and `halt.` or `halt(Status).` to leave the top level.
-A direct top-level `read/1-2` or `read_term/2-3` from `user_input` requests the
-next full-stop-terminated Prolog term with a `|: ` input prompt instead of
-treating the interactive input stream as already exhausted. For example:
+When `read/1-2` or `read_term/2-3` actually reaches interactive
+`user_input`, the top level requests the next full-stop-terminated Prolog term
+with a `|: ` input prompt instead of treating the terminal stream as already
+exhausted. The request is made at execution time, so multiple reads in one goal
+and reads reached through user predicates work independently. For example:
 
 ```text
-?- read(X).
+?- read(X), read(Y).
 |: hello.
-   X = hello.
+|: world.
+   X = hello, Y = world.
 ```
 
-The top-level prompt itself is a host-interface convention rather than part of
-ISO/IEC 13211-1; the term that follows it is parsed by the same ISO term-input
-machinery as `read/1-2` and `read_term/2-3` on other text streams. Up and Down
-recall queries from the current session. Explicit `eyeprolog -h` displays
-command-line help.
+Typing `Ctrl-D` at an empty `|: ` prompt makes that Prolog read return
+`end_of_file`; it does not close the surrounding EyeProlog top-level loop, so a
+new `?- ` query can still be entered afterwards. The top-level prompts and this
+terminal EOF convention are host-interface behavior rather than part of
+ISO/IEC 13211-1; terms supplied to the reads are parsed by the same ISO
+term-input machinery as `read/1-2` and `read_term/2-3` on other text streams.
+Up and Down recall queries from the current session. Explicit `eyeprolog -h`
+displays command-line help.
 
 ### Selecting goals
 

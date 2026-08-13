@@ -720,6 +720,53 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL term input is on demand in conjunctions and Ctrl-D does not exit the top level',
+      run: () => {
+        if (process.platform === 'win32') return;
+        const available = spawnSync('sh', ['-c',
+          'command -v script >/dev/null 2>&1 && script --version 2>/dev/null | grep -qi util-linux']);
+        if (available.status !== 0) return;
+        const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
+        const scriptCommand =
+          `{ printf 'read(X), read(Y).\n'; sleep 0.15; ` +
+          `printf 'foo.\n'; sleep 0.15; printf 'bar.\n'; sleep 0.15; ` +
+          `printf 'read(Z).\n'; sleep 0.15; printf '\\004'; sleep 0.15; ` +
+          `printf 'true.\n'; sleep 0.15; printf 'halt.\n'; } | ` +
+          `script -qefc ${shellQuote(command)} /dev/null`;
+        const result = spawnSync('sh', ['-c', scriptCommand], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          timeout: 5000,
+        });
+        assertEqual(result.error?.code, undefined, 'interactive read timeout');
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'X = foo, Y = bar.', 'conjunction reads');
+        assertIncludes(result.stdout, 'Z = end_of_file.', 'Ctrl-D read result');
+        assertIncludes(result.stdout, '?- true.', 'top level resumes after Ctrl-D');
+        assertIncludes(result.stdout, '   true.', 'post-EOF query executes');
+      },
+    },
+    {
+      name: 'interactive user_input hook serves reads reached through user predicates',
+      run: () => {
+        const program = Program.parse('pair(A, B) :- read(A), read(B).\n');
+        const solver = new Solver(program, { registry: getEyePrologRegistry() });
+        const stream = solver.io.resolve('user_input');
+        const pending = ['left.\n', 'right.\n'];
+        let requests = 0;
+        stream.interactiveReadTerm = () => {
+          requests++;
+          return pending.shift() ?? null;
+        };
+        const goal = parseGoalText('pair(X, Y)');
+        const answers = [...solver.solve([goal], new Env(), 0)];
+        assertEqual(answers.length, 1, 'answer count');
+        assertEqual(termToString(copyResolved(goal.args[0], answers[0])), 'left', 'first read');
+        assertEqual(termToString(copyResolved(goal.args[1], answers[0])), 'right', 'second read');
+        assertEqual(requests, 2, 'on-demand read count');
+      },
+    },
+    {
       name: 'REPL releases terminal signals while a query computes',
       run: () => {
         if (process.platform === 'win32') return;

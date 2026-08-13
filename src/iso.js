@@ -1135,28 +1135,49 @@ function convertedTermText(text, solver) {
   return result;
 }
 function readTermFromStream(stream, solver) {
-  let sawCandidate = false;
-  for (const candidate of termTextCandidates(stream)) {
-    sawCandidate = true;
-    try {
-      const operatorState = createParserOperatorState(solver.program.operators.values(), false);
-      const clauses = parseClauses(convertedTermText(candidate.text, solver), {
-        sourceMetadata: false,
-        operatorState,
-        doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-      });
-      if (clauses.length !== 1 || clauses[0].body.length) throw new Error('bad term');
-      stream.position = candidate.end;
-      return clauses[0].head;
-    } catch (_) {
-      // A dot inside a graphic operator, such as =.., is only a possible
-      // terminator. Keep scanning until a complete term parses.
+  let requestedInteractiveTerm = false;
+  while (true) {
+    let sawCandidate = false;
+    for (const candidate of termTextCandidates(stream)) {
+      sawCandidate = true;
+      try {
+        const operatorState = createParserOperatorState(solver.program.operators.values(), false);
+        const clauses = parseClauses(convertedTermText(candidate.text, solver), {
+          sourceMetadata: false,
+          operatorState,
+          doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+        });
+        if (clauses.length !== 1 || clauses[0].body.length) throw new Error('bad term');
+        stream.position = candidate.end;
+        return clauses[0].head;
+      } catch (_) {
+        // A dot inside a graphic operator, such as =.., is only a possible
+        // terminator. Keep scanning until a complete term parses.
+      }
     }
+
+    // The interactive top level may attach a synchronous reader to the
+    // standard user_input stream. Ask it for one complete read-term only when
+    // this read operation actually reaches the end of buffered input. This is
+    // deliberately a stream hook, not goal-shape recognition, so conjunctions
+    // and reads reached through user predicates behave the same as read/1.
+    if (!sawCandidate && !requestedInteractiveTerm &&
+        typeof stream.interactiveReadTerm === 'function') {
+      requestedInteractiveTerm = true;
+      const text = stream.interactiveReadTerm();
+      if (text != null) {
+        stream.content += String(text);
+        stream.pastEnd = false;
+        continue;
+      }
+    }
+
+    stream.position = String(stream.content).length;
+    if (!sawCandidate) return atom('end_of_file');
+    throw new PrologError('syntax_error(read_term)');
   }
-  stream.position = String(stream.content).length;
-  if (!sawCandidate) return atom('end_of_file');
-  throw new PrologError('syntax_error(read_term)');
 }
+
 function* readBuiltin({ solver, goal, env }) {
   const stream = inputStreamFor(solver, goal, env);
   if (stream.type !== 'text') throw new PrologError('permission_error(input, binary_stream)', streamHandle(stream.id));
