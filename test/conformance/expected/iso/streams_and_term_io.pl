@@ -4,3 +4,4 @@ read_term_metadata(ok).
 default_streams(ok).
 io_marker
 standard_write(ok).
+numeric_escape_term_input(ok).

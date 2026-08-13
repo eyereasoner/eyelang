@@ -1063,16 +1063,36 @@ function isTerminatingFullStop(source, index) {
   return true;
 }
 
+function quotedEscapeEnd(source, index) {
+  const escaped = source[index + 1] ?? '';
+  if (!escaped) return index;
+
+  // ISO 6.4.2.1 numeric escapes include a terminating backslash.  Consume
+  // that delimiter as part of the quoted character so stream scanning does
+  // not mistake it for an escape of the quote which follows.
+  if (escaped === 'x') {
+    let cursor = index + 2;
+    while (/^[0-9A-Fa-f]$/.test(source[cursor] ?? '')) cursor++;
+    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
+  }
+  if (/^[0-7]$/.test(escaped)) {
+    let cursor = index + 1;
+    while (/^[0-7]$/.test(source[cursor] ?? '')) cursor++;
+    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
+  }
+
+  return index + 1;
+}
+
 function* termTextCandidates(stream) {
   const source = String(stream.content);
-  let quote = null, escaped = false, lineComment = false, blockComment = false;
+  let quote = null, lineComment = false, blockComment = false;
   for (let i = stream.position; i < source.length; i++) {
     const ch = source[i], next = source[i + 1];
     if (lineComment) { if (ch === '\n') lineComment = false; continue; }
     if (blockComment) { if (ch === '*' && next === '/') { blockComment = false; i++; } continue; }
     if (quote) {
-      if (escaped) escaped = false;
-      else if (ch === '\\') escaped = true;
+      if (ch === '\\') i = quotedEscapeEnd(source, i);
       else if (ch === quote && next === quote) i++;
       else if (ch === quote) quote = null;
       continue;
@@ -1087,13 +1107,21 @@ function* termTextCandidates(stream) {
 }
 function convertedTermText(text, solver) {
   if (solver.prologFlags.get('char_conversion')?.value?.name !== 'on' || solver.charConversions.size === 0) return text;
-  let result = '', quote = null, escaped = false;
-  for (const ch of text) {
+  let result = '', quote = null;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i], next = text[i + 1];
     if (quote) {
       result += ch;
-      if (escaped) escaped = false;
-      else if (ch === '\\') escaped = true;
-      else if (ch === quote) quote = null;
+      if (ch === '\\') {
+        const end = quotedEscapeEnd(text, i);
+        if (end > i) result += text.slice(i + 1, end + 1);
+        i = end;
+      } else if (ch === quote && next === quote) {
+        result += next;
+        i++;
+      } else if (ch === quote) {
+        quote = null;
+      }
     } else if (ch === "'" || ch === '"') {
       quote = ch;
       result += ch;

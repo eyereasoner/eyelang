@@ -65,3 +65,23 @@ default_streams(ok) :-
 standard_write(ok) :-
     write(io_marker),
     nl.
+
+%% goal: numeric_escape_term_input(ok)
+
+numeric_escape_term_input(ok) :-
+    open('/tmp/eyeprolog-iso-read-escapes.txt', write, Output, []),
+    put_code(Output, 39), put_code(Output, 92), put_code(Output, 55),
+    put_code(Output, 92), put_code(Output, 39), put_code(Output, 46), nl(Output),
+    put_code(Output, 39), put_code(Output, 92), put_code(Output, 120), put_code(Output, 55),
+    put_code(Output, 92), put_code(Output, 39), put_code(Output, 46), nl(Output),
+    close(Output),
+    current_input(Old),
+    open('/tmp/eyeprolog-iso-read-escapes.txt', read, Input, []),
+    set_input(Input),
+    read(A),
+    read_term(B, []),
+    set_input(Old),
+    close(Input),
+    A == '\a',
+    B == '\a'.
+

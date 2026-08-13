@@ -1207,6 +1207,44 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'term input accepts ISO numeric escapes through read predicates',
+      run: () => {
+        const escapePath = path.join(tmp, `read-escapes-${++tmpCounter}.term`);
+        // Two raw read-terms: '\7\'. and '\x7\'.  Build the file from
+        // character codes so this regression tests stream parsing rather than
+        // the parser which reads this JavaScript fixture.
+        fs.writeFileSync(escapePath, String.fromCharCode(
+          39, 92, 55, 92, 39, 46, 10,
+          39, 92, 120, 55, 92, 39, 46, 10,
+        ));
+        const source = [
+          `read_escapes(A, B) :-`,
+          `  current_input(Old),`,
+          `  open(${sourceAtom(escapePath)}, read, Input, []),`,
+          `  set_input(Input),`,
+          `  read(A),`,
+          `  read_term(B, []),`,
+          `  set_input(Old),`,
+          `  close(Input).`,
+          '',
+        ].join('\n');
+        assertEqual(
+          run(source, { goal: 'read_escapes(A, B)' }).stdout,
+          "read_escapes('\\a', '\\a').\n",
+          'read/1 and read_term/2 numeric escapes',
+        );
+
+        assertEqual(
+          run('answer(T) :- read(T).\n', {
+            goal: 'answer(T)',
+            ioOptions: { input: "'\\7\\'." },
+          }).stdout,
+          "answer('\\a').\n",
+          'read/1 user_input numeric escape',
+        );
+      },
+    },
+    {
       name: 'term input keeps dotted operators intact and uses program operators',
       run: () => {
         const univPath = path.join(tmp, `read-univ-${++tmpCounter}.term`);

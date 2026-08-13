@@ -5751,9 +5751,11 @@ the beginning. A peek does not mark the stream as past-end.
 | `write_canonical(+Term)`, `write_canonical(+Stream,+Term)` | Writes quoted canonical functor notation while ignoring operators and without interpreting *$VAR/1*. |
 | `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. |
 
-Term input uses the program's current operator table and applies installed
-character conversions outside quoted text when the `char_conversion` flag is
-`on`. `variable_names/1` and `singletons/1` omit anonymous variables. Output
+Term input uses the program's current operator table and the same ISO quoted-character
+syntax as source text, including backslash-terminated octal and hexadecimal
+escapes such as `'\7\'` and `'\x7\'`. This applies equally to `read/1-2` and
+`read_term/2-3`. Installed character conversions are applied outside quoted text
+when the `char_conversion` flag is `on`. `variable_names/1` and `singletons/1` omit anonymous variables. Output
 predicates do not append a period or newline; call `write/1`, then `write('.')`
 and `nl/0` when emitting a complete source term manually.
 
