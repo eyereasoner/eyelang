@@ -6408,8 +6408,10 @@ descriptions; variables introduced only by a description are fresh. For example,
 a query `throw(g(X))` is described by `throw(g(_X))`, while
 `throw(g(X)), unexpected` verifies that ISO `throw/1` did not retain the query
 variable in the renamed exception term. `...` and `ad_infinitum` accept further answers. Multiple
-indented descriptions after one query must all hold. `inputs/1` supplies and
-checks consumed characters; `outputs/1` checks emitted characters. `sto` marks
+indented descriptions after one query are independent checks: each re-runs the
+query, each is counted in the `quads:` summary, and a failing description does
+not suppress later descriptions for that query. `inputs/1` supplies and checks
+consumed characters; `outputs/1` checks emitted characters. `sto` marks
 an answer description that this finite-tree implementation skips. `loops` is
 checked with a deterministic solver-depth budget. The advanced stream
 annotations `peeks/1` and `waits`, and the unordered `other_answer_sequence`
@@ -6428,10 +6430,12 @@ console.log(report.passed, report.failed, report.stdout);
 The syntax follows the “queries using answer descriptions” convention used by
 Trealla and the ISO Prolog working examples. Because answer descriptions are
 layout-sensitive, indent every description while keeping ordinary clause heads
-and the next quad query at the left margin. A comma may be part of a quad label,
-including across layout before `?-`. Canonical functional notation is
-semantically equivalent: `?-(Label, Query).` followed by the same indented
-answer descriptions creates the same labelled quad as `Label ?- Query.`.
+and the next quad query at the left margin. A quad label may contain any number
+of comma-separated metadata fields, including across layout before `?-`; for
+example `9, "case", passes ?- Goal.` is one labelled query. Canonical
+functional notation is semantically equivalent: `?-(Label, Query).` followed by
+the same indented answer descriptions creates the same labelled quad as
+`Label ?- Query.`.
 
 Statistics are comparative evidence, not a score in isolation. Preserve the
 program, input, runtime version, selected query, answers, and counters together.

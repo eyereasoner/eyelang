@@ -259,6 +259,46 @@ why(
       },
     },
     {
+      name: 'quad labels accept multiple metadata fields and each answer description is independent',
+      run: () => {
+        const source = `9, "✳54·43", passes
+` +
+          `?- X is 1+1.
+` +
+          `   X = 3, unexpected. % almost
+` +
+          `   X = 1, unexpected. % too low
+` +
+          `   X = 2.0, unexpected.
+` +
+          `% and after checking PM:
+` +
+          `   X = 2.
+`;
+        const program = Program.parseSources([{ text: source, filename: 'issue-21.pl' }]);
+        assertEqual(program.quads.length, 1, 'query group count');
+        assertEqual(program.quads[0].answers.length, 4, 'answer-description count');
+        assertEqual(program.quads[0].id.name, ',', 'outer label comma');
+        assertEqual(program.quads[0].id.args[1].name, ',', 'right-associated label comma');
+        const result = publicApi.runQuads(program);
+        assertEqual(result.total, 4, 'answer-description total');
+        assertEqual(result.passed, 4, 'answer-description passed');
+        assertEqual(result.failed, 0, 'answer-description failed');
+        assertEqual(result.stdout, 'quads: 4 run, 4 passed, 0 failed.\n', 'issue #21 report');
+
+        const continuing = publicApi.runQuads(
+          `case ?- X is 1+1.
+   X = 3.
+   X = 2.
+`,
+        );
+        assertEqual(continuing.total, 2, 'later descriptions still run after failure');
+        assertEqual(continuing.passed, 1, 'later passing description counted');
+        assertEqual(continuing.failed, 1, 'failed description counted');
+        assertIncludes(continuing.stdout, 'quads: 2 run, 1 passed, 1 failed.', 'continuation summary');
+      },
+    },
+    {
       name: 'runQuads checks portable answer descriptions',
       run: () => {
         const source = `p(1).\np(2).\np(3).\n\n` +
@@ -275,10 +315,10 @@ why(
           `?- X = 1.\n   X = 2, unexpected.\n   X = 1.\n\n` +
           `?- catch(throw(ball), E, true).\n   E = ball | error(system_error, ...).\n`;
         const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'quads.pl' }]));
-        assertEqual(result.total, 12, 'quad total');
-        assertEqual(result.passed, 12, 'quad passed');
-        assertEqual(result.failed, 0, 'quad failed');
-        assertEqual(result.stdout, 'quads: 12 run, 12 passed, 0 failed.\n', 'quad report');
+        assertEqual(result.total, 13, 'answer-description total');
+        assertEqual(result.passed, 13, 'answer-description passed');
+        assertEqual(result.failed, 0, 'answer-description failed');
+        assertEqual(result.stdout, 'quads: 13 run, 13 passed, 0 failed.\n', 'quad report');
       },
     },
     {
@@ -288,10 +328,10 @@ why(
           `   throw(g(_X)).\n` +
           `   throw(g(X)), unexpected.\n`;
         const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'throw-copy-quad.pl' }]));
-        assertEqual(result.total, 1, 'quad total');
-        assertEqual(result.passed, 1, 'quad passed');
-        assertEqual(result.failed, 0, 'quad failed');
-        assertEqual(result.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'quad report');
+        assertEqual(result.total, 2, 'answer-description total');
+        assertEqual(result.passed, 2, 'answer-description passed');
+        assertEqual(result.failed, 0, 'answer-description failed');
+        assertEqual(result.stdout, 'quads: 2 run, 2 passed, 0 failed.\n', 'quad report');
 
         const forbiddenFresh = publicApi.runQuads(
           `?- throw(g(X)).\n   throw(g(_X)), unexpected.\n`,
@@ -396,9 +436,9 @@ c4 ?- call((!;1)).
           text: source,
           filename,
         }]));
-        assertEqual(result.total, 73, 'quad total');
-        assertEqual(result.passed, 73, 'quad passed');
-        assertEqual(result.stdout, 'quads: 73 run, 73 passed, 0 failed.\n', 'quad report');
+        assertEqual(result.total, 77, 'answer-description total');
+        assertEqual(result.passed, 77, 'answer-description passed');
+        assertEqual(result.stdout, 'quads: 77 run, 77 passed, 0 failed.\n', 'quad report');
       },
     },
     {

@@ -795,12 +795,28 @@ class Parser {
         continue;
       }
       let head = this.parseTerm(3);
-      // Both a quad label and a TS 13211-3 semicontext may contain an
-      // unparenthesized comma before their priority-1200 operator.  Assemble
-      // that left operand before deciding whether the marker is ?- or -->.
+      // Both a quad label and a TS 13211-3 semicontext may contain one or more
+      // unparenthesized commas before their priority-1200 operator.  Parse the
+      // complete comma sequence here instead of stopping after one separator;
+      // portable quad labels commonly carry several metadata fields, e.g.
+      // `9, "case", passes ?- Goal.`.  Build the standard right-associative
+      // comma term so this is the same label as `(9, "case", passes)`.
       if (this.token.type === TOK.COMMA) {
-        this.advance();
-        head = compound(',', [head, this.parseTerm(3)]);
+        const items = [head];
+        let extraCommaLine = null;
+        while (this.token.type === TOK.COMMA) {
+          if (items.length >= 2 && extraCommaLine == null) extraCommaLine = this.token.line;
+          this.advance();
+          items.push(this.parseTerm(3));
+        }
+        // Historically the program grammar admitted exactly one comma in a
+        // DCG semicontext.  Keep that boundary: the broader comma sequence is
+        // specifically the quad-label extension, not a new DCG syntax.
+        if (extraCommaLine != null && this.operatorTokenName() !== '?-') {
+          throw new Error(`parse line ${extraCommaLine}: expected ., got ,`);
+        }
+        head = items.pop();
+        while (items.length > 0) head = compound(',', [items.pop(), head]);
       }
       if (this.operatorTokenName() === '?-') {
         if (this.strictIso) {

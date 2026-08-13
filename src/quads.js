@@ -33,9 +33,14 @@ export function runQuads(source, options = {}) {
   const results = [];
   const lines = [];
   for (const quad of quads) {
-    const result = checkQuad(program, quad, options);
-    results.push(result);
-    if (!result.ok) lines.push(formatFailure(program, quad, result));
+    // Every indented answer description is an independent portable quad test.
+    // Re-run the query for each description so a failed expectation does not
+    // prevent later expectations for the same query from being checked.
+    for (const description of quad.answers) {
+      const result = checkQuadDescription(program, quad, description, options);
+      results.push(result);
+      if (!result.ok) lines.push(formatFailure(program, quad, result, description));
+    }
   }
   const passed = results.filter((result) => result.ok).length;
   const failed = results.length - passed;
@@ -43,15 +48,11 @@ export function runQuads(source, options = {}) {
   return { stdout: lines.join(''), total: results.length, passed, failed, results };
 }
 
-function checkQuad(program, quad, options) {
+function checkQuadDescription(program, quad, description, options) {
   if (quad.id != null && !termIsGround(quad.id, new Env())) {
     return { ok: false, kind: 'bad_identifier', expected: quad.id };
   }
-  for (const description of quad.answers) {
-    const checked = checkDescription(program, quad, description, options);
-    if (!checked.ok) return checked;
-  }
-  return { ok: true };
+  return checkDescription(program, quad, description, options);
 }
 
 function checkDescription(program, quad, description, options) {
@@ -398,14 +399,14 @@ function splitOperator(term, name) {
   return [term];
 }
 
-function formatFailure(program, quad, result) {
+function formatFailure(program, quad, result, description = quad.answers[0]) {
   const source = quad.source ?? { filename: '<input>', line: 1 };
   const label = quad.id == null ? '' : `${formatQuadTerm(program, quad.id)}, `;
   const reason = result.kind === 'malformed' ? 'MALFORMED'
     : result.kind === 'bad_identifier' ? 'BAD_ID'
       : result.kind === 'unsupported' ? 'UNSUPPORTED'
         : 'FAILED';
-  const expected = result.expected ?? quad.answers[0];
+  const expected = result.expected ?? description;
   return `quads: ${reason} ${label}${source.filename}:${source.line}\n` +
     `   ?- ${formatQuadTerm(program, quad.query)}.\n` +
     `   expected: ${formatQuadTerm(program, expected)}.\n`;

@@ -79,6 +79,11 @@ member_test ?- member(X, [prolog, logic]).
 ;  X = logic.
 ```
 
+A label may contain several comma-separated metadata fields. When a query has
+multiple indented answer descriptions, each description is checked and counted
+independently, so one failed expectation does not prevent the later ones from
+running.
+
 ## Strict ISO/IEC 13211-1 core
 
 For portability and conformance work, run the Part 1 core with Technical
