@@ -5276,17 +5276,27 @@ city('München').
 message("café").
 ```
 
-Inside a quoted atom, a single quote is doubled: `'don''t'`. Quoted characters
-support the ISO symbolic control escapes such as `\a`, `\n`, and `\t`, and numeric
-octal or hexadecimal escapes are terminated by a backslash; for example, `'\7\'`
-and `'\x7\'` both denote the alert character. The NUL character, when present in
-the processor character set, is written readably as `'\0\'`; digits `8` and `9`
-are not octal digits, so forms such as `'\8\'` are syntax errors rather than
-continuation input. Double-quoted lists use the same
-quoted-character escapes. Whitespace is insignificant
-between tokens, and a `%` comment continues to the end of its line. Doubling
-the active delimiter is also accepted inside either quoted form, so `""`
-inside double-quoted notation denotes one literal double quote character.
+Inside a quoted atom, a single quote is doubled: `'don''t'`. EyeProlog follows
+the ISO quoted-character grammar rather than accepting arbitrary backslash
+escapes. The symbolic control escapes are `\a`, `\b`, `\r`, `\f`, `\t`,
+`\n`, and `\v`; the meta characters backslash, single quote, double quote, and
+back quote may be escaped after a backslash; and numeric octal or hexadecimal
+escapes are terminated by a backslash. For example, `'\7\'` and `'\x7\'`
+both denote the alert character. Forms such as `\c`, `\d`, `\e`, `\u`, `\.`
+and `\ ` are not ISO quoted-character escapes and are syntax errors.
+
+A literal layout character other than ordinary space is not a quoted
+character. In particular, a literal tab or newline inside quotes is a syntax
+error. A quoted token can cross a line boundary only through a continuation
+escape: a backslash immediately followed by the newline, which contributes no
+character to the atom. The NUL character is written readably as `'\0\'`;
+digits `8` and `9` are not octal digits, so forms such as `'\8\'` are syntax
+errors. `writeq/1` uses octal escapes for other non-symbolic control characters,
+for example ESC is written as `'\33\'`. Double-quoted lists use the same
+quoted-character rules. Whitespace is insignificant between tokens, and a `%`
+comment continues to the end of its line. Doubling the active delimiter is
+also accepted inside either quoted form, so `""` inside double-quoted notation
+denotes one literal double quote character.
 
 Graphic atoms may contain `#$&*+-/<=>@^~\;`. A colon is the Part 2 module
 qualification operator in `Module:Goal`; quote an atom whose name itself
@@ -6959,7 +6969,7 @@ precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 783 cases, including 377 focused ISO
+contains 789 cases, including 383 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 189 normal

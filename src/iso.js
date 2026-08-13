@@ -1067,6 +1067,11 @@ function quotedEscapeEnd(source, index) {
   const escaped = source[index + 1] ?? '';
   if (!escaped) return index;
 
+  // A quoted-token continuation escape consumes its newline. Accept CRLF as
+  // the host representation of the same line boundary.
+  if (escaped === '\n') return index + 1;
+  if (escaped === '\r' && source[index + 2] === '\n') return index + 2;
+
   // ISO 6.4.2.1 numeric escapes include a terminating backslash.  Consume
   // that delimiter as part of the quoted character so stream scanning does
   // not mistake it for an escape of the quote which follows.
@@ -1096,6 +1101,13 @@ function* termTextCandidates(stream) {
     if (blockComment) { if (ch === '*' && next === '/') { blockComment = false; i++; } continue; }
     if (quote) {
       if (ch === '\\') i = quotedEscapeEnd(source, i);
+      else if (ch !== ' ' && /^[\u0009-\u000d]$/.test(ch)) {
+        // Literal layout characters are not quoted characters (6.4.2.1).
+        // Surface the lexical error immediately even when there is no later
+        // full stop; otherwise read/1 would misreport malformed input as EOF.
+        yield { text: source.slice(stream.position, i + 1), end: i + 1, lexicalError: true };
+        return;
+      }
       else if (ch === quote && next === quote) i++;
       else if (ch === quote) quote = null;
       continue;
@@ -1140,6 +1152,10 @@ function readTermFromStream(stream, solver) {
     let sawCandidate = false;
     for (const candidate of termTextCandidates(stream)) {
       sawCandidate = true;
+      if (candidate.lexicalError) {
+        stream.position = candidate.end;
+        throw new PrologError('syntax_error(read_term)');
+      }
       try {
         const operatorState = createParserOperatorState(solver.program.operators.values(), false);
         const clauses = parseClauses(convertedTermText(candidate.text, solver), {

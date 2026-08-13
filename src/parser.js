@@ -285,29 +285,58 @@ class Parser {
       break;
     }
   }
-  readEscape(line) {
+  readEscape(line, options = {}) {
     const escaped = this.take();
     if (!escaped) throw new Error(`parse line ${line}: unterminated escape sequence`);
-    if (escaped === '\n') return '';
+
+    // ISO 6.4.2 permits a continuation escape only inside quoted tokens: a
+    // backslash immediately followed by a newline. Character-code constants
+    // use a single quoted character and therefore cannot use continuation.
+    if (escaped === '\n') {
+      if (options.allowContinuation !== false) return '';
+      throw new Error(`parse line ${line}: bad escape sequence`);
+    }
+    if (escaped === '\r' && this.peek() === '\n') {
+      if (options.allowContinuation !== false) {
+        this.take();
+        return '';
+      }
+      throw new Error(`parse line ${line}: bad escape sequence`);
+    }
+
     const controls = { a: '\x07', b: '\b', r: '\r', f: '\f', t: '\t', n: '\n', v: '\v' };
     if (controls[escaped] != null) return controls[escaped];
+
     if (escaped === 'x') {
       let digits = '';
       while (/^[0-9A-Fa-f]$/.test(this.peek())) digits += this.take();
       if (!digits || this.take() !== '\\') throw new Error(`parse line ${line}: bad hexadecimal escape`);
-      return String.fromCodePoint(Number.parseInt(digits, 16));
+      const code = Number.parseInt(digits, 16);
+      if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
+        throw new Error(`parse line ${line}: character escape out of range`);
+      }
+      return String.fromCodePoint(code);
     }
     if (/^[0-7]$/.test(escaped)) {
       let digits = escaped;
       while (/^[0-7]$/.test(this.peek())) digits += this.take();
       if (this.take() !== '\\') throw new Error(`parse line ${line}: bad octal escape`);
-      return String.fromCodePoint(Number.parseInt(digits, 8));
+      const code = Number.parseInt(digits, 8);
+      if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
+        throw new Error(`parse line ${line}: character escape out of range`);
+      }
+      return String.fromCodePoint(code);
     }
     // A backslash followed by a decimal digit is numeric-escape syntax, but
     // ISO octal digits are limited to 0..7.  Do not reinterpret \8 or \9 as
     // implementation-specific one-character escapes.
     if (/^[0-9]$/.test(escaped)) throw new Error(`parse line ${line}: bad octal escape`);
-    return escaped;
+
+    // The only remaining ISO meta escapes are the four meta characters from
+    // 6.5.5.  Forms such as \c, \d, \e, \u or \. are not quoted
+    // characters in ISO syntax and must not be silently accepted.
+    if (escaped === '\\' || escaped === "'" || escaped === '"' || escaped === '`') return escaped;
+    throw new Error(`parse line ${line}: bad escape sequence`);
   }
   nextToken() {
     // The tokenizer keeps just enough state for useful parse-line errors and
@@ -373,6 +402,11 @@ class Parser {
           }
         } else if (value === '\\' && this.peek()) {
           value = this.readEscape(line);
+        } else if (value !== ' ' && isWhitespaceCode(value.charCodeAt(0))) {
+          // ISO 6.4.2.1 allows an ordinary space in a quoted character, but
+          // not literal layout characters such as tab or newline. Newlines
+          // are permitted only through the continuation escape handled above.
+          throw new Error(`parse line ${line}: layout character in quoted term`);
         }
         text += value;
       }
@@ -398,8 +432,10 @@ class Parser {
         this.take();
         this.take();
         let value = this.take();
-        if (!value || value === '\n') throw new Error(`parse line ${line}: bad character code constant`);
-        if (value === '\\') value = this.readEscape(line);
+        if (!value || (value !== ' ' && isWhitespaceCode(value.charCodeAt(0)))) {
+          throw new Error(`parse line ${line}: bad character code constant`);
+        }
+        if (value === '\\') value = this.readEscape(line, { allowContinuation: false });
         const code = value.codePointAt(0);
         return { type: TOK.NUMBER, text: String(negative ? -code : code), line };
       }

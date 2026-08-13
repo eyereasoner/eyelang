@@ -5,3 +5,4 @@ default_streams(ok).
 io_marker
 standard_write(ok).
 numeric_escape_term_input(ok).
+malformed_quoted_term_input(ok).

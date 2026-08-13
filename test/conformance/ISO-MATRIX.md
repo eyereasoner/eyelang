@@ -8,7 +8,7 @@ compliance audit and the remaining work before a full conformance claim.
 
 | Standard area | Implementation | Representative executable coverage |
 | --- | --- | --- |
-| Clause 6 lexical and term syntax | tokenizer, operator parser, lists, curly terms, quotes, numeric syntax, comments | `scryer_lexical_terms`, `lexical_and_curly_terms`, `double_quoted_lists`, `corrigendum1_double_quote_operator`, `wg17_syntax_high_risk`, `wg17_invalid_octal_escape`, syntax error cases |
+| Clause 6 lexical and term syntax | tokenizer, operator parser, lists, curly terms, quotes, numeric syntax, comments | `scryer_lexical_terms`, `lexical_and_curly_terms`, `double_quoted_lists`, `corrigendum1_double_quote_operator`, `wg17_syntax_high_risk`, `wg17_invalid_octal_escape`, `wg17_unterminated_quoted_token`, `wg17_literal_newline_in_quote`, `wg17_non_iso_escape`, syntax error cases |
 | Clause 7 term order and unification | finite-tree unification, identity, standard order, errors | `unification_control_information`, `swipl_occurs_check`, `term_modes_and_ordering`, `logtalk_compare_standard_order` |
 | Clause 7 control and exceptions | call, cut, conjunction, disjunction, if-then-else, catch and throw | `cut_control`, `control_and_terms`, `exceptions_and_flags`, `corrigenda_catch_callability`, `throw_copies_ball` |
 | 8.2-8.5 term predicates | unification, Corrigendum 2 tests, comparison, sorting, creation and decomposition | `corrigenda_term_predicates`, `corrigenda_sort_keysort`, `logtalk_arg_unification`, `logtalk_univ`, associated error cases |

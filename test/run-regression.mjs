@@ -697,6 +697,127 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL rejects an unterminated quote at the line boundary instead of waiting',
+      run: () => {
+        const result = runCli([], {
+          input: "'\nhalt.\n",
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    parse line 1: unterminated quoted term.\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL rejects a literal newline in a quoted token immediately',
+      run: () => {
+        const result = runCli([], {
+          // The first input line ends while a quote is open. ISO 6.4.2.1
+          // makes that newline a lexical error unless it is escaped by the
+          // immediately preceding backslash. The following true/0 proves
+          // that the top level did not consume another line as continuation.
+          input: "writeq('\ntrue.\nhalt.\n",
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    parse line 1: unterminated quoted term.\n' +
+          '?-    true.\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'parser matches WG17 quoted-character and escape syntax cluster',
+      run: () => {
+        const invalid = [
+          ['#2 lone quote', "'\n"],
+          ['#5 literal horizontal tab', "writeq('\t')"],
+          ['#6 literal newline', "writeq('\n')"],
+          ['#11 backslash-space', String.raw`writeq('\ ')`],
+          ['#12 backslash-horizontal-tab', "writeq('\\\t')"],
+          ['#16 non-ISO c escape', String.raw`writeq('\ca')`],
+          ['#241 non-ISO d escape', String.raw`writeq('\d')`],
+          ['#17 non-ISO e escape', String.raw`writeq('\e')`],
+          ['#19 non-ISO e in char_code/2', String.raw`char_code('\e', C)`],
+          ['#21 non-ISO d in char_code/2', String.raw`char_code('\d', C)`],
+          ['#22 non-ISO u escape', String.raw`writeq('\u1')`],
+          ['#312 non-ISO Unicode escape', String.raw`writeq('\u0021')`],
+          ['#314 non-ISO Unicode double-quote escape', String.raw`writeq("\u0021")`],
+          ['#23 non-ISO character-code escape', String.raw`X = 0'\u1`],
+          ['#24 unterminated quoted argument', "writeq('\n"],
+          ['#26 continuation followed by unterminated quote', "'\\\n''"],
+          ['#210 escaped dot character code', String.raw`X = 0'\.`],
+          ['#211 escaped dot character code before layout', String.raw`X = 0'\. `],
+        ];
+        for (const [label, source] of invalid) {
+          let error = null;
+          try {
+            parseGoalText(source);
+          } catch (caught) {
+            error = caught;
+          }
+          if (error == null) throw new Error(`${label} unexpectedly parsed`);
+        }
+
+        const valid = [
+          ['#7 empty continuation', "writeq('\\\n')"],
+          ['#8 leading continuation', "writeq('\\\na')"],
+          ['#9 embedded continuation', "writeq('a\\\nb')"],
+          ['#10 continuation before space', "writeq('a\\\n b')"],
+          ['#13 symbolic tab', String.raw`writeq('\t')`],
+          ['#14 symbolic alert', String.raw`writeq('\a')`],
+          ['#15 octal alert', String.raw`writeq('\7\')`],
+          ['#18 octal escape', String.raw`writeq('\033\')`],
+          ['#301 NUL escape', String.raw`writeq('\0\')`],
+          ['#315 hexadecimal escape', String.raw`writeq('\x21\')`],
+          ['#316 padded hexadecimal escape', String.raw`writeq('\x0021\')`],
+          ['#38 double-quoted meta escapes', "\"\\'\\`\\\"\" = \"'`\"\"\""],
+          ['#39 single-quoted meta escapes', "'\\'\\`\\\"' = '''`\"'"],
+          ['#40 writeq meta escapes', "writeq('\\'\\`\\\"\\\"')"],
+          ['#41 meta backslash escape', String.raw`('\\') = (\)`],
+        ];
+        for (const [label, source] of valid) {
+          try {
+            parseGoalText(source);
+          } catch (error) {
+            throw new Error(`${label} should parse: ${error?.message ?? error}`);
+          }
+        }
+      },
+    },
+    {
+      name: 'stream term input reports malformed quoted layout as syntax_error',
+      run: () => {
+        for (const [label, input] of [
+          ['lone quote', "'\n"],
+          ['literal newline', "writeq('\n').\n"],
+          ['literal tab', "writeq('\t').\n"],
+        ]) {
+          let error = null;
+          try {
+            runEyeProlog('', { goal: 'read(X)', ioOptions: { input } });
+          } catch (caught) {
+            error = caught;
+          }
+          assertEqual(error?.message, 'error(syntax_error(read_term))', `${label} read error`);
+        }
+      },
+    },
+    {
+      name: 'writeq uses ISO numeric escapes for non-symbolic control characters',
+      run: () => {
+        const result = runCli([], {
+          input: "writeq('\\033\\').\nhalt.\n",
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, "?- '\\33\\'   true.\n?- ", 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL read predicates consume following interactive term input',
       run: () => {
         const result = runCli([], {

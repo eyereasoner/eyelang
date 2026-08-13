@@ -1,1 +1,1 @@
-parse line 1: unterminated quoted term
+parse line 1: layout character in quoted term

@@ -30,7 +30,7 @@ error-ordering alternative to an individual executable assertion.
 
 | Standard area | Status | Current evidence |
 | --- | --- | --- |
-| Clause 6 — tokens, terms, lists, operators, quoted text | audit | `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, `wg17_syntax_high_risk`, writer/read-back regressions. |
+| Clause 6 — tokens, terms, lists, operators, quoted text | audit | `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, `wg17_syntax_high_risk`, quoted-layout/escape error cases, writer/read-back regressions. |
 | 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates. |
 | 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Cross-text `multifile/1` and ordering constraints require explicit shall-by-shall audit. |
 | 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access. Public/private and multi-text requirements still need complete mapping. |

@@ -338,6 +338,12 @@ function quotedEscapeEnd(source, index) {
   const escaped = source[index + 1] ?? '';
   if (!escaped) return index;
 
+  // A backslash-newline pair is a continuation escape (6.4.2), so the
+  // newline is not a literal quoted character. Accept CRLF as the host text
+  // representation of the same continuation boundary.
+  if (escaped === '\n') return index + 1;
+  if (escaped === '\r' && source[index + 2] === '\n') return index + 2;
+
   // ISO 6.4.2.1 octal and hexadecimal escapes are terminated by a
   // backslash.  Consume that terminator as part of the escape so the REPL
   // scanner does not mistake it for an escape of the following quote.
@@ -383,6 +389,12 @@ function terminalFullStop(source) {
     if (quote != null) {
       if (ch === '\\') {
         i = quotedEscapeEnd(source, i);
+      } else if (ch === '\n' || ch === '\r') {
+        // A literal newline can never be repaired by a later line: ISO
+        // 6.4.2.1 excludes it from quoted characters. Return this boundary
+        // immediately so the parser reports a syntax error instead of the
+        // top level prompting forever for a closing quote.
+        return i;
       } else if (ch === quote) {
         if (next === quote) i++;
         else quote = null;

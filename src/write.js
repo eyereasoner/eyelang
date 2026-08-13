@@ -7,6 +7,23 @@ import {
 const graphicAtomCharacters = new Set('!#$&*+-/<=>@^~\\'.split(''));
 const compactInfixOperators = new Set([':', '..']);
 
+function quotedControlEscape(ch) {
+  if (ch === '\x00') return '\\0\\';
+  if (ch === '\x07') return '\\a';
+  if (ch === '\b') return '\\b';
+  if (ch === '\r') return '\\r';
+  if (ch === '\f') return '\\f';
+  if (ch === '\t') return '\\t';
+  if (ch === '\n') return '\\n';
+  if (ch === '\v') return '\\v';
+  const code = ch.codePointAt(0);
+  // Other C0 controls and DEL have no ISO symbolic-control escape. Emit an
+  // octal escape so quoted output remains valid read-back syntax instead of
+  // leaking a raw control character into the output stream.
+  if (code < 0x20 || code === 0x7f) return `\\${code.toString(8)}\\`;
+  return null;
+}
+
 function atomNeedsQuotes(name) {
   if (!name) return true;
   if (name === '[]' || name === '{}') return false;
@@ -22,15 +39,7 @@ function quoteAtom(name) {
   for (const ch of name) {
     if (ch === "'") out += "''";
     else if (ch === '\\') out += '\\\\';
-    else if (ch === '\x00') out += '\\0\\';
-    else if (ch === '\x07') out += '\\a';
-    else if (ch === '\b') out += '\\b';
-    else if (ch === '\r') out += '\\r';
-    else if (ch === '\f') out += '\\f';
-    else if (ch === '\t') out += '\\t';
-    else if (ch === '\n') out += '\\n';
-    else if (ch === '\v') out += '\\v';
-    else out += ch;
+    else out += quotedControlEscape(ch) ?? ch;
   }
   return out + "'";
 }
@@ -60,15 +69,7 @@ function writeString(value) {
   let out = '"';
   for (const ch of value) {
     if (ch === '"' || ch === '\\') out += `\\${ch}`;
-    else if (ch === '\x00') out += '\\0\\';
-    else if (ch === '\x07') out += '\\a';
-    else if (ch === '\b') out += '\\b';
-    else if (ch === '\r') out += '\\r';
-    else if (ch === '\f') out += '\\f';
-    else if (ch === '\t') out += '\\t';
-    else if (ch === '\n') out += '\\n';
-    else if (ch === '\v') out += '\\v';
-    else out += ch;
+    else out += quotedControlEscape(ch) ?? ch;
   }
   return out + '"';
 }
