@@ -6216,7 +6216,11 @@ may span lines and end with a full stop, as in Scryer Prolog:
 When another answer exists in an interactive terminal, press `;`, Space, or
 `n` to ask for it immediately; no Return is needed. Return or `.` stops
 enumeration, `a` enumerates all remaining answers, `f` enumerates the next
-five, and `h` displays the answer-control help. A
+five, and `h` displays the answer-control help. While a query is actively
+computing, EyeProlog releases readline's terminal signal handling: `Ctrl-C`
+therefore terminates the current EyeProlog process immediately, and on POSIX
+terminals `Ctrl-Z` suspends it in the usual shell-managed way. This remains a
+host top-level convention rather than an ISO/IEC 13211-1 language feature. A
 period-terminated query with no solutions prints `false.`; a solution without
 visible variable bindings prints `true.`. Answer substitutions are rendered as
 valid Prolog syntax under the current operator table: when a bound value would

@@ -24,7 +24,7 @@ export async function runRepl(engine, options = {}) {
   let exitCode = 0;
 
   try {
-    state.solver.runInitializations();
+    runWithTerminalSignals(reader, () => state.solver.runInitializations());
     while (true) {
       const text = await readQuery(reader);
       if (text == null) break;
@@ -35,7 +35,7 @@ export async function runRepl(engine, options = {}) {
         if (!options.isoStrict && isUseModuleGoal(goal)) {
           sources.push({ text: `:- ${text}.\n`, filename: '<repl>' });
           state = makeState(engine, sources, output, options, state);
-          state.solver.runInitializations();
+          runWithTerminalSignals(reader, () => state.solver.runInitializations());
           output.write('   true.\n');
           continue;
         }
@@ -43,7 +43,7 @@ export async function runRepl(engine, options = {}) {
         if (consultFiles != null) {
           for (const filename of consultFiles) sources.push(await readSource(filename));
           state = makeState(engine, sources, output, options, state);
-          state.solver.runInitializations();
+          runWithTerminalSignals(reader, () => state.solver.runInitializations());
           output.write('   true.\n');
           continue;
         }
@@ -142,9 +142,36 @@ class LineReader {
     return control;
   }
 
+  suspendForComputation() {
+    if (!this.terminal || !this.readline) return false;
+    // Node readline installs terminal signal handling while the interface is
+    // open. During a synchronous Prolog search that prevents the terminal's
+    // normal SIGINT/SIGTSTP actions from taking effect until JavaScript yields.
+    // Close readline while the solver is running so Ctrl-C can terminate and
+    // Ctrl-Z can suspend an otherwise non-terminating computation immediately.
+    this.history = [...this.readline.history];
+    this.readline.close();
+    this.readline = null;
+    this.lines = null;
+    return true;
+  }
+
+  resumeAfterComputation(suspended) {
+    if (suspended && !this.readline) this.open();
+  }
+
   close() {
     if (this.input.isRaw) this.input.setRawMode(false);
     this.readline?.close();
+  }
+}
+
+function runWithTerminalSignals(reader, operation) {
+  const suspended = reader.suspendForComputation();
+  try {
+    return operation();
+  } finally {
+    reader.resumeAfterComputation(suspended);
   }
 }
 
@@ -369,7 +396,7 @@ async function solveQuery(engine, state, goal, reader, output) {
   const solver = state.solver;
   solver.solutionsSeen = 0;
   const solutions = solver.solve([goal], new engine.Env(), 0);
-  let current = pullSolution(solver, solutions);
+  let current = pullSolution(solver, solutions, reader);
   if (current.error) {
     if (current.error?.name === 'HaltSignal') return { halted: true, code: current.error.code };
     throw current.error;
@@ -383,7 +410,7 @@ async function solveQuery(engine, state, goal, reader, output) {
   let automatic = 0;
   let firstAnswer = true;
   while (!current.result.done) {
-    const next = pullSolution(solver, solutions);
+    const next = pullSolution(solver, solutions, reader);
     output.write(current.output);
     output.write(`${firstAnswer ? '   ' : ''}${formatAnswer(engine, state, variables, current.result.value)}`);
     firstAnswer = false;
@@ -436,16 +463,18 @@ async function solveQuery(engine, state, goal, reader, output) {
   return null;
 }
 
-function pullSolution(solver, solutions) {
+function pullSolution(solver, solutions, reader) {
   const stream = solver.io.resolve('user_output');
   const originalWrite = stream?.write;
   let captured = '';
   if (stream) stream.write = (text) => { captured += String(text); };
+  const suspended = reader.suspendForComputation();
   try {
     return { result: solutions.next(), output: captured };
   } catch (error) {
     return { error, output: captured };
   } finally {
+    reader.resumeAfterComputation(suspended);
     if (stream) stream.write = originalWrite;
   }
 }

@@ -720,6 +720,27 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL releases terminal signals while a query computes',
+      run: () => {
+        if (process.platform === 'win32') return;
+        const available = spawnSync('sh', ['-c',
+          'command -v script >/dev/null 2>&1 && script --version 2>/dev/null | grep -qi util-linux']);
+        if (available.status !== 0) return;
+        const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
+        const scriptCommand =
+          `{ printf 'repeat, fail.\n'; sleep 0.2; printf '\\003'; } | ` +
+          `script -qefc ${shellQuote(command)} /dev/null`;
+        const result = spawnSync('sh', ['-c', scriptCommand], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          timeout: 3000,
+        });
+        assertEqual(result.error?.code, undefined, 'terminal interrupt timeout');
+        assertEqual(result.status, 130, 'SIGINT exit status');
+        assertIncludes(result.stdout, '?- repeat, fail.', 'terminal query echo');
+      },
+    },
+    {
       name: 'REPL accepts multiline period-terminated queries',
       run: () => {
         const result = runCli([], { input: '(X =\n  one).\nhalt.\n' });
@@ -3107,6 +3128,10 @@ function between(text, startMarker, endMarker) {
   const end = text.indexOf(endMarker, contentStart);
   if (end === -1) throw new Error(`${endMarker} not found`);
   return text.slice(contentStart, end);
+}
+
+function shellQuote(value) {
+  return `'${String(value).replaceAll("'", "'\"'\"'")}'`;
 }
 
 function runCli(args, options = {}) {
