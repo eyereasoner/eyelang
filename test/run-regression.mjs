@@ -396,9 +396,24 @@ c4 ?- call((!;1)).
           text: source,
           filename,
         }]));
-        assertEqual(result.total, 72, 'quad total');
-        assertEqual(result.passed, 72, 'quad passed');
-        assertEqual(result.stdout, 'quads: 72 run, 72 passed, 0 failed.\n', 'quad report');
+        assertEqual(result.total, 73, 'quad total');
+        assertEqual(result.passed, 73, 'quad passed');
+        assertEqual(result.stdout, 'quads: 73 run, 73 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
+      name: 'number conversion rejects parenthesized numeric terms',
+      run: () => {
+        for (const goal of ['number_chars(N,"(0)")', 'number_codes(N,[40,48,41])']) {
+          let caught = null;
+          try {
+            publicApi.run('', { goal });
+          } catch (error) {
+            caught = error;
+          }
+          if (caught == null) throw new Error(`${goal} should throw`);
+          assertIncludes(String(caught?.message ?? caught), 'syntax_error(number)', goal);
+        }
       },
     },
     {

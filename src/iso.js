@@ -1564,6 +1564,13 @@ function parseIsoNumber(text) {
   }
 
   const numericText = `${sign}${text.slice(position)}`;
+  // 8.16.7/8.16.8 parse the character sequence according to the syntax rules
+  // for numbers and negative numbers (6.3.1.1/6.3.1.2), not as an arbitrary
+  // term whose value happens to be numeric. Every such number starts with a
+  // decimal digit after an optional negative sign, so parenthesized terms such
+  // as `(0)` or `-(0)` must be rejected before the general term parser sees
+  // them. This keeps the parser reuse below from admitting grouping syntax.
+  if (!/^-?\d/.test(numericText)) return null;
   // ISO floating-point syntax requires a decimal fraction before an exponent.
   if (/^-?\d+[eE][+-]?\d+$/.test(numericText)) return null;
   try {

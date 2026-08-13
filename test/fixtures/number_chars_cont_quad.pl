@@ -36,6 +36,9 @@
 70 ?- number_chars(N,"0x11").
       N=17.
 
+73 ?- number_chars(N,"(0)").
+      syntax_error(...).
+
 4  ?- number_chars(1,"a").
       syntax_error(...).
 

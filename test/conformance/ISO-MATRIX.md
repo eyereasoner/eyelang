@@ -16,7 +16,7 @@ compliance audit and the remaining work before a full conformance claim.
 | 8.8-8.10 database and solutions | logical update view, dynamic mutation, all-solutions grouping | `dynamic_database`, `trealla_logical_update_view`, `corrigenda_retractall`, `grouped_solutions_and_clauses` |
 | 8.11-8.14 streams and term I/O | text/binary streams, properties, units, read/write options and operators | `streams_and_term_io`, `operators`, Corrigendum 3 option cases, stream error cases |
 | 8.15 logic and control | negation, once, repeat, `call/2` through `call/8`, `false/0` | `logtalk_once`, `corrigenda_call_closure`, `false_builtin` |
-| 8.16 atomic processing | atoms, characters, codes and number conversion with prescribed errors | `atomic_term_processing`, focused forward/reverse cases, Logtalk-derived error cases |
+| 8.16 atomic processing | atoms, characters, codes and number conversion with prescribed errors | `atomic_term_processing`, focused forward/reverse cases, parenthesized-number rejection, Logtalk-derived error cases |
 | 8.17 flags and hooks | required flags, mutation permissions, halt and character conversion | `exceptions_and_flags`, `remaining_builtins_and_directives`, flag error cases |
 | Clause 9 evaluable functors | integer, float, rounding, transcendental and bitwise operations | `arithmetic`, `corrigenda_arithmetic`, `corrigenda_atan2_zero`, `corrigenda_integer_negative_power` |
 | ISO/IEC 13211-2 modules | module declarations, exports, imports, qualification, meta-predicate context | `modules/qualified_call`, `modules/selective_library_import`, `dcg_module_nonterminal_indicator` |

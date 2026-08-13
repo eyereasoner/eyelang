@@ -5735,13 +5735,16 @@ quoted_atom("ab").           % quoted_atom(ab)
 | `sub_atom(+Atom,?Before,?Length,?After,?SubAtom)` | Enumerates substrings and their Unicode-code-point offsets. Supplied counts must be nonnegative integers. |
 | `atom_chars(?Atom,?Chars)`, `atom_codes(?Atom,?Codes)` | Convert between an atom and a proper list of one-character atoms or Unicode scalar codes. At least one side must be instantiated. |
 | `char_code(?Character,?Code)` | Converts one character atom and one Unicode scalar code. Surrogates and values outside `0..0x10ffff` raise a representation error. |
-| `number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)` | Convert finite numbers to canonical text or parse a proper character/code list using ISO numeric-token syntax, including radix integers, character-code constants, and leading layout. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*. |
+| `number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)` | Convert finite numbers to canonical text or parse a proper character/code list using ISO number and negative-number syntax, including radix integers, character-code constants, and leading layout. The input is not parsed as a general term: grouping such as `(0)` is a syntax error. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*. |
 
 Conversions accept partial output lists when the atomic input is known, but
 constructing an atom or number requires a complete proper list with no unbound
 elements. Numeric parsing accepts leading ISO layout characters, an optional
 sign, decimal fractions, and decimal exponents; it rejects trailing material
-and non-finite values.
+and non-finite values. The regression gate vendors all 73 numbered cases from
+Ulrich Neumerkel's contemporary `number_chars/2` comparison, including the
+Cor.2 error-precedence cases; `number_codes/2` shares the same numeric parser
+and has mirrored coverage for the parenthesized-number regression.
 
 ### Streams and unit I/O
 
@@ -6986,7 +6989,7 @@ precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 789 cases, including 383 focused ISO
+contains 791 cases, including 385 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 189 normal
