@@ -9,7 +9,7 @@ const ANSWER_HELP = `
 SPACE, "n" or ";": next solution, if any
 RETURN or ".": stop enumeration
 "a": enumerate all solutions
-"f": enumerate the next 5 solutions
+"f": enumerate through the next group of 5 solutions
 "h": display this help message
 "w": write terms without depth limit
 "p": print terms with depth limit
@@ -486,11 +486,13 @@ async function solveQuery(engine, state, goal, reader, output) {
   }
 
   let automatic = 0;
+  let answersShown = 0;
   let firstAnswer = true;
   while (!current.result.done) {
     const next = pullSolution(solver, solutions, reader);
     output.write(current.output);
     output.write(`${firstAnswer ? '   ' : ''}${formatAnswer(engine, state, variables, current.result.value)}`);
+    answersShown++;
     firstAnswer = false;
     if (!next.error && next.result.done) {
       output.write('.\n');
@@ -516,7 +518,12 @@ async function solveQuery(engine, state, goal, reader, output) {
           break;
         }
         if (control === 'f') {
-          automatic = 4;
+          // `f` groups leaf answers in blocks of five, rather than merely
+          // adding five more answers after whatever the user has already
+          // inspected. Stop for control again at the next 5-answer boundary.
+          const remainder = answersShown % 5;
+          const answersToBoundary = remainder === 0 ? 5 : 5 - remainder;
+          automatic = answersToBoundary - 1;
           break;
         }
         if (control === 'w' || control === 'p') {

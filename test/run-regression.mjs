@@ -753,6 +753,48 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL f stops at five-answer boundaries instead of adding five answers',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'use_module(library(prologue), [between/3]).\n' +
+            'between(0,11,I).\nf\n\n' +
+            'between(0,11,J).\n;\n;\nf\n\n' +
+            'between(0,11,K).\nf\nf\n\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    true.\n' +
+          '?-    I = 0\n' +
+          ';  I = 1\n' +
+          ';  I = 2\n' +
+          ';  I = 3\n' +
+          ';  I = 4\n' +
+          ';  ... .\n' +
+          '?-    J = 0\n' +
+          ';  J = 1\n' +
+          ';  J = 2\n' +
+          ';  J = 3\n' +
+          ';  J = 4\n' +
+          ';  ... .\n' +
+          '?-    K = 0\n' +
+          ';  K = 1\n' +
+          ';  K = 2\n' +
+          ';  K = 3\n' +
+          ';  K = 4\n' +
+          ';  K = 5\n' +
+          ';  K = 6\n' +
+          ';  K = 7\n' +
+          ';  K = 8\n' +
+          ';  K = 9\n' +
+          ';  ... .\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL parenthesizes operator-valued answer substitutions',
       run: () => {
         const result = runCli([], {

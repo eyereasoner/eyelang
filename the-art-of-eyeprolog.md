@@ -6264,8 +6264,10 @@ may span lines and end with a full stop, as in Scryer Prolog:
 
 When another answer exists in an interactive terminal, press `;`, Space, or
 `n` to ask for it immediately; no Return is needed. Return or `.` stops
-enumeration, `a` enumerates all remaining answers, `f` enumerates the next
-five, and `h` displays the answer-control help. While a query is actively
+enumeration, `a` enumerates all remaining answers, and `f` advances to the
+next five-answer boundary (5, 10, 15, ... displayed leaf answers), regardless
+of how many answers were stepped through individually beforehand. `h` displays
+the answer-control help. While a query is actively
 computing, EyeProlog releases readline's terminal signal handling: `Ctrl-C`
 therefore terminates the current EyeProlog process immediately, and on POSIX
 terminals `Ctrl-Z` suspends it in the usual shell-managed way. This remains a
