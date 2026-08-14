@@ -5758,12 +5758,16 @@ quoted_atom("ab").           % quoted_atom(ab)
 
 Conversions accept partial output lists when the atomic input is known, but
 constructing an atom or number requires a complete proper list with no unbound
-elements. Numeric parsing accepts leading ISO layout characters, an optional
-sign, decimal fractions, and decimal exponents; it rejects trailing material
-and non-finite values. The regression gate vendors all 73 numbered cases from
-Ulrich Neumerkel's contemporary `number_chars/2` comparison, including the
-Cor.2 error-precedence cases; `number_codes/2` shares the same numeric parser
-and has mirrored coverage for the parenthesized-number regression.
+elements. Numeric parsing accepts ISO layout before tokens, including layout between a
+minus token and the following numeric token. A single-line `%...` comment may
+therefore follow `-` directly because `%` cannot continue a graphic token; an
+adjacent bracketed comment in `-/**/1` remains a syntax error under the eager
+token-consumer rule. Decimal fractions and decimal exponents are supported;
+trailing material and non-finite values are rejected. The regression gate
+vendors all 74 numbered cases from Ulrich Neumerkel's contemporary
+`number_chars/2` comparison, including the Cor.2 error-precedence cases;
+`number_codes/2` shares the same numeric parser and has mirrored coverage for
+the recent numeric-syntax regressions.
 
 ### Streams and unit I/O
 
@@ -7020,7 +7024,7 @@ precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 791 cases, including 385 focused ISO
+contains 792 cases, including 386 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 189 normal

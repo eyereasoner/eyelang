@@ -39,6 +39,9 @@
 73 ?- number_chars(N,"(0)").
       syntax_error(...).
 
+74 ?- number_chars(N,"-%\n0").
+      N = 0.
+
 4  ?- number_chars(1,"a").
       syntax_error(...).
 

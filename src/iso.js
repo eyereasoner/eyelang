@@ -1556,7 +1556,15 @@ function parseIsoNumber(text) {
   let sign = '';
 
   if (text[position] === '-') {
-    if (/[\u0009-\u000d\u0020]/.test(text[position + 1] ?? '')) {
+    const next = text[position + 1] ?? '';
+    // Every token class may carry leading layout (6.4).  Thus a negative
+    // number may have layout between the name `-` and its numeric token.  A
+    // `%...\n` comment can start immediately after `-` because `%` cannot
+    // continue a graphic name token.  In contrast `/*...*/` cannot start
+    // there without separating layout: `/` *can* continue the graphic token,
+    // and the eager-consumer rule therefore keeps `-/**/1` ill-formed (the
+    // number_chars continuation corpus case 24).
+    if (/[\u0009-\u000d\u0020]/.test(next) || next === '%') {
       position = skipNumberLayout(text, position + 1);
       sign = '-';
     }

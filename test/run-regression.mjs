@@ -491,13 +491,51 @@ c4 ?- call((!;1)).
       run: () => {
         const filename = path.join(testRoot, 'fixtures', 'number_chars_cont_quad.pl');
         const source = fs.readFileSync(filename, 'utf8');
+        const numbered = new Set([...source.matchAll(/^(\d+)\s+\?-/gm)].map((match) => Number(match[1])));
+        assertEqual(numbered.size, 74, 'numbered case total');
+        for (let id = 1; id <= 74; id++) {
+          if (!numbered.has(id)) throw new Error(`number_chars continuation case #${id} is missing`);
+        }
         const result = publicApi.runQuads(Program.parseSources([{
           text: source,
           filename,
         }]));
-        assertEqual(result.total, 77, 'answer-description total');
-        assertEqual(result.passed, 77, 'answer-description passed');
-        assertEqual(result.stdout, 'quads: 77 run, 77 passed, 0 failed.\n', 'quad report');
+        assertEqual(result.total, 78, 'answer-description total');
+        assertEqual(result.passed, 78, 'answer-description passed');
+        assertEqual(result.stdout, 'quads: 78 run, 78 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
+      name: 'number conversion accepts line-comment layout after a minus token',
+      run: () => {
+        const source = String.raw`
+?- number_chars(N,"-%\n0").
+   N = 0.
+?- number_chars(N,"-% comment\n1").
+   N = -1.
+?- number_codes(N,[45,37,10,48]).
+   N = 0.
+?- number_codes(N,[45,37,32,99,111,109,109,101,110,116,10,49]).
+   N = -1.
+`;
+        const result = publicApi.runQuads(source);
+        assertEqual(result.total, 4, 'quad total');
+        assertEqual(result.passed, 4, 'quad passed');
+        assertEqual(result.stdout, 'quads: 4 run, 4 passed, 0 failed.\n', 'quad report');
+
+        // Keep the eager-consumer distinction from continuation case #24:
+        // an adjacent bracketed comment can be consumed as part of a graphic
+        // token after `-`, so it is not equivalent to the `%` line comment.
+        for (const goal of ['number_chars(N,"-/**/1")', 'number_codes(N,[45,47,42,42,47,49])']) {
+          let caught = null;
+          try {
+            publicApi.run('', { goal });
+          } catch (error) {
+            caught = error;
+          }
+          if (caught == null) throw new Error(`${goal} should throw`);
+          assertIncludes(String(caught?.message ?? caught), 'syntax_error(number)', goal);
+        }
       },
     },
     {
