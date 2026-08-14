@@ -1725,6 +1725,8 @@ const result = run(reasoningSource(record), {
   goal: `thermal_alert(${record.sensor})`,
   proof: true,
   maxDepth: 10_000,
+  maxInferences: 100_000,
+  maxMemoryBytes: 256 * 1024 * 1024,
   solutionLimit: 10
 });
 
@@ -1774,10 +1776,10 @@ prints numeric work counters; those counters describe this run rather than an
 additional logical answer.
 
 `run/2` accepts source text or an already parsed `Program`. Its options include
-`proof` (with `why` and `explain` as aliases), `maxDepth`, `solutionLimit`, a
-custom `registry`, and `strictNegation` or `analyzeNegation`. It returns
-`stdout`, the solver's numeric `stats`, and a nullable `haltCode`; it does not
-write to the process streams.
+`proof` (with `why` and `explain` as aliases), `maxDepth`, `maxInferences`,
+`maxMemoryBytes`, `solutionLimit`, a custom `registry`, and `strictNegation` or
+`analyzeNegation`. It returns `stdout`, the solver's numeric `stats`, and a
+nullable `haltCode`; it does not write to the process streams.
 
 For applications that inspect or prepare a theory before running it, use
 `Program` directly:
@@ -1800,18 +1802,24 @@ console.log(path?.recursive, path?.tabled, path?.tableInputPositions);
 
 const solver = new Solver(program, {
   maxDepth: 50_000,
+  maxInferences: 1_000_000,
+  maxMemoryBytes: 256 * 1024 * 1024,
   solutionLimit: 100_000
 });
 ```
 
-The limits are safety ceilings, not logical declarations. Reaching one may
-truncate search; it does not prove that no further answer exists. At the `Solver`
-API boundary, `solutionLimit` is opt-in: if it is omitted, ordinary solving and
-child searches that inherit the solver limit do not stop after a fixed number of
-solutions. This matters for re-executable goals such as `repeat/0` and for
-library relations such as `call_nth/2`; an implementation safety threshold must
-not turn a still re-executable search into logical failure. Embedders that need
-a finite answer budget should pass `solutionLimit` explicitly.
+The limits are safety ceilings, not logical declarations. Reaching the depth,
+inference, or solution ceiling may truncate search; it does not prove that no
+further answer exists. Reaching `maxMemoryBytes` instead raises
+`resource_error(memory)`, because continuing until the JavaScript engine's hard
+heap limit would let the host abort before Prolog could report an exception. At
+the `Solver` API boundary, `solutionLimit` is opt-in: if it is omitted, ordinary
+solving and child searches that inherit the solver limit do not stop after a
+fixed number of solutions. This matters for re-executable goals such as
+`repeat/0` and for library relations such as `call_nth/2`; an implementation
+safety threshold must not turn a still re-executable search into logical
+failure. Embedders that need a finite answer budget should pass `solutionLimit`
+explicitly.
 
 Variable term order is deliberately scoped rather than stored as a permanent
 property of a variable. ISO 13211-1 section 7.2.1 leaves the order of two
@@ -1822,10 +1830,15 @@ sorting step of `setof/3` share one ranking for the duration of that single
 sorted-list operation. No process-global variable registry or creation ordinal
 is retained or exposed through later comparisons.
 
-Host capacity failures that V8 reports as `Map maximum size exceeded` or `Set`
-`maximum size exceeded` are normalized at the solver boundary to
-`resource_error(memory)` instead of leaking a JavaScript `RangeError`. ISO
-13211-1 leaves the resource atom implementation dependent. EyeProlog uses
+EyeProlog periodically checks detectable JavaScript heap use and keeps a quarter
+of the host heap ceiling in reserve so the solver can unwind and report
+`resource_error(memory)` before a fatal host out-of-memory abort. Embedders may
+replace that automatically derived soft ceiling with `maxMemoryBytes`; setting
+it to `Infinity` disables the proactive check. Environments that do not expose
+heap use cannot provide the proactive check. Host capacity failures that V8
+reports as `Map maximum size exceeded` or `Set maximum size exceeded` are also
+normalized at the solver boundary instead of leaking a JavaScript `RangeError`.
+ISO 13211-1 leaves the resource atom implementation dependent. EyeProlog uses
 `memory` for a finite host allocation/capacity ceiling and reserves the
 `finite_memory` spelling for the distinct convention where no finite amount of
 memory could complete the computation.

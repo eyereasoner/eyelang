@@ -12,6 +12,8 @@ export interface EyePrologRunOptions {
   explain?: boolean;
   maxDepth?: number;
   maxInferences?: number;
+  /** Soft JavaScript heap ceiling in bytes; exhaustion raises resource_error(memory). */
+  maxMemoryBytes?: number;
   solutionLimit?: number;
   registry?: BuiltinRegistry;
   sourceMetadata?: boolean;
@@ -171,6 +173,7 @@ export class Solver {
   maxInferences: number;
   inferences: number;
   inferenceLimitExceeded: boolean;
+  maxMemoryBytes: number;
   solutionLimit: number;
   solutionsSeen: number;
   active: unknown[];

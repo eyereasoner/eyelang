@@ -2325,6 +2325,35 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
+      name: 'list allocation heap pressure becomes resource_error(memory)',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const programText = ':- use_module(library(prologue)).\n';
+        const goalText = 'length(_, I), I > 9, N is 2^I, \\+ \\+ length(_, N)';
+        const script = `
+          import { Program, Solver, Env, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
+          const program = Program.parse(${JSON.stringify(programText)});
+          const solver = new Solver(program, { registry: getEyePrologRegistry() });
+          const goal = parseGoalText(${JSON.stringify(goalText)}, {
+            operatorDefinitions: [...program.operators.values()],
+          });
+          let caught = null;
+          try { [...solver.solve([goal], new Env(), 0)]; } catch (error) { caught = error; }
+          if (caught?.formal !== 'resource_error(memory)') throw caught ?? new Error('no resource error');
+          process.stdout.write(caught.formal);
+        `;
+        const result = spawnSync(process.execPath, [
+          '--max-old-space-size=64',
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'resource_error(memory)', 'heap pressure resource error');
+      },
+    },
+    {
       name: 'solver honors solution limits',
       run: () => {
         const program = Program.parse('p(a).\np(b).\np(c).\n');

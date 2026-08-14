@@ -6,10 +6,12 @@ const isNode = typeof process !== 'undefined' && Boolean(process.versions?.node)
 let fs = null;
 let path = null;
 let BufferCtor = null;
+let v8 = null;
 
 if (isNode) {
   ({ default: fs } = await import('node:fs'));
   ({ default: path } = await import('node:path'));
+  ({ default: v8 } = await import('node:v8'));
   BufferCtor = globalThis.Buffer ?? null;
 }
 
@@ -17,4 +19,44 @@ export { fs, path, BufferCtor, isNode };
 
 export function currentWorkingDirectory() {
   return isNode && typeof process.cwd === 'function' ? process.cwd() : '/';
+}
+
+export function usedHeapSize() {
+  if (isNode && typeof process.memoryUsage === 'function') {
+    return process.memoryUsage().heapUsed;
+  }
+  const memory = globalThis.performance?.memory;
+  return Number.isFinite(memory?.usedJSHeapSize) ? memory.usedJSHeapSize : null;
+}
+
+export function softHeapLimit() {
+  let limit = null;
+  if (isNode) {
+    limit = v8?.getHeapStatistics?.().heap_size_limit ?? null;
+    const configuredOldSpace = configuredOldSpaceBytes();
+    if (configuredOldSpace != null) limit = Math.min(limit ?? Infinity, configuredOldSpace);
+  } else {
+    const memory = globalThis.performance?.memory;
+    if (Number.isFinite(memory?.jsHeapSizeLimit)) limit = memory.jsHeapSizeLimit;
+  }
+  // Leave ample room for the generator stack to unwind and for the top level
+  // to construct and print resource_error(memory). Fatal V8 OOMs cannot be
+  // caught after the heap limit itself has been reached.
+  return Number.isFinite(limit) && limit > 0 ? Math.floor(limit * 0.75) : Infinity;
+}
+
+function configuredOldSpaceBytes() {
+  if (!isNode) return null;
+  const argumentsText = [
+    ...(process.execArgv ?? []),
+    ...(String(process.env?.NODE_OPTIONS ?? '').match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? []),
+  ];
+  for (let index = 0; index < argumentsText.length; index++) {
+    const argument = argumentsText[index];
+    const match = /^--max[-_]old[-_]space[-_]size(?:=(\d+))?$/.exec(argument);
+    if (!match) continue;
+    const megabytes = match[1] ?? argumentsText[index + 1];
+    if (/^\d+$/.test(megabytes ?? '')) return Number(megabytes) * 1024 * 1024;
+  }
+  return null;
 }

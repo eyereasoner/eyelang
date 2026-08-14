@@ -9,6 +9,7 @@ import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program.js';
 import { StreamManager } from './io.js';
 import { clpzStateConsistent } from './clpz.js';
+import { softHeapLimit, usedHeapSize } from './platform.js';
 
 let freshCounter = 0;
 
@@ -47,6 +48,8 @@ export class Solver {
     this.maxInferences = options.maxInferences ?? Infinity;
     this.inferences = 0;
     this.inferenceLimitExceeded = false;
+    this.maxMemoryBytes = options.maxMemoryBytes ?? softHeapLimit();
+    this.nextMemoryCheck = 0;
     // Do not impose an implicit answer cap. Infinite and very large searches are
     // part of normal Prolog semantics; callers that need a resource bound can
     // still supply solutionLimit explicitly.
@@ -115,6 +118,7 @@ export class Solver {
       registry: this.registry,
       maxDepth: this.maxDepth,
       maxInferences: this.maxInferences,
+      maxMemoryBytes: this.maxMemoryBytes,
       solutionLimit,
       isoStrict: this.isoStrict,
       prologFlags: this.prologFlags,
@@ -177,6 +181,7 @@ export class Solver {
       this.solveStacks.push(stack);
       while (stack.length) {
       this.inferences++;
+      this.checkMemoryLimit();
       if (this.inferences > this.maxInferences) {
         this.inferenceLimitExceeded = true;
         break;
@@ -228,6 +233,7 @@ export class Solver {
 
       while (true) {
         this.inferences++;
+        this.checkMemoryLimit();
         if (this.inferences > this.maxInferences) {
           this.inferenceLimitExceeded = true;
           stack.length = 0;
@@ -409,6 +415,16 @@ export class Solver {
 
   activeVariant(goal, env) {
     return activeVariantIn(goal, env, this.active);
+  }
+
+  checkMemoryLimit() {
+    if (this.inferences < this.nextMemoryCheck) return;
+    this.nextMemoryCheck = this.inferences + 256;
+    if (!Number.isFinite(this.maxMemoryBytes)) return;
+    const used = usedHeapSize();
+    if (used != null && used >= this.maxMemoryBytes) {
+      throw new PrologError('resource_error(memory)');
+    }
   }
 
   *solveUserGoal(goal, rest, env, depth) {
