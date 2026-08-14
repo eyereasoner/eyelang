@@ -791,6 +791,61 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL answer prompt distinguishes waiting from computation',
+      run: () => {
+        const helper = `
+          import { spawn } from 'node:child_process';
+
+          const child = spawn(${JSON.stringify(process.execPath)}, [${JSON.stringify(bin)}], {
+            cwd: ${JSON.stringify(packageRoot)},
+            stdio: ['pipe', 'pipe', 'pipe'],
+          });
+          child.stdout.setEncoding('utf8');
+          child.stderr.setEncoding('utf8');
+          let stdout = '';
+          let stderr = '';
+          let sawComputingPrompt = false;
+          child.stdout.on('data', (text) => {
+            stdout += text;
+            if (stdout.endsWith('\\n; ')) sawComputingPrompt = true;
+          });
+          child.stderr.on('data', (text) => { stderr += text; });
+
+          async function waitFor(predicate, label) {
+            const deadline = Date.now() + 5000;
+            while (!predicate()) {
+              if (Date.now() >= deadline) {
+                throw new Error(label + ' timeout; stdout=' + JSON.stringify(stdout) + '; stderr=' + JSON.stringify(stderr));
+              }
+              await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+          }
+
+          child.stdin.write('use_module(library(prologue)).\\n');
+          await waitFor(() => stdout.includes('   true.\\n?- '), 'module import');
+          child.stdin.write('(N = 0; N = 1; (call_nth(repeat, 100000), N = 2)).\\n');
+          await waitFor(() => stdout.endsWith('   N = 0\\n;'), 'waiting prompt');
+          child.stdin.write(';\\n');
+          await waitFor(() => sawComputingPrompt, 'computing prompt');
+          await waitFor(() => stdout.endsWith(';  N = 1\\n;'), 'formatted answer');
+          child.stdin.write('\\n');
+          await waitFor(() => stdout.endsWith('  ... .\\n?- '), 'stopped enumeration');
+          child.stdin.write('halt.\\n');
+          const status = await new Promise((resolve) => child.once('exit', resolve));
+          if (status !== 0) throw new Error('child status ' + status + '; stderr=' + stderr);
+          process.stdout.write('waiting;computing;formatting');
+        `;
+        const result = spawnSync(process.execPath, [
+          '--input-type=module',
+          '--eval',
+          helper,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 10000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `prompt helper status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'waiting;computing;formatting', 'prompt state sequence');
+      },
+    },
+    {
       name: 'REPL f stops at five-answer boundaries instead of adding five answers',
       run: () => {
         const result = runCli([], {

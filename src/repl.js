@@ -488,8 +488,15 @@ async function solveQuery(engine, state, goal, reader, output) {
   let automatic = 0;
   let answersShown = 0;
   let firstAnswer = true;
+  let formattingAfterAdvance = false;
   while (!current.result.done) {
     const next = pullSolution(solver, solutions, reader);
+    // The control prompt has no trailing space while it waits for input. The
+    // first space appears as soon as the user requests another solution and
+    // remains visible while pullSolution() computes; the second appears only
+    // when the requested leaf answer is ready to format.
+    if (formattingAfterAdvance) output.write(' ');
+    formattingAfterAdvance = false;
     output.write(current.output);
     output.write(`${firstAnswer ? '   ' : ''}${formatAnswer(engine, state, variables, current.result.value)}`);
     answersShown++;
@@ -501,14 +508,15 @@ async function solveQuery(engine, state, goal, reader, output) {
 
     if (automatic > 0 || automatic === Infinity) {
       if (automatic !== Infinity) automatic--;
-      output.write('\n;  ');
+      output.write('\n; ');
+      formattingAfterAdvance = true;
     } else {
       while (true) {
-        const controlLine = await reader.readControl('\n;  ');
+        const controlLine = await reader.readControl('\n;');
         if (controlLine == null || controlLine === '' || controlLine === '\r' || controlLine === '\n' ||
             controlLine.trimStart().startsWith('.')) {
           if (typeof solutions.return === 'function') solutions.return();
-          output.write('... .\n');
+          output.write('  ... .\n');
           return null;
         }
         const control = controlLine === ' ' ? ' ' : controlLine.trimStart()[0];
@@ -527,18 +535,22 @@ async function solveQuery(engine, state, goal, reader, output) {
           break;
         }
         if (control === 'w' || control === 'p') {
-          output.write(`${formatAnswer(engine, state, variables, current.result.value)}`);
+          output.write(`  ${formatAnswer(engine, state, variables, current.result.value)}`);
           continue;
         }
         if (control === 'h') {
           output.write(ANSWER_HELP);
           continue;
         }
-        output.write('Action? ');
+        output.write(' Action? ');
       }
+      output.write(' ');
+      formattingAfterAdvance = true;
     }
 
     if (next.error) {
+      if (formattingAfterAdvance) output.write(' ');
+      formattingAfterAdvance = false;
       output.write(next.output);
       if (next.error?.name === 'HaltSignal') return { halted: true, code: next.error.code };
       throw next.error;
