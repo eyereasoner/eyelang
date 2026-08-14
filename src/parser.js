@@ -794,13 +794,47 @@ class Parser {
         accept(clause);
         continue;
       }
+      // Program clauses historically parse comma separately from the head, so
+      // keep that grammar unchanged.  A quad id, however, is simply the first
+      // argument of the ordinary ?-/2 term.  If the initial head parse stops at
+      // a comma, tentatively reparse that left operand with the normal term
+      // grammar (where comma is the predefined priority-1000 xfy operator).
+      // Only when the resulting term is actually followed by ?- do we keep the
+      // tentative parse; otherwise restore the parser and retain the existing
+      // clause/DCG handling below.
+      const headState = {
+        pos: this.pos,
+        line: this.line,
+        anonymous: this.anonymous,
+        variables: new Map(this.variables),
+        previousToken: this.previousToken,
+        token: this.token,
+      };
+      const restoreHeadState = () => {
+        this.pos = headState.pos;
+        this.line = headState.line;
+        this.anonymous = headState.anonymous;
+        this.variables = new Map(headState.variables);
+        this.previousToken = headState.previousToken;
+        this.token = headState.token;
+      };
+
       let head = this.parseTerm(3);
-      // Both a quad label and a TS 13211-3 semicontext may contain one or more
-      // unparenthesized commas before their priority-1200 operator.  Parse the
-      // complete comma sequence here instead of stopping after one separator;
-      // portable quad labels commonly carry several metadata fields, e.g.
-      // `9, "case", passes ?- Goal.`.  Build the standard right-associative
-      // comma term so this is the same label as `(9, "case", passes)`.
+      if (this.token.type === TOK.COMMA && !this.strictIso) {
+        restoreHeadState();
+        const quadId = this.parseTerm(3, true);
+        if (this.operatorTokenName() === '?-') {
+          this.advance();
+          this.parseQuad(quadId, line, accept);
+          continue;
+        }
+        restoreHeadState();
+        head = this.parseTerm(3);
+      }
+
+      // Outside quad syntax, preserve the existing program-level comma rule,
+      // including the TS 13211-3 semicontext boundary.  This is deliberately
+      // not a grammar for quad ids.
       if (this.token.type === TOK.COMMA) {
         const items = [head];
         let extraCommaLine = null;
@@ -809,9 +843,6 @@ class Parser {
           this.advance();
           items.push(this.parseTerm(3));
         }
-        // Historically the program grammar admitted exactly one comma in a
-        // DCG semicontext.  Keep that boundary: the broader comma sequence is
-        // specifically the quad-label extension, not a new DCG syntax.
         if (extraCommaLine != null && this.operatorTokenName() !== '?-') {
           throw new Error(`parse line ${extraCommaLine}: expected ., got ,`);
         }

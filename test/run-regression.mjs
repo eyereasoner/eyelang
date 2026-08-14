@@ -279,8 +279,11 @@ why(
       },
     },
     {
-      name: 'quad labels accept multiple metadata fields and each answer description is independent',
+      name: 'quad ids use ordinary term syntax and each answer description is independent',
       run: () => {
+        // Issue #21: the first argument of ?-/2 is an ordinary Prolog term.
+        // The commas here are the normal priority-1000 comma operator, not a
+        // special metadata grammar owned by the quad parser.
         const source = `9, "✳54·43", passes
 ` +
           `?- X is 1+1.
@@ -298,13 +301,49 @@ why(
         const program = Program.parseSources([{ text: source, filename: 'issue-21.pl' }]);
         assertEqual(program.quads.length, 1, 'query group count');
         assertEqual(program.quads[0].answers.length, 4, 'answer-description count');
-        assertEqual(program.quads[0].id.name, ',', 'outer label comma');
-        assertEqual(program.quads[0].id.args[1].name, ',', 'right-associated label comma');
+        assertEqual(program.quads[0].id.name, ',', 'ordinary outer comma operator');
+        assertEqual(program.quads[0].id.args[1].name, ',', 'ordinary right-associated comma operator');
         const result = publicApi.runQuads(program);
         assertEqual(result.total, 4, 'answer-description total');
         assertEqual(result.passed, 4, 'answer-description passed');
         assertEqual(result.failed, 0, 'answer-description failed');
         assertEqual(result.stdout, 'quads: 4 run, 4 passed, 0 failed.\n', 'issue #21 report');
+
+        // No convention is imposed on the id term. Functional/list/curly and
+        // non-comma operator forms all go through the same ordinary term parser.
+        const ordinaryIds = Program.parse(
+          `meta(9, passes) ?- true.
+   true.
+` +
+          `[9, passes] ?- true.
+   true.
+` +
+          `{passes} ?- true.
+   true.
+` +
+          `(alpha ; beta) ?- true.
+   true.
+`,
+        );
+        assertEqual(ordinaryIds.quads.length, 4, 'ordinary id term count');
+        assertEqual(publicApi.runQuads(ordinaryIds).stdout, 'quads: 4 run, 4 passed, 0 failed.\n',
+          'ordinary id term report');
+
+        // Groundness is a quad semantic check, not source syntax. A bad id is
+        // reported as a test failure and processing continues to the next quad.
+        const nonGround = publicApi.runQuads(
+          `Id ?- true.
+   true.
+` +
+          `ok ?- true.
+   true.
+`,
+        );
+        assertEqual(nonGround.total, 2, 'non-ground id does not abort parsing');
+        assertEqual(nonGround.passed, 1, 'following quad still passes');
+        assertEqual(nonGround.failed, 1, 'non-ground id is a quad failure');
+        assertIncludes(nonGround.stdout, 'quads: BAD_ID Id, <input>:1', 'non-ground id diagnostic');
+        assertIncludes(nonGround.stdout, 'quads: 2 run, 1 passed, 1 failed.', 'non-ground continuation summary');
 
         const continuing = publicApi.runQuads(
           `case ?- X is 1+1.

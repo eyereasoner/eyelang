@@ -5170,8 +5170,11 @@ from the parsed `?-/1` or `?-/2` term rather than from one privileged surface
 spelling. Thus `Label ?- Query.`, `?-(Label, Query).`, mixed forms such as
 `?-((Label), Query).`, quoted-functor notation, and a parenthesized whole
 `(?-(Label, Query)).` denote the same quad when followed by indented answer
-descriptions. In `--iso-strict` mode this quad interpretation is disabled, and
-`?-/2` remains ordinary Prolog term syntax.
+descriptions. `Label` itself is parsed with the ordinary Prolog term grammar:
+there is no quad-specific comma or metadata syntax. The runner requires the
+resulting first argument to be ground; if it is not, that quad is reported as
+`BAD_ID` and later quads are still processed. In `--iso-strict` mode this quad
+interpretation is disabled, and `?-/2` remains ordinary Prolog term syntax.
 
 Run [`iso-dynamic-database.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl)
 for an explicitly stateful queue and
@@ -6401,7 +6404,11 @@ colors ?- color(X).
 ```
 
 Run all quads in a file with `eyeprolog --quads file.pl` or `eyeprolog -q
-file.pl`. A label such as `colors` is optional. Loading the file normally only
+file.pl`. A label such as `colors` is optional. A label is not a separate
+mini-language: it is the ordinary first argument of `(?-)/2`, and therefore may
+be any Prolog term admitted there by the normal term grammar. Quad execution
+requires that argument to be ground; a non-ground label is reported as a quad
+failure rather than aborting source parsing. Loading the file normally only
 records its quads; it does not execute them or add their queries and answers as
 program clauses. A quad run prints a summary and exits with status `1` when any
 description fails. Quad mode imports `library(prologue)` as a compatibility

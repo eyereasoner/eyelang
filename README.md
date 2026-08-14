@@ -79,10 +79,12 @@ member_test ?- member(X, [prolog, logic]).
 ;  X = logic.
 ```
 
-A label may contain several comma-separated metadata fields. When a query has
-multiple indented answer descriptions, each description is checked and counted
-independently, so one failed expectation does not prevent the later ones from
-running.
+A label is simply the first argument of the ordinary `(?-)/2` term, so it may
+use any normal Prolog term syntax; EyeProlog only requires it to be ground when
+the quad is checked. A non-ground label is a quad failure, not a source syntax
+error, and later quads still run. When a query has multiple indented answer
+descriptions, each description is checked and counted independently, so one
+failed expectation does not prevent the later ones from running.
 
 ## Strict ISO/IEC 13211-1 core
 
