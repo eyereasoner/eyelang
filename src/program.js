@@ -159,6 +159,9 @@ export class Program {
       scalarFactsOnly: true,
       dynamic: this.dynamicPredicates.has(modulePredicateKey(module, name, arity)),
       negationStratum: null,
+      hasCut: false,
+      cutReachable: null,
+      bundledLibrary: false,
     };
     return group;
   }
@@ -186,6 +189,7 @@ export class Program {
       group.rejectedDemandIndexes.clear();
     }
     group.clauses.push(clause);
+    if (clauseHasCut(clause)) group.hasCut = true;
     const clausePosition = group.clauses.length - 1;
     for (let i = 0; i < head.arity; i++) indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition);
   }
@@ -292,6 +296,7 @@ export class Program {
     const groups = [...this.groups.values()];
     const indexByGroup = new Map(groups.map((group, i) => [group, i]));
     const deps = groups.map(() => new Set());
+    const cutDeps = groups.map(() => new Set());
     const negativeEdges = [];
     for (const group of groups) {
       const groupIndex = indexByGroup.get(group);
@@ -299,11 +304,18 @@ export class Program {
         if (isCompactBinaryClause(clause)) {
           if (clause.bodyName != null) {
             const dep = this.findGroup(clause.bodyName, 2, group.module);
-            if (dep) deps[groupIndex].add(indexByGroup.get(dep));
+            if (dep) {
+              deps[groupIndex].add(indexByGroup.get(dep));
+              cutDeps[groupIndex].add(indexByGroup.get(dep));
+            }
           }
           continue;
         }
         for (const goal of clause.body) {
+          for (const dependency of collectGoalDependencies(goal, false, true)) {
+            const dep = this.findGroup(dependency.name, dependency.arity, dependency.module ?? group.module);
+            if (dep) cutDeps[groupIndex].add(indexByGroup.get(dep));
+          }
           const directKey = directGoalDependencyKey(goal);
           if (directKey) {
             const dep = this.findGroup(goal.name, goal.arity, goal.module ?? group.module);
@@ -325,6 +337,8 @@ export class Program {
       const start = indexByGroup.get(group);
       const standardLibraryModule = group.module !== 'user' &&
         this.modules.get(group.module)?.filename?.startsWith('src/lib/');
+      group.bundledLibrary = standardLibraryModule === true;
+      group.cutReachable = [...reachableIndexes(start, cutDeps)].some((index) => groups[index].hasCut);
       const seen = new Set();
       const stack = [start];
       let recursive = false;
@@ -533,6 +547,7 @@ class ProgramBuilder {
         group.clauses.push(clause);
         clause.groundHead = termHasNoVariables(head);
         clause.scalarHead = head.type === COMPOUND && head.args.every(isScalar);
+        if (clauseHasCut(clause)) group.hasCut = true;
         if (clause.body.length !== 0 || !clause.scalarHead) group.scalarFactsOnly = false;
         for (let i = 0; i < head.arity; i++) {
           indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition);
@@ -1114,33 +1129,41 @@ function directGoalDependencyKey(goal) {
   return `${goal.name}/${goal.arity}`;
 }
 
-function collectGoalDependencies(goal, negated) {
+function collectGoalDependencies(goal, negated, traverseConditionals = false) {
   if (goal.type === ATOM) return [{ key: `${goal.name}/0`, name: goal.name, arity: 0, module: goal.module, negative: negated }];
   if (goal.type !== COMPOUND) return [];
   if (goal.name === ',' && goal.arity === 2) {
     return [
-      ...collectGoalDependencies(goal.args[0], negated),
-      ...collectGoalDependencies(goal.args[1], negated),
+      ...collectGoalDependencies(goal.args[0], negated, traverseConditionals),
+      ...collectGoalDependencies(goal.args[1], negated, traverseConditionals),
+    ];
+  }
+  if (traverseConditionals && (goal.name === ';' || goal.name === '->') && goal.arity === 2) {
+    return [
+      ...collectGoalDependencies(goal.args[0], negated, true),
+      ...collectGoalDependencies(goal.args[1], negated, true),
     ];
   }
   if ((goal.name === '\\+' || goal.name === 'not') && goal.arity === 1) {
-    return collectGoalDependencies(goal.args[0], !negated);
+    return collectGoalDependencies(goal.args[0], !negated, traverseConditionals);
   }
   if (goal.name === 'once' && goal.arity === 1) {
-    return collectGoalDependencies(goal.args[0], negated);
+    return collectGoalDependencies(goal.args[0], negated, traverseConditionals);
   }
   if (goal.name === 'forall' && goal.arity === 2) {
     return [
-      ...collectGoalDependencies(goal.args[0], negated),
-      ...collectGoalDependencies(goal.args[1], negated),
+      ...collectGoalDependencies(goal.args[0], negated, traverseConditionals),
+      ...collectGoalDependencies(goal.args[1], negated, traverseConditionals),
     ];
   }
   if ((goal.name === 'findall' || goal.name === 'sumall') && goal.arity === 3) {
-    return collectGoalDependencies(goal.args[1], negated);
+    return collectGoalDependencies(goal.args[1], negated, traverseConditionals);
   }
-  if (goal.name === 'countall' && goal.arity === 2) return collectGoalDependencies(goal.args[0], negated);
+  if (goal.name === 'countall' && goal.arity === 2) {
+    return collectGoalDependencies(goal.args[0], negated, traverseConditionals);
+  }
   if ((goal.name === 'aggregate_min' || goal.name === 'aggregate_max') && goal.arity === 5) {
-    return collectGoalDependencies(goal.args[2], negated);
+    return collectGoalDependencies(goal.args[2], negated, traverseConditionals);
   }
   return [{ key: `${goal.name}/${goal.arity}`, name: goal.name, arity: goal.arity, module: goal.module, negative: negated }];
 }
@@ -1308,6 +1331,7 @@ function rebuildGroupIndexes(group) {
   group.demandIndexes.clear();
   group.rejectedDemandIndexes.clear();
   group.scalarFactsOnly = true;
+  group.hasCut = false;
   for (let clausePosition = 0; clausePosition < group.clauses.length; clausePosition++) {
     const clause = group.clauses[clausePosition];
     if (isCompactBinaryClause(clause)) {
@@ -1320,6 +1344,7 @@ function rebuildGroupIndexes(group) {
     }
     clause.groundHead = termHasNoVariables(clause.head);
     clause.scalarHead = clause.head.type === COMPOUND && clause.head.args.every(isScalar);
+    if (clauseHasCut(clause)) group.hasCut = true;
     if (clause.body.length !== 0 || !clause.scalarHead) group.scalarFactsOnly = false;
     for (let i = 0; i < group.arity; i++) indexOne(group.argIndexes[i], clause.head.args[i], clause, group.clauses, clausePosition);
   }

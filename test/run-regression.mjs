@@ -682,6 +682,21 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL advances anonymous Prologue length checks through I = 28',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'use_module(library(prologue)).\n' +
+            'length(_,I),I>9,N is 2^I,\\+ \\+ length(_,N).\n' +
+            'f\nf\nf\n;\n;\n;\n;\n\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, ';  I = 28, N = 268435456\n;  ... .\n?- ', 'large anonymous length answer');
+        assertNotIncludes(result.stdout, 'resource_error(memory)', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'Prologue freeze wakes delayed goals with their bindings',
       run: () => {
         const result = runEyeProlog(
@@ -2472,14 +2487,14 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
-      name: 'list allocation heap pressure becomes resource_error(memory)',
+      name: 'named list allocation heap pressure becomes resource_error(memory)',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;
         const programText = ':- use_module(library(prologue)).\n';
-        const goalText = 'length(_, I), I > 9, N is 2^I, \\+ \\+ length(_, N)';
+        const goalText = '\\+ \\+ length(List, 1000000)';
         const script = `
           import { Program, Solver, Env, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
-          const program = Program.parse(${JSON.stringify(programText)});
+          const program = Program.parse(${JSON.stringify(programText)}, { sourceMetadata: false });
           const solver = new Solver(program, { registry: getEyePrologRegistry() });
           const goal = parseGoalText(${JSON.stringify(goalText)}, {
             operatorDefinitions: [...program.operators.values()],
@@ -2498,6 +2513,37 @@ open(X) :- candidate(X), \\+ closed(X).
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
         assertEqual(result.stdout, 'resource_error(memory)', 'heap pressure resource error');
+      },
+    },
+    {
+      name: 'anonymous Prologue length checks avoid materializing discarded lists',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const programText = ':- use_module(library(prologue)).\n';
+        const goalText = 'length(_, I), I > 9, N is 2^I, \\+ \\+ length(_, N)';
+        const script = `
+          import { Program, Solver, Env, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
+          const program = Program.parse(${JSON.stringify(programText)}, { sourceMetadata: false });
+          const solver = new Solver(program, {
+            registry: getEyePrologRegistry(),
+            solutionLimit: 19,
+          });
+          const goal = parseGoalText(${JSON.stringify(goalText)}, {
+            operatorDefinitions: [...program.operators.values()],
+          });
+          let answers = 0;
+          for (const _ of solver.solve([goal], new Env(), 0)) answers++;
+          process.stdout.write(String(answers));
+        `;
+        const result = spawnSync(process.execPath, [
+          '--max-old-space-size=64',
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, '19', 'answers through I = 28');
       },
     },
     {

@@ -1,8 +1,9 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  COMPOUND, Env, compound, copyResolved, deref, emptyList, flattenConjunction, freshTerm,
-  numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variantTerms,
+  COMPOUND, NUMBER, VAR, Env, compound, cons, copyResolved, deref, emptyList,
+  flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
+  numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
 import { sameNumberValue } from './number-value.js';
 import { PrologError, getStrictIsoRegistry } from './iso.js';
@@ -367,6 +368,23 @@ export class Solver {
         }
         qualifyMetaArguments(goal, group);
 
+        const lengthIterator = prologueLengthIterator(this, group, goal, env);
+        if (lengthIterator != null) {
+          const firstResult = lengthIterator.next();
+          if (firstResult.done) break;
+          stack.push({
+            kind: 'resumeBuiltin',
+            iterator: lengthIterator,
+            goals: rest,
+            depth: depth + 1,
+            active,
+          });
+          goals = rest;
+          env = firstResult.value;
+          depth++;
+          continue;
+        }
+
         if (group.tabled) {
           const key = memoKey(goal, env, group);
           if (key.hasBound) {
@@ -418,8 +436,8 @@ export class Solver {
     return activeVariantIn(goal, env, this.active);
   }
 
-  checkMemoryLimit() {
-    if (this.inferences < this.nextMemoryCheck) return;
+  checkMemoryLimit(force = false) {
+    if (!force && this.inferences < this.nextMemoryCheck) return;
     this.nextMemoryCheck = this.inferences + 256;
     if (!Number.isFinite(this.maxMemoryBytes)) return;
     const used = usedHeapSize();
@@ -477,6 +495,12 @@ export class Solver {
         if (!unify(goal, freshHead, next)) continue;
         if (freshBody.length === 0) {
           yield* this.solve(rest, next, depth + 1);
+        } else if (!groupNeedsActiveFrame(group)) {
+          for (const bodyEnv of this.solve(freshBody, next, depth + 1)) {
+            if (this.solutionsSeen > 0) this.solutionsSeen--;
+            yield* this.solve(rest, bodyEnv, depth + 1);
+            if (this.solutionsSeen >= this.solutionLimit) break;
+          }
         } else {
           yield* this.solveRuleBodyThenRest(goal, env, freshBody, rest, next, depth);
         }
@@ -613,7 +637,11 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   const candidates = selectClauseCandidates(group, goal, env);
   const frames = [];
   const invocation = { goal, env };
-  const guarded = !group.linearNumeric;
+  // Active frames serve two purposes: they delimit cut and detect variants in
+  // recursive user predicates. Cut-free, non-recursive library helpers need
+  // neither. Copying their full active stack at every recursive step made
+  // otherwise linear relations such as length/2 retain O(depth^2) references.
+  const guarded = groupNeedsActiveFrame(group);
   const release = guarded ? [{ kind: 'releaseActive' }] : [];
   const nextActive = guarded ? [...active, invocation] : active;
   for (const pass of [candidates.primary, candidates.fallback]) {
@@ -661,6 +689,141 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
     }
   }
   for (let i = frames.length - 1; i >= 0; i--) stack.push(frames[i]);
+}
+
+function groupNeedsActiveFrame(group) {
+  // User code may observe the surrounding control context through later cuts,
+  // so only apply this planning shortcut to the fixed bundled-library graph.
+  if (group.bundledLibrary !== true) return true;
+  // A frame is also required above a cut-bearing callee. The disjunction
+  // builtin uses the caller marker to distinguish a callee-local cut from a
+  // cut in its own branch. null means dependency analysis was intentionally
+  // disabled (strict mode or a newly mutated group), so remain conservative.
+  return group.cutReachable !== false || (group.recursive && !group.linearNumeric);
+}
+
+function prologueLengthIterator(solver, group, goal, env) {
+  if (solver.registry.eyePrologLibrary !== true ||
+      group.module !== 'prologue' || group.name !== 'length' || group.arity !== 2 ||
+      group.bundledLibrary !== true || group.clauses.length !== 2) {
+    return null;
+  }
+
+  // Delayed and constrained variables need the ordinary solver's wake-up
+  // points. The fast path is deliberately limited to plain finite-tree terms.
+  if (env._clpz != null) return null;
+  const length = deref(goal.args[1], env);
+  if (length.type === VAR && env._delays?.has(length.name)) return null;
+
+  let cursor = deref(goal.args[0], env);
+  while (isCons(cursor)) {
+    cursor = deref(cursor.args[1], env);
+  }
+  if (cursor.type === VAR) {
+    if (env._delays?.has(cursor.name)) return null;
+    if (length.type === VAR && cursor.name === length.name) return null;
+  }
+  return prologueLengthSolutions(solver, goal, env);
+}
+
+function* prologueLengthSolutions(solver, goal, env) {
+  const requestedLength = deref(goal.args[1], env);
+  if (requestedLength.type !== VAR) {
+    if (requestedLength.type !== NUMBER || !isDecimalInteger(requestedLength.name)) {
+      throw new PrologError('type_error(integer)', requestedLength);
+    }
+    const length = BigInt(requestedLength.name);
+    if (length < 0n) throw new PrologError('domain_error(not_less_than_zero)', requestedLength);
+    yield* fixedLengthSolutions(solver, goal.args[0], length, env);
+    return;
+  }
+
+  yield* generatedLengthSolutions(solver, goal.args[0], goal.args[1], env);
+}
+
+function* fixedLengthSolutions(solver, list, length, env) {
+  let cursor = deref(list, env);
+  let remaining = length;
+  let steps = 0n;
+  while (isCons(cursor)) {
+    if (remaining === 0n) return;
+    remaining--;
+    cursor = deref(cursor.args[1], env);
+    lengthAllocationCheckpoint(solver, ++steps);
+  }
+  if (isEmptyList(cursor)) {
+    if (remaining === 0n) yield env;
+    return;
+  }
+  if (cursor.type !== VAR) return;
+
+  // A source-level anonymous variable occurs nowhere else, so materializing
+  // its list cannot affect any subsequent goal or answer substitution.
+  if (isAnonymousVariable(cursor)) {
+    yield env;
+    return;
+  }
+
+  const id = nextFreshId();
+  let suffix = emptyList();
+  for (let index = 0n; index < remaining; index++) {
+    suffix = cons(variable(`__length${id}_${index}`), suffix);
+    lengthAllocationCheckpoint(solver, ++steps);
+  }
+  const next = env.clone();
+  solver.stats.unify_calls++;
+  if (unify(cursor, suffix, next)) yield next;
+}
+
+function* generatedLengthSolutions(solver, list, length, env) {
+  let cursor = deref(list, env);
+  let count = 0n;
+  let steps = 0n;
+  while (isCons(cursor)) {
+    count++;
+    cursor = deref(cursor.args[1], env);
+    lengthAllocationCheckpoint(solver, ++steps);
+  }
+  if (isEmptyList(cursor)) {
+    const next = bindGeneratedLength(solver, length, count, env);
+    if (next != null) yield next;
+    return;
+  }
+  if (cursor.type !== VAR) return;
+
+  if (isAnonymousVariable(cursor)) {
+    for (let value = count; ; value++) {
+      const next = bindGeneratedLength(solver, length, value, env);
+      if (next != null) yield next;
+    }
+  }
+
+  const id = nextFreshId();
+  let suffix = emptyList();
+  for (let extra = 0n; ; extra++) {
+    const next = env.clone();
+    solver.stats.unify_calls++;
+    if (unify(cursor, suffix, next)) {
+      const answer = bindGeneratedLength(solver, length, count + extra, next);
+      if (answer != null) yield answer;
+    }
+    suffix = cons(variable(`__length${id}_${extra}`), suffix);
+    lengthAllocationCheckpoint(solver, ++steps);
+  }
+}
+
+function bindGeneratedLength(solver, length, value, env) {
+  const next = env.clone();
+  solver.stats.unify_calls++;
+  return unify(length, numberTerm(value), next) ? next : null;
+}
+
+function isAnonymousVariable(term) {
+  return term.type === VAR && term.name.startsWith('__anon');
+}
+
+function lengthAllocationCheckpoint(solver, steps) {
+  if ((steps & 255n) === 0n) solver.checkMemoryLimit(true);
 }
 
 function pushFastPiFrames(stack, goal, rest, env, depth, active) {

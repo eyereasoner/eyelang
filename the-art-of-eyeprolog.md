@@ -1843,6 +1843,17 @@ ISO 13211-1 leaves the resource atom implementation dependent. EyeProlog uses
 `finite_memory` spelling for the distinct convention where no finite amount of
 memory could complete the computation.
 
+The iterative solver keeps active-call frames only where they are semantically
+needed for cut scope or recursive variant guards. Bundled-library helpers whose
+callable dependency region is cut-free and which need no recursive variant
+guard therefore do not copy a growing active-call sequence at every step.
+Under the normal EyeProlog registry, the bundled Prologue `length/2` also has a
+scoped iterative execution path: named lists are counted or constructed without
+recursive interpreter frames, and an anonymous list is not materialized because
+its binding cannot be observed. The ordinary clauses remain the authoritative
+module definition and are used unchanged by the ISO-only registry and whenever
+delays or finite-domain constraints require their normal wake-up points.
+
 ### Implementation boundary
 
 The source layout mirrors the language boundary. `src/iso.js` contains the
@@ -5918,8 +5929,8 @@ so side effects occur in Prolog execution order.
 ### The EyeProlog library
 
 EyeProlog exposes **99 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **60 are implemented entirely as
-ordinary Prolog clauses** in focused modules under `src/lib/`. The remaining 39
+indicators in its isolated ISO profile. **60 are defined as ordinary Prolog
+clauses** in focused modules under `src/lib/`. The remaining 39
 are public wrappers around backtrackable host support: Prologue `call_nth/2` and
 `freeze/2`, plus the 37-predicate finite-domain `library(clpz)` kernel. The
 resulting normal EyeProlog language surface is therefore **228 public predicate
