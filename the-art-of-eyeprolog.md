@@ -1811,9 +1811,19 @@ child searches that inherit the solver limit do not stop after a fixed number of
 solutions. This matters for re-executable goals such as `repeat/0` and for
 library relations such as `call_nth/2`; an implementation safety threshold must
 not turn a still re-executable search into logical failure. Embedders that need
-a finite answer budget should pass `solutionLimit` explicitly. Host capacity
-failures that V8 reports as `Map maximum size exceeded` or `Set maximum size
-exceeded` are normalized at the solver boundary to the ISO error
+a finite answer budget should pass `solutionLimit` explicitly.
+
+Variable term order is deliberately scoped rather than stored as a permanent
+property of a variable. ISO 13211-1 section 7.2.1 leaves the order of two
+distinct variables implementation dependent and requires constancy only while
+a sorted list is being created. EyeProlog therefore chooses a local variable
+ranking for an ordinary term comparison, while `sort/2`, `keysort/2`, and the
+sorting step of `setof/3` share one ranking for the duration of that single
+sorted-list operation. No process-global variable registry or creation ordinal
+is retained or exposed through later comparisons.
+
+Host capacity failures that V8 reports as `Map maximum size exceeded` or `Set`
+`maximum size exceeded` are normalized at the solver boundary to the ISO error
 `resource_error(finite_memory)` instead of leaking a JavaScript `RangeError`.
 
 ### Implementation boundary

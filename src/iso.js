@@ -284,8 +284,8 @@ function termIsAcyclic(term, env) {
   return true;
 }
 
-function resolvedOrder(left, right, env) {
-  return compareTerms(copyResolved(left, env), copyResolved(right, env));
+function resolvedOrder(left, right, env, variableRanks = null) {
+  return compareTerms(copyResolved(left, env), copyResolved(right, env), variableRanks);
 }
 function* compareBuiltin({ goal, env }) {
   const order = deref(goal.args[0], env);
@@ -331,10 +331,11 @@ function validateListOutput(term, env) {
 function* sortBuiltin({ goal, env }) {
   const items = requireProperList(goal.args[0], env);
   validateListOutput(goal.args[1], env);
-  const sorted = [...items].sort((a, b) => resolvedOrder(a, b, env));
+  const variableRanks = new Map();
+  const sorted = [...items].sort((a, b) => resolvedOrder(a, b, env, variableRanks));
   const unique = [];
   for (const item of sorted) {
-    if (unique.length === 0 || resolvedOrder(unique[unique.length - 1], item, env) !== 0) unique.push(item);
+    if (unique.length === 0 || resolvedOrder(unique[unique.length - 1], item, env, variableRanks) !== 0) unique.push(item);
   }
   const next = env.clone();
   if (unify(goal.args[1], listFromItems(unique), next)) yield next;
@@ -350,7 +351,11 @@ function* keysortBuiltin({ goal, env }) {
     }
   }
   // Modern ECMAScript specifies a stable Array#sort, as required by keysort/2.
-  const sorted = [...items].sort((a, b) => resolvedOrder(deref(a, env).args[0], deref(b, env).args[0], env));
+  // Keep one implementation-dependent variable order for this whole sorting
+  // operation, as required by ISO 7.2.1.
+  const variableRanks = new Map();
+  const sorted = [...items].sort((a, b) =>
+    resolvedOrder(deref(a, env).args[0], deref(b, env).args[0], env, variableRanks));
   const next = env.clone();
   if (unify(goal.args[1], listFromItems(sorted), next)) yield next;
 }
@@ -1701,8 +1706,10 @@ function sameWitness(left, right) {
 }
 
 function sortedUnique(items) {
-  const sorted = [...items].sort(compareTerms);
-  return sorted.filter((item, index) => index === 0 || compareTerms(sorted[index - 1], item) !== 0);
+  const variableRanks = new Map();
+  const compare = (left, right) => compareTerms(left, right, variableRanks);
+  const sorted = [...items].sort(compare);
+  return sorted.filter((item, index) => index === 0 || compare(sorted[index - 1], item) !== 0);
 }
 
 function allSolutionsBuiltin(asSet) {

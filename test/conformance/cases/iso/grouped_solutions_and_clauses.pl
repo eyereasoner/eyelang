@@ -45,7 +45,11 @@ shared_clause(Body) :-
 
 %% goal: shared_set_variables(X0)
 
-shared_set_variables(Set) :-
+% ISO 7.2.1 leaves the order of distinct variables implementation dependent.
+% Check that setof/3 constructs one consistent sorted list without baking a
+% particular variable order into the conformance golden.
+shared_set_variables(ok) :-
     setof(Value, (=(Value, Left); =(Value, Right)), Set),
     =(Left, a),
-    =(Right, b).
+    =(Right, b),
+    (=(Set, [a,b]); =(Set, [b,a])).

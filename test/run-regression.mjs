@@ -39,6 +39,7 @@ import {
   parseProgramText,
 } from '../src/index.js';
 import { parseGoalText } from '../src/parser.js';
+import { compareTerms } from '../src/term.js';
 import { selectClauseCandidates } from '../src/program.js';
 import { TestReporter, isMainModule } from './test-style.mjs';
 import { buildConformanceReport, formatConformanceReport } from './run-conformance-report.mjs';
@@ -2441,6 +2442,26 @@ function whiteBoxCases() {
         const env = new Env();
         assertEqual(unify(variable('X'), atom('socrates'), env), true, 'unify result');
         assertEqual(termToString(variable('X'), env, true), 'socrates', 'binding');
+      },
+    },
+    {
+      name: 'variable term order is scoped to one comparison or sorted-list operation',
+      run: () => {
+        const left = variable('Left');
+        const right = variable('Right');
+        assertEqual(String(left.order), 'undefined', 'variables carry no persistent order ordinal');
+        assertEqual(String(right.order), 'undefined', 'second variable carries no persistent order ordinal');
+
+        // Separate comparisons are permitted to choose their own
+        // implementation-dependent order under ISO 7.2.1.
+        assertEqual(String(compareTerms(left, right)), '-1', 'first local comparison');
+        assertEqual(String(compareTerms(right, left)), '-1', 'second local comparison is independent');
+
+        // A sorted-list operation instead supplies one shared ranking context,
+        // so all comparisons made while constructing that list are consistent.
+        const ranks = new Map();
+        assertEqual(String(compareTerms(left, right, ranks)), '-1', 'shared order first direction');
+        assertEqual(String(compareTerms(right, left, ranks)), '1', 'shared order reverse direction');
       },
     },
     {

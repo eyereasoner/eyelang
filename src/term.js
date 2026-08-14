@@ -6,10 +6,6 @@ export const STRING = 'string';
 export const NUMBER = 'number';
 export const COMPOUND = 'compound';
 const EMPTY_ARGS = Object.freeze([]);
-// Variable term order is carried by the variable objects themselves.  Do not
-// retain a process-global name registry: runtime clause freshening can create
-// an unbounded sequence of names in an otherwise constant-space computation.
-let variableOrder = 0;
 
 export class Term {
   constructor(type, name, args = []) {
@@ -22,11 +18,7 @@ export class Term {
   }
 }
 
-export const variable = (name, order = null) => {
-  const term = new Term(VAR, name, EMPTY_ARGS);
-  term.order = order ?? ++variableOrder;
-  return term;
-};
+export const variable = (name) => new Term(VAR, name, EMPTY_ARGS);
 export const atom = (name) => new Term(ATOM, name, EMPTY_ARGS);
 export const stringTerm = (value) => new Term(STRING, value, EMPTY_ARGS);
 export const numberTerm = (value) => new Term(NUMBER, value, EMPTY_ARGS);
@@ -271,7 +263,7 @@ export function unify(left, right, env, options = {}) {
 }
 
 export function cloneTerm(term) {
-  if (term.type === VAR) return variable(term.name, term.order);
+  if (term.type === VAR) return variable(term.name);
   const cloned = term.type === COMPOUND && term.arity === 0
     ? atom(term.name)
     : new Term(term.type, term.name, term.args.map(cloneTerm));
@@ -297,7 +289,7 @@ export function freshTerm(term, suffix, variables = new Map()) {
 
 export function copyResolved(term, env) {
   const resolved = deref(term, env);
-  if (resolved.type === VAR) return variable(resolved.name, resolved.order);
+  if (resolved.type === VAR) return variable(resolved.name);
   const copied = resolved.type === COMPOUND && resolved.arity === 0
     ? atom(resolved.name)
     : new Term(resolved.type, resolved.name, resolved.args.map((arg) => copyResolved(arg, env)));
@@ -512,7 +504,27 @@ export function variantTerms(left, leftEnv, right, rightEnv, pairs = new Map(), 
   return true;
 }
 
-export function compareTerms(left, right) {
+export function compareTerms(left, right, variableRanks = null) {
+  // ISO 7.2.1 deliberately leaves the order of distinct variables
+  // implementation dependent.  Do not attach a permanent ordinal to a
+  // logical variable: besides retaining implementation history, that would
+  // make the chosen order observable outside the operation that needs it.
+  // A caller that is constructing one sorted list can pass a shared Map so
+  // every comparison in that operation uses one consistent variable order.
+  const ranks = variableRanks ?? new Map();
+  return compareTermsWithRanks(left, right, ranks);
+}
+
+function variableRank(name, ranks) {
+  let rank = ranks.get(name);
+  if (rank == null) {
+    rank = ranks.size;
+    ranks.set(name, rank);
+  }
+  return rank;
+}
+
+function compareTermsWithRanks(left, right, variableRanks) {
   const rank = (term) => ({ [VAR]: 0, [NUMBER]: 1, [ATOM]: 2, [STRING]: 3, [COMPOUND]: 4 })[term.type];
   left = deref(left, new Env());
   right = deref(right, new Env());
@@ -527,18 +539,15 @@ export function compareTerms(left, right) {
   }
   if (left.type === VAR) {
     if (left.name === right.name) return 0;
-    const leftOrder = left.order ?? 0;
-    const rightOrder = right.order ?? 0;
-    if (leftOrder !== rightOrder) return leftOrder < rightOrder ? -1 : 1;
-    // Explicitly copied order values are permitted internally; keep the
-    // implementation-defined variable order total even in that case.
-    return left.name < right.name ? -1 : 1;
+    const leftOrder = variableRank(left.name, variableRanks);
+    const rightOrder = variableRank(right.name, variableRanks);
+    return leftOrder < rightOrder ? -1 : 1;
   }
   if (left.type === ATOM || left.type === STRING) return left.name < right.name ? -1 : left.name > right.name ? 1 : 0;
   if (left.arity !== right.arity) return left.arity < right.arity ? -1 : 1;
   if (left.name !== right.name) return left.name < right.name ? -1 : 1;
   for (let i = 0; i < left.arity; i++) {
-    const cmp = compareTerms(left.args[i], right.args[i]);
+    const cmp = compareTermsWithRanks(left.args[i], right.args[i], variableRanks);
     if (cmp) return cmp;
   }
   return 0;

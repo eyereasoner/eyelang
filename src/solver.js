@@ -1250,7 +1250,7 @@ function copyResolvedWithKey(term, env, variables) {
       id = variables.size;
       variables.set(value.name, id);
     }
-    return { term: termModuleCache.variable(value.name, value.order), key: `var:${id}` };
+    return { term: termModuleCache.variable(value.name), key: `var:${id}` };
   }
   if (!value.args?.length) {
     return {
