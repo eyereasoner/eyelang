@@ -490,10 +490,11 @@ function normalizeHostResourceError(error) {
   const message = String(error?.message ?? '');
   // V8 reports exhausted Map/Set capacity as a host RangeError.  ISO 7.12.2 h
   // requires processor resource exhaustion to surface as resource_error/1,
-  // with the resource atom implementation dependent.  EyeProlog uses the
-  // finite_memory spelling already accepted by its ISO conformance corpus.
+  // with the resource atom implementation dependent.  A finite host capacity
+  // ceiling is reported as `memory`; reserve `finite_memory` for the separate
+  // convention where no finite amount of memory can complete the computation.
   if (/^(?:Map|Set) maximum size exceeded$/.test(message)) {
-    return new PrologError('resource_error(finite_memory)');
+    return new PrologError('resource_error(memory)');
   }
   return error;
 }

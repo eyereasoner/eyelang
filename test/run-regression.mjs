@@ -2221,22 +2221,27 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
-      name: 'host Map capacity errors become ISO resource errors',
+      name: 'host Map/Set capacity errors become resource_error(memory)',
       run: () => {
-        const registry = new BuiltinRegistry();
-        registry.add('exhaust_map', 0, function* () {
-          throw new RangeError('Map maximum size exceeded');
-        });
-        const solver = new Solver(Program.parse(''), { registry });
-        const goal = parseGoalText('exhaust_map');
-        let caught = null;
-        try {
-          [...solver.solve([goal], new Env(), 0)];
-        } catch (error) {
-          caught = error;
+        for (const [predicate, message] of [
+          ['exhaust_map', 'Map maximum size exceeded'],
+          ['exhaust_set', 'Set maximum size exceeded'],
+        ]) {
+          const registry = new BuiltinRegistry();
+          registry.add(predicate, 0, function* () {
+            throw new RangeError(message);
+          });
+          const solver = new Solver(Program.parse(''), { registry });
+          const goal = parseGoalText(predicate);
+          let caught = null;
+          try {
+            [...solver.solve([goal], new Env(), 0)];
+          } catch (error) {
+            caught = error;
+          }
+          assertEqual(caught?.name, 'PrologError', `${predicate} normalized error type`);
+          assertEqual(caught?.formal, 'resource_error(memory)', `${predicate} normalized resource error`);
         }
-        assertEqual(caught?.name, 'PrologError', 'normalized error type');
-        assertEqual(caught?.formal, 'resource_error(finite_memory)', 'normalized resource error');
       },
     },
     {

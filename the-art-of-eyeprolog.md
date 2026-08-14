@@ -1823,8 +1823,12 @@ sorted-list operation. No process-global variable registry or creation ordinal
 is retained or exposed through later comparisons.
 
 Host capacity failures that V8 reports as `Map maximum size exceeded` or `Set`
-`maximum size exceeded` are normalized at the solver boundary to the ISO error
-`resource_error(finite_memory)` instead of leaking a JavaScript `RangeError`.
+`maximum size exceeded` are normalized at the solver boundary to
+`resource_error(memory)` instead of leaking a JavaScript `RangeError`. ISO
+13211-1 leaves the resource atom implementation dependent. EyeProlog uses
+`memory` for a finite host allocation/capacity ceiling and reserves the
+`finite_memory` spelling for the distinct convention where no finite amount of
+memory could complete the computation.
 
 ### Implementation boundary
 
