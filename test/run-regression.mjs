@@ -539,6 +539,35 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'apostrophe character-code constants parse in source and number conversion',
+      run: () => {
+        const source = String.raw`
+?- N = 0'''.
+   N = 39.
+?- number_chars(N,"0'''").
+   N = 39.
+?- number_chars(N,"0'\\'").
+   N = 39.
+?- number_codes(N,[48,39,39,39]).
+   N = 39.
+`;
+        const result = publicApi.runQuads(source);
+        assertEqual(result.total, 4, 'quad total');
+        assertEqual(result.passed, 4, 'quad passed');
+        assertEqual(result.stdout, 'quads: 4 run, 4 passed, 0 failed.\n', 'quad report');
+
+        for (const goal of ["N = 0''", 'number_chars(N,"0\'\'")']) {
+          let caught = null;
+          try {
+            publicApi.run('', { goal });
+          } catch (error) {
+            caught = error;
+          }
+          if (caught == null) throw new Error(`${goal} should reject an undoubled apostrophe`);
+        }
+      },
+    },
+    {
       name: 'number conversion rejects parenthesized numeric terms',
       run: () => {
         for (const goal of ['number_chars(N,"(0)")', 'number_codes(N,[40,48,41])']) {

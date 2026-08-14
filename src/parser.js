@@ -436,7 +436,16 @@ class Parser {
         if (!value || (value !== ' ' && isWhitespaceCode(value.charCodeAt(0)))) {
           throw new Error(`parse line ${line}: bad character code constant`);
         }
-        if (value === '\\') value = this.readEscape(line, { allowContinuation: false });
+        if (value === "'") {
+          // In the single-quoted-character notation used after 0', an
+          // apostrophe is doubled just as it is inside a quoted atom. Thus
+          // 0''' is one numeric token denoting character code 39, while the
+          // undoubled 0'' is not a complete single quoted character.
+          if (this.peek() !== "'") throw new Error(`parse line ${line}: bad character code constant`);
+          this.take();
+        } else if (value === '\\') {
+          value = this.readEscape(line, { allowContinuation: false });
+        }
         const code = value.codePointAt(0);
         return { type: TOK.NUMBER, text: String(negative ? -code : code), line };
       }

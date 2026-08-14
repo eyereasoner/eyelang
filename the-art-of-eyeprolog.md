@@ -5776,8 +5776,9 @@ minus token and the following numeric token. A single-line `%...` comment may
 therefore follow `-` directly because `%` cannot continue a graphic token; an
 adjacent bracketed comment in `-/**/1` remains a syntax error under the eager
 token-consumer rule. Decimal fractions and decimal exponents are supported;
-trailing material and non-finite values are rejected. The regression gate
-vendors all 74 numbered cases from Ulrich Neumerkel's contemporary
+the apostrophe character code is written with a doubled apostrophe as `0'''`
+and has value 39. Trailing material and non-finite values are rejected. The
+regression gate vendors all 74 numbered cases from Ulrich Neumerkel's contemporary
 `number_chars/2` comparison, including the Cor.2 error-precedence cases;
 `number_codes/2` shares the same numeric parser and has mirrored coverage for
 the recent numeric-syntax regressions.
