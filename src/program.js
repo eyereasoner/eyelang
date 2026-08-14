@@ -1,6 +1,7 @@
 // Program representation and clause indexing.
 // Indexes are deliberately conservative: they speed up common scalar arguments but never replace unification as the final check.
 import { ATOM, COMPOUND, VAR, Env, atom, compound, deref, flattenConjunction, isScalar, numberTerm, properListItems, termToString, variable } from './term.js';
+import { numberValueKey } from './number-value.js';
 import { formatTermForWrite } from './write.js';
 import {
   ISO_OPERATOR_DEFINITIONS,
@@ -1238,15 +1239,19 @@ function scalarBuckets(index, term) {
 }
 
 function argumentBucket(index, term) {
-  return scalarBuckets(index, term).get(term.name) ?? null;
+  return scalarBuckets(index, term).get(scalarBucketKey(term.type, term.name)) ?? null;
 }
 
 function addArgumentBucket(index, term, clause) {
-  addClauseBucket(scalarBuckets(index, term), term.name, clause);
+  addClauseBucket(scalarBuckets(index, term), scalarBucketKey(term.type, term.name), clause);
 }
 
 function scalarIndexKey(term) {
-  return `${term.type}\u0000${term.name}`;
+  return `${term.type}\u0000${scalarBucketKey(term.type, term.name)}`;
+}
+
+function scalarBucketKey(type, name) {
+  return type === 'number' ? numberValueKey(name) : name;
 }
 
 function addClauseBucket(buckets, key, clause) {
@@ -1276,7 +1281,7 @@ function indexCompactOne(index, type, name, clause, clauses = null, clausePositi
       index.sawScalar = true;
       if (clauses && clausePosition > 0) index.fallback = clauses.slice(0, clausePosition);
     }
-    addClauseBucket(compactScalarBuckets(index, type), name, clause);
+    addClauseBucket(compactScalarBuckets(index, type), scalarBucketKey(type, name), clause);
   } else if (index.sawScalar) {
     index.fallback.push(clause);
   }

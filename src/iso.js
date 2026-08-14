@@ -5,7 +5,8 @@ import {
   isDecimalInteger, listFromItems, numberTerm, numberTextFromDouble,
   properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
-import { createParserOperatorState, parseClauses, parseGoalText } from './parser.js';
+import { sameNumberValue } from './number-value.js';
+import { createParserOperatorState, parseClauses, parseGoalText, parseNumberTokenText } from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 
@@ -220,7 +221,8 @@ function subsumesTerm(general, specific, env) {
       }
       continue;
     }
-    if (left.type !== right.type || left.name !== right.name || left.arity !== right.arity) return false;
+    if (left.type !== right.type || left.arity !== right.arity) return false;
+    if (left.type === NUMBER ? !sameNumberValue(left.name, right.name) : left.name !== right.name) return false;
     for (let i = left.arity - 1; i >= 0; i--) pending.push([left.args[i], right.args[i]]);
   }
   return true;
@@ -239,7 +241,8 @@ function* nonIdentity({ goal, env }) {
 function identical(left, right, env) {
   left = deref(left, env);
   right = deref(right, env);
-  if (left.type !== right.type || left.name !== right.name || left.arity !== right.arity) return false;
+  if (left.type !== right.type || left.arity !== right.arity) return false;
+  if (left.type === NUMBER ? !sameNumberValue(left.name, right.name) : left.name !== right.name) return false;
   if (left.type === VAR) return left.name === right.name;
   for (let i = 0; i < left.arity; i++) if (!identical(left.args[i], right.args[i], env)) return false;
   return true;
@@ -1549,9 +1552,7 @@ function quotedNumberSign(text, start) {
 }
 
 function parseIsoNumber(text) {
-  // number_chars/2 accepts leading layout, but its character list must end
-  // with the numeric token itself rather than trailing layout text.
-  if (text.length === 0 || /[\u0009-\u000d\u0020]$/.test(text)) return null;
+  if (text.length === 0) return null;
   let position = skipNumberLayout(text, 0);
   let sign = '';
 
@@ -1587,10 +1588,7 @@ function parseIsoNumber(text) {
   // ISO floating-point syntax requires a decimal fraction before an exponent.
   if (/^-?\d+[eE][+-]?\d+$/.test(numericText)) return null;
   try {
-    const parsed = parseGoalText(`number_chars_value(${numericText})`);
-    if (parsed.type !== COMPOUND || parsed.name !== 'number_chars_value' ||
-        parsed.arity !== 1 || parsed.args[0].type !== NUMBER) return null;
-    const value = parsed.args[0];
+    const value = parseNumberTokenText(numericText);
     if (isDecimalInteger(value.name)) return numberTerm(BigInt(value.name).toString());
     const finite = Number(value.name);
     if (!Number.isFinite(finite)) return null;
@@ -1601,14 +1599,18 @@ function parseIsoNumber(text) {
 }
 
 function sameNumber(left, right) {
-  const leftInteger = isDecimalInteger(left.name);
-  const rightInteger = isDecimalInteger(right.name);
-  if (leftInteger || rightInteger) {
-    return leftInteger && rightInteger && BigInt(left.name) === BigInt(right.name);
+  return sameNumberValue(left.name, right.name);
+}
+
+function canonicalNumberText(value) {
+  if (isDecimalInteger(value.name)) return BigInt(value.name).toString();
+  const finite = Number(value.name);
+  if (Number.isFinite(finite) && /^-?\d+\.\d+(?:[eE][+-]?\d+)?$/.test(value.name)) {
+    return value.name;
   }
-  const leftValue = Number(left.name);
-  const rightValue = Number(right.name);
-  return Number.isFinite(leftValue) && Number.isFinite(rightValue) && leftValue === rightValue;
+  const text = numberTextFromDouble(finite);
+  if (text == null) throw new PrologError('representation_error(max_float)');
+  return text;
 }
 
 function numberListText(list, env, kind, valueIsBound) {
@@ -1650,7 +1652,7 @@ function numberListBuiltin(kind) {
         if (sameNumber(value, parsed)) yield next;
         return;
       }
-      const items = characters(value.name).map((ch) =>
+      const items = characters(canonicalNumberText(value)).map((ch) =>
         kind === 'chars' ? atom(ch) : numberTerm(ch.codePointAt(0)));
       if (unify(goal.args[1], listFromItems(items), next)) yield next;
       return;

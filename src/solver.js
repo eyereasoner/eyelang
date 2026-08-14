@@ -4,6 +4,7 @@ import {
   COMPOUND, Env, compound, copyResolved, deref, emptyList, flattenConjunction, freshTerm,
   numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variantTerms,
 } from './term.js';
+import { sameNumberValue } from './number-value.js';
 import { PrologError, getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program.js';
@@ -1089,11 +1090,13 @@ function isScalarTerm(term) {
 }
 
 function sameScalarTerm(left, right) {
-  return isScalarTerm(left) && isScalarTerm(right) && left.type === right.type && left.name === right.name;
+  return isScalarTerm(left) && isScalarTerm(right) && left.type === right.type &&
+    (left.type === 'number' ? sameNumberValue(left.name, right.name) : left.name === right.name);
 }
 
 function sameGroundTerm(left, right) {
-  if (left?.type !== right?.type || left?.name !== right?.name) return false;
+  if (left?.type !== right?.type) return false;
+  if (left?.type === 'number' ? !sameNumberValue(left.name, right.name) : left?.name !== right?.name) return false;
   const arity = left.args?.length ?? 0;
   if (arity !== (right.args?.length ?? 0)) return false;
   for (let i = 0; i < arity; i++) if (!sameGroundTerm(left.args[i], right.args[i])) return false;

@@ -1,5 +1,7 @@
 // Term model, environments, unification, readback, and ordering helpers.
-// This file is intentionally dependency-free because nearly every other module imports it.
+// Keep dependencies minimal because nearly every other module imports this file.
+import { sameNumberValue } from './number-value.js';
+
 export const VAR = 'var';
 export const ATOM = 'atom';
 export const STRING = 'string';
@@ -247,7 +249,7 @@ export function unify(left, right, env, options = {}) {
     }
 
     if (isScalar(a)) {
-      if (a.name !== b.name) return false;
+      if (a.type === NUMBER ? !sameNumberValue(a.name, b.name) : a.name !== b.name) return false;
       continue;
     }
 
@@ -497,7 +499,8 @@ export function variantTerms(left, leftEnv, right, rightEnv, pairs = new Map(), 
     reverse.set(right.name, left.name);
     return true;
   }
-  if (left.type !== right.type || left.name !== right.name || left.arity !== right.arity) return false;
+  if (left.type !== right.type || left.arity !== right.arity) return false;
+  if (left.type === NUMBER ? !sameNumberValue(left.name, right.name) : left.name !== right.name) return false;
   for (let i = 0; i < left.arity; i++) {
     if (!variantTerms(left.args[i], leftEnv, right.args[i], rightEnv, pairs, reverse)) return false;
   }

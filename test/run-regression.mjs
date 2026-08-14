@@ -568,6 +568,63 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'number conversion accepts ISO space and Unicode character-code constants exactly',
+      run: () => {
+        const source = String.raw`
+?- N = 0' .
+   N = 32.
+?- number_chars(N,"0' ").
+   N = 32.
+?- number_codes(N,[48,39,32]).
+   N = 32.
+?- N = 0'😀.
+   N = 128512.
+?- number_chars(N,"0'😀").
+   N = 128512.
+?- number_codes(N,[48,39,128512]).
+   N = 128512.
+?- number_codes(N,[48,39,34]).
+   N = 34.
+?- number_codes(N,[48,39,96]).
+   N = 96.
+?- number_codes(N,[48,39,92,92]).
+   N = 92.
+?- number_chars(01,Chars).
+   Chars = "1".
+?- number_codes(01,Codes).
+   Codes = [49].
+?- 1.2 = 1.20.
+   true.
+?- 1.2 == 1.20.
+   true.
+?- 1 = 1.0.
+   false.
+?- number_chars(1.20,C), number_chars(Y,C), 1.20 == Y.
+   C = "1.20", Y = 1.2.
+`;
+        const result = publicApi.runQuads(source);
+        assertEqual(result.total, 15, 'quad total');
+        assertEqual(result.passed, 15, 'quad passed');
+        assertEqual(result.stdout, 'quads: 15 run, 15 passed, 0 failed.\n', 'quad report');
+
+        for (const goal of [
+          'number_chars(N,"3/**/")',
+          'number_codes(N,[51,47,42,42,47])',
+          'number_chars(N,"0\'  ")',
+          'number_codes(N,[48,39,32,32])',
+        ]) {
+          let caught = null;
+          try {
+            publicApi.run('', { goal });
+          } catch (error) {
+            caught = error;
+          }
+          if (caught == null) throw new Error(`${goal} should reject trailing layout`);
+          assertIncludes(String(caught?.message ?? caught), 'syntax_error(number)', goal);
+        }
+      },
+    },
+    {
       name: 'number conversion rejects parenthesized numeric terms',
       run: () => {
         for (const goal of ['number_chars(N,"(0)")', 'number_codes(N,[40,48,41])']) {

@@ -433,6 +433,18 @@ class Parser {
         this.take();
         this.take();
         let value = this.take();
+        if (value) {
+          const firstCode = value.charCodeAt(0);
+          if (firstCode >= 0xd800 && firstCode <= 0xdbff) {
+            const secondCode = this.peek().charCodeAt(0);
+            if (secondCode < 0xdc00 || secondCode > 0xdfff) {
+              throw new Error(`parse line ${line}: bad character code constant`);
+            }
+            value += this.take();
+          } else if (firstCode >= 0xdc00 && firstCode <= 0xdfff) {
+            throw new Error(`parse line ${line}: bad character code constant`);
+          }
+        }
         if (!value || (value !== ' ' && isWhitespaceCode(value.charCodeAt(0)))) {
           throw new Error(`parse line ${line}: bad character code constant`);
         }
@@ -1292,6 +1304,22 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
 
 export function parseProgramText(source, options = {}) {
   return parseClauses(source, options);
+}
+
+export function parseNumberTokenText(text) {
+  const source = String(text ?? '');
+  const parser = new Parser(source, {
+    includeDefaultOperators: false,
+    sourceMetadata: false,
+  });
+  // Inspect the tokenizer position before requesting another token: advancing
+  // would skip trailing layout and make `3 ` or `3/**/` look complete. A
+  // literal space consumed by the character-code token `0' ` is already part
+  // of parser.pos and is therefore correctly accepted.
+  if (parser.token.type !== TOK.NUMBER || parser.pos !== source.length) {
+    throw new Error('not exactly one number token');
+  }
+  return numberTerm(parser.token.text);
 }
 
 export function parseGoalText(text, options = {}) {
