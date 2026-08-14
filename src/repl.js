@@ -31,13 +31,23 @@ export async function runRepl(engine, options = {}) {
       if (text == null) break;
       if (!text.trim()) continue;
 
+      let resultIndent = '   ';
       try {
         const goal = parseGoal(engine, state, text);
+        // A complete, successfully parsed query has left the top-level reader
+        // and is about to execute. Show two spaces immediately so a terminal
+        // user can distinguish that state from a reader waiting for more text;
+        // the final result adds the third indentation space below. A direct
+        // halt has no result and exits immediately, so it needs no marker.
+        if (!isHaltGoal(goal)) {
+          output.write('  ');
+          resultIndent = ' ';
+        }
         if (!options.isoStrict && isUseModuleGoal(goal)) {
           sources.push({ text: `:- ${text}.\n`, filename: '<repl>' });
           state = makeState(engine, sources, output, options, state, reader);
           runWithTerminalSignals(reader, () => state.solver.runInitializations());
-          output.write('   true.\n');
+          output.write(' true.\n');
           continue;
         }
         const consultFiles = options.isoStrict ? null : consultDesignations(engine, goal);
@@ -45,7 +55,7 @@ export async function runRepl(engine, options = {}) {
           for (const filename of consultFiles) sources.push(await readSource(filename));
           state = makeState(engine, sources, output, options, state, reader);
           runWithTerminalSignals(reader, () => state.solver.runInitializations());
-          output.write('   true.\n');
+          output.write(' true.\n');
           continue;
         }
 
@@ -65,7 +75,7 @@ export async function runRepl(engine, options = {}) {
           exitCode = error.code;
           break;
         }
-        output.write(`   ${formatError(engine, state, error)}\n`);
+        output.write(`${resultIndent}${formatError(engine, state, error)}\n`);
       }
     }
   } catch (error) {
@@ -442,6 +452,11 @@ function isUseModuleGoal(goal) {
   return goal.type === 'compound' && goal.name === 'use_module' && [1, 2].includes(goal.arity);
 }
 
+function isHaltGoal(goal) {
+  return (goal.type === 'atom' && goal.name === 'halt') ||
+    (goal.type === 'compound' && goal.name === 'halt' && goal.arity === 1);
+}
+
 function consultDesignations(engine, goal) {
   if (goal.type === 'atom' && goal.name === '[]') return [];
   if (goal.type !== 'compound' || goal.name !== '.' || goal.arity !== 2) return null;
@@ -481,7 +496,7 @@ async function solveQuery(engine, state, goal, reader, output) {
   }
 
   if (current.result.done) {
-    output.write('   false.\n');
+    output.write(' false.\n');
     return null;
   }
 
@@ -498,7 +513,7 @@ async function solveQuery(engine, state, goal, reader, output) {
     if (formattingAfterAdvance) output.write(' ');
     formattingAfterAdvance = false;
     output.write(current.output);
-    output.write(`${firstAnswer ? '   ' : ''}${formatAnswer(engine, state, variables, current.result.value)}`);
+    output.write(`${firstAnswer ? ' ' : ''}${formatAnswer(engine, state, variables, current.result.value)}`);
     answersShown++;
     firstAnswer = false;
     if (!next.error && next.result.done) {

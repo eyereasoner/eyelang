@@ -820,7 +820,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'REPL answer prompt distinguishes waiting from computation',
+      name: 'REPL query and answer prompts distinguish waiting from computation',
       run: () => {
         const helper = `
           import { spawn } from 'node:child_process';
@@ -833,9 +833,11 @@ c4 ?- call((!;1)).
           child.stderr.setEncoding('utf8');
           let stdout = '';
           let stderr = '';
+          let sawQueryComputingPrompt = false;
           let sawComputingPrompt = false;
           child.stdout.on('data', (text) => {
             stdout += text;
+            if (stdout.endsWith('?-   ')) sawQueryComputingPrompt = true;
             if (stdout.endsWith('\\n; ')) sawComputingPrompt = true;
           });
           child.stderr.on('data', (text) => { stderr += text; });
@@ -852,6 +854,10 @@ c4 ?- call((!;1)).
 
           child.stdin.write('use_module(library(prologue)).\\n');
           await waitFor(() => stdout.includes('   true.\\n?- '), 'module import');
+          sawQueryComputingPrompt = false;
+          child.stdin.write('between(0,0xff,I),I<0.\\n');
+          await waitFor(() => sawQueryComputingPrompt, 'query computing prompt');
+          await waitFor(() => stdout.endsWith('   false.\\n?- '), 'query result');
           child.stdin.write('(N = 0; N = 1; (call_nth(repeat, 100000), N = 2)).\\n');
           await waitFor(() => stdout.endsWith('   N = 0\\n;'), 'waiting prompt');
           child.stdin.write(';\\n');
@@ -862,7 +868,7 @@ c4 ?- call((!;1)).
           child.stdin.write('halt.\\n');
           const status = await new Promise((resolve) => child.once('exit', resolve));
           if (status !== 0) throw new Error('child status ' + status + '; stderr=' + stderr);
-          process.stdout.write('waiting;computing;formatting');
+          process.stdout.write('query-computing;waiting;computing;formatting');
         `;
         const result = spawnSync(process.execPath, [
           '--input-type=module',
@@ -871,7 +877,7 @@ c4 ?- call((!;1)).
         ], { cwd: packageRoot, encoding: 'utf8', timeout: 10000 });
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `prompt helper status; stderr=${result.stderr}`);
-        assertEqual(result.stdout, 'waiting;computing;formatting', 'prompt state sequence');
+        assertEqual(result.stdout, 'query-computing;waiting;computing;formatting', 'prompt state sequence');
       },
     },
     {
@@ -941,9 +947,9 @@ c4 ?- call((!;1)).
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
-          "?- '\\a'   true.\n" +
-          "?- '\\a'   true.\n" +
-          "?- '\\a'   true.\n" +
+          "?-   '\\a' true.\n" +
+          "?-   '\\a' true.\n" +
+          "?-   '\\a' true.\n" +
           '?- ',
           'stdout');
         assertEqual(result.stderr, '', 'stderr');
@@ -956,7 +962,7 @@ c4 ?- call((!;1)).
           input: "writeq('\\0\\').\nhalt.\n",
         });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, "?- '\\0\\'   true.\n?- ", 'stdout');
+        assertEqual(result.stdout, "?-   '\\0\\' true.\n?- ", 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -1091,7 +1097,7 @@ c4 ?- call((!;1)).
           input: "writeq('\\033\\').\nhalt.\n",
         });
         assertEqual(result.status, 0, 'exit status');
-        assertEqual(result.stdout, "?- '\\33\\'   true.\n?- ", 'stdout');
+        assertEqual(result.stdout, "?-   '\\33\\' true.\n?- ", 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -1110,9 +1116,9 @@ c4 ?- call((!;1)).
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
-          '?- |:    X = foo.\n' +
-          "?- |:    Y = '\\a'.\n" +
-          '?- |:    Z = bar.\n' +
+          '?-   |:  X = foo.\n' +
+          "?-   |:  Y = '\\a'.\n" +
+          '?-   |:  Z = bar.\n' +
           '?- ',
           'stdout');
         assertEqual(result.stderr, '', 'stderr');

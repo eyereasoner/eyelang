@@ -6285,10 +6285,13 @@ When another answer exists in an interactive terminal, press `;`, Space, or
 enumeration, `a` enumerates all remaining answers, and `f` advances to the
 next five-answer boundary (5, 10, 15, ... displayed leaf answers), regardless
 of how many answers were stepped through individually beforehand. `h` displays
-the answer-control help. The answer prompt is `;` with no trailing space while
-it waits for input; after an advance command, one space marks active search and
-a second marks an answer ready for formatting. While a query is actively
-computing, EyeProlog releases readline's terminal signal handling: `Ctrl-C`
+the answer-control help. Once the top-level reader has accepted a complete
+query, the following line begins with two spaces to mark active execution; a
+third space appears when its result is ready for formatting. The answer prompt
+is `;` with no trailing space while it waits for input; after an advance
+command, one space marks active search and a second marks an answer ready for
+formatting. While a query is actively computing, EyeProlog releases readline's
+terminal signal handling: `Ctrl-C`
 therefore terminates the current EyeProlog process immediately, and on POSIX
 terminals `Ctrl-Z` suspends it in the usual shell-managed way. This remains a
 host top-level convention rather than an ISO/IEC 13211-1 language feature. A
