@@ -222,7 +222,7 @@ why(
       },
     },
     {
-      name: 'quad parser treats operator and functional ?- notation equivalently',
+      name: 'quad parser treats regular term spellings of ?- equivalently',
       run: () => {
         const labelled = Program.parse(
           `0,passes
@@ -253,9 +253,28 @@ why(
         const functionalReport = publicApi.runQuads(functional);
         assertEqual(functionalReport.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'functional quad report');
 
-        const strict = Program.parse(`?-(','(0,passes),=(X,1)).\n`, { isoStrict: true });
+        // Issue #11 is about ordinary term syntax, not one privileged
+        // canonical spelling. Parentheses, quoted functor syntax, and mixed
+        // operator/functional notation must all denote the same ?-/2 term and
+        // therefore the same quad in the normal EyeProlog profile.
+        for (const [name, source] of [
+          ['mixed', `?-((0,passes), X = 1).\n   X = 1.\n`],
+          ['parenthesized', `(?-(','(0,passes),=(X,1))).\n   X = 1.\n`],
+          ['parenthesized mixed', `(?-((0,passes), X = 1)).\n   X = 1.\n`],
+          ['quoted functor', `'?-'(','(0,passes),=(X,1)).\n   X = 1.\n`],
+          ['quoted parenthesized', `('?-'(','(0,passes),=(X,1))).\n   X = 1.\n`],
+        ]) {
+          const regular = Program.parse(source);
+          assertEqual(regular.quads.length, 1, `${name} quad count`);
+          assertEqual(regular.clauses.length, 0, `${name} quad clause count`);
+          assertEqual(termToString(regular.quads[0].id), termToString(labelled.quads[0].id), `${name} label`);
+          assertEqual(termToString(regular.quads[0].query), termToString(labelled.quads[0].query), `${name} query`);
+          assertEqual(publicApi.runQuads(regular).stdout, 'quads: 1 run, 1 passed, 0 failed.\n', `${name} report`);
+        }
+
+        const strict = Program.parse(`(?-(','(0,passes),=(X,1))).\n`, { isoStrict: true });
         assertEqual(strict.quads.length, 0, 'strict mode has no quads');
-        assertEqual(strict.clauses.length, 1, 'strict functional ?-/2 remains an ordinary term');
+        assertEqual(strict.clauses.length, 1, 'strict ?-/2 remains an ordinary term');
       },
     },
     {

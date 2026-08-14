@@ -746,11 +746,11 @@ class Parser {
     const accept = emit ?? ((clause) => clauses.push(clause));
     while (this.token.type !== TOK.EOF) {
       const line = this.token.line;
-      // In the normal EyeProlog profile, canonical functional ?-/1 and
-      // ?-/2 notation denotes the same quad marker as the corresponding
-      // operator notation.  Keep the existing operator-form query parsing so
-      // a query containing comma remains wholly to the right of `?-`, while
-      // functional notation is parsed as a term and then decomposed by arity.
+      // Prefix operator notation needs one program-level distinction so
+      // a comma in `?- A, B.` remains inside the query rather than outside the
+      // prefix term. Ordinary functional notation is parsed as a term and then
+      // recognized structurally by parseQuadTerm; further equivalent spellings
+      // are recognized after the general head parser below.
       if (this.operatorTokenName() === '?-' && !this.strictIso) {
         if (this.peek() === '(') {
           const quadTerm = this.parseTerm(0, true);
@@ -817,6 +817,14 @@ class Parser {
         }
         head = items.pop();
         while (items.length > 0) head = compound(',', [items.pop(), head]);
+      }
+      // Parentheses and other ordinary term syntax may hide the surface ?-
+      // token from the program-level dispatch above.  Once the complete head
+      // term has been parsed, recognize the same ?-/1 or ?-/2 structure here.
+      // Requiring the following dot prevents an ordinary rule whose head just
+      // happens to be ?-/1 or ?-/2 from being consumed as a quad mid-clause.
+      if (!this.strictIso && this.token.type === TOK.DOT && this.parseQuadTerm(head, line, accept)) {
+        continue;
       }
       if (this.operatorTokenName() === '?-') {
         if (this.strictIso) {

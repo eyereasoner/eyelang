@@ -5156,10 +5156,12 @@ an optional label before the query marker (`Label ?- Query.`), so while quad
 syntax is supported it additionally exposes `?-` at priority 1200 with
 specifier `xfx` as an implementation-specific operator. Consequently
 `current_op(Priority, Specifier, ?-)` enumerates both definitions. At top level in the normal EyeProlog profile, the quad marker is recognized
-after term parsing, so equivalent syntax stays equivalent: `Label ?- Query.`
-and canonical `?-(Label, Query).` denote the same labelled quad when followed
-by its indented answer descriptions. In `--iso-strict` mode this quad
-interpretation is disabled, and `?-/2` remains ordinary Prolog term syntax.
+from the parsed `?-/1` or `?-/2` term rather than from one privileged surface
+spelling. Thus `Label ?- Query.`, `?-(Label, Query).`, mixed forms such as
+`?-((Label), Query).`, quoted-functor notation, and a parenthesized whole
+`(?-(Label, Query)).` denote the same quad when followed by indented answer
+descriptions. In `--iso-strict` mode this quad interpretation is disabled, and
+`?-/2` remains ordinary Prolog term syntax.
 
 Run [`iso-dynamic-database.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl)
 for an explicitly stateful queue and
@@ -6432,9 +6434,11 @@ Trealla and the ISO Prolog working examples. Because answer descriptions are
 layout-sensitive, indent every description while keeping ordinary clause heads
 and the next quad query at the left margin. A quad label may contain any number
 of comma-separated metadata fields, including across layout before `?-`; for
-example `9, "case", passes ?- Goal.` is one labelled query. Canonical
-functional notation is semantically equivalent: `?-(Label, Query).` followed by
-the same indented answer descriptions creates the same labelled quad as
+example `9, "case", passes ?- Goal.` is one labelled query. Quad recognition
+is structural after ordinary term parsing: functional, mixed, quoted-functor,
+and parenthesized spellings of the same `?-/1` or `?-/2` term are semantically
+equivalent. For example `?-(Label, Query).` and `(?-(Label, Query)).`, followed
+by the same indented answer descriptions, create the same labelled quad as
 `Label ?- Query.`.
 
 Statistics are comparative evidence, not a score in isolation. Preserve the
