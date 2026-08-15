@@ -9,7 +9,8 @@ The suite is intentionally file-based. Exact standard output, errors, warnings,
 and proof output test the behavior of the JavaScript implementation.
 [ISO-MATRIX.md](ISO-MATRIX.md) maps Part 1 normative clause families, all three
 corrigenda, Part 2 modules, and Part 3 definite clause grammars to representative
-executable cases.
+executable cases. [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
+complete one-to-one trace for all 366 active upstream syntax cases.
 
 “Conformance” here means conformance to EyeProlog's documented ISO compatibility
 profile and implementation extensions. The default registry covers the exact
@@ -68,6 +69,12 @@ Run the Part 1 + Corrigenda strict-core processor gate:
 npm run test:iso-strict
 ```
 
+Run the complete WG17 syntax matrix independently:
+
+```sh
+npm run test:wg17-syntax
+```
+
 Summarize conformance coverage by category:
 
 ```sh
@@ -103,9 +110,10 @@ Scryer Prolog, Trealla Prolog, and SWI-Prolog. Their upstream identifiers and li
 are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 The corpus has 386 cases in `iso/` and 792 file-based conformance cases in
-total. The generated `conformance-report.md` is the authoritative source for
-current category totals. Together with regression, documentation-sync, API,
-example, and book-example checks, `npm test` is the release gate.
+total. The separate strict-reader WG17 matrix has 366 executable dispositions.
+The generated `conformance-report.md` is the authoritative source for current
+category totals. Together with regression, documentation-sync, API, example,
+and book-example checks, `npm test` is the release gate.
 
 ## Updating expected output
 

@@ -35,7 +35,7 @@ error-ordering alternative to an individual executable assertion.
 | 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Cross-text `multifile/1` and ordering constraints require explicit shall-by-shall audit. |
 | 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access. Public/private and multi-text requirements still need complete mapping. |
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
-| 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction, if-then, catch/throw, renamed-copy tests. |
+| 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. |
 | 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Exceptional-value/error-precedence matrix remains to be exhaustively enumerated. |
 | 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, Corrigendum 3 writer cases. Full option cross-product remains open. |
 | 7.11 — flags | audit | Required Part 1 flags implemented. Normal and strict modes use the ISO `unknown=error` default; strict mode excludes the EyeProlog `occurs_check` extension. |

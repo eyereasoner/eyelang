@@ -1831,8 +1831,11 @@ sorted-list operation. No process-global variable registry or creation ordinal
 is retained or exposed through later comparisons.
 
 EyeProlog periodically checks detectable JavaScript heap use and keeps a quarter
-of the host heap ceiling in reserve so the solver can unwind and report
-`resource_error(memory)` before a fatal host out-of-memory abort. Embedders may
+of the applicable host heap ceiling in reserve so the solver can unwind and report
+`resource_error(memory)` before a fatal host out-of-memory abort. When Node is
+started with `--max-old-space-size`, the guard compares that old-generation
+ceiling with V8's non-young heap spaces; short-lived new-generation allocations
+therefore do not cause a false resource error. Embedders may
 replace that automatically derived soft ceiling with `maxMemoryBytes`; setting
 it to `Infinity` disables the proactive check. Environments that do not expose
 heap use cannot provide the proactive check. Host capacity failures that V8
@@ -5000,7 +5003,10 @@ travel_status(From, To, Status) :-
 discards alternatives created since entry into the current predicate call.
 The two can produce the same first answer without expressing the same control
 boundary. Keep cut close to the choice it documents and test the complete
-answer set before and after introducing it.
+answer set before and after introducing it. A cut executed inside a predicate
+called by one disjunction branch remains local to that predicate: if the branch
+later fails, `Left ; Right` must still try `Right`. This remains true for
+cut-bearing validation helpers used by generators such as `between/3`.
 
 Exceptions separate an exceptional call from ordinary logical failure:
 
@@ -5252,7 +5258,11 @@ error rather than guessing an encoding.
 `read/1-2` reads the next term. `read_term/2-3` can also return all variables,
 source variable names, and singletons. The metadata contains variables, so a
 program normally validates or transforms it before placing it in a ground
-query answer. `stream_property/2` exposes mode, type, alias, position, and
+query answer. Every read operation creates a fresh variable set: a source name
+such as `X` in two separately read terms does not alias either the caller's `X`
+or the variable named `X` by the other read. Within one read term, repeated
+occurrences and the variables returned through its metadata still share as
+written. `stream_property/2` exposes mode, type, alias, position, and
 end state. `current_input/1`, `current_output/1`, `set_input/1`, and
 `set_output/1` manage defaults shared by nested goals.
 
@@ -5612,7 +5622,7 @@ collision because other Prolog systems commonly reject it while loading.
 | `\+(+Goal)` | Negation as finite failure. It succeeds once when `Goal` has no solution and never exports bindings made while testing `Goal`. Bind variables needed by the test first. |
 | `once(+Goal)` | Returns only the first solution of `Goal`, or fails when there is none. |
 | `repeat` | Produces an unbounded sequence of successes; normally paired with a test, cut, exception, or `halt/0`. |
-| `Left ; Right` | Enumerates `Left`, then `Right`, restoring the incoming environment between branches. |
+| `Left ; Right` | Enumerates `Left`, then `Right`, restoring the incoming environment between branches. A cut inside a called predicate cannot discard the other branch. |
 | `If -> Then` | Commits to the first solution of `If` and runs `Then`; it does not provide an else branch by itself. |
 | `(If -> Then ; Else)` | Runs `Then` from the first solution of `If`, otherwise runs `Else`. Alternatives of `If` are discarded. |
 | `catch(+Goal,?Catcher,+Recovery)` | Runs `Goal`; on a matching thrown ball or `PrologError`, unifies it with `Catcher` and calls `Recovery`. Runtime errors are exposed as *error(Formal,eyeprolog)*. |
@@ -7005,7 +7015,7 @@ hand.
 
 #### Running and extending the corpus
 
-Run all 189 normal answer goldens and the 60 selected proof goldens with:
+Run all 211 normal answer goldens and the 61 selected proof goldens with:
 
 ```sh
 npm run test:examples
@@ -7050,6 +7060,7 @@ syntax. Separate corpora cover expected errors, warnings, and proofs:
 ```sh
 npm run test:conformance
 npm run test:iso-strict
+npm run test:wg17-syntax
 node test/run-conformance-report.mjs
 ```
 
@@ -7058,14 +7069,16 @@ Part 1 conformance audit. It distinguishes implemented/tested families from
 requirements whose normative `shall` clauses, option combinations, or error
 precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
+`test/conformance/WG17-SYNTAX-STATUS.md` separately traces all 366 active
+upstream syntax cases to exact strict-reader outcomes, with no untraced case.
 
 The complete suite must pass before release. The file-based conformance corpus
 contains 792 cases, including 386 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
-Separate exact-output suites check 189 normal
-examples and 60 proof examples; all extracted book programs are parsed and
-their declared goals are executed. The seven-case
+Separate exact-output suites check 211 normal
+examples and 61 proof examples; all extracted book programs are parsed and
+their declared goals are executed. The eight-case
 playground contract suite imports the production worker, sends real reasoning
 requests through its message protocol, and crawls the served module graph for
 missing assets, bad MIME types, and static Node-only imports. The generated

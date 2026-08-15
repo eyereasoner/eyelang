@@ -20,7 +20,8 @@ syntax.
 EyeProlog implements the Part 1 core together with Technical Corrigenda 1, 2,
 and 3, Part 2 modules, and the Part 3 definite clause grammar specification.
 Its executable conformance matrix and tests document the supported
-behavior. This is extensive implementation evidence, not certification by an
+behavior, including a complete executable trace of the 366 active WG17 syntax
+cases. This is extensive implementation evidence, not certification by an
 independent standards body.
 
 ## Why a small implementation?

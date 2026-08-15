@@ -33,6 +33,16 @@ if_then_cut(Value) :-
     (true -> (!, choice(Value)); fail).
 if_then_cut(fallback).
 
+callee_cut_then_fail :-
+    !,
+    fail.
+
+callee_cut_disjunction :-
+    (callee_cut_then_fail; true).
+
+between_disjunction :-
+    (between(1, 1, _), false; true).
+
 %% goal: committed_answer(X0)
 
 committed_answer(Value) :-
@@ -67,3 +77,13 @@ call_local_answer(Kind, Value) :-
 
 if_then_answer(Value) :-
     if_then_cut(Value).
+
+%% goal: callee_cut_disjunction_answer
+
+callee_cut_disjunction_answer :-
+    callee_cut_disjunction.
+
+%% goal: between_disjunction_answer
+
+between_disjunction_answer :-
+    between_disjunction.

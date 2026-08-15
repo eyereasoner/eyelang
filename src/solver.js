@@ -291,8 +291,8 @@ export class Solver {
         const rest = selectedIndex === 0 ? goals.slice(1) : [...goals.slice(0, selectedIndex), ...goals.slice(selectedIndex + 1)];
         if (goal.type === 'atom' && goal.name === '!' && goal.arity === 0) {
           const marker = active[active.length - 1] ?? null;
-          this.cutEpoch++;
           if (marker) marker.cutEpoch = (marker.cutEpoch ?? 0) + 1;
+          else this.cutEpoch++;
           for (const solveStack of this.solveStacks) {
             for (let i = solveStack.length - 1; i >= 0; i--) {
               if (marker == null || solveStack[i].active?.includes(marker)) solveStack.splice(i, 1);

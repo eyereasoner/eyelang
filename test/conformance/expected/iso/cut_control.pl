@@ -7,3 +7,5 @@ disjunction_answer(a).
 call_local_answer(fallback, ok).
 if_then_answer(a).
 if_then_answer(b).
+callee_cut_disjunction_answer.
+between_disjunction_answer.
