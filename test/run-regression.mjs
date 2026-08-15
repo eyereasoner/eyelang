@@ -1285,6 +1285,35 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'read terms have a variable scope distinct from the calling query',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'read(X).\n' +
+            'X=a.\n' +
+            'read(X).\n' +
+            'Y=a.\n' +
+            'read_term(X, [variables(Vs), variable_names(Names), singletons(Singletons)]).\n' +
+            'X = pair(X, Y).\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-   |:  X = (_A = a).\n' +
+          '?-   |:  X = (_A = a).\n' +
+          "?-   |:  X = (_A = pair(_A, _B)), Vs = [_A, _B], Names = ['X' = _A, 'Y' = _B], Singletons = ['Y' = _B].\n" +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+
+        const distinctReads = run(
+          'check :- read(A), read(B), A \\== B, write_canonical(pair(A, B)), nl.\n',
+          { goal: 'check', ioOptions: { input: 'V.\nV.\n' } },
+        );
+        assertEqual(distinctReads.stdout, 'pair(V,V_1)\ncheck.\n', 'separate read variable sets');
+      },
+    },
+    {
       name: 'REPL term input is on demand in conjunctions and Ctrl-D does not exit the top level',
       run: () => {
         if (process.platform === 'win32') return;

@@ -413,9 +413,26 @@ function writeList(term, env, options) {
 }
 
 export function termToString(term, env = new Env(), quoteStrings = true, options = {}) {
-  options = { doubleQuotes: options.doubleQuotes ?? 'chars' };
+  options = {
+    ...options,
+    doubleQuotes: options.doubleQuotes ?? 'chars',
+    readVariableNames: options.readVariableNames instanceof Map ? options.readVariableNames : new Map(),
+    usedReadVariableNames: options.usedReadVariableNames instanceof Set ? options.usedReadVariableNames : new Set(),
+  };
   const resolved = deref(term, env);
-  if (resolved.type === VAR) return writeVariable(resolved.name);
+  if (resolved.type === VAR) {
+    if (resolved.displayName == null) return writeVariable(resolved.name);
+    let printed = options.readVariableNames.get(resolved.name);
+    if (printed == null) {
+      const base = writeVariable(resolved.displayName);
+      printed = base;
+      let suffix = 1;
+      while (options.usedReadVariableNames.has(printed)) printed = `${base}_${suffix++}`;
+      options.readVariableNames.set(resolved.name, printed);
+      options.usedReadVariableNames.add(printed);
+    }
+    return printed;
+  }
   if (isCons(resolved)) return writeList(resolved, env, options);
   if (resolved.type === STRING) return writeString(resolved.name, quoteStrings);
   if (resolved.type === ATOM) return writeAtom(resolved.name);

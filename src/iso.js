@@ -1144,6 +1144,43 @@ function convertedTermText(text, solver) {
   }
   return result;
 }
+
+function scopeReadTerm(term) {
+  // A term read from a stream has its own variable set (ISO 7.10.3).  Parser
+  // variable names cannot be used as environment identities here: a caller
+  // such as read(X) and an input term X=a would otherwise share the same `X`
+  // and incorrectly attempt the cyclic unification X=(X=a).  Use an internal
+  // name containing NUL, which cannot occur in Prolog source, while retaining
+  // the spelling and occurrence count required by read_term/3 metadata.
+  const scope = ++isoFresh;
+  const bySourceName = new Map();
+  const variables = [];
+
+  const copy = (item) => {
+    if (item.type === VAR) {
+      let record = bySourceName.get(item.name);
+      if (record == null) {
+        const scoped = variable(`\u0000read:${scope}:${variables.length}`);
+        scoped.displayName = item.name;
+        record = {
+          sourceName: item.name,
+          term: scoped,
+          count: 0,
+          anonymous: item.name.startsWith('__anon'),
+        };
+        bySourceName.set(item.name, record);
+        variables.push(record);
+      }
+      record.count++;
+      return record.term;
+    }
+    if (item.type !== COMPOUND) return item;
+    return compound(item.name, item.args.map(copy));
+  };
+
+  return { term: copy(term), variables };
+}
+
 function readTermFromStream(stream, solver) {
   let requestedInteractiveTerm = false;
   while (true) {
@@ -1164,7 +1201,7 @@ function readTermFromStream(stream, solver) {
         });
         if (clauses.length !== 1 || clauses[0].body.length) throw new Error('bad term');
         stream.position = candidate.end;
-        return clauses[0].head;
+        return scopeReadTerm(clauses[0].head);
       } catch (_) {
         // A dot inside a graphic operator, such as =.., is only a possible
         // terminator. Keep scanning until a complete term parses.
@@ -1192,7 +1229,7 @@ function readTermFromStream(stream, solver) {
     stream.position = source.length;
     if (!sawCandidate) {
       if (hasNonLayoutRemainder(source, remainderStart)) throw new PrologError('syntax_error(read_term)');
-      return atom('end_of_file');
+      return { term: atom('end_of_file'), variables: [] };
     }
     throw new PrologError('syntax_error(read_term)');
   }
@@ -1202,39 +1239,31 @@ function* readBuiltin({ solver, goal, env }) {
   const stream = inputStreamFor(solver, goal, env);
   if (stream.type !== 'text') throw new PrologError('permission_error(input, binary_stream)', streamHandle(stream.id));
   const next = env.clone();
-  if (unify(goal.args[goal.arity - 1], readTermFromStream(stream, solver), next)) yield next;
+  const { term } = readTermFromStream(stream, solver);
+  if (unify(goal.args[goal.arity - 1], term, next)) yield next;
 }
 function* readTermBuiltin({ solver, goal, env }) {
   const stream = goal.arity === 2 ? solver.io.resolve(solver.io.currentInput) : requireStream(solver, goal.args[0], env, 'read');
   if (stream.type !== 'text') throw new PrologError('permission_error(input, binary_stream)', streamHandle(stream.id));
   const options = optionList(goal.args[goal.arity - 1], env);
   const target = goal.args[goal.arity - 2];
-  const term = readTermFromStream(stream, solver);
+  const { term, variables } = readTermFromStream(stream, solver);
   const next = env.clone();
   if (!unify(target, term, next)) return;
-  const variables = [];
-  const counts = new Map();
-  const visit = (item) => {
-    if (item.type === VAR) {
-      counts.set(item.name, (counts.get(item.name) ?? 0) + 1);
-      if (!variables.some((entry) => entry.name === item.name)) variables.push(item);
-    } else for (const arg of item.args) visit(arg);
-  };
-  visit(term);
   for (const option of options) {
     if (option.type === VAR) throw new PrologError('instantiation_error');
     if (option.type !== COMPOUND || option.arity !== 1) throw new PrologError('domain_error(read_option)', option);
     let value;
     if (option.name === 'variables') {
-      value = listFromItems(variables);
+      value = listFromItems(variables.map((item) => item.term));
     } else if (option.name === 'variable_names') {
       value = listFromItems(variables
-        .filter((item) => !item.name.startsWith('__anon'))
-        .map((item) => compound('=', [atom(item.name), item])));
+        .filter((item) => !item.anonymous)
+        .map((item) => compound('=', [atom(item.sourceName), item.term])));
     } else if (option.name === 'singletons') {
       value = listFromItems(variables
-        .filter((item) => !item.name.startsWith('__anon') && counts.get(item.name) === 1)
-        .map((item) => compound('=', [atom(item.name), item])));
+        .filter((item) => !item.anonymous && item.count === 1)
+        .map((item) => compound('=', [atom(item.sourceName), item.term])));
     } else {
       throw new PrologError('domain_error(read_option)', option);
     }

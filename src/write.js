@@ -134,9 +134,42 @@ function chooseOperator(term, table) {
   return null;
 }
 
+function printableReadVariableNames(term, env, explicit) {
+  const names = new Map(explicit);
+  const used = new Set(names.values());
+  const suffixes = new Map();
+  const seenVariables = new Set();
+  const seenTerms = new Set();
+  const stack = [term];
+
+  while (stack.length) {
+    const current = deref(stack.pop(), env);
+    if (current.type === VAR) {
+      if (seenVariables.has(current.name)) continue;
+      seenVariables.add(current.name);
+      if (names.has(current.name) || current.displayName == null) continue;
+      const base = writeVariable(current.displayName);
+      let candidate = base;
+      let suffix = suffixes.get(base) ?? 1;
+      while (used.has(candidate)) candidate = `${base}_${suffix++}`;
+      suffixes.set(base, suffix);
+      names.set(current.name, candidate);
+      used.add(candidate);
+      continue;
+    }
+    if (current.type !== COMPOUND || seenTerms.has(current)) continue;
+    seenTerms.add(current);
+    for (let i = current.arity - 1; i >= 0; i--) stack.push(current.args[i]);
+  }
+
+  return names;
+}
+
 function format(term, env, options, table, maxPriority = 1200, context = 'term') {
   const resolved = deref(term, env);
-  if (resolved.type === VAR) return options.variableNames.get(resolved.name) ?? writeVariable(resolved.name);
+  if (resolved.type === VAR) {
+    return options.variableNames.get(resolved.name) ?? writeVariable(resolved.displayName ?? resolved.name);
+  }
   if (resolved.type === STRING) return writeString(resolved.name);
   if (resolved.type === ATOM) {
     if (!options.quoted) return resolved.name;
@@ -224,12 +257,13 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
 }
 
 export function formatTermForWrite(term, env = new Env(), options = {}) {
+  const explicitVariableNames = options.variableNames instanceof Map ? options.variableNames : new Map();
   const normalized = {
     quoted: options.quoted === true,
     ignoreOps: options.ignoreOps === true,
     numbervars: options.numbervars !== false,
     doubleQuotes: options.doubleQuotes,
-    variableNames: options.variableNames instanceof Map ? options.variableNames : new Map(),
+    variableNames: printableReadVariableNames(term, env, explicitVariableNames),
     compact: options.compact === true,
     operatorAtomsAsArgs: options.operatorAtomsAsArgs === true,
   };
