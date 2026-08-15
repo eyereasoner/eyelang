@@ -15,6 +15,8 @@ if (isNode) {
   BufferCtor = globalThis.Buffer ?? null;
 }
 
+const configuredOldSpaceLimit = configuredOldSpaceBytes();
+
 export { fs, path, BufferCtor, isNode };
 
 export function currentWorkingDirectory() {
@@ -23,6 +25,17 @@ export function currentWorkingDirectory() {
 
 export function usedHeapSize() {
   if (isNode && typeof process.memoryUsage === 'function') {
+    // --max-old-space-size constrains V8's old generation, not the complete
+    // heap reported by process.memoryUsage().heapUsed. Comparing that limit
+    // with total heap use makes bursts of collectible new-space objects look
+    // like retained memory. Measure the corresponding non-young spaces when
+    // an old-space limit was supplied.
+    if (configuredOldSpaceLimit != null && typeof v8?.getHeapSpaceStatistics === 'function') {
+      const spaces = v8.getHeapSpaceStatistics();
+      return spaces
+        .filter(({ space_name: name }) => name !== 'read_only_space' && !name.startsWith('new_'))
+        .reduce((total, { space_used_size: size }) => total + size, 0);
+    }
     return process.memoryUsage().heapUsed;
   }
   const memory = globalThis.performance?.memory;
@@ -33,8 +46,7 @@ export function softHeapLimit() {
   let limit = null;
   if (isNode) {
     limit = v8?.getHeapStatistics?.().heap_size_limit ?? null;
-    const configuredOldSpace = configuredOldSpaceBytes();
-    if (configuredOldSpace != null) limit = Math.min(limit ?? Infinity, configuredOldSpace);
+    if (configuredOldSpaceLimit != null) limit = Math.min(limit ?? Infinity, configuredOldSpaceLimit);
   } else {
     const memory = globalThis.performance?.memory;
     if (Number.isFinite(memory?.jsHeapSizeLimit)) limit = memory.jsHeapSizeLimit;

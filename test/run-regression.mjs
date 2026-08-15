@@ -2587,6 +2587,42 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
+      name: 'caught number syntax errors do not exhaust memory on distinct inputs',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const programText = `
+          :- use_module(library(lists)).
+          alphabet(['0','1','2','3','4','5','6','7','8','9','.']).
+          trial([A,B,C,D,E]) :-
+            alphabet(Chars),
+            member(A, Chars), member(B, Chars), member(C, Chars),
+            member(D, Chars), member(E, Chars),
+            catch(number_chars(_, [A,B,C,D,E]), error(syntax_error(number), _), true).
+        `;
+        const script = `
+          import { Program, Solver, Env, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
+          const program = Program.parse(${JSON.stringify(programText)});
+          const solver = new Solver(program, { registry: getEyePrologRegistry() });
+          const goal = parseGoalText('trial(Chars)');
+          let count = 0;
+          for (const _ of solver.solve([goal], new Env(), 0)) {
+            if (++count === 150000) break;
+          }
+          if (count !== 150000) throw new Error('unexpected answer count: ' + count);
+          process.stdout.write(String(count));
+        `;
+        const result = spawnSync(process.execPath, [
+          '--max-old-space-size=64',
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, '150000', 'distinct number syntax attempts');
+      },
+    },
+    {
       name: 'host Map/Set capacity errors become resource_error(memory)',
       run: () => {
         for (const [predicate, message] of [
