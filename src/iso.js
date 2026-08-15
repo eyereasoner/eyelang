@@ -1072,6 +1072,11 @@ function isTerminatingFullStop(source, index) {
   return true;
 }
 
+const termGraphicCharacters = new Set('#$&*+-./<=>@^~\\:');
+function continuesGraphicToken(source, index) {
+  return index > 0 && termGraphicCharacters.has(source[index - 1]);
+}
+
 function* termTextCandidates(stream) {
   const source = String(stream.content);
   let quote = null, lineComment = false, blockComment = false;
@@ -1095,12 +1100,23 @@ function* termTextCandidates(stream) {
     const characterCodeEnd = characterCodeConstantEnd(source, i);
     if (characterCodeEnd != null) { i = characterCodeEnd; continue; }
     if (ch === '%') { lineComment = true; continue; }
-    if (ch === '/' && next === '*') { blockComment = true; i++; continue; }
+    // Comment openers are recognized between tokens. Within a maximal
+    // graphic token, as in `//*`, the slash and star remain atom characters.
+    if (ch === '/' && next === '*' && !continuesGraphicToken(source, i)) {
+      blockComment = true;
+      i++;
+      continue;
+    }
     if (ch === "'" || ch === '"') { quote = ch; continue; }
     if (ch === '.' && isTerminatingFullStop(source, i)) {
       yield { text: source.slice(stream.position, i + 1), end: i + 1 };
     }
   }
+}
+function hasNonLayoutRemainder(source, start) {
+  return source.slice(start)
+    .replace(/[\u0009-\u000d\u0020]+|%[^\n]*(?:\n|$)|\/\*[\s\S]*?\*\//g, '')
+    .length > 0;
 }
 function convertedTermText(text, solver) {
   if (solver.prologFlags.get('char_conversion')?.value?.name !== 'on' || solver.charConversions.size === 0) return text;
@@ -1143,6 +1159,7 @@ function readTermFromStream(stream, solver) {
         const clauses = parseClauses(convertedTermText(candidate.text, solver), {
           sourceMetadata: false,
           operatorState,
+          isoStrict: solver.isoStrict,
           doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
         });
         if (clauses.length !== 1 || clauses[0].body.length) throw new Error('bad term');
@@ -1170,8 +1187,13 @@ function readTermFromStream(stream, solver) {
       }
     }
 
-    stream.position = String(stream.content).length;
-    if (!sawCandidate) return atom('end_of_file');
+    const source = String(stream.content);
+    const remainderStart = stream.position;
+    stream.position = source.length;
+    if (!sawCandidate) {
+      if (hasNonLayoutRemainder(source, remainderStart)) throw new PrologError('syntax_error(read_term)');
+      return atom('end_of_file');
+    }
     throw new PrologError('syntax_error(read_term)');
   }
 }

@@ -9,12 +9,14 @@ import { runIsoStrict } from './run-iso-strict.mjs';
 import { runPlayground } from './run-playground.mjs';
 import { runExamples } from './run-examples.mjs';
 import { runBookExamples } from './run-book-examples.mjs';
+import { runWg17Syntax } from './run-wg17-syntax.mjs';
 
 const reporter = new TestReporter();
 
 try {
   runConformance(reporter);
   runIsoStrict(reporter);
+  runWg17Syntax(reporter);
   runRegression(reporter);
   await runPlayground(reporter);
   runExamples(reporter);

@@ -87,7 +87,6 @@ const PREFIX_OPERATORS = new Map([
 
 export const ISO_OPERATOR_DEFINITIONS = [
   [1200, 'xfx', ':-'], [1200, 'fx', ':-'], [1200, 'fx', '?-'], [1200, 'xfx', '-->'],
-  [1105, 'xfy', '|'],
   [1100, 'xfy', ';'], [1050, 'xfy', '->'], [1000, 'xfy', ','],
   [900, 'fy', '\\+'],
   ...['=', '=..', '\\=', '==', '\\==', '@<', '@=<', '@>', '@>=', 'is',
@@ -97,6 +96,13 @@ export const ISO_OPERATOR_DEFINITIONS = [
   ...['*', '/', '//', 'div', 'mod', 'rem', '<<', '>>'].map((name) => [400, 'yfx', name]),
   [200, 'xfx', '**'], [200, 'xfy', '^'],
   [200, 'fy', '+'], [200, 'fy', '-'], [200, 'fy', '\\'],
+];
+
+// The alternative operator belongs to the Part 3 grammar-rule profile. Part 1
+// reserves `|` as list punctuation but permits a program to declare it as an
+// infix operator at priority 1001 or greater (Corrigendum 2).
+export const PART3_OPERATOR_DEFINITIONS = [
+  [1105, 'xfy', '|'],
 ];
 
 // EyeProlog's embedded quad syntax permits an optional label before `?-`.
@@ -117,6 +123,10 @@ const CLPZ_OPERATOR_DEFINITIONS = [
 function operatorStrength(priority) {
   return 1201 - priority;
 }
+
+// ISO 6.3.3 arguments have maximum priority 999. Parenthesized terms and
+// curly-bracket contents may contain a full priority-1200 term instead.
+const ARG_MIN_PRECEDENCE = operatorStrength(999);
 
 function isGraphicAtomCode(code) {
   return graphicAtomChars.includes(String.fromCharCode(code));
@@ -148,7 +158,10 @@ export function createParserOperatorState(definitions = [], includeDefaults = tr
   // The infix ?-/2 form is an EyeProlog quad extension.  ISO 13211-1
   // predefines only the 1200 fx ?- operator; strict core mode starts from that
   // table and still permits an explicit op/3 directive to add an infix form.
-  if (options.isoStrict === true) state.infixOperators.delete('?-');
+  if (options.isoStrict === true) {
+    state.infixOperators.delete('?-');
+    state.infixOperators.delete('|');
+  }
   for (const definition of definitions) {
     const [priority, specifier, name] = Array.isArray(definition)
       ? definition
@@ -422,16 +435,22 @@ class Parser {
     const previousEndsTerm = this.previousToken && (
       [TOK.VAR, TOK.NUMBER, TOK.STRING, TOK.RPAREN, TOK.RBRACKET, TOK.RBRACE].includes(this.previousToken.type) ||
       (this.previousToken.type === TOK.ATOM &&
-       !this.infixOperators.has(this.previousToken.text) &&
-       !this.prefixOperators.has(this.previousToken.text) &&
-       !this.postfixOperators.has(this.previousToken.text))
+       (this.postfixOperators.has(this.previousToken.text) ||
+        (!this.infixOperators.has(this.previousToken.text) &&
+         !this.prefixOperators.has(this.previousToken.text))))
     );
     if (isDigitCode(ch.charCodeAt(0)) ||
         (ch === '-' && isDigitCode(this.peek(1).charCodeAt(0)) && !previousEndsTerm)) {
       const start = this.pos;
       const negative = this.peek() === '-';
       if (negative) this.take();
-      if (this.peek() === '0' && this.peek(1) === "'") {
+      const startsQuotedCharacter = this.peek() === '0' && this.peek(1) === "'" &&
+        // `0''` is the integer 0 followed by the empty atom, whereas `0'''`
+        // is the character-code constant for an apostrophe. A continuation
+        // after the integer likewise belongs to the following quoted atom.
+        (this.peek(2) !== "'" || this.peek(3) === "'") &&
+        !(this.peek(2) === '\\' && this.peek(3) === '\n');
+      if (startsQuotedCharacter) {
         this.take();
         this.take();
         let value = this.take();
@@ -463,7 +482,12 @@ class Parser {
         const code = value.codePointAt(0);
         return { type: TOK.NUMBER, text: String(negative ? -code : code), line };
       }
-      if (this.peek() === '0' && ['b', 'o', 'x'].includes(this.peek(1))) {
+      const radixKind = this.peek() === '0' ? this.peek(1) : '';
+      const radixHasDigit = radixKind === 'b' ? /^[01]$/.test(this.peek(2))
+        : radixKind === 'o' ? /^[0-7]$/.test(this.peek(2))
+        : radixKind === 'x' ? /^[0-9A-Fa-f]$/.test(this.peek(2))
+        : false;
+      if (radixHasDigit) {
         this.take();
         const kind = this.take();
         const radix = kind === 'b' ? 2 : kind === 'o' ? 8 : 16;
@@ -477,11 +501,16 @@ class Parser {
         return { type: TOK.NUMBER, text: integer.toString(), line };
       }
       while (isDigitCode(this.peek().charCodeAt(0))) this.take();
+      let hasFraction = false;
       if (this.peek() === '.' && isDigitCode(this.peek(1).charCodeAt(0))) {
+        hasFraction = true;
         this.take();
         while (isDigitCode(this.peek().charCodeAt(0))) this.take();
       }
-      if ((this.peek() === 'e' || this.peek() === 'E')) {
+      // ISO floating-point syntax requires a fractional part before an
+      // exponent. Thus 1.0e9 is one number token, while 1E9 is the integer 1
+      // followed by the name E9 and is not a valid term without an operator.
+      if (hasFraction && (this.peek() === 'e' || this.peek() === 'E')) {
         let idx = this.pos + 1;
         if (this.source[idx] === '+' || this.source[idx] === '-') idx++;
         if (isDigitCode((this.source[idx] ?? '').charCodeAt(0))) {
@@ -490,7 +519,10 @@ class Parser {
           while (isDigitCode(this.peek().charCodeAt(0))) this.take();
         }
       }
-      return { type: TOK.NUMBER, text: this.source.slice(start, this.pos), line };
+      let text = this.source.slice(start, this.pos);
+      if (!hasFraction) text = BigInt(text).toString();
+      else if (Object.is(Number(text), -0)) text = '0.0';
+      return { type: TOK.NUMBER, text, line };
     }
 
     if (isVariableStartCode(ch.charCodeAt(0))) {
@@ -527,7 +559,9 @@ class Parser {
   parseParenthesizedTerm() {
     this.expect(TOK.LPAREN, '(');
     this.advance();
-    const term = this.parseTerm(0, true);
+    // A current operator atom may be the complete parenthesized term, e.g.
+    // (+), but it cannot silently become an operand in a larger expression.
+    const term = this.parseTerm(0, true, true, true);
     this.expect(TOK.RPAREN, ')');
     this.advance();
     return term;
@@ -544,14 +578,14 @@ class Parser {
     const items = [];
     let tail = null;
     while (true) {
-      items.push(this.parseTerm(0, false, false));
+      items.push(this.parseTerm(ARG_MIN_PRECEDENCE, false, false, true));
       if (this.token.type === TOK.COMMA) {
         this.advance();
         continue;
       }
       if (this.token.type === TOK.BAR) {
         this.advance();
-        tail = this.parseTerm(0, false, false);
+        tail = this.parseTerm(ARG_MIN_PRECEDENCE, false, false, true);
         this.expect(TOK.RBRACKET, ']');
         this.advance();
         break;
@@ -576,8 +610,33 @@ class Parser {
     this.advance();
     return compound('{}', [term]);
   }
-  parseTerm(minPrecedence = 0, allowComma = false, allowBar = true) {
-    let left = this.parsePrefixTerm(minPrecedence, allowBar);
+  parseFunctionalNotation(name) {
+    this.expect(TOK.LPAREN, '(');
+    this.advance();
+    const args = [];
+    if (this.token.type === TOK.RPAREN) {
+      throw new Error(`parse line ${this.token.line}: zero-arity compound syntax is not supported; use atom ${JSON.stringify(name)} for arity zero data`);
+    }
+    while (true) {
+      args.push(this.parseTerm(ARG_MIN_PRECEDENCE, false, false, true));
+      if (this.token.type !== TOK.COMMA) break;
+      this.advance();
+    }
+    this.expect(TOK.RPAREN, ')');
+    this.advance();
+    return compound(name, args);
+  }
+  parseTerm(minPrecedence = 0, allowComma = false, allowBar = true, allowOperatorAtom = false) {
+    const initialOperatorName = this.operatorTokenName();
+    // An atom whose only operator declaration is postfix can still seed a
+    // postfix expression: after `op(100,xf,a), op(200,xf,b)`, `a b` denotes
+    // b(a).  Prefix and infix operator atoms cannot be bare operands.
+    const initialWasCurrentOperator = initialOperatorName != null &&
+      (this.infixOperators.has(initialOperatorName) ||
+       this.prefixOperators.has(initialOperatorName));
+    let left = this.parsePrefixTerm(minPrecedence, allowBar, allowOperatorAtom);
+    const leftIsBareOperatorAtom = initialWasCurrentOperator &&
+      left.type === ATOM && left.name === initialOperatorName;
     let strictPostfixPrecedence = null;
     while (true) {
       const op = this.token.type === TOK.COMMA && allowComma
@@ -591,15 +650,26 @@ class Parser {
         const postfix = postfixName == null ? null : this.postfixOperators.get(postfixName);
         if (!postfix || postfix.precedence < minPrecedence ||
             (strictPostfixPrecedence === postfix.precedence)) break;
+        if (this.strictIso && leftIsBareOperatorAtom) {
+          throw new Error(`parse line ${this.token.line}: operator atom ${left.name} requires parentheses as an operand`);
+        }
         const name = postfixName;
         this.advance();
         left = compound(name, [left]);
         strictPostfixPrecedence = postfix.strict ? postfix.precedence : null;
         continue;
       }
+      if (this.strictIso && leftIsBareOperatorAtom) {
+        throw new Error(`parse line ${this.token.line}: operator atom ${left.name} requires parentheses as an operand`);
+      }
       strictPostfixPrecedence = null;
       this.advance();
-      const right = this.parseTerm(info.associativity === 'right' ? info.precedence : info.precedence + 1, allowComma, allowBar);
+      const right = this.parseTerm(
+        info.associativity === 'right' ? info.precedence : info.precedence + 1,
+        allowComma,
+        allowBar,
+        false,
+      );
       left = compound(op, [left, right]);
       if (info.associativity === 'none') {
         const nextOp = this.token.type === TOK.COMMA && allowComma
@@ -612,18 +682,46 @@ class Parser {
         }
       }
     }
+    if (this.strictIso && leftIsBareOperatorAtom && left.type === ATOM && !allowOperatorAtom) {
+      throw new Error(`parse line ${this.token.line}: operator atom ${left.name} requires parentheses as an operand`);
+    }
     return left;
   }
-  parsePrefixTerm(minPrecedence = 0, allowBar = true) {
+  parsePrefixTerm(minPrecedence = 0, allowBar = true, allowOperatorAtom = false) {
     // `:-` is tokenized specially so the program grammar can recognize clause
     // and directive markers. In term argument position, however, ISO 6.3.3.1
     // permits an operator atom directly as an `arg`; a leading `:-` cannot be
     // prefix operator notation at argument priority, so it denotes the atom.
     if (this.token.type === TOK.IF) {
+      if (this.strictIso && !allowOperatorAtom) {
+        throw new Error(`parse line ${this.token.line}: operator atom :- requires argument context or parentheses`);
+      }
       this.advance();
       return atom(':-');
     }
     const operatorName = this.operatorTokenName();
+    // A negative number consists of a minus name token followed by a numeric
+    // token, with layout permitted between them. It is lexical number syntax,
+    // not an application of the current prefix `-` operator, and therefore
+    // remains valid even after op(0, fy, -).
+    if (operatorName === '-' && this.token.type === TOK.ATOM) {
+      const state = {
+        pos: this.pos,
+        line: this.line,
+        previousToken: this.previousToken,
+        token: this.token,
+      };
+      this.advance();
+      if (this.token.type === TOK.NUMBER && !this.token.text.startsWith('-')) {
+        const value = this.token.text;
+        this.advance();
+        return numberTerm(`-${value}`);
+      }
+      this.pos = state.pos;
+      this.line = state.line;
+      this.previousToken = state.previousToken;
+      this.token = state.token;
+    }
     if (operatorName != null && this.prefixOperators.get(operatorName)?.precedence >= minPrecedence) {
       const op = operatorName;
       const info = this.prefixOperators.get(op);
@@ -633,26 +731,30 @@ class Parser {
       // an argument delimiter there is no operand for prefix syntax, so keep
       // the operator as an atom instead of reporting a misleading bad-term
       // error.
-      if ([TOK.COMMA, TOK.RPAREN, TOK.RBRACKET, TOK.BAR].includes(this.token.type)) {
+      if ([TOK.COMMA, TOK.RPAREN, TOK.RBRACKET, TOK.BAR, TOK.DOT].includes(this.token.type)) {
+        if (this.strictIso && !allowOperatorAtom && this.token.type !== TOK.DOT) {
+          throw new Error(`parse line ${this.token.line}: operator atom ${op} requires argument context or parentheses`);
+        }
         return atom(op);
       }
       if (this.token.type === TOK.LPAREN && this.token.precededByLayout !== true) {
-        this.advance();
-        const args = [];
-        while (true) {
-          args.push(this.parseTerm(0, false, false));
-          if (this.token.type !== TOK.COMMA) break;
-          this.advance();
-        }
-        this.expect(TOK.RPAREN, ')');
-        this.advance();
-        return compound(op, args);
+        return this.parseFunctionalNotation(op);
       }
-      return compound(op, [this.parseTerm(info.precedence + (info.strict ? 1 : 0), false, allowBar)]);
+      return compound(op, [this.parseTerm(info.precedence + (info.strict ? 1 : 0), false, allowBar, false)]);
     }
     if (this.token.type === TOK.LPAREN) return this.parseParenthesizedTerm();
-    if (this.token.type === TOK.LBRACKET) return this.parseList();
-    if (this.token.type === TOK.LBRACE) return this.parseCurly();
+    if (this.token.type === TOK.LBRACKET) {
+      const list = this.parseList();
+      if (list.type === ATOM && list.name === '[]' && this.token.type === TOK.LPAREN &&
+          this.token.precededByLayout !== true) return this.parseFunctionalNotation('[]');
+      return list;
+    }
+    if (this.token.type === TOK.LBRACE) {
+      const curly = this.parseCurly();
+      if (curly.type === ATOM && curly.name === '{}' && this.token.type === TOK.LPAREN &&
+          this.token.precededByLayout !== true) return this.parseFunctionalNotation('{}');
+      return curly;
+    }
     if (this.token.type === TOK.VAR) {
       const name = this.token.text;
       this.advance();
@@ -668,21 +770,7 @@ class Parser {
       const value = this.token.text;
       this.advance();
       if (this.parserFlagState.doubleQuotes === 'atom') {
-        if (this.token.type === TOK.LPAREN) {
-          this.advance();
-          const args = [];
-          if (this.token.type === TOK.RPAREN) {
-            throw new Error(`parse line ${this.token.line}: zero-arity compound syntax is not supported; use atom ${JSON.stringify(value)} for arity zero data`);
-          }
-          while (true) {
-            args.push(this.parseTerm(0, false, false));
-            if (this.token.type !== TOK.COMMA) break;
-            this.advance();
-          }
-          this.expect(TOK.RPAREN, ')');
-          this.advance();
-          return compound(value, args);
-        }
+        if (this.token.type === TOK.LPAREN && this.token.precededByLayout !== true) return this.parseFunctionalNotation(value);
         return atom(value);
       }
       const items = Array.from(value, (character) =>
@@ -701,23 +789,12 @@ class Parser {
     if (this.token.type === TOK.ATOM) {
       const name = this.token.text;
       this.advance();
-      if (this.token.type === TOK.LPAREN) {
-        this.advance();
-        const args = [];
-        if (this.token.type === TOK.RPAREN) {
-          throw new Error(`parse line ${this.token.line}: zero-arity compound syntax is not supported; use atom ${JSON.stringify(name)} for arity zero data`);
-        }
-        while (true) {
-          args.push(this.parseTerm(0, false, false));
-          if (this.token.type === TOK.COMMA) {
-            this.advance();
-            continue;
-          }
-          break;
-        }
-        this.expect(TOK.RPAREN, ')');
-        this.advance();
-        return compound(name, args);
+      if (this.token.type === TOK.LPAREN && this.token.precededByLayout !== true) {
+        return this.parseFunctionalNotation(name);
+      }
+      if (this.strictIso && !allowOperatorAtom &&
+          (this.infixOperators.has(name) || this.prefixOperators.has(name) || this.postfixOperators.has(name))) {
+        throw new Error(`parse line ${this.token.line}: operator atom ${name} requires argument context or parentheses`);
       }
       return atom(name);
     }
@@ -842,7 +919,7 @@ class Parser {
         this.token = headState.token;
       };
 
-      let head = this.parseTerm(3);
+      let head = this.parseTerm(3, false, true, true);
       if (this.token.type === TOK.COMMA && !this.strictIso) {
         restoreHeadState();
         const quadId = this.parseTerm(3, true);
@@ -852,7 +929,7 @@ class Parser {
           continue;
         }
         restoreHeadState();
-        head = this.parseTerm(3);
+        head = this.parseTerm(3, false, true, true);
       }
 
       // Outside quad syntax, preserve the existing program-level comma rule,
@@ -1387,11 +1464,13 @@ export function parseNumberTokenText(text) {
   const digitsStart = position;
   while (isDigitCode(source.charCodeAt(position))) position++;
   if (position === digitsStart) throw new Error('not exactly one number token');
+  let hasFraction = false;
   if (source[position] === '.' && isDigitCode(source.charCodeAt(position + 1))) {
+    hasFraction = true;
     position++;
     while (isDigitCode(source.charCodeAt(position))) position++;
   }
-  if (source[position] === 'e' || source[position] === 'E') {
+  if (hasFraction && (source[position] === 'e' || source[position] === 'E')) {
     position++;
     if (source[position] === '+' || source[position] === '-') position++;
     const exponentStart = position;
@@ -1399,6 +1478,8 @@ export function parseNumberTokenText(text) {
     if (position === exponentStart) throw new Error('not exactly one number token');
   }
   if (position !== source.length) throw new Error('not exactly one number token');
+  if (/^-?\d+$/.test(source)) return numberTerm(BigInt(source).toString());
+  if (Object.is(Number(source), -0)) return numberTerm('0.0');
   return numberTerm(source);
 }
 

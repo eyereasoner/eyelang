@@ -5,6 +5,7 @@ import { numberValueKey } from './number-value.js';
 import { formatTermForWrite } from './write.js';
 import {
   ISO_OPERATOR_DEFINITIONS,
+  PART3_OPERATOR_DEFINITIONS,
   QUAD_OPERATOR_DEFINITIONS,
   createParserOperatorState,
   parseClauses,
@@ -106,7 +107,7 @@ export class Program {
     this.operators = new Map();
     const predefinedOperatorSets = this.strictIso
       ? [ISO_OPERATOR_DEFINITIONS]
-      : [ISO_OPERATOR_DEFINITIONS, QUAD_OPERATOR_DEFINITIONS];
+      : [ISO_OPERATOR_DEFINITIONS, PART3_OPERATOR_DEFINITIONS, QUAD_OPERATOR_DEFINITIONS];
     for (const definitions of predefinedOperatorSets) {
       for (const [priority, specifier, name] of definitions) {
         this.defineOperator(priority, specifier, name);

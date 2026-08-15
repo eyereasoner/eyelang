@@ -28,6 +28,7 @@ function atomNeedsQuotes(name) {
   if (!name) return true;
   if (name === '[]' || name === '{}') return false;
   if (name === '...') return false;
+  if (name.startsWith('/*')) return true;
   if (name === '\\+' || name === '+' || name === '-' || name === '\\') return true;
   if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return false;
   for (const ch of name) if (!graphicAtomCharacters.has(ch)) return true;
@@ -104,6 +105,7 @@ function writeNumberedVariable(index) {
 }
 
 function operatorName(name) {
+  if (name === '.' || name.startsWith('/*')) return quoteAtom(name);
   if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return name;
   if (/^[!#$&*+\-./<=>@^~\\;:]+$/.test(name)) return name;
   return quoteAtom(name);
@@ -142,6 +144,12 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
     // `arg` production: an atom that is a current operator is valid there
     // without quoting. Keep lexical exceptions such as `|` quoted.
     if (options.operatorAtomsAsArgs && context === 'argument' && table.has(resolved.name)) return operatorName(resolved.name);
+    if (!options.ignoreOps && context !== 'argument' && table.has(resolved.name)) {
+      const definitions = table.get(resolved.name);
+      const requiresParentheses = definitions.some(({ specifier }) =>
+        ['fx', 'fy', 'xfx', 'xfy', 'yfx'].includes(specifier));
+      if (requiresParentheses) return `(${operatorName(resolved.name)})`;
+    }
     return writeAtom(resolved.name);
   }
   if (resolved.type === NUMBER) return resolved.name;
@@ -186,11 +194,20 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
         const argumentPriority = specifier === 'fx' ? priority - 1 : priority;
         text = `${token} ${format(resolved.args[0], env, options, table, argumentPriority)}`;
       } else if (specifier === 'xf' || specifier === 'yf') {
-        const argumentPriority = specifier === 'xf' ? priority - 1 : priority;
+        let argumentPriority = specifier === 'xf' ? priority - 1 : priority;
+        const childDefinition = chooseOperator(deref(resolved.args[0], env), table);
+        if (childDefinition?.priority === priority &&
+            ['fx', 'fy', 'xfx', 'xfy', 'yfx'].includes(childDefinition.specifier)) {
+          argumentPriority = priority - 1;
+        }
         text = `${format(resolved.args[0], env, options, table, argumentPriority)} ${token}`;
       } else {
-        const leftPriority = specifier === 'yfx' ? priority : priority - 1;
+        let leftPriority = specifier === 'yfx' ? priority : priority - 1;
         const rightPriority = specifier === 'xfy' ? priority : priority - 1;
+        const leftDefinition = chooseOperator(deref(resolved.args[0], env), table);
+        if (leftDefinition?.priority === priority && ['fx', 'fy'].includes(leftDefinition.specifier)) {
+          leftPriority = priority - 1;
+        }
         const left = format(resolved.args[0], env, options, table, leftPriority);
         const right = format(resolved.args[1], env, options, table, rightPriority);
         text = resolved.name === ',' ? `${left}, ${right}`

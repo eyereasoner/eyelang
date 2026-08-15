@@ -1,0 +1,18 @@
+{
+  "source": "https://www.complang.tuwien.ac.at/ulrich/iso-prolog/conformity_testing",
+  "checkedOn": "2026-08-15",
+  "upstream": {
+    "firstId": 1,
+    "lastId": 368,
+    "deletedIds": [20, 273],
+    "activeCases": 366
+  },
+  "evidence": [
+    {
+      "name": "complete offline executable matrix",
+      "path": "test/conformance/wg17-syntax-cases.json",
+      "link": "../run-wg17-syntax.mjs",
+      "ids": "all-active"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ error-ordering alternative to an individual executable assertion.
 
 | Requirement | Status | EyeProlog evidence / remaining work |
 | --- | --- | --- |
-| 5.1(a) prepare conforming Prolog text | audit | Clause 6 parser/tokenizer coverage, directive coverage, syntax-error corpus, and the selected WG17 high-risk syntax case. Complete character-by-character external syntax sweep remains open. |
+| 5.1(a) prepare conforming Prolog text | audit | Clause 6 parser/tokenizer coverage, directive coverage, syntax-error corpus, and the [complete 366-case WG17 syntax matrix](WG17-SYNTAX-STATUS.md). Wider shall-by-shall text-processing audit remains open. |
 | 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 conformance corpus plus regression/API/example gates. A normative goal-semantics ledger is still being expanded. |
 | 5.1(c) reject nonconforming text/read-terms | audit | Dedicated syntax-error cases and strict-core extension rejection. Exhaustive lexical rejection coverage remains open. |
 | 5.1(d) document permitted variations | audit | Major implementation-defined choices are documented in *The Art of EyeProlog*. Every occurrence of “implementation defined/dependent/specific” in Part 1 still needs a final documentation cross-check. |
@@ -30,7 +30,7 @@ error-ordering alternative to an individual executable assertion.
 
 | Standard area | Status | Current evidence |
 | --- | --- | --- |
-| Clause 6 — tokens, terms, lists, operators, quoted text | audit | `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, `wg17_syntax_high_risk`, quoted-layout/escape error cases, writer/read-back regressions. |
+| Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete 366-case WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, and writer/read-back regressions. |
 | 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates. |
 | 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Cross-text `multifile/1` and ordering constraints require explicit shall-by-shall audit. |
 | 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access. Public/private and multi-text requirements still need complete mapping. |
@@ -75,6 +75,7 @@ A release intended to advance ISO conformance must pass all of:
 npm test
 npm run test:iso-strict
 npm run test:conformance
+npm run test:wg17-syntax
 ```
 
 The unified `npm test` gate includes the strict-core suite. Expected conformance
@@ -88,9 +89,9 @@ ISO/IEC 13211-1 processor” until all of the following are true:
 1. every normative Part 1 processor requirement is represented in this ledger;
 2. every `audit` row above has been reduced to explicit pass/not-applicable or
    documented implementation-defined choices;
-3. the complete external WG17 syntax/conversion/variable-name conformity
-   corpus has been run against the strict core mode, with every difference
-   explained or fixed;
+3. the external WG17 conversion and variable-name conformity corpora have
+   joined the now-complete syntax corpus in strict core mode, with every
+   difference explained or fixed;
 4. prescribed modes, errors, side effects, and relevant error precedence for
    every Part 1 built-in have executable coverage;
 5. every implementation-defined/dependent/specific choice required to be

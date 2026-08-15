@@ -34,6 +34,11 @@ export function characterCodeConstantEnd(source, apostropheIndex) {
   const characterIndex = apostropheIndex + 1;
   const character = source[characterIndex] ?? '';
   if (!character) return apostropheIndex;
+  // `0''` is two tokens (0 and the empty atom), and `0'\\\n...'
+  // likewise starts a quoted atom containing a continuation. Only `0'''`
+  // denotes the character-code constant for an apostrophe.
+  if (character === "'" && source[characterIndex + 1] !== "'") return null;
+  if (character === '\\' && ['\n', '\r'].includes(source[characterIndex + 1])) return null;
   if (character === '\\') return quotedEscapeEnd(source, characterIndex);
 
   // An apostrophe character is doubled in 0''' exactly as it is in a quoted

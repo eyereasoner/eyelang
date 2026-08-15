@@ -45,6 +45,7 @@ import { TestReporter, isMainModule } from './test-style.mjs';
 import { buildConformanceReport, formatConformanceReport } from './run-conformance-report.mjs';
 import { proofExamples } from './run-examples.mjs';
 import { goalsFromSource } from './goal-metadata.mjs';
+import { renderWg17SyntaxStatus } from '../tools/report-wg17-syntax-coverage.mjs';
 
 const testRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRoot = path.resolve(testRoot, '..');
@@ -652,18 +653,18 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'number_chars uses one generated representation for floating-point zero',
+      name: 'number syntax and number_chars normalize floating-point negative zero',
       run: () => {
         const result = runCli([], {
           input: 'X = -0.0, number_chars(X,C), number_chars(Y,C), X == Y, number_chars(Y,D).\nhalt.\n',
         });
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, "X = -0.0, C = ['0', '.', '0'], Y = 0.0, D = ['0', '.', '0'].", 'answer');
+        assertIncludes(result.stdout, "X = 0.0, C = ['0', '.', '0'], Y = 0.0, D = ['0', '.', '0'].", 'answer');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
     {
-      name: 'readers keep a full stop inside a character-code constant (WG17 #211)',
+      name: 'readers keep a full stop inside a character-code constant (WG17 #367)',
       run: () => {
         const streamResult = runEyeProlog('', {
           goal: 'read((46 = 46))',
@@ -675,6 +676,10 @@ c4 ?- call((!;1)).
         assertEqual(cliResult.status, 0, 'top-level character-code full stop status');
         assertIncludes(cliResult.stdout, 'X = 46', 'top-level character-code answer');
         assertNotIncludes(cliResult.stdout, 'syntax_error', 'top-level character-code syntax');
+
+        const upstreamResult = runCli([], { input: "writeq(0'. ).\nhalt.\n" });
+        assertEqual(upstreamResult.status, 0, 'WG17 #367 exit status');
+        assertIncludes(upstreamResult.stdout, '46 true.', 'WG17 #367 output');
       },
     },
     {
@@ -2052,6 +2057,13 @@ c4 ?- call((!;1)).
 
 function documentationSyncCases() {
   return [
+    {
+      name: 'WG17 syntax status matches its executable-coverage manifest',
+      run: () => {
+        const filename = path.join(testRoot, 'conformance', 'WG17-SYNTAX-STATUS.md');
+        assertEqual(fs.readFileSync(filename, 'utf8'), renderWg17SyntaxStatus(), 'WG17 syntax status');
+      },
+    },
     {
       name: 'book builtins match runtime registry',
       run: () => assertArrayEqual(bookBuiltinNames(), registeredBuiltinNames(), 'builtins'),
