@@ -45,7 +45,7 @@ function libraryUrl(filename) {
 }
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([
-  'call_nth/2', 'freeze/2',
+  'call_nth/2', 'freeze/2', 'countall/2',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
   'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'nvalue/2', 'sum/3',
@@ -65,7 +65,7 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'matches/2', 'join/3', 'substring/4', 'member/2', 'select/3', 'last/2',
   'nth0/3', 'nth0/4', 'nth1/3', 'nth1/4', 'set_nth0/4', 'take/3', 'drop/3', 'slice/4', 'reverse/2',
   'length/2', 'sum_list/2', 'min_list/2', 'max_list/2', 'list_to_set/2',
-  'countall/2', 'succ/2', 'foldl/4', 'foldl/5', 'foldl/6',
+  'succ/2', 'foldl/4', 'foldl/5', 'foldl/6',
   'forall/2', 'cfor/3', 'findall/4', 'variant/2', 'uuid/3',
 ]);
 export const eyePrologLibraryIndicators = Object.freeze([

@@ -33,7 +33,7 @@ function isPlainAtomStartCode(code) {
   return code >= 97 && code <= 122;
 }
 
-const graphicAtomChars = '#$&*+-./<=>@^~\\:';
+const graphicAtomChars = '#$&*+-./<=>?@^~\\:';
 
 // ISO operator syntax is lowered to the same ordinary compound terms used by
 // canonical notation. Commas remain separators except inside parentheses.
@@ -650,7 +650,7 @@ class Parser {
         const postfix = postfixName == null ? null : this.postfixOperators.get(postfixName);
         if (!postfix || postfix.precedence < minPrecedence ||
             (strictPostfixPrecedence === postfix.precedence)) break;
-        if (this.strictIso && leftIsBareOperatorAtom) {
+        if (leftIsBareOperatorAtom) {
           throw new Error(`parse line ${this.token.line}: operator atom ${left.name} requires parentheses as an operand`);
         }
         const name = postfixName;
@@ -659,7 +659,7 @@ class Parser {
         strictPostfixPrecedence = postfix.strict ? postfix.precedence : null;
         continue;
       }
-      if (this.strictIso && leftIsBareOperatorAtom) {
+      if (leftIsBareOperatorAtom) {
         throw new Error(`parse line ${this.token.line}: operator atom ${left.name} requires parentheses as an operand`);
       }
       strictPostfixPrecedence = null;
@@ -682,7 +682,7 @@ class Parser {
         }
       }
     }
-    if (this.strictIso && leftIsBareOperatorAtom && left.type === ATOM && !allowOperatorAtom) {
+    if (leftIsBareOperatorAtom && left.type === ATOM && !allowOperatorAtom) {
       throw new Error(`parse line ${this.token.line}: operator atom ${left.name} requires parentheses as an operand`);
     }
     return left;
@@ -693,7 +693,7 @@ class Parser {
     // permits an operator atom directly as an `arg`; a leading `:-` cannot be
     // prefix operator notation at argument priority, so it denotes the atom.
     if (this.token.type === TOK.IF) {
-      if (this.strictIso && !allowOperatorAtom) {
+      if (!allowOperatorAtom) {
         throw new Error(`parse line ${this.token.line}: operator atom :- requires argument context or parentheses`);
       }
       this.advance();
@@ -732,7 +732,7 @@ class Parser {
       // the operator as an atom instead of reporting a misleading bad-term
       // error.
       if ([TOK.COMMA, TOK.RPAREN, TOK.RBRACKET, TOK.BAR, TOK.DOT].includes(this.token.type)) {
-        if (this.strictIso && !allowOperatorAtom && this.token.type !== TOK.DOT) {
+        if (!allowOperatorAtom && this.token.type !== TOK.DOT) {
           throw new Error(`parse line ${this.token.line}: operator atom ${op} requires argument context or parentheses`);
         }
         return atom(op);
@@ -788,11 +788,12 @@ class Parser {
     }
     if (this.token.type === TOK.ATOM) {
       const name = this.token.text;
+      const quoted = this.token.quoted === true;
       this.advance();
       if (this.token.type === TOK.LPAREN && this.token.precededByLayout !== true) {
         return this.parseFunctionalNotation(name);
       }
-      if (this.strictIso && !allowOperatorAtom &&
+      if (!quoted && !allowOperatorAtom &&
           (this.infixOperators.has(name) || this.prefixOperators.has(name) || this.postfixOperators.has(name))) {
         throw new Error(`parse line ${this.token.line}: operator atom ${name} requires argument context or parentheses`);
       }
@@ -1385,6 +1386,8 @@ export function parseProgramText(source, options = {}) {
   return parseClauses(source, options);
 }
 
+const invalidNumberTokenError = new Error('not exactly one number token');
+
 export function parseNumberTokenText(text) {
   const source = String(text ?? '');
   let position = 0;
@@ -1401,20 +1404,20 @@ export function parseNumberTokenText(text) {
     position += 2;
     let value = source[position] ?? '';
     if (!value || (value !== ' ' && isWhitespaceCode(value.charCodeAt(0)))) {
-      throw new Error('not exactly one number token');
+      throw invalidNumberTokenError;
     }
     position++;
     const firstCode = value.charCodeAt(0);
     if (firstCode >= 0xd800 && firstCode <= 0xdbff) {
       const secondCode = source.charCodeAt(position);
-      if (secondCode < 0xdc00 || secondCode > 0xdfff) throw new Error('not exactly one number token');
+      if (secondCode < 0xdc00 || secondCode > 0xdfff) throw invalidNumberTokenError;
       value += source[position++];
     } else if (firstCode >= 0xdc00 && firstCode <= 0xdfff) {
-      throw new Error('not exactly one number token');
+      throw invalidNumberTokenError;
     }
 
     if (value === "'") {
-      if (source[position] !== "'") throw new Error('not exactly one number token');
+      if (source[position] !== "'") throw invalidNumberTokenError;
       position++;
     } else if (value === '\\') {
       const escaped = source[position++] ?? '';
@@ -1424,25 +1427,25 @@ export function parseNumberTokenText(text) {
       } else if (escaped === 'x') {
         let digits = '';
         while (/^[0-9A-Fa-f]$/.test(source[position] ?? '')) digits += source[position++];
-        if (!digits || source[position++] !== '\\') throw new Error('not exactly one number token');
+        if (!digits || source[position++] !== '\\') throw invalidNumberTokenError;
         const code = Number.parseInt(digits, 16);
-        if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw new Error('not exactly one number token');
+        if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw invalidNumberTokenError;
         value = String.fromCodePoint(code);
       } else if (/^[0-7]$/.test(escaped)) {
         let digits = escaped;
         while (/^[0-7]$/.test(source[position] ?? '')) digits += source[position++];
-        if (source[position++] !== '\\') throw new Error('not exactly one number token');
+        if (source[position++] !== '\\') throw invalidNumberTokenError;
         const code = Number.parseInt(digits, 8);
-        if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw new Error('not exactly one number token');
+        if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw invalidNumberTokenError;
         value = String.fromCodePoint(code);
       } else if (escaped === '\\' || escaped === "'" || escaped === '"' || escaped === '`') {
         value = escaped;
       } else {
-        throw new Error('not exactly one number token');
+        throw invalidNumberTokenError;
       }
     }
 
-    if (position !== source.length) throw new Error('not exactly one number token');
+    if (position !== source.length) throw invalidNumberTokenError;
     const code = value.codePointAt(0);
     return numberTerm(String(negative ? -code : code));
   }
@@ -1454,7 +1457,7 @@ export function parseNumberTokenText(text) {
     position += 2;
     let digits = '';
     while (digitPattern.test(source[position] ?? '')) digits += source[position++];
-    if (!digits || position !== source.length) throw new Error('not exactly one number token');
+    if (!digits || position !== source.length) throw invalidNumberTokenError;
     let integer = 0n;
     for (const digit of digits) integer = integer * BigInt(radix) + BigInt(Number.parseInt(digit, radix));
     if (negative) integer = -integer;
@@ -1463,7 +1466,7 @@ export function parseNumberTokenText(text) {
 
   const digitsStart = position;
   while (isDigitCode(source.charCodeAt(position))) position++;
-  if (position === digitsStart) throw new Error('not exactly one number token');
+  if (position === digitsStart) throw invalidNumberTokenError;
   let hasFraction = false;
   if (source[position] === '.' && isDigitCode(source.charCodeAt(position + 1))) {
     hasFraction = true;
@@ -1475,9 +1478,9 @@ export function parseNumberTokenText(text) {
     if (source[position] === '+' || source[position] === '-') position++;
     const exponentStart = position;
     while (isDigitCode(source.charCodeAt(position))) position++;
-    if (position === exponentStart) throw new Error('not exactly one number token');
+    if (position === exponentStart) throw invalidNumberTokenError;
   }
-  if (position !== source.length) throw new Error('not exactly one number token');
+  if (position !== source.length) throw invalidNumberTokenError;
   if (/^-?\d+$/.test(source)) return numberTerm(BigInt(source).toString());
   if (Object.is(Number(source), -0)) return numberTerm('0.0');
   return numberTerm(source);

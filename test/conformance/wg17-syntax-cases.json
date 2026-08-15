@@ -1272,7 +1272,7 @@
             "variables": "[]"
           },
           {
-            "output": "'-'(1)",
+            "output": "-(1)",
             "variables": "[]"
           }
         ]
@@ -4069,7 +4069,7 @@
             "variables": "[]"
           },
           {
-            "output": "$('+'(a,b))",
+            "output": "$(+(a,b))",
             "variables": "[]"
           }
         ]
@@ -4128,7 +4128,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "'+'(__anon0,__anon1)",
+            "output": "+(__anon0,__anon1)",
             "variables": "[]"
           }
         ]
@@ -4144,7 +4144,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "'+'(B,B)",
+            "output": "+(B,B)",
             "variables": "['B' = B]"
           }
         ]
@@ -4246,7 +4246,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "'-'(a,'-'('-'(b)))",
+            "output": "-(a,-(-(b)))",
             "variables": "[]"
           }
         ]

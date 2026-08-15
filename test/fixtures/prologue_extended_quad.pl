@@ -82,6 +82,6 @@
 ?- countall(false, non_integer).
    type_error(integer, non_integer).
 ?- countall(G, -1).
-   instantiation_error.
+   domain_error(not_less_than_zero, -1).
 ?- countall(1, -1).
-   type_error(callable, 1).
+   domain_error(not_less_than_zero, -1).

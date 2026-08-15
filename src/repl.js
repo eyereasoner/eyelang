@@ -614,6 +614,7 @@ function formatAnswer(engine, state, variables, env) {
       // current operator atoms in argument and list-element positions without
       // quotes, just as writeq/1 already prints them.
       operatorAtomsAsArgs: true,
+      doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
     })}`);
   }
   return bindings.length === 0 ? 'true' : bindings.join(', ');

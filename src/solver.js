@@ -446,6 +446,14 @@ export class Solver {
     }
   }
 
+  checkMemoryReservation(bytes) {
+    if (!Number.isFinite(this.maxMemoryBytes) || !Number.isFinite(bytes) || bytes <= 0) return;
+    const used = usedHeapSize();
+    if (used != null && bytes > Math.max(0, this.maxMemoryBytes - used)) {
+      throw new PrologError('resource_error(memory)');
+    }
+  }
+
   *solveUserGoal(goal, rest, env, depth) {
     this.stats.solve_one_goal_calls++;
     if (depth > this.maxDepth) {
@@ -763,6 +771,14 @@ function* fixedLengthSolutions(solver, list, length, env) {
     yield env;
     return;
   }
+
+  // A materialized list cell with its fresh variable occupies roughly 216
+  // bytes on current V8 builds. Reserve conservatively before constructing a
+  // huge list so a resource_error does not leave the heap at the soft limit
+  // and poison the next query.
+  const estimatedListCellBytes = 256n;
+  if (remaining > BigInt(Number.MAX_SAFE_INTEGER)) throw new PrologError('resource_error(memory)');
+  solver.checkMemoryReservation(Number(remaining * estimatedListCellBytes));
 
   const id = nextFreshId();
   let suffix = emptyList();

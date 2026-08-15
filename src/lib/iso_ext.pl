@@ -17,9 +17,7 @@
 % Trealla. These definitions use only EyeProlog's ISO profile; extensions that
 % require runtime cleanup, choice-point, alarm, or timeout hooks are omitted.
 
-countall(Goal, Count) :-
-    findall(1, Goal, Ones),
-    iso_ext__length(Ones, 0, Count).
+countall(Goal, Count) :- eyeprolog__countall(Goal, Count).
 
 forall(Condition, Action) :-
     findall(Action, Condition, Actions),

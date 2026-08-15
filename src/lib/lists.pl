@@ -66,7 +66,7 @@ max_list([X|Xs], Max) :- lists__max_list(Xs, X, Max).
 
 list_to_set(List, Set) :- lists__list_to_set(List, [], Set).
 
-countall(Goal, Count) :- findall(1, Goal, Ones), lists__length_count(Ones, 0, Count).
+countall(Goal, Count) :- eyeprolog__countall(Goal, Count).
 
 set_nth0(0, [_|Xs], X, [X|Xs]).
 set_nth0(N, [Y|Ys], X, [Y|Zs]) :-

@@ -178,9 +178,7 @@ foldl(Closure, [A|As], [B|Bs], [C|Cs], Acc0, Acc) :-
     call(Closure, A, B, C, Acc0, Acc1),
     foldl(Closure, As, Bs, Cs, Acc1, Acc).
 
-countall(Goal, Count) :-
-    findall(1, Goal, Ones),
-    length(Ones, Count).
+countall(Goal, Count) :- eyeprolog__countall(Goal, Count).
 
 prologue__integer_or_variable(X) :- var(X), !.
 prologue__integer_or_variable(X) :- prologue__integer(X).

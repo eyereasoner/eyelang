@@ -659,7 +659,7 @@ c4 ?- call((!;1)).
           input: 'X = -0.0, number_chars(X,C), number_chars(Y,C), X == Y, number_chars(Y,D).\nhalt.\n',
         });
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, "X = 0.0, C = ['0', '.', '0'], Y = 0.0, D = ['0', '.', '0'].", 'answer');
+        assertIncludes(result.stdout, 'X = 0.0, C = "0.0", Y = 0.0, D = "0.0".', 'answer');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -672,6 +672,28 @@ c4 ?- call((!;1)).
         });
         assertEqual(streamResult.stdout, 'read(46 = 46).\n', 'read/1 character-code full stop');
 
+        // A complete term must be recognized from its full stop alone. Do not
+        // consult the interactive refill hook (which would amount to waiting
+        // for EOF or another line) once the terminator has been seen.
+        const program = Program.parse('');
+        const solver = new Solver(program, {
+          registry: getEyePrologRegistry(),
+          ioOptions: { input: "X = 0'. .\n" },
+        });
+        const inputStream = solver.io.resolve('user_input');
+        let refillRequests = 0;
+        inputStream.interactiveReadTerm = () => {
+          refillRequests++;
+          throw new Error('reader requested input after a complete term');
+        };
+        const readGoal = parseGoalText('read(T)', { operatorDefinitions: [...program.operators.values()] });
+        const readAnswers = [...solver.solve([readGoal], new Env(), 0)];
+        assertEqual(readAnswers.length, 1, 'read/1 answer without EOF');
+        assertEqual(refillRequests, 0, 'read/1 terminates without EOF assistance');
+        const readTerm = copyResolved(readGoal.args[0], readAnswers[0]);
+        assertEqual(readTerm.name, '=', 'read/1 parsed assignment');
+        assertEqual(readTerm.args[1].name, '46', 'read/1 parsed character code');
+
         const cliResult = runCli([], { input: "X = 0'. .\nhalt.\n" });
         assertEqual(cliResult.status, 0, 'top-level character-code full stop status');
         assertIncludes(cliResult.stdout, 'X = 46', 'top-level character-code answer');
@@ -680,6 +702,30 @@ c4 ?- call((!;1)).
         const upstreamResult = runCli([], { input: "writeq(0'. ).\nhalt.\n" });
         assertEqual(upstreamResult.status, 0, 'WG17 #367 exit status');
         assertIncludes(upstreamResult.stdout, '46 true.', 'WG17 #367 output');
+      },
+    },
+    {
+      name: 'question mark is a graphic character and writeq keeps graphic atoms unquoted',
+      run: () => {
+        const result = runCli([], { input: 'writeq(?).\nwriteq(??).\nwriteq(?-).\nhalt.\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, '? true.', 'writeq(?)');
+        assertIncludes(result.stdout, '?? true.', 'writeq(??)');
+        assertIncludes(result.stdout, '?- true.', 'writeq(?-)');
+        assertNotIncludes(result.stdout, "'?-'", 'writeq(?-) has no quotes');
+      },
+    },
+    {
+      name: 'normal parser rejects non-conforming bare operator operands',
+      run: () => {
+        let caught = null;
+        try {
+          parseGoalText('write_canonical((- = - 1))');
+        } catch (error) {
+          caught = error;
+        }
+        if (!caught) throw new Error('non-conforming operator operand unexpectedly parsed');
+        assertIncludes(caught.message, 'operator atom', 'syntax rejection');
       },
     },
     {
@@ -1820,17 +1866,17 @@ c4 ?- call((!;1)).
       run: () => {
         assertEqual(
           run('', { goal: 'current_op(Priority, Specifier, ?-)' }).stdout,
-          "current_op(1200, fx, '?-').\ncurrent_op(1200, xfx, '?-').\n",
+          "current_op(1200, fx, ?-).\ncurrent_op(1200, xfx, ?-).\n",
           'query operator definitions',
         );
         assertEqual(
           run('', { goal: 'current_op(1200, fx, ?-)' }).stdout,
-          "current_op(1200, fx, '?-').\n",
+          "current_op(1200, fx, ?-).\n",
           'ISO query prefix operator',
         );
         assertEqual(
           run('', { goal: 'current_op(1200, xfx, ?-)' }).stdout,
-          "current_op(1200, xfx, '?-').\n",
+          "current_op(1200, xfx, ?-).\n",
           'quad query infix operator',
         );
         const prefix = parseGoalText('(?- true)');
@@ -2036,6 +2082,23 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'get_char and peek_char report invalid UTF-8 as representation_error(character)',
+      run: () => {
+        const invalidPath = path.join(tmp, `invalid-utf8-${++tmpCounter}.bin`);
+        fs.writeFileSync(invalidPath, Buffer.from([0xff]));
+        const quotedPath = sourceAtom(invalidPath);
+        for (const predicate of ['peek_char', 'get_char']) {
+          let caught = null;
+          try {
+            run('', { goal: `open(${quotedPath}, read, S, []), ${predicate}(S, C)` });
+          } catch (error) {
+            caught = error;
+          }
+          assertEqual(caught?.formal, 'representation_error(character)', `${predicate}/2 invalid UTF-8`);
+        }
+      },
+    },
+    {
       name: 'write predicates and write_term options select distinct formats',
       run: () => {
         const source = [
@@ -2050,14 +2113,24 @@ c4 ?- call((!;1)).
           "  write_term(a+b, [ignore_ops(false)]), put_char('|'),",
           "  write_term('$VAR'(0), [numbervars(true)]), put_char('|'),",
           "  write_term('$VAR'(0), [numbervars(false)]), put_char('|'),",
-          "  write_term(pair(X, Y), [variable_names(['Left'=X, 'Right'=Y])]).",
+          "  write_term(pair(X, Y), [variable_names(['Left'=X, 'Right'=Y])]), put_char('|'),",
+          `  write_term("ab", [double_quotes(true)]), put_char('|'),`,
+          '  write_term("ab", [double_quotes(false)]).',
           '',
         ].join('\n');
         assertEqual(
           run(source, { goal: 'emit' }).stdout,
-          "hello world|'hello world'|a + b * c|'+'(a,*(b,c))|hello world|'hello world'|+(a,b)|a + b|A|$VAR(0)|pair(Left,Right)emit.\n",
+          "hello world|'hello world'|a + b * c|+(a,*(b,c))|hello world|'hello world'|+(a,b)|a + b|A|$VAR(0)|pair(Left,Right)|\"ab\"|[a,b]emit.\n",
           'stdout',
         );
+      },
+    },
+    {
+      name: 'REPL renders character lists with double quotes',
+      run: () => {
+        const result = runCli([], { input: 'L="UN-READABLE, ...".\nhalt.\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'L = "UN-READABLE, ...".', 'top-level character-list rendering');
       },
     },
     {
@@ -2593,11 +2666,11 @@ open(X) :- candidate(X), \\+ closed(X).
         const programText = `
           :- use_module(library(lists)).
           alphabet(['0','1','2','3','4','5','6','7','8','9','.']).
-          trial([A,B,C,D,E]) :-
+          trial([A,B,C,D,E,F]) :-
             alphabet(Chars),
             member(A, Chars), member(B, Chars), member(C, Chars),
-            member(D, Chars), member(E, Chars),
-            catch(number_chars(_, [A,B,C,D,E]), error(syntax_error(number), _), true).
+            member(D, Chars), member(E, Chars), member(F, Chars),
+            catch(number_chars(_, [A,B,C,D,E,F]), error(syntax_error(number), _), true).
         `;
         const script = `
           import { Program, Solver, Env, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
@@ -2606,9 +2679,9 @@ open(X) :- candidate(X), \\+ closed(X).
           const goal = parseGoalText('trial(Chars)');
           let count = 0;
           for (const _ of solver.solve([goal], new Env(), 0)) {
-            if (++count === 150000) break;
+            if (++count === 500000) break;
           }
-          if (count !== 150000) throw new Error('unexpected answer count: ' + count);
+          if (count !== 500000) throw new Error('unexpected answer count: ' + count);
           process.stdout.write(String(count));
         `;
         const result = spawnSync(process.execPath, [
@@ -2616,10 +2689,10 @@ open(X) :- candidate(X), \\+ closed(X).
           '--input-type=module',
           '--eval',
           script,
-        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 45000 });
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
-        assertEqual(result.stdout, '150000', 'distinct number syntax attempts');
+        assertEqual(result.stdout, '500000', 'distinct number syntax attempts');
       },
     },
     {
@@ -2647,22 +2720,23 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
-      name: 'named list allocation heap pressure becomes resource_error(memory)',
+      name: 'resource_error(memory) leaves enough heap for subsequent list work',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;
-        const programText = ':- use_module(library(prologue)).\n';
-        const goalText = '\\+ \\+ length(List, 1000000)';
         const script = `
           import { Program, Solver, Env, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
-          const program = Program.parse(${JSON.stringify(programText)}, { sourceMetadata: false });
+          const program = Program.parse(${JSON.stringify(':- use_module(library(prologue)).\n')}, { sourceMetadata: false });
           const solver = new Solver(program, { registry: getEyePrologRegistry() });
-          const goal = parseGoalText(${JSON.stringify(goalText)}, {
-            operatorDefinitions: [...program.operators.values()],
-          });
+          const execute = (text) => {
+            const goal = parseGoalText(text, { operatorDefinitions: [...program.operators.values()] });
+            return [...solver.solve([goal], new Env(), 0)];
+          };
+          execute('length(L,1000),fail');
           let caught = null;
-          try { [...solver.solve([goal], new Env(), 0)]; } catch (error) { caught = error; }
+          try { execute('length(L,1000000),fail'); } catch (error) { caught = error; }
           if (caught?.formal !== 'resource_error(memory)') throw caught ?? new Error('no resource error');
-          process.stdout.write(caught.formal);
+          execute('length(L,1000),fail');
+          process.stdout.write('recovered');
         `;
         const result = spawnSync(process.execPath, [
           '--max-old-space-size=64',
@@ -2672,7 +2746,7 @@ open(X) :- candidate(X), \\+ closed(X).
         ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
-        assertEqual(result.stdout, 'resource_error(memory)', 'heap pressure resource error');
+        assertEqual(result.stdout, 'recovered', 'solver remains usable after resource error');
       },
     },
     {
@@ -2739,12 +2813,12 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 152, 'EyeProlog registry contains ISO definitions and private library adapters');
+        assertEqual(library.defs.size, 153, 'EyeProlog registry contains ISO definitions and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 39, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 60, 'portable Prolog library count');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 39, 'native host library count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 59, 'portable Prolog library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 40, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
         assertEqual(eyePrologLibraryIndicators.length, 99, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
@@ -2752,6 +2826,8 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
         assertEqual(registry.get('eyeprolog__freeze', 2), null, 'private freeze adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__freeze', 2)), true, 'private freeze adapter is registered for EyeProlog');
+        assertEqual(registry.get('eyeprolog__countall', 2), null, 'private countall adapter is absent from ISO registry');
+        assertEqual(Boolean(library.get('eyeprolog__countall', 2)), true, 'private countall adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__clpz_labeling', 2)), true, 'private CLP(Z) labeling adapter is registered');
         assertEqual(Boolean(library.get('eyeprolog__clpz_global_cardinality', 3)), true, 'private CLP(Z) cardinality adapter is registered');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
@@ -2805,6 +2881,25 @@ portable_check(A, B, C) :- lowercase('HELLO', A), replace('banana', 'na', 'NA', 
         assertEqual(Boolean(program.findGroup('uuid', 3)), true, 'uuid/3 is implemented in the portable module');
         assertEqual(program.findGroup('uuid', 1), null, 'obsolete uuid/1 is absent');
         assertEqual(program.findGroup('local_time', 1), null, 'local_time/1 is absent from the library');
+      },
+    },
+    {
+      name: 'countall validates Count before executing Goal and counts without a bag',
+      run: () => {
+        const source = `:- use_module(library(prologue)).
+item(a).
+item(b).
+item(c).
+candidate :- item(_).
+`;
+        let caught = null;
+        try {
+          run(source, { goal: 'countall(throw(x), -1)' });
+        } catch (error) {
+          caught = error;
+        }
+        assertEqual(caught?.formal, 'domain_error(not_less_than_zero)', 'negative Count error priority');
+        assertEqual(run(source, { goal: 'countall(candidate, N)' }).stdout, 'countall(candidate, 3).\n', 'solution count');
       },
     },
     {

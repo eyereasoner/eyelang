@@ -1,6 +1,57 @@
 // Synchronous ISO stream state shared by a solver and all of its inner solvers.
 import { BufferCtor, fs } from './platform.js';
 
+const INVALID_UTF8_SENTINEL = '\udc00';
+
+export class InvalidCharacterEncodingError extends Error {
+  constructor() {
+    super('invalid character encoding');
+    this.name = 'InvalidCharacterEncodingError';
+  }
+}
+
+function decodeUtf8ForTextStream(buffer) {
+  const bytes = buffer;
+  let text = '';
+  for (let i = 0; i < bytes.length;) {
+    const first = bytes[i];
+    if (first <= 0x7f) {
+      text += String.fromCodePoint(first);
+      i++;
+      continue;
+    }
+
+    let width = 0;
+    let code = 0;
+    let minimum = 0;
+    if (first >= 0xc2 && first <= 0xdf) { width = 2; code = first & 0x1f; minimum = 0x80; }
+    else if (first >= 0xe0 && first <= 0xef) { width = 3; code = first & 0x0f; minimum = 0x800; }
+    else if (first >= 0xf0 && first <= 0xf4) { width = 4; code = first & 0x07; minimum = 0x10000; }
+
+    let valid = width !== 0 && i + width <= bytes.length;
+    if (valid) {
+      for (let j = 1; j < width; j++) {
+        const continuation = bytes[i + j];
+        if ((continuation & 0xc0) !== 0x80) { valid = false; break; }
+        code = (code << 6) | (continuation & 0x3f);
+      }
+      if (code < minimum || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) valid = false;
+    }
+
+    if (!valid) {
+      // A lone low surrogate cannot be produced by valid UTF-8. Keep it as a
+      // positional marker so open/4 succeeds and character input predicates
+      // can report representation_error(character) when the bad byte is read.
+      text += INVALID_UTF8_SENTINEL;
+      i++;
+      continue;
+    }
+    text += String.fromCodePoint(code);
+    i += width;
+  }
+  return text;
+}
+
 export class StreamManager {
   constructor(options = {}) {
     this.nextId = 2;
@@ -32,11 +83,17 @@ export class StreamManager {
     if (!fs) throw new Error('file streams are unavailable in this runtime');
     const type = options.type ?? 'text';
     let content = type === 'binary' ? [] : '';
-    if (mode === 'read') content = fs.readFileSync(path, type === 'binary' ? null : 'utf8');
-    else if (mode === 'append' && fs.existsSync(path)) content = fs.readFileSync(path, type === 'binary' ? null : 'utf8');
+    let strictUtf8 = false;
+    if (mode === 'read') {
+      const raw = fs.readFileSync(path);
+      if (type === 'binary') content = raw;
+      else { content = decodeUtf8ForTextStream(raw); strictUtf8 = true; }
+    } else if (mode === 'append' && fs.existsSync(path)) {
+      content = fs.readFileSync(path, type === 'binary' ? null : 'utf8');
+    }
     if (BufferCtor?.isBuffer(content)) content = [...content];
     return this.add({
-      id: this.nextId++, alias: options.alias ?? null, mode, type, content,
+      id: this.nextId++, alias: options.alias ?? null, mode, type, content, strictUtf8,
       position: mode === 'append' ? content.length : 0, path,
       reposition: options.reposition ?? false,
       eofAction: options.eof_action ?? 'error', standard: false,
@@ -52,8 +109,19 @@ export class StreamManager {
   }
   readUnit(stream, peek = false) {
     if (stream.position >= stream.content.length) return null;
-    const value = stream.type === 'binary' ? stream.content[stream.position] : String(stream.content)[stream.position];
-    if (!peek) stream.position++;
+    if (stream.type === 'binary') {
+      const value = stream.content[stream.position];
+      if (!peek) stream.position++;
+      stream.pastEnd = false;
+      return value;
+    }
+    const source = String(stream.content);
+    if (stream.strictUtf8 && source[stream.position] === INVALID_UTF8_SENTINEL) {
+      throw new InvalidCharacterEncodingError();
+    }
+    const codePoint = source.codePointAt(stream.position);
+    const value = String.fromCodePoint(codePoint);
+    if (!peek) stream.position += value.length;
     stream.pastEnd = false;
     return value;
   }

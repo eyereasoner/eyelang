@@ -4,7 +4,7 @@ import {
   Env, deref, isCons, isEmptyList,
 } from './term.js';
 
-const graphicAtomCharacters = new Set('!#$&*+-/<=>@^~\\'.split(''));
+const graphicAtomCharacters = new Set('!#$&*+-/<=>?@^~\\'.split(''));
 const compactInfixOperators = new Set([':', '..']);
 
 function quotedControlEscape(ch) {
@@ -29,7 +29,6 @@ function atomNeedsQuotes(name) {
   if (name === '[]' || name === '{}') return false;
   if (name === '...') return false;
   if (name.startsWith('/*')) return true;
-  if (name === '\\+' || name === '+' || name === '-' || name === '\\') return true;
   if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return false;
   for (const ch of name) if (!graphicAtomCharacters.has(ch)) return true;
   return false;
@@ -107,7 +106,7 @@ function writeNumberedVariable(index) {
 function operatorName(name) {
   if (name === '.' || name.startsWith('/*')) return quoteAtom(name);
   if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return name;
-  if (/^[!#$&*+\-./<=>@^~\\;:]+$/.test(name)) return name;
+  if (/^[!#$&*+\-./<=>?@^~\\;:]+$/.test(name)) return name;
   return quoteAtom(name);
 }
 
@@ -178,6 +177,10 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
     // without quoting. Keep lexical exceptions such as `|` quoted.
     if (options.operatorAtomsAsArgs && context === 'argument' && table.has(resolved.name)) return operatorName(resolved.name);
     if (!options.ignoreOps && context !== 'argument' && table.has(resolved.name)) {
+      // The predefined ?- atom is safe at the end of a written term and is a
+      // graphic atom in ISO syntax. Do not add the legacy parentheses that
+      // issue #35 reports for writeq(?-).
+      if (resolved.name === '?-') return operatorName(resolved.name);
       const definitions = table.get(resolved.name);
       const requiresParentheses = definitions.some(({ specifier }) =>
         ['fx', 'fy', 'xfx', 'xfy', 'yfx'].includes(specifier));

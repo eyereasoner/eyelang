@@ -172,6 +172,7 @@ export const isoBuiltins = {
 export const eyePrologLibraryBuiltins = {
   register(registry) {
     registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
+    registry.add('eyeprolog__countall', 2, countAllBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__freeze', 2, freezeBuiltin, { eyePrologLibrary: true });
   },
 };
@@ -1023,7 +1024,15 @@ function inputUnitBuiltin(name) {
       stream.pastEnd = false;
     }
     const peek = name.startsWith('peek');
-    const unit = solver.io.readUnit(stream, peek);
+    let unit;
+    try {
+      unit = solver.io.readUnit(stream, peek);
+    } catch (error) {
+      if (error?.name === 'InvalidCharacterEncodingError') {
+        throw new PrologError('representation_error(character)');
+      }
+      throw error;
+    }
     if (unit == null && !peek) stream.pastEnd = true;
     const result = unit == null ? (binary ? numberTerm(-1) : name.endsWith('code') ? numberTerm(-1) : atom('end_of_file'))
       : binary ? numberTerm(unit) : name.endsWith('code') ? numberTerm(unit.codePointAt(0)) : atom(unit);
@@ -1072,7 +1081,7 @@ function isTerminatingFullStop(source, index) {
   return true;
 }
 
-const termGraphicCharacters = new Set('#$&*+-./<=>@^~\\:');
+const termGraphicCharacters = new Set('#$&*+-./<=>?@^~\\:');
 function continuesGraphicToken(source, index) {
   return index > 0 && termGraphicCharacters.has(source[index - 1]);
 }
@@ -1272,9 +1281,9 @@ function* readTermBuiltin({ solver, goal, env }) {
   yield next;
 }
 function defaultTermWriteOptions(mode) {
-  if (mode === 'writeq') return { quoted: true, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true };
-  if (mode === 'canonical') return { quoted: true, ignoreOps: true, numbervars: false, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true };
-  return { quoted: false, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true };
+  if (mode === 'writeq') return { quoted: true, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
+  if (mode === 'canonical') return { quoted: true, ignoreOps: true, numbervars: false, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
+  return { quoted: false, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
 }
 
 function writeOptionBoolean(value, env, option) {
@@ -1323,6 +1332,7 @@ function termWriteOptions(term, env, mode = 'write') {
     if (option.name === 'quoted') result.quoted = writeOptionBoolean(option.args[0], env, option);
     else if (option.name === 'ignore_ops') result.ignoreOps = writeOptionBoolean(option.args[0], env, option);
     else if (option.name === 'numbervars') result.numbervars = writeOptionBoolean(option.args[0], env, option);
+    else if (option.name === 'double_quotes') result.doubleQuotes = writeOptionBoolean(option.args[0], env, option);
     else if (option.name === 'variable_names') result.variableNames = writeVariableNames(option.args[0], env, option);
     else throw new PrologError('domain_error(write_option)', option);
   }
@@ -1345,6 +1355,11 @@ function* writeTermBuiltin({ solver, goal, env }) {
   const stream = goal.arity === 2 ? solver.io.resolve(solver.io.currentOutput) : requireStream(solver, goal.args[0], env, 'write');
   if (stream.type !== 'text') throw new PrologError('permission_error(output, binary_stream)', streamHandle(stream.id));
   const options = termWriteOptions(goal.args[goal.arity - 1], env);
+  if (options.doubleQuotes === true) {
+    options.doubleQuotes = solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars';
+  } else {
+    options.doubleQuotes = null;
+  }
   solver.io.writeUnit(stream, formatTermForWrite(goal.args[goal.arity - 2], env, {
     ...options,
     operators: solver.program.operators.values(),
@@ -1667,6 +1682,8 @@ function numberListText(list, env, kind, valueIsBound) {
     : String.fromCodePoint(Number(item.name))).join('');
 }
 
+const numberSyntaxError = new PrologError('syntax_error(number)');
+
 function numberListBuiltin(kind) {
   return function* ({ goal, env }) {
     const value = deref(goal.args[0], env);
@@ -1678,7 +1695,7 @@ function numberListBuiltin(kind) {
     if (value.type === NUMBER) {
       if (text != null) {
         const parsed = parseIsoNumber(text);
-        if (parsed == null) throw new PrologError('syntax_error(number)');
+        if (parsed == null) throw numberSyntaxError;
         if (sameNumber(value, parsed)) yield next;
         return;
       }
@@ -1688,7 +1705,7 @@ function numberListBuiltin(kind) {
       return;
     }
     const parsed = parseIsoNumber(text);
-    if (parsed == null) throw new PrologError('syntax_error(number)');
+    if (parsed == null) throw numberSyntaxError;
     if (unify(goal.args[0], parsed, next)) yield next;
   };
 }
@@ -1833,6 +1850,32 @@ function* callClosureBuiltin({ solver, goal, env }) {
   } finally {
     solver.absorbStatsFrom(child);
   }
+}
+
+function* countAllBuiltin({ solver, goal, env }) {
+  const requested = deref(goal.args[1], env);
+  // Validate Count before inspecting or executing Goal. This preserves the
+  // expected error priority for e.g. countall(throw(x), -1).
+  if (requested.type !== VAR) {
+    if (requested.type !== NUMBER || !isDecimalInteger(requested.name)) {
+      throw new PrologError('type_error(integer)', requested);
+    }
+    if (BigInt(requested.name) < 0n) {
+      throw new PrologError('domain_error(not_less_than_zero)', requested);
+    }
+  }
+
+  const invoked = callable(goal.args[0], env);
+  const child = solver.cloneForInnerGoal();
+  let count = 0n;
+  try {
+    for (const _ of child.solve([invoked], env.clone(), 0)) count++;
+  } finally {
+    solver.absorbStatsFrom(child);
+  }
+
+  const next = env.clone();
+  if (unify(goal.args[1], numberTerm(count), next)) yield next;
 }
 
 function* callNthBuiltin({ solver, goal, env }) {
