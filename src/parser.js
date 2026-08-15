@@ -342,7 +342,9 @@ class Parser {
   nextToken() {
     // The tokenizer keeps just enough state for useful parse-line errors and
     // treats quoted atoms and quoted strings differently, as Prolog syntax does.
+    const beforeLayout = this.pos;
     this.skipWhitespaceAndComments();
+    const precededByLayout = this.pos !== beforeLayout;
     const line = this.line;
     const ch = this.peek();
     if (!ch) return { type: TOK.EOF, text: '', line };
@@ -377,7 +379,7 @@ class Parser {
     };
     if (punct[ch]) {
       this.take();
-      return { type: punct[ch], text: ch, line };
+      return { type: punct[ch], text: ch, line, precededByLayout };
     }
     if (ch === ':' && this.peek(1) === '-') {
       this.pos += 2;
@@ -634,7 +636,7 @@ class Parser {
       if ([TOK.COMMA, TOK.RPAREN, TOK.RBRACKET, TOK.BAR].includes(this.token.type)) {
         return atom(op);
       }
-      if (this.token.type === TOK.LPAREN) {
+      if (this.token.type === TOK.LPAREN && this.token.precededByLayout !== true) {
         this.advance();
         const args = [];
         while (true) {
@@ -1308,18 +1310,96 @@ export function parseProgramText(source, options = {}) {
 
 export function parseNumberTokenText(text) {
   const source = String(text ?? '');
-  const parser = new Parser(source, {
-    includeDefaultOperators: false,
-    sourceMetadata: false,
-  });
-  // Inspect the tokenizer position before requesting another token: advancing
-  // would skip trailing layout and make `3 ` or `3/**/` look complete. A
-  // literal space consumed by the character-code token `0' ` is already part
-  // of parser.pos and is therefore correctly accepted.
-  if (parser.token.type !== TOK.NUMBER || parser.pos !== source.length) {
-    throw new Error('not exactly one number token');
+  let position = 0;
+  let negative = false;
+  if (source[position] === '-') {
+    negative = true;
+    position++;
   }
-  return numberTerm(parser.token.text);
+
+  // number_chars/2 and number_codes/2 need the lexical number production,
+  // not a general term reader. Keeping this scanner number-only avoids
+  // allocating a Parser and three operator tables for every conversion.
+  if (source.startsWith("0'", position)) {
+    position += 2;
+    let value = source[position] ?? '';
+    if (!value || (value !== ' ' && isWhitespaceCode(value.charCodeAt(0)))) {
+      throw new Error('not exactly one number token');
+    }
+    position++;
+    const firstCode = value.charCodeAt(0);
+    if (firstCode >= 0xd800 && firstCode <= 0xdbff) {
+      const secondCode = source.charCodeAt(position);
+      if (secondCode < 0xdc00 || secondCode > 0xdfff) throw new Error('not exactly one number token');
+      value += source[position++];
+    } else if (firstCode >= 0xdc00 && firstCode <= 0xdfff) {
+      throw new Error('not exactly one number token');
+    }
+
+    if (value === "'") {
+      if (source[position] !== "'") throw new Error('not exactly one number token');
+      position++;
+    } else if (value === '\\') {
+      const escaped = source[position++] ?? '';
+      const controls = { a: '\x07', b: '\b', r: '\r', f: '\f', t: '\t', n: '\n', v: '\v' };
+      if (controls[escaped] != null) {
+        value = controls[escaped];
+      } else if (escaped === 'x') {
+        let digits = '';
+        while (/^[0-9A-Fa-f]$/.test(source[position] ?? '')) digits += source[position++];
+        if (!digits || source[position++] !== '\\') throw new Error('not exactly one number token');
+        const code = Number.parseInt(digits, 16);
+        if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw new Error('not exactly one number token');
+        value = String.fromCodePoint(code);
+      } else if (/^[0-7]$/.test(escaped)) {
+        let digits = escaped;
+        while (/^[0-7]$/.test(source[position] ?? '')) digits += source[position++];
+        if (source[position++] !== '\\') throw new Error('not exactly one number token');
+        const code = Number.parseInt(digits, 8);
+        if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw new Error('not exactly one number token');
+        value = String.fromCodePoint(code);
+      } else if (escaped === '\\' || escaped === "'" || escaped === '"' || escaped === '`') {
+        value = escaped;
+      } else {
+        throw new Error('not exactly one number token');
+      }
+    }
+
+    if (position !== source.length) throw new Error('not exactly one number token');
+    const code = value.codePointAt(0);
+    return numberTerm(String(negative ? -code : code));
+  }
+
+  if (source[position] === '0' && ['b', 'o', 'x'].includes(source[position + 1])) {
+    const kind = source[position + 1];
+    const radix = kind === 'b' ? 2 : kind === 'o' ? 8 : 16;
+    const digitPattern = radix === 2 ? /^[01]$/ : radix === 8 ? /^[0-7]$/ : /^[0-9A-Fa-f]$/;
+    position += 2;
+    let digits = '';
+    while (digitPattern.test(source[position] ?? '')) digits += source[position++];
+    if (!digits || position !== source.length) throw new Error('not exactly one number token');
+    let integer = 0n;
+    for (const digit of digits) integer = integer * BigInt(radix) + BigInt(Number.parseInt(digit, radix));
+    if (negative) integer = -integer;
+    return numberTerm(integer.toString());
+  }
+
+  const digitsStart = position;
+  while (isDigitCode(source.charCodeAt(position))) position++;
+  if (position === digitsStart) throw new Error('not exactly one number token');
+  if (source[position] === '.' && isDigitCode(source.charCodeAt(position + 1))) {
+    position++;
+    while (isDigitCode(source.charCodeAt(position))) position++;
+  }
+  if (source[position] === 'e' || source[position] === 'E') {
+    position++;
+    if (source[position] === '+' || source[position] === '-') position++;
+    const exponentStart = position;
+    while (isDigitCode(source.charCodeAt(position))) position++;
+    if (position === exponentStart) throw new Error('not exactly one number token');
+  }
+  if (position !== source.length) throw new Error('not exactly one number token');
+  return numberTerm(source);
 }
 
 export function parseGoalText(text, options = {}) {

@@ -9,6 +9,7 @@ wg17_operator_arguments.
 a * (b + c)
 a :- b, c
 wg17_operator_precedence.
+wg17_spaced_prefix_operator((a, b)).
 '.'(a,[])
 wg17_canonical_list.
 '\0\'

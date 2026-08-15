@@ -1,6 +1,6 @@
 % High-risk ISO syntax/write regressions, independently derived from
 % ISO/IEC 13211-1 clauses 6.3, 6.4 and 7.10 and cross-checked against the
-% public WG17 conformity-testing syntax cases (#1, #7-10, #14-15, #18, #28-31, #33-34, #301, #315-316).
+% public WG17 conformity-testing syntax cases (#1, #7-10, #14-15, #18, #28-31, #33-34, #299, #301, #315-316).
 
 %% goal: wg17_numeric_escape
 wg17_numeric_escape :-
@@ -20,6 +20,10 @@ wg17_operator_arguments :-
 wg17_operator_precedence :-
     writeq(a*(b+c)), nl,
     writeq((a :- b,c)), nl.
+
+%% goal: wg17_spaced_prefix_operator(T)
+wg17_spaced_prefix_operator(T) :-
+    (\+ (a,b)) = \+(T).
 
 %% goal: wg17_canonical_list
 wg17_canonical_list :-

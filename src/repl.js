@@ -4,6 +4,7 @@ import { readSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { formalErrorTerm } from './iso.js';
+import { characterCodeConstantEnd, quotedEscapeEnd } from './syntax-scan.js';
 
 const ANSWER_HELP = `
 SPACE, "n" or ";": next solution, if any
@@ -344,38 +345,6 @@ async function readInteractiveTerm(reader) {
   }
 }
 
-function quotedEscapeEnd(source, index) {
-  const escaped = source[index + 1] ?? '';
-  if (!escaped) return index;
-
-  // A backslash-newline pair is a continuation escape (6.4.2), so the
-  // newline is not a literal quoted character. Accept CRLF as the host text
-  // representation of the same continuation boundary.
-  if (escaped === '\n') return index + 1;
-  if (escaped === '\r' && source[index + 2] === '\n') return index + 2;
-
-  // ISO 6.4.2.1 octal and hexadecimal escapes are terminated by a
-  // backslash.  Consume that terminator as part of the escape so the REPL
-  // scanner does not mistake it for an escape of the following quote.
-  if (escaped === 'x') {
-    let cursor = index + 2;
-    while (/^[0-9A-Fa-f]$/.test(source[cursor] ?? '')) cursor++;
-    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
-  }
-  if (/^[0-9]$/.test(escaped)) {
-    let cursor = index + 1;
-    // Scan all decimal digits here, including 8 and 9.  This scanner only
-    // locates the end of a candidate quoted escape; the parser remains
-    // authoritative and rejects non-octal digits.
-    while (/^[0-9]$/.test(source[cursor] ?? '')) cursor++;
-    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
-  }
-
-  // Meta escapes, symbolic control escapes, and continuation escapes consume
-  // one character after the backslash.  The parser performs validity checks.
-  return index + 1;
-}
-
 function terminalFullStop(source) {
   let quote = null;
   let lineComment = false;
@@ -409,6 +378,11 @@ function terminalFullStop(source) {
         if (next === quote) i++;
         else quote = null;
       }
+      continue;
+    }
+    const characterCodeEnd = characterCodeConstantEnd(source, i);
+    if (characterCodeEnd != null) {
+      i = characterCodeEnd;
       continue;
     }
     if (ch === '%') {
@@ -636,6 +610,10 @@ function formatAnswer(engine, state, variables, env) {
       operators,
       variableNames: names,
       maxPriority: valueMaxPriority,
+      // A binding value is the right-hand `arg` of =/2.  ISO 6.3.3.1 permits
+      // current operator atoms in argument and list-element positions without
+      // quotes, just as writeq/1 already prints them.
+      operatorAtomsAsArgs: true,
     })}`);
   }
   return bindings.length === 0 ? 'true' : bindings.join(', ');

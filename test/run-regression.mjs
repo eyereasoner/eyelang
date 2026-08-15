@@ -38,7 +38,7 @@ import {
   variantTerms,
   parseProgramText,
 } from '../src/index.js';
-import { parseGoalText } from '../src/parser.js';
+import { parseGoalText, parseNumberTokenText } from '../src/parser.js';
 import { compareTerms } from '../src/term.js';
 import { selectClauseCandidates } from '../src/program.js';
 import { TestReporter, isMainModule } from './test-style.mjs';
@@ -625,6 +625,76 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'number conversion uses a bounded number-only scanner',
+      run: () => {
+        for (const [source, expected] of [
+          ['123', '123'], ['-1.25e+3', '-1.25e+3'], ['0xff', '255'],
+          ["0'.", '46'], ["0'😀", '128512'], ["0'\\x21\\", '33'],
+        ]) {
+          assertEqual(parseNumberTokenText(source).name, expected, source);
+        }
+
+        for (let i = 0; i < 500000; i++) {
+          const text = String(i);
+          assertEqual(parseNumberTokenText(text).name, text, `conversion ${i}`);
+        }
+
+        const numberChars = createDefaultRegistry().get('number_chars', 2).handler;
+        const converted = variable('Converted');
+        for (let i = 0; i < 10000; i++) {
+          const text = String(i);
+          const chars = listFromItems(Array.from(text, atom));
+          const goal = compound('number_chars', [converted, chars]);
+          const answer = numberChars({ goal, env: new Env() }).next();
+          if (answer.done) throw new Error(`number_chars/2 failed at ${i}`);
+          assertEqual(copyResolved(converted, answer.value).name, text, `number_chars/2 conversion ${i}`);
+        }
+      },
+    },
+    {
+      name: 'number_chars uses one generated representation for floating-point zero',
+      run: () => {
+        const result = runCli([], {
+          input: 'X = -0.0, number_chars(X,C), number_chars(Y,C), X == Y, number_chars(Y,D).\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, "X = -0.0, C = ['0', '.', '0'], Y = 0.0, D = ['0', '.', '0'].", 'answer');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'readers keep a full stop inside a character-code constant (WG17 #211)',
+      run: () => {
+        const streamResult = runEyeProlog('', {
+          goal: 'read((46 = 46))',
+          ioOptions: { input: "X = 0'. .\n" },
+        });
+        assertEqual(streamResult.stdout, 'read(46 = 46).\n', 'read/1 character-code full stop');
+
+        const cliResult = runCli([], { input: "X = 0'. .\nhalt.\n" });
+        assertEqual(cliResult.status, 0, 'top-level character-code full stop status');
+        assertIncludes(cliResult.stdout, 'X = 46', 'top-level character-code answer');
+        assertNotIncludes(cliResult.stdout, 'syntax_error', 'top-level character-code syntax');
+      },
+    },
+    {
+      name: 'layout distinguishes prefix notation from functional notation',
+      run: () => {
+        const functional = parseGoalText(String.raw`\+(true, false)`);
+        assertEqual(functional.name, '\\+', 'functional name');
+        assertEqual(functional.arity, 2, 'adjacent functional arity');
+
+        const prefix = parseGoalText(String.raw`\+ (true, false)`);
+        assertEqual(prefix.name, '\\+', 'prefix name');
+        assertEqual(prefix.arity, 1, 'spaced prefix arity');
+        assertEqual(prefix.args[0].name, ',', 'prefix parenthesized conjunction');
+        assertEqual(prefix.args[0].arity, 2, 'prefix conjunction arity');
+
+        const result = runEyeProlog('', { goal: String.raw`\+ (true, false)` });
+        assertEqual(result.stdout, '\\+ (true, false).\n', 'spaced negation result');
+      },
+    },
+    {
       name: 'number conversion rejects parenthesized numeric terms',
       run: () => {
         for (const goal of ['number_chars(N,"(0)")', 'number_codes(N,[40,48,41])']) {
@@ -888,6 +958,19 @@ c4 ?- call((!;1)).
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, '?-    X = a\n;  X = b.\n?-    X = one\n;  ... .\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL bindings use argument syntax for operator atoms',
+      run: () => {
+        const result = runCli([], {
+          input: 'L=[:-,-], writeq(L), nl.\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, '[:-,-]', 'writeq output');
+        assertIncludes(result.stdout, 'L = [:-, -].', 'binding output');
+        assertNotIncludes(result.stdout, "L = [':-', '-']", 'spurious quotes');
         assertEqual(result.stderr, '', 'stderr');
       },
     },

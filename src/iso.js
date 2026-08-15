@@ -9,6 +9,7 @@ import { sameNumberValue } from './number-value.js';
 import { createParserOperatorState, parseClauses, parseGoalText, parseNumberTokenText } from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
+import { characterCodeConstantEnd, quotedEscapeEnd } from './syntax-scan.js';
 
 let isoFresh = 0;
 
@@ -1071,35 +1072,6 @@ function isTerminatingFullStop(source, index) {
   return true;
 }
 
-function quotedEscapeEnd(source, index) {
-  const escaped = source[index + 1] ?? '';
-  if (!escaped) return index;
-
-  // A quoted-token continuation escape consumes its newline. Accept CRLF as
-  // the host representation of the same line boundary.
-  if (escaped === '\n') return index + 1;
-  if (escaped === '\r' && source[index + 2] === '\n') return index + 2;
-
-  // ISO 6.4.2.1 numeric escapes include a terminating backslash.  Consume
-  // that delimiter as part of the quoted character so stream scanning does
-  // not mistake it for an escape of the quote which follows.
-  if (escaped === 'x') {
-    let cursor = index + 2;
-    while (/^[0-9A-Fa-f]$/.test(source[cursor] ?? '')) cursor++;
-    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
-  }
-  if (/^[0-9]$/.test(escaped)) {
-    let cursor = index + 1;
-    // Scan all decimal digits here, including 8 and 9.  This scanner only
-    // locates the end of a candidate quoted escape; the parser remains
-    // authoritative and rejects non-octal digits.
-    while (/^[0-9]$/.test(source[cursor] ?? '')) cursor++;
-    return source[cursor] === '\\' ? cursor : Math.max(index + 1, cursor - 1);
-  }
-
-  return index + 1;
-}
-
 function* termTextCandidates(stream) {
   const source = String(stream.content);
   let quote = null, lineComment = false, blockComment = false;
@@ -1120,6 +1092,8 @@ function* termTextCandidates(stream) {
       else if (ch === quote) quote = null;
       continue;
     }
+    const characterCodeEnd = characterCodeConstantEnd(source, i);
+    if (characterCodeEnd != null) { i = characterCodeEnd; continue; }
     if (ch === '%') { lineComment = true; continue; }
     if (ch === '/' && next === '*') { blockComment = true; i++; continue; }
     if (ch === "'" || ch === '"') { quote = ch; continue; }
@@ -1605,6 +1579,11 @@ function sameNumber(left, right) {
 function canonicalNumberText(value) {
   if (isDecimalInteger(value.name)) return BigInt(value.name).toString();
   const finite = Number(value.name);
+  // ISO 13211-1 has a single floating-point zero: a source spelling with a
+  // minus sign does not denote a distinct -0.0 value.  Generate the same
+  // character sequence for both spellings so converting that sequence back
+  // cannot make number_chars/2 change its own subsequent output.
+  if (finite === 0) return '0.0';
   if (Number.isFinite(finite) && /^-?\d+\.\d+(?:[eE][+-]?\d+)?$/.test(value.name)) {
     return value.name;
   }
