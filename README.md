@@ -105,8 +105,8 @@ modules, DCGs, quads, libraries, proofs, and the other documented extensions.
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
 The separate [WG17 syntax ledger](test/conformance/WG17-SYNTAX-STATUS.md)
-records executable dispositions for all 366 active upstream syntax cases
-(100% traced) and runs as part of `npm test`.
+records executable dispositions for the reviewed upstream WG17 syntax cases
+and runs as part of `npm test`.
 EyeProlog does not yet claim independent certification or closure of every
 normative Part 1 requirement.
 

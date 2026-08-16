@@ -7060,7 +7060,9 @@ syntax. Separate corpora cover expected errors, warnings, and proofs:
 ```sh
 npm run test:conformance
 npm run test:iso-strict
-npm run test:wg17-syntax
+npm run test:wg17
+# Refresh the vendored TU Wien WG17 inventory when upstream changes:
+npm run wg17:upgrade
 node test/run-conformance-report.mjs
 ```
 
@@ -7069,8 +7071,8 @@ Part 1 conformance audit. It distinguishes implemented/tested families from
 requirements whose normative `shall` clauses, option combinations, or error
 precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
-`test/conformance/WG17-SYNTAX-STATUS.md` separately traces all 366 active
-upstream syntax cases to exact strict-reader outcomes, with no untraced case.
+`test/conformance/WG17-SYNTAX-STATUS.md` separately traces the reviewed active upstream syntax cases to exact strict-reader
+outcomes and reports any newly upgraded cases that still need review.
 
 The complete suite must pass before release. The file-based conformance corpus
 contains 791 cases, including 386 focused ISO

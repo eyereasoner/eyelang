@@ -10,7 +10,7 @@ and proof output test the behavior of the JavaScript implementation.
 [ISO-MATRIX.md](ISO-MATRIX.md) maps Part 1 normative clause families, all three
 corrigenda, Part 2 modules, and Part 3 definite clause grammars to representative
 executable cases. [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
-complete one-to-one trace for all 366 active upstream syntax cases.
+complete one-to-one trace for the vendored active upstream WG17 syntax cases.
 
 “Conformance” here means conformance to EyeProlog's documented ISO compatibility
 profile and implementation extensions. The default registry covers the exact
@@ -69,11 +69,27 @@ Run the Part 1 + Corrigenda strict-core processor gate:
 npm run test:iso-strict
 ```
 
-Run the complete WG17 syntax matrix independently:
+Run all vendored WG17 conformity matrices independently:
 
 ```sh
-npm run test:wg17-syntax
+npm run test:wg17
 ```
+
+Refresh the WG17 snapshot from the TU Wien conformity tables before a release
+or whenever upstream changes:
+
+```sh
+npm run wg17:upgrade
+npm run test:wg17
+```
+
+`wg17:upgrade` reconciles the upstream inventory by identifier: unchanged cases
+keep their reviewed exact outcomes, removed cases disappear, and new or
+semantically changed cases are executed directly against the upstream Codex
+expectation. This means `npm run test:wg17` can test an upgraded snapshot
+immediately without first copying EyeProlog's current behaviour into an
+expected result. Normal `npm test` remains offline and uses only the committed
+snapshot.
 
 Summarize conformance coverage by category:
 

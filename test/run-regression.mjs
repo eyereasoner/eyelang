@@ -46,6 +46,8 @@ import { buildConformanceReport, formatConformanceReport } from './run-conforman
 import { proofExamples } from './run-examples.mjs';
 import { goalsFromSource } from './goal-metadata.mjs';
 import { renderWg17SyntaxStatus } from '../tools/report-wg17-syntax-coverage.mjs';
+import { parseWg17SyntaxTable } from '../tools/upgrade-wg17.mjs';
+import { matchesUpstreamExpectation } from './run-wg17.mjs';
 
 const testRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRoot = path.resolve(testRoot, '..');
@@ -2164,6 +2166,49 @@ function documentationSyncCases() {
       run: () => {
         const filename = path.join(testRoot, 'conformance', 'WG17-SYNTAX-STATUS.md');
         assertEqual(fs.readFileSync(filename, 'utf8'), renderWg17SyntaxStatus(), 'WG17 syntax status');
+      },
+    },
+    {
+      name: 'WG17 upgrader accepts omitted HTML table end tags',
+      run: () => {
+        // HTML permits </td> and </tr> to be omitted. TU Wien uses this
+        // compact form, so the upgrader must not depend on explicit closes.
+        const rows = Array.from({ length: 120 }, (_, index) =>
+          `<tr><td>${index + 1}<td><code>write(${index + 1}).</code><td>ok`).join('\n');
+        const html = `<table><tr><th>#<th>Query<th>Codex${rows}</table>`;
+        const parsed = parseWg17SyntaxTable(html);
+        assertEqual(parsed.length, 120, 'parsed row count');
+        assertEqual(parsed[0].id, 1, 'first id');
+        assertEqual(parsed[0].query, 'write(1).', 'first query');
+        assertEqual(parsed.at(-1).id, 120, 'last id');
+      },
+    },
+    {
+      name: 'WG17 upgrader normalizes presentation non-breaking spaces',
+      run: () => {
+        const rows = Array.from({ length: 120 }, (_, index) =>
+          `<tr><td>${index + 1}<td>set_prolog_flag(&nbsp;double_quotes,chars).<td>succeeds`).join('\n');
+        const html = `<table><tr><th>#<th>Query<th>Codex${rows}</table>`;
+        const parsed = parseWg17SyntaxTable(html);
+        assertEqual(parsed[0].query, 'set_prolog_flag( double_quotes,chars).', 'normalized query');
+      },
+    },
+    {
+      name: 'WG17 direct upstream assertions are executable without local outcomes',
+      run: () => {
+        assertEqual(matchesUpstreamExpectation('succeeds', { type: 'success', stages: [] }), true, 'succeeds');
+        assertEqual(matchesUpstreamExpectation('fails', { type: 'failure' }), true, 'fails');
+        assertEqual(matchesUpstreamExpectation('waits', { type: 'waits' }), true, 'waits');
+        assertEqual(
+          matchesUpstreamExpectation('syntax err.', { type: 'error', formal: 'syntax_error(read_term)' }),
+          true,
+          'syntax error',
+        );
+        assertEqual(
+          matchesUpstreamExpectation("'a b'", { type: 'success', stages: [{ output: "'a b'", variables: '[]' }] }),
+          true,
+          'observable output',
+        );
       },
     },
     {

@@ -1,6 +1,6 @@
 {
   "source": "https://www.complang.tuwien.ac.at/ulrich/iso-prolog/conformity_testing",
-  "checkedOn": "2026-08-15",
+  "checkedOn": "2026-08-16",
   "protocol": "Each query is read and executed in strict ISO mode; /**/ rows reuse the preceding setup.",
   "cases": [
     {
@@ -5551,14 +5551,13 @@
     },
     {
       "id": 368,
-      "query": "Finis ().",
-      "input": "Finis ().",
+      "query": "writeq(?).",
+      "input": "writeq(?).",
       "readCount": 1,
-      "expected": "syntax err.",
-      "outcome": {
-        "type": "error",
-        "formal": "syntax_error(read_term)"
-      }
+      "expected": "?",
+      "assertion": "upstream"
     }
-  ]
+  ],
+  "sourceRevision": "1.300",
+  "sourceSha256": "d7ca05e90cfafe786d5edca4783e691a356a35508c50b62f5a99bd9057e2cd05"
 }

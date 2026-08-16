@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = path.join(packageRoot, 'test', 'conformance', 'wg17-syntax-coverage.json');
 const statusPath = path.join(packageRoot, 'test', 'conformance', 'WG17-SYNTAX-STATUS.md');
+const fixturePath = path.join(packageRoot, 'test', 'conformance', 'wg17-syntax-cases.json');
 
 export function readWg17SyntaxCoverage() {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -25,10 +26,12 @@ export function readWg17SyntaxCoverage() {
   const evidenceEntries = [];
   for (const evidence of manifest.evidence) {
     if (!evidence.name || !evidence.path || !evidence.link ||
-        (!Array.isArray(evidence.ids) && evidence.ids !== 'all-active')) {
+        (!Array.isArray(evidence.ids) && !['all-active', 'all-reviewed', 'all-executable'].includes(evidence.ids))) {
       throw new Error('invalid WG17 evidence entry');
     }
-    const evidenceIds = evidence.ids === 'all-active' ? activeIds : evidence.ids;
+    const evidenceIds = evidence.ids === 'all-active' ? activeIds :
+      ['all-reviewed', 'all-executable'].includes(evidence.ids)
+        ? executableWg17Ids(evidence.path, active) : evidence.ids;
     const evidenceFilename = path.join(packageRoot, evidence.path);
     if (!fs.existsSync(evidenceFilename)) throw new Error(`missing WG17 evidence file ${evidence.path}`);
     const referenced = referencedWg17Ids(fs.readFileSync(evidenceFilename, 'utf8'));
@@ -52,6 +55,16 @@ export function readWg17SyntaxCoverage() {
   };
 }
 
+
+function executableWg17Ids(relativePath, active) {
+  const filename = path.join(packageRoot, relativePath);
+  if (path.resolve(filename) !== path.resolve(fixturePath)) return [];
+  const fixture = JSON.parse(fs.readFileSync(filename, 'utf8'));
+  return fixture.cases
+    .filter((item) => typeof item.expected === 'string' && item.expected.length > 0 && active.has(item.id))
+    .map(({ id }) => id);
+}
+
 function referencedWg17Ids(source) {
   const ids = new Set();
   for (const match of source.matchAll(/#(\d+)(?:-(\d+))?/g)) {
@@ -65,6 +78,10 @@ function referencedWg17Ids(source) {
 
 export function renderWg17SyntaxStatus() {
   const { manifest, evidenceEntries, activeIds, coveredIds, untracedIds } = readWg17SyntaxCoverage();
+  const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
+  const waits = fixture.cases.filter((item) =>
+    item.outcome?.type === 'waits' || (item.outcome == null && /^waits$/i.test(item.expected ?? ''))).length;
+  const direct = fixture.cases.filter((item) => item.outcome == null).length;
   const percentage = (100 * coveredIds.length / activeIds.length).toFixed(1);
   const evidenceRows = evidenceEntries.map((evidence) =>
     `| [${evidence.name}](${evidence.link}) | ${evidence.ids.length} | ${formatRanges(evidence.ids)} |`);
@@ -74,10 +91,10 @@ export function renderWg17SyntaxStatus() {
 Source: [Conformity Testing I: Syntax](${manifest.source})  
 Upstream inventory checked: ${manifest.checkedOn}
 
-This ledger counts an upstream case only when its WG17 identifier, query,
-expected ISO disposition, and observed EyeProlog outcome are stored in the
-offline executable matrix. Semantically similar parser tests are not inferred
-as coverage.
+This ledger counts an upstream case when its WG17 identifier, query, and
+expected ISO disposition are stored in the offline executable matrix. Existing
+cases may pin an exact reviewed EyeProlog outcome; newly upgraded cases are
+executed directly against the upstream Codex expectation.
 
 ## Current standing
 
@@ -89,9 +106,9 @@ as coverage.
 | Deleted upstream identifiers | ${formatRanges(manifest.upstream.deletedIds)} |
 
 The matrix runs in strict ISO stream-reader mode as part of \`npm test\`. The
-three upstream \`waits\` cases are checked through EyeProlog's interactive input
-hook; the other ${activeIds.length - 3} cases are checked for their exact stored
-success output, bindings, failure, or ISO error category.
+${waits} upstream \`waits\` case${waits === 1 ? '' : 's'} ${waits === 1 ? 'is' : 'are'} checked through EyeProlog's interactive input
+hook. ${direct} case${direct === 1 ? '' : 's'} use${direct === 1 ? 's' : ''} the upstream Codex expectation directly; the remaining
+${coveredIds.length - direct} case${coveredIds.length - direct === 1 ? '' : 's'} retain exact stored outcomes for stronger regression checking.
 
 ## Traceable evidence
 
@@ -108,9 +125,9 @@ ${untracedIds.length === 0 ? 'None.' : `${formatRanges(untracedIds)}.`}
 
 ## Maintenance
 
-1. Refresh the dated fixture when the upstream table changes.
-2. Review any changed ISO expectation before updating an observed snapshot.
-3. Keep this generated status page synchronized in the release gate.
+1. Run \`npm run wg17:upgrade\` to reconcile the dated fixture with upstream.
+2. Review every new or changed ISO expectation before adding its expected outcome.
+3. Run \`npm run test:wg17\` and keep this generated status page synchronized.
 `;
 }
 
@@ -132,7 +149,7 @@ if (process.argv[1] != null && path.resolve(process.argv[1]) === fileURLToPath(i
   if (process.argv.includes('--check')) {
     const current = fs.readFileSync(statusPath, 'utf8');
     if (current !== rendered) {
-      process.stderr.write('WG17 syntax status is stale; run npm run report:wg17-syntax and update the file.\n');
+      process.stderr.write('WG17 syntax status is stale; run npm run report:wg17 and update the file.\n');
       process.exitCode = 1;
     }
   } else {
