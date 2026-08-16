@@ -8,6 +8,7 @@ export const STRING = 'string';
 export const NUMBER = 'number';
 export const COMPOUND = 'compound';
 const EMPTY_ARGS = Object.freeze([]);
+const ENV_FLATTEN_DEPTH = 1024;
 
 export class Term {
   constructor(type, name, args = []) {
@@ -20,6 +21,55 @@ export class Term {
   }
 }
 
+// A fixed-length list of fresh variables is represented as one compact
+// skeleton and expanded cell-by-cell only when a goal actually inspects it.
+// This keeps ordinary logical construction proportional to what the program
+// observes instead of eagerly allocating two host objects per list element.
+export class CompactListTerm {
+  constructor(length, variablePrefix, offset = 0n, state = null) {
+    this.type = COMPOUND;
+    this.name = '.';
+    this._compactLength = BigInt(length);
+    this._variablePrefix = variablePrefix;
+    this._offset = BigInt(offset);
+    this._compactState = state ?? { maxPossiblyBoundIndex: -1n };
+    this._args = null;
+  }
+  get arity() {
+    return 2;
+  }
+  get args() {
+    if (this._args == null) {
+      const head = variable(`${this._variablePrefix}${this._offset}`);
+      head._compactState = this._compactState;
+      head._compactIndex = this._offset;
+      const tail = this._compactLength === 1n
+        ? emptyList()
+        : new CompactListTerm(
+          this._compactLength - 1n,
+          this._variablePrefix,
+          this._offset + 1n,
+          this._compactState,
+        );
+      this._args = [head, tail];
+    }
+    return this._args;
+  }
+  mayContainVariable(name) {
+    if (String(name).startsWith(this._variablePrefix)) {
+      const indexText = String(name).slice(this._variablePrefix.length);
+      if (/^\d+$/.test(indexText)) {
+        const index = BigInt(indexText);
+        if (index >= this._offset && index < this._offset + this._compactLength) return true;
+      }
+    }
+    // If no generated head in this suffix has ever participated in a binding,
+    // an unrelated variable cannot occur below it. This remains conservative
+    // across backtracking because the high-water mark is never rolled back.
+    return this._compactState.maxPossiblyBoundIndex >= this._offset;
+  }
+}
+
 export const variable = (name) => new Term(VAR, name, EMPTY_ARGS);
 export const atom = (name) => new Term(ATOM, name, EMPTY_ARGS);
 export const stringTerm = (value) => new Term(STRING, value, EMPTY_ARGS);
@@ -27,6 +77,12 @@ export const numberTerm = (value) => new Term(NUMBER, value, EMPTY_ARGS);
 export const compound = (name, args = []) => args.length === 0 ? atom(name) : new Term(COMPOUND, name, args);
 export const emptyList = () => atom('[]');
 export const cons = (head, tail) => compound('.', [head, tail]);
+export const compactVariableList = (length, variablePrefix) => {
+  const size = BigInt(length);
+  return size === 0n ? emptyList() : new CompactListTerm(size, variablePrefix);
+};
+export const isCompactList = (term) => term instanceof CompactListTerm;
+export const compactListLength = (term) => isCompactList(term) ? term._compactLength : null;
 
 export class Env {
   constructor(bindings) {
@@ -94,7 +150,7 @@ export class Env {
     return undefined;
   }
   bind(name, term) {
-    if (this._state.depth >= 32) {
+    if (this._state.depth >= ENV_FLATTEN_DEPTH) {
       const flattened = new Map();
       for (let state = this._state; state != null; state = state.parent) {
         if (state.bindingName != null && !flattened.has(state.bindingName)) {
@@ -200,6 +256,7 @@ function occurs(variableName, term, env) {
       if (binding !== undefined) stack.push(binding);
       continue;
     }
+    if (isCompactList(current) && !current.mayContainVariable(variableName)) continue;
     if (current?.type !== COMPOUND || seenTerms.has(current)) continue;
     seenTerms.add(current);
     for (let i = 0; i < current.arity; i++) stack.push(current.args[i]);
@@ -224,6 +281,7 @@ export function unify(left, right, env, options = {}) {
     if (a.type === VAR && b.type === VAR) {
       // Both variables are already dereferenced and unbound, so linking them
       // cannot create a cycle and needs no occurs-check traversal.
+      markCompactVariableBound(a);
       env.bind(a.name, b);
       continue;
     }
@@ -232,6 +290,7 @@ export function unify(left, right, env, options = {}) {
         occursCheckHandler?.(a, b, env);
         return false;
       }
+      markCompactVariableBound(a);
       env.bind(a.name, b);
       continue;
     }
@@ -240,6 +299,7 @@ export function unify(left, right, env, options = {}) {
         occursCheckHandler?.(b, a, env);
         return false;
       }
+      markCompactVariableBound(b);
       env.bind(b.name, a);
       continue;
     }
@@ -262,6 +322,13 @@ export function unify(left, right, env, options = {}) {
     return false;
   }
   return true;
+}
+
+function markCompactVariableBound(term) {
+  if (term?._compactState == null || term._compactIndex == null) return;
+  if (term._compactIndex > term._compactState.maxPossiblyBoundIndex) {
+    term._compactState.maxPossiblyBoundIndex = term._compactIndex;
+  }
 }
 
 export function cloneTerm(term) {
@@ -307,7 +374,12 @@ export function termIsGround(term, env = new Env()) {
     if (resolved.type === VAR) return false;
     if (seen.has(resolved)) continue;
     seen.add(resolved);
-    for (const arg of resolved.args) pending.push(arg);
+    // Visit leftmost arguments first. Lists and other recursive structures
+    // commonly carry their first unbound variable there, allowing a
+    // non-ground check to finish without walking the complete tail.
+    for (let index = resolved.args.length - 1; index >= 0; index--) {
+      pending.push(resolved.args[index]);
+    }
   }
   return true;
 }
@@ -505,21 +577,37 @@ export function termSignature(term) {
 }
 
 export function variantTerms(left, leftEnv, right, rightEnv, pairs = new Map(), reverse = new Map()) {
-  left = deref(left, leftEnv);
-  right = deref(right, rightEnv);
-  if (left.type === VAR || right.type === VAR) {
-    if (left.type !== VAR || right.type !== VAR) return false;
-    if (pairs.has(left.name) || reverse.has(right.name)) {
-      return pairs.get(left.name) === right.name && reverse.get(right.name) === left.name;
+  // Variant checks sit on the recursive-call hot path. Use an explicit work
+  // stack so long lists do not consume the JavaScript call stack.
+  const pending = [[left, right]];
+  const seen = new WeakMap();
+  while (pending.length > 0) {
+    [left, right] = pending.pop();
+    left = deref(left, leftEnv);
+    right = deref(right, rightEnv);
+    if (left.type === VAR || right.type === VAR) {
+      if (left.type !== VAR || right.type !== VAR) return false;
+      if (pairs.has(left.name) || reverse.has(right.name)) {
+        if (pairs.get(left.name) !== right.name || reverse.get(right.name) !== left.name) return false;
+        continue;
+      }
+      pairs.set(left.name, right.name);
+      reverse.set(right.name, left.name);
+      continue;
     }
-    pairs.set(left.name, right.name);
-    reverse.set(right.name, left.name);
-    return true;
-  }
-  if (left.type !== right.type || left.arity !== right.arity) return false;
-  if (left.type === NUMBER ? !sameNumberValue(left.name, right.name) : left.name !== right.name) return false;
-  for (let i = 0; i < left.arity; i++) {
-    if (!variantTerms(left.args[i], leftEnv, right.args[i], rightEnv, pairs, reverse)) return false;
+
+    if (left.type !== right.type || left.arity !== right.arity) return false;
+    if (left.type === NUMBER ? !sameNumberValue(left.name, right.name) : left.name !== right.name) return false;
+    if (left.type !== COMPOUND) continue;
+
+    let rights = seen.get(left);
+    if (rights?.has(right)) continue;
+    if (rights == null) {
+      rights = new WeakSet();
+      seen.set(left, rights);
+    }
+    rights.add(right);
+    for (let i = left.arity - 1; i >= 0; i--) pending.push([left.args[i], right.args[i]]);
   }
   return true;
 }

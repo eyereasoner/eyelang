@@ -93,6 +93,7 @@ export interface EyePrologPredicateGroup {
   rejectedDemandIndexes: Set<string>;
   tabled: boolean;
   recursive: boolean;
+  listTailRecursive: boolean;
   tableInputPositions: number[];
   negationStratum: number | null;
 }
@@ -105,6 +106,14 @@ export class Term {
   name: string;
   args: EyePrologTerm[];
   get arity(): number;
+}
+
+export class CompactListTerm {
+  readonly type: 'compound';
+  readonly name: '.';
+  readonly args: EyePrologTerm[];
+  readonly arity: 2;
+  mayContainVariable(name: string): boolean;
 }
 
 export class Env {
@@ -198,6 +207,9 @@ export function numberTerm(value: string | number): Term;
 export function compound(name: string, args?: EyePrologTerm[]): Term;
 export function emptyList(): Term;
 export function cons(head: EyePrologTerm, tail: EyePrologTerm): Term;
+export function compactVariableList(length: bigint | number | string, variablePrefix: string): CompactListTerm | Term;
+export function isCompactList(term: EyePrologTerm | null | undefined): term is CompactListTerm;
+export function compactListLength(term: EyePrologTerm | null | undefined): bigint | null;
 export function deref(term: EyePrologTerm, env: Env): EyePrologTerm;
 export function isScalar(term: EyePrologTerm | null | undefined): boolean;
 export function isEmptyList(term: EyePrologTerm | null | undefined): boolean;
@@ -259,6 +271,7 @@ declare const eyeprolog: {
   NUMBER: typeof NUMBER;
   COMPOUND: typeof COMPOUND;
   Term: typeof Term;
+  CompactListTerm: typeof CompactListTerm;
   Env: typeof Env;
   Program: typeof Program;
   Solver: typeof Solver;
@@ -273,6 +286,9 @@ declare const eyeprolog: {
   compound: typeof compound;
   emptyList: typeof emptyList;
   cons: typeof cons;
+  compactVariableList: typeof compactVariableList;
+  isCompactList: typeof isCompactList;
+  compactListLength: typeof compactListLength;
   deref: typeof deref;
   isScalar: typeof isScalar;
   isEmptyList: typeof isEmptyList;

@@ -1,7 +1,7 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  COMPOUND, NUMBER, VAR, Env, compound, cons, copyResolved, deref, emptyList,
+  COMPOUND, NUMBER, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
   flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
   numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
@@ -11,7 +11,7 @@ import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program.js';
 import { StreamManager } from './io.js';
 import { clpzStateConsistent } from './clpz.js';
-import { softHeapLimit, usedHeapSize } from './platform.js';
+import { hardHeapLimit, softHeapLimit, usedHeapSize } from './platform.js';
 
 let freshCounter = 0;
 
@@ -51,6 +51,11 @@ export class Solver {
     this.inferences = 0;
     this.inferenceLimitExceeded = false;
     this.maxMemoryBytes = options.maxMemoryBytes ?? softHeapLimit();
+    this.memoryRecovery = options.memoryRecovery ?? {
+      active: false,
+      reservationBytes: 0,
+      checks: 0,
+    };
     this.nextMemoryCheck = 0;
     // Do not impose an implicit answer cap. Infinite and very large searches are
     // part of normal Prolog semantics; callers that need a resource bound can
@@ -121,6 +126,7 @@ export class Solver {
       maxDepth: this.maxDepth,
       maxInferences: this.maxInferences,
       maxMemoryBytes: this.maxMemoryBytes,
+      memoryRecovery: this.memoryRecovery,
       solutionLimit,
       isoStrict: this.isoStrict,
       prologFlags: this.prologFlags,
@@ -424,7 +430,18 @@ export class Solver {
       }
       }
     } catch (error) {
-      throw normalizeHostResourceError(error);
+      const normalized = normalizeHostResourceError(error);
+      if (normalized instanceof PrologError && normalized.formal === 'resource_error(memory)') {
+        // Unwinding makes query-local terms unreachable, but hosts are free to
+        // postpone collection. Give the shared solver family bounded breathing
+        // room on its next query so a GC can observe those released references.
+        if (!this.memoryRecovery.active) {
+          this.memoryRecovery.active = true;
+          this.memoryRecovery.reservationBytes = 1024 * 1024;
+          this.memoryRecovery.checks = 16;
+        }
+      }
+      throw normalized;
     } finally {
       const stackIndex = this.solveStacks.indexOf(registeredStack);
       if (stackIndex >= 0) this.solveStacks.splice(stackIndex, 1);
@@ -441,7 +458,12 @@ export class Solver {
     this.nextMemoryCheck = this.inferences + 256;
     if (!Number.isFinite(this.maxMemoryBytes)) return;
     const used = usedHeapSize();
-    if (used != null && used >= this.maxMemoryBytes) {
+    if (used != null && used < this.maxMemoryBytes) this.finishMemoryRecovery();
+    if (used != null && used >= this.currentMemoryLimit()) {
+      if (this.memoryRecovery.active && this.memoryRecovery.checks > 0) {
+        this.memoryRecovery.checks--;
+        return;
+      }
       throw new PrologError('resource_error(memory)');
     }
   }
@@ -449,9 +471,30 @@ export class Solver {
   checkMemoryReservation(bytes) {
     if (!Number.isFinite(this.maxMemoryBytes) || !Number.isFinite(bytes) || bytes <= 0) return;
     const used = usedHeapSize();
-    if (used != null && bytes > Math.max(0, this.maxMemoryBytes - used)) {
+    if (used != null && used < this.maxMemoryBytes) this.finishMemoryRecovery();
+    if (used != null && bytes > Math.max(0, this.currentMemoryLimit() - used)) {
+      if (this.memoryRecovery.active && bytes <= this.memoryRecovery.reservationBytes) {
+        this.memoryRecovery.reservationBytes -= bytes;
+        return;
+      }
       throw new PrologError('resource_error(memory)');
     }
+  }
+
+  currentMemoryLimit() {
+    if (!this.memoryRecovery.active) return this.maxMemoryBytes;
+    // Retain at least five percent of the actual host ceiling for error
+    // construction and unwinding. For an embedder-supplied lower soft limit,
+    // cap the temporary recovery window as well.
+    const hostSafetyLimit = hardHeapLimit() * 0.95;
+    const recoveryAllowance = Math.max(8 * 1024 * 1024, this.maxMemoryBytes * 0.125);
+    return Math.min(hostSafetyLimit, this.maxMemoryBytes + recoveryAllowance);
+  }
+
+  finishMemoryRecovery() {
+    this.memoryRecovery.active = false;
+    this.memoryRecovery.reservationBytes = 0;
+    this.memoryRecovery.checks = 0;
   }
 
   *solveUserGoal(goal, rest, env, depth) {
@@ -700,6 +743,10 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
 }
 
 function groupNeedsActiveFrame(group) {
+  // A direct recursive call that consumes the tail of a matched list cannot
+  // revisit an earlier finite-tree call. It needs neither a cycle guard nor an
+  // O(depth) copy of the active-call stack at every element.
+  if (group.listTailRecursive === true && group.hasCut !== true) return false;
   // User code may observe the surrounding control context through later cuts,
   // so only apply this planning shortcut to the fixed bundled-library graph.
   if (group.bundledLibrary !== true) return true;
@@ -772,23 +819,21 @@ function* fixedLengthSolutions(solver, list, length, env) {
     return;
   }
 
-  // A materialized list cell with its fresh variable occupies roughly 216
-  // bytes on current V8 builds. Reserve conservatively before constructing a
-  // huge list so a resource_error does not leave the heap at the soft limit
-  // and poison the next query.
-  const estimatedListCellBytes = 256n;
   if (remaining > BigInt(Number.MAX_SAFE_INTEGER)) throw new PrologError('resource_error(memory)');
-  solver.checkMemoryReservation(Number(remaining * estimatedListCellBytes));
-
   const id = nextFreshId();
-  let suffix = emptyList();
-  for (let index = 0n; index < remaining; index++) {
-    suffix = cons(variable(`__length${id}_${index}`), suffix);
-    lengthAllocationCheckpoint(solver, ++steps);
-  }
+  // Keep an unobserved fixed-length list as one compact skeleton. Unification,
+  // list predicates, and readback expand it one cell at a time if its elements
+  // are actually inspected.
+  solver.checkMemoryReservation(256);
+  const suffix = compactVariableList(remaining, `__length${id}_`);
   const next = env.clone();
   solver.stats.unify_calls++;
-  if (unify(cursor, suffix, next)) yield next;
+  // cursor is dereferenced and the compact skeleton contains only freshly
+  // generated variables, so this binding cannot create a cycle. Binding it
+  // directly avoids traversing and expanding the new skeleton for an occurs
+  // check whose result is known by construction.
+  next.bind(cursor.name, suffix);
+  yield next;
 }
 
 function* generatedLengthSolutions(solver, list, length, env) {
@@ -1338,18 +1383,61 @@ function variantShape(term, env) {
   return term.args.map((arg) => variantArgumentSize(arg, env)).join(',');
 }
 
+const rawProperListLengths = new WeakMap();
+
+function rawProperListLength(term) {
+  const compactLength = compactListLength(term);
+  if (compactLength != null) return compactLength;
+  if (!isCons(term)) return null;
+  const cells = [];
+  const seen = new WeakSet();
+  let cursor = term;
+  let suffixLength = 0;
+  while (isCons(cursor)) {
+    const cached = rawProperListLengths.get(cursor);
+    if (cached != null) {
+      suffixLength = cached;
+      break;
+    }
+    if (seen.has(cursor)) return null;
+    seen.add(cursor);
+    cells.push(cursor);
+    // Only cache the raw spine. A variable tail may resolve differently in
+    // separate environments and therefore needs the general shape walk.
+    cursor = cursor.args[1];
+  }
+  if (!isEmptyList(cursor) && rawProperListLengths.get(cursor) == null) return null;
+  for (let index = cells.length - 1; index >= 0; index--) {
+    rawProperListLengths.set(cells[index], ++suffixLength);
+  }
+  return rawProperListLengths.get(term) ?? suffixLength;
+}
+
 function variantArgumentSize(term, env) {
-  const pending = [term];
+  const resolved = derefForLocal(term, env);
+  const listLength = rawProperListLength(resolved);
+  if (listLength != null) return `list:${listLength}`;
+  const pending = [{ term, exit: false }];
+  const ancestors = new WeakSet();
   let size = 0;
   while (pending.length > 0) {
-    const current = derefForLocal(pending.pop(), env);
+    const item = pending.pop();
+    if (item.exit) {
+      ancestors.delete(item.term);
+      continue;
+    }
+    const current = derefForLocal(item.term, env);
     size++;
-    // This is only a rejection key. Capping keeps pathological cyclic or very
-    // large terms bounded; equal capped sizes still fall through to the exact
-    // variant check.
-    if (size > 4096) return 4097;
     if (current?.type === COMPOUND) {
-      for (let index = 0; index < current.arity; index++) pending.push(current.args[index]);
+      // Finite terms get an exact size, which cheaply distinguishes successive
+      // tails of a long list. Keep cyclic terms conservative so the exact
+      // variant check remains authoritative.
+      if (ancestors.has(current)) return '*';
+      ancestors.add(current);
+      pending.push({ term: current, exit: true });
+      for (let index = current.arity - 1; index >= 0; index--) {
+        pending.push({ term: current.args[index], exit: false });
+      }
     }
   }
   return size;
@@ -1400,45 +1488,58 @@ function derefForLocal(term, env) {
 }
 
 function memoKey(goal, env, group = null) {
-  let hasBound = false;
-  const variables = new Map();
   const required = group?.tableInputPositions ?? [];
-  const ground = [];
+  const ground = goal.args.map((arg) => termIsGround(arg, env));
+  const hasBound = required.length > 0
+    ? required.some((index) => ground[index])
+    : ground.some(Boolean);
+  // Automatic tabling only admits calls with a ground input. Avoid building a
+  // potentially huge canonical key for the non-ground structural calls that
+  // will use the ordinary active-call guard instead.
+  if (!hasBound) return { hasBound: false, text: '' };
+
+  const variables = new Map();
   const parts = goal.args.map((arg) => {
     const value = derefForLocal(arg, env);
-    if (value.type === 'var') {
-      ground.push(false);
-      return '_';
-    }
-    const canonical = canonicalTermInfo(value, env, variables);
-    ground.push(canonical.ground);
-    if (canonical.ground) hasBound = true;
-    return canonical.key;
+    return value.type === 'var' ? '_' : canonicalTermKey(value, env, variables);
   });
-  if (required.length > 0) {
-    hasBound = required.some((index) => ground[index]);
-  }
   return { hasBound, text: parts.join('|') };
 }
 
-function canonicalTermInfo(term, env, variables) {
-  const value = derefForLocal(term, env);
-  if (value.type === 'var') {
-    let id = variables.get(value.name);
-    if (id == null) {
-      id = variables.size;
-      variables.set(value.name, id);
+function canonicalTermKey(term, env, variables) {
+  // Memo keys are needed before deciding whether a recursive call is tabled.
+  // Build them iteratively: a perfectly ordinary bound list can be deeper than
+  // JavaScript's native call stack even though the solver itself is iterative.
+  const key = [];
+  const pending = [{ kind: 'term', term }];
+  while (pending.length > 0) {
+    const item = pending.pop();
+    if (item.kind === 'text') {
+      key.push(item.text);
+      continue;
     }
-    return { key: `var:${id}`, ground: false };
+    const value = derefForLocal(item.term, env);
+    if (value.type === 'var') {
+      let id = variables.get(value.name);
+      if (id == null) {
+        id = variables.size;
+        variables.set(value.name, id);
+      }
+      key.push(`var:${id}`);
+      continue;
+    }
+    if (!value.args?.length) {
+      key.push(`${value.type}:${value.name}`);
+      continue;
+    }
+    key.push(`${value.type}:${value.name}(`);
+    pending.push({ kind: 'text', text: ')' });
+    for (let index = value.args.length - 1; index >= 0; index--) {
+      if (index < value.args.length - 1) pending.push({ kind: 'text', text: ',' });
+      pending.push({ kind: 'term', term: value.args[index] });
+    }
   }
-  if (!value.args?.length) return { key: `${value.type}:${value.name}`, ground: true };
-  let ground = true;
-  const keys = value.args.map((arg) => {
-    const child = canonicalTermInfo(arg, env, variables);
-    if (!child.ground) ground = false;
-    return child.key;
-  });
-  return { key: `${value.type}:${value.name}(${keys.join(',')})`, ground };
+  return key.join('');
 }
 
 function copyResolvedWithKey(term, env, variables) {

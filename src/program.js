@@ -368,6 +368,11 @@ export class Program {
         (isPiAccumulator(group) || isPortableBetweenGenerator(group));
       group.linearNumeric = linearNumeric;
       group.fastPi = linearNumeric && isPiAccumulator(group);
+      const directRecursiveComponent = plannedRecursive && [...deps[start]].every((dependency) =>
+        dependency === start || !reachableIndexes(dependency, deps).has(start)
+      );
+      group.listTailRecursive = directRecursiveComponent && !group.cutRecursive &&
+        hasStrictListTailRecursion(group);
       group.tabled = plannedRecursive &&
         !componentHasNegativeEdge(start, deps, negativeEdges) &&
         !group.cutRecursive &&
@@ -1061,6 +1066,25 @@ function inferStructuralInputPositions(group) {
   if (firstLinkedInputPosition >= 0) return [[firstLinkedInputPosition]];
   if (firstPatternedPosition >= 0) return [[firstPatternedPosition]];
   return Array.from({ length: group.arity }, (_, index) => index);
+}
+
+function hasStrictListTailRecursion(group) {
+  let foundRecursiveCall = false;
+  for (const clause of group.clauses) {
+    if (isCompactBinaryClause(clause)) return false;
+    for (const goal of clause.body) {
+      if (goal.type !== COMPOUND || goal.name !== group.name || goal.arity !== group.arity) continue;
+      foundRecursiveCall = true;
+      const decreases = goal.args.some((argument, index) => {
+        const head = clause.head.args[index];
+        return head?.type === COMPOUND && head.name === '.' && head.arity === 2 &&
+          head.args[1]?.type === VAR && argument?.type === VAR &&
+          head.args[1].name === argument.name;
+      });
+      if (!decreases) return false;
+    }
+  }
+  return foundRecursiveCall;
 }
 
 function hasLinearNumericRecursion(group) {

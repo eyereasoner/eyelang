@@ -43,6 +43,14 @@ export function usedHeapSize() {
 }
 
 export function softHeapLimit() {
+  const limit = hardHeapLimit();
+  // Leave ample room for the generator stack to unwind and for the top level
+  // to construct and print resource_error(memory). Fatal V8 OOMs cannot be
+  // caught after the heap limit itself has been reached.
+  return Number.isFinite(limit) && limit > 0 ? Math.floor(limit * 0.75) : Infinity;
+}
+
+export function hardHeapLimit() {
   let limit = null;
   if (isNode) {
     limit = v8?.getHeapStatistics?.().heap_size_limit ?? null;
@@ -51,10 +59,7 @@ export function softHeapLimit() {
     const memory = globalThis.performance?.memory;
     if (Number.isFinite(memory?.jsHeapSizeLimit)) limit = memory.jsHeapSizeLimit;
   }
-  // Leave ample room for the generator stack to unwind and for the top level
-  // to construct and print resource_error(memory). Fatal V8 OOMs cannot be
-  // caught after the heap limit itself has been reached.
-  return Number.isFinite(limit) && limit > 0 ? Math.floor(limit * 0.75) : Infinity;
+  return Number.isFinite(limit) && limit > 0 ? limit : Infinity;
 }
 
 function configuredOldSpaceBytes() {

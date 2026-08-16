@@ -2796,7 +2796,7 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
-      name: 'resource_error(memory) leaves enough heap for subsequent list work',
+      name: 'discarded fixed-length lists stay compact under a bounded heap',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;
         const script = `
@@ -2807,11 +2807,75 @@ open(X) :- candidate(X), \\+ closed(X).
             const goal = parseGoalText(text, { operatorDefinitions: [...program.operators.values()] });
             return [...solver.solve([goal], new Env(), 0)];
           };
+          execute('length(L,10000000),fail');
+          if (execute('length(L,1),L=[X],X=L').length !== 0) {
+            throw new Error('compact list admitted a cyclic binding');
+          }
           execute('length(L,1000),fail');
+          process.stdout.write('compact');
+        `;
+        const result = spawnSync(process.execPath, [
+          '--max-old-space-size=64',
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'compact', 'discarded list skeleton does not exhaust the heap');
+      },
+    },
+    {
+      name: 'deep recursive list guards do not consume the host call stack',
+      run: () => {
+        const program = Program.parse('l([]).\nl([_|L]) :- l(L).\n', { sourceMetadata: false });
+        const left = listFromItems(Array.from({ length: 20000 }, (_, index) => variable(`L${index}`)));
+        const right = listFromItems(Array.from({ length: 20000 }, (_, index) => variable(`R${index}`)));
+        const solver = new Solver(program, {
+          registry: getEyePrologRegistry(),
+          maxDepth: 0,
+          maxMemoryBytes: Infinity,
+        });
+        const answers = [...solver.solve([compound('l', [left])], new Env(), 0)];
+        assertEqual(answers.length, 0, 'depth bound stops after stack-safe memo classification');
+        assertEqual(variantTerms(left, new Env(), right, new Env()), true, 'deep lists are variants');
+      },
+    },
+    {
+      name: 'discarded recursive allocations recover after resource_error(memory)',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const programText = `
+          :- use_module(library(prologue)).
+          l([]).
+          l([E|L]) :- length(E,1000), l(L).
+        `;
+        const reportedGoal = 'length(_,I),N is 2^I,\\+ \\+ (length(L,N),l(L)),L=[_|_]';
+        const script = `
+          import { Program, Solver, Env, deref, variable, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
+          const program = Program.parse(${JSON.stringify(programText)}, { sourceMetadata: false });
+          const solver = new Solver(program, { registry: getEyePrologRegistry() });
+          const execute = (text) => {
+            const goal = parseGoalText(text, { operatorDefinitions: [...program.operators.values()] });
+            return [...solver.solve([goal], new Env(), 0)];
+          };
+          const reported = parseGoalText(${JSON.stringify(reportedGoal)}, {
+            operatorDefinitions: [...program.operators.values()],
+          });
+          let reportedAnswers = 0;
+          for (const answer of solver.solve([reported], new Env(), 0)) {
+            reportedAnswers++;
+            if (reportedAnswers !== 14) continue;
+            if (deref(variable('I'), answer).name !== '13' || deref(variable('N'), answer).name !== '8192') {
+              throw new Error('reported query did not reach I=13, N=8192');
+            }
+            break;
+          }
+          if (reportedAnswers !== 14) throw new Error('reported query produced too few answers');
           let caught = null;
-          try { execute('length(L,1000000),fail'); } catch (error) { caught = error; }
+          try { execute('length(L,32768),l(L)'); } catch (error) { caught = error; }
           if (caught?.formal !== 'resource_error(memory)') throw caught ?? new Error('no resource error');
-          execute('length(L,1000),fail');
+          if (execute('length(L,10),l(L)').length !== 1) throw new Error('recovery query failed');
           process.stdout.write('recovered');
         `;
         const result = spawnSync(process.execPath, [
@@ -2822,7 +2886,7 @@ open(X) :- candidate(X), \\+ closed(X).
         ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
-        assertEqual(result.stdout, 'recovered', 'solver remains usable after resource error');
+        assertEqual(result.stdout, 'recovered', 'discarded recursive terms are collectible after unwinding');
       },
     },
     {
