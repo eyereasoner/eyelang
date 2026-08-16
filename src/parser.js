@@ -1,6 +1,7 @@
 // Tokenizer and recursive-descent parser for the EyeProlog source language.
 // It preserves the compact Prolog-like syntax while producing Term objects for the solver.
 import { ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
+import { isTerminatingFullStop } from './syntax-scan.js';
 
 const TOK = {
   EOF: 'eof', ATOM: 'atom', VAR: 'var', STRING: 'string', NUMBER: 'number',
@@ -369,12 +370,11 @@ class Parser {
       this.pos += 2;
       return { type: TOK.ATOM, text: '?-', line };
     }
-    if (ch === '.' && this.peek(1) &&
-        !isWhitespaceCode(this.peek(1).charCodeAt(0)) &&
-        this.peek(1) !== '%' && !(this.peek(1) === '/' && this.peek(2) === '*')) {
+    if (ch === '.' && !isTerminatingFullStop(this.source, this.pos)) {
       const start = this.pos;
       this.take();
-      while (isGraphicAtomCode(this.peek().charCodeAt(0))) this.take();
+      while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
+             !isTerminatingFullStop(this.source, this.pos)) this.take();
       return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
     }
     if (ch === '!') {
@@ -543,7 +543,8 @@ class Parser {
     if (isGraphicAtomCode(ch.charCodeAt(0))) {
       const start = this.pos;
       this.take();
-      while (isGraphicAtomCode(this.peek().charCodeAt(0))) this.take();
+      while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
+             !isTerminatingFullStop(this.source, this.pos)) this.take();
       return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
     }
 

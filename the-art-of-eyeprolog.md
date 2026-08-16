@@ -5369,9 +5369,16 @@ comment continues to the end of its line. Doubling the active delimiter is
 also accepted inside either quoted form, so `""` inside double-quoted notation
 denotes one literal double quote character.
 
-Graphic atoms may contain `#$&*+-/<=>@^~\;`. A colon is the Part 2 module
-qualification operator in `Module:Goal`; quote an atom whose name itself
-contains a colon. Unquoted angle-bracket IRIs are not syntax.
+Graphic tokens use the characters `#$&*+-./<=>?@^~\`; `!` and `;` are solo
+atoms. A colon is the Part 2 module qualification operator in `Module:Goal`;
+quote an atom whose name itself contains a colon. Unquoted angle-bracket IRIs
+are not syntax.
+
+A `/*` sequence opens a block comment only when it begins a token; inside a
+maximal graphic token the slash and star remain atom characters. A period ends
+a term only when it is recognized as the terminating full stop. Consequently,
+`./*.` at the end of a line reads the atom `./*`, whereas `./*. .` reads the
+atom `./*.` and consumes the second period as the terminator.
 
 In the grammar below, `{ x }` means zero or more repetitions of `x`, `[ x ]`
 means that `x` is optional, and parentheses group alternatives. These marks

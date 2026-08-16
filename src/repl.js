@@ -4,7 +4,9 @@ import { readSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { formalErrorTerm } from './iso.js';
-import { characterCodeConstantEnd, quotedEscapeEnd } from './syntax-scan.js';
+import {
+  characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
+} from './syntax-scan.js';
 
 const ANSWER_HELP = `
 SPACE, "n" or ";": next solution, if any
@@ -389,7 +391,7 @@ function terminalFullStop(source) {
       lineComment = true;
       continue;
     }
-    if (ch === '/' && next === '*') {
+    if (ch === '/' && next === '*' && !continuesGraphicToken(source, i)) {
       blockComment = true;
       i++;
       continue;
@@ -400,7 +402,8 @@ function terminalFullStop(source) {
     }
     if ('([{'.includes(ch)) depth++;
     else if (')]}'.includes(ch)) depth = Math.max(0, depth - 1);
-    else if (ch === '.' && depth === 0 && onlyLayoutAndComments(source.slice(i + 1))) return i;
+    else if (ch === '.' && depth === 0 && isTerminatingFullStop(source, i) &&
+             onlyLayoutAndComments(source.slice(i + 1))) return i;
   }
   return -1;
 }

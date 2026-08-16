@@ -5,7 +5,7 @@ text_roundtrip(Term, Peek, Code, Mode, Alias) :-
     open('/tmp/eyeprolog-iso-text.txt', write, Output, [alias(iso_text_output), type(text)]),
     writeq(iso_text_output, sample(42)),
     put_char(iso_text_output, '.'),
-    put_char(iso_text_output, 'Z'),
+    put_char(iso_text_output, ' '),
     close(Output),
     open('/tmp/eyeprolog-iso-text.txt', read, Input, [alias(iso_text_input), eof_action(eof_code)]),
     stream_property(Input, mode(Mode)),

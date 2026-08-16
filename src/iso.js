@@ -9,7 +9,9 @@ import { sameNumberValue } from './number-value.js';
 import { createParserOperatorState, parseClauses, parseGoalText, parseNumberTokenText } from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
-import { characterCodeConstantEnd, quotedEscapeEnd } from './syntax-scan.js';
+import {
+  characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
+} from './syntax-scan.js';
 
 let isoFresh = 0;
 
@@ -1070,20 +1072,6 @@ function* nlBuiltin({ solver, goal, env }) {
   if (stream.type !== 'text') throw new PrologError('permission_error(output, binary_stream)', streamHandle(stream.id));
   solver.io.writeUnit(stream, '\n');
   yield env;
-}
-
-function isTerminatingFullStop(source, index) {
-  const previous = source[index - 1] ?? '';
-  const next = source[index + 1] ?? '';
-  if (previous === '.' || next === '.') return false;
-  if (/\d/.test(previous) && /\d/.test(next)) return false;
-  if (/[A-Za-z0-9_]/.test(previous) && /[A-Za-z0-9_]/.test(next)) return false;
-  return true;
-}
-
-const termGraphicCharacters = new Set('#$&*+-./<=>?@^~\\:');
-function continuesGraphicToken(source, index) {
-  return index > 0 && termGraphicCharacters.has(source[index - 1]);
 }
 
 function* termTextCandidates(stream) {
