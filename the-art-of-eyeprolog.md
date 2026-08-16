@@ -5197,12 +5197,14 @@ parsing of subsequent text, place them before their first use. ISO argument
 syntax also permits an atom that is currently an operator to appear directly
 as a functional argument or list element, so forms such as
 `current_op(Priority, Specifier, :-)` and `[:-,-]` are valid without quoting
-or parenthesizing those operator atoms. Term output observes the same `arg`
-rule: with `quoted(true)`, an operator atom is not quoted merely because it is
-an operator when it occurs as a functional argument or list element. Thus
-`writeq([:-,-])` emits `[:-,-]`, and `writeq(f(;,'|',';;'))` emits
-`f(;,'|',';;')`; the bar stays quoted because ISO treats the unquoted `|`
-token as a list separator rather than an atom. The ISO initial operator table also
+or parenthesizing those operator atoms. A current operator atom may likewise
+be the complete content of parentheses or curly brackets: `(+)` denotes the
+atom `+`, and `{*}` denotes the curly term `{}(*)`. Term output observes the
+same context rules: with `quoted(true)`, an operator atom is not quoted merely
+because it occurs as a functional argument, list element, or sole curly-bracket
+content. Thus `writeq({*})` emits `{*}`, `writeq([:-,-])` emits `[:-,-]`, and
+`writeq(f(;,'|',';;'))` emits `f(;,'|',';;')`; the bar stays quoted because
+ISO treats the unquoted `|` token as a list separator rather than an atom. The ISO initial operator table also
 contains `?-` at priority 1200 with specifier `fx`, so
 `current_op(1200, fx, ?-)` succeeds. EyeProlog's embedded quad syntax permits
 an optional label before the query marker (`Label ?- Query.`), so while quad

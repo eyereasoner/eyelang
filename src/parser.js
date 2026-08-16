@@ -606,7 +606,9 @@ class Parser {
       this.advance();
       return atom('{}');
     }
-    const term = this.parseTerm(0, true);
+    // As with a parenthesized term, a current operator atom may be the entire
+    // curly-bracket content: `{*}` denotes {}(*), not an incomplete infix use.
+    const term = this.parseTerm(0, true, true, true);
     this.expect(TOK.RBRACE, '}');
     this.advance();
     return compound('{}', [term]);
@@ -732,7 +734,7 @@ class Parser {
       // an argument delimiter there is no operand for prefix syntax, so keep
       // the operator as an atom instead of reporting a misleading bad-term
       // error.
-      if ([TOK.COMMA, TOK.RPAREN, TOK.RBRACKET, TOK.BAR, TOK.DOT].includes(this.token.type)) {
+      if ([TOK.COMMA, TOK.RPAREN, TOK.RBRACKET, TOK.RBRACE, TOK.BAR, TOK.DOT].includes(this.token.type)) {
         if (!allowOperatorAtom && this.token.type !== TOK.DOT) {
           throw new Error(`parse line ${this.token.line}: operator atom ${op} requires argument context or parentheses`);
         }

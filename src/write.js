@@ -227,7 +227,9 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
   }
 
   if (!options.ignoreOps && resolved.name === '{}' && resolved.arity === 1) {
-    return `{${format(resolved.args[0], env, options, table, 1200)}}`;
+    // A current operator atom is valid as the complete curly-bracket content,
+    // just as it is in a functional argument or list element.
+    return `{${format(resolved.args[0], env, options, table, 1200, 'argument')}}`;
   }
 
   if (!options.ignoreOps) {

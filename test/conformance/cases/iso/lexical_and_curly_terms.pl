@@ -9,6 +9,7 @@ answer(Binary, Octal, Hex, Character, Escaped, Curly, EmptyCurly, IntegerPart, F
     =(Character, 0'\n),
     =(Escaped, 'A\x42\\101\'),
     =(Curly, {pair(a, b)}),
+    {*} = {}(*),
     =(EmptyCurly, {}),
     IntegerPart is float_integer_part(-3.75),
     FractionalPart is float_fractional_part(-3.75).

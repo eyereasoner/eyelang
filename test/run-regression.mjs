@@ -38,7 +38,7 @@ import {
   variantTerms,
   parseProgramText,
 } from '../src/index.js';
-import { parseGoalText, parseNumberTokenText } from '../src/parser.js';
+import { ISO_OPERATOR_DEFINITIONS, parseGoalText, parseNumberTokenText } from '../src/parser.js';
 import { compareTerms } from '../src/term.js';
 import { formatTermForWrite } from '../src/write.js';
 import { selectClauseCandidates } from '../src/program.js';
@@ -780,6 +780,38 @@ c4 ?- call((!;1)).
         assertIncludes(result.stdout, '?? true.', 'writeq(??)');
         assertIncludes(result.stdout, '?- true.', 'writeq(?-)');
         assertNotIncludes(result.stdout, "'?-'", 'writeq(?-) has no quotes');
+      },
+    },
+    {
+      name: 'curly brackets accept ISO and custom operator atoms (issue #41)',
+      run: () => {
+        const operatorNames = [...new Set(ISO_OPERATOR_DEFINITIONS.map(([, , name]) => name))]
+          .filter((name) => name !== ',');
+        for (const name of operatorNames) {
+          const holder = parseGoalText(`holder({${name}})`);
+          const curly = holder.args[0];
+          assertEqual(curly.name, '{}', `curly functor for ${name}`);
+          assertEqual(curly.args[0].name, name, `curly operator atom ${name}`);
+        }
+
+        const customProgram = parseProgramText([
+          ':- op(100, fx, pre).',
+          ':- op(100, xf, post).',
+          ':- op(100, xfx, infix).',
+          'custom({pre}, {post}, {infix}).',
+          '',
+        ].join('\n'));
+        const custom = customProgram.find((clause) => clause.head.name === 'custom').head;
+        assertEqual(
+          custom.args.map((curly) => curly.args[0].name).join(','),
+          'pre,post,infix',
+          'custom prefix, postfix, and infix operator atoms',
+        );
+
+        const repl = runCli([], { input: 'read(T).\n{*}.\nhalt.\n' });
+        assertEqual(repl.status, 0, 'curly operator REPL status');
+        assertIncludes(repl.stdout, 'T = {*}.', 'curly operator REPL answer');
+        assertNotIncludes(repl.stdout, '{(*)}', 'curly operator has no unnecessary parentheses');
       },
     },
     {
