@@ -7,22 +7,24 @@
     constraints will be added as their propagation semantics become available.
 */
 
+% Current operator names in predicate indicators are parenthesized as bare
+% atoms (for example, (#>)/2); quoting is unnecessary.
 :- module(clpz, [
-    ('#>')/2,
-    ('#<')/2,
-    ('#>=')/2,
-    ('#=<')/2,
-    ('#=')/2,
-    ('#\\=')/2,
-    (#\\)/1,
-    ('#<==>')/2,
-    ('#==>')/2,
-    ('#<==')/2,
-    ('#\\/')/2,
-    (#\\)/2,
-    ('#/\\')/2,
-    ('in')/2,
-    ('ins')/2,
+    (#>)/2,
+    (#<)/2,
+    (#>=)/2,
+    (#=<)/2,
+    (#=)/2,
+    (#\=)/2,
+    (#\)/1,
+    (#<==>)/2,
+    (#==>)/2,
+    (#<==)/2,
+    (#\/)/2,
+    (#\)/2,
+    (#/\)/2,
+    (in)/2,
+    (ins)/2,
     all_different/1,
     all_distinct/1,
     nvalue/2,
@@ -50,33 +52,33 @@
 :- op(760, yfx, #<==>).
 :- op(750, xfy, #==>).
 :- op(750, yfx, #<==).
-:- op(740, yfx, #\\/).
-:- op(730, yfx, #\\).
-:- op(720, yfx, #/\\).
-:- op(710, fy, #\\).
+:- op(740, yfx, #\/).
+:- op(730, yfx, #\).
+:- op(720, yfx, #/\).
+:- op(710, fy, #\).
 :- op(700, xfx, #>).
 :- op(700, xfx, #<).
 :- op(700, xfx, #>=).
 :- op(700, xfx, #=<).
 :- op(700, xfx, #=).
-:- op(700, xfx, #\\=).
+:- op(700, xfx, #\=).
 :- op(700, xfx, in).
 :- op(700, xfx, ins).
 :- op(450, xfx, ..).
 
-'#>'(Left, Right) :- eyeprolog__clpz_post('#>'(Left, Right)).
-'#<'(Left, Right) :- eyeprolog__clpz_post('#<'(Left, Right)).
-'#>='(Left, Right) :- eyeprolog__clpz_post('#>='(Left, Right)).
-'#=<'(Left, Right) :- eyeprolog__clpz_post('#=<'(Left, Right)).
-'#='(Left, Right) :- eyeprolog__clpz_post('#='(Left, Right)).
-'#\\='(Left, Right) :- eyeprolog__clpz_post('#\\='(Left, Right)).
-'#\\'(Constraint) :- eyeprolog__clpz_post('#\\'(Constraint)).
-'#<==>'(Left, Right) :- eyeprolog__clpz_post('#<==>'(Left, Right)).
-'#==>'(Left, Right) :- eyeprolog__clpz_post('#==>'(Left, Right)).
-'#<=='(Left, Right) :- eyeprolog__clpz_post('#<=='(Left, Right)).
-'#\\/'(Left, Right) :- eyeprolog__clpz_post('#\\/'(Left, Right)).
-'#\\'(Left, Right) :- eyeprolog__clpz_post('#\\'(Left, Right)).
-'#/\\'(Left, Right) :- eyeprolog__clpz_post('#/\\'(Left, Right)).
+#>(Left, Right) :- eyeprolog__clpz_post(#>(Left, Right)).
+#<(Left, Right) :- eyeprolog__clpz_post(#<(Left, Right)).
+#>=(Left, Right) :- eyeprolog__clpz_post(#>=(Left, Right)).
+#=<(Left, Right) :- eyeprolog__clpz_post(#=<(Left, Right)).
+#=(Left, Right) :- eyeprolog__clpz_post(#=(Left, Right)).
+#\=(Left, Right) :- eyeprolog__clpz_post(#\=(Left, Right)).
+#\(Constraint) :- eyeprolog__clpz_post(#\(Constraint)).
+#<==>(Left, Right) :- eyeprolog__clpz_post(#<==>(Left, Right)).
+#==>(Left, Right) :- eyeprolog__clpz_post(#==>(Left, Right)).
+#<==(Left, Right) :- eyeprolog__clpz_post(#<==(Left, Right)).
+#\/(Left, Right) :- eyeprolog__clpz_post(#\/(Left, Right)).
+#\(Left, Right) :- eyeprolog__clpz_post(#\(Left, Right)).
+#/\(Left, Right) :- eyeprolog__clpz_post(#/\(Left, Right)).
 
 in(Integer, Domain) :- eyeprolog__clpz_in(Integer, Domain).
 ins(Integers, Domain) :- eyeprolog__clpz_ins(Integers, Domain).

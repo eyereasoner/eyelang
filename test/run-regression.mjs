@@ -40,6 +40,7 @@ import {
 } from '../src/index.js';
 import { parseGoalText, parseNumberTokenText } from '../src/parser.js';
 import { compareTerms } from '../src/term.js';
+import { formatTermForWrite } from '../src/write.js';
 import { selectClauseCandidates } from '../src/program.js';
 import { TestReporter, isMainModule } from './test-style.mjs';
 import { buildConformanceReport, formatConformanceReport } from './run-conformance-report.mjs';
@@ -728,6 +729,36 @@ c4 ?- call((!;1)).
         }
         if (!caught) throw new Error('non-conforming operator operand unexpectedly parsed');
         assertIncludes(caught.message, 'operator atom', 'syntax rejection');
+      },
+    },
+    {
+      name: 'CLP(Z) operator declarations avoid unnecessary quoted atoms',
+      run: () => {
+        const filename = path.join(packageRoot, 'src', 'lib', 'clpz.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        for (const name of ['#>', '#<', '#>=', '#=<', '#=', '#\\=', '#<==>', '#==>', '#<==', '#\\/', '#/\\']) {
+          assertIncludes(source, `(${name})/2`, `${name}/2 export is parenthesized`);
+          assertNotIncludes(source, `('${name}')/2`, `${name}/2 export is not quoted`);
+          assertNotIncludes(source, `'${name}'(`, `${name} functional notation is not quoted`);
+        }
+        assertIncludes(source, '(#\\)/1', '#\\/1 export is parenthesized');
+        assertIncludes(source, '(#\\)/2', '#\\/2 export is parenthesized');
+        assertIncludes(source, '(in)/2', 'in/2 export is parenthesized');
+        assertIncludes(source, '(ins)/2', 'ins/2 export is parenthesized');
+        assertNotIncludes(source, "('in')/2", 'in/2 export is not quoted');
+        assertNotIncludes(source, "('ins')/2", 'ins/2 export is not quoted');
+
+        const canonicalOptions = { quoted: true, ignoreOps: true, compact: true, operators: [] };
+        assertEqual(
+          formatTermForWrite(compound('#>', [atom('a'), atom('b')]), new Env(), canonicalOptions),
+          '#>(a,b)',
+          'canonical #> functor has no quotes',
+        );
+        assertEqual(
+          formatTermForWrite(compound('#\\=', [atom('a'), atom('b')]), new Env(), canonicalOptions),
+          '#\\=(a,b)',
+          'canonical #\\= functor has no quotes',
+        );
       },
     },
     {
