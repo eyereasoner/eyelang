@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import { readSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
-import { formalErrorTerm } from './iso.js';
+import { formalErrorTerm, isCompleteReadTermText } from './iso.js';
 import {
   characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
 } from './syntax-scan.js';
@@ -162,7 +162,7 @@ class LineReader {
     return this.terminal && Number.isInteger(this.input.fd);
   }
 
-  readInteractiveTermSync() {
+  readInteractiveTermSync(solver = null) {
     if (!this.canReadTermSynchronously()) return null;
     let source = '';
     let prompt = '|: ';
@@ -172,7 +172,9 @@ class LineReader {
       if (line == null) return source.trim() ? source : null;
       source += `${line}\n`;
       const end = terminalFullStop(source);
-      if (end >= 0) return source.slice(0, end + 1) + '\n';
+      if (end >= 0 && acceptsReadTermBoundary(source, end, solver)) {
+        return source.slice(0, end + 1) + '\n';
+      }
       prompt = '|    ';
     }
   }
@@ -256,7 +258,7 @@ function makeState(engine, sources, output, options = {}, previousState = null, 
     // let ISO term input request a complete terminal term exactly when read/1-2
     // or read_term/2-3 actually executes.  This also works inside conjunctions
     // and user predicates instead of only when read/* is the whole REPL goal.
-    userInput.interactiveReadTerm = () => reader.readInteractiveTermSync();
+    userInput.interactiveReadTerm = () => reader.readInteractiveTermSync(solver);
   }
   const flagOverrides = new Map(previousState?.flagOverrides ?? []);
   for (const [name, value] of flagOverrides) {
@@ -300,7 +302,7 @@ async function prepareInteractiveTermInput(state, goal, reader) {
   const stream = interactiveTermInputStream(state, goal);
   if (stream == null || terminalFullStop(String(stream.content).slice(stream.position)) >= 0) return;
 
-  const text = await readInteractiveTerm(reader);
+  const text = await readInteractiveTerm(reader, state.solver);
   if (text == null) return;
   stream.content += text;
   stream.pastEnd = false;
@@ -334,7 +336,7 @@ function explicitInputReference(term) {
   return null;
 }
 
-async function readInteractiveTerm(reader) {
+async function readInteractiveTerm(reader, solver = null) {
   let source = '';
   let prompt = '|: ';
   while (true) {
@@ -342,9 +344,20 @@ async function readInteractiveTerm(reader) {
     if (line == null) return source.trim() ? source : null;
     source += `${line}\n`;
     const end = terminalFullStop(source);
-    if (end >= 0) return source.slice(0, end + 1) + '\n';
+    if (end >= 0 && acceptsReadTermBoundary(source, end, solver)) {
+      return source.slice(0, end + 1) + '\n';
+    }
     prompt = '|    ';
   }
+}
+
+function acceptsReadTermBoundary(source, end, solver) {
+  // A dot after a graphic character has two possible readings.  Stop at once
+  // when the candidate is already a complete term (for example `./*.`);
+  // otherwise keep reading so a later end char can make it part of an atom
+  // (for example the first dot in `!,*.\n.`).
+  return !continuesGraphicToken(source, end) || solver == null ||
+    isCompleteReadTermText(source.slice(0, end + 1), solver);
 }
 
 function terminalFullStop(source) {

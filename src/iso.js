@@ -1178,6 +1178,31 @@ function scopeReadTerm(term) {
   return { term: copy(term), variables };
 }
 
+function parseReadTermText(text, solver) {
+  const converted = convertedTermText(text, solver);
+  const operatorState = createParserOperatorState(solver.program.operators.values(), false);
+  const clauses = parseClauses(converted, {
+    sourceMetadata: false,
+    operatorState,
+    isoStrict: solver.isoStrict,
+    doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+    // The stream scanner supplies one candidate ending at this full stop.
+    // Earlier ambiguous dots must remain available to maximal graphic tokens.
+    readTermEnd: converted.length - 1,
+  });
+  if (clauses.length !== 1 || clauses[0].body.length) throw new Error('bad term');
+  return clauses[0].head;
+}
+
+export function isCompleteReadTermText(text, solver) {
+  try {
+    parseReadTermText(text, solver);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function readTermFromStream(stream, solver) {
   let requestedInteractiveTerm = false;
   while (true) {
@@ -1189,16 +1214,9 @@ function readTermFromStream(stream, solver) {
         throw new PrologError('syntax_error(read_term)');
       }
       try {
-        const operatorState = createParserOperatorState(solver.program.operators.values(), false);
-        const clauses = parseClauses(convertedTermText(candidate.text, solver), {
-          sourceMetadata: false,
-          operatorState,
-          isoStrict: solver.isoStrict,
-          doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-        });
-        if (clauses.length !== 1 || clauses[0].body.length) throw new Error('bad term');
+        const term = parseReadTermText(candidate.text, solver);
         stream.position = candidate.end;
-        return scopeReadTerm(clauses[0].head);
+        return scopeReadTerm(term);
       } catch (_) {
         // A dot inside a graphic operator, such as =.., is only a possible
         // terminator. Keep scanning until a complete term parses.

@@ -752,6 +752,31 @@ c4 ?- call((!;1)).
         });
         assertEqual(consecutive.stdout, "answer('./*.', ok).\n", 'following read starts after the complete term');
 
+        // A possible full stop can fail to complete the term while still
+        // extending a current graphic operator into an ordinary atom.  The
+        // later standalone full stop then completes the read term.  Exercise
+        // every predefined graphic operator, including the tokenizer's
+        // special :- and ?- cases, so they cannot diverge from * again.
+        const graphicOperator = /^[#$&*+\-./<=>?@^~\\:]+$/;
+        const graphicOperators = [...new Set(ISO_OPERATOR_DEFINITIONS.map(([, , name]) => name))]
+          .filter((name) => graphicOperator.test(name));
+        for (const name of graphicOperators) {
+          const program = Program.parse('');
+          const solver = new Solver(program, {
+            registry: getEyePrologRegistry(),
+            ioOptions: { input: `!,${name}.\n.\n` },
+          });
+          const readGoal = parseGoalText('read(T)', {
+            operatorDefinitions: [...program.operators.values()],
+          });
+          const answers = [...solver.solve([readGoal], new Env(), 0)];
+          assertEqual(answers.length, 1, `graphic operator read answer for ${name}`);
+          const term = copyResolved(readGoal.args[0], answers[0]);
+          assertEqual(term.name, ',', `graphic operator conjunction for ${name}`);
+          assertEqual(term.args[0].name, '!', `graphic operator left operand for ${name}`);
+          assertEqual(term.args[1].name, `${name}.`, `graphic operator atom for ${name}`);
+        }
+
         let error = null;
         try {
           runEyeProlog('', { goal: 'read(T)', ioOptions: { input: '!.!.' } });
@@ -769,6 +794,15 @@ c4 ?- call((!;1)).
         assertIncludes(repl.stdout, 'T = ok.', 'REPL following read answer');
         assertIncludes(repl.stdout, 'error(syntax_error(read_term), eyeprolog)', 'REPL syntax error');
         assertEqual(repl.stderr, '', 'REPL stderr');
+
+        const continuedGraphic = runCli([], {
+          input: 'read(T).\n!,*.\n.\nread(T).\na\n.\nhalt.\n',
+        });
+        assertEqual(continuedGraphic.status, 0, 'continued graphic operator REPL status');
+        assertIncludes(continuedGraphic.stdout, 'T = (!, *.).', 'continued graphic operator answer');
+        assertIncludes(continuedGraphic.stdout, 'T = a.', 'read after continued graphic operator');
+        assertNotIncludes(continuedGraphic.stdout, 'syntax_error', 'continued graphic operator syntax');
+        assertEqual(continuedGraphic.stderr, '', 'continued graphic operator REPL stderr');
       },
     },
     {

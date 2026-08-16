@@ -1,7 +1,7 @@
 // Tokenizer and recursive-descent parser for the EyeProlog source language.
 // It preserves the compact Prolog-like syntax while producing Term objects for the solver.
 import { ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
-import { isTerminatingFullStop } from './syntax-scan.js';
+import { continuesGraphicToken, isTerminatingFullStop } from './syntax-scan.js';
 
 const TOK = {
   EOF: 'eof', ATOM: 'atom', VAR: 'var', STRING: 'string', NUMBER: 'number',
@@ -196,8 +196,24 @@ class Parser {
     this.infixOperators = operatorState.infixOperators;
     this.prefixOperators = operatorState.prefixOperators;
     this.postfixOperators = operatorState.postfixOperators;
+    this.readTermEnd = Number.isInteger(options.readTermEnd) ? options.readTermEnd : null;
     this.previousToken = null;
     this.token = this.nextToken();
+  }
+  terminatingFullStop(index = this.pos) {
+    // read/1 tries each possible full stop in turn.  While parsing a later
+    // candidate, a preceding dot after a graphic character belongs to that
+    // maximal graphic token; the candidate's final dot is the end char.  Keep
+    // ordinary program parsing context-free by enabling this only for a
+    // designated read-term candidate.
+    if (this.readTermEnd != null) {
+      if (index === this.readTermEnd) return true;
+      if (index < this.readTermEnd && continuesGraphicToken(this.source, index)) {
+        const next = this.source[index + 1] ?? '';
+        if (next === '%' || /^[\u0009-\u000d\u0020]$/.test(next)) return false;
+      }
+    }
+    return isTerminatingFullStop(this.source, index);
   }
   defineOperator(priority, specifier, name) {
     defineParserOperator(this, priority, specifier, name);
@@ -366,15 +382,16 @@ class Parser {
       this.pos += 3;
       return { type: TOK.ATOM, text: '...', line };
     }
-    if (ch === '?' && this.peek(1) === '-') {
+    if (ch === '?' && this.peek(1) === '-' &&
+        !(isGraphicAtomCode(this.peek(2).charCodeAt(0)) && !this.terminatingFullStop(this.pos + 2))) {
       this.pos += 2;
       return { type: TOK.ATOM, text: '?-', line };
     }
-    if (ch === '.' && !isTerminatingFullStop(this.source, this.pos)) {
+    if (ch === '.' && !this.terminatingFullStop()) {
       const start = this.pos;
       this.take();
       while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
-             !isTerminatingFullStop(this.source, this.pos)) this.take();
+             !this.terminatingFullStop()) this.take();
       return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
     }
     if (ch === '!') {
@@ -394,11 +411,13 @@ class Parser {
       this.take();
       return { type: punct[ch], text: ch, line, precededByLayout };
     }
-    if (ch === ':' && this.peek(1) === '-') {
+    if (ch === ':' && this.peek(1) === '-' &&
+        !(isGraphicAtomCode(this.peek(2).charCodeAt(0)) && !this.terminatingFullStop(this.pos + 2))) {
       this.pos += 2;
       return { type: TOK.IF, text: ':-', line };
     }
-    if (ch === ':') {
+    if (ch === ':' &&
+        !(isGraphicAtomCode(this.peek(1).charCodeAt(0)) && !this.terminatingFullStop(this.pos + 1))) {
       this.take();
       return { type: TOK.ATOM, text: ':', line };
     }
@@ -544,7 +563,7 @@ class Parser {
       const start = this.pos;
       this.take();
       while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
-             !isTerminatingFullStop(this.source, this.pos)) this.take();
+             !this.terminatingFullStop()) this.take();
       return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
     }
 
@@ -1034,7 +1053,7 @@ export function parseClauses(source, options = {}) {
   const parserOptions = ownsParserFlagState
     ? { ...options, parserFlagState: { doubleQuotes: initialDoubleQuotes } }
     : options;
-  if (options.sourceMetadata === false) {
+  if (options.sourceMetadata === false && options.readTermEnd == null) {
     const clauses = parseClausesFastNoSource(source, null, null, parserOptions);
     if (clauses) return clauses;
     if (ownsParserFlagState) parserOptions.parserFlagState.doubleQuotes = initialDoubleQuotes;
