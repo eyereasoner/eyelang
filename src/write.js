@@ -5,6 +5,7 @@ import {
 } from './term.js';
 
 const graphicAtomCharacters = new Set('!#$&*+-/<=>?@^~\\'.split(''));
+const dottedGraphicAtomCharacters = new Set([...graphicAtomCharacters, '.']);
 const compactInfixOperators = new Set([':', '..']);
 
 function quotedControlEscape(ch) {
@@ -46,6 +47,11 @@ function quoteAtom(name) {
 
 function writeAtom(name) {
   return atomNeedsQuotes(name) ? quoteAtom(name) : name;
+}
+
+function isDottedGraphicAtom(name) {
+  return name.includes('.') && [...name].some((ch) => ch !== '.') && !name.startsWith('/*') &&
+    [...name].every((ch) => dottedGraphicAtomCharacters.has(ch));
 }
 
 function legacyVariableToIso(name) {
@@ -172,6 +178,10 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
   if (resolved.type === STRING) return writeString(resolved.name);
   if (resolved.type === ATOM) {
     if (!options.quoted) return resolved.name;
+    // Top-level bindings are already delimited by their answer punctuation.
+    // Keep valid dotted graphic tokens readable there without weakening the
+    // ISO writeq/1 policy tested by WG17 #308.
+    if (options.dottedGraphicAtoms && isDottedGraphicAtom(resolved.name)) return resolved.name;
     // ISO 6.3.3.1 gives functional arguments and list elements a special
     // `arg` production: an atom that is a current operator is valid there
     // without quoting. Keep lexical exceptions such as `|` quoted.
@@ -269,6 +279,7 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
     variableNames: printableReadVariableNames(term, env, explicitVariableNames),
     compact: options.compact === true,
     operatorAtomsAsArgs: options.operatorAtomsAsArgs === true,
+    dottedGraphicAtoms: options.dottedGraphicAtoms === true,
   };
   const maxPriority = Number.isInteger(options.maxPriority)
     ? Math.max(0, Math.min(1200, options.maxPriority))

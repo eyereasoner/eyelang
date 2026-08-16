@@ -764,7 +764,8 @@ c4 ?- call((!;1)).
           input: 'read(T).\n./*. .\nread(T).\nok.\nread(T).\n!.!.\nhalt.\n',
         });
         assertEqual(repl.status, 0, 'REPL exit status');
-        assertIncludes(repl.stdout, "T = './*.'.", 'REPL dotted graphic atom answer');
+        assertIncludes(repl.stdout, 'T = ./*..', 'REPL dotted graphic atom answer');
+        assertNotIncludes(repl.stdout, "T = './*.'", 'REPL dotted graphic atom has no spurious quotes');
         assertIncludes(repl.stdout, 'T = ok.', 'REPL following read answer');
         assertIncludes(repl.stdout, 'error(syntax_error(read_term), eyeprolog)', 'REPL syntax error');
         assertEqual(repl.stderr, '', 'REPL stderr');
