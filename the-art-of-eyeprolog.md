@@ -7071,8 +7071,9 @@ Part 1 conformance audit. It distinguishes implemented/tested families from
 requirements whose normative `shall` clauses, option combinations, or error
 precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
-`test/conformance/WG17-SYNTAX-STATUS.md` separately traces the reviewed active upstream syntax cases to exact strict-reader
-outcomes and reports any newly upgraded cases that still need review.
+`test/conformance/WG17-SYNTAX-STATUS.md` separately traces the vendored active
+upstream syntax cases. Reviewed cases can pin exact strict-reader outcomes, while
+newly upgraded cases execute directly against the upstream Codex expectation.
 
 The complete suite must pass before release. The file-based conformance corpus
 contains 791 cases, including 386 focused ISO
