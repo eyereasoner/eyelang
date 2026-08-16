@@ -478,6 +478,32 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'negation observes disjunction through direct and call/1 execution',
+      run: () => {
+        const reported = publicApi.runQuads(String.raw`?- \+ (true ; true).
+   false.
+
+?- call(\+ (true ; true)).
+   false.
+`);
+        assertEqual(reported.total, 2, 'reported query count');
+        assertEqual(reported.passed, 2, 'reported queries pass');
+
+        const program = Program.parse('');
+        const answerCount = (text) => {
+          const solver = new Solver(program, { registry: getEyePrologRegistry() });
+          return [...solver.solve([parseGoalText(text)], new Env(), 0)].length;
+        };
+
+        assertEqual(answerCount(String.raw`\+ (true ; true)`), 0, 'direct successful disjunction is negated');
+        assertEqual(answerCount(String.raw`call(\+ (true ; true))`), 0, 'called negation fails');
+        assertEqual(answerCount(String.raw`\+ (true ; fail)`), 0, 'successful left branch is observed');
+        assertEqual(answerCount(String.raw`\+ (fail ; true)`), 0, 'successful right branch is observed');
+        assertEqual(answerCount(String.raw`\+ (fail ; fail)`), 1, 'failed disjunction is negated');
+        assertEqual(answerCount('once((true ; true))'), 1, 'once keeps the first disjunction answer');
+      },
+    },
+    {
       name: 'runQuads passes the complete vendored ISO phrase quad corpus',
       run: () => {
         const source = fs.readFileSync(path.join(testRoot, 'fixtures', 'phrase_quad.pl'), 'utf8');

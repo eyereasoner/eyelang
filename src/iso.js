@@ -2029,35 +2029,39 @@ function* negationBuiltin({ solver, goal, env }) {
   for (const _ of solver.cloneForInnerGoal(1).solve([callable(goal.args[0], env)], env.clone(), 0)) return;
   yield env;
 }
+function* solveControlBranch(solver, goal, env) {
+  for (const answer of solver.solve([callable(goal, env)], env, 0)) {
+    // A branch answer is internal to its enclosing control construct. The
+    // surrounding solve will count the completed control goal after the
+    // builtin yields it. Leaving both counts in place makes a bounded search
+    // such as once/1 or negation stop before it can observe the branch answer.
+    if (solver.solutionsSeen > 0) solver.solutionsSeen--;
+    yield answer;
+  }
+}
 function* disjunctionBuiltin({ solver, goal, env }) {
   const left = deref(goal.args[0], env);
   if (left.type === COMPOUND && left.name === '->' && left.arity === 2) {
     for (const conditionEnv of solver.cloneForInnerGoal(1).solve([callable(left.args[0], env)], env.clone(), 0)) {
-      yield* solver.solve([callable(left.args[1], conditionEnv)], conditionEnv, 0);
+      yield* solveControlBranch(solver, left.args[1], conditionEnv);
       return;
     }
-    yield* solver.solve([callable(goal.args[1], env)], env.clone(), 0);
+    yield* solveControlBranch(solver, goal.args[1], env.clone());
     return;
   }
   const marker = solver.active[solver.active.length - 1] ?? null;
   const markerCutEpoch = marker?.cutEpoch ?? 0;
   const solverCutEpoch = solver.cutEpoch;
-  yield* solver.solve([callable(goal.args[0], env)], env.clone(), 0);
+  yield* solveControlBranch(solver, goal.args[0], env.clone());
   const cutThisScope = marker == null
     ? solver.cutEpoch !== solverCutEpoch
     : (marker.cutEpoch ?? 0) !== markerCutEpoch;
   if (cutThisScope) return;
-  yield* solver.solve([callable(goal.args[1], env)], env.clone(), 0);
+  yield* solveControlBranch(solver, goal.args[1], env.clone());
 }
 function* ifThenBuiltin({ solver, goal, env }) {
   for (const conditionEnv of solver.cloneForInnerGoal(1).solve([callable(goal.args[0], env)], env.clone(), 0)) {
-    for (const consequentEnv of solver.solve([callable(goal.args[1], conditionEnv)], conditionEnv, 0)) {
-      // The consequent is an internal part of the current solution, not a
-      // completed top-level solution. Keep a surrounding bounded search (for
-      // example nested ISO once-as-if-then) from consuming its limit early.
-      if (solver.solutionsSeen > 0) solver.solutionsSeen--;
-      yield consequentEnv;
-    }
+    yield* solveControlBranch(solver, goal.args[1], conditionEnv);
     return;
   }
 }

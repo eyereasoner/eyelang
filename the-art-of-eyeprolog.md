@@ -1844,7 +1844,10 @@ normalized at the solver boundary instead of leaking a JavaScript `RangeError`.
 ISO 13211-1 leaves the resource atom implementation dependent. EyeProlog uses
 `memory` for a finite host allocation/capacity ceiling and reserves the
 `finite_memory` spelling for the distinct convention where no finite amount of
-memory could complete the computation.
+memory could complete the computation. After a recoverable memory error, the
+solver keeps a bounded recovery window while the failed search unwinds so the
+host can collect released query terms. The same solver can then run later
+queries; this recovery does not resume the query that exhausted its limit.
 
 The iterative solver keeps active-call frames only where they are semantically
 needed for cut scope or recursive variant guards. Bundled-library helpers whose
@@ -1853,9 +1856,15 @@ guard therefore do not copy a growing active-call sequence at every step.
 Under the normal EyeProlog registry, the bundled Prologue `length/2` also has a
 scoped iterative execution path: named lists are counted or constructed without
 recursive interpreter frames, and an anonymous list is not materialized because
-its binding cannot be observed. The ordinary clauses remain the authoritative
-module definition and are used unchanged by the ISO-only registry and whenever
-delays or finite-domain constraints require their normal wake-up points.
+its binding cannot be observed. A newly constructed fixed-length suffix starts
+as a lazy compact skeleton and expands one ordinary `./2` cell at a time when
+unification, another list predicate, or answer readback inspects it. This is a
+storage optimization, not a distinct Prolog term or list semantics. Embedders
+that inspect the JavaScript term model can recognize this representation with
+`CompactListTerm`, `isCompactList`, and `compactListLength`, or construct one
+with `compactVariableList`. The ordinary clauses remain the authoritative module
+definition and are used unchanged by the ISO-only registry and whenever delays
+or finite-domain constraints require their normal wake-up points.
 
 ### Implementation boundary
 
