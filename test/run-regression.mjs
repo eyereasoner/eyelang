@@ -777,6 +777,37 @@ c4 ?- call((!;1)).
           assertEqual(term.args[1].name, `${name}.`, `graphic operator atom for ${name}`);
         }
 
+        // Unlike an interactive reader waiting at a line boundary, a buffered
+        // stream can see later non-layout input.  Its first dot therefore
+        // remains in the maximal graphic token, making the adjacent ! invalid
+        // rather than prematurely returning the shorter atom.
+        for (const name of [...graphicOperators, '?', '#', '@', './*', '//*']) {
+          let bufferedError = null;
+          try {
+            runEyeProlog('', {
+              goal: 'read_term(T, [])',
+              ioOptions: { input: `${name}.\n!\n.` },
+            });
+          } catch (caught) {
+            bufferedError = caught;
+          }
+          assertEqual(
+            bufferedError?.message,
+            'error(syntax_error(read_term))',
+            `buffered graphic atom boundary for ${name}`,
+          );
+        }
+
+        const bufferedPath = path.join(tmp, 'graphic-atom-boundary.pl');
+        fs.writeFileSync(bufferedPath, '*.\n!\n.');
+        const namedStream = runEyeProlog([
+          `caught(ok) :- open(${sourceAtom(bufferedPath)}, read, S),`,
+          '  catch(read_term(S, _, []), error(syntax_error(read_term), _), true),',
+          '  close(S).',
+          '',
+        ].join('\n'), { goal: 'caught(ok)' });
+        assertEqual(namedStream.stdout, 'caught(ok).\n', 'named buffered stream syntax error');
+
         let error = null;
         try {
           runEyeProlog('', { goal: 'read(T)', ioOptions: { input: '!.!.' } });

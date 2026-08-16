@@ -1076,6 +1076,7 @@ function* nlBuiltin({ solver, goal, env }) {
 
 function* termTextCandidates(stream) {
   const source = String(stream.content);
+  const lastBufferedNonLayout = lastNonLayoutIndex(source, stream.position);
   let quote = null, lineComment = false, blockComment = false;
   for (let i = stream.position; i < source.length; i++) {
     const ch = source[i], next = source[i + 1];
@@ -1106,14 +1107,29 @@ function* termTextCandidates(stream) {
     }
     if (ch === "'" || ch === '"') { quote = ch; continue; }
     if (ch === '.' && isTerminatingFullStop(source, i)) {
+      // A buffered stream exposes what follows the layout after this dot.  If
+      // the dot continues a graphic token and later non-layout input exists,
+      // it is part of that maximal token rather than an early end char.  The
+      // interactive reader makes the corresponding decision incrementally.
+      if (continuesGraphicToken(source, i) && lastBufferedNonLayout > i) continue;
       yield { text: source.slice(stream.position, i + 1), end: i + 1 };
     }
   }
 }
 function hasNonLayoutRemainder(source, start) {
-  return source.slice(start)
-    .replace(/[\u0009-\u000d\u0020]+|%[^\n]*(?:\n|$)|\/\*[\s\S]*?\*\//g, '')
-    .length > 0;
+  return lastNonLayoutIndex(source, start) >= start;
+}
+function lastNonLayoutIndex(source, start = 0) {
+  const ignored = /[\u0009-\u000d\u0020]+|%[^\n]*(?:\n|$)|\/\*[\s\S]*?\*\//g;
+  ignored.lastIndex = start;
+  let cursor = start;
+  let last = -1;
+  for (let match = ignored.exec(source); match != null; match = ignored.exec(source)) {
+    if (match.index > cursor) last = match.index - 1;
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < source.length) last = source.length - 1;
+  return last;
 }
 function convertedTermText(text, solver) {
   if (solver.prologFlags.get('char_conversion')?.value?.name !== 'on' || solver.charConversions.size === 0) return text;
