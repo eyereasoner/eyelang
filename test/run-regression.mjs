@@ -693,6 +693,108 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'read/2 and number_chars/2 agree on bounded numeric syntax (issue #29)',
+      run: () => {
+        const registry = createDefaultRegistry();
+        const numberChars = registry.get('number_chars', 2).handler;
+        const read = registry.get('read', 2).handler;
+        const solver = new Solver(Program.parse(''), { registry, ioOptions: { input: '' } });
+        const stream = solver.io.resolve(0);
+        const streamTerm = compound('$stream', [numberTerm('0')]);
+        const alphabet = ['0', '1', '2', '7', '8', '9', 'a', 'f', 'x', 'e', 'E', '+', '-', '.', "'", '\\', ' '];
+        let checked = 0;
+        let accepted = 0;
+
+        const visit = (prefix, remaining) => {
+          if (remaining === 0) {
+            checked++;
+            const converted = variable('Converted');
+            const conversionGoal = compound('number_chars', [
+              converted,
+              listFromItems(Array.from(prefix, atom)),
+            ]);
+            let conversion;
+            try {
+              conversion = numberChars({ goal: conversionGoal, env: new Env() }).next();
+            } catch (_) {
+              return;
+            }
+            if (conversion.done) return;
+            accepted++;
+            const expected = copyResolved(converted, conversion.value);
+
+            stream.content = `${prefix}. `;
+            stream.position = 0;
+            stream.pastEnd = false;
+            const readValue = variable('ReadValue');
+            const readGoal = compound('read', [streamTerm, readValue]);
+            const answer = read({ solver, goal: readGoal, env: new Env() }).next();
+            if (answer.done) throw new Error(`read/2 rejected number_chars/2 spelling ${JSON.stringify(prefix)}`);
+            const actual = copyResolved(readValue, answer.value);
+            assertEqual(actual.type, 'number', `read/2 type for ${JSON.stringify(prefix)}`);
+            assertEqual(actual.name, expected.name, `read/2 value for ${JSON.stringify(prefix)}`);
+            return;
+          }
+          for (const character of alphabet) visit(prefix + character, remaining - 1);
+        };
+
+        for (let length = 1; length <= 4; length++) visit('', length);
+        assertEqual(checked, 88740, 'bounded numeric spellings checked');
+        if (accepted < 1000) throw new Error(`unexpectedly small accepted numeric corpus: ${accepted}`);
+      },
+    },
+    {
+      name: 'number_chars/2 to read/2 cross-check stays bounded under a small heap (issue #29)',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const script = `
+          import {
+            Program, Solver, Env, atom, compound, variable, listFromItems,
+            numberTerm, copyResolved, createDefaultRegistry,
+          } from ${JSON.stringify(engineUrl)};
+          const registry = createDefaultRegistry();
+          const numberChars = registry.get('number_chars', 2).handler;
+          const read = registry.get('read', 2).handler;
+          const solver = new Solver(Program.parse(''), { registry, ioOptions: { input: '' } });
+          const stream = solver.io.resolve(0);
+          const streamTerm = compound('$stream', [numberTerm('0')]);
+          for (let i = 0; i < 250000; i++) {
+            const text = String(i);
+            const converted = variable('Converted');
+            const conversionGoal = compound('number_chars', [
+              converted,
+              listFromItems(Array.from(text, atom)),
+            ]);
+            const conversion = numberChars({ goal: conversionGoal, env: new Env() }).next();
+            if (conversion.done) throw new Error('number_chars/2 failed at ' + i);
+            const expected = copyResolved(converted, conversion.value);
+
+            stream.content = text + '. ';
+            stream.position = 0;
+            stream.pastEnd = false;
+            const readValue = variable('ReadValue');
+            const readGoal = compound('read', [streamTerm, readValue]);
+            const answer = read({ solver, goal: readGoal, env: new Env() }).next();
+            if (answer.done) throw new Error('read/2 failed at ' + i);
+            const actual = copyResolved(readValue, answer.value);
+            if (actual.type !== 'number' || actual.name !== expected.name) {
+              throw new Error('number mismatch at ' + i + ': ' + actual.name + ' != ' + expected.name);
+            }
+          }
+          process.stdout.write('250000');
+        `;
+        const result = spawnSync(process.execPath, [
+          '--max-old-space-size=32',
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, '250000', 'number_chars/read cross-check count');
+      },
+    },
+    {
       name: 'number syntax and number_chars normalize floating-point negative zero',
       run: () => {
         const result = runCli([], {
