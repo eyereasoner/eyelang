@@ -671,7 +671,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "'//*.*/'",
+            "output": "//*.*/",
             "variables": "[]"
           }
         ]
@@ -4302,7 +4302,7 @@
             "variables": "[]"
           },
           {
-            "output": ">('>.'(a),b)",
+            "output": ">(>.(a),b)",
             "variables": "[]"
           }
         ]
@@ -4322,7 +4322,7 @@
             "variables": "[]"
           },
           {
-            "output": "=('>.'(a),b)",
+            "output": "=(>.(a),b)",
             "variables": "[]"
           }
         ]
@@ -4342,7 +4342,7 @@
             "variables": "[]"
           },
           {
-            "output": "','('>.'(a),b)",
+            "output": "','(>.(a),b)",
             "variables": "[]"
           }
         ]
@@ -4362,7 +4362,7 @@
             "variables": "[]"
           },
           {
-            "output": "'>.'(a)",
+            "output": ">.(a)",
             "variables": "[]"
           }
         ]
@@ -5022,7 +5022,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "'.+'",
+            "output": ".+",
             "variables": "[]"
           }
         ]
@@ -5273,7 +5273,7 @@
             "variables": "[]"
           },
           {
-            "output": "'.>'('.>'(a))",
+            "output": ".>(.>(a))",
             "variables": "[]"
           }
         ]

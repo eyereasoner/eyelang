@@ -103,6 +103,16 @@ export function runRegression(reporter = new TestReporter()) {
 function regressionCases() {
   return [
     {
+      name: 'large source scanning avoids quadratic full-stop lookback',
+      run: () => {
+        const result = runCli(['examples/path-discovery.pl'], { timeout: 10000 });
+        if (result.error) throw new Error(`path-discovery timed out or failed to launch: ${result.error.message}`);
+        assertEqual(result.status, 0, `path-discovery status; stderr=${result.stderr}`);
+        assertIncludes(result.stdout, "airroute('Ostend-Bruges International Airport', 'Václav Havel Airport Prague'",
+          'path-discovery result');
+      },
+    },
+    {
       name: '--proof rule fact explanation output',
       run: () => runWhy({
         program: 'type(socrates, man).\ntype(X, mortal) :- type(X, man).\n',
@@ -734,23 +744,76 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'top level separates terminal full stop from graphic answers (issue #44)',
+      run: () => {
+        const result = runCli([], { input: 'X = .* .\nhalt.\n' });
+        assertEqual(result.status, 0, 'issue #44 exit status');
+        assertIncludes(result.stdout, 'X = .* .\n', 'graphic binding is separated from terminal full stop');
+        assertNotIncludes(result.stdout, 'X = .*.\n', 'terminal full stop is not absorbed into graphic atom');
+        assertEqual(result.stderr, '', 'issue #44 stderr');
+      },
+    },
+    {
+      name: 'writeq leaves ISO dotted graphic atoms unquoted (WG17 #371-373)',
+      run: () => {
+        const result = runCli([], {
+          input: 'writeq(./*).\nwriteq(.*).\nwriteq(...*).\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'dotted graphic writeq exit status');
+        assertIncludes(result.stdout, '  ./* true.\n', 'writeq ./* is unquoted');
+        assertIncludes(result.stdout, '  .* true.\n', 'writeq .* is unquoted');
+        assertIncludes(result.stdout, '  ...* true.\n', 'writeq ...* is unquoted');
+        assertNotIncludes(result.stdout, "'./*'", 'writeq ./* has no quotes');
+        assertNotIncludes(result.stdout, "'.*'", 'writeq .* has no quotes');
+        assertNotIncludes(result.stdout, "'...*'", 'writeq ...* has no quotes');
+      },
+    },
+    {
       name: 'readers distinguish graphic tokens, comments, and full stops (issue #41)',
       run: () => {
-        const parsed = parseProgramText('./*.');
+        const parsed = parseProgramText('./* .');
         assertEqual(parsed.length, 1, 'graphic atom clause count');
         assertEqual(parsed[0].head.name, './*', 'comment opener stays inside graphic atom');
 
+        // A dot immediately after a graphic token belongs to that maximal
+        // token. A separate end char is therefore required even at a line
+        // boundary; this is the waiting behavior called out in WG17 #370-373.
+        const waitProgram = Program.parse('');
+        const waitSolver = new Solver(waitProgram, {
+          registry: getEyePrologRegistry(),
+          ioOptions: { input: '*.\n' },
+        });
+        const waitStream = waitSolver.io.resolve('user_input');
+        let refillRequests = 0;
+        waitStream.interactiveReadTerm = () => {
+          refillRequests++;
+          return '.\n';
+        };
+        const waitGoal = parseGoalText('read(T)', {
+          operatorDefinitions: [...waitProgram.operators.values()],
+        });
+        const waitAnswers = [...waitSolver.solve([waitGoal], new Env(), 0)];
+        assertEqual(waitAnswers.length, 1, 'graphic token read answer after refill');
+        assertEqual(refillRequests, 1, 'graphic token boundary waits for a separate end char');
+        assertEqual(copyResolved(waitGoal.args[0], waitAnswers[0]).name, '*.', 'maximal graphic token after refill');
+
         const read = runEyeProlog('', {
           goal: 'read(T)',
-          ioOptions: { input: './*.' },
+          ioOptions: { input: './*. .' },
         });
-        assertEqual(read.stdout, "read('./*').\n", 'graphic atom writeq readback');
+        assertEqual(read.stdout, "read(./*.).\n", 'dotted graphic atom writeq readback');
+
+        const ellipsisGraphic = runEyeProlog('', {
+          goal: 'read(T)',
+          ioOptions: { input: '...*\n.\n' },
+        });
+        assertEqual(ellipsisGraphic.stdout, "read(...*).\n", 'ellipsis prefix remains inside maximal graphic atom');
 
         const consecutive = runEyeProlog('answer(A, B) :- read(A), read(B).\n', {
           goal: 'answer(A, B)',
           ioOptions: { input: './*. .\nok.\n' },
         });
-        assertEqual(consecutive.stdout, "answer('./*.', ok).\n", 'following read starts after the complete term');
+        assertEqual(consecutive.stdout, "answer(./*., ok).\n", 'following read starts after the complete term');
 
         // A possible full stop can fail to complete the term while still
         // extending a current graphic operator into an ordinary atom.  The
@@ -820,7 +883,7 @@ c4 ?- call((!;1)).
           input: 'read(T).\n./*. .\nread(T).\nok.\nread(T).\n!.!.\nhalt.\n',
         });
         assertEqual(repl.status, 0, 'REPL exit status');
-        assertIncludes(repl.stdout, 'T = ./*..', 'REPL dotted graphic atom answer');
+        assertIncludes(repl.stdout, 'T = ./*. .', 'REPL dotted graphic atom answer');
         assertNotIncludes(repl.stdout, "T = './*.'", 'REPL dotted graphic atom has no spurious quotes');
         assertIncludes(repl.stdout, 'T = ok.', 'REPL following read answer');
         assertIncludes(repl.stdout, 'error(syntax_error(read_term), eyeprolog)', 'REPL syntax error');
@@ -1562,10 +1625,10 @@ c4 ?- call((!;1)).
         if (available.status !== 0) return;
         const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
         const scriptCommand =
-          `{ printf 'read(X), read(Y).\n'; sleep 0.15; ` +
-          `printf 'foo.\n'; sleep 0.15; printf 'bar.\n'; sleep 0.15; ` +
-          `printf 'read(Z).\n'; sleep 0.15; printf '\\004'; sleep 0.15; ` +
-          `printf 'true.\n'; sleep 0.15; printf 'halt.\n'; } | ` +
+          `{ printf 'read(X), read(Y).\n'; sleep 0.3; ` +
+          `printf 'foo.\n'; sleep 0.3; printf 'bar.\n'; sleep 0.3; ` +
+          `printf 'read(Z).\n'; sleep 0.3; printf '\\004'; sleep 0.3; ` +
+          `printf 'true.\n'; sleep 0.3; printf 'halt.\n'; } | ` +
           `script -qefc ${shellQuote(command)} /dev/null`;
         const result = spawnSync('sh', ['-c', scriptCommand], {
           cwd: packageRoot,
@@ -4369,6 +4432,7 @@ function runCli(args, options = {}) {
     encoding: 'utf8',
     env: options.env ? { ...process.env, ...options.env } : process.env,
     input: options.input ?? undefined,
+    timeout: options.timeout ?? undefined,
   });
 }
 

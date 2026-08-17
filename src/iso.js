@@ -1074,9 +1074,16 @@ function* nlBuiltin({ solver, goal, env }) {
   yield env;
 }
 
-function* termTextCandidates(stream) {
+function activeCharConverter(solver) {
+  if (solver.prologFlags.get('char_conversion')?.value?.name !== 'on' || solver.charConversions.size === 0) {
+    return null;
+  }
+  return (character) => solver.charConversions.get(character) ?? character;
+}
+
+function* termTextCandidates(stream, solver) {
   const source = String(stream.content);
-  const lastBufferedNonLayout = lastNonLayoutIndex(source, stream.position);
+  const convert = activeCharConverter(solver);
   let quote = null, lineComment = false, blockComment = false;
   for (let i = stream.position; i < source.length; i++) {
     const ch = source[i], next = source[i + 1];
@@ -1106,12 +1113,7 @@ function* termTextCandidates(stream) {
       continue;
     }
     if (ch === "'" || ch === '"') { quote = ch; continue; }
-    if (ch === '.' && isTerminatingFullStop(source, i)) {
-      // A buffered stream exposes what follows the layout after this dot.  If
-      // the dot continues a graphic token and later non-layout input exists,
-      // it is part of that maximal token rather than an early end char.  The
-      // interactive reader makes the corresponding decision incrementally.
-      if (continuesGraphicToken(source, i) && lastBufferedNonLayout > i) continue;
+    if (isTerminatingFullStop(source, i, convert)) {
       yield { text: source.slice(stream.position, i + 1), end: i + 1 };
     }
   }
@@ -1223,7 +1225,7 @@ function readTermFromStream(stream, solver) {
   let requestedInteractiveTerm = false;
   while (true) {
     let sawCandidate = false;
-    for (const candidate of termTextCandidates(stream)) {
+    for (const candidate of termTextCandidates(stream, solver)) {
       sawCandidate = true;
       if (candidate.lexicalError) {
         stream.position = candidate.end;

@@ -4,8 +4,8 @@ import {
   Env, deref, isCons, isEmptyList,
 } from './term.js';
 
-const graphicAtomCharacters = new Set('!#$&*+-/<=>?@^~\\'.split(''));
-const dottedGraphicAtomCharacters = new Set([...graphicAtomCharacters, '.']);
+const graphicAtomCharacters = new Set('!#$&*+-./<=>?@^~\\'.split(''));
+const dottedGraphicAtomCharacters = graphicAtomCharacters;
 const compactInfixOperators = new Set([':', '..']);
 
 function quotedControlEscape(ch) {
@@ -28,7 +28,11 @@ function quotedControlEscape(ch) {
 function atomNeedsQuotes(name) {
   if (!name) return true;
   if (name === '[]' || name === '{}') return false;
-  if (name === '...') return false;
+  // A lone full stop is the end token, not a graphic atom.  Longer
+  // graphic tokens may contain dots and are valid unquoted writeq/1 output
+  // (WG17 #371-373: ./*, .*, ...*).  Only a token beginning with /* would
+  // be read as a bracketed comment and therefore still requires quoting.
+  if (name === '.') return true;
   if (name.startsWith('/*')) return true;
   if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return false;
   for (const ch of name) if (!graphicAtomCharacters.has(ch)) return true;

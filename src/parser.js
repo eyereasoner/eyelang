@@ -378,10 +378,6 @@ class Parser {
     const line = this.line;
     const ch = this.peek();
     if (!ch) return { type: TOK.EOF, text: '', line };
-    if (this.source.startsWith('...', this.pos) && this.peek(3) !== '.') {
-      this.pos += 3;
-      return { type: TOK.ATOM, text: '...', line };
-    }
     if (ch === '?' && this.peek(1) === '-' &&
         !(isGraphicAtomCode(this.peek(2).charCodeAt(0)) && !this.terminatingFullStop(this.pos + 2))) {
       this.pos += 2;

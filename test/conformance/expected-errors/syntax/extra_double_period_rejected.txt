@@ -1,1 +1,1 @@
-parse line 1: expected ., got .
+parse line 1: expected ., got ..

@@ -4,21 +4,49 @@
 
 const graphicTokenCharacters = new Set('#$&*+-./<=>?@^~\\:');
 
-export function continuesGraphicToken(source, index) {
-  return index > 0 && graphicTokenCharacters.has(source[index - 1]);
+export function continuesGraphicToken(source, index, convert = null) {
+  if (index <= 0) return false;
+  const rawPrevious = source[index - 1];
+  const previous = convert == null ? rawPrevious : convert(rawPrevious);
+  // Most full stops follow a non-graphic token. Reject those in O(1) before
+  // doing the rarer character-code/comment disambiguation below; otherwise a
+  // large source with many term-ending dots degenerates into repeated backward
+  // scans (notably multi-megabyte generated data files).
+  if (!graphicTokenCharacters.has(previous)) return false;
+
+  // A graphic-looking character can be the payload or closing escape of a
+  // character-code constant rather than a graphic token.  For example, the
+  // backslash immediately before the full stop in `0'\x41\.` belongs to
+  // the number token, so that full stop still terminates the term.
+  const apostrophe = source.lastIndexOf("'", index - 1);
+  if (apostrophe >= 0 && characterCodeConstantEnd(source, apostrophe) === index - 1) return false;
+  // The slash that closes a bracketed comment is layout, not the tail of a
+  // graphic token. Distinguish it from spellings such as `//*.*/`, where the
+  // apparent /* is itself embedded in a graphic token and therefore never
+  // opens a comment.
+  if (source[index - 1] === '/' && source[index - 2] === '*') {
+    for (let open = source.lastIndexOf('/*', index - 3); open >= 0;
+         open = source.lastIndexOf('/*', open - 1)) {
+      if (open === 0 || !graphicTokenCharacters.has(source[open - 1])) return false;
+    }
+  }
+  return true;
 }
 
-export function isTerminatingFullStop(source, index) {
-  if (source[index] !== '.') return false;
-  const next = source[index + 1] ?? '';
-  // At a line boundary, after a single-line comment marker, or at end of
-  // input, the dot is the read-term end char. Before horizontal layout it is
-  // instead part of an already-started graphic token: `./*. .` is the atom
-  // `./*.` followed by its separate end char. A directly following /* also
-  // stays in the current graphic token; bracketed comments are recognized
-  // only when /* begins a token.
+export function isTerminatingFullStop(source, index, convert = null) {
+  const current = convert == null ? source[index] : convert(source[index]);
+  if (current !== '.') return false;
+  const rawNext = source[index + 1] ?? '';
+  const next = convert == null ? rawNext : convert(rawNext);
+  // A full stop cannot terminate a term when it can still extend the graphic
+  // token immediately before it. This remains true at a line boundary and at
+  // the current end of interactive input: `*.\n` is the graphic token `*.`
+  // followed by layout, so read/1 must keep waiting for a separate end char.
+  // Conversely `!.\n` terminates because ! is a solo token, not a graphic
+  // token character accepted by continuesGraphicToken().
+  if (continuesGraphicToken(source, index, convert)) return false;
   if (next === '' || next === '%' || next === '\n' || next === '\r') return true;
-  if (/^[\u0009\u000b\u000c\u0020]$/.test(next)) return !continuesGraphicToken(source, index);
+  if (/^[\u0009\u000b\u000c\u0020]$/.test(next)) return true;
   return false;
 }
 

@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import { readSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
-import { formalErrorTerm, isCompleteReadTermText } from './iso.js';
+import { formalErrorTerm } from './iso.js';
 import {
   characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
 } from './syntax-scan.js';
@@ -171,8 +171,8 @@ class LineReader {
       const line = this.readTerminalLineSync();
       if (line == null) return source.trim() ? source : null;
       source += `${line}\n`;
-      const end = terminalFullStop(source);
-      if (end >= 0 && acceptsReadTermBoundary(source, end, solver)) {
+      const end = terminalFullStop(source, solver);
+      if (end >= 0) {
         return source.slice(0, end + 1) + '\n';
       }
       prompt = '|    ';
@@ -300,7 +300,7 @@ async function prepareInteractiveTermInput(state, goal, reader) {
   // fallback for piped/non-TTY REPL tests and scripted input.
   if (reader.canReadTermSynchronously()) return;
   const stream = interactiveTermInputStream(state, goal);
-  if (stream == null || terminalFullStop(String(stream.content).slice(stream.position)) >= 0) return;
+  if (stream == null || terminalFullStop(String(stream.content).slice(stream.position), state.solver) >= 0) return;
 
   const text = await readInteractiveTerm(reader, state.solver);
   if (text == null) return;
@@ -343,24 +343,23 @@ async function readInteractiveTerm(reader, solver = null) {
     const line = await reader.read(prompt);
     if (line == null) return source.trim() ? source : null;
     source += `${line}\n`;
-    const end = terminalFullStop(source);
-    if (end >= 0 && acceptsReadTermBoundary(source, end, solver)) {
+    const end = terminalFullStop(source, solver);
+    if (end >= 0) {
       return source.slice(0, end + 1) + '\n';
     }
     prompt = '|    ';
   }
 }
 
-function acceptsReadTermBoundary(source, end, solver) {
-  // A dot after a graphic character has two possible readings.  Stop at once
-  // when the candidate is already a complete term (for example `./*.`);
-  // otherwise keep reading so a later end char can make it part of an atom
-  // (for example the first dot in `!,*.\n.`).
-  return !continuesGraphicToken(source, end) || solver == null ||
-    isCompleteReadTermText(source.slice(0, end + 1), solver);
+function activeCharConverter(solver) {
+  if (solver?.prologFlags.get('char_conversion')?.value?.name !== 'on' || solver.charConversions.size === 0) {
+    return null;
+  }
+  return (character) => solver.charConversions.get(character) ?? character;
 }
 
-function terminalFullStop(source) {
+function terminalFullStop(source, solver = null) {
+  const convert = activeCharConverter(solver);
   let quote = null;
   let lineComment = false;
   let blockComment = false;
@@ -415,7 +414,7 @@ function terminalFullStop(source) {
     }
     if ('([{'.includes(ch)) depth++;
     else if (')]}'.includes(ch)) depth = Math.max(0, depth - 1);
-    else if (ch === '.' && depth === 0 && isTerminatingFullStop(source, i) &&
+    else if (depth === 0 && isTerminatingFullStop(source, i, convert) &&
              onlyLayoutAndComments(source.slice(i + 1))) return i;
   }
   return -1;
@@ -503,11 +502,15 @@ async function solveQuery(engine, state, goal, reader, output) {
     if (formattingAfterAdvance) output.write(' ');
     formattingAfterAdvance = false;
     output.write(current.output);
-    output.write(`${firstAnswer ? ' ' : ''}${formatAnswer(engine, state, variables, current.result.value)}`);
+    const answer = formatAnswer(engine, state, variables, current.result.value);
+    output.write(`${firstAnswer ? ' ' : ''}${answer}`);
     answersShown++;
     firstAnswer = false;
     if (!next.error && next.result.done) {
-      output.write('.\n');
+      // A terminal full stop cannot immediately follow a graphic token: the
+      // scanner would absorb it into that token. Insert layout so the printed
+      // answer remains valid Prolog text (issue #44).
+      output.write(`${continuesGraphicToken(answer, answer.length) ? ' ' : ''}.\n`);
       return null;
     }
 

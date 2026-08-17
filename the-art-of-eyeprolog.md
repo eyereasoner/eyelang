@@ -5253,10 +5253,12 @@ write_event(Path, Event) :-
 
 The period is essential when another Prolog processor will read the result as
 a term. `write/1-2` uses readable conventional syntax, `writeq/1-2` quotes
-where needed, and `write_canonical/1-2` exposes canonical structure. ISO term
-output uses only the separator characters needed by the syntax, so functional
-arguments and list elements are emitted compactly; for example `writeq([a,b])`
-outputs `[a,b]`.
+where needed, and `write_canonical/1-2` exposes canonical structure. Dotted
+graphic atoms do not need quotes merely because they contain a period:
+`writeq(./*)`, `writeq(.*)`, and `writeq(...*)` output `./*`, `.*`, and `...*`
+respectively. ISO term output uses only the separator characters needed by the
+syntax, so functional arguments and list elements are emitted compactly; for
+example `writeq([a,b])` outputs `[a,b]`.
 `write_term/2-3` supports `quoted/1`, `ignore_ops/1`, `numbervars/1`, and
 `variable_names/1`.
 
@@ -5377,10 +5379,12 @@ quote an atom whose name itself contains a colon. Unquoted angle-bracket IRIs
 are not syntax.
 
 A `/*` sequence opens a block comment only when it begins a token; inside a
-maximal graphic token the slash and star remain atom characters. A period ends
-a term only when it is recognized as the terminating full stop. Consequently,
-`./*.` at the end of a line reads the atom `./*`, whereas `./*. .` reads the
-atom `./*.` and consumes the second period as the terminator.
+maximal graphic token the slash and star remain atom characters. Graphic tokens
+are formed maximally before a period can be recognized as the terminating full
+stop. Consequently, interactive input `*.` or `./*.` is not yet a complete term:
+the period is part of the graphic atom and the reader waits for a separate
+terminating full stop. Thus `./*. .` reads the atom `./*.` and consumes the
+second period as the terminator.
 
 In the grammar below, `{ x }` means zero or more repetitions of `x`, `[ x ]`
 means that `x` is optional, and parentheses group alternatives. These marks
@@ -6344,8 +6348,10 @@ period-terminated query with no solutions prints `false.`; a solution without
 visible variable bindings prints `true.`. Answer substitutions are rendered as
 valid Prolog syntax under the current operator table: when a bound value would
 not be a valid right operand of the displayed `=/2`, EyeProlog adds parentheses,
-for example `T = (a = b).` rather than the invalid `T = a = b.`. Use `[file].`
-or `['file.pl'].` to
+for example `T = (a = b).` rather than the invalid `T = a = b.`. When an answer
+ends in a graphic token, the top level inserts layout before its terminating
+full stop so the two tokens cannot merge; for example `?- X = .* .` displays
+`X = .* .`, not `X = .*.`. Use `[file].` or `['file.pl'].` to
 consult local source, and `halt.` or `halt(Status).` to leave the top level.
 When `read/1-2` or `read_term/2-3` actually reaches interactive
 `user_input`, the top level requests the next full-stop-terminated Prolog term
