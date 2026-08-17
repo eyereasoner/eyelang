@@ -1976,6 +1976,36 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'statistics/0 prints snapshots during execution',
+      run: () => {
+        const input = '%% goal: live\nlive :- statistics, statistics.\n';
+        const result = runCli(['-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual((result.stdout.match(/eyeprolog stats:/g) ?? []).length, 2, 'in-run snapshot count');
+        assertIncludes(result.stdout, '  memory_guard_used_bytes:', 'stdout');
+        assertIncludes(result.stdout, 'live.\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'statistics/2 exposes current counters and memory values',
+      run: () => {
+        const input = '%% goal: live(Used)\nlive(Used) :- statistics(memory_guard_used_bytes, Used).\n';
+        const result = runCli(['-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(/^live\(\d+\)\.\n$/.test(result.stdout), true, 'numeric memory statistic');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'statistics predicates are excluded from strict ISO mode',
+      run: () => {
+        const result = runCli(['--iso-strict', '-'], { input: '%% goal: statistics\n' });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'existence_error(procedure)', 'stderr');
+      },
+    },
+    {
       name: '--warnings prints unstratified negation diagnostics without failing',
       run: () => {
         const input = [
@@ -3205,9 +3235,13 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 153, 'EyeProlog registry contains ISO definitions and private library adapters');
+        assertEqual(library.defs.size, 155, 'EyeProlog registry contains ISO definitions, observability extensions, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
+        assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
+        assertEqual(registry.get('statistics', 2), null, 'statistics/2 is absent from the ISO registry');
+        assertEqual(Boolean(library.get('statistics', 0)), true, 'statistics/0 is an EyeProlog observability extension');
+        assertEqual(Boolean(library.get('statistics', 2)), true, 'statistics/2 is an EyeProlog observability extension');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 59, 'portable Prolog library count');
         assertEqual(eyePrologNativeLibraryIndicators.length, 40, 'native host library count');

@@ -4635,9 +4635,20 @@ may indicate a generator that should be constrained. Many table hits may show
 effective reuse; many distinct table entries may reveal an argument that
 prevents calls from sharing. On the Node CLI it also reports current heap use,
 non-young/old-generation use, the amount currently compared with the memory
-guard, resident-set size, and the soft and hard memory ceilings in bytes. These memory figures are printed even when execution ends by
-raising a Prolog error, which makes `--stats` useful when reproducing bounded
-memory failures such as long-running conversion stress tests.
+guard, resident-set size, and the soft and hard memory ceilings in bytes. These
+memory figures are printed even when execution ends by raising a Prolog error.
+
+`--stats` is an end-of-run summary. For a deliberately non-terminating or very
+long computation, call the EyeProlog extension `statistics/0` at the points
+where a live snapshot is useful. For example, a long-running loop can include
+`statistics` as one of its goals, as in `loop :- work, statistics, loop.`
+
+`statistics/0` writes the current solver counters and memory figures
+immediately to the current output stream. `statistics/2` makes an individual
+value available to the program, for example
+`statistics(memory_guard_used_bytes, Used)`. With an unbound first argument it
+enumerates the available statistic keys and values. These predicates are
+EyeProlog observability extensions and are not available under `--iso-strict`.
 
 Compare statistics only between runs with the same query, data, and observable
 answer contract. A faster program that silently loses answers is not an
@@ -6410,7 +6421,7 @@ make the observed question explicit.
 | `-p`, `--proof` | Print `why/2` explanations |
 | `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
 | `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions and disable automatic tabling |
-| `-s`, `--stats` | Print solver counters to stderr |
+| `-s`, `--stats` | Print final solver and memory statistics to stderr after execution |
 | `-v`, `--version` | Print the package version |
 | `-w`, `--warnings` | Print non-fatal portability warnings |
 | `-g`, `--goal Goal` | Solve a callable goal; may be repeated; overrides `%% goal:` comments |

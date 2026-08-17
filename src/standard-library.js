@@ -2,9 +2,10 @@
 // The sources are registered here so library(Name) works in Node and browsers;
 // unlike the former autoloader, no clauses are added unless use_module/1 or
 // use_module/2 requests their module.
-import { createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
+import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
 import { clpzBuiltins } from './clpz.js';
-import { fs, isNode } from './platform.js';
+import { fs, isNode, memoryStatistics } from './platform.js';
+import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
 
 const moduleFiles = Object.freeze({
   aggregate: 'aggregate.pl',
@@ -73,8 +74,44 @@ export const eyePrologLibraryIndicators = Object.freeze([
   ...eyePrologNativeLibraryIndicators,
 ]);
 
+function runtimeStatistics(solver) {
+  return { ...solver.stats, ...memoryStatistics() };
+}
+
+function* statisticsBuiltin({ solver, env }) {
+  const stream = solver.io.resolve(solver.io.currentOutput);
+  if (stream?.type !== 'text') throw new PrologError('permission_error(output, binary_stream)');
+  solver.io.writeUnit(stream, 'eyeprolog stats:\n');
+  for (const [key, value] of Object.entries(runtimeStatistics(solver))) {
+    solver.io.writeUnit(stream, `  ${key}: ${value}\n`);
+  }
+  yield env;
+}
+
+function* statisticsValueBuiltin({ solver, goal, env }) {
+  const snapshot = runtimeStatistics(solver);
+  const key = deref(goal.args[0], env);
+  const entries = key.type === VAR
+    ? Object.entries(snapshot)
+    : key.type === ATOM && Object.hasOwn(snapshot, key.name)
+      ? [[key.name, snapshot[key.name]]]
+      : null;
+
+  if (entries == null) {
+    if (key.type !== ATOM) throw new PrologError('type_error(atom)', key);
+    return;
+  }
+
+  for (const [name, value] of entries) {
+    const next = env.clone();
+    if (unify(goal.args[0], atom(name), next) && unify(goal.args[1], numberTerm(value), next)) yield next;
+  }
+}
+
 export function createEyePrologRegistry() {
   const registry = createDefaultRegistry();
+  registry.add('statistics', 0, statisticsBuiltin, { deterministic: true });
+  registry.add('statistics', 2, statisticsValueBuiltin);
   eyePrologLibraryBuiltins.register(registry);
   clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;
