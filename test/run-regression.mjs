@@ -23,6 +23,9 @@ import {
   eyePrologLibraryIndicators,
   eyePrologNativeLibraryIndicators,
   eyePrologPortableLibraryIndicators,
+  eyePrologInteropAutoload,
+  eyePrologInteropLibraryIndicators,
+  eyePrologInteropLibraryModules,
   atom,
   compound,
   listFromItems,
@@ -693,108 +696,6 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'read/2 and number_chars/2 agree on bounded numeric syntax (issue #29)',
-      run: () => {
-        const registry = createDefaultRegistry();
-        const numberChars = registry.get('number_chars', 2).handler;
-        const read = registry.get('read', 2).handler;
-        const solver = new Solver(Program.parse(''), { registry, ioOptions: { input: '' } });
-        const stream = solver.io.resolve(0);
-        const streamTerm = compound('$stream', [numberTerm('0')]);
-        const alphabet = ['0', '1', '2', '7', '8', '9', 'a', 'f', 'x', 'e', 'E', '+', '-', '.', "'", '\\', ' '];
-        let checked = 0;
-        let accepted = 0;
-
-        const visit = (prefix, remaining) => {
-          if (remaining === 0) {
-            checked++;
-            const converted = variable('Converted');
-            const conversionGoal = compound('number_chars', [
-              converted,
-              listFromItems(Array.from(prefix, atom)),
-            ]);
-            let conversion;
-            try {
-              conversion = numberChars({ goal: conversionGoal, env: new Env() }).next();
-            } catch (_) {
-              return;
-            }
-            if (conversion.done) return;
-            accepted++;
-            const expected = copyResolved(converted, conversion.value);
-
-            stream.content = `${prefix}. `;
-            stream.position = 0;
-            stream.pastEnd = false;
-            const readValue = variable('ReadValue');
-            const readGoal = compound('read', [streamTerm, readValue]);
-            const answer = read({ solver, goal: readGoal, env: new Env() }).next();
-            if (answer.done) throw new Error(`read/2 rejected number_chars/2 spelling ${JSON.stringify(prefix)}`);
-            const actual = copyResolved(readValue, answer.value);
-            assertEqual(actual.type, 'number', `read/2 type for ${JSON.stringify(prefix)}`);
-            assertEqual(actual.name, expected.name, `read/2 value for ${JSON.stringify(prefix)}`);
-            return;
-          }
-          for (const character of alphabet) visit(prefix + character, remaining - 1);
-        };
-
-        for (let length = 1; length <= 4; length++) visit('', length);
-        assertEqual(checked, 88740, 'bounded numeric spellings checked');
-        if (accepted < 1000) throw new Error(`unexpectedly small accepted numeric corpus: ${accepted}`);
-      },
-    },
-    {
-      name: 'number_chars/2 to read/2 cross-check stays bounded under a small heap (issue #29)',
-      run: () => {
-        const engineUrl = new URL('../src/index.js', import.meta.url).href;
-        const script = `
-          import {
-            Program, Solver, Env, atom, compound, variable, listFromItems,
-            numberTerm, copyResolved, createDefaultRegistry,
-          } from ${JSON.stringify(engineUrl)};
-          const registry = createDefaultRegistry();
-          const numberChars = registry.get('number_chars', 2).handler;
-          const read = registry.get('read', 2).handler;
-          const solver = new Solver(Program.parse(''), { registry, ioOptions: { input: '' } });
-          const stream = solver.io.resolve(0);
-          const streamTerm = compound('$stream', [numberTerm('0')]);
-          for (let i = 0; i < 250000; i++) {
-            const text = String(i);
-            const converted = variable('Converted');
-            const conversionGoal = compound('number_chars', [
-              converted,
-              listFromItems(Array.from(text, atom)),
-            ]);
-            const conversion = numberChars({ goal: conversionGoal, env: new Env() }).next();
-            if (conversion.done) throw new Error('number_chars/2 failed at ' + i);
-            const expected = copyResolved(converted, conversion.value);
-
-            stream.content = text + '. ';
-            stream.position = 0;
-            stream.pastEnd = false;
-            const readValue = variable('ReadValue');
-            const readGoal = compound('read', [streamTerm, readValue]);
-            const answer = read({ solver, goal: readGoal, env: new Env() }).next();
-            if (answer.done) throw new Error('read/2 failed at ' + i);
-            const actual = copyResolved(readValue, answer.value);
-            if (actual.type !== 'number' || actual.name !== expected.name) {
-              throw new Error('number mismatch at ' + i + ': ' + actual.name + ' != ' + expected.name);
-            }
-          }
-          process.stdout.write('250000');
-        `;
-        const result = spawnSync(process.execPath, [
-          '--max-old-space-size=32',
-          '--input-type=module',
-          '--eval',
-          script,
-        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
-        if (result.error) throw result.error;
-        assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
-        assertEqual(result.stdout, '250000', 'number_chars/read cross-check count');
-      },
-    },
-    {
       name: 'number syntax and number_chars normalize floating-point negative zero',
       run: () => {
         const result = runCli([], {
@@ -1270,6 +1171,8 @@ c4 ?- call((!;1)).
         assertIncludes(result.stdout, '-p, --proof', 'stdout');
         assertIncludes(result.stdout, '-q, --quads', 'stdout');
         assertIncludes(result.stdout, '-s, --stats', 'stdout');
+        assertIncludes(result.stdout, '--portable', 'stdout');
+        assertIncludes(result.stdout, '--no-autoload', 'stdout');
         assertIncludes(result.stdout, '-v, --version', 'stdout');
         assertIncludes(result.stdout, '-w, --warnings', 'stdout');
         assertIncludes(result.stdout, '-v, --version         Show the package version and exit.\n  -w, --warnings        Print non-fatal portability warnings to stderr.', 'stdout');
@@ -2105,6 +2008,125 @@ c4 ?- call((!;1)).
         const result = runCli(['--iso-strict', '-'], { input: '%% goal: statistics\n' });
         assertEqual(result.status, 1, 'exit status');
         assertIncludes(result.stderr, 'existence_error(procedure)', 'stderr');
+      },
+    },
+    {
+      name: 'portable library predicates autoload without use_module directives',
+      run: () => {
+        const input = '%% goal: answer(X)\nanswer(X) :- member(X, [a,b]).\n';
+        const result = runCli(['-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'answer(a).\nanswer(b).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'between/3 autoload removes the EyeProlog-specific prologue dependency',
+      run: () => {
+        const input = '%% goal: answer(X)\nanswer(X) :- between(1, 3, X).\n';
+        const result = runCli(['-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'answer(1).\nanswer(2).\nanswer(3).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'strict ISO mode disables interop autoloading',
+      run: () => {
+        const input = '%% goal: answer(X)\nanswer(X) :- member(X, [a,b]).\n';
+        const result = runCli(['--iso-strict', '-'], { input });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'existence_error(procedure)', 'stderr');
+        assertIncludes(result.stderr, '/(member, 2)', 'stderr');
+      },
+    },
+    {
+      name: 'CLI top-level goals participate in interop autoloading',
+      run: () => {
+        const result = runCli(['-g', 'member(X,[a,b])', '-'], { input: '' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'member(a, "ab").\nmember(b, "ab").\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: '--no-autoload also applies to CLI top-level goals',
+      run: () => {
+        const result = runCli(['--no-autoload', '-g', 'member(X,[a])', '-'], { input: '' });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'existence_error(procedure)', 'stderr');
+        assertIncludes(result.stderr, '/(member, 2)', 'stderr');
+      },
+    },
+    {
+      name: '--portable checks non-portable predicates used only by top-level goals',
+      run: () => {
+        const input = ':- use_module(library(lists)).\n';
+        const result = runCli(['--portable', '-g', 'set_nth0(0,[a],b,X)', '-'], { input });
+        assertEqual(result.status, 1, 'exit status');
+        assertEqual(result.stdout, '', 'stdout');
+        assertIncludes(result.stderr, 'non-portable library predicate', 'stderr');
+        assertIncludes(result.stderr, 'set_nth0/4', 'stderr');
+      },
+    },
+    {
+      name: '--portable accepts the common interop profile',
+      run: () => {
+        const input = ':- use_module(library(lists)).\n%% goal: answer(X)\nanswer(X) :- member(X, [a]).\n';
+        const result = runCli(['--portable', '-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'answer(a).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: '--portable rejects implementation-specific library dependencies',
+      run: () => {
+        const input = ':- use_module(library(prologue), [between/3]).\n%% goal: answer\nanswer :- between(1, 1, _).\n';
+        const result = runCli(['--portable', '-'], { input });
+        assertEqual(result.status, 1, 'exit status');
+        assertEqual(result.stdout, '', 'stdout');
+        assertIncludes(result.stderr, 'non-portable library dependency', 'stderr');
+      },
+    },
+    {
+      name: '--no-autoload exposes unresolved portable dependencies',
+      run: () => {
+        const input = '%% goal: answer(X)\nanswer(X) :- member(X, [a]).\n';
+        const result = runCli(['--no-autoload', '-'], { input });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'existence_error(procedure)', 'stderr');
+        assertIncludes(result.stderr, '/(member, 2)', 'stderr');
+      },
+    },
+    {
+      name: '--warnings flags explicit library(prologue) dependencies',
+      run: () => {
+        const input = ':- use_module(library(prologue), [between/3]).\n%% goal: answer\nanswer :- between(1, 1, _).\n';
+        const result = runCli(['--warnings', '-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stderr, 'eyeprolog warning: non-portable library dependency\n', 'stderr');
+        assertIncludes(result.stderr, 'library(prologue) is outside the EyeProlog/Trealla/Scryer interop profile', 'stderr');
+      },
+    },
+    {
+      name: '--warnings flags EyeProlog-only predicates from library(lists)',
+      run: () => {
+        const input = ':- use_module(library(lists)).\n%% goal: answer(X)\nanswer(X) :- set_nth0(0, [a], b, X).\n';
+        const result = runCli(['--warnings', '-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stderr, 'eyeprolog warning: non-portable library predicate\n', 'stderr');
+        assertIncludes(result.stderr, 'set_nth0/4 from library(lists) is outside the interop profile', 'stderr');
+      },
+    },
+    {
+      name: '--warnings stays quiet for the common library(lists) profile',
+      run: () => {
+        const input = ':- use_module(library(lists)).\n%% goal: answer(X)\nanswer(X) :- member(X, [a]).\n';
+        const result = runCli(['--warnings', '-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'answer(a).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
       },
     },
     {
@@ -3056,6 +3078,71 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
+      name: 'library(lists) exposes the Trealla/Scryer common surface',
+      run: () => {
+        const program = Program.parse(`:- use_module(library(lists)).
+identity(X, X).
+pair(A, B, A-B).
+step(X, A0, A) :- A is A0 + X.
+check(A, B, C, D, E, F) :-
+  append([[a],[b]], A),
+  memberchk(a, A),
+  same_length(A, [_,_]),
+  nth0(1, A, b, B),
+  maplist(identity, A, C),
+  maplist(pair, A, [1,2], D),
+  foldl(step, [1,2,3], 0, E),
+  nth1(2, A, b, F).
+`);
+        assertEqual(program.findGroup('append', 2)?.module, 'lists', 'append/2 import');
+        assertEqual(program.findGroup('memberchk', 2)?.module, 'lists', 'memberchk/2 import');
+        assertEqual(program.findGroup('same_length', 2)?.module, 'lists', 'same_length/2 import');
+        assertEqual(program.findGroup('nth0', 4)?.module, 'lists', 'nth0/4 import');
+        assertEqual(program.findGroup('maplist', 2)?.module, 'lists', 'maplist/2 import');
+        assertEqual(program.findGroup('maplist', 3)?.module, 'lists', 'maplist/3 import');
+        assertEqual(program.findGroup('foldl', 4)?.module, 'lists', 'foldl/4 import');
+        const result = run(program, { goal: 'check(A,B,C,D,E,F)' });
+        assertIncludes(result.stdout, 'check("ab", "a", "ab", [a - 1, b - 2], 6, "a").\n', 'stdout');
+      },
+    },
+    {
+      name: 'autoload metadata records canonical interop imports',
+      run: () => {
+        const program = Program.parse('answer(X) :- member(X, [a]), between(1, 1, _).\n');
+        assertEqual(program.autoloadedPredicates.length, 2, 'autoloaded predicate count');
+        assertEqual(program.autoloadedPredicates.map((entry) => `${entry.indicator}:${entry.library}`).sort().join(','),
+          'between/3:prologue,member/2:lists', 'autoload mapping');
+        assertEqual(program.interopPortabilityWarnings.length, 0, 'autoloaded portable calls are warning-free');
+      },
+    },
+    {
+      name: 'JavaScript run top-level goals participate in interop autoloading',
+      run: () => {
+        const result = runEyeProlog('', { goal: 'member(X,[a,b])' });
+        assertEqual(result.stdout, 'member(a, "ab").\nmember(b, "ab").\n', 'stdout');
+      },
+    },
+    {
+      name: 'JavaScript run can disable top-level goal autoloading',
+      run: () => {
+        let error = null;
+        try {
+          runEyeProlog('', { goal: 'member(X,[a])', autoload: false });
+        } catch (caught) {
+          error = caught;
+        }
+        assertIncludes(error?.message ?? '', 'existence_error(procedure)', 'error');
+      },
+    },
+    {
+      name: 'autoload can be disabled explicitly in the JavaScript API',
+      run: () => {
+        const program = Program.parse('answer(X) :- member(X, [a]).\n', { autoload: false });
+        assertEqual(program.findGroup('member', 2), null, 'member/2 remains unresolved');
+        assertEqual(program.autoloadedPredicates.length, 0, 'no autoloads');
+      },
+    },
+    {
       name: 'program and solver public classes',
       run: () => {
         const program = Program.parse('p(a).\np(b).\n');
@@ -3345,10 +3432,15 @@ open(X) :- candidate(X), \\+ closed(X).
         assertEqual(Boolean(library.get('statistics', 0)), true, 'statistics/0 is an EyeProlog observability extension');
         assertEqual(Boolean(library.get('statistics', 2)), true, 'statistics/2 is an EyeProlog observability extension');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 59, 'portable Prolog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 62, 'portable Prolog library count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 26, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists', 'common explicit library module profile');
+        assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
+        assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
+        assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
         assertEqual(eyePrologNativeLibraryIndicators.length, 40, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 99, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 102, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');

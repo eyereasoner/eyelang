@@ -10,11 +10,17 @@ import {
   createParserOperatorState,
   parseClauses,
   parseClausesInto,
+  parseGoalText,
   tryParseClausesFastInto,
 } from './parser.js';
 import { PrologError, getStrictIsoRegistry } from './iso.js';
 import { currentWorkingDirectory, fs, path } from './platform.js';
-import { standardLibrarySources } from './standard-library.js';
+import {
+  standardLibrarySources,
+  eyePrologInteropAutoload,
+  eyePrologInteropLibraryIndicators,
+  eyePrologInteropLibraryModules,
+} from './standard-library.js';
 import { expandDcgRuleClause } from './dcg.js';
 
 const DEFER_PROGRAM_BUILD = Symbol('deferProgramBuild');
@@ -102,6 +108,9 @@ export class Program {
     this.modules = new Map([['user', { name: 'user', exports: new Map(), filename: '<input>' }]]);
     this.moduleImports = new Map();
     this.moduleMetaPredicates = new Map();
+    this.autoloadedPredicates = [];
+    this.libraryImports = [];
+    this.interopPortabilityWarnings = [];
     this.dynamicPredicates = new Set();
     this.strictIso = options.isoStrict === true;
     this.operators = new Map();
@@ -677,12 +686,227 @@ function loadSourcesIntoBuilder(builder, sources, options, fast) {
       const context = { module: 'user' };
       if (!loadSourceIntoBuilder(builder, text, item.options, ensured, loadedModules, fast, context)) return false;
     }
+    const autoloadGoals = parseInteropGoalInputs(options.autoloadGoals, {
+      ...options,
+      operatorState,
+      parserFlagState,
+    }, builder.program);
+    if (options.isoStrict !== true && options.autoload !== false) {
+      autoloadInteropDependencies(builder, {
+        ...options,
+        operatorState,
+        parserFlagState,
+      }, ensured, loadedModules, autoloadGoals);
+    }
+    analyzeInteropPortability(builder.program, autoloadGoals);
     builder.program.doubleQuotes = parserFlagState.doubleQuotes;
     return true;
   } catch (error) {
     if (error === FAST_PARSE_ABORT) return false;
     throw error;
   }
+}
+
+
+const interopIndicatorSet = new Set(eyePrologInteropLibraryIndicators);
+const interopLibraryModuleSet = new Set(eyePrologInteropLibraryModules);
+
+function libraryDesignationName(designation) {
+  return designation?.type === COMPOUND && designation.name === 'library' && designation.arity === 1 &&
+    designation.args[0]?.type === ATOM
+    ? designation.args[0].name
+    : null;
+}
+
+function bundledLibraryModule(program, module) {
+  return module !== 'user' && program.modules.get(module)?.filename?.startsWith('src/lib/');
+}
+
+function groupDependencies(group) {
+  const dependencies = [];
+  for (const clause of group.clauses) {
+    if (isCompactBinaryClause(clause)) {
+      if (clause.bodyName != null) {
+        dependencies.push({
+          key: `${clause.bodyName}/2`,
+          name: clause.bodyName,
+          arity: 2,
+          module: clause.module ?? group.module,
+        });
+      }
+      continue;
+    }
+    for (const goal of clause.body) {
+      dependencies.push(...collectGoalDependencies(goal, false, true));
+    }
+  }
+  return dependencies;
+}
+
+function parseInteropGoalInputs(inputs, options, program) {
+  if (inputs == null) return [];
+  const values = Array.isArray(inputs) ? inputs : [inputs];
+  return values.filter((value) => value != null).map((value) => {
+    if (typeof value !== 'string') return value;
+    return parseGoalText(value, {
+      doubleQuotes: options.parserFlagState?.doubleQuotes ?? options.doubleQuotes ?? program.doubleQuotes ?? 'chars',
+      operatorDefinitions: [...program.operators.values()],
+      isoStrict: options.isoStrict === true,
+    });
+  });
+}
+
+function extraGoalDependencies(goals) {
+  const dependencies = [];
+  for (const goal of goals) dependencies.push(...collectGoalDependencies(goal, false, true));
+  return dependencies;
+}
+
+function interopAutoloadRequests(program, extraGoals = []) {
+  const requests = new Map();
+  for (const group of program.groups.values()) {
+    if (bundledLibraryModule(program, group.module)) continue;
+    for (const dependency of groupDependencies(group)) {
+      const targetModule = dependency.module ?? group.module;
+      if (program.findGroup(dependency.name, dependency.arity, targetModule)) continue;
+      const library = eyePrologInteropAutoload[dependency.key];
+      if (library == null) continue;
+      const requestKey = `${targetModule}\u0000${dependency.key}`;
+      requests.set(requestKey, {
+        targetModule,
+        library,
+        name: dependency.name,
+        arity: dependency.arity,
+        key: dependency.key,
+      });
+    }
+  }
+  for (const goal of program.initializations) {
+    for (const dependency of collectGoalDependencies(goal, false, true)) {
+      const targetModule = dependency.module ?? 'user';
+      if (program.findGroup(dependency.name, dependency.arity, targetModule)) continue;
+      const library = eyePrologInteropAutoload[dependency.key];
+      if (library == null) continue;
+      const requestKey = `${targetModule}\u0000${dependency.key}`;
+      requests.set(requestKey, {
+        targetModule,
+        library,
+        name: dependency.name,
+        arity: dependency.arity,
+        key: dependency.key,
+      });
+    }
+  }
+  for (const dependency of extraGoalDependencies(extraGoals)) {
+    const targetModule = dependency.module ?? 'user';
+    if (program.findGroup(dependency.name, dependency.arity, targetModule)) continue;
+    const library = eyePrologInteropAutoload[dependency.key];
+    if (library == null) continue;
+    const requestKey = `${targetModule}\u0000${dependency.key}`;
+    requests.set(requestKey, {
+      targetModule,
+      library,
+      name: dependency.name,
+      arity: dependency.arity,
+      key: dependency.key,
+    });
+  }
+  return [...requests.values()];
+}
+
+function autoloadInteropDependencies(builder, options, ensured, loadedModules, extraGoals = []) {
+  const program = builder.program;
+  while (true) {
+    const requests = interopAutoloadRequests(program, extraGoals);
+    if (requests.length === 0) return;
+    let changed = false;
+    for (const request of requests) {
+      if (program.findGroup(request.name, request.arity, request.targetModule)) continue;
+      if (!loadedModules.has(request.library)) {
+        const designation = compound('library', [atom(request.library)]);
+        const loaded = readModuleSource(designation, options);
+        const childContext = { module: loaded.name };
+        // Bundled library sources are small and directive-heavy.  Parse them
+        // with the general parser even when the user source took the compact
+        // fast path; this avoids rebuilding otherwise-fast user programs.
+        if (!loadSourceIntoBuilder(
+          builder, loaded.text, loaded.options, ensured, loadedModules, false, childContext,
+        )) {
+          throw new Error(`could not autoload library(${request.library})`);
+        }
+      }
+      program.importModule(request.targetModule, request.library, [request]);
+      program.autoloadedPredicates.push({
+        targetModule: request.targetModule,
+        library: request.library,
+        indicator: request.key,
+      });
+      changed = true;
+    }
+    if (!changed) return;
+  }
+}
+
+function analyzeInteropPortability(program, extraGoals = []) {
+  const warnings = new Map();
+  const nonInteropImports = new Map();
+  for (const entry of program.libraryImports) {
+    if (bundledLibraryModule(program, entry.targetModule)) continue;
+    if (!interopLibraryModuleSet.has(entry.library)) {
+      warnings.set(`library:${entry.targetModule}:${entry.library}`, {
+        kind: 'library',
+        library: entry.library,
+        targetModule: entry.targetModule,
+      });
+      const libraries = nonInteropImports.get(entry.targetModule) ?? new Set();
+      libraries.add(entry.library);
+      nonInteropImports.set(entry.targetModule, libraries);
+      continue;
+    }
+    if (entry.imports != null) {
+      for (const indicator of entry.imports) {
+        if (interopIndicatorSet.has(indicator.key)) continue;
+        warnings.set(`predicate:${entry.targetModule}:${entry.library}:${indicator.key}`, {
+          kind: 'predicate',
+          library: entry.library,
+          indicator: indicator.key,
+          targetModule: entry.targetModule,
+        });
+      }
+    }
+  }
+
+  for (const group of program.groups.values()) {
+    if (bundledLibraryModule(program, group.module)) continue;
+    for (const dependency of groupDependencies(group)) {
+      const targetModule = dependency.module ?? group.module;
+      const resolved = program.findGroup(dependency.name, dependency.arity, targetModule);
+      if (!resolved || !bundledLibraryModule(program, resolved.module)) continue;
+      if (interopIndicatorSet.has(dependency.key)) continue;
+      if (nonInteropImports.get(targetModule)?.has(resolved.module)) continue;
+      warnings.set(`predicate:${targetModule}:${resolved.module}:${dependency.key}`, {
+        kind: 'predicate',
+        library: resolved.module,
+        indicator: dependency.key,
+        targetModule,
+      });
+    }
+  }
+
+  for (const dependency of extraGoalDependencies(extraGoals)) {
+    const targetModule = dependency.module ?? 'user';
+    const resolved = program.findGroup(dependency.name, dependency.arity, targetModule);
+    if (!resolved || !bundledLibraryModule(program, resolved.module)) continue;
+    if (interopIndicatorSet.has(dependency.key)) continue;
+    if (nonInteropImports.get(targetModule)?.has(resolved.module)) continue;
+    warnings.set(`predicate:${targetModule}:${resolved.module}:${dependency.key}`, {
+      kind: 'predicate',
+      library: resolved.module,
+      indicator: dependency.key,
+      targetModule,
+    });
+  }
+  program.interopPortabilityWarnings = [...warnings.values()];
 }
 
 function sourceOptionsFor(source, options) {
@@ -736,6 +960,14 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       flush();
       clause.module = context.module;
       builder.addClauses([clause]);
+      const libraryName = libraryDesignationName(use.designation);
+      if (libraryName != null) {
+        builder.program.libraryImports.push({
+          targetModule: context.module,
+          library: libraryName,
+          imports: use.imports == null ? null : use.imports.map((indicator) => ({ ...indicator })),
+        });
+      }
       const loaded = readModuleSource(use.designation, options);
       if (!loadedModules.has(loaded.name)) {
         const childContext = { module: loaded.name };

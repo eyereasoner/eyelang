@@ -1065,7 +1065,6 @@ safe_reading(Sensor, Value) :-
 already-bound value:
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 square(N, Square) :-
@@ -5975,8 +5974,8 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **99 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **60 are defined as ordinary Prolog
+EyeProlog exposes **102 library predicate indicators** in addition to the 129
+indicators in its isolated ISO profile. **63 are defined as ordinary Prolog
 clauses** in focused modules under `src/lib/`. The remaining 39
 are public wrappers around backtrackable host support: Prologue `call_nth/2` and
 `freeze/2`, plus the 37-predicate finite-domain `library(clpz)` kernel. The
@@ -5994,9 +5993,10 @@ only the modules it needs, and
 module implements p.p.1 through p.p.11 of the
 [working-draft Prologue](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue),
 with the published Prologue, `call_nth/2`, and `length/2` quads retained as
-offline regressions. `src/standard-library.js` registers the module sources and
-private control and constraint adapters for Node and browser resolution, and never adds clauses
-implicitly.
+offline regressions. `src/standard-library.js` registers the module sources and private control and
+constraint adapters for Node and browser resolution. Explicit `use_module/1-2`
+loads remain supported; outside strict ISO mode, the conservative interop
+autoloader may also load a module for one uniquely mapped common predicate.
 The core registry remains available through `createDefaultRegistry()` and
 `getDefaultRegistry()` for low-level embedding. The stricter Part 1 +
 Corrigenda registry is exposed as `createStrictIsoRegistry()` and
@@ -6018,7 +6018,7 @@ between solution branches.
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
 | `library(dates)` | `difference/3` |
 | `library(iso_ext)` | `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2` |
-| `library(lists)` | `maplist/3`, `append/3`, `member/2`, `select/3`, `last/2`, `nth0/3`, `nth1/3`, `reverse/2`, `length/2`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `countall/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
+| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `countall/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
 | `library(primes)` | `smallest_divisor_from/3` |
 | `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` |
 | `library(random)` | `random/3` |
@@ -6026,6 +6026,35 @@ between solution branches.
 | `library(uuid)` | `uuid/3` |
 
 <!-- eyeprolog-library-catalog:end -->
+
+#### Interoperability profile and conservative autoloading
+
+The full EyeProlog library is larger than the deliberately conservative
+EyeProlog/Trealla/Scryer source-interoperability profile. The two concepts are
+kept separate: a predicate can be implemented as ordinary portable Prolog and
+still have an API that is not shared by the other systems.
+
+`library(lists)` is the first aligned common module. Its interop surface includes
+`member/2`, `memberchk/2`, `select/3`, `append/2-3`, `last/2`,
+`same_length/2`, `nth0/3-4`, `nth1/3-4`, `reverse/2`, `length/2`,
+`maplist/2-8`, `foldl/4-6`, `sum_list/2`, and `list_to_set/2`. EyeProlog-only
+helpers such as `set_nth0/4`, `take/3`, `drop/3`, and `slice/4` remain available
+for compatibility but are outside this profile.
+
+Normal EyeProlog execution can autoload an otherwise undefined unqualified call
+only when the interop table assigns it one canonical provider. Thus `member/2`
+autoloads from `library(lists)`. `between/3` is also in the interop profile;
+EyeProlog can satisfy it from its internal `library(prologue)` implementation
+without forcing portable source to mention that EyeProlog-specific library
+name. Autoloading is disabled by `--no-autoload`, by the JavaScript option
+`autoload: false`, and always by `--iso-strict`.
+
+`-w` / `--warnings` reports explicit non-profile library dependencies and calls
+to non-profile predicates from common libraries. `--portable` turns those
+portability diagnostics into a failing command, making the profile suitable for
+continuous integration. `npm run test:interop` executes the same Sudoku source
+under EyeProlog, Trealla, and Scryer when those commands are installed; the
+repository's interoperability workflow installs them and runs that check.
 
 `library(clpz)` follows the Trealla and Scryer convention for constraint logic
 programming over integers. Its first implementation step provides finite
@@ -6420,7 +6449,9 @@ make the observed question explicit.
 | `-h`, `--help` | Show usage |
 | `-p`, `--proof` | Print `why/2` explanations |
 | `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
-| `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions and disable automatic tabling |
+| `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions, disable interop autoloading, and disable automatic tabling |
+| `--portable` | Enforce the conservative EyeProlog/Trealla/Scryer interoperability profile |
+| `--no-autoload` | Disable conservative interop predicate autoloading |
 | `-s`, `--stats` | Print final solver and memory statistics to stderr after execution |
 | `-v`, `--version` | Print the package version |
 | `-w`, `--warnings` | Print non-fatal portability warnings |
@@ -6434,8 +6465,9 @@ retains the Part 1 prefix `(?-)/1` operator and treats `-->/2` as ordinary Part
 1 operator syntax; it does not perform Part 3 grammar-rule expansion or expose
 `phrase/2-3`. Part 2 module directives and EyeProlog libraries are rejected,
 the implementation-specific `occurs_check` flag is absent, and automatic
-tabling/recursion guards are disabled. Normal mode is unchanged and continues
-to support Parts 2–3 and EyeProlog extensions.
+tabling/recursion guards are disabled. Normal mode continues to support Parts
+2–3 and EyeProlog extensions, plus conservative interop autoloading for the
+profile documented above.
 
 Inputs may be local files, HTTP(S) URLs, or one `-` for stdin. The bare command
 `eyeprolog` starts the normal REPL; `eyeprolog --iso-strict` starts the strict
@@ -6462,7 +6494,7 @@ Work in a fixed sequence:
 2. run without observation flags and compare stdout with that prediction;
 3. add `--proof` when the support for an answer is the question;
 4. add `--warnings` when portability or negative dependencies are the
-   question;
+   question; use `--portable` when non-profile dependencies must fail CI;
 5. add `--stats` only when comparing two executions of the same semantic case.
 
 For example:
@@ -6471,6 +6503,7 @@ For example:
 eyeprolog --goal 'ancestor(X, Y)' examples/ancestor.pl
 eyeprolog --proof --goal 'type(X, Y)' examples/socrates.pl
 eyeprolog --warnings --goal 'answer(X)' test/conformance/warnings/negation/unstratified_mutual.pl
+eyeprolog --portable --goal 'sudoku_solution(S)' examples/sudoku.pl
 eyeprolog --stats --goal 'path(a, X)' examples/path-discovery.pl > answers.pl 2> run.stats
 ```
 

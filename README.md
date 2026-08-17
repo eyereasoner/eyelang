@@ -123,8 +123,8 @@ noun --> [world] | [prolog].
 %% goal: phrase(sentence, Words)
 ```
 
-EyeProlog also adds 99 public library predicate indicators to its 129-entry ISO
-profile. **60 are implemented entirely as ordinary Prolog clauses** in focused
+EyeProlog also adds 102 public library predicate indicators to its 129-entry ISO
+profile. **63 are implemented entirely as ordinary Prolog clauses** in focused
 modules under `src/lib/`; the control predicates and finite-domain
 `library(clpz)` kernel use backtrackable host support.
 They are ISO/IEC 13211-2 modules loaded explicitly by purpose, such as
@@ -132,6 +132,35 @@ They are ISO/IEC 13211-2 modules loaded explicitly by purpose, such as
 Portable text
 predicates use ISO atoms or character lists. The old catch-all
 `library(eyeprolog)` module is no longer needed.
+
+## Trealla and Scryer interoperability
+
+EyeProlog keeps a conservative source-level interoperability profile separate
+from the larger EyeProlog library surface. `library(lists)` follows the common
+Trealla/Scryer organization for predicates such as `member/2`, `memberchk/2`,
+`append/2-3`, `nth0/3-4`, `nth1/3-4`, `maplist/2-8`, and `foldl/4-6`.
+
+Outside `--iso-strict`, an otherwise undefined unqualified call may autoload a
+predicate only when the interop profile has one canonical EyeProlog provider.
+For example, `member/2` autoloads from `library(lists)` and `between/3` can use
+EyeProlog's internal Prologue implementation without requiring portable source
+to name `library(prologue)`. Use `--no-autoload` to disable this convenience.
+Strict ISO mode never autoloads library predicates.
+
+Use `-w` / `--warnings` to diagnose dependencies outside the interop profile,
+or `--portable` to make such diagnostics fail the run. This catches both
+implementation-specific library names and EyeProlog-only predicates such as
+`set_nth0/4` even when they live in an otherwise common module.
+
+Cross-engine smoke tests live in `test/run-interop.mjs`. With Trealla (`tpl`)
+and Scryer (`scryer-prolog`) installed, run:
+
+```sh
+npm run test:interop
+```
+
+The GitHub interoperability workflow builds both implementations and runs the
+same portable Sudoku source under EyeProlog, Trealla, and Scryer.
 
 ## Development
 

@@ -1,3 +1,5 @@
+:- use_module(library(lists), [memberchk/2]).
+
 % Fast Fourier Transform
 % Code from the book "Clause and Effect" Chapter 10
 

@@ -1,4 +1,3 @@
-:- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
 
 % A deterministic 9x9 Sudoku solver.
@@ -108,6 +107,7 @@ segment_unused(Cells, StartColumn, Digit) :-
   Digit \= C.
 
 set_cell(Grid, Row, Column, Digit, Result) :-
-  nth0(Row, Grid, Cells),
-  set_nth0(Column, Cells, Digit, UpdatedCells),
-  set_nth0(Row, Grid, UpdatedCells, Result).
+  nth0(Row, Grid, Cells, OtherRows),
+  nth0(Column, Cells, _Old, OtherCells),
+  nth0(Column, UpdatedCells, Digit, OtherCells),
+  nth0(Row, Result, UpdatedCells, OtherRows).

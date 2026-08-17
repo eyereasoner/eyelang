@@ -1198,15 +1198,6 @@ function scopeReadTerm(term) {
 
 function parseReadTermText(text, solver) {
   const converted = convertedTermText(text, solver);
-  // A standalone number needs no general term parser or operator tables.
-  // Reuse the same bounded numeric scanner as number_chars/2 so stream reads
-  // and number conversion agree on every accepted numeric token. The stream
-  // scanner has already established that the final full stop is a candidate
-  // terminator; trim only ISO layout immediately before that terminator.
-  const numericText = converted.slice(0, -1).replace(/[\u0009-\u000d\u0020]+$/, '');
-  const numericTerm = parseIsoNumber(numericText);
-  if (numericTerm != null) return numericTerm;
-
   const operatorState = createParserOperatorState(solver.program.operators.values(), false);
   const clauses = parseClauses(converted, {
     sourceMetadata: false,

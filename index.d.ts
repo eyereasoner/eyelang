@@ -21,6 +21,8 @@ export interface EyePrologRunOptions {
   analyzeNegation?: boolean;
   /** Restrict parsing and execution to ISO/IEC 13211-1:1995 plus Corrigenda 1-3. */
   isoStrict?: boolean;
+  /** Autoload uniquely mapped predicates from the conservative interop profile. Defaults to true outside strict ISO mode. */
+  autoload?: boolean;
   /** Initial ISO interpretation of double-quoted list notation. Defaults to chars. */
   doubleQuotes?: 'chars' | 'codes' | 'atom';
   ioOptions?: {
@@ -248,6 +250,9 @@ export const standardLibrarySources: ReadonlyMap<string, { filename: string; sou
 export const eyePrologLibraryIndicators: readonly string[];
 export const eyePrologNativeLibraryIndicators: readonly string[];
 export const eyePrologPortableLibraryIndicators: readonly string[];
+export const eyePrologInteropAutoload: Readonly<Record<string, string>>;
+export const eyePrologInteropLibraryIndicators: readonly string[];
+export const eyePrologInteropLibraryModules: readonly string[];
 export class PrologError extends Error {
   formal: string;
   culprit: EyePrologTerm | null;
@@ -326,6 +331,9 @@ declare const eyeprolog: {
   eyePrologLibraryIndicators: typeof eyePrologLibraryIndicators;
   eyePrologNativeLibraryIndicators: typeof eyePrologNativeLibraryIndicators;
   eyePrologPortableLibraryIndicators: typeof eyePrologPortableLibraryIndicators;
+  eyePrologInteropAutoload: typeof eyePrologInteropAutoload;
+  eyePrologInteropLibraryIndicators: typeof eyePrologInteropLibraryIndicators;
+  eyePrologInteropLibraryModules: typeof eyePrologInteropLibraryModules;
   run: typeof run;
   runQuads: typeof runQuads;
   whyProof: typeof whyProof;

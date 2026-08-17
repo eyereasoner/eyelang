@@ -20,6 +20,9 @@ export {
   eyePrologLibraryIndicators,
   eyePrologNativeLibraryIndicators,
   eyePrologPortableLibraryIndicators,
+  eyePrologInteropAutoload,
+  eyePrologInteropLibraryIndicators,
+  eyePrologInteropLibraryModules,
 } from './standard-library.js';
 export { StreamManager } from './io.js';
 export { runQuads } from './quads.js';
@@ -39,7 +42,12 @@ export function run(source, options = {}) {
   if (source instanceof Program && requestedStrictIso && source.strictIso !== true) {
     throw new Error('strict ISO mode requires a Program parsed with isoStrict: true');
   }
-  const parseOptions = { ...options, sourceMetadata: includeWhy || requestedStrictIso };
+  const requestedGoals = options.goals ?? (options.goal == null ? [] : [options.goal]);
+  const parseOptions = {
+    ...options,
+    sourceMetadata: includeWhy || requestedStrictIso,
+    autoloadGoals: requestedGoals,
+  };
   let program = source instanceof Program ? source : Program.parse(source, parseOptions);
   const strictIso = requestedStrictIso || program.strictIso === true;
   const runOptions = strictIso

@@ -28,6 +28,8 @@ export async function main(argv) {
     quads: false,
     stats: false,
     isoStrict: false,
+    portable: false,
+    autoload: true,
     version: false,
     warnings: false,
     goals: [],
@@ -51,6 +53,10 @@ export async function main(argv) {
       options.stats = true;
     } else if (!endOptions && arg === '--iso-strict') {
       options.isoStrict = true;
+    } else if (!endOptions && arg === '--portable') {
+      options.portable = true;
+    } else if (!endOptions && arg === '--no-autoload') {
+      options.autoload = false;
     } else if (!endOptions && (arg === '--version' || arg === '-v')) {
       options.version = true;
     } else if (!endOptions && (arg === '--warnings' || arg === '-w')) {
@@ -146,9 +152,16 @@ export async function main(argv) {
   let program = engine.Program.parseSources(sourceParts, {
     sourceMetadata: options.proof || options.isoStrict,
     isoStrict: options.isoStrict,
+    autoload: options.autoload,
+    autoloadGoals: options.goals,
   });
 
-  if (options.warnings) printWarnings(program);
+  const portabilityFailures = program.interopPortabilityWarnings ?? [];
+  if (options.warnings || (options.portable && portabilityFailures.length > 0)) printWarnings(program);
+  if (options.portable && portabilityFailures.length > 0) {
+    process.exitCode = 1;
+    return;
+  }
 
   if (!options.quads || options.goals.length > 0) await runDefault(engine, program, options);
   if (options.quads) {
@@ -263,6 +276,8 @@ Options:
   -s, --stats           Print solver and memory statistics to stderr after execution.
   --iso-strict          Use ISO/IEC 13211-1 core + Corrigenda 1-3 only;
                         reject EyeProlog language extensions and disable automatic tabling.
+  --portable            Enforce the EyeProlog/Trealla/Scryer interop profile.
+  --no-autoload         Disable conservative interop predicate autoloading.
   -v, --version         Show the package version and exit.
   -w, --warnings        Print non-fatal portability warnings to stderr.
   -g, --goal goal       Solve goal and print its ground answers; may be repeated.
@@ -284,6 +299,16 @@ function readStdin() {
 }
 
 function printWarnings(program) {
+  for (const warning of program.interopPortabilityWarnings ?? []) {
+    if (warning.kind === 'library') {
+      process.stderr.write('eyeprolog warning: non-portable library dependency\n');
+      process.stderr.write(`  library(${warning.library}) is outside the EyeProlog/Trealla/Scryer interop profile\n`);
+    } else if (warning.kind === 'predicate') {
+      process.stderr.write('eyeprolog warning: non-portable library predicate\n');
+      process.stderr.write(`  ${warning.indicator} from library(${warning.library}) is outside the interop profile\n`);
+    }
+  }
+
   const errors = program.negationStratificationErrors;
   if (errors.length === 0) return;
 
