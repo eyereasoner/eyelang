@@ -23,6 +23,13 @@ export function currentWorkingDirectory() {
   return isNode && typeof process.cwd === 'function' ? process.cwd() : '/';
 }
 
+function oldGenerationUsedSize() {
+  if (!isNode || typeof v8?.getHeapSpaceStatistics !== 'function') return null;
+  return v8.getHeapSpaceStatistics()
+    .filter(({ space_name: name }) => name !== 'read_only_space' && !name.startsWith('new_'))
+    .reduce((total, { space_used_size: size }) => total + size, 0);
+}
+
 export function usedHeapSize() {
   if (isNode && typeof process.memoryUsage === 'function') {
     // --max-old-space-size constrains V8's old generation, not the complete
@@ -30,16 +37,39 @@ export function usedHeapSize() {
     // with total heap use makes bursts of collectible new-space objects look
     // like retained memory. Measure the corresponding non-young spaces when
     // an old-space limit was supplied.
-    if (configuredOldSpaceLimit != null && typeof v8?.getHeapSpaceStatistics === 'function') {
-      const spaces = v8.getHeapSpaceStatistics();
-      return spaces
-        .filter(({ space_name: name }) => name !== 'read_only_space' && !name.startsWith('new_'))
-        .reduce((total, { space_used_size: size }) => total + size, 0);
+    if (configuredOldSpaceLimit != null) {
+      const oldGeneration = oldGenerationUsedSize();
+      if (oldGeneration != null) return oldGeneration;
     }
     return process.memoryUsage().heapUsed;
   }
   const memory = globalThis.performance?.memory;
   return Number.isFinite(memory?.usedJSHeapSize) ? memory.usedJSHeapSize : null;
+}
+
+export function memoryStatistics() {
+  const stats = {};
+  if (isNode && typeof process.memoryUsage === 'function') {
+    const memory = process.memoryUsage();
+    stats.memory_heap_used_bytes = memory.heapUsed;
+    const oldGeneration = oldGenerationUsedSize();
+    if (oldGeneration != null) stats.memory_old_generation_used_bytes = oldGeneration;
+    stats.memory_guard_used_bytes = configuredOldSpaceLimit != null && oldGeneration != null
+      ? oldGeneration
+      : memory.heapUsed;
+    stats.memory_rss_bytes = memory.rss;
+  } else {
+    const memory = globalThis.performance?.memory;
+    if (Number.isFinite(memory?.usedJSHeapSize)) {
+      stats.memory_heap_used_bytes = memory.usedJSHeapSize;
+      stats.memory_guard_used_bytes = memory.usedJSHeapSize;
+    }
+  }
+  const softLimit = softHeapLimit();
+  const hardLimit = hardHeapLimit();
+  if (Number.isFinite(softLimit)) stats.memory_soft_limit_bytes = softLimit;
+  if (Number.isFinite(hardLimit)) stats.memory_hard_limit_bytes = hardLimit;
+  return stats;
 }
 
 export function softHeapLimit() {

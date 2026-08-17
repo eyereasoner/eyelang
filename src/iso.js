@@ -1715,21 +1715,22 @@ function numberListBuiltin(kind) {
     const list = deref(goal.args[1], env);
     if (value.type === VAR && list.type === VAR) throw new PrologError('instantiation_error');
     const text = numberListText(list, env, kind, value.type === NUMBER);
-    const next = env.clone();
     if (value.type === NUMBER) {
       if (text != null) {
         const parsed = parseIsoNumber(text);
         if (parsed == null) throw numberSyntaxError;
-        if (sameNumber(value, parsed)) yield next;
+        if (sameNumber(value, parsed)) yield env.clone();
         return;
       }
       const items = characters(canonicalNumberText(value)).map((ch) =>
         kind === 'chars' ? atom(ch) : numberTerm(ch.codePointAt(0)));
+      const next = env.clone();
       if (unify(goal.args[1], listFromItems(items), next)) yield next;
       return;
     }
     const parsed = parseIsoNumber(text);
     if (parsed == null) throw numberSyntaxError;
+    const next = env.clone();
     if (unify(goal.args[0], parsed, next)) yield next;
   };
 }
@@ -1979,36 +1980,59 @@ function* phraseBuiltin({ solver, goal, env }) {
     solver.absorbStatsFrom(child);
   }
 }
-export function formalErrorTerm(error) {
-  const context = error.contextTerm ?? atom('eyeprolog');
-  if (error.formalTerm != null) return compound('error', [error.formalTerm, context]);
-  const parse = (text) => {
-    const open = text.indexOf('(');
-    if (open === -1) return atom(text);
-    const name = text.slice(0, open);
-    const inner = text.slice(open + 1, -1);
-    const args = [];
-    let start = 0;
-    let depth = 0;
-    for (let i = 0; i <= inner.length; i++) {
-      const ch = inner[i];
-      if (ch === '(') depth++;
-      else if (ch === ')') depth--;
-      else if ((ch === ',' || i === inner.length) && depth === 0) {
-        args.push(parse(inner.slice(start, i).trim()));
-        start = i + 1;
-      }
+const defaultErrorContext = atom('eyeprolog');
+
+function parseFormalErrorTerm(text) {
+  const open = text.indexOf('(');
+  if (open === -1) return atom(text);
+  const name = text.slice(0, open);
+  const inner = text.slice(open + 1, -1);
+  const args = [];
+  let start = 0;
+  let depth = 0;
+  for (let i = 0; i <= inner.length; i++) {
+    const ch = inner[i];
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    else if ((ch === ',' || i === inner.length) && depth === 0) {
+      args.push(parseFormalErrorTerm(inner.slice(start, i).trim()));
+      start = i + 1;
     }
-    return compound(name, args);
-  };
-  let formal = parse(error.formal);
+  }
+  return compound(name, args);
+}
+
+function hasDefaultGroundErrorShape(error) {
+  return error.formalTerm == null && error.culprit == null && error.contextTerm == null;
+}
+
+export function formalErrorTerm(error) {
+  // Reused processor errors can occur hundreds of thousands of times in a
+  // caught failure loop. Cache their immutable ground error/2 term on the
+  // error object itself instead of rebuilding the same tree on every catch.
+  if (hasDefaultGroundErrorShape(error) && error._groundErrorTerm != null) {
+    return error._groundErrorTerm;
+  }
+
+  const context = error.contextTerm ?? defaultErrorContext;
+  let formal = error.formalTerm ?? parseFormalErrorTerm(error.formal);
   if (error.culprit != null) {
     if (formal.type === COMPOUND) formal = compound(formal.name, [...formal.args, error.culprit]);
     else if (formal.type === ATOM && formal.name === 'uninstantiation_error') {
       formal = compound(formal.name, [error.culprit]);
     }
   }
-  return compound('error', [formal, context]);
+  const term = compound('error', [formal, context]);
+  if (hasDefaultGroundErrorShape(error)) error._groundErrorTerm = term;
+  return term;
+}
+
+function prologErrorBall(error) {
+  const term = formalErrorTerm(error);
+  // Ground terms are immutable from unification's perspective: bindings are
+  // recorded only in the catcher Env, so copying them is unnecessary.
+  if (hasDefaultGroundErrorShape(error) || termIsGround(term)) return term;
+  return freshCopy(term, new Env());
 }
 function* catchBuiltin({ solver, goal, env }) {
   const child = solver.cloneForInnerGoal();
@@ -2020,7 +2044,7 @@ function* catchBuiltin({ solver, goal, env }) {
     const ball = error instanceof ThrownTerm
       ? error.term
       : error instanceof PrologError
-        ? freshCopy(formalErrorTerm(error), new Env())
+        ? prologErrorBall(error)
         : null;
     if (ball == null) throw error;
     const recovered = env.clone();

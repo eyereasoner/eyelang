@@ -39,6 +39,7 @@ import {
   parseProgramText,
 } from '../src/index.js';
 import { ISO_OPERATOR_DEFINITIONS, parseGoalText, parseNumberTokenText } from '../src/parser.js';
+import { PrologError, formalErrorTerm } from '../src/iso.js';
 import { compareTerms } from '../src/term.js';
 import { formatTermForWrite } from '../src/write.js';
 import { selectClauseCandidates } from '../src/program.js';
@@ -1939,13 +1940,29 @@ c4 ?- call((!;1)).
 
 
     {
-      name: '--stats prints solver statistics to stderr',
+      name: '--stats prints solver and memory statistics to stderr',
       run: () => {
         const result = runCli(['--stats', '-'], { input: '%% goal: q(X, Y)\np(a, b).\nq(X, Y) :- p(X, Y).\n' });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, 'q(a, b).\n', 'stdout');
         assertIncludes(result.stderr, 'eyeprolog stats:\n', 'stderr');
         assertIncludes(result.stderr, '  solve_goals_calls:', 'stderr');
+        assertIncludes(result.stderr, '  memory_heap_used_bytes:', 'stderr');
+        assertIncludes(result.stderr, '  memory_old_generation_used_bytes:', 'stderr');
+        assertIncludes(result.stderr, '  memory_guard_used_bytes:', 'stderr');
+        assertIncludes(result.stderr, '  memory_rss_bytes:', 'stderr');
+        assertIncludes(result.stderr, '  memory_soft_limit_bytes:', 'stderr');
+        assertIncludes(result.stderr, '  memory_hard_limit_bytes:', 'stderr');
+      },
+    },
+    {
+      name: '--stats is still printed when a query raises an error',
+      run: () => {
+        const result = runCli(['--stats', '-'], { input: "%% goal: number_chars(N, ['x'])\n" });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'eyeprolog stats:\n', 'stderr');
+        assertIncludes(result.stderr, '  memory_heap_used_bytes:', 'stderr');
+        assertIncludes(result.stderr, 'eyeprolog: error(syntax_error(number))', 'stderr');
       },
     },
     {
@@ -2960,6 +2977,15 @@ open(X) :- candidate(X), \\+ closed(X).
       },
     },
     {
+      name: 'ground Prolog error terms are reused across catches',
+      run: () => {
+        const error = new PrologError('syntax_error(number)');
+        const first = formalErrorTerm(error);
+        const second = formalErrorTerm(error);
+        assertEqual(first === second, true, 'reused ground error term');
+      },
+    },
+    {
       name: 'caught number syntax errors do not exhaust memory on distinct inputs',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;
@@ -2979,22 +3005,22 @@ open(X) :- candidate(X), \\+ closed(X).
           const goal = parseGoalText('trial(Chars)');
           let count = 0;
           for (const _ of solver.solve([goal], new Env(), 0)) {
-            if (++count === 50000) break;
+            if (++count === 250000) break;
           }
-          if (count !== 50000) throw new Error('unexpected answer count: ' + count);
+          if (count !== 250000) throw new Error('unexpected answer count: ' + count);
           process.stdout.write(String(count));
         `;
         const result = spawnSync(process.execPath, [
-          // A smaller heap preserves the original false-exhaustion signal
-          // without requiring half a million transient conversion attempts.
+          // Run well past the roughly 126,000-answer failure reported in #28
+          // while keeping the host heap deliberately constrained.
           '--max-old-space-size=32',
           '--input-type=module',
           '--eval',
           script,
-        ], { cwd: packageRoot, encoding: 'utf8', timeout: 10000 });
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
-        assertEqual(result.stdout, '50000', 'distinct number syntax attempts');
+        assertEqual(result.stdout, '250000', 'distinct number syntax attempts');
       },
     },
     {

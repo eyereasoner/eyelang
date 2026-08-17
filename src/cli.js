@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { goalsFromSource } from './goal-metadata.js';
+import { memoryStatistics } from './platform.js';
 
 let engineModule = null;
 let explanationModule = null;
@@ -230,9 +231,9 @@ async function runDefault(engine, program, options) {
   } catch (error) {
     if (error?.name !== 'HaltSignal') throw error;
     process.exitCode = error.code;
+  } finally {
+    if (options.stats) printStats(solver.stats);
   }
-
-  if (options.stats) printStats(solver.stats);
 }
 
 function writeExplanation(explanation, program, resolved, registry) {
@@ -259,7 +260,7 @@ Options:
   -h, --help            Show this help text and exit.
   -p, --proof           Enable proof explanations.
   -q, --quads           Run embedded quad tests and fail if any do not hold.
-  -s, --stats           Print solver statistics to stderr after execution.
+  -s, --stats           Print solver and memory statistics to stderr after execution.
   --iso-strict          Use ISO/IEC 13211-1 core + Corrigenda 1-3 only;
                         reject EyeProlog language extensions and disable automatic tabling.
   -v, --version         Show the package version and exit.
@@ -294,7 +295,7 @@ function printWarnings(program) {
 
 function printStats(stats) {
   process.stderr.write('eyeprolog stats:\n');
-  for (const [key, value] of Object.entries(stats)) {
+  for (const [key, value] of Object.entries({ ...stats, ...memoryStatistics() })) {
     process.stderr.write(`  ${key}: ${value}\n`);
   }
 }
