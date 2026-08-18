@@ -21,7 +21,10 @@ processor-requirement ledger for the Part 1 strict-core audit. This suite is
 still not an independent certification of every processor requirement, lexical
 edge, option combination, or prescribed error precedence. Cases under `iso/`
 identify standards-derived behavior; other directories cover EyeProlog host
-contracts and extensions.
+contracts and extensions. EyeProlog-only execution features such as automatic
+tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core
+claim. Their focused semantic coverage lives primarily in regression tests;
+`tnot/1` is absent from the strict ISO registry.
 
 All conformance files live under topic directories such as `arithmetic/`, `lists/`, `syntax/`, or `variables/`; new top-level numbered files should not be added. The report uses those directories as coverage categories.
 

@@ -166,6 +166,8 @@ export class Program {
       tabled: false,
       recursive: false,
       tableInputPositions: [],
+      tableAllVariants: false,
+      wfsDatalog: false,
       scalarFactsOnly: true,
       dynamic: this.dynamicPredicates.has(modulePredicateKey(module, name, arity)),
       negationStratum: null,
@@ -308,6 +310,7 @@ export class Program {
     const deps = groups.map(() => new Set());
     const cutDeps = groups.map(() => new Set());
     const negativeEdges = [];
+    const wfsNegativeEdges = [];
     for (const group of groups) {
       const groupIndex = indexByGroup.get(group);
       for (const clause of group.clauses) {
@@ -337,12 +340,16 @@ export class Program {
             if (dep) {
               const dependencyIndex = indexByGroup.get(dep);
               deps[groupIndex].add(dependencyIndex);
-              if (dependency.negative) negativeEdges.push([groupIndex, dependencyIndex]);
+              if (dependency.negative) {
+                negativeEdges.push([groupIndex, dependencyIndex]);
+                if (dependency.wfs === true) wfsNegativeEdges.push([groupIndex, dependencyIndex]);
+              }
             }
           }
         }
       }
     }
+    const finiteDatalogCache = new Map();
     for (const group of groups) {
       const start = indexByGroup.get(group);
       const standardLibraryModule = group.module !== 'user' &&
@@ -386,6 +393,31 @@ export class Program {
         !componentHasNegativeEdge(start, deps, negativeEdges) &&
         !group.cutRecursive &&
         !linearNumeric;
+      // Function-free positive recursive rules have a finite Herbrand base.
+      // They can safely use a shared most-general table, which avoids computing
+      // a separate recursive closure for every bound input (TC/SG/Wine style).
+      group.tableAllVariants = group.tabled && isFiniteDatalogGroup(this, group, finiteDatalogCache) &&
+        datalogDependencyClauseCount(this, group) >= 128;
+    }
+
+    // Explicit tnot/1 opts finite, function-free Datalog into well-founded
+    // evaluation.  Keep ISO \+/1 and not/1 on their existing negation-as-failure
+    // path: WFS is an extension with different three-valued semantics and must
+    // not silently change ordinary Prolog programs.  A group is WFS-backed when
+    // its dependency cone reaches an SCC containing an edge introduced by
+    // tnot/1 and the whole cone is range-restricted finite Datalog.
+    const wfsCycleNodes = new Set();
+    for (const [from, to] of wfsNegativeEdges) {
+      if (!reachableIndexes(to, deps).has(from)) continue;
+      wfsCycleNodes.add(from);
+      wfsCycleNodes.add(to);
+    }
+    const finiteWfsCache = new Map();
+    for (const group of groups) {
+      const start = indexByGroup.get(group);
+      const reachable = reachableIndexes(start, deps);
+      const reachesWfsCycle = [...wfsCycleNodes].some((index) => reachable.has(index));
+      group.wfsDatalog = reachesWfsCycle && isFiniteWfsDatalogGroup(this, group, finiteWfsCache);
     }
   }
 
@@ -1253,6 +1285,135 @@ function reachableIndexes(start, deps) {
   return seen;
 }
 
+
+function isFiniteDatalogArgument(term) {
+  return term?.type === VAR || term?.type === ATOM || term?.type === 'string' || term?.type === 'number';
+}
+
+function datalogDependencyClauseCount(program, group, seen = new Set()) {
+  if (seen.has(group)) return 0;
+  seen.add(group);
+  let count = group.clauses.length;
+  for (const clause of group.clauses) {
+    if (isCompactBinaryClause(clause)) {
+      if (clause.bodyName != null) {
+        const target = program.findGroup(clause.bodyName, 2, group.module);
+        if (target) count += datalogDependencyClauseCount(program, target, seen);
+      }
+      continue;
+    }
+    for (const goal of clause.body) {
+      if (goal.type !== COMPOUND && goal.type !== ATOM) continue;
+      const target = program.findGroup(goal.name, goal.arity, goal.module ?? group.module);
+      if (target) count += datalogDependencyClauseCount(program, target, seen);
+    }
+  }
+  return count;
+}
+
+function isFiniteDatalogGroup(program, group, cache = new Map(), visiting = new Set()) {
+  const cached = cache.get(group);
+  if (cached != null) return cached;
+  if (visiting.has(group)) return true;
+  visiting.add(group);
+  let finite = true;
+  for (const clause of group.clauses) {
+    if (isCompactBinaryClause(clause)) {
+      if (clause.bodyName != null) {
+        const target = program.findGroup(clause.bodyName, 2, group.module);
+        if (!target || !isFiniteDatalogGroup(program, target, cache, visiting)) { finite = false; break; }
+      }
+      continue;
+    }
+    if (clause.head.type === COMPOUND && !clause.head.args.every(isFiniteDatalogArgument)) { finite = false; break; }
+    if (clause.head.type !== COMPOUND && clause.head.type !== ATOM) { finite = false; break; }
+    for (const goal of clause.body) {
+      if (goal.type !== COMPOUND && goal.type !== ATOM) { finite = false; break; }
+      if (goal.type === COMPOUND && !goal.args.every(isFiniteDatalogArgument)) { finite = false; break; }
+      // Walk the whole positive dependency cone.  Requiring every reachable
+      // predicate to be source-defined and flat excludes builtins/generators
+      // that could manufacture an unbounded stream of fresh terms.
+      const target = program.findGroup(goal.name, goal.arity, goal.module ?? group.module);
+      if (!target || !isFiniteDatalogGroup(program, target, cache, visiting)) { finite = false; break; }
+    }
+    if (!finite) break;
+  }
+  visiting.delete(group);
+  cache.set(group, finite);
+  return finite;
+}
+
+
+function isFiniteWfsDatalogGroup(program, group, cache = new Map(), visiting = new Set()) {
+  const cached = cache.get(group);
+  if (cached != null) return cached;
+  if (visiting.has(group)) return true;
+  visiting.add(group);
+  let finite = true;
+
+  for (const clause of group.clauses) {
+    if (isCompactBinaryClause(clause)) {
+      if (clause.bodyName != null) {
+        const target = program.findGroup(clause.bodyName, 2, group.module);
+        if (!target || !isFiniteWfsDatalogGroup(program, target, cache, visiting)) { finite = false; break; }
+      }
+      continue;
+    }
+    if ((clause.head.type !== COMPOUND && clause.head.type !== ATOM) ||
+        (clause.head.type === COMPOUND && !clause.head.args.every(isFiniteDatalogArgument))) {
+      finite = false;
+      break;
+    }
+
+    const positiveVariables = new Set();
+    const requiredVariables = new Set();
+    collectVariables(clause.head, requiredVariables);
+    for (const goal of clause.body) {
+      if (goal.type !== COMPOUND && goal.type !== ATOM) { finite = false; break; }
+      if (goal.type === COMPOUND && goal.name === 'tnot' && goal.arity === 1) {
+        const inner = goal.args[0];
+        if ((inner.type !== COMPOUND && inner.type !== ATOM) ||
+            (inner.type === COMPOUND && !inner.args.every(isFiniteDatalogArgument))) {
+          finite = false;
+          break;
+        }
+        collectVariables(inner, requiredVariables);
+        const target = program.findGroup(inner.name, inner.arity, inner.module ?? group.module);
+        if (!target || !isFiniteWfsDatalogGroup(program, target, cache, visiting)) { finite = false; break; }
+        continue;
+      }
+      // WFS is explicit. Ordinary \+/1 and not/1 retain NAF and therefore
+      // disqualify this component from the WFS evaluator.
+      if (goal.type === COMPOUND && (goal.name === '\\+' || goal.name === 'not')) {
+        finite = false;
+        break;
+      }
+      if (goal.type === COMPOUND && !goal.args.every(isFiniteDatalogArgument)) { finite = false; break; }
+      collectVariables(goal, positiveVariables);
+      const target = program.findGroup(goal.name, goal.arity, goal.module ?? group.module);
+      if (!target || !isFiniteWfsDatalogGroup(program, target, cache, visiting)) { finite = false; break; }
+    }
+    if (!finite) break;
+    for (const name of requiredVariables) {
+      if (!positiveVariables.has(name)) { finite = false; break; }
+    }
+    if (!finite) break;
+  }
+
+  visiting.delete(group);
+  cache.set(group, finite);
+  return finite;
+}
+
+function collectVariables(term, output) {
+  if (!term) return;
+  if (term.type === VAR) {
+    output.add(term.name);
+    return;
+  }
+  for (const arg of term.args ?? []) collectVariables(arg, output);
+}
+
 function inferStructuralInputPositions(group) {
   let firstPatternedPosition = -1;
   let firstLinkedInputPosition = -1;
@@ -1377,7 +1538,7 @@ function directGoalDependencyKey(goal) {
   if (goal.type === ATOM) return `${goal.name}/0`;
   if (goal.type !== COMPOUND) return null;
   if (goal.name === ',' && goal.arity === 2) return null;
-  if ((goal.name === '\\+' || goal.name === 'not') && goal.arity === 1) return null;
+  if ((goal.name === '\\+' || goal.name === 'not' || goal.name === 'tnot') && goal.arity === 1) return null;
   if (goal.name === 'once' && goal.arity === 1) return null;
   if (goal.name === 'forall' && goal.arity === 2) return null;
   if ((goal.name === 'findall' || goal.name === 'sumall') && goal.arity === 3) return null;
@@ -1386,43 +1547,46 @@ function directGoalDependencyKey(goal) {
   return `${goal.name}/${goal.arity}`;
 }
 
-function collectGoalDependencies(goal, negated, traverseConditionals = false) {
-  if (goal.type === ATOM) return [{ key: `${goal.name}/0`, name: goal.name, arity: 0, module: goal.module, negative: negated }];
+function collectGoalDependencies(goal, negated, traverseConditionals = false, wfs = false) {
+  if (goal.type === ATOM) return [{ key: `${goal.name}/0`, name: goal.name, arity: 0, module: goal.module, negative: negated, wfs }];
   if (goal.type !== COMPOUND) return [];
   if (goal.name === ',' && goal.arity === 2) {
     return [
-      ...collectGoalDependencies(goal.args[0], negated, traverseConditionals),
-      ...collectGoalDependencies(goal.args[1], negated, traverseConditionals),
+      ...collectGoalDependencies(goal.args[0], negated, traverseConditionals, wfs),
+      ...collectGoalDependencies(goal.args[1], negated, traverseConditionals, wfs),
     ];
   }
   if (traverseConditionals && (goal.name === ';' || goal.name === '->') && goal.arity === 2) {
     return [
-      ...collectGoalDependencies(goal.args[0], negated, true),
-      ...collectGoalDependencies(goal.args[1], negated, true),
+      ...collectGoalDependencies(goal.args[0], negated, true, wfs),
+      ...collectGoalDependencies(goal.args[1], negated, true, wfs),
     ];
   }
   if ((goal.name === '\\+' || goal.name === 'not') && goal.arity === 1) {
-    return collectGoalDependencies(goal.args[0], !negated, traverseConditionals);
+    return collectGoalDependencies(goal.args[0], !negated, traverseConditionals, wfs);
+  }
+  if (goal.name === 'tnot' && goal.arity === 1) {
+    return collectGoalDependencies(goal.args[0], !negated, traverseConditionals, true);
   }
   if (goal.name === 'once' && goal.arity === 1) {
-    return collectGoalDependencies(goal.args[0], negated, traverseConditionals);
+    return collectGoalDependencies(goal.args[0], negated, traverseConditionals, wfs);
   }
   if (goal.name === 'forall' && goal.arity === 2) {
     return [
-      ...collectGoalDependencies(goal.args[0], negated, traverseConditionals),
-      ...collectGoalDependencies(goal.args[1], negated, traverseConditionals),
+      ...collectGoalDependencies(goal.args[0], negated, traverseConditionals, wfs),
+      ...collectGoalDependencies(goal.args[1], negated, traverseConditionals, wfs),
     ];
   }
   if ((goal.name === 'findall' || goal.name === 'sumall') && goal.arity === 3) {
-    return collectGoalDependencies(goal.args[1], negated, traverseConditionals);
+    return collectGoalDependencies(goal.args[1], negated, traverseConditionals, wfs);
   }
   if (goal.name === 'countall' && goal.arity === 2) {
-    return collectGoalDependencies(goal.args[0], negated, traverseConditionals);
+    return collectGoalDependencies(goal.args[0], negated, traverseConditionals, wfs);
   }
   if ((goal.name === 'aggregate_min' || goal.name === 'aggregate_max') && goal.arity === 5) {
-    return collectGoalDependencies(goal.args[2], negated, traverseConditionals);
+    return collectGoalDependencies(goal.args[2], negated, traverseConditionals, wfs);
   }
-  return [{ key: `${goal.name}/${goal.arity}`, name: goal.name, arity: goal.arity, module: goal.module, negative: negated }];
+  return [{ key: `${goal.name}/${goal.arity}`, name: goal.name, arity: goal.arity, module: goal.module, negative: negated, wfs }];
 }
 
 function stronglyConnectedComponents(adjacency) {

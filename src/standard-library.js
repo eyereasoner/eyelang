@@ -129,6 +129,10 @@ export const eyePrologInteropLibraryIndicators = Object.freeze(
 // modules outside eyePrologInteropLibraryIndicators are still diagnosed when used.
 export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext']);
 
+function* tabledNegationBuiltin({ solver, goal, env }) {
+  yield* solver.solveTabledNegation(goal.args[0], env);
+}
+
 function runtimeStatistics(solver) {
   return { ...solver.stats, ...memoryStatistics() };
 }
@@ -167,6 +171,7 @@ export function createEyePrologRegistry() {
   const registry = createDefaultRegistry();
   registry.add('statistics', 0, statisticsBuiltin, { deterministic: true });
   registry.add('statistics', 2, statisticsValueBuiltin);
+  registry.add('tnot', 1, tabledNegationBuiltin, { deterministic: true });
   eyePrologLibraryBuiltins.register(registry);
   clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;

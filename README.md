@@ -86,6 +86,60 @@ error, and later quads still run. When a query has multiple indented answer
 descriptions, each description is checked and counted independently, so one
 failed expectation does not prevent the later ones from running.
 
+## Tabling and well-founded negation
+
+In normal mode, EyeProlog automatically tables eligible positive recursive
+predicates. For large finite, function-free Datalog dependency cones it may use
+one shared relation-wide table, so an open query such as `tc(X, Y)` computes a
+finite closure once and bound recursive calls can reuse indexed answers. The
+choice of when to use relation-wide tabling is an implementation optimization,
+not a language-level threshold or directive.
+
+Recursion through negation is explicit. EyeProlog provides `tnot/1` for
+well-founded negation over finite, range-restricted, function-free Datalog
+components. Ordinary `\+/1` remains negation-as-failure and is not silently
+reinterpreted as WFS.
+
+```prolog
+move(1, 2).
+move(2, 1).
+win(X) :- move(X, Y), tnot(win(Y)).
+
+%% goal: win(X)
+```
+
+A cycle through `tnot/1` can leave atoms *undefined* rather than true or false.
+EyeProlog exposes those as conditional successes so they can participate in
+collectors such as `findall/3`; it does not currently expose a residual-program
+API. Direct `tnot/1` calls must be ground. Variables used in an eligible WFS
+rule are range-restricted by positive body literals before they are negated.
+
+The normal-mode statistics interface includes `wfs_fixpoint_rounds` and
+`wfs_undefined_answers`:
+
+```prolog
+statistics(wfs_fixpoint_rounds, Rounds).
+statistics(wfs_undefined_answers, UndefinedObservations).
+```
+
+Both automatic tabling and `tnot/1` are EyeProlog extensions. Strict ISO mode
+disables automatic tabling and does not provide `tnot/1`.
+
+## OpenRuleBench portable profile
+
+The `openrulebench/` directory contains a deterministic four-engine adaptation
+for EyeProlog, Trealla, Scryer, and SWI-Prolog. Its default `portable` profile
+keeps the characteristic joins, recursive closures, and WFS cases while
+avoiding benchmark sizes that require multi-gigabyte collectors on some
+engines. Run EyeProlog's complete profile with:
+
+```sh
+./openrulebench/run-eyeprolog.sh
+```
+
+The benchmark README records the expected answer counts. Timing values are
+machine-dependent; use the same generated profile when comparing engines.
+
 ## Strict ISO/IEC 13211-1 core
 
 For portability and conformance work, run the Part 1 core with Technical

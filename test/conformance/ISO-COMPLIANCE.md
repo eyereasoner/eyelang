@@ -56,7 +56,8 @@ not interpret the following as core-language features:
 - the implementation-specific `occurs_check` Prolog flag;
 - Part 2 module directives (`module/2`, `use_module/1-2`, `meta_predicate/1`);
 - Part 3 grammar-rule expansion and `phrase/2-3`;
-- automatic tabling, cycle guards, and recursive numeric execution shortcuts.
+- automatic tabling, cycle guards, and recursive numeric execution shortcuts;
+- EyeProlog well-founded negation via `tnot/1` and its WFS runtime statistics.
 
 The predefined Part 1 `1200 fx` `?-` operator and `1200 xfx` `-->` operator
 remain ordinary operator syntax in strict core mode. A conforming `op/3`

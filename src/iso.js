@@ -1734,6 +1734,32 @@ function numberListBuiltin(kind) {
 const numberCharsBuiltin = numberListBuiltin('chars');
 const numberCodesBuiltin = numberListBuiltin('codes');
 
+class FindallListTerm {
+  constructor(items, offset = 0) {
+    this.type = COMPOUND;
+    this.name = '.';
+    this._items = items;
+    this._offset = offset;
+    this._compactLength = BigInt(items.length - offset);
+    this._args = null;
+  }
+  get arity() { return 2; }
+  get args() {
+    if (this._args == null) {
+      const next = this._offset + 1;
+      this._args = [
+        this._items[this._offset],
+        next >= this._items.length ? emptyList() : new FindallListTerm(this._items, next),
+      ];
+    }
+    return this._args;
+  }
+}
+
+function findallListFromItems(items) {
+  return items.length === 0 ? emptyList() : new FindallListTerm(items);
+}
+
 function* findallBuiltin({ solver, goal, env }) {
   const [template, innerGoal, bag] = goal.args;
   assertListOrPartial(bag, env);
@@ -1744,7 +1770,7 @@ function* findallBuiltin({ solver, goal, env }) {
   }
   solver.absorbStatsFrom(collector);
   const next = env.clone();
-  if (unify(bag, listFromItems(collected), next)) yield next;
+  if (unify(bag, findallListFromItems(collected), next)) yield next;
 }
 
 function collectVariableNames(term, env, names = new Set()) {

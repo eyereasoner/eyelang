@@ -1,4 +1,8 @@
 export interface EyePrologStats {
+  /** Alternating-fixed-point rounds used to build WFS models. */
+  wfs_fixpoint_rounds: number;
+  /** Undefined WFS answers observed while producing query results. */
+  wfs_undefined_answers: number;
   [key: string]: number;
 }
 
@@ -97,6 +101,9 @@ export interface EyePrologPredicateGroup {
   recursive: boolean;
   listTailRecursive: boolean;
   tableInputPositions: number[];
+  tableAllVariants: boolean;
+  /** True when the group is evaluated by EyeProlog's finite-Datalog WFS evaluator. */
+  wfsDatalog: boolean;
   negationStratum: number | null;
 }
 

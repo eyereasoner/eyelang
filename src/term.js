@@ -82,7 +82,7 @@ export const compactVariableList = (length, variablePrefix) => {
   return size === 0n ? emptyList() : new CompactListTerm(size, variablePrefix);
 };
 export const isCompactList = (term) => term instanceof CompactListTerm;
-export const compactListLength = (term) => isCompactList(term) ? term._compactLength : null;
+export const compactListLength = (term) => typeof term?._compactLength === 'bigint' ? term._compactLength : null;
 
 export class Env {
   constructor(bindings) {

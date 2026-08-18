@@ -1121,12 +1121,35 @@ particular user is unblocked.
   <figcaption>Absence becomes informative only inside a declared complete boundary: Clara is allowed because the event registry is complete and she is not on its blocked list.</figcaption>
 </figure>
 
-Negative dependencies should be stratified: compute a lower relation, then
-negate it from a higher layer. Use `--warnings` to report negative recursion:
+For ordinary `\+/1`, negative dependencies should normally be stratified:
+compute a lower relation, then negate it from a higher layer. Use `--warnings`
+to report negative recursion:
 
 ```sh
 eyeprolog --warnings program.pl
 ```
+
+Some finite rule systems intentionally contain recursion through negation. In
+normal mode, EyeProlog provides explicit `tnot/1` for that case. When the
+reachable component is finite, function-free, and range-restricted Datalog,
+cycles through `tnot/1` are evaluated with the well-founded semantics (WFS)
+rather than ordinary negation-as-failure. WFS has three truth states: true,
+false, and undefined. A negative cycle may therefore produce a conditional
+answer instead of forcing an arbitrary true/false choice.
+
+```eyeprolog
+move(a, b).
+move(b, a).
+win(X) :- move(X, Y), tnot(win(Y)).
+```
+
+Here neither `win(a)` nor `win(b)` is unconditionally established; both belong
+to the undefined part of the well-founded model. EyeProlog exposes undefined
+WFS answers as conditional successes, including inside finite collectors.
+Direct calls to `tnot/1` must be ground. In WFS rules, variables occurring in
+the head or a negated literal must be range-restricted by positive body
+literals. Ordinary `\+/1` is unchanged, and strict ISO mode does not provide
+`tnot/1`.
 
 Universal checking needs no extension predicate: define the counterexample and
 negate it.
@@ -1574,9 +1597,20 @@ analysis, and other recursive relations with overlapping subproblems.
 
 Ordinary goals use indexed depth-first resolution. Positive recursive groups
 are tabled automatically. Bound recursive calls reuse answers and cyclic calls
-iterate toward a fixed point. Fully open or structurally unbounded calls may
-retain ordinary resolution. Recursive components with negative dependencies
-are not positive fixed points.
+iterate toward a fixed point. For sufficiently large finite, function-free
+Datalog dependency cones, EyeProlog may share one most-general relation table
+across call variants. This turns an open closure such as `tc(X, Y)` into one
+finite relation computation rather than many overlapping bound subcomputations;
+bound consumers can then use indexes over the stored answers. The exact
+admission policy is an engine optimization, not part of the language contract.
+Fully open or structurally unbounded recursive programs may retain ordinary
+resolution.
+
+Recursive components with negative dependencies are not positive least-fixed-
+point problems. When such a component uses explicit `tnot/1` and satisfies the
+finite, range-restricted, function-free Datalog restrictions, EyeProlog instead
+computes the alternating fixed point of the well-founded semantics. Existing
+`\+/1` code remains ordinary negation-as-failure.
 
 ### Deeper implementation: how clause indexing stays semantic
 
@@ -1612,8 +1646,12 @@ eyeprolog --stats examples/observability-log-correlation.pl
 The reported counters include completed goal lists, calls to the goal solver
 and single-goal solver, unification attempts, maximum depth and goal-list size,
 deterministic built-in successes and failures, and table fixed-point rounds.
-They describe work performed, not logical truth. Compare counters only across
-equivalent queries and the same implementation version.
+WFS execution additionally reports `wfs_fixpoint_rounds` and
+`wfs_undefined_answers`. The latter counts undefined-answer observations made
+while producing query results; it is an execution statistic, not a declaration
+that those atoms are true. All statistics describe work performed, not logical
+truth. Compare counters only across equivalent queries and the same
+implementation version.
 
 Common sources of nontermination are recursive calls made before constraints,
 ever-growing terms, infinite open mathematical queries, negative cycles, and
@@ -1947,6 +1985,8 @@ Part III moved from obtaining answers to trusting them:
 - a query selects a question; a proof records one successful justification;
 - an explicit integrity query identifies input that a host may reject;
 - automatic tabling computes fixed points for eligible positive recursion;
+- explicit `tnot/1` gives eligible finite Datalog components well-founded,
+  three-valued negation without changing ordinary `\+/1`;
 - indexing and ready filters improve control without changing intended meaning;
 - knowledge engineering separates sources, concepts, decisions, and reasons;
 - explicit host boundaries divide input validation from logical derivation;
@@ -1965,7 +2005,10 @@ turned fixed-point ideas into a goal-directed technique that shares recursive
 calls and accumulates answers. EyeProlog's automatic positive tabling is smaller
 than the general systems in that literature, but inherits their central
 insight: remembering a recursive question can change termination without
-changing what the relation says.
+changing what the relation says. For finite Datalog with recursion through
+explicit `tnot/1`, EyeProlog also uses the alternating-fixed-point account of
+the well-founded semantics so a negative cycle may remain undefined instead of
+being collapsed into ordinary negation-as-failure.
 
 In parallel, deductive databases asked where facts come from and how derived
 claims retain provenance. EyeProlog adopts the expectation that conclusions

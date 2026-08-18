@@ -56,7 +56,8 @@ npm run generate
 ## Chapter 7: Failure, negation, and quantification
 
 - [01-allowed.pl](chapter-07/01-allowed.pl)
-- [02-all_tests_pass.pl](chapter-07/02-all_tests_pass.pl)
+- [02-move.pl](chapter-07/02-move.pl)
+- [03-all_tests_pass.pl](chapter-07/03-all_tests_pass.pl)
 
 ## Chapter 8: Collecting and choosing answers
 

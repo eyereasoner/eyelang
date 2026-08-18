@@ -3626,13 +3626,15 @@ check(A, B, C, D, E, F) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 155, 'EyeProlog registry contains ISO definitions, observability extensions, and private library adapters');
+        assertEqual(library.defs.size, 156, 'EyeProlog registry contains ISO definitions, observability extensions, WFS tnot/1, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
         assertEqual(registry.get('statistics', 2), null, 'statistics/2 is absent from the ISO registry');
         assertEqual(Boolean(library.get('statistics', 0)), true, 'statistics/0 is an EyeProlog observability extension');
         assertEqual(Boolean(library.get('statistics', 2)), true, 'statistics/2 is an EyeProlog observability extension');
+        assertEqual(registry.get('tnot', 1), null, 'tnot/1 is absent from the ISO registry');
+        assertEqual(Boolean(library.get('tnot', 1)), true, 'tnot/1 is an EyeProlog WFS extension');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 62, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 27, 'cross-implementation interop profile count');
@@ -4264,6 +4266,44 @@ function whiteBoxCases() {
         assertEqual(program.findGroup('q', 1).recursive, true, 'q/1 recursive');
         assertEqual(program.findGroup('p', 1).tabled, false, 'p/1 not positively tabled');
         assertEqual(program.findGroup('q', 1).tabled, false, 'q/1 not positively tabled');
+      },
+    },
+    {
+      name: 'tnot enables finite Datalog well-founded semantics without changing ISO negation',
+      run: () => {
+        const program = Program.parse(`
+move(1, 2).
+move(2, 3).
+move(3, 4).
+move(4, 1).
+win(X) :- move(X, Y), tnot(win(Y)).
+`);
+        assertEqual(program.findGroup('win', 1).wfsDatalog, true, 'win/1 uses finite WFS evaluation');
+        assertEqual(program.findGroup('win', 1).tabled, false, 'win/1 is not positive least-model tabled');
+        const result = run(program, { goal: 'win(X)' });
+        assertEqual(result.stdout.trim().split('\n').length, 4, 'negative cycle yields four conditional WFS answers');
+        assertEqual(result.stats.wfs_fixpoint_rounds, 2, 'alternating fixed point converges in two rounds');
+        assertEqual(result.stats.wfs_undefined_answers, 4, 'cycle answers are undefined rather than unconditional truths');
+
+        const nafProgram = Program.parse('p(X) :- \\+ q(X).\nq(X) :- p(X).\n');
+        assertEqual(nafProgram.findGroup('p', 1).wfsDatalog, false, '\\+/1 remains ordinary negation as failure');
+      },
+    },
+    {
+      name: 'finite WFS distinguishes true false and undefined for ground tnot calls',
+      run: () => {
+        const source = `
+move(a, b).
+move(c, d).
+move(d, c).
+win(X) :- move(X, Y), tnot(win(Y)).
+true_case :- win(a).
+false_case :- tnot(win(a)).
+undefined_case :- tnot(win(c)).
+`;
+        assertEqual(run(source, { goal: 'true_case' }).stdout, 'true_case.\n', 'win(a) is true because b is false');
+        assertEqual(run(source, { goal: 'false_case' }).stdout, '', 'tnot(win(a)) fails for a true atom');
+        assertEqual(run(source, { goal: 'undefined_case' }).stdout, 'undefined_case.\n', 'tnot of an undefined WFS atom is a conditional success');
       },
     },
     {

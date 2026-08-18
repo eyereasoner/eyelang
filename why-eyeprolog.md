@@ -31,6 +31,8 @@ keeps a narrow architecture:
 
 - one parser and term model;
 - one solver with automatic tabling for eligible positive recursion;
+- explicit `tnot/1` with well-founded semantics for finite, range-restricted,
+  function-free Datalog components;
 - the ISO built-in registry;
 - lean portable ISO Part 2 library modules;
 - ISO Part 3 definite clause grammars and `phrase/2-3`;
@@ -42,6 +44,21 @@ relations such as list processing remain ordinary Prolog clauses imported with
 `use_module/1-2`, while
 standard sorting, arithmetic, meta-calls, streams, and database operations use
 their ISO definitions directly.
+
+
+## Why keep well-founded negation explicit?
+
+Ordinary Prolog `\+/1` is negation-as-failure and remains useful when a closed,
+usually stratified relation has already been computed. Non-stratified rule
+systems need a different semantic choice. EyeProlog therefore does not silently
+change `\+/1`; normal mode provides `tnot/1` for finite Datalog components that
+need the three-valued well-founded semantics. This keeps the extension visible
+in source code and lets strict ISO mode remove it cleanly.
+
+The same boundary guides performance work. EyeProlog may evaluate large finite
+positive Datalog closures with a shared relation-wide table, but the admission
+heuristics are implementation details. Programs should rely on the documented
+semantics and finiteness conditions, not on a particular internal threshold.
 
 ## Why proofs?
 
