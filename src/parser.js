@@ -819,6 +819,16 @@ class Parser {
     }
     throw new Error(`parse line ${this.token.line}: bad term`);
   }
+  parseStandaloneTerm() {
+    // read/1 and read_term/* consume one ordinary Prolog term, not a program
+    // clause. In particular, commas and operators such as :- and ?- belong to
+    // the term itself and must not be reinterpreted by parseProgram().
+    const term = this.parseTerm(0, true, true, true);
+    this.expect(TOK.DOT, '.');
+    this.advance();
+    this.expect(TOK.EOF, 'end of input');
+    return term;
+  }
   sourceLineIsIndented(line) {
     let start = 0;
     for (let current = 1; current < line; current++) {
@@ -1502,6 +1512,10 @@ export function parseNumberTokenText(text) {
   if (/^-?\d+$/.test(source)) return numberTerm(BigInt(source).toString());
   if (Object.is(Number(source), -0)) return numberTerm('0.0');
   return numberTerm(source);
+}
+
+export function parseTermText(text, options = {}) {
+  return new Parser(text, options).parseStandaloneTerm();
 }
 
 export function parseGoalText(text, options = {}) {

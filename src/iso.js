@@ -6,7 +6,7 @@ import {
   properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
 import { sameNumberValue } from './number-value.js';
-import { createParserOperatorState, parseClauses, parseGoalText, parseNumberTokenText } from './parser.js';
+import { createParserOperatorState, parseGoalText, parseNumberTokenText, parseTermText } from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 import {
@@ -1199,8 +1199,7 @@ function scopeReadTerm(term) {
 function parseReadTermText(text, solver) {
   const converted = convertedTermText(text, solver);
   const operatorState = createParserOperatorState(solver.program.operators.values(), false);
-  const clauses = parseClauses(converted, {
-    sourceMetadata: false,
+  return parseTermText(converted, {
     operatorState,
     isoStrict: solver.isoStrict,
     doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
@@ -1208,8 +1207,6 @@ function parseReadTermText(text, solver) {
     // Earlier ambiguous dots must remain available to maximal graphic tokens.
     readTermEnd: converted.length - 1,
   });
-  if (clauses.length !== 1 || clauses[0].body.length) throw new Error('bad term');
-  return clauses[0].head;
 }
 
 export function isCompleteReadTermText(text, solver) {

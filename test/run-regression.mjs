@@ -819,6 +819,27 @@ c4 ?- call((!;1)).
         });
         assertEqual(consecutive.stdout, "answer(./*., ok).\n", 'following read starts after the complete term');
 
+        // Issue #41 follow-up: read/1 consumes an ordinary term, not a program
+        // clause head. A comma chain therefore has no program-level two-comma
+        // limit, and source operators such as :- and ?- remain term data.
+        const commaChain = runEyeProlog('', {
+          goal: 'read(T)',
+          ioOptions: { input: '!,!,! .\n' },
+        });
+        assertEqual(commaChain.stdout, 'read((!, !, !)).\n', 'three-element comma term');
+
+        const ruleAsData = runEyeProlog('', {
+          goal: 'read(T)',
+          ioOptions: { input: 'a :- b.\n' },
+        });
+        assertEqual(ruleAsData.stdout, 'read((a :- b)).\n', 'rule operator remains term data');
+
+        const queryAsData = runEyeProlog('', {
+          goal: 'read(T)',
+          ioOptions: { input: '?- foo.\n' },
+        });
+        assertEqual(queryAsData.stdout, 'read((?- foo)).\n', 'query operator remains term data');
+
         // A possible full stop can fail to complete the term while still
         // extending a current graphic operator into an ordinary atom.  The
         // later standalone full stop then completes the read term.  Exercise
