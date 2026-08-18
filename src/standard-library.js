@@ -154,7 +154,7 @@ function* statisticsValueBuiltin({ solver, goal, env }) {
 
   if (entries == null) {
     if (key.type !== ATOM) throw new PrologError('type_error(atom)', key);
-    return;
+    throw new PrologError('domain_error(statistics_key)', key);
   }
 
   for (const [name, value] of entries) {

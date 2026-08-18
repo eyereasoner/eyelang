@@ -55,7 +55,10 @@ export async function runRepl(engine, options = {}) {
         }
         const consultFiles = options.isoStrict ? null : consultDesignations(engine, goal);
         if (consultFiles != null) {
-          for (const filename of consultFiles) sources.push(await readSource(filename));
+          for (const filename of consultFiles) {
+            const source = await readSource(filename);
+            replaceConsultedSource(sources, source);
+          }
           state = makeState(engine, sources, output, options, state, reader);
           runWithTerminalSignals(reader, () => state.solver.runInitializations());
           output.write(' true.\n');
@@ -447,10 +450,32 @@ function isHaltGoal(goal) {
 }
 
 function consultDesignations(engine, goal) {
+  // The traditional [file]. top-level shorthand and explicit consult/1 use
+  // the same resolver and modern reconsult semantics.  Accept reconsult/1 as
+  // a compatibility alias as well; contemporary consult/1 already replaces
+  // clauses previously loaded from the same source.
   if (goal.type === 'atom' && goal.name === '[]') return [];
-  if (goal.type !== 'compound' || goal.name !== '.' || goal.arity !== 2) return null;
-  const items = engine.properListItems(goal, new engine.Env());
-  if (items == null) return null;
+  if (goal.type === 'compound' && goal.name === '.' && goal.arity === 2) {
+    return consultListDesignations(engine, goal);
+  }
+  if (goal.type === 'compound' && ['consult', 'reconsult'].includes(goal.name) && goal.arity === 1) {
+    return consultArgumentDesignations(engine, goal.args[0]);
+  }
+  return null;
+}
+
+function consultArgumentDesignations(engine, term) {
+  if (term.type === 'var') throw new engine.PrologError('instantiation_error');
+  if (term.type === 'atom') return term.name === '[]' ? [] : [term.name];
+  if (term.type === 'compound' && term.name === '.' && term.arity === 2) {
+    return consultListDesignations(engine, term);
+  }
+  throw new engine.PrologError('type_error(atom)', term);
+}
+
+function consultListDesignations(engine, list) {
+  const items = engine.properListItems(list, new engine.Env());
+  if (items == null) throw new engine.PrologError('type_error(list)', list);
   return items.map((item) => {
     if (item.type === 'var') throw new engine.PrologError('instantiation_error');
     if (item.type !== 'atom') throw new engine.PrologError('type_error(atom)', item);
@@ -458,18 +483,43 @@ function consultDesignations(engine, goal) {
   });
 }
 
-async function readSource(designation) {
-  let filename = path.resolve(designation);
-  try {
-    await fs.access(filename);
-  } catch (error) {
-    if (path.extname(filename)) throw error;
-    filename += '.pl';
+function replaceConsultedSource(sources, source) {
+  const index = sources.findIndex((existing) =>
+    source.consultPath != null && existing.consultPath === source.consultPath);
+  if (index >= 0) sources[index] = source;
+  else sources.push(source);
+}
+
+function missingSource(error) {
+  return error?.code === 'ENOENT' || error?.code === 'ENOTDIR';
+}
+
+async function resolvedConsultFilename(designation) {
+  const requested = path.resolve(designation);
+  // Long-standing Prolog consult convention: for an extensionless name, try
+  // the .pl source first and use the unsuffixed path only as a fallback.
+  if (!path.extname(requested)) {
+    const prologFile = `${requested}.pl`;
+    try {
+      await fs.access(prologFile);
+      return await fs.realpath(prologFile);
+    } catch (error) {
+      if (!missingSource(error)) throw error;
+    }
   }
+  await fs.access(requested);
+  return fs.realpath(requested);
+}
+
+async function readSource(designation) {
+  const filename = await resolvedConsultFilename(designation);
   return {
     text: await fs.readFile(filename, 'utf8'),
     filename: path.basename(filename),
     baseDir: path.dirname(filename),
+    // Keep host-only provenance so consulting the same resolved file again
+    // replaces its previous source instead of accumulating stale clauses.
+    consultPath: filename,
   };
 }
 

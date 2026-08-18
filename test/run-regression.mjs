@@ -1713,6 +1713,143 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL consult prefers .pl over an unsuffixed file (issue #47)',
+      run: () => {
+        const stem = path.join(tmp, `repl-consult-order-${++tmpCounter}`);
+        fs.writeFileSync(stem, 'chosen(bare).\n');
+        fs.writeFileSync(`${stem}.pl`, 'chosen(pl).\n');
+        const result = runCli([], {
+          input: `[${sourceAtom(stem)}].\nchosen(X).\nhalt.\n`,
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'X = pl.', 'consulted .pl source');
+        assertNotIncludes(result.stdout, 'X = bare', 'unsuffixed source is fallback only');
+        assertEqual(result.stderr, '', 'stderr');
+
+        const explicit = runCli([], {
+          input: `consult(${sourceAtom(stem)}).\nchosen(X).\nhalt.\n`,
+        });
+        assertEqual(explicit.status, 0, 'consult/1 exit status');
+        assertIncludes(explicit.stdout, 'X = pl.', 'consult/1 prefers .pl source');
+        assertNotIncludes(explicit.stdout, 'X = bare', 'consult/1 does not prefer unsuffixed source');
+        assertEqual(explicit.stderr, '', 'consult/1 stderr');
+
+        fs.rmSync(`${stem}.pl`);
+        const fallback = runCli([], {
+          input: `[${sourceAtom(stem)}].\nchosen(X).\nhalt.\n`,
+        });
+        assertEqual(fallback.status, 0, 'fallback exit status');
+        assertIncludes(fallback.stdout, 'X = bare.', 'unsuffixed fallback source');
+        assertEqual(fallback.stderr, '', 'fallback stderr');
+      },
+    },
+    {
+      name: 'REPL consultation replaces earlier clauses from the same file (issue #46)',
+      run: () => {
+        const filename = path.join(tmp, `repl-reconsult-${++tmpCounter}.pl`);
+        fs.writeFileSync(filename, 'factum(f).\n');
+        const harness = path.join(tmp, `repl-reconsult-harness-${++tmpCounter}.mjs`);
+        const consultedAtom = sourceAtom(filename);
+        fs.writeFileSync(harness, `
+import fs from 'node:fs';
+import process from 'node:process';
+import { spawn } from 'node:child_process';
+
+const child = spawn(process.execPath, [${JSON.stringify(bin)}], { stdio: ['pipe', 'pipe', 'pipe'] });
+let stdout = '';
+let stderr = '';
+let advanced = false;
+let failed = false;
+const timer = setTimeout(() => {
+  failed = true;
+  child.kill();
+}, 5000);
+
+child.stdout.setEncoding('utf8');
+child.stderr.setEncoding('utf8');
+child.stdout.on('data', (chunk) => {
+  stdout += chunk;
+  if (!advanced && stdout.includes('?-    true.\\n?- ')) {
+    advanced = true;
+    fs.writeFileSync(${JSON.stringify(filename)}, 'factum(g).\\n');
+    child.stdin.write(\`[${consultedAtom}].\\nfindall(F,factum(F),Fs).\\nhalt.\\n\`);
+  }
+});
+child.stderr.on('data', (chunk) => { stderr += chunk; });
+child.on('close', (code) => {
+  clearTimeout(timer);
+  process.stdout.write(stdout);
+  process.stderr.write(stderr);
+  process.exitCode = failed ? 99 : (code ?? 98);
+});
+child.stdin.write(\`[${consultedAtom}].\\n\`);
+`);
+        const result = spawnSync(process.execPath, [harness], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          timeout: 7000,
+        });
+        assertEqual(result.error?.code, undefined, 'reconsult harness timeout');
+        assertEqual(result.status, 0, `exit status; stderr=${result.stderr}`);
+        assertIncludes(result.stdout, 'Fs = \"g\".', 'reconsulted clauses');
+        assertNotIncludes(result.stdout, 'f', 'stale clause removed');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL consult/1 has reconsult semantics',
+      run: () => {
+        const filename = path.join(tmp, `repl-consult-predicate-${++tmpCounter}.pl`);
+        fs.writeFileSync(filename, 'factum(f).\n');
+        const harness = path.join(tmp, `repl-consult-predicate-harness-${++tmpCounter}.mjs`);
+        const consultedAtom = sourceAtom(filename);
+        fs.writeFileSync(harness, `
+import fs from 'node:fs';
+import process from 'node:process';
+import { spawn } from 'node:child_process';
+
+const child = spawn(process.execPath, [${JSON.stringify(bin)}], { stdio: ['pipe', 'pipe', 'pipe'] });
+let stdout = '';
+let stderr = '';
+let advanced = false;
+let failed = false;
+const timer = setTimeout(() => {
+  failed = true;
+  child.kill();
+}, 5000);
+
+child.stdout.setEncoding('utf8');
+child.stderr.setEncoding('utf8');
+child.stdout.on('data', (chunk) => {
+  stdout += chunk;
+  if (!advanced && stdout.includes('?-    true.\\n?- ')) {
+    advanced = true;
+    fs.writeFileSync(${JSON.stringify(filename)}, 'factum(g).\\n');
+    child.stdin.write(\`consult(${consultedAtom}).\\nfindall(F,factum(F),Fs).\\nhalt.\\n\`);
+  }
+});
+child.stderr.on('data', (chunk) => { stderr += chunk; });
+child.on('close', (code) => {
+  clearTimeout(timer);
+  process.stdout.write(stdout);
+  process.stderr.write(stderr);
+  process.exitCode = failed ? 99 : (code ?? 98);
+});
+child.stdin.write(\`consult(${consultedAtom}).\\n\`);
+`);
+        const result = spawnSync(process.execPath, [harness], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          timeout: 7000,
+        });
+        assertEqual(result.error?.code, undefined, 'consult/1 reconsult harness timeout');
+        assertEqual(result.status, 0, `exit status; stderr=${result.stderr}`);
+        assertIncludes(result.stdout, 'Fs = "g".', 'consult/1 replaced earlier clauses');
+        assertNotIncludes(result.stdout, 'f', 'consult/1 removed stale clause');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'REPL preserves runtime unknown flag across consultation',
       run: () => {
         const filename = path.join(tmp, `repl-empty-${++tmpCounter}.pl`);
@@ -1999,6 +2136,17 @@ c4 ?- call((!;1)).
         const result = runCli(['-'], { input });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(/^live\(\d+\)\.\n$/.test(result.stdout), true, 'numeric memory statistic');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'statistics/2 rejects unknown keys instead of silently failing (issue #45)',
+      run: () => {
+        const result = runCli([], { input: 'statistics(nonsense, Value).\nhalt.\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout,
+          'error(domain_error(statistics_key, nonsense), eyeprolog).',
+          'statistics key error');
         assertEqual(result.stderr, '', 'stderr');
       },
     },

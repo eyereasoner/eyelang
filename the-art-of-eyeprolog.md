@@ -4646,8 +4646,10 @@ where a live snapshot is useful. For example, a long-running loop can include
 immediately to the current output stream. `statistics/2` makes an individual
 value available to the program, for example
 `statistics(memory_guard_used_bytes, Used)`. With an unbound first argument it
-enumerates the available statistic keys and values. These predicates are
-EyeProlog observability extensions and are not available under `--iso-strict`.
+enumerates the available statistic keys and values. An atom that is not an
+available key raises `domain_error(statistics_key, Key)` rather than silently
+failing. These predicates are EyeProlog observability extensions and are not
+available under `--iso-strict`.
 
 Compare statistics only between runs with the same query, data, and observable
 answer contract. A faster program that silently loses answers is not an
@@ -6399,8 +6401,14 @@ not be a valid right operand of the displayed `=/2`, EyeProlog adds parentheses,
 for example `T = (a = b).` rather than the invalid `T = a = b.`. When an answer
 ends in a graphic token, the top level inserts layout before its terminating
 full stop so the two tokens cannot merge; for example `?- X = .* .` displays
-`X = .* .`, not `X = .*.`. Use `[file].` or `['file.pl'].` to
-consult local source, and `halt.` or `halt(Status).` to leave the top level.
+`X = .* .`, not `X = .*.`. Use `[file].`, `['file.pl'].`, or
+`consult(file).` to consult local source; `reconsult(file).` is accepted as a
+compatibility alias. Use `halt.` or `halt(Status).` to leave the top level.
+For an extensionless designation such as `[file].` or `consult(file).`, the
+top level tries `file.pl` before the unsuffixed `file`. Both the shorthand and
+`consult/1` have modern reconsult semantics: consulting the same resolved file
+again replaces its previous source, so clauses removed from the file do not
+remain active.
 When `read/1-2` or `read_term/2-3` actually reaches interactive
 `user_input`, the top level requests the next full-stop-terminated Prolog term
 with a `|: ` input prompt instead of treating the terminal stream as already
