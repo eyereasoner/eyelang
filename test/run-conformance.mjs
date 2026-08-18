@@ -18,6 +18,7 @@ function withStandardModules(text) {
   return `:- use_module(library(aggregate)).
 :- use_module(library(comparison)).
 :- use_module(library(dates)).
+:- use_module(library(iso_ext)).
 :- use_module(library(lists)).
 :- use_module(library(primes)).
 :- use_module(library(prologue), [between/3]).

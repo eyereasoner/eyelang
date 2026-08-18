@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % Bounded Knuth-Bendix-style completion for append/2 terms.
 %

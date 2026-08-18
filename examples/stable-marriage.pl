@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % Stable-marriage search with explicit blocking-pair detection.
 %

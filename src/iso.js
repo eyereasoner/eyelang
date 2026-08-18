@@ -2032,11 +2032,28 @@ function prologErrorBall(error) {
   return freshCopy(term, new Env());
 }
 function* catchBuiltin({ solver, goal, env }) {
-  const child = solver.cloneForInnerGoal();
+  let child = null;
   try {
     // Corrigendum 2 removed catch/3's own callability errors so that errors
     // raised while converting/executing the protected goal are catchable.
-    yield* child.solve([callable(goal.args[0], env)], env.clone(), 0);
+    const invoked = callable(goal.args[0], env);
+    const direct = solver.registry.get(invoked.name, invoked.arity);
+    if (direct?.deterministic && (direct.shouldUse == null || direct.shouldUse({ solver, goal: invoked, env }))) {
+      // A deterministic builtin has no choice points whose lifetime must be
+      // isolated in a child solver. Running it directly avoids constructing a
+      // complete Solver for hot caught failures such as number_chars/2 syntax
+      // probes, while the cloned environment keeps catch/3's rollback boundary.
+      const iterator = direct.handler({ solver, goal: invoked, env: env.clone() });
+      const result = iterator.next();
+      if (result.done) solver.stats.deterministic_builtin_failures++;
+      else {
+        solver.stats.deterministic_builtin_successes++;
+        yield result.value;
+      }
+      return;
+    }
+    child = solver.cloneForInnerGoal();
+    yield* child.solve([invoked], env.clone(), 0);
   } catch (error) {
     const ball = error instanceof ThrownTerm
       ? error.term
@@ -2046,9 +2063,15 @@ function* catchBuiltin({ solver, goal, env }) {
     if (ball == null) throw error;
     const recovered = env.clone();
     if (!unify(goal.args[1], ball, recovered)) throw error;
-    yield* solver.solve([callable(goal.args[2], recovered)], recovered, 0);
+    const recovery = callable(goal.args[2], recovered);
+    if (recovery.type === ATOM && (recovery.name === 'false' || recovery.name === 'fail')) return;
+    if (recovery.type === ATOM && recovery.name === 'true') {
+      yield recovered;
+      return;
+    }
+    yield* solver.solve([recovery], recovered, 0);
   } finally {
-    solver.absorbStatsFrom(child);
+    if (child != null) solver.absorbStatsFrom(child);
   }
 }
 function* throwBuiltin({ goal, env }) {
@@ -2071,7 +2094,20 @@ function* repeatBuiltin({ env }) {
   while (true) yield env;
 }
 function* negationBuiltin({ solver, goal, env }) {
-  for (const _ of solver.cloneForInnerGoal(1).solve([callable(goal.args[0], env)], env.clone(), 0)) return;
+  const invoked = callable(goal.args[0], env);
+  const direct = solver.registry.get(invoked.name, invoked.arity);
+  if (direct?.deterministic && (direct.shouldUse == null || direct.shouldUse({ solver, goal: invoked, env }))) {
+    const iterator = direct.handler({ solver, goal: invoked, env: env.clone() });
+    const result = iterator.next();
+    if (result.done) {
+      solver.stats.deterministic_builtin_failures++;
+      yield env;
+    } else {
+      solver.stats.deterministic_builtin_successes++;
+    }
+    return;
+  }
+  for (const _ of solver.cloneForInnerGoal(1).solve([invoked], env.clone(), 0)) return;
   yield env;
 }
 function* solveControlBranch(solver, goal, env) {

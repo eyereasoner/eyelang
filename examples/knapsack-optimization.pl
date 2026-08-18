@@ -1,5 +1,6 @@
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % 0/1 knapsack optimization with aggregate_max/5.
 %

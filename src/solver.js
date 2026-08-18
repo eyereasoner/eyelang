@@ -374,7 +374,24 @@ export class Solver {
         }
         qualifyMetaArguments(goal, group);
 
-        const lengthIterator = prologueLengthIterator(this, group, goal, env);
+        const memberIterator = bundledMemberIterator(this, group, goal, env);
+        if (memberIterator != null) {
+          const firstResult = memberIterator.next();
+          if (firstResult.done) break;
+          stack.push({
+            kind: 'resumeBuiltin',
+            iterator: memberIterator,
+            goals: rest,
+            depth: depth + 1,
+            active,
+          });
+          goals = rest;
+          env = firstResult.value;
+          depth++;
+          continue;
+        }
+
+        const lengthIterator = bundledLengthIterator(this, group, goal, env);
         if (lengthIterator != null) {
           const firstResult = lengthIterator.next();
           if (firstResult.done) break;
@@ -757,9 +774,36 @@ function groupNeedsActiveFrame(group) {
   return group.cutReachable !== false || (group.recursive && !group.linearNumeric);
 }
 
-function prologueLengthIterator(solver, group, goal, env) {
+function bundledMemberIterator(solver, group, goal, env) {
   if (solver.registry.eyePrologLibrary !== true ||
-      group.module !== 'prologue' || group.name !== 'length' || group.arity !== 2 ||
+      !['lists', 'prologue'].includes(group.module) || group.name !== 'member' || group.arity !== 2 ||
+      group.bundledLibrary !== true || group.clauses.length !== 2) {
+    return null;
+  }
+
+  // Keep the relational/open-list cases in ordinary Prolog.  When the second
+  // argument is already a finite list, however, the canonical two-clause
+  // member/2 definition is exactly a left-to-right scan and can avoid clause
+  // freshening and recursive solver frames for every element.
+  let cursor = deref(goal.args[1], env);
+  while (isCons(cursor)) cursor = deref(cursor.args[1], env);
+  if (!isEmptyList(cursor)) return null;
+  return bundledMemberSolutions(solver, goal, env);
+}
+
+function* bundledMemberSolutions(solver, goal, env) {
+  let cursor = deref(goal.args[1], env);
+  while (isCons(cursor)) {
+    const next = env.clone();
+    solver.stats.unify_calls++;
+    if (unify(goal.args[0], cursor.args[0], next)) yield next;
+    cursor = deref(cursor.args[1], env);
+  }
+}
+
+function bundledLengthIterator(solver, group, goal, env) {
+  if (solver.registry.eyePrologLibrary !== true ||
+      !['lists', 'prologue'].includes(group.module) || group.name !== 'length' || group.arity !== 2 ||
       group.bundledLibrary !== true || group.clauses.length !== 2) {
     return null;
   }
@@ -778,10 +822,10 @@ function prologueLengthIterator(solver, group, goal, env) {
     if (env._delays?.has(cursor.name)) return null;
     if (length.type === VAR && cursor.name === length.name) return null;
   }
-  return prologueLengthSolutions(solver, goal, env);
+  return bundledLengthSolutions(solver, goal, env);
 }
 
-function* prologueLengthSolutions(solver, goal, env) {
+function* bundledLengthSolutions(solver, goal, env) {
   const requestedLength = deref(goal.args[1], env);
   if (requestedLength.type !== VAR) {
     if (requestedLength.type !== NUMBER || !isDecimalInteger(requestedLength.name)) {

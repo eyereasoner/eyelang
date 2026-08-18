@@ -109,10 +109,10 @@ export const eyePrologInteropAutoload = Object.freeze({
   'foldl/6': 'lists',
   'sum_list/2': 'lists',
   'list_to_set/2': 'lists',
-  // call_nth/2 is available in both Trealla and Scryer (the latter via
-  // library(iso_ext)).  EyeProlog keeps its adapter in library(prologue), so
-  // autoloading hides that implementation-specific location from source.
-  'call_nth/2': 'prologue',
+  // call_nth/2 is available in both Trealla and Scryer.  EyeProlog exposes
+  // it from library(iso_ext), matching the explicit Scryer import while still
+  // allowing Trealla-style unqualified source to use the same autoload entry.
+  'call_nth/2': 'iso_ext',
   // Trealla and Scryer expose between/3 without an EyeProlog-style
   // library(prologue) dependency.  EyeProlog keeps its implementation in the
   // Prologue module but autoloads it so portable source need not name that
@@ -125,9 +125,9 @@ export const eyePrologInteropLibraryIndicators = Object.freeze(
 );
 
 // Libraries whose *name* is part of the current interop profile.  A program
-// may freely use_module(library(lists)); predicates in that module which are
-// outside eyePrologInteropLibraryIndicators are still diagnosed when used.
-export const eyePrologInteropLibraryModules = Object.freeze(['lists']);
+// may freely use_module/1 with these common module names; predicates in those
+// modules outside eyePrologInteropLibraryIndicators are still diagnosed when used.
+export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext']);
 
 function runtimeStatistics(solver) {
   return { ...solver.stats, ...memoryStatistics() };

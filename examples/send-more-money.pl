@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % Cryptarithm search for SEND + MORE = MONEY.
 %

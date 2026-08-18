@@ -143,12 +143,20 @@ Trealla/Scryer organization for predicates such as `member/2`, `memberchk/2`,
 `length(Xs, N)` enumerates lists of increasing length together with `N = 0, 1,
 2, ...`.
 
+`library(iso_ext)` is also accepted as a common interop module name.
+EyeProlog exports `call_nth/2` there, so Scryer-style source can explicitly use
+`:- use_module(library(iso_ext)).`; unqualified source may still autoload it.
+The aligned `library(lists)` and `library(iso_ext)` exports are kept disjoint so
+they can be imported together without an accidental import conflict. EyeProlog's
+legacy `library(prologue)` remains a compatibility umbrella and should be
+selectively imported when mixed with the aligned modules.
+
 Outside `--iso-strict`, an otherwise undefined unqualified call may autoload a
 predicate only when the interop profile has one canonical EyeProlog provider.
-For example, `member/2` autoloads from `library(lists)`, while `between/3` and
-`call_nth/2` can use EyeProlog's internal Prologue implementation without
-requiring portable source to name `library(prologue)`. Use `--no-autoload` to
-disable this convenience. Strict ISO mode never autoloads library predicates.
+For example, `member/2` autoloads from `library(lists)`, `call_nth/2` from
+`library(iso_ext)`, and `between/3` from EyeProlog's internal
+`library(prologue)` implementation. Use `--no-autoload` to disable this
+convenience. Strict ISO mode never autoloads library predicates.
 
 Use `-w` / `--warnings` to diagnose dependencies outside the interop profile,
 or `--portable` to make such diagnostics fail the run. This catches both

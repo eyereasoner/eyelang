@@ -1,5 +1,6 @@
 :- use_module(library(prologue), [between/3]).
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % Missionaries-and-cannibals river crossing as guarded state-space search.
 %

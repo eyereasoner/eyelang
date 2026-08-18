@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % A tiny automatically tabled chart parser for a context-free grammar.
 %

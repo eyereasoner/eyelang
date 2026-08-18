@@ -1,6 +1,7 @@
 /** Widely implemented extensions to the ISO Prolog core. */
 
 :- module(iso_ext, [
+    call_nth/2,
     countall/2,
     forall/2,
     succ/2,
@@ -9,6 +10,7 @@
     variant/2
 ]).
 
+:- meta_predicate(call_nth(0, '?')).
 :- meta_predicate(countall(0, '?')).
 :- meta_predicate(forall(0, 0)).
 :- meta_predicate(findall('?', 0, '?', '?')).
@@ -16,6 +18,8 @@
 % The organization and predicate contracts follow library(iso_ext) in
 % Trealla. These definitions use only EyeProlog's ISO profile; extensions that
 % require runtime cleanup, choice-point, alarm, or timeout hooks are omitted.
+
+call_nth(Goal, Nth) :- eyeprolog__call_nth(Goal, Nth).
 
 countall(Goal, Count) :- eyeprolog__countall(Goal, Count).
 

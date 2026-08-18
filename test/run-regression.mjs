@@ -20,6 +20,7 @@ import {
   createDefaultRegistry,
   getStrictIsoRegistry,
   getEyePrologRegistry,
+  standardLibrarySources,
   eyePrologLibraryIndicators,
   eyePrologNativeLibraryIndicators,
   eyePrologPortableLibraryIndicators,
@@ -67,6 +68,7 @@ function withStandardModules(source) {
   return `:- use_module(library(aggregate)).
 :- use_module(library(comparison)).
 :- use_module(library(dates)).
+:- use_module(library(iso_ext)).
 :- use_module(library(lists)).
 :- use_module(library(primes)).
 :- use_module(library(prologue), [between/3]).
@@ -2215,6 +2217,22 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'library(lists) and library(iso_ext) co-import without collisions',
+      run: () => {
+        const input = [
+          ':- use_module(library(lists)).',
+          ':- use_module(library(iso_ext)).',
+          '%% goal: answer(N)',
+          'answer(N) :- call_nth(member(_, [a,b,c]), N), N = 2.',
+          '',
+        ].join('\n');
+        const result = runCli(['--portable', '--no-autoload', '-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'answer(2).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'strict ISO mode disables interop autoloading',
       run: () => {
         const input = '%% goal: answer(X)\nanswer(X) :- member(X, [a,b]).\n';
@@ -3618,10 +3636,10 @@ check(A, B, C, D, E, F) :-
         assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 62, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 27, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists', 'common explicit library module profile');
+        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
-        assertEqual(eyePrologInteropAutoload['call_nth/2'], 'prologue', 'call_nth/2 canonical internal autoload');
+        assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
         assertEqual(eyePrologNativeLibraryIndicators.length, 40, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
@@ -3669,6 +3687,28 @@ check(A, B, C, D, E, F) :-
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'portable-library.js')), false, 'obsolete duplicate module remains absent');
         assertEqual(run(program, { goal: 'answer(X)' }).stdout, 'answer("ab").\n', 'imported append execution');
         assertEqual(program.findGroup('random', 3)?.module, 'random', 'random/3 is imported from library(random)');
+      },
+    },
+    {
+      name: 'aligned bundled libraries have no overlapping full-module exports',
+      run: () => {
+        const owners = new Map();
+        for (const [moduleName, entry] of standardLibrarySources) {
+          // library(prologue) is the documented legacy compatibility umbrella;
+          // aligned libraries must remain pairwise collision-free so full
+          // use_module/1 imports can be combined safely.
+          if (moduleName === 'prologue') continue;
+          const parsed = Program.parse(entry.source);
+          const definition = parsed.modules.get(moduleName);
+          if (!definition) throw new Error(`missing module declaration for ${moduleName}`);
+          for (const indicator of definition.exports.keys()) {
+            const previous = owners.get(indicator);
+            if (previous != null) throw new Error(`duplicate export ${indicator}: ${previous}, ${moduleName}`);
+            owners.set(indicator, moduleName);
+          }
+        }
+        assertEqual(owners.get('countall/2'), 'iso_ext', 'countall/2 has one aligned owner');
+        assertEqual(owners.get('call_nth/2'), 'iso_ext', 'call_nth/2 has one aligned owner');
       },
     },
     {

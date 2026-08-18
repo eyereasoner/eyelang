@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % Dog-license compliance rule adapted from Eyeling dog.n3.
 %

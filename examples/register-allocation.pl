@@ -1,5 +1,6 @@
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 % Register allocation as bounded graph coloring with spilling.
 %

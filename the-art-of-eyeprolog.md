@@ -1155,6 +1155,7 @@ Finite aggregation asks about a solution set:
 ```eyeprolog
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 findall(Template, Goal, List).
 countall(Goal, Count).
@@ -6019,8 +6020,8 @@ between solution branches.
 | `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `chain/2`, `element/3`, `zcompare/3`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2` |
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
 | `library(dates)` | `difference/3` |
-| `library(iso_ext)` | `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2` |
-| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `countall/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
+| `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2` |
+| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
 | `library(primes)` | `smallest_divisor_from/3` |
 | `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` |
 | `library(random)` | `random/3` |
@@ -6046,14 +6047,21 @@ This generator mode is important for portable stress and enumeration programs.
 EyeProlog-only helpers such as `set_nth0/4`, `take/3`, `drop/3`, and `slice/4`
 remain available for compatibility but are outside this profile.
 
+`library(iso_ext)` is also recognized as a common interop module name.
+EyeProlog exports `call_nth/2` there, matching Scryer's explicit import
+organization while still permitting unqualified autoloaded source. The aligned
+`library(lists)` and `library(iso_ext)` export sets are intentionally disjoint,
+so a source file may import both without an accidental predicate collision.
+`library(prologue)` is retained as an EyeProlog compatibility umbrella and may
+overlap these modules; use selective imports when legacy code combines it with
+the aligned libraries.
+
 Normal EyeProlog execution can autoload an otherwise undefined unqualified call
 only when the interop table assigns it one canonical provider. Thus `member/2`
-autoloads from `library(lists)`. `between/3` and `call_nth/2` are also in the
-interop profile; EyeProlog can satisfy them from its internal
-`library(prologue)` implementation without forcing portable source to mention
-that EyeProlog-specific library name. Autoloading is disabled by
-`--no-autoload`, by the JavaScript option `autoload: false`, and always by
-`--iso-strict`.
+autoloads from `library(lists)`, `call_nth/2` from `library(iso_ext)`, and
+`between/3` from the internal `library(prologue)` implementation. Autoloading is
+disabled by `--no-autoload`, by the JavaScript option `autoload: false`, and
+always by `--iso-strict`.
 
 `-w` / `--warnings` reports explicit non-profile library dependencies and calls
 to non-profile predicates from common libraries. `--portable` turns those
@@ -6075,11 +6083,14 @@ cumulative and two-dimensional scheduling constraints, and unbounded-domain
 propagation that are not yet exported here.
 
 `library(iso_ext)` collects extensions commonly found in mature Prolog
-systems. `forall/2` checks an action for every solution of a condition;
-`cfor/3` enumerates an inclusive evaluated integer range; `succ/2` relates
-adjacent nonnegative integers; `findall/4` collects into a difference list;
-and `variant/2` recognizes terms equal up to variable renaming. Its portable
-`countall/2` counts solutions without exposing a template.
+systems. `call_nth/2` exposes the ordinal number of each solution and supports
+the explicit import used by Scryer-style source; `forall/2` checks an action for
+every solution of a condition; `cfor/3` enumerates an inclusive evaluated
+integer range; `succ/2` relates adjacent nonnegative integers; `findall/4`
+collects into a difference list; and `variant/2` recognizes terms equal up to
+variable renaming. Its portable `countall/2` counts solutions without exposing
+a template. `countall/2` is not exported by `library(lists)`, avoiding a
+full-module import collision between the two libraries.
 
 `uuid(+Seed0,-UUID,-Seed)` creates a version 4 UUID atom using `random/3`.
 Passing the returned seed to the next call produces the next UUID; restarting
@@ -6272,6 +6283,7 @@ There is no `not/1` alias; use ISO `\+/1`. `forall/2` is available from
 ```eyeprolog
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
+:- use_module(library(iso_ext)).
 
 cost(a, 8).
 cost(b, 3).

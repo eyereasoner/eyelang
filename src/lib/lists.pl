@@ -28,7 +28,6 @@
     min_list/2,
     max_list/2,
     list_to_set/2,
-    countall/2,
     set_nth0/4,
     take/3,
     drop/3,
@@ -45,7 +44,6 @@
 :- meta_predicate(foldl(3, '?', '?', '?')).
 :- meta_predicate(foldl(4, '?', '?', '?', '?')).
 :- meta_predicate(foldl(5, '?', '?', '?', '?', '?')).
-:- meta_predicate(countall(0, '?')).
 
 % Common pure-Prolog library predicates for EyeProlog.
 %
@@ -168,7 +166,6 @@ max_list([X|Xs], Max) :- lists__max_list(Xs, X, Max).
 
 list_to_set(List, Set) :- lists__list_to_set(List, [], Set).
 
-countall(Goal, Count) :- eyeprolog__countall(Goal, Count).
 
 set_nth0(0, [_|Xs], X, [X|Xs]).
 set_nth0(N, [Y|Ys], X, [Y|Zs]) :-
