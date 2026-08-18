@@ -138,14 +138,17 @@ predicates use ISO atoms or character lists. The old catch-all
 EyeProlog keeps a conservative source-level interoperability profile separate
 from the larger EyeProlog library surface. `library(lists)` follows the common
 Trealla/Scryer organization for predicates such as `member/2`, `memberchk/2`,
-`append/2-3`, `nth0/3-4`, `nth1/3-4`, `maplist/2-8`, and `foldl/4-6`.
+`append/2-3`, `nth0/3-4`, `nth1/3-4`, `length/2`, `maplist/2-8`, and
+`foldl/4-6`. Its `length/2` remains relational: with both arguments variable,
+`length(Xs, N)` enumerates lists of increasing length together with `N = 0, 1,
+2, ...`.
 
 Outside `--iso-strict`, an otherwise undefined unqualified call may autoload a
 predicate only when the interop profile has one canonical EyeProlog provider.
-For example, `member/2` autoloads from `library(lists)` and `between/3` can use
-EyeProlog's internal Prologue implementation without requiring portable source
-to name `library(prologue)`. Use `--no-autoload` to disable this convenience.
-Strict ISO mode never autoloads library predicates.
+For example, `member/2` autoloads from `library(lists)`, while `between/3` and
+`call_nth/2` can use EyeProlog's internal Prologue implementation without
+requiring portable source to name `library(prologue)`. Use `--no-autoload` to
+disable this convenience. Strict ISO mode never autoloads library predicates.
 
 Use `-w` / `--warnings` to diagnose dependencies outside the interop profile,
 or `--portable` to make such diagnostics fail the run. This catches both

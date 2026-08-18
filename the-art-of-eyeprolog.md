@@ -6037,17 +6037,21 @@ still have an API that is not shared by the other systems.
 `library(lists)` is the first aligned common module. Its interop surface includes
 `member/2`, `memberchk/2`, `select/3`, `append/2-3`, `last/2`,
 `same_length/2`, `nth0/3-4`, `nth1/3-4`, `reverse/2`, `length/2`,
-`maplist/2-8`, `foldl/4-6`, `sum_list/2`, and `list_to_set/2`. EyeProlog-only
-helpers such as `set_nth0/4`, `take/3`, `drop/3`, and `slice/4` remain available
-for compatibility but are outside this profile.
+`maplist/2-8`, `foldl/4-6`, `sum_list/2`, and `list_to_set/2`. Its `length/2`
+is fully relational: when both arguments are variables, `length(Xs, N)`
+enumerates `Xs = [], N = 0`, then one-element lists with `N = 1`, and so on.
+This generator mode is important for portable stress and enumeration programs.
+EyeProlog-only helpers such as `set_nth0/4`, `take/3`, `drop/3`, and `slice/4`
+remain available for compatibility but are outside this profile.
 
 Normal EyeProlog execution can autoload an otherwise undefined unqualified call
 only when the interop table assigns it one canonical provider. Thus `member/2`
-autoloads from `library(lists)`. `between/3` is also in the interop profile;
-EyeProlog can satisfy it from its internal `library(prologue)` implementation
-without forcing portable source to mention that EyeProlog-specific library
-name. Autoloading is disabled by `--no-autoload`, by the JavaScript option
-`autoload: false`, and always by `--iso-strict`.
+autoloads from `library(lists)`. `between/3` and `call_nth/2` are also in the
+interop profile; EyeProlog can satisfy them from its internal
+`library(prologue)` implementation without forcing portable source to mention
+that EyeProlog-specific library name. Autoloading is disabled by
+`--no-autoload`, by the JavaScript option `autoload: false`, and always by
+`--iso-strict`.
 
 `-w` / `--warnings` reports explicit non-profile library dependencies and calls
 to non-profile predicates from common libraries. `--portable` turns those

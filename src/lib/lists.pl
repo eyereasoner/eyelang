@@ -133,8 +133,17 @@ nth1(N, List, Elem, Rest) :-
 
 reverse(List, Reversed) :- lists__reverse(List, [], Reversed).
 
-length(List, Length) :- nonvar(List), lists__length_count(List, 0, Length).
-length(List, Length) :- var(List), integer(Length), Length >= 0, lists__length_make(Length, List).
+% Keep the common lists:length/2 relation fully relational.  In particular,
+% length(List, Length) with both arguments variable enumerates lists of
+% increasing length, as required by portable generators such as the issue #28
+% number_chars/2 stress test.
+length(List, Length) :-
+    nonvar(Length), !,
+    lists__integer(Length),
+    lists__not_less_than_zero(Length),
+    lists__length_fixed(Length, List).
+length(List, Length) :-
+    lists__length_generate(List, 0, Length).
 
 foldl(_, [], Acc, Acc).
 foldl(Closure, [A|As], Acc0, Acc) :-
@@ -186,10 +195,25 @@ slice(Start, Count, List, Slice) :-
 lists__reverse([], Acc, Acc).
 lists__reverse([X|Xs], Acc, Out) :- lists__reverse(Xs, [X|Acc], Out).
 
-lists__length_count([], N, N).
-lists__length_count([_|Xs], N0, N) :- N1 is N0 + 1, lists__length_count(Xs, N1, N).
-lists__length_make(0, []).
-lists__length_make(N, [_|Xs]) :- N > 0, N1 is N - 1, lists__length_make(N1, Xs).
+lists__length_fixed(0, []).
+lists__length_fixed(N, [_|Xs]) :-
+    N > 0,
+    N1 is N - 1,
+    lists__length_fixed(N1, Xs).
+
+lists__length_generate([], N, N).
+lists__length_generate([_|Xs], N0, N) :-
+    N1 is N0 + 1,
+    lists__length_generate(Xs, N1, N).
+
+lists__integer(X) :- integer(X), !.
+lists__integer(X) :- var(X), !, 0 is X.
+% arg/3 performs the ISO integer type check before inspecting its term.
+lists__integer(X) :- arg(X, type_check, _).
+
+lists__not_less_than_zero(X) :- X >= 0, !.
+% atom_length/2 reports domain_error(not_less_than_zero) for a negative value.
+lists__not_less_than_zero(X) :- atom_length('', X).
 
 lists__sum_list([], Sum, Sum).
 lists__sum_list([X|Xs], Acc, Sum) :- Next is Acc + X, lists__sum_list(Xs, Next, Sum).

@@ -2031,6 +2031,21 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'library(lists) length/2 stays relational and call_nth/2 autoloads (issue #28)',
+      run: () => {
+        const input = [
+          ':- use_module(library(lists)).',
+          '%% goal: fourth_length(N)',
+          'fourth_length(N) :- call_nth(length(_Xs, N), 4).',
+          '',
+        ].join('\n');
+        const result = runCli(['-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, 'fourth_length(3).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'strict ISO mode disables interop autoloading',
       run: () => {
         const input = '%% goal: answer(X)\nanswer(X) :- member(X, [a,b]).\n';
@@ -3433,10 +3448,11 @@ check(A, B, C, D, E, F) :-
         assertEqual(Boolean(library.get('statistics', 2)), true, 'statistics/2 is an EyeProlog observability extension');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 62, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 26, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 27, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.join(','), 'lists', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
+        assertEqual(eyePrologInteropAutoload['call_nth/2'], 'prologue', 'call_nth/2 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
         assertEqual(eyePrologNativeLibraryIndicators.length, 40, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');

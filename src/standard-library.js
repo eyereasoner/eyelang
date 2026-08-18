@@ -109,6 +109,10 @@ export const eyePrologInteropAutoload = Object.freeze({
   'foldl/6': 'lists',
   'sum_list/2': 'lists',
   'list_to_set/2': 'lists',
+  // call_nth/2 is available in both Trealla and Scryer (the latter via
+  // library(iso_ext)).  EyeProlog keeps its adapter in library(prologue), so
+  // autoloading hides that implementation-specific location from source.
+  'call_nth/2': 'prologue',
   // Trealla and Scryer expose between/3 without an EyeProlog-style
   // library(prologue) dependency.  EyeProlog keeps its implementation in the
   // Prologue module but autoloads it so portable source need not name that
