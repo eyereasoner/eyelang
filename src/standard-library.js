@@ -47,7 +47,7 @@ function libraryUrl(filename) {
 }
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([
-  'call_nth/2', 'freeze/2', 'countall/2',
+  'call_nth/2', 'freeze/2', 'countall/2', 'time/1',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
   'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'nvalue/2', 'sum/3',
@@ -68,7 +68,7 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'nth0/3', 'nth0/4', 'nth1/3', 'nth1/4', 'set_nth0/4', 'take/3', 'drop/3', 'slice/4', 'reverse/2',
   'length/2', 'sum_list/2', 'min_list/2', 'max_list/2', 'list_to_set/2',
   'succ/2', 'foldl/4', 'foldl/5', 'foldl/6',
-  'forall/2', 'cfor/3', 'findall/4', 'variant/2', 'uuid/3',
+  'forall/2', 'cfor/3', 'findall/4', 'variant/2', '.../2', 'uuid/3',
   '^/3', '^/4', '^/5', '^/6', '^/7', '^/8', '^/9', '^/10',
   '\\/1', '\\/2', '\\/3', '\\/4', '\\/5', '\\/6', '\\/7', '\\/8',
   '+\\/2', '+\\/3', '+\\/4', '+\\/5', '+\\/6', '+\\/7', '+\\/8', '+\\/9',
@@ -117,6 +117,11 @@ export const eyePrologInteropAutoload = Object.freeze({
   // it from library(iso_ext), matching the explicit Scryer import while still
   // allowing Trealla-style unqualified source to use the same autoload entry.
   'call_nth/2': 'iso_ext',
+  // Trealla exposes time/1 as a meta timing predicate and library(iso_ext)
+  // supplies ...//0. Autoload both so UWN's DCG hand-off benchmark runs
+  // unchanged while their implementations remain outside the ISO core.
+  'time/1': 'iso_ext',
+  '.../2': 'iso_ext',
   // Trealla and Scryer expose between/3 without an EyeProlog-style
   // library(prologue) dependency.  EyeProlog keeps its implementation in the
   // Prologue module but autoloads it so portable source need not name that

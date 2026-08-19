@@ -1324,6 +1324,9 @@ c4 ?- call((!;1)).
           first_use_cycle :- X = f(Y), Y = g(X).
           repeated_cycle :- X = f(X).
           first_use_ok(T) :- X = f(Y), Y = a, T = X.
+          pass(_).
+          handed_off_cycle :- pass(X), Y = f(X), X = g(Y).
+          handed_off_alias_cycle :- pass(X), Y = X, X = f(Y).
         `);
         const solver = new Solver(program);
         const solveCount = (text) => {
@@ -1338,6 +1341,8 @@ c4 ?- call((!;1)).
         assertEqual(solveCount('first_use_cycle'), 0, 'cycle across later first-use binding');
         assertEqual(solveCount('repeated_cycle'), 0, 'same-goal repeated variable still checks occurs');
         assertEqual(solveCount('first_use_ok(f(a))'), 1, 'acyclic first-use bindings still succeed');
+        assertEqual(solveCount('handed_off_cycle'), 0, 'nested use globalizes a handed-off local before a cycle');
+        assertEqual(solveCount('handed_off_alias_cycle'), 0, 'aliasing does not hide a later cycle');
       },
     },
     {
@@ -1377,6 +1382,106 @@ c4 ?- call((!;1)).
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `deep DCG child status; stderr=${result.stderr}`);
         assertEqual(result.stdout, 'ok', 'deep DCG result');
+      },
+    },
+    {
+      name: 'Trealla-style DCG hand-off autoloads time/1 and ...//0 without quadratic occurs checks (issue #49)',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const script = `
+          import { run } from ${JSON.stringify(engineUrl)};
+          const source = ${JSON.stringify('a --> ..., epsilon.\nepsilon --> [].\n')};
+          const result = run(source, {
+            goal: ${JSON.stringify('length(_,E), E>12, N is 2^E, \\+ \\+ (length(L,N), time(phrase(a,L)))')},
+            solutionLimit: 1,
+          });
+          if (!result.stdout.startsWith('% Time elapsed ') || !result.stdout.endsWith('s\\n')) {
+            throw new Error('unexpected time/1 output: ' + JSON.stringify(result.stdout));
+          }
+          process.stdout.write('ok');
+        `;
+        const result = spawnSync(process.execPath, ['--input-type=module', '--eval', script], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          timeout: 10000,
+        });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `DCG hand-off child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'ok', 'DCG hand-off benchmark result');
+      },
+    },
+    {
+      name: 'Trealla-style DCG hand-off reaches 65536 cells without the solver depth ceiling',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const script = `
+          import { run } from ${JSON.stringify(engineUrl)};
+          const source = ${JSON.stringify(':- set_prolog_flag(occurs_check, true).\na --> ..., epsilon.\nepsilon --> [].\n')};
+          const result = run(source, {
+            goal: ${JSON.stringify('\\+ \\+ (length(L,65536), time(phrase(a,L)))')},
+            solutionLimit: 1,
+          });
+          if (!result.stdout.startsWith('% Time elapsed ')) {
+            throw new Error('65536-cell hand-off did not succeed: ' + JSON.stringify(result.stdout));
+          }
+          process.stdout.write('ok');
+        `;
+        const result = spawnSync(process.execPath, ['--input-type=module', '--eval', script], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          timeout: 5000,
+        });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `65536-cell hand-off status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'ok', '65536-cell hand-off result');
+      },
+    },
+    {
+      name: 'REPL applies conservative autoloading to interactive time/1 and consulted ...//0',
+      run: () => {
+        const filename = path.join(tmp, `issue49-handoff-${tmpCounter++}.pl`);
+        fs.writeFileSync(filename, 'a --> ..., epsilon.\nepsilon --> [].\n');
+        const result = runCli([], {
+          input:
+            `[${sourceAtom(filename)}].\n` +
+            'use_module(library(lists)).\n' +
+            'length(_,E),E>12,N is 2^E,\\+ \\+ (length(L,N),time(phrase(a,L))).\n' +
+            '\n' +
+            'halt.\n',
+          timeout: 10000,
+        });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `REPL hand-off status; stderr=${result.stderr}`);
+        assertIncludes(result.stdout, '% Time elapsed ', 'REPL time/1 output');
+        assertEqual((result.stdout.match(/% Time elapsed /g) ?? []).length, 1,
+          'REPL timed query does not prefetch an unrequested next answer');
+        assertIncludes(result.stdout, 'E = 13, N = 8192', 'REPL first benchmark answer');
+        assertNotIncludes(result.stdout, 'existence_error(procedure', 'REPL autoload errors');
+        assertEqual(result.stderr, '', 'REPL hand-off stderr');
+      },
+    },
+    {
+      name: 'REPL Trealla hand-off benchmark reaches E=16 on demand without OOM fallthrough',
+      run: () => {
+        const filename = path.join(tmp, `issue49-handoff-deep-${tmpCounter++}.pl`);
+        fs.writeFileSync(filename, ':- set_prolog_flag(occurs_check, true).\na --> ..., epsilon.\nepsilon --> [].\n');
+        const result = runCli([], {
+          input:
+            `[${sourceAtom(filename)}].\n` +
+            'use_module(library(lists)).\n' +
+            'length(_,E),E>12,N is 2^E,\\+ \\+ (length(L,N),time(phrase(a,L))).\n' +
+            ';\n;\n;\n\n' +
+            'halt.\n',
+          timeout: 5000,
+        });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `deep REPL hand-off status; stderr=${result.stderr}`);
+        for (const [e, n] of [[13, 8192], [14, 16384], [15, 32768], [16, 65536]]) {
+          assertIncludes(result.stdout, `E = ${e}, N = ${n}`, `REPL hand-off E=${e}`);
+        }
+        assertEqual((result.stdout.match(/% Time elapsed /g) ?? []).length, 4,
+          'exactly four requested timed answers');
+        assertEqual(result.stderr, '', 'deep REPL hand-off stderr');
       },
     },
     {
@@ -3916,7 +4021,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 156, 'EyeProlog registry contains ISO definitions, observability extensions, WFS tnot/1, and private library adapters');
+        assertEqual(library.defs.size, 158, 'EyeProlog registry contains ISO definitions, observability extensions, WFS tnot/1, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -3925,17 +4030,21 @@ answer(ok) :-
         assertEqual(Boolean(library.get('statistics', 2)), true, 'statistics/2 is an EyeProlog observability extension');
         assertEqual(registry.get('tnot', 1), null, 'tnot/1 is absent from the ISO registry');
         assertEqual(Boolean(library.get('tnot', 1)), true, 'tnot/1 is an EyeProlog WFS extension');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 86, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 27, 'cross-implementation interop profile count');
+        assertEqual(registry.get('time', 1), null, 'time/1 is absent from the ISO registry');
+        assertEqual(Boolean(library.get('time', 1)), true, 'time/1 is an EyeProlog timing extension');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 41, 'public native EyeProlog builtin count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 87, 'portable Prolog library count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 29, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
+        assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
+        assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 40, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 41, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 126, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 128, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
@@ -3943,6 +4052,7 @@ answer(ok) :-
         assertEqual(Boolean(library.get('eyeprolog__freeze', 2)), true, 'private freeze adapter is registered for EyeProlog');
         assertEqual(registry.get('eyeprolog__countall', 2), null, 'private countall adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__countall', 2)), true, 'private countall adapter is registered for EyeProlog');
+        assertEqual(Boolean(library.get('eyeprolog__time', 1)), true, 'private time adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__clpz_labeling', 2)), true, 'private CLP(Z) labeling adapter is registered');
         assertEqual(Boolean(library.get('eyeprolog__clpz_global_cardinality', 3)), true, 'private CLP(Z) cardinality adapter is registered');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');

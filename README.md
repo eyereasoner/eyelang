@@ -201,8 +201,8 @@ noun --> [world] | [prolog].
 %% goal: phrase(sentence, Words)
 ```
 
-EyeProlog also adds 126 public library predicate indicators to its 129-entry ISO
-profile. **87 are implemented entirely as ordinary Prolog clauses** in focused
+EyeProlog also adds 128 public library predicate indicators to its 129-entry ISO
+profile. **88 are implemented entirely as ordinary Prolog clauses** in focused
 modules under `src/lib/`; the remaining control predicates and finite-domain
 `library(clpz)` kernel use backtrackable host support.
 They are ISO/IEC 13211-2 modules loaded explicitly by purpose, such as
@@ -225,8 +225,13 @@ headroom, so an exhausted finite heap is reported as a catchable
 `resource_error(memory)` instead of degenerating into quadratic list checks.
 
 `library(iso_ext)` is also accepted as a common interop module name.
-EyeProlog exports `call_nth/2` there, so Scryer-style source can explicitly use
-`:- use_module(library(iso_ext)).`; unqualified source may still autoload it.
+EyeProlog exports `call_nth/2`, `time/1`, and the DCG helper `...//0` there.
+The latter describes an arbitrary number of input elements and supports the
+nonterminal hand-off benchmark discussed in issue #49. These common predicates
+may be imported explicitly, while source/CLI/API dependency loading can resolve
+their unqualified forms conservatively. For Trealla-style interactive timing,
+`time/1` is also available directly in the normal EyeProlog runtime; strict ISO
+mode does not expose it.
 The aligned `library(lists)` and `library(iso_ext)` exports are kept disjoint so
 they can be imported together without an accidental import conflict. EyeProlog's
 legacy `library(prologue)` remains a compatibility umbrella and should be

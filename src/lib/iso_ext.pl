@@ -7,17 +7,21 @@
     succ/2,
     cfor/3,
     findall/4,
-    variant/2
+    variant/2,
+    time/1,
+    '...'/2
 ]).
 
 :- meta_predicate(call_nth(0, '?')).
 :- meta_predicate(countall(0, '?')).
 :- meta_predicate(forall(0, 0)).
 :- meta_predicate(findall('?', 0, '?', '?')).
+:- meta_predicate(time(0)).
 
 % The organization and predicate contracts follow library(iso_ext) in
-% Trealla. These definitions use only EyeProlog's ISO profile; extensions that
-% require runtime cleanup, choice-point, alarm, or timeout hooks are omitted.
+% Trealla. Most definitions use only EyeProlog's ISO profile. time/1 is the
+% deliberate exception: its private adapter supplies monotonic host timing and
+% writes the measurement while the public wrapper keeps normal meta semantics.
 
 call_nth(Goal, Nth) :- eyeprolog__call_nth(Goal, Nth).
 
@@ -58,6 +62,16 @@ variant(X, Y) :-
     copy_term(X-Y, CopyX-CopyY),
     subsumes_term(CopyX, CopyY),
     subsumes_term(CopyY, CopyX).
+
+% Trealla-compatible timing wrapper. The private adapter measures the callable
+% while this Prolog wrapper supplies normal module/meta-predicate semantics.
+time(Goal) :- eyeprolog__time(Goal).
+
+% Trealla/Scryer DCG helper: describes an arbitrary number of elements.
+% EyeProlog's two-clause form has the same finite-input relation without the
+% Trealla-specific empty-input cut guard, so recursive calls stay cut-free.
+'...' --> [].
+'...' --> [_], '...' .
 
 iso_ext__call_all([]).
 iso_ext__call_all([Goal|Goals]) :-

@@ -2,7 +2,7 @@
 // Grammar rules are lowered to ordinary clauses during program preparation;
 // phrase/2-3 use the same body expansion for dynamically supplied grammars.
 import {
-  ATOM, COMPOUND, VAR, Env, atom, compound, deref, emptyList,
+  ATOM, COMPOUND, VAR, Env, atom, compactListLength, compound, deref, emptyList,
   flattenConjunction, variable,
 } from './term.js';
 import { PrologError } from './iso.js';
@@ -280,6 +280,11 @@ export function expandDcgRuleClause(clause, defaultModule = 'user') {
 export function isListOrPartialList(term, env) {
   const seen = new Set();
   let cursor = deref(term, env);
+  // A compact list skeleton has a fixed proper spine by construction. Its
+  // elements may later receive bindings, but those bindings cannot change the
+  // list tail shape, so phrase/2-3 need not expand the entire lazy spine merely
+  // to validate it as a list.
+  if (compactListLength(cursor) != null) return true;
   while (cursor.type === COMPOUND && cursor.name === '.' && cursor.arity === 2) {
     if (seen.has(cursor)) return false;
     seen.add(cursor);

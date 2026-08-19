@@ -176,6 +176,8 @@ export const eyePrologLibraryBuiltins = {
     registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__countall', 2, countAllBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__freeze', 2, freezeBuiltin, { eyePrologLibrary: true });
+    registry.add('time', 1, timeBuiltin, { eyePrologLibrary: true });
+    registry.add('eyeprolog__time', 1, timeBuiltin, { eyePrologLibrary: true });
   },
 };
 
@@ -1899,28 +1901,30 @@ const bagofBuiltin = allSolutionsBuiltin(false);
 const setofBuiltin = allSolutionsBuiltin(true);
 
 function callable(term, env) {
-  term = resolveCallable(term, env);
+  term = deref(term, env);
   if (term.type === VAR) throw new PrologError('instantiation_error');
   if (term.type !== ATOM && term.type !== COMPOUND) throw new PrologError('type_error(callable)', term);
-  validateControlCallable(term, term);
+  validateControlCallable(term, term, env);
   return term;
 }
-function validateControlCallable(term, culprit) {
-  if (term.type !== COMPOUND || ![',', ';', '->'].includes(term.name) || term.arity !== 2) return;
-  for (const argument of term.args) {
-    if (argument.type === VAR) throw new PrologError('instantiation_error');
-    if (argument.type !== ATOM && argument.type !== COMPOUND) {
-      throw new PrologError('type_error(callable)', culprit);
+function validateControlCallable(term, culprit, env) {
+  // Only control constructs need their nested goals validated at meta-call
+  // entry. Walk them iteratively and dereference each nested goal lazily so
+  // passing a callable that contains a very deep data term (for example
+  // phrase(a, List) with an 8k-cell List) never consumes the JavaScript stack.
+  const pending = [term];
+  while (pending.length > 0) {
+    const current = deref(pending.pop(), env);
+    if (current.type !== COMPOUND || ![',', ';', '->'].includes(current.name) || current.arity !== 2) continue;
+    for (let index = current.arity - 1; index >= 0; index--) {
+      const argument = deref(current.args[index], env);
+      if (argument.type === VAR) throw new PrologError('instantiation_error');
+      if (argument.type !== ATOM && argument.type !== COMPOUND) {
+        throw new PrologError('type_error(callable)', culprit);
+      }
+      pending.push(argument);
     }
-    validateControlCallable(argument, culprit);
   }
-}
-function resolveCallable(term, env) {
-  const resolved = deref(term, env);
-  if (resolved.type !== COMPOUND) return resolved;
-  const callable = compound(resolved.name, resolved.args.map((arg) => resolveCallable(arg, env)));
-  if (resolved.module != null) callable.module = resolved.module;
-  return callable;
 }
 function* callBuiltin({ solver, goal, env }) {
   const child = solver.cloneForInnerGoal();
@@ -1970,6 +1974,44 @@ function* countAllBuiltin({ solver, goal, env }) {
 
   const next = env.clone();
   if (unify(goal.args[1], numberTerm(count), next)) yield next;
+}
+
+function monotonicMilliseconds() {
+  return globalThis.performance?.now?.() ?? Date.now();
+}
+
+function writeElapsedTime(solver, startedAt, inferences) {
+  const stream = solver.io.resolve(solver.io.currentOutput);
+  if (stream?.type !== 'text') throw new PrologError('permission_error(output, binary_stream)');
+  const elapsedSeconds = Math.max(0, monotonicMilliseconds() - startedAt) / 1000;
+  const mlips = elapsedSeconds > 0 ? inferences / elapsedSeconds / 1_000_000 : 0;
+  solver.io.writeUnit(
+    stream,
+    `% Time elapsed ${elapsedSeconds.toFixed(3)}s, ${inferences} Inferences, ${mlips.toFixed(3)} MLips\n`,
+  );
+}
+
+function* timeBuiltin({ solver, goal, env }) {
+  const invoked = callable(goal.args[0], env);
+  const child = solver.cloneForInnerGoal();
+  let startedAt = monotonicMilliseconds();
+  let startedInferences = child.inferenceObservation.value;
+  let yieldedAny = false;
+  try {
+    for (const answerEnv of child.solve([invoked], env, 0)) {
+      writeElapsedTime(solver, startedAt, child.inferenceObservation.value - startedInferences);
+      yieldedAny = true;
+      yield answerEnv;
+      // A resumed time/1 measures only the work required to reach the next
+      // answer, so nondeterministic calls get one timing line per solution.
+      startedAt = monotonicMilliseconds();
+      startedInferences = child.inferenceObservation.value;
+    }
+    // A call that fails without producing an answer still reports the work.
+    if (!yieldedAny) writeElapsedTime(solver, startedAt, child.inferenceObservation.value - startedInferences);
+  } finally {
+    solver.absorbStatsFrom(child);
+  }
 }
 
 function* callNthBuiltin({ solver, goal, env }) {

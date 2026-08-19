@@ -58,6 +58,10 @@ export class Solver {
     this.depthLimitExceeded = false;
     this.maxInferences = options.maxInferences ?? Infinity;
     this.inferences = 0;
+    // Shared only for observability: nested meta-call solvers contribute to the
+    // same measurement counter without changing each solver's local inference
+    // limit accounting. time/1 snapshots this counter around the measured goal.
+    this.inferenceObservation = options.inferenceObservation ?? { value: 0 };
     this.inferenceLimitExceeded = false;
     this.maxMemoryBytes = options.maxMemoryBytes ?? softHeapLimit();
     this.memoryRecovery = options.memoryRecovery ?? {
@@ -158,6 +162,7 @@ export class Solver {
       charConversions: this.charConversions,
       io: this.io,
       innerTableScopes: this.innerTableScopes,
+      inferenceObservation: this.inferenceObservation,
       skipListTailTabling: options.skipListTailTabling ?? this.skipListTailTabling,
     });
     if (options.tableScope != null) {
@@ -282,6 +287,7 @@ export class Solver {
       this.solveStacks.push(stack);
       while (stack.length) {
       this.inferences++;
+      this.inferenceObservation.value++;
       this.checkMemoryLimit();
       if (this.inferences > this.maxInferences) {
         this.inferenceLimitExceeded = true;
@@ -334,6 +340,7 @@ export class Solver {
 
       while (true) {
         this.inferences++;
+        this.inferenceObservation.value++;
         this.checkMemoryLimit();
         if (this.inferences > this.maxInferences) {
           this.inferenceLimitExceeded = true;
@@ -388,6 +395,7 @@ export class Solver {
         const selectedIndex = selectReadyDeterministicBuiltin(goals, env, this.registry);
         const goal = deref(goals[selectedIndex], env);
         const rest = selectedIndex === 0 ? goals.slice(1) : [...goals.slice(0, selectedIndex), ...goals.slice(selectedIndex + 1)];
+        prepareLocalVariablesForGoal(goal, env);
         if (goal.type === 'atom' && goal.name === '!' && goal.arity === 0) {
           const marker = active[active.length - 1] ?? null;
           if (marker) marker.cutEpoch = (marker.cutEpoch ?? 0) + 1;
@@ -539,6 +547,23 @@ export class Solver {
           continue;
         }
 
+        const ellipsisPlan = bundledEllipsisPlan(this, group, goal, rest, env);
+        if (ellipsisPlan != null) {
+          const firstResult = ellipsisPlan.iterator.next();
+          if (firstResult.done) break;
+          stack.push({
+            kind: 'resumeBuiltin',
+            iterator: ellipsisPlan.iterator,
+            goals: ellipsisPlan.rest,
+            depth: depth + 1,
+            active,
+          });
+          goals = ellipsisPlan.rest;
+          env = firstResult.value;
+          depth++;
+          continue;
+        }
+
         if (group.tabled && !(this.skipListTailTabling && group.listTailRecursive)) {
           const key = memoKey(goal, env, group);
           if (key.hasBound) {
@@ -610,6 +635,13 @@ export class Solver {
       if (stackIndex >= 0) this.solveStacks.splice(stackIndex, 1);
       this.active = savedActive;
     }
+  }
+
+  hasPendingAlternatives() {
+    // When solve() is suspended at an answer, active solve stacks contain only
+    // unexplored work. The timed REPL path uses this without speculatively
+    // pulling the next answer.
+    return this.solveStacks.some((stack) => stack.length !== 0);
   }
 
   fastCountGoal(goal, env) {
@@ -1083,12 +1115,47 @@ function freshVariableSet(names, freshVariables) {
 
 function attachBodyLocalFreshVariables(freshBody, plan, freshVariables) {
   for (let index = 0; index < freshBody.length; index++) {
+    const goal = freshBody[index];
     const knownNonoccurringVariables = freshVariableSet(plan[index] ?? [], freshVariables);
-    if (knownNonoccurringVariables != null && freshBody[index]?.type === COMPOUND &&
-        freshBody[index].name === '=' && freshBody[index].arity === 2) {
-      freshBody[index]._knownNonoccurringVariables = knownNonoccurringVariables;
+    if (knownNonoccurringVariables == null || goal?.type !== COMPOUND) continue;
+    if (goal.name === '=' && goal.arity === 2) {
+      goal._knownNonoccurringVariables = knownNonoccurringVariables;
+      continue;
+    }
+    // Only a compiler-generated DCG state first handed as a complete argument
+    // to another callable receives a longer-lived local marker. Equality-created
+    // sequence variables keep the existing one-unification proof instead.
+    const localFirstUseVariables = new Set();
+    for (const argument of goal.args) {
+      if (argument?.type === VAR && argument.name.startsWith('\u0000dcg') &&
+          knownNonoccurringVariables.has(argument.name)) {
+        localFirstUseVariables.add(argument.name);
+      }
+    }
+    if (localFirstUseVariables.size !== 0) goal._localFirstUseVariables = localFirstUseVariables;
+  }
+}
+
+
+function prepareLocalVariablesForGoal(goal, env) {
+  // A DCG local is globalized if later source places it inside a structure.
+  // Inspect the small fresh goal syntax rather than dereferencing large data.
+  if (env.hasLocalVariables() && goal?.type === COMPOUND) {
+    const pending = [];
+    for (const argument of goal.args) if (argument?.type === COMPOUND) pending.push(argument);
+    while (pending.length !== 0) {
+      const current = pending.pop();
+      for (const argument of current.args ?? []) {
+        if (argument?.type === VAR) {
+          const root = derefForLocal(argument, env);
+          if (root.type === VAR && env.isLocalVariable(root.name)) env.demoteLocalVariable(root.name);
+        } else if (argument?.type === COMPOUND) {
+          pending.push(argument);
+        }
+      }
     }
   }
+  env.markLocalVariables(goal?._localFirstUseVariables ?? null);
 }
 
 function groupNeedsActiveFrame(group) {
@@ -1172,6 +1239,92 @@ function* bundledMemberSolutions(solver, goal, env) {
     const next = env.clone();
     solver.stats.unify_calls++;
     if (unify(goal.args[0], cursor.args[0], next)) yield next;
+    cursor = deref(cursor.args[1], env);
+  }
+}
+
+function bundledEllipsisPlan(solver, group, goal, rest, env) {
+  if (solver.registry.eyePrologLibrary !== true ||
+      group.module !== 'iso_ext' || group.name !== '...' || group.arity !== 2 ||
+      group.bundledLibrary !== true || group.clauses.length !== 2) {
+    return null;
+  }
+
+  // length/2 and other native constructors can leave a known finite list as a
+  // compact spine.  The ordinary ...//0 relation simply enumerates every
+  // suffix of such a list; doing that directly avoids clause freshening and
+  // recursive solver depth for every consumed element.  Non-compact and open
+  // list cases retain the ordinary Prolog definition.
+  const input = deref(goal.args[0], env);
+  if (compactListLength(input) == null) return null;
+
+  // A following binary identity relation is just a zero-width DCG hand-off.
+  // Fuse it by asking .../2 for that relation's required output directly.
+  // This is a structural optimization: any one-clause p(X,Y):-X=Y (or p(X,X).)
+  // qualifies, not just a predicate named epsilon/2.
+  if (rest.length > 0) {
+    const continuation = deref(rest[0], env);
+    if (continuation?.type === COMPOUND && continuation.arity === 2) {
+      const continuationGroup = solver.program.findGroup(
+        continuation.name, continuation.arity, continuation.module ?? goal.module ?? 'user',
+      );
+      if (isBinaryIdentityGroup(continuationGroup)) {
+        const output = deref(goal.args[1], env);
+        const continuationInput = deref(continuation.args[0], env);
+        if (output.type === VAR && continuationInput.type === VAR && output.name === continuationInput.name &&
+            output.name.startsWith('\u0000dcg')) {
+          return {
+            iterator: bundledEllipsisSolutions(solver, continuation.args[1], input, env),
+            rest: rest.slice(1),
+          };
+        }
+      }
+    }
+  }
+
+  return { iterator: bundledEllipsisSolutions(solver, goal.args[1], input, env), rest };
+}
+
+function isBinaryIdentityGroup(group) {
+  if (group == null || group.arity !== 2 || group.clauses.length !== 1 || group.hasCut === true) return false;
+  const clause = group.clauses[0];
+  const left = clause.head?.args?.[0];
+  const right = clause.head?.args?.[1];
+  if (left?.type !== VAR || right?.type !== VAR) return false;
+  if (clause.body.length === 0) return left.name === right.name;
+  if (clause.body.length !== 1) return false;
+  const equality = clause.body[0];
+  if (equality?.type !== COMPOUND || equality.name !== '=' || equality.arity !== 2) return false;
+  const a = equality.args[0];
+  const b = equality.args[1];
+  if (a?.type !== VAR || b?.type !== VAR) return false;
+  return (a.name === left.name && b.name === right.name) ||
+    (a.name === right.name && b.name === left.name);
+}
+
+function* bundledEllipsisSolutions(solver, output, input, env) {
+  let cursor = input;
+  const requestedOutput = deref(output, env);
+
+  // A fixed empty remainder is the important DCG scanner case. Still walk the
+  // actual compact spine so this remains a real tail-consumption benchmark,
+  // but avoid allocating a speculative environment for every suffix that is
+  // structurally incapable of matching [].
+  if (isEmptyList(requestedOutput)) {
+    while (!isEmptyList(cursor)) {
+      if (!isCons(cursor)) return;
+      cursor = deref(cursor.args[1], env);
+    }
+    yield env;
+    return;
+  }
+
+  while (true) {
+    const next = env.clone();
+    solver.stats.unify_calls++;
+    if (unify(output, cursor, next)) yield next;
+    if (isEmptyList(cursor)) return;
+    if (!isCons(cursor)) return;
     cursor = deref(cursor.args[1], env);
   }
 }

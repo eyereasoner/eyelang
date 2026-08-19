@@ -99,6 +99,7 @@ export class Env {
     this._delays = null;
     this._clpz = null;
     this._occursCheckHandler = null;
+    this._localVariables = null;
   }
   clone() {
     // Most speculative environments are either rejected without a binding or
@@ -111,11 +112,42 @@ export class Env {
     clone._delays = this._delays;
     clone._clpz = this._clpz;
     clone._occursCheckHandler = this._occursCheckHandler;
+    clone._localVariables = this._localVariables;
     return clone;
   }
   setOccursCheckHandler(handler) {
     this._occursCheckHandler = typeof handler === 'function' ? handler : null;
     return this;
+  }
+  hasLocalVariables() {
+    return this._localVariables != null && this._localVariables.size !== 0;
+  }
+  isLocalVariable(name) {
+    return this._localVariables?.has(name) === true;
+  }
+  markLocalVariables(names) {
+    if (names == null || names.size === 0) return;
+    let next = this._localVariables;
+    for (const name of names) {
+      const root = deref(variable(name), this);
+      if (root.type !== VAR || next?.has(root.name)) continue;
+      if (next === this._localVariables) next = new Set(this._localVariables ?? []);
+      next.add(root.name);
+    }
+    this._localVariables = next;
+  }
+  demoteLocalVariable(name) {
+    const root = deref(variable(name), this);
+    if (root.type !== VAR || this._localVariables?.has(root.name) !== true) return;
+    const next = new Set(this._localVariables);
+    next.delete(root.name);
+    this._localVariables = next.size === 0 ? null : next;
+  }
+  forgetLocalVariable(name) {
+    if (this._localVariables?.has(name) !== true) return;
+    const next = new Set(this._localVariables);
+    next.delete(name);
+    this._localVariables = next.size === 0 ? null : next;
   }
   has(name) {
     return this.get(name) !== undefined;
@@ -212,6 +244,9 @@ export function deref(term, env) {
   let current = term;
   let seen = null;
   while (current?.type === VAR) {
+    // A live compiler-proven DCG local is the current unbound representative.
+    // No older Env layer can contain a binding for it.
+    if (env?.isLocalVariable?.(current.name) === true) break;
     const next = env?.get(current.name);
     if (next === undefined) break;
     if (seen?.has(current.name)) break;
@@ -284,28 +319,40 @@ export function unify(left, right, env, options = {}) {
 
     if (a.type === VAR && b.type === VAR && a.name === b.name) continue;
     if (a.type === VAR && b.type === VAR) {
-      // Both variables are already dereferenced and unbound, so linking them
-      // cannot create a cycle and needs no occurs-check traversal.
-      markCompactVariableBound(a);
-      env.bind(a.name, b);
+      // For a compiler-generated DCG state handed directly to another
+      // nonterminal, keep the local caller variable as representative. Ordinary
+      // aliases retain the established direction and observable conventions.
+      const aLocalDcg = env?.isLocalVariable(a.name) === true &&
+        a.name.startsWith('\u0000dcg') && b.name.startsWith('\u0000dcg');
+      if (aLocalDcg) {
+        markCompactVariableBound(b);
+        env.bind(b.name, a);
+      } else {
+        markCompactVariableBound(a);
+        env.bind(a.name, b);
+      }
       continue;
     }
     if (a.type === VAR) {
-      if (!knownNonoccurringVariables?.has(a.name) && occurs(a.name, b, env)) {
+      const aLocal = env?.isLocalVariable(a.name) === true;
+      if (!aLocal && !knownNonoccurringVariables?.has(a.name) && occurs(a.name, b, env)) {
         occursCheckHandler?.(a, b, env);
         return false;
       }
       markCompactVariableBound(a);
       env.bind(a.name, b);
+      if (aLocal) env.forgetLocalVariable(a.name);
       continue;
     }
     if (b.type === VAR) {
-      if (!knownNonoccurringVariables?.has(b.name) && occurs(b.name, a, env)) {
+      const bLocal = env?.isLocalVariable(b.name) === true;
+      if (!bLocal && !knownNonoccurringVariables?.has(b.name) && occurs(b.name, a, env)) {
         occursCheckHandler?.(b, a, env);
         return false;
       }
       markCompactVariableBound(b);
       env.bind(b.name, a);
+      if (bLocal) env.forgetLocalVariable(b.name);
       continue;
     }
 

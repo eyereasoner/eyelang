@@ -526,6 +526,7 @@ async function readSource(designation) {
 async function solveQuery(engine, state, goal, reader, output) {
   const variables = queryVariables(goal);
   const solver = state.solver;
+  const demandDriven = containsTimedGoal(goal);
   solver.solutionsSeen = 0;
   const solutions = solver.solve([goal], new engine.Env(), 0);
   let current = pullSolution(solver, solutions, reader);
@@ -544,11 +545,12 @@ async function solveQuery(engine, state, goal, reader, output) {
   let firstAnswer = true;
   let formattingAfterAdvance = false;
   while (!current.result.done) {
-    const next = pullSolution(solver, solutions, reader);
-    // The control prompt has no trailing space while it waits for input. The
-    // first space appears as soon as the user requests another solution and
-    // remains visible while pullSolution() computes; the second appears only
-    // when the requested leaf answer is ready to format.
+    // Ordinary queries keep the existing eager look-ahead so deterministic
+    // answers can end with a full stop without showing an unnecessary answer
+    // prompt. `time/1` is different: running a future solution changes what is
+    // being measured and can retain a very large current substitution. Timed
+    // queries therefore advance only after the user asks for another answer.
+    const next = demandDriven ? null : pullSolution(solver, solutions, reader);
     if (formattingAfterAdvance) output.write(' ');
     formattingAfterAdvance = false;
     output.write(current.output);
@@ -556,10 +558,8 @@ async function solveQuery(engine, state, goal, reader, output) {
     output.write(`${firstAnswer ? ' ' : ''}${answer}`);
     answersShown++;
     firstAnswer = false;
-    if (!next.error && next.result.done) {
-      // A terminal full stop cannot immediately follow a graphic token: the
-      // scanner would absorb it into that token. Insert layout so the printed
-      // answer remains valid Prolog text (issue #44).
+
+    if (demandDriven ? !solver.hasPendingAlternatives() : (!next.error && next.result.done)) {
       output.write(`${continuesGraphicToken(answer, answer.length) ? ' ' : ''}.\n`);
       return null;
     }
@@ -584,9 +584,6 @@ async function solveQuery(engine, state, goal, reader, output) {
           break;
         }
         if (control === 'f') {
-          // `f` groups leaf answers in blocks of five, rather than merely
-          // adding five more answers after whatever the user has already
-          // inspected. Stop for control again at the next 5-answer boundary.
           const remainder = answersShown % 5;
           const answersToBoundary = remainder === 0 ? 5 : 5 - remainder;
           automatic = answersToBoundary - 1;
@@ -606,6 +603,29 @@ async function solveQuery(engine, state, goal, reader, output) {
       formattingAfterAdvance = true;
     }
 
+    if (demandDriven) {
+      // The displayed timed answer is no longer needed. Drop it before
+      // resuming search so a large list substitution does not remain live only
+      // because the top level is looking for its successor.
+      current = null;
+      const requested = pullSolution(solver, solutions, reader);
+      if (requested.error) {
+        if (formattingAfterAdvance) output.write(' ');
+        formattingAfterAdvance = false;
+        output.write(requested.output);
+        if (requested.error?.name === 'HaltSignal') return { halted: true, code: requested.error.code };
+        throw requested.error;
+      }
+      if (requested.result.done) {
+        if (formattingAfterAdvance) output.write(' ');
+        formattingAfterAdvance = false;
+        output.write(`${requested.output}false.\n`);
+        return null;
+      }
+      current = requested;
+      continue;
+    }
+
     if (next.error) {
       if (formattingAfterAdvance) output.write(' ');
       formattingAfterAdvance = false;
@@ -616,6 +636,17 @@ async function solveQuery(engine, state, goal, reader, output) {
     current = next;
   }
   return null;
+}
+
+function containsTimedGoal(goal) {
+  const stack = [goal];
+  while (stack.length !== 0) {
+    const term = stack.pop();
+    if (term?.type !== 'compound') continue;
+    if (term.name === 'time' && term.arity === 1) return true;
+    for (let index = term.args.length - 1; index >= 0; index--) stack.push(term.args[index]);
+  }
+  return false;
 }
 
 function pullSolution(solver, solutions, reader) {

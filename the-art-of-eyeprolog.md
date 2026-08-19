@@ -6067,14 +6067,16 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **126 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **87 are defined as ordinary Prolog
-clauses** in focused modules under `src/lib/`. The remaining 39
-are public wrappers around backtrackable host support: Prologue `call_nth/2` and
-`freeze/2`, plus the 37-predicate finite-domain `library(clpz)` kernel. The
-resulting normal EyeProlog language surface is therefore **255 public predicate
-indicators**. Internally, the runtime registry contains the 129 ISO definitions
-plus 23 private library adapters; public relations remain module source clauses.
+EyeProlog exposes **128 library predicate indicators** in addition to the 129
+indicators in its isolated ISO profile. **88 are defined entirely as ordinary
+Prolog clauses** in focused modules under `src/lib/`. The remaining public
+relations use small private host adapters where control, constraints, or host
+observability cannot be expressed by ordinary clauses alone; `time/1` is one
+such relation. The resulting normal EyeProlog language surface is therefore
+**257 public predicate indicators**. Most library relations remain module source
+clauses over private adapters. `time/1` is additionally registered directly in
+the normal EyeProlog runtime so Trealla-style timing works at the interactive
+top level without an import; it is absent from the strict ISO registry.
 
 The sources are `src/lib/aggregate.pl`, `src/lib/clpz.pl`, `src/lib/comparison.pl`,
 `src/lib/dates.pl`, `src/lib/iso_ext.pl`, `src/lib/lambda.pl`,
@@ -6110,7 +6112,7 @@ between solution branches.
 | `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `chain/2`, `element/3`, `zcompare/3`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2` |
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
 | `library(dates)` | `difference/3` |
-| `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2` |
+| `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2`, `time/1`, `.../2` |
 | `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` |
 | `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
 | `library(primes)` | `smallest_divisor_from/3` |
@@ -6144,7 +6146,7 @@ The current interoperability profile recognizes these library roles:
 | Library | Role in the interoperability profile |
 | --- | --- |
 | `library(lists)` | Common list module. A conservative subset of its exports is in the shared predicate profile. |
-| `library(iso_ext)` | Common extension-module name. `call_nth/2` is currently its autoloaded cross-engine predicate. |
+| `library(iso_ext)` | Common extension-module name. `call_nth/2`, `time/1`, and the `...//0` arbitrary-sequence helper are conservatively autoloaded for cross-engine source. |
 | `library(lambda)` | Scryer-aligned higher-order notation. It is imported explicitly because loading it also installs the `+\` operator. |
 | `library(prologue)` | EyeProlog compatibility module, not a common interop library name. `between/3` is nevertheless autoloaded from it so portable source need not name this EyeProlog-specific provider. |
 
@@ -6168,9 +6170,14 @@ recovery headroom so finite-heap exhaustion remains a catchable
 `resource_error(memory)`.
 
 `library(iso_ext)` is a common interop module name, but only part of its
-EyeProlog API belongs to the shared profile. `call_nth/2` is mapped there to
-match Scryer's explicit import organization while also permitting portable
-unqualified source to autoload it. The interop exports of `library(lists)` and
+EyeProlog API belongs to the shared profile. `call_nth/2`, `time/1`, and
+`.../2` are mapped there. `time/1` measures each solution of a meta-call and
+prints elapsed time, EyeProlog inference count, and MLips in Trealla-style form,
+for example `% Time elapsed 0.832s, 65551 Inferences, 0.079 MLips`; `...//0`
+describes an arbitrary number of input elements. Together they let the
+Trealla/Scryer DCG hand-off benchmark run in EyeProlog without source changes
+(assuming the usual list library is already imported in an interactive
+session). The interop exports of `library(lists)` and
 `library(iso_ext)` are kept disjoint, so both modules can be imported together
 without an accidental collision. `library(prologue)` remains a compatibility
 umbrella and overlaps them; use selective imports when legacy code combines it
@@ -6206,14 +6213,19 @@ uses its ISO `copy_term/2` implementation for the fresh-copy step and does not
 require a separate `copy_term_nat/2` predicate.
 
 Autoloading is a convenience layered on top of the interoperability profile; it
-is not a general search through all EyeProlog libraries. During normal
-execution, an otherwise undefined **unqualified** predicate may be autoloaded
-only when the interop table assigns it one canonical provider. For example:
+is not a general search through all EyeProlog libraries. When a source program
+or an explicit CLI/API goal is built, an otherwise undefined **unqualified**
+predicate may be autoloaded only when the interop table assigns it one canonical
+provider. The interactive top level keeps ordinary library imports explicit;
+`time/1` is available there because it is also a normal EyeProlog runtime
+extension. For example, the canonical build-time providers are:
 
 | Predicate | Canonical autoload provider |
 | --- | --- |
 | `member/2` | `library(lists)` |
 | `call_nth/2` | `library(iso_ext)` |
+| `time/1` | `library(iso_ext)` |
+| `.../2` | `library(iso_ext)` |
 | `between/3` | `library(prologue)` |
 
 Predicates outside that table require an explicit import even when EyeProlog
@@ -6255,9 +6267,9 @@ into later branches. Trealla's larger library also contains facilities such as
 automata, cumulative and two-dimensional scheduling constraints, and
 unbounded-domain propagation that EyeProlog does not currently export.
 
-Beyond its interop entry for `call_nth/2`, `library(iso_ext)` also exports
-EyeProlog's extension relations `countall/2`, `forall/2`, `succ/2`, `cfor/3`,
-`findall/4`, and `variant/2`. `forall/2` checks an action for every solution of a
+Alongside its interop entries `call_nth/2`, `time/1`, and `.../2`,
+`library(iso_ext)` also exports EyeProlog's extension relations `countall/2`,
+`forall/2`, `succ/2`, `cfor/3`, `findall/4`, and `variant/2`. `forall/2` checks an action for every solution of a
 condition; `cfor/3` enumerates an inclusive evaluated integer range; `succ/2`
 relates adjacent nonnegative integers; `findall/4` collects into a difference
 list; and `variant/2` recognizes terms equal up to variable renaming.
