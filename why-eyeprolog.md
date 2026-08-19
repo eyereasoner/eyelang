@@ -60,6 +60,14 @@ positive Datalog closures with a shared relation-wide table, but the admission
 heuristics are implementation details. Programs should rely on the documented
 semantics and finiteness conditions, not on a particular internal threshold.
 
+DCGs follow the same rule.  Their meaning remains the ISO Part 3 difference-list
+model, while finite sequence scans and proven zero-width hand-offs may use
+lighter internal control paths so deep grammars do not pay one general solver
+frame per token.  Relational remainder-producing modes are preserved.  The
+checked `examples/dcg-expression-language.pl` program shows the declarative side
+of that design: one grammar builds precedence-aware syntax trees and another
+generates minimally parenthesized token sequences back from them.
+
 ## Why proofs?
 
 An answer says that a goal succeeded. A proof records one successful route

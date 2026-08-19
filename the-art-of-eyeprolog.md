@@ -5632,6 +5632,62 @@ that argument. A variable body raises `instantiation_error`; a non-callable
 body raises `type_error(callable)`. EyeProlog performs terminal-sequence checks
 and reports the portable ISO `type_error(list)` error term.
 
+#### A bidirectional expression grammar
+
+DCGs become more useful when the grammar produces a structured term rather than
+merely accepting a token list.  The checked
+[`dcg-expression-language.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dcg-expression-language.pl)
+example implements a small arithmetic language in both directions.  Its parser
+respects precedence and left associativity while constructing an abstract syntax
+tree:
+
+```text
+expression(AST) -->
+  term(First),
+  additive_tail(First, AST).
+
+additive_tail(Left, AST) -->
+  ['+'], term(Right),
+  { Next = add(Left, Right) },
+  additive_tail(Next, AST).
+additive_tail(AST, AST) --> [].
+```
+
+The accumulator removes left recursion without moving parsing into JavaScript.
+A second DCG walks the AST in the other direction and emits only the parentheses
+needed to preserve its structure.  The example therefore exercises parsing,
+semantic actions, nonterminal-to-nonterminal state hand-off, generation,
+backtracking, `phrase/3` remainder handling, and AST-to-token-to-AST
+round-tripping.  The checked answers are in
+[`examples/output/dcg-expression-language.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dcg-expression-language.pl).
+
+#### Deep sequence hand-off
+
+`library(iso_ext)` provides the common `...//0` helper, which describes an
+arbitrary number of input elements.  It is not part of ISO Part 3, but it is a
+useful interoperability and stress-test relation.  A compact hand-off test is:
+
+```text
+a --> ..., epsilon.
+epsilon --> [].
+```
+
+Here the remaining sequence is repeatedly passed from `...//0` to another
+nonterminal.  For a finite compact list, EyeProlog can scan the arbitrary
+sequence iteratively instead of consuming one ordinary solver depth level per
+list cell.  If the continuation is structurally proven to be a zero-width
+identity grammar such as `epsilon//0`, the hand-off can be continued without
+constructing a fresh general clause-resolution frame at every suffix.  The list
+spine is still traversed; this is a control/allocation optimization rather than
+an O(1) semantic shortcut.
+
+The optimization is deliberately narrow.  `phrase(..., Sequence, Rest)` still
+enumerates the valid remainders, open or non-compact inputs retain ordinary
+relational behavior, and grammars that can consume or constrain the remainder
+are not treated as identity continuations.  `time/1` can be used in normal mode
+to measure such runs; its inference counter records solver-level inferences and
+does not count every internal step of an optimized scanner.
+
 Part 3 leaves `\+//1` and standalone `->//2` implementation dependent.
 EyeProlog uses non-consuming negation (`\+ Body` tests from the current state)
 and threads the state produced by the condition into the then-grammar.
@@ -6895,7 +6951,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **211 self-contained runnable programs**. Every
+top-level directory contains **212 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -6953,6 +7009,7 @@ mode at a time.
 | [Atomic conversion](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-atomic-conversion.pl) | Atom splitting, character atoms, Unicode codes, and numeric parsing. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-atomic-conversion.pl) |
 | [Control and errors](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-control-and-errors.pl) | `call/1`, `once/1`, cut, if-then-else, `throw/1`, and `catch/3`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-control-and-errors.pl) |
 | [DCG command parser](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dcg-command-parser.pl) | A Part 3 grammar parses token lists into application terms, generates tokens, preserves a remainder, and rejects malformed input. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dcg-command-parser.pl) |
+| [DCG expression language](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dcg-expression-language.pl) | A precedence-aware bidirectional grammar builds arithmetic ASTs, evaluates variable expressions, regenerates minimally parenthesized tokens, round-trips syntax, and preserves a remainder. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dcg-expression-language.pl) |
 | [Dynamic database](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-dynamic-database.pl) | Initialization and ordered updates to a declared dynamic procedure. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-dynamic-database.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/iso-dynamic-database.pl) |
 | [Grouped solutions](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-grouped-solutions.pl) | `findall/3`, `bagof/3`, `setof/3`, existential qualification, and `clause/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-grouped-solutions.pl) |
 | [Integer arithmetic](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-integer-arithmetic.pl) | Integer quotient/remainder choices plus bit operations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-integer-arithmetic.pl) |
@@ -7297,7 +7354,7 @@ hand.
 
 #### Running and extending the corpus
 
-Run all 211 normal answer goldens and the 61 selected proof goldens with:
+Run all 212 normal answer goldens and the 61 selected proof goldens with:
 
 ```sh
 npm run test:examples
@@ -7361,7 +7418,7 @@ The complete suite must pass before release. The file-based conformance corpus
 contains 791 cases, including 386 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
-Separate exact-output suites check 211 normal
+Separate exact-output suites check 212 normal
 examples and 61 proof examples; all extracted book programs are parsed and
 their declared goals are executed. The eight-case
 playground contract suite imports the production worker, sends real reasoning

@@ -201,6 +201,23 @@ noun --> [world] | [prolog].
 %% goal: phrase(sentence, Words)
 ```
 
+For a larger bidirectional example, see
+[`examples/dcg-expression-language.pl`](examples/dcg-expression-language.pl).
+It parses precedence-sensitive arithmetic into an AST, evaluates expressions
+with variables, generates tokens back from an AST with only the necessary
+parentheses, round-trips the generated form, and demonstrates `phrase/3`
+remainder handling.  The example uses accumulator nonterminals for
+left-associative operators, so state is handed repeatedly from one nonterminal
+to the next rather than hidden in host code.
+
+Deep finite DCG traversal is kept relational but does not have to consume one
+general solver frame per token.  In particular, the interoperable `...//0`
+helper from `library(iso_ext)` can scan a finite compact list iteratively, and a
+following grammar that is statically known to leave the DCG state unchanged can
+be continued without rebuilding a full clause-resolution frame for every
+suffix.  Open and remainder-producing uses still retain the ordinary DCG
+solutions and backtracking behavior.
+
 EyeProlog also adds 128 public library predicate indicators to its 129-entry ISO
 profile. **88 are implemented entirely as ordinary Prolog clauses** in focused
 modules under `src/lib/`; the remaining control predicates and finite-domain
