@@ -181,8 +181,8 @@ export const eyePrologLibraryBuiltins = {
 
 function* unification({ goal, env }) {
   const next = env.clone();
-  const localFreshVariables = goal._localFreshVariables ?? null;
-  if (unify(goal.args[0], goal.args[1], next, { localFreshVariables })) yield next;
+  const knownNonoccurringVariables = goal._knownNonoccurringVariables ?? null;
+  if (unify(goal.args[0], goal.args[1], next, { knownNonoccurringVariables })) yield next;
 }
 function* unificationWithOccursCheck({ goal, env }) {
   const next = env.clone();

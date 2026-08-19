@@ -1900,14 +1900,16 @@ unification, another list predicate, or answer readback inspects it. This is a
 storage optimization, not a distinct Prolog term or list semantics. Embedders
 that inspect the JavaScript term model can recognize this representation with
 `CompactListTerm`, `isCompactList`, and `compactListLength`, or construct one
-with `compactVariableList`. For open-ended `length(List, N)` generation, the
-bundled path binds each fresh generated spine directly instead of re-running an
-occurs-check over the whole growing list. It also reserves recovery headroom
-proportional to the retained spine, so a finite heap limit is raised inside the
-`length/2` search as a catchable `resource_error(memory)` rather than allowing
-an outer solver frame to encounter the limit first.
+with `compactVariableList`. For open-ended `length(List, N)` generation, each generated spine is known not
+to contain the caller's dereferenced tail variable. The bundled path passes that
+proof through the normal unifier, sharing the same proven-nonoccurrence mechanism
+as first-use clause variables instead of maintaining a predicate-specific raw
+binding shortcut. It still reserves recovery headroom proportional to the
+retained spine, so a finite heap limit is raised inside the `length/2` search as
+a catchable `resource_error(memory)` rather than allowing an outer solver frame
+to encounter the limit first.
 
-The same principle now has a conservative general form for freshly renamed
+The same proven-nonoccurrence mechanism has a conservative source-level form for freshly renamed
 clauses. A singleton variable in the clause head, or a variable that has not
 appeared in the head or any earlier body goal and occurs exactly once in a
 direct `=/2` goal, cannot already be a subterm of the value it is about to
@@ -6121,47 +6123,74 @@ between solution branches.
 
 #### Interoperability profile and conservative autoloading
 
-The full EyeProlog library is larger than the deliberately conservative
-EyeProlog/Trealla/Scryer source-interoperability profile. The two concepts are
-kept separate: a predicate can be implemented as ordinary portable Prolog and
-still have an API that is not shared by the other systems.
+EyeProlog keeps four related concepts separate:
 
-`library(lists)` is the first aligned common module. Its interop surface includes
-`member/2`, `memberchk/2`, `select/3`, `append/2-3`, `last/2`,
-`same_length/2`, `nth0/3-4`, `nth1/3-4`, `reverse/2`, `length/2`,
-`maplist/2-8`, `foldl/4-6`, `sum_list/2`, and `list_to_set/2`. Its `length/2`
-is fully relational: when both arguments are variables, `length(Xs, N)`
-enumerates `Xs = [], N = 0`, then one-element lists with `N = 1`, and so on.
-This generator mode is important for portable stress and enumeration programs.
-EyeProlog-only helpers such as `set_nth0/4`, `take/3`, `drop/3`, and `slice/4`
-remain available for compatibility but are outside this profile.
+| Layer | Meaning |
+| --- | --- |
+| **ISO core** | The documented ISO predicate profile built into the processor. No EyeProlog library import is involved. |
+| **EyeProlog library surface** | Every module and exported predicate listed in the catalog above. Programs normally access these with `use_module/1-2`. |
+| **Interoperability profile** | A deliberately smaller set of library names and predicate interfaces that EyeProlog intends to keep source-compatible with Trealla and Scryer where practical. |
+| **Autoload map** | An even smaller convenience table that gives selected unqualified predicates one canonical EyeProlog provider. |
 
-`library(iso_ext)` is also recognized as a common interop module name.
-EyeProlog exports `call_nth/2` there, matching Scryer's explicit import
-organization while still permitting unqualified autoloaded source. The aligned
-`library(lists)` and `library(iso_ext)` export sets are intentionally disjoint,
-so a source file may import both without an accidental predicate collision.
-`library(prologue)` is retained as an EyeProlog compatibility umbrella and may
-overlap these modules; use selective imports when legacy code combines it with
-the aligned libraries.
+These layers answer different questions. A predicate may be implemented entirely
+as ordinary Prolog and still be outside the cross-processor interoperability
+profile; conversely, an interoperable predicate may be backed by a private host
+adapter. In this section, **portable** refers to source portability between
+Prolog systems, not merely to the language in which a predicate happens to be
+implemented.
 
-`library(lambda)` is an explicitly imported Scryer-aligned module for
-higher-order programming. Its implementation is adapted from Ulrich Neumerkel's
-`library(lambda)` as distributed by Scryer Prolog, retaining the upstream
-copyright and redistribution notice. The public syntax is:
+The current interoperability profile recognizes these library roles:
+
+| Library | Role in the interoperability profile |
+| --- | --- |
+| `library(lists)` | Common list module. A conservative subset of its exports is in the shared predicate profile. |
+| `library(iso_ext)` | Common extension-module name. `call_nth/2` is currently its autoloaded cross-engine predicate. |
+| `library(lambda)` | Scryer-aligned higher-order notation. It is imported explicitly because loading it also installs the `+\` operator. |
+| `library(prologue)` | EyeProlog compatibility module, not a common interop library name. `between/3` is nevertheless autoloaded from it so portable source need not name this EyeProlog-specific provider. |
+
+Other modules from the catalog, including `library(clpz)`, `library(strings)`,
+`library(random)`, and `library(uuid)`, remain normal EyeProlog libraries. They
+can be imported explicitly, but their module names and full APIs are not thereby
+claimed as part of the current conservative Trealla/Scryer profile.
+
+For `library(lists)`, the current interop predicate set is `member/2`,
+`memberchk/2`, `select/3`, `append/2-3`, `last/2`, `same_length/2`,
+`nth0/3-4`, `nth1/3-4`, `reverse/2`, `length/2`, `maplist/2-8`,
+`foldl/4-6`, `sum_list/2`, and `list_to_set/2`. Other exports from the same
+module, such as `min_list/2`, `max_list/2`, `set_nth0/4`, `take/3`, `drop/3`,
+and `slice/4`, remain available to EyeProlog programs but lie outside this
+conservative cross-engine subset.
+
+`length/2` remains fully relational. With both arguments variable,
+`length(Xs, N)` enumerates `Xs = [], N = 0`, then one-element lists with
+`N = 1`, and so on. Open-ended generation uses the normal memory guard with
+recovery headroom so finite-heap exhaustion remains a catchable
+`resource_error(memory)`.
+
+`library(iso_ext)` is a common interop module name, but only part of its
+EyeProlog API belongs to the shared profile. `call_nth/2` is mapped there to
+match Scryer's explicit import organization while also permitting portable
+unqualified source to autoload it. The interop exports of `library(lists)` and
+`library(iso_ext)` are kept disjoint, so both modules can be imported together
+without an accidental collision. `library(prologue)` remains a compatibility
+umbrella and overlaps them; use selective imports when legacy code combines it
+with the aligned modules.
+
+`library(lambda)` follows Scryer's higher-order notation, adapted from Ulrich
+Neumerkel's permissively licensed implementation. Its public syntax is:
 
 ```text
 \X1^X2^...^XN^Goal
 Free+\X1^X2^...^XN^Goal
 ```
 
-The first form has no explicitly shared free variables. Before each invocation
-EyeProlog copies the closure term, so local variables are fresh on successive
+The first form has no explicitly shared free variables. Before each invocation,
+EyeProlog copies the closure term so local variables are fresh on successive
 `maplist/2-8`, `foldl/4-6`, or direct `call/N` uses. In the second form, the
-variables contained in `Free` remain shared with the surrounding goal. Importing
-the library installs `+\` as a priority-201 `xfx` operator; `\` and `^` use
-their existing ISO operator definitions. Parenthesize lower-priority goal
-operators after `^`, for example `\X^(X > 3)`.
+variables contained in `Free` remain shared with the surrounding goal.
+Importing the library installs `+\` as a priority-201 `xfx` operator; `\` and
+`^` use their existing ISO operator definitions. Parenthesize lower-priority
+goal operators after `^`, for example `\X^(X > 3)`.
 
 A continuation lambda may leave arguments for a later call:
 
@@ -6171,56 +6200,78 @@ f(x, y).
 answer(A, B) :- call(\X^f(X), A, B).
 ```
 
-This is equivalent to supplying both arguments directly. A lambda that is
-called with too few parameters raises `existence_error(lambda_parameter, ...)`,
-matching the diagnostic intent of the Scryer library. EyeProlog uses its ISO
-`copy_term/2` implementation for the fresh-copy step; in EyeProlog this gives
-the natural-copy behavior needed by the library without requiring a separate
-`copy_term_nat/2` predicate.
+This is equivalent to supplying both arguments directly. A lambda called with
+too few parameters raises `existence_error(lambda_parameter, ...)`. EyeProlog
+uses its ISO `copy_term/2` implementation for the fresh-copy step and does not
+require a separate `copy_term_nat/2` predicate.
 
-Normal EyeProlog execution can autoload an otherwise undefined unqualified call
-only when the interop table assigns it one canonical provider. Thus `member/2`
-autoloads from `library(lists)`, `call_nth/2` from `library(iso_ext)`, and
-`between/3` from the internal `library(prologue)` implementation. Autoloading is
-disabled by `--no-autoload`, by the JavaScript option `autoload: false`, and
-always by `--iso-strict`.
+Autoloading is a convenience layered on top of the interoperability profile; it
+is not a general search through all EyeProlog libraries. During normal
+execution, an otherwise undefined **unqualified** predicate may be autoloaded
+only when the interop table assigns it one canonical provider. For example:
 
-`-w` / `--warnings` reports explicit non-profile library dependencies and calls
-to non-profile predicates from common libraries. `--portable` turns those
-portability diagnostics into a failing command, making the profile suitable for
-continuous integration. `npm run test:interop` executes the same Sudoku source
-under EyeProlog, Trealla, and Scryer when those commands are installed; the
-repository's interoperability workflow installs them and runs that check.
+| Predicate | Canonical autoload provider |
+| --- | --- |
+| `member/2` | `library(lists)` |
+| `call_nth/2` | `library(iso_ext)` |
+| `between/3` | `library(prologue)` |
 
-`library(clpz)` follows the Trealla and Scryer convention for constraint logic
-programming over integers. Its first implementation step provides finite
+Predicates outside that table require an explicit import even when EyeProlog
+provides them. Explicit imports therefore remain the clearest way to state
+library dependencies:
+
+```text
+:- use_module(library(lists)).
+:- use_module(library(iso_ext), [call_nth/2]).
+```
+
+Use `--no-autoload`, or the JavaScript option `autoload: false`, when every
+library dependency should be explicit. `--iso-strict` always disables EyeProlog
+library autoloading.
+
+`-w` / `--warnings` reports explicit dependencies on non-profile libraries and
+calls to non-profile predicates from otherwise common modules. `--portable`
+turns those diagnostics into a failing run, making the conservative profile
+suitable for continuous integration. `npm run test:interop` executes the same
+portable Sudoku source under EyeProlog, Trealla, and Scryer when those commands
+are installed; the repository interoperability workflow installs them and runs
+that check.
+
+#### Library notes beyond the interoperability profile
+
+The catalog above is authoritative for the complete EyeProlog library surface.
+The following notes describe useful parts of that surface without extending the
+cross-engine claims made above.
+
+`library(clpz)` follows the familiar Trealla and Scryer convention for
+constraint logic programming over integers. EyeProlog currently provides finite
 interval and union domains, arithmetic and reified constraints, backtrackable
-labeling with `ff`, `up`, and `down`, global distinctness, linear sums and
-scalar products, chains, elements, value counting, extensional tuple tables,
+labeling with `ff`, `up`, and `down`, global distinctness, linear sums and scalar
+products, chains, elements, value counting, extensional tuple tables,
 lexicographic chains, serialized schedules, global cardinality with costs,
 Hamiltonian circuits, three-way comparison, and domain reflection. Constraints
 are kept in the logical environment, so failed alternatives cannot leak domains
-into later branches. The full Trealla library also contains automata,
-cumulative and two-dimensional scheduling constraints, and unbounded-domain
-propagation that are not yet exported here.
+into later branches. Trealla's larger library also contains facilities such as
+automata, cumulative and two-dimensional scheduling constraints, and
+unbounded-domain propagation that EyeProlog does not currently export.
 
-`library(iso_ext)` collects extensions commonly found in mature Prolog
-systems. `call_nth/2` exposes the ordinal number of each solution and supports
-the explicit import used by Scryer-style source; `forall/2` checks an action for
-every solution of a condition; `cfor/3` enumerates an inclusive evaluated
-integer range; `succ/2` relates adjacent nonnegative integers; `findall/4`
-collects into a difference list; and `variant/2` recognizes terms equal up to
-variable renaming. Its portable `countall/2` counts solutions without exposing
-a template. `countall/2` is not exported by `library(lists)`, avoiding a
-full-module import collision between the two libraries.
+Beyond its interop entry for `call_nth/2`, `library(iso_ext)` also exports
+EyeProlog's extension relations `countall/2`, `forall/2`, `succ/2`, `cfor/3`,
+`findall/4`, and `variant/2`. `forall/2` checks an action for every solution of a
+condition; `cfor/3` enumerates an inclusive evaluated integer range; `succ/2`
+relates adjacent nonnegative integers; `findall/4` collects into a difference
+list; and `variant/2` recognizes terms equal up to variable renaming.
+`countall/2` counts solutions without exposing a template. These exports do not
+all belong to the conservative interop subset merely because they share the
+`iso_ext` module.
 
-`uuid(+Seed0,-UUID,-Seed)` creates a version 4 UUID atom using `random/3`.
-Passing the returned seed to the next call produces the next UUID; restarting
-with the same integer seed reproduces the same sequence exactly. This explicit
-state replaces hidden host entropy and behaves identically in Node and the
-browser playground.
+`uuid(+Seed0,-UUID,-Seed)` from `library(uuid)` creates a version 4 UUID atom
+using `random/3`. Passing the returned seed to the next call produces the next
+UUID; restarting with the same integer seed reproduces the same sequence. This
+explicit state replaces hidden host entropy and behaves identically in Node and
+the browser playground.
 
-On the command line, a program imports the modules it uses:
+On the command line, a program can state its library dependencies explicitly:
 
 ```sh
 printf '%s\n' ':- use_module(library(lists)).' 'answer(X) :- member(X, [ready]).' > program.pl
@@ -6228,12 +6279,13 @@ eyeprolog --goal 'answer(X)' program.pl
 eyeprolog -p program.pl        # add proof output
 ```
 
-JavaScript uses the same registry by default:
+JavaScript uses the same normal EyeProlog library registry by default:
 
 ```js
 import { run } from 'eyeprolog';
 
 const source = `
+:- use_module(library(lists)).
 answer(Whole) :- append([red, green], [blue], Whole).
 `;
 
@@ -6241,7 +6293,7 @@ const result = run(source, { goal: 'answer(X)' });
 console.log(result.stdout);
 ```
 
-The mode notation below is descriptive:
+The mode notation used in the reference tables below is descriptive:
 
 - `+` means the argument must already have the required input shape;
 - `-` means the predicate produces that argument;
@@ -6250,9 +6302,9 @@ The mode notation below is descriptive:
 Most EyeProlog library predicates are projections or filters. When an input is
 unbound, malformed, outside its domain, or incompatible with the requested
 output, they normally **fail** rather than raising the ISO errors described in
-the errors section above. They do not invent open-ended domains. Bind arithmetic operands, source
-text, proper lists, indexes, dates, and aggregate generators before calling
-the corresponding predicate.
+the errors section above. They do not invent open-ended domains. Bind arithmetic
+operands, source text, proper lists, indexes, dates, and aggregate generators
+before calling the corresponding predicate.
 
 #### Portable numeric, comparison, and date relations
 

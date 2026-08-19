@@ -804,7 +804,7 @@ export class Solver {
         attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
         const next = env.clone();
         this.stats.unify_calls++;
-        if (!unify(goal, freshHead, next, { localFreshVariables: headLocalFresh })) continue;
+        if (!unify(goal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) continue;
         if (freshBody.length === 0) {
           yield* this.solve(rest, next, depth + 1);
         } else if (!groupNeedsActiveFrame(group)) {
@@ -1021,7 +1021,7 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
       attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
       const next = env.clone();
       solver.stats.unify_calls++;
-      if (!unify(goal, freshHead, next, { localFreshVariables: headLocalFresh })) continue;
+      if (!unify(goal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) continue;
       if (freshBody.length === 0) {
         frames.push({
           kind: 'goals',
@@ -1083,10 +1083,10 @@ function freshVariableSet(names, freshVariables) {
 
 function attachBodyLocalFreshVariables(freshBody, plan, freshVariables) {
   for (let index = 0; index < freshBody.length; index++) {
-    const localFreshVariables = freshVariableSet(plan[index] ?? [], freshVariables);
-    if (localFreshVariables != null && freshBody[index]?.type === COMPOUND &&
+    const knownNonoccurringVariables = freshVariableSet(plan[index] ?? [], freshVariables);
+    if (knownNonoccurringVariables != null && freshBody[index]?.type === COMPOUND &&
         freshBody[index].name === '=' && freshBody[index].arity === 2) {
-      freshBody[index]._localFreshVariables = localFreshVariables;
+      freshBody[index]._knownNonoccurringVariables = knownNonoccurringVariables;
     }
   }
 }
@@ -1257,12 +1257,11 @@ function* fixedLengthSolutions(solver, list, length, env) {
   const suffix = compactVariableList(remaining, `__length${id}_`);
   const next = env.clone();
   solver.stats.unify_calls++;
-  // cursor is dereferenced and the compact skeleton contains only freshly
-  // generated variables, so this binding cannot create a cycle. Binding it
-  // directly avoids traversing and expanding the new skeleton for an occurs
-  // check whose result is known by construction.
-  next.bind(cursor.name, suffix);
-  yield next;
+  // The compact skeleton contains only freshly generated variables, so the
+  // dereferenced tail variable is known not to occur in it. Reuse the same
+  // proven-nonoccurrence path as source-level first-use unification.
+  const knownNonoccurringVariables = new Set([cursor.name]);
+  if (unify(cursor, suffix, next, { knownNonoccurringVariables })) yield next;
 }
 
 function* generatedLengthSolutions(solver, list, length, env) {
@@ -1296,15 +1295,13 @@ function* generatedLengthSolutions(solver, list, length, env) {
 
   const id = nextFreshId();
   let suffix = emptyList();
+  // Every generated suffix is built from fresh variables and therefore cannot
+  // contain the caller's dereferenced tail variable. Share the general
+  // proven-nonoccurrence unification path instead of bypassing unify() here.
+  const knownNonoccurringVariables = new Set([cursor.name]);
   for (let extra = 0n; ; extra++) {
     const next = env.clone();
-    // cursor is a dereferenced plain variable and suffix is made only from
-    // freshly generated variables, so this binding cannot create a cycle.
-    // Binding directly avoids an O(extra) occurs-check over the complete
-    // growing suffix for every answer; without this, unbounded length/2
-    // generation becomes quadratic and can spend hours before reaching the
-    // normal memory resource guard (issue #49).
-    next.bind(cursor.name, suffix);
+    if (!unify(cursor, suffix, next, { knownNonoccurringVariables })) return;
     const answer = bindGeneratedLength(solver, length, count + extra, next);
     if (answer != null) yield answer;
     suffix = cons(variable(`__length${id}_${extra}`), suffix);
@@ -2395,7 +2392,7 @@ function selectReadyDeterministicBuiltin(goals, env, registry) {
     // A first-use proof is derived from source goal order. Do not move a later
     // deterministic builtin across that equality: doing so could touch one of
     // its proven-fresh variables before the checked binding executes.
-    if (goal?._localFreshVariables != null) return 0;
+    if (goal?._knownNonoccurringVariables != null) return 0;
     if (goal.type !== COMPOUND && goal.type !== 'atom') continue;
     const def = registry.get(goal.name, goal.arity);
     if (!def?.deterministic || typeof def.ready !== 'function') continue;

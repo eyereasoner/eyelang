@@ -1318,7 +1318,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'first-use local equality shortcut preserves finite-tree occurs checking',
+      name: 'proven-nonoccurrence first-use shortcut preserves finite-tree occurs checking',
       run: () => {
         const program = Program.parse(`
           first_use_cycle :- X = f(Y), Y = g(X).

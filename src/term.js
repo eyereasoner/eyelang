@@ -271,10 +271,11 @@ export function unify(left, right, env, options = {}) {
   // unification: a variable cannot be bound to a term containing itself.
   // Bindings are written into the supplied Env.
   const occursCheckHandler = options.occursCheck === 'fail' ? null : env?._occursCheckHandler;
-  // A solver-proven first-use singleton variable cannot already occur in the
-  // term it is about to receive.  This internal proof lets that one binding
-  // skip the occurs traversal without weakening ordinary unification.
-  const localFreshVariables = options.localFreshVariables ?? null;
+  // Callers may provide a proof that selected variables cannot occur in the
+  // term they are about to receive.  Source-level first-use analysis and a few
+  // construction fast paths share this internal proof; ordinary unification
+  // remains fully occurs-checked.
+  const knownNonoccurringVariables = options.knownNonoccurringVariables ?? null;
   const stack = [[left, right]];
   while (stack.length) {
     let [a, b] = stack.pop();
@@ -290,7 +291,7 @@ export function unify(left, right, env, options = {}) {
       continue;
     }
     if (a.type === VAR) {
-      if (!localFreshVariables?.has(a.name) && occurs(a.name, b, env)) {
+      if (!knownNonoccurringVariables?.has(a.name) && occurs(a.name, b, env)) {
         occursCheckHandler?.(a, b, env);
         return false;
       }
@@ -299,7 +300,7 @@ export function unify(left, right, env, options = {}) {
       continue;
     }
     if (b.type === VAR) {
-      if (!localFreshVariables?.has(b.name) && occurs(b.name, a, env)) {
+      if (!knownNonoccurringVariables?.has(b.name) && occurs(b.name, a, env)) {
         occursCheckHandler?.(b, a, env);
         return false;
       }

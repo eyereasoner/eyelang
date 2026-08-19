@@ -107,13 +107,14 @@ keeps both long-running filters such as `\+ phrase((..., Pattern), Sequence)`
 and repeated same-input probes bounded without turning memory safety into a
 per-call cache-eviction cost.
 
-Finite-tree unification also recognizes a conservative first-use case inspired
-by the local-variable optimization used by WAM-family systems. In a freshly
-renamed clause, a singleton head variable or a variable that first appears once
-in a direct `=/2` goal cannot already occur in the value it is about to receive,
-so that one binding can skip an otherwise redundant occurs traversal. Repeated
+Finite-tree unification also accepts an internal proven-nonoccurrence hint: when
+the solver can prove that a variable cannot occur in the value it is about to
+receive, that binding skips an otherwise redundant occurs traversal. The main
+source-level case is conservative first use in a freshly renamed clause, inspired
+by the local-variable optimization used by WAM-family systems; native construction
+paths such as relational `length/2` reuse the same unifier mechanism. Repeated
 variables, variables seen earlier in the clause, and ordinary public unification
-remain fully occurs-checked. This is a source-level proof, not a WAM-style
+remain fully occurs-checked. This is a proof local to one binding, not a WAM-style
 local/global variable stack. `phrase/2` likewise supplies its fixed `[]`
 remainder directly to the grammar; `phrase/3` retains its delayed final output
 unification for steadfastness.
