@@ -3628,6 +3628,45 @@ answer(ok) :-
       },
     },
     {
+      name: 'unbounded length/2 reaches a catchable memory resource error (issue #49)',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const script = `
+          import { Program, Solver, Env, deref, variable, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
+          const program = Program.parse(${JSON.stringify(':- use_module(library(lists)).\n')}, { sourceMetadata: false });
+          const solver = new Solver(program, { registry: getEyePrologRegistry() });
+          const goal = parseGoalText('catch(length(L,N),error(E,_),true),L=N', {
+            operatorDefinitions: [...program.operators.values()],
+          });
+          let answer = null;
+          for (const env of solver.solve([goal], new Env(), 0)) {
+            answer = env;
+            break;
+          }
+          if (answer == null) throw new Error('issue #49 query produced no caught answer');
+          const formal = deref(variable('E'), answer);
+          if (formal?.name !== 'resource_error' || deref(formal.args?.[0], answer)?.name !== 'memory') {
+            throw new Error('unexpected caught error: ' + JSON.stringify(formal));
+          }
+          const left = deref(variable('L'), answer);
+          const right = deref(variable('N'), answer);
+          if (left.type !== 'var' || right.type !== 'var' || left.name !== right.name) {
+            throw new Error('recovery did not leave L=N');
+          }
+          process.stdout.write('caught');
+        `;
+        const result = spawnSync(process.execPath, [
+          '--max-old-space-size=64',
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 5000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `issue #49 bounded-heap child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'caught', 'issue #49 resource error is caught by catch/3');
+      },
+    },
+    {
       name: 'discarded fixed-length lists stay compact under a bounded heap',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;

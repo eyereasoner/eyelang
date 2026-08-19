@@ -17,6 +17,12 @@ import { evaluatePositiveDatalog, relationForDatalogGroup, datalogCandidateIndex
 
 let freshCounter = 0;
 const DEFAULT_INNER_TABLE_SCOPE_LIMIT = 1024;
+// Conservative live-storage estimate for one generated length/2 list cell
+// (cons object, argument vector, fresh variable, and its generated name).
+const GENERATED_LENGTH_CELL_RESERVE_BYTES = 256;
+const MAX_GENERATED_LENGTH_RESERVE_STEPS = BigInt(
+  Math.floor(Number.MAX_SAFE_INTEGER / GENERATED_LENGTH_CELL_RESERVE_BYTES),
+);
 
 function qualifyTerm(term, module) {
   if (!term || (term.type !== COMPOUND && term.type !== 'atom')) return term;
@@ -1239,13 +1245,17 @@ function* generatedLengthSolutions(solver, list, length, env) {
   let suffix = emptyList();
   for (let extra = 0n; ; extra++) {
     const next = env.clone();
-    solver.stats.unify_calls++;
-    if (unify(cursor, suffix, next)) {
-      const answer = bindGeneratedLength(solver, length, count + extra, next);
-      if (answer != null) yield answer;
-    }
+    // cursor is a dereferenced plain variable and suffix is made only from
+    // freshly generated variables, so this binding cannot create a cycle.
+    // Binding directly avoids an O(extra) occurs-check over the complete
+    // growing suffix for every answer; without this, unbounded length/2
+    // generation becomes quadratic and can spend hours before reaching the
+    // normal memory resource guard (issue #49).
+    next.bind(cursor.name, suffix);
+    const answer = bindGeneratedLength(solver, length, count + extra, next);
+    if (answer != null) yield answer;
     suffix = cons(variable(`__length${id}_${extra}`), suffix);
-    lengthAllocationCheckpoint(solver, ++steps);
+    generatedLengthAllocationCheckpoint(solver, extra + 1n);
   }
 }
 
@@ -1261,6 +1271,19 @@ function isAnonymousVariable(term) {
 
 function lengthAllocationCheckpoint(solver, steps) {
   if ((steps & 255n) === 0n) solver.checkMemoryLimit(true);
+}
+
+function generatedLengthAllocationCheckpoint(solver, steps) {
+  if ((steps & 255n) !== 0n) return;
+  // The open-ended generator retains its current list spine between answers.
+  // Reserve room proportional to that live spine so the protected length/2
+  // call raises resource_error(memory) before its caller's outer solver hits
+  // the same heap limit. This makes the error catchable by catch/3.
+  const estimatedSpineBytes = steps > MAX_GENERATED_LENGTH_RESERVE_STEPS
+    ? Number.MAX_SAFE_INTEGER
+    : Number(steps) * GENERATED_LENGTH_CELL_RESERVE_BYTES;
+  solver.checkMemoryReservation(estimatedSpineBytes);
+  solver.checkMemoryLimit(true);
 }
 
 function pushFastPiFrames(stack, goal, rest, env, depth, active) {

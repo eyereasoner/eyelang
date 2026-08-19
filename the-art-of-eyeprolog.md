@@ -1900,9 +1900,15 @@ unification, another list predicate, or answer readback inspects it. This is a
 storage optimization, not a distinct Prolog term or list semantics. Embedders
 that inspect the JavaScript term model can recognize this representation with
 `CompactListTerm`, `isCompactList`, and `compactListLength`, or construct one
-with `compactVariableList`. The ordinary clauses remain the authoritative module
-definition and are used unchanged by the ISO-only registry and whenever delays
-or finite-domain constraints require their normal wake-up points.
+with `compactVariableList`. For open-ended `length(List, N)` generation, the
+bundled path binds each fresh generated spine directly instead of re-running an
+occurs-check over the whole growing list. It also reserves recovery headroom
+proportional to the retained spine, so a finite heap limit is raised inside the
+`length/2` search as a catchable `resource_error(memory)` rather than allowing
+an outer solver frame to encounter the limit first. The ordinary clauses remain
+the authoritative module definition and are used unchanged by the ISO-only
+registry and whenever delays or finite-domain constraints require their normal
+wake-up points.
 
 ### Implementation boundary
 

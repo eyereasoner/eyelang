@@ -208,7 +208,9 @@ Trealla/Scryer organization for predicates such as `member/2`, `memberchk/2`,
 `append/2-3`, `nth0/3-4`, `nth1/3-4`, `length/2`, `maplist/2-8`, and
 `foldl/4-6`. Its `length/2` remains relational: with both arguments variable,
 `length(Xs, N)` enumerates lists of increasing length together with `N = 0, 1,
-2, ...`.
+2, ...`. Open-ended generation uses the normal memory guard with recovery
+headroom, so an exhausted finite heap is reported as a catchable
+`resource_error(memory)` instead of degenerating into quadratic list checks.
 
 `library(iso_ext)` is also accepted as a common interop module name.
 EyeProlog exports `call_nth/2` there, so Scryer-style source can explicitly use
