@@ -314,15 +314,10 @@ export class Program {
     const wfsNegativeEdges = [];
     for (const group of groups) {
       const groupIndex = indexByGroup.get(group);
+      let compactDependencies = null;
       for (const clause of group.clauses) {
         if (isCompactBinaryClause(clause)) {
-          if (clause.bodyName != null) {
-            const dep = this.findGroup(clause.bodyName, 2, group.module);
-            if (dep) {
-              deps[groupIndex].add(indexByGroup.get(dep));
-              cutDeps[groupIndex].add(indexByGroup.get(dep));
-            }
-          }
+          if (clause.bodyName != null) (compactDependencies ??= new Set()).add(clause.bodyName);
           continue;
         }
         for (const goal of clause.body) {
@@ -348,6 +343,13 @@ export class Program {
             }
           }
         }
+      }
+      for (const name of compactDependencies ?? []) {
+        const dep = this.findGroup(name, 2, group.module);
+        if (!dep) continue;
+        const dependencyIndex = indexByGroup.get(dep);
+        deps[groupIndex].add(dependencyIndex);
+        cutDeps[groupIndex].add(dependencyIndex);
       }
     }
     const finiteDatalogCache = new Map();
@@ -1301,12 +1303,10 @@ function datalogDependencyClauseCount(program, group, seen = new Set()) {
   if (seen.has(group)) return 0;
   seen.add(group);
   let count = group.clauses.length;
+  let compactDependencies = null;
   for (const clause of group.clauses) {
     if (isCompactBinaryClause(clause)) {
-      if (clause.bodyName != null) {
-        const target = program.findGroup(clause.bodyName, 2, group.module);
-        if (target) count += datalogDependencyClauseCount(program, target, seen);
-      }
+      if (clause.bodyName != null) (compactDependencies ??= new Set()).add(clause.bodyName);
       continue;
     }
     for (const goal of clause.body) {
@@ -1314,6 +1314,10 @@ function datalogDependencyClauseCount(program, group, seen = new Set()) {
       const target = program.findGroup(goal.name, goal.arity, goal.module ?? group.module);
       if (target) count += datalogDependencyClauseCount(program, target, seen);
     }
+  }
+  for (const name of compactDependencies ?? []) {
+    const target = program.findGroup(name, 2, group.module);
+    if (target) count += datalogDependencyClauseCount(program, target, seen);
   }
   return count;
 }
@@ -1324,12 +1328,10 @@ function isFiniteDatalogGroup(program, group, cache = new Map(), visiting = new 
   if (visiting.has(group)) return true;
   visiting.add(group);
   let finite = true;
+  let compactDependencies = null;
   for (const clause of group.clauses) {
     if (isCompactBinaryClause(clause)) {
-      if (clause.bodyName != null) {
-        const target = program.findGroup(clause.bodyName, 2, group.module);
-        if (!target || !isFiniteDatalogGroup(program, target, cache, visiting)) { finite = false; break; }
-      }
+      if (clause.bodyName != null) (compactDependencies ??= new Set()).add(clause.bodyName);
       continue;
     }
     if (clause.head.type === COMPOUND && !clause.head.args.every(isFiniteDatalogArgument)) { finite = false; break; }
@@ -1345,6 +1347,12 @@ function isFiniteDatalogGroup(program, group, cache = new Map(), visiting = new 
     }
     if (!finite) break;
   }
+  if (finite) {
+    for (const name of compactDependencies ?? []) {
+      const target = program.findGroup(name, 2, group.module);
+      if (!target || !isFiniteDatalogGroup(program, target, cache, visiting)) { finite = false; break; }
+    }
+  }
   visiting.delete(group);
   cache.set(group, finite);
   return finite;
@@ -1358,7 +1366,35 @@ function isRangeRestrictedFiniteDatalogGroup(program, group, cache = new Map(), 
   visiting.add(group);
   let finite = true;
 
+  let compactDependencyResults = null;
   for (const clause of group.clauses) {
+    if (isCompactBinaryClause(clause)) {
+      const head0Variable = clause.head0Type === VAR;
+      const head1Variable = clause.head1Type === VAR;
+      if (clause.bodyName == null) {
+        if (head0Variable || head1Variable) { finite = false; break; }
+        continue;
+      }
+      const head0RangeRestricted = !head0Variable ||
+        (clause.body0Type === VAR && clause.body0Name === clause.head0Name) ||
+        (clause.body1Type === VAR && clause.body1Name === clause.head0Name);
+      const head1RangeRestricted = !head1Variable ||
+        (clause.body0Type === VAR && clause.body0Name === clause.head1Name) ||
+        (clause.body1Type === VAR && clause.body1Name === clause.head1Name);
+      if (!head0RangeRestricted || !head1RangeRestricted) {
+        finite = false;
+        break;
+      }
+      let targetFinite = compactDependencyResults?.get(clause.bodyName);
+      if (targetFinite == null) {
+        const target = program.findGroup(clause.bodyName, 2, group.module);
+        targetFinite = target != null && isRangeRestrictedFiniteDatalogGroup(program, target, cache, visiting);
+        (compactDependencyResults ??= new Map()).set(clause.bodyName, targetFinite);
+      }
+      if (!targetFinite) { finite = false; break; }
+      continue;
+    }
+
     const head = clause.head;
     if ((head.type !== COMPOUND && head.type !== ATOM) ||
         (head.type === COMPOUND && !head.args.every(isFiniteDatalogArgument))) {

@@ -4485,6 +4485,23 @@ function whiteBoxCases() {
       },
     },
     {
+      name: 'compact finite Datalog planning preserves lazy clause terms',
+      run: () => {
+        const facts = Array.from({ length: 130 }, (_, i) => `compact_edge(n${i}, n${i + 1}).`).join('\n');
+        const source = `${facts}\ncompact_edge(X,Y) :- compact_edge(X,Y).\n`;
+        const program = Program.parseSources([{ text: source, filename: 'compact-datalog.pl' }], {
+          sourceMetadata: false,
+        });
+        const group = program.findGroup('compact_edge', 2);
+        assertEqual(group.datalogLeastModel, true, 'compact recursive Datalog remains eligible');
+        assertEqual(
+          group.clauses.filter((clause) => clause._head != null || clause._body != null).length,
+          0,
+          'planning keeps compact clause terms lazy',
+        );
+      },
+    },
+    {
       name: 'findall length counting preserves multiplicity and observable bags',
       run: () => {
         const source = `
