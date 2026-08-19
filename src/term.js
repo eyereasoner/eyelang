@@ -683,7 +683,13 @@ export function numberTextFromDouble(value) {
   if (Object.is(value, -0)) value = 0;
   let text = Number(value).toPrecision(17);
   if (text.includes('e') || text.includes('E')) {
-    text = text.replace(/(\.\d*?[1-9])0+(e[+-]?\d+)$/i, '$1$2').replace(/\.0+(e[+-]?\d+)$/i, '$1');
+    text = text
+      .replace(/(\.\d*?[1-9])0+(e[+-]?\d+)$/i, '$1$2')
+      // ISO floating-point syntax requires a fractional part before the
+      // exponent. Keep one zero when the fraction is otherwise all zeros so
+      // generated text remains readable by EyeProlog itself (for example
+      // 1.0e-8 rather than JavaScript's 1e-8).
+      .replace(/\.0+(e[+-]?\d+)$/i, '.0$1');
   } else if (text.includes('.')) {
     text = text.replace(/0+$/, '').replace(/\.$/, '');
   }

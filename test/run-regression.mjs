@@ -31,6 +31,7 @@ import {
   compound,
   listFromItems,
   numberTerm,
+  numberTextFromDouble,
   stringTerm,
   variable,
   copyResolved,
@@ -694,6 +695,35 @@ c4 ?- call((!;1)).
           const answer = numberChars({ goal, env: new Env() }).next();
           if (answer.done) throw new Error(`number_chars/2 failed at ${i}`);
           assertEqual(copyResolved(converted, answer.value).name, text, `number_chars/2 conversion ${i}`);
+        }
+      },
+    },
+    {
+      name: 'number_chars and number_codes keep exponent floats syntactically readable (issue #50)',
+      run: () => {
+        const source = `
+?- number_chars(1.0e-8,Cs).
+   Cs = "1.0e-8".
+?- number_chars(N,"1.0e-8"), number_chars(N,Cs).
+   N = 1.0e-8, Cs = "1.0e-8".
+?- number_codes(N,[49,46,48,101,45,56]), number_codes(N,Codes).
+   N = 1.0e-8, Codes = [49,46,48,101,45,56].
+`;
+        const result = publicApi.runQuads(source);
+        assertEqual(result.total, 3, 'quad total');
+        assertEqual(result.passed, 3, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+
+        const generated = numberTerm(numberTextFromDouble(1e-8));
+        assertEqual(generated.name, '1.0e-8', 'generated float spelling');
+        assertEqual(parseNumberTokenText(generated.name).name, '1.0e-8', 'generated spelling parses as a float');
+
+        for (const value of [1e-8, -1e-8, 1e20, 1e21, Number.MIN_VALUE, Number.MAX_VALUE]) {
+          const text = numberTextFromDouble(value);
+          if (/[eE]/.test(text)) {
+            assertEqual(/^-?\d+\.\d+[eE][+-]?\d+$/.test(text), true, `exponent float syntax ${text}`);
+          }
+          assertEqual(Number(parseNumberTokenText(text).name), value, `generated float round-trip ${text}`);
         }
       },
     },
