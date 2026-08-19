@@ -13,6 +13,7 @@ import { StreamManager } from './io.js';
 import { clpzStateConsistent } from './clpz.js';
 import { hardHeapLimit, softHeapLimit, usedHeapSize } from './platform.js';
 import { evaluateWfs, relationForGroup, truthOfGroundGoal } from './wfs.js';
+import { evaluatePositiveDatalog, relationForDatalogGroup, datalogCandidateIndexes } from './datalog.js';
 
 let freshCounter = 0;
 
@@ -107,6 +108,7 @@ export class Solver {
     this.memo = new Map();
     this.subsumptiveMemo = new Map();
     this.wfsModels = new Map();
+    this.datalogModels = new Map();
     this.tableCoordinator = null;
     this.groundChainSuccess = new Set();
     this.compactChainSuccess = new Map();
@@ -120,6 +122,9 @@ export class Solver {
       deterministic_builtin_successes: 0,
       deterministic_builtin_failures: 0,
       table_fixpoint_rounds: 0,
+      datalog_evaluations: 0,
+      datalog_rule_firings: 0,
+      datalog_facts_derived: 0,
       wfs_fixpoint_rounds: 0,
       wfs_undefined_answers: 0,
     };
@@ -141,6 +146,7 @@ export class Solver {
     solver.memo = this.memo;
     solver.subsumptiveMemo = this.subsumptiveMemo;
     solver.wfsModels = this.wfsModels;
+    solver.datalogModels = this.datalogModels;
     solver.groundChainSuccess = this.groundChainSuccess;
     solver.compactChainSuccess = this.compactChainSuccess;
     return solver;
@@ -157,6 +163,7 @@ export class Solver {
     this.memo.clear();
     this.subsumptiveMemo.clear();
     this.wfsModels.clear();
+    this.datalogModels.clear();
     this.tableCoordinator = null;
     this.groundChainSuccess.clear();
     this.compactChainSuccess.clear();
@@ -339,6 +346,19 @@ export class Solver {
         if (goal.type === 'var') throw new PrologError('instantiation_error');
         const callable = goal.type === COMPOUND || goal.type === 'atom';
         if (!callable) throw new PrologError('type_error(callable)', goal);
+
+        if (selectedIndex === 0) {
+          const fused = findallLengthFusion(this, goal, rest, env);
+          if (fused != null) {
+            const firstResult = fused.iterator.next();
+            if (firstResult.done) break;
+            goals = fused.rest;
+            env = firstResult.value;
+            depth++;
+            continue;
+          }
+        }
+
         const def = callable ? this.registry.get(goal.name, goal.arity) : null;
         this.active = active;
         if (def && builtinIsReadyOrAuthoritative(def, this, goal, env)) {
@@ -382,6 +402,25 @@ export class Solver {
           break;
         }
         qualifyMetaArguments(goal, group);
+
+        if (group.datalogLeastModel === true && !termIsGround(goal, env)) {
+          const model = this.datalogModelFor(group);
+          const relation = relationForDatalogGroup(model, group);
+          const iterator = datalogAnswerSolutions(this, relation, goal, env);
+          const firstResult = iterator.next();
+          if (firstResult.done) break;
+          stack.push({
+            kind: 'resumeBuiltin',
+            iterator,
+            goals: rest,
+            depth: depth + 1,
+            active,
+          });
+          goals = rest;
+          env = firstResult.value;
+          depth++;
+          continue;
+        }
 
         if (group.wfsDatalog === true) {
           const model = this.wfsModelFor(group);
@@ -494,6 +533,28 @@ export class Solver {
       if (stackIndex >= 0) this.solveStacks.splice(stackIndex, 1);
       this.active = savedActive;
     }
+  }
+
+  fastCountGoal(goal, env) {
+    return fastCountPureGoal(this, goal, env);
+  }
+
+  fastGroundGoalTruth(goal, env) {
+    return fastGroundPureGoalTruth(this, goal, env);
+  }
+
+  datalogModelFor(group) {
+    let model = this.datalogModels.get(group);
+    if (model) return model;
+    model = evaluatePositiveDatalog(this.program, group);
+    this.stats.datalog_evaluations++;
+    this.stats.datalog_rule_firings += model.ruleFirings;
+    this.stats.datalog_facts_derived += model.derivedFacts;
+    for (const member of model.groups) {
+      if (!this.datalogModels.has(member)) this.datalogModels.set(member, model);
+    }
+    this.datalogModels.set(group, model);
+    return model;
   }
 
   wfsModelFor(group) {
@@ -611,6 +672,10 @@ export class Solver {
     const group = this.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
     if (!group) return;
     qualifyMetaArguments(goal, group);
+    if (group.datalogLeastModel === true && !termIsGround(goal, env)) {
+      yield* this.solveDatalogGoal(group, goal, rest, env, depth);
+      return;
+    }
     if (group.wfsDatalog === true) {
       yield* this.solveWfsGoal(group, goal, rest, env, depth);
       return;
@@ -620,6 +685,15 @@ export class Solver {
       return;
     }
     yield* this.solveUserGoalUncached(group, goal, rest, env, depth);
+  }
+
+  *solveDatalogGoal(group, goal, rest, env, depth) {
+    const model = this.datalogModelFor(group);
+    const relation = relationForDatalogGroup(model, group);
+    for (const next of datalogAnswerSolutions(this, relation, goal, env)) {
+      yield* this.solve(rest, next, depth + 1);
+      if (this.solutionsSeen >= this.solutionLimit) return;
+    }
   }
 
   *solveMemoizedGoal(group, goal, rest, env, depth) {
@@ -902,6 +976,31 @@ function groupNeedsActiveFrame(group) {
   return group.cutReachable !== false || (group.recursive && !group.linearNumeric);
 }
 
+function* datalogAnswerSolutions(solver, relation, goal, env) {
+  if (!relation) return;
+  const candidates = datalogCandidateIndexes(
+    relation,
+    goal.args ?? [],
+    env,
+    derefForLocal,
+    memoAnswerScalarKey,
+  );
+  const visit = function* (rowIndex) {
+    const row = relation.rows[rowIndex];
+    const next = env.clone();
+    for (let i = 0; i < goal.arity; i++) {
+      solver.stats.unify_calls++;
+      if (!unify(goal.args[i], row[i], next)) return;
+    }
+    yield next;
+  };
+  if (candidates == null) {
+    for (let rowIndex = 0; rowIndex < relation.rows.length; rowIndex++) yield* visit(rowIndex);
+    return;
+  }
+  for (const rowIndex of candidates) yield* visit(rowIndex);
+}
+
 function pushWfsAnswerFrames(stack, model, group, goal, rest, env, depth, active, solver) {
   const relation = relationForGroup(model, group, 'upper');
   const lower = relationForGroup(model, group, 'lower');
@@ -1113,6 +1212,348 @@ function pushFastPiFrames(stack, goal, rest, env, depth, active) {
 }
 
 
+
+function fastGroundPureGoalTruth(solver, goal, env = new Env(), visiting = new Set()) {
+  if (!termIsGround(goal, env)) return null;
+  const resolved = copyResolved(goal, env);
+  if (resolved.type !== COMPOUND && resolved.type !== 'atom') return null;
+  const group = solver.program.findGroup(resolved.name, resolved.arity, resolved.module ?? 'user');
+  if (!group || group.hasCut || group.wfsDatalog) return null;
+
+  if (group.datalogLeastModel === true) {
+    const model = solver.datalogModelFor(group);
+    const relation = relationForDatalogGroup(model, group);
+    return relation?.has(resolved.args ?? []) ?? false;
+  }
+
+  if (group.scalarFactsOnly) {
+    const candidates = selectGroundClauseCandidates(group, resolved);
+    for (let index = 0; index < clauseCandidateLength(candidates); index++) {
+      const clause = clauseCandidateAt(candidates, index);
+      if (matchGroundClause(resolved, clause)?.done) return true;
+    }
+    return false;
+  }
+
+  if (group.recursive || group.tabled) return null;
+  const key = `${group.module}:${group.name}/${group.arity}`;
+  if (visiting.has(key)) return null;
+  const nextVisiting = new Set(visiting);
+  nextVisiting.add(key);
+
+  const candidates = selectGroundClauseCandidates(group, resolved);
+  for (let candidateIndex = 0; candidateIndex < clauseCandidateLength(candidates); candidateIndex++) {
+    const clause = clauseCandidateAt(candidates, candidateIndex);
+    const bindings = new Map();
+    let headMatches = true;
+    for (let i = 0; i < resolved.arity; i++) {
+      const pattern = clause.head.args[i];
+      const value = resolved.args[i];
+      if (pattern.type === 'var') {
+        const previous = bindings.get(pattern.name);
+        if (previous == null) bindings.set(pattern.name, value);
+        else if (!sameGroundTerm(previous, value)) { headMatches = false; break; }
+      } else if (isScalarTerm(pattern)) {
+        if (!sameScalarTerm(pattern, value)) { headMatches = false; break; }
+      } else {
+        return null;
+      }
+    }
+    if (!headMatches) continue;
+
+    let clauseTrue = true;
+    for (const body of clause.body) {
+      if (body.type !== COMPOUND && body.type !== 'atom') return null;
+      const args = [];
+      for (const arg of body.args ?? []) {
+        if (arg.type === 'var') {
+          const value = bindings.get(arg.name);
+          if (value == null) return null;
+          args.push(value);
+        } else if (isScalarTerm(arg)) {
+          args.push(arg);
+        } else {
+          return null;
+        }
+      }
+      const bodyGoal = body.type === 'atom' ? body : compound(body.name, args);
+      if (body.module != null) bodyGoal.module = body.module;
+      const truth = fastGroundPureGoalTruth(solver, bodyGoal, new Env(), nextVisiting);
+      if (truth == null) return null;
+      if (!truth) { clauseTrue = false; break; }
+    }
+    if (clauseTrue) return true;
+  }
+  return false;
+}
+
+function termReferencesResolvedVariable(term, variableName, env) {
+  const pending = [term];
+  const seen = new Set();
+  while (pending.length > 0) {
+    const value = derefForLocal(pending.pop(), env);
+    if (value.type === 'var') {
+      if (value.name === variableName) return true;
+      continue;
+    }
+    if (value.type !== COMPOUND || seen.has(value)) continue;
+    seen.add(value);
+    for (const arg of value.args) pending.push(arg);
+  }
+  return false;
+}
+
+function envHasObservableAliasTo(variableName, env) {
+  for (let state = env?._state; state != null; state = state.parent) {
+    if (state.bindingName != null && state.bindingName !== variableName &&
+        termReferencesResolvedVariable(state.bindingValue, variableName, env)) return true;
+    if (state.bindings) {
+      for (const [name, value] of state.bindings) {
+        if (name !== variableName && termReferencesResolvedVariable(value, variableName, env)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function* fusedFindallLengthSolutions(solver, innerGoal, countArg, env) {
+  const invoked = copyResolved(innerGoal, env);
+  if (invoked.type !== COMPOUND && invoked.type !== 'atom') return;
+  let count = fastCountPureGoal(solver, invoked, env);
+  if (count != null) {
+    // findall/3's existing collector intentionally carries a ten-million
+    // solution safety cap. Preserve that observable bound in the fused path.
+    if (count > 10000000n) count = 10000000n;
+  } else {
+    const child = solver.cloneForInnerGoal(10000000);
+    count = 0n;
+    try {
+      for (const _ of child.solve([invoked], env.clone(), 0)) count++;
+    } finally {
+      solver.absorbStatsFrom(child);
+    }
+  }
+  const next = env.clone();
+  if (unify(countArg, numberTerm(count), next)) yield next;
+}
+
+function findallLengthFusion(solver, goal, rest, env) {
+  if (goal.type !== COMPOUND || goal.name !== 'findall' || goal.arity !== 3 || rest.length === 0) return null;
+  const bag = derefForLocal(goal.args[2], env);
+  if (bag.type !== 'var') return null;
+
+  const lengthGoal = derefForLocal(rest[0], env);
+  if (lengthGoal.type !== COMPOUND || lengthGoal.name !== 'length' || lengthGoal.arity !== 2) return null;
+  const lengthGroup = solver.program.findGroup('length', 2, lengthGoal.module ?? 'user');
+  if (!lengthGroup || lengthGroup.bundledLibrary !== true ||
+      !['lists', 'prologue'].includes(lengthGroup.module)) return null;
+  const lengthList = derefForLocal(lengthGoal.args[0], env);
+  const countArg = derefForLocal(lengthGoal.args[1], env);
+  if (lengthList.type !== 'var' || lengthList.name !== bag.name || countArg.type !== 'var') return null;
+  if (envHasObservableAliasTo(bag.name, env)) return null;
+
+  // The bag may be elided only when no other part of the computation can
+  // observe it.  In particular, sharing it with Template or Goal changes
+  // findall/3's variable-scoping behavior and must stay on the ordinary path.
+  if (termReferencesResolvedVariable(goal.args[0], bag.name, env) ||
+      termReferencesResolvedVariable(goal.args[1], bag.name, env) ||
+      termReferencesResolvedVariable(lengthGoal.args[1], bag.name, env)) return null;
+  for (let i = 1; i < rest.length; i++) {
+    if (termReferencesResolvedVariable(rest[i], bag.name, env)) return null;
+  }
+
+  return {
+    iterator: fusedFindallLengthSolutions(solver, goal.args[1], lengthGoal.args[1], env),
+    rest: rest.slice(1),
+  };
+}
+
+function countPlanTermIsFlat(term) {
+  return term?.type === 'var' || isScalarTerm(term);
+}
+
+function expandPureCountGoal(solver, goal, callerModule, visiting, budget) {
+  if ((goal.type !== COMPOUND && goal.type !== 'atom') ||
+      !(goal.args ?? []).every(countPlanTermIsFlat)) return null;
+  const group = solver.program.findGroup(goal.name, goal.arity, goal.module ?? callerModule ?? 'user');
+  if (!group || group.hasCut || group.recursive || group.tabled || group.wfsDatalog || group.datalogLeastModel) return null;
+  if (group.scalarFactsOnly) return [{ equalities: [], leaves: [{ goal, group }] }];
+
+  const key = `${group.module}:${group.name}/${group.arity}`;
+  if (visiting.has(key)) return null;
+  const nextVisiting = new Set(visiting);
+  nextVisiting.add(key);
+  const out = [];
+
+  for (const clause of group.clauses) {
+    if (budget.remaining-- <= 0) return null;
+    const id = nextFreshId();
+    const variables = new Map();
+    const head = freshTerm(clause.head, `count${id}`, variables);
+    const body = clause.body.map((term) => freshTerm(term, `count${id}`, variables));
+    if (!(head.args ?? []).every(countPlanTermIsFlat)) return null;
+    let branches = [{
+      equalities: (goal.args ?? []).map((arg, index) => [arg, head.args[index]]),
+      leaves: [],
+    }];
+
+    for (const bodyGoal of body) {
+      const expanded = expandPureCountGoal(solver, bodyGoal, group.module, nextVisiting, budget);
+      if (expanded == null) return null;
+      const combined = [];
+      for (const left of branches) {
+        for (const right of expanded) {
+          combined.push({
+            equalities: [...left.equalities, ...right.equalities],
+            leaves: [...left.leaves, ...right.leaves],
+          });
+          if (combined.length > 4096) return null;
+        }
+      }
+      branches = combined;
+    }
+    out.push(...branches);
+    if (out.length > 4096) return null;
+  }
+  return out;
+}
+
+function countPlanDeref(term, env, bindings) {
+  let current = term;
+  const seen = new Set();
+  while (current?.type === 'var') {
+    if (seen.has(current.name)) break;
+    seen.add(current.name);
+    const local = bindings.get(current.name);
+    if (local !== undefined) {
+      current = local;
+      continue;
+    }
+    const outer = env.get(current.name);
+    if (outer !== undefined) {
+      current = outer;
+      continue;
+    }
+    break;
+  }
+  return current;
+}
+
+function countPlanUnify(left, right, env, bindings, trail) {
+  const a = countPlanDeref(left, env, bindings);
+  const b = countPlanDeref(right, env, bindings);
+  if (a.type === 'var') {
+    if (b.type === 'var' && a.name === b.name) return true;
+    bindings.set(a.name, b);
+    trail.push(a.name);
+    return true;
+  }
+  if (b.type === 'var') {
+    bindings.set(b.name, a);
+    trail.push(b.name);
+    return true;
+  }
+  return sameScalarTerm(a, b);
+}
+
+function undoCountBindings(bindings, trail, start) {
+  for (let i = trail.length - 1; i >= start; i--) bindings.delete(trail[i]);
+  trail.length = start;
+}
+
+function countLeafCandidateParts(leaf, env, bindings) {
+  const positions = [];
+  const values = [];
+  for (let i = 0; i < leaf.goal.arity; i++) {
+    const value = countPlanDeref(leaf.goal.args[i], env, bindings);
+    if (!isScalarTerm(value)) continue;
+    positions.push(i);
+    values.push(value);
+  }
+  return selectClauseCandidatesForValues(leaf.group, positions, values);
+}
+
+function countCandidateTotal(parts) {
+  return clauseCandidateLength(parts.primary) + clauseCandidateLength(parts.fallback);
+}
+
+function fastCountBranch(branch, env) {
+  const bindings = new Map();
+  const trail = [];
+  for (const [left, right] of branch.equalities) {
+    if (!countPlanUnify(left, right, env, bindings, trail)) return 0n;
+  }
+
+  let numberCount = 0;
+  let bigCount = null;
+  const increment = () => {
+    if (bigCount != null) {
+      bigCount++;
+    } else if (numberCount < Number.MAX_SAFE_INTEGER) {
+      numberCount++;
+    } else {
+      bigCount = BigInt(numberCount) + 1n;
+    }
+  };
+
+  const remaining = branch.leaves.map((_, index) => index);
+  const visit = (active) => {
+    if (active.length === 0) {
+      increment();
+      return;
+    }
+
+    let bestPosition = 0;
+    let bestParts = null;
+    let bestLength = Infinity;
+    for (let position = 0; position < active.length; position++) {
+      const leaf = branch.leaves[active[position]];
+      const parts = countLeafCandidateParts(leaf, env, bindings);
+      const length = countCandidateTotal(parts);
+      if (length < bestLength) {
+        bestLength = length;
+        bestPosition = position;
+        bestParts = parts;
+        if (length === 0) return;
+      }
+    }
+
+    const leafIndex = active[bestPosition];
+    const leaf = branch.leaves[leafIndex];
+    const nextActive = active.length === 1
+      ? []
+      : [...active.slice(0, bestPosition), ...active.slice(bestPosition + 1)];
+    for (const pass of [bestParts.primary, bestParts.fallback]) {
+      for (let candidateIndex = 0; candidateIndex < clauseCandidateLength(pass); candidateIndex++) {
+        const clause = clauseCandidateAt(pass, candidateIndex);
+        const start = trail.length;
+        let ok = true;
+        for (let i = 0; i < leaf.goal.arity; i++) {
+          if (!countPlanUnify(leaf.goal.args[i], clause.head.args[i], env, bindings, trail)) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) visit(nextActive);
+        undoCountBindings(bindings, trail, start);
+      }
+    }
+  };
+
+  visit(remaining);
+  return bigCount ?? BigInt(numberCount);
+}
+
+function fastCountPureGoal(solver, goal, env) {
+  if (solver.isoStrict || solver.solutionLimit !== Infinity || solver.maxInferences !== Infinity ||
+      env._clpz != null || (env._delays != null && env._delays.size !== 0)) return null;
+  const budget = { remaining: 8192 };
+  const branches = expandPureCountGoal(solver, goal, goal.module ?? 'user', new Set(), budget);
+  if (branches == null) return null;
+  let count = 0n;
+  for (const branch of branches) count += fastCountBranch(branch, env);
+  return count;
+}
 
 function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
   // Consecutive scalar-fact lookups are common in data-heavy joins.  Short

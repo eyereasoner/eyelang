@@ -4269,6 +4269,56 @@ function whiteBoxCases() {
       },
     },
     {
+      name: 'large finite Datalog uses an indexed least model only for broad calls',
+      run: () => {
+        const edges = Array.from({ length: 130 }, (_, i) => `edge(n${i}, n${i + 1}).`).join('\n');
+        const source = `${edges}\npath(X,Y) :- edge(X,Y).\npath(X,Y) :- edge(X,Z), path(Z,Y).\n`;
+        const program = Program.parse(source);
+        const group = program.findGroup('path', 2);
+        assertEqual(group.datalogLeastModel, true, 'large range-restricted Datalog is eligible');
+
+        const broad = run(program, { goal: 'path(X,Y)' });
+        assertEqual(broad.stdout.trim().split('\n').length, 8515, 'semi-naive closure has every chain pair');
+        assertEqual(broad.stats.datalog_evaluations, 1, 'broad query builds one least model');
+
+        const ground = run(program, { goal: 'path(n0,n130)' });
+        assertEqual(ground.stdout, 'path(n0, n130).\n', 'ground chain still succeeds');
+        assertEqual(ground.stats.datalog_evaluations, 0, 'ground query keeps the ordinary indexed chain path');
+      },
+    },
+    {
+      name: 'findall length counting preserves multiplicity and observable bags',
+      run: () => {
+        const source = `
+p(a).
+p(b).
+q(X) :- p(X).
+q(X) :- p(X).
+bench(N) :- findall(X, q(X), Bag), length(Bag, N).
+collect(Bag,N) :- findall(X, q(X), Bag), length(Bag, N).
+`;
+        assertEqual(run(source, { goal: 'bench(N)' }).stdout, 'bench(4).\n', 'dead bag counts all four proof solutions');
+        assertEqual(run(source, { goal: 'collect(Bag,N)' }).stdout, 'collect("abab", 4).\n', 'bag exposed through the rule head is materialized');
+      },
+    },
+    {
+      name: 'ground negation probes a complete positive Datalog model',
+      run: () => {
+        const edges = Array.from({ length: 130 }, (_, i) => `edge(n${i}, n${i + 1}).`).join('\n');
+        const source = `${edges}
+path(X,Y) :- edge(X,Y).
+path(X,Y) :- edge(X,Z), path(Z,Y).
+blocked(X,Y) :- path(X,Y).
+candidate(n0,n130).
+candidate(n130,n0).
+keep(X,Y) :- candidate(X,Y), \\+ blocked(X,Y).
+`;
+        const result = run(source, { goal: 'keep(X,Y)' });
+        assertEqual(result.stdout, 'keep(n130, n0).\n', 'negation sees the complete transitive closure');
+        assertEqual(result.stats.datalog_evaluations, 1, 'ground truth probe reuses one complete least model');
+      },
+    },
+    {
       name: 'tnot enables finite Datalog well-founded semantics without changing ISO negation',
       run: () => {
         const program = Program.parse(`

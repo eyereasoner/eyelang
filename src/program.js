@@ -167,6 +167,7 @@ export class Program {
       recursive: false,
       tableInputPositions: [],
       tableAllVariants: false,
+      datalogLeastModel: false,
       wfsDatalog: false,
       scalarFactsOnly: true,
       dynamic: this.dynamicPredicates.has(modulePredicateKey(module, name, arity)),
@@ -350,6 +351,7 @@ export class Program {
       }
     }
     const finiteDatalogCache = new Map();
+    const rangeRestrictedDatalogCache = new Map();
     for (const group of groups) {
       const start = indexByGroup.get(group);
       const standardLibraryModule = group.module !== 'user' &&
@@ -398,6 +400,11 @@ export class Program {
       // a separate recursive closure for every bound input (TC/SG/Wine style).
       group.tableAllVariants = group.tabled && isFiniteDatalogGroup(this, group, finiteDatalogCache) &&
         datalogDependencyClauseCount(this, group) >= 128;
+      // Large finite, range-restricted positive Datalog can be evaluated as a
+      // single indexed least model.  Keep tableAllVariants as the semantic
+      // fallback for finite programs whose answers may contain variables.
+      group.datalogLeastModel = group.tableAllVariants &&
+        isRangeRestrictedFiniteDatalogGroup(this, group, rangeRestrictedDatalogCache);
     }
 
     // Explicit tnot/1 opts finite, function-free Datalog into well-founded
@@ -1338,6 +1345,56 @@ function isFiniteDatalogGroup(program, group, cache = new Map(), visiting = new 
     }
     if (!finite) break;
   }
+  visiting.delete(group);
+  cache.set(group, finite);
+  return finite;
+}
+
+
+function isRangeRestrictedFiniteDatalogGroup(program, group, cache = new Map(), visiting = new Set()) {
+  const cached = cache.get(group);
+  if (cached != null) return cached;
+  if (visiting.has(group)) return true;
+  visiting.add(group);
+  let finite = true;
+
+  for (const clause of group.clauses) {
+    const head = clause.head;
+    if ((head.type !== COMPOUND && head.type !== ATOM) ||
+        (head.type === COMPOUND && !head.args.every(isFiniteDatalogArgument))) {
+      finite = false;
+      break;
+    }
+
+    const headVariables = new Set();
+    const positiveVariables = new Set();
+    collectVariables(head, headVariables);
+    for (const goal of clause.body) {
+      if ((goal.type !== COMPOUND && goal.type !== ATOM) ||
+          (goal.type === COMPOUND && !goal.args.every(isFiniteDatalogArgument))) {
+        finite = false;
+        break;
+      }
+      collectVariables(goal, positiveVariables);
+      const target = program.findGroup(goal.name, goal.arity, goal.module ?? group.module);
+      if (!target || !isRangeRestrictedFiniteDatalogGroup(program, target, cache, visiting)) {
+        finite = false;
+        break;
+      }
+    }
+    if (!finite) break;
+    for (const name of headVariables) {
+      if (!positiveVariables.has(name)) {
+        // Ground facts have no head variables and pass naturally. A variable
+        // fact or a rule with an unbound head variable needs ordinary Prolog
+        // table semantics rather than finite relational materialization.
+        finite = false;
+        break;
+      }
+    }
+    if (!finite) break;
+  }
+
   visiting.delete(group);
   cache.set(group, finite);
   return finite;

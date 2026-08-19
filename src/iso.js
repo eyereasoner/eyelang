@@ -1748,7 +1748,7 @@ class FindallListTerm {
     if (this._args == null) {
       const next = this._offset + 1;
       this._args = [
-        this._items[this._offset],
+        typeof this._items.get === 'function' ? this._items.get(this._offset) : this._items[this._offset],
         next >= this._items.length ? emptyList() : new FindallListTerm(this._items, next),
       ];
     }
@@ -1756,21 +1756,63 @@ class FindallListTerm {
   }
 }
 
+class FlatCompoundFindallItems {
+  constructor(template) {
+    this.name = template.name;
+    this.arity = template.arity;
+    this.columns = Array.from({ length: this.arity }, () => []);
+  }
+  get length() {
+    return this.arity === 0 ? 0 : this.columns[0].length;
+  }
+  push(template, env) {
+    const values = new Array(this.arity);
+    for (let i = 0; i < this.arity; i++) {
+      const value = deref(template.args[i], env);
+      if (value.type === VAR || value.type === COMPOUND) return false;
+      values[i] = value;
+    }
+    for (let i = 0; i < this.arity; i++) this.columns[i].push(values[i]);
+    return true;
+  }
+  get(index) {
+    return compound(this.name, this.columns.map((column) => column[index]));
+  }
+  materialize() {
+    const out = new Array(this.length);
+    for (let i = 0; i < out.length; i++) out[i] = this.get(i);
+    return out;
+  }
+}
+
 function findallListFromItems(items) {
   return items.length === 0 ? emptyList() : new FindallListTerm(items);
+}
+
+function flatFindallTemplate(template) {
+  return template.type === COMPOUND && template.arity > 0 &&
+    template.args.every((arg) => arg.type !== COMPOUND)
+    ? new FlatCompoundFindallItems(template)
+    : null;
 }
 
 function* findallBuiltin({ solver, goal, env }) {
   const [template, innerGoal, bag] = goal.args;
   assertListOrPartial(bag, env);
   const collector = solver.cloneForInnerGoal(10000000);
-  const collected = [];
+  let compact = flatFindallTemplate(template);
+  let collected = compact == null ? [] : null;
   for (const answerEnv of collector.solve([callable(innerGoal, env)], env.clone(), 0)) {
+    if (compact != null && compact.push(template, answerEnv)) continue;
+    if (compact != null) {
+      collected = compact.materialize();
+      compact = null;
+    }
     collected.push(freshCopy(template, answerEnv));
   }
   solver.absorbStatsFrom(collector);
   const next = env.clone();
-  if (unify(bag, findallListFromItems(collected), next)) yield next;
+  if (unify(bag, findallListFromItems(compact ?? collected), next)) yield next;
 }
 
 function collectVariableNames(term, env, names = new Set()) {
@@ -1914,12 +1956,15 @@ function* countAllBuiltin({ solver, goal, env }) {
   }
 
   const invoked = callable(goal.args[0], env);
-  const child = solver.cloneForInnerGoal();
-  let count = 0n;
-  try {
-    for (const _ of child.solve([invoked], env.clone(), 0)) count++;
-  } finally {
-    solver.absorbStatsFrom(child);
+  let count = solver.fastCountGoal?.(invoked, env) ?? null;
+  if (count == null) {
+    const child = solver.cloneForInnerGoal();
+    count = 0n;
+    try {
+      for (const _ of child.solve([invoked], env.clone(), 0)) count++;
+    } finally {
+      solver.absorbStatsFrom(child);
+    }
   }
 
   const next = env.clone();
@@ -2131,6 +2176,11 @@ function* negationBuiltin({ solver, goal, env }) {
     } else {
       solver.stats.deterministic_builtin_successes++;
     }
+    return;
+  }
+  const fastTruth = solver.fastGroundGoalTruth?.(invoked, env) ?? null;
+  if (fastTruth != null) {
+    if (!fastTruth) yield env;
     return;
   }
   for (const _ of solver.cloneForInnerGoal(1).solve([invoked], env.clone(), 0)) return;
