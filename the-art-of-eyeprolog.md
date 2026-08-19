@@ -1905,10 +1905,30 @@ bundled path binds each fresh generated spine directly instead of re-running an
 occurs-check over the whole growing list. It also reserves recovery headroom
 proportional to the retained spine, so a finite heap limit is raised inside the
 `length/2` search as a catchable `resource_error(memory)` rather than allowing
-an outer solver frame to encounter the limit first. The ordinary clauses remain
-the authoritative module definition and are used unchanged by the ISO-only
-registry and whenever delays or finite-domain constraints require their normal
-wake-up points.
+an outer solver frame to encounter the limit first.
+
+The same principle now has a conservative general form for freshly renamed
+clauses. A singleton variable in the clause head, or a variable that has not
+appeared in the head or any earlier body goal and occurs exactly once in a
+direct `=/2` goal, cannot already be a subterm of the value it is about to
+receive. EyeProlog marks only that binding as locally fresh and skips its occurs
+traversal. A repeated variable such as the `X` in `X = f(X)`, a variable already
+seen earlier in the clause, and `unify_with_occurs_check/2` all keep the normal
+finite-tree check. The solver also treats such a first-use equality as a
+source-order barrier for its deterministic-goal scheduling, so the freshness
+proof cannot be invalidated by moving a later goal ahead of it. This recovers
+much of the classic WAM-family "local variable" optimization for DCG tail
+variables without introducing a WAM local/global stack distinction into the
+JavaScript term model.
+
+For grammar execution, `phrase/2` passes its fixed final remainder `[]` directly
+into the expanded grammar. Besides matching the two-argument contract, this
+avoids repeatedly trying an empty production against a temporary output
+variable. `phrase/3` still uses a private final-output variable and delays its
+last unification, preserving the existing steadfast treatment of its explicit
+third argument. The ordinary `length/2` clauses remain the authoritative module
+definition and are used unchanged by the ISO-only registry and whenever delays
+or finite-domain constraints require their normal wake-up points.
 
 ### Implementation boundary
 

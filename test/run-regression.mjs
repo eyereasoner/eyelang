@@ -1318,6 +1318,68 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'first-use local equality shortcut preserves finite-tree occurs checking',
+      run: () => {
+        const program = Program.parse(`
+          first_use_cycle :- X = f(Y), Y = g(X).
+          repeated_cycle :- X = f(X).
+          first_use_ok(T) :- X = f(Y), Y = a, T = X.
+        `);
+        const solver = new Solver(program);
+        const solveCount = (text) => {
+          const goal = parseGoalText(text, {
+            doubleQuotes: 'chars',
+            operatorDefinitions: [...program.operators.values()],
+          });
+          let count = 0;
+          for (const _ of solver.solve([goal], new Env(), 0)) count++;
+          return count;
+        };
+        assertEqual(solveCount('first_use_cycle'), 0, 'cycle across later first-use binding');
+        assertEqual(solveCount('repeated_cycle'), 0, 'same-goal repeated variable still checks occurs');
+        assertEqual(solveCount('first_use_ok(f(a))'), 1, 'acyclic first-use bindings still succeed');
+      },
+    },
+    {
+      name: 'phrase/2 fixes the final remainder before running the grammar',
+      run: () => {
+        const program = Program.parse('probe(_, Out) :- var(Out).\n');
+        const solver = new Solver(program);
+        const goal = parseGoalText('phrase(probe, [])', {
+          doubleQuotes: 'chars',
+          operatorDefinitions: [...program.operators.values()],
+        });
+        let count = 0;
+        for (const _ of solver.solve([goal], new Env(), 0)) count++;
+        assertEqual(count, 0, 'phrase/2 exposes [] rather than a temporary output variable');
+      },
+    },
+    {
+      name: 'deep tail-consuming DCG avoids quadratic occurs scans and recursive ground-goal copying',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const script = `
+          import { Program, Solver, Env, atom, compound, listFromItems } from ${JSON.stringify(engineUrl)};
+          const program = Program.parse(${JSON.stringify('s --> [].\ns --> [x], s.\n')});
+          const input = listFromItems(Array.from({ length: 2500 }, () => atom('x')));
+          const solver = new Solver(program, { solutionLimit: 1, maxMemoryBytes: Infinity });
+          const goal = compound('phrase', [atom('s'), input]);
+          let count = 0;
+          for (const _ of solver.solve([goal], new Env(), 0)) { count++; break; }
+          if (count !== 1) throw new Error('deep DCG did not succeed');
+          process.stdout.write('ok');
+        `;
+        const result = spawnSync(process.execPath, [
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 10000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `deep DCG child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'ok', 'deep DCG result');
+      },
+    },
+    {
       name: 'REPL enumerates and stops answers like the Scryer top level',
       run: () => {
         const result = runCli([], {

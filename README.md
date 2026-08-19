@@ -107,6 +107,17 @@ keeps both long-running filters such as `\+ phrase((..., Pattern), Sequence)`
 and repeated same-input probes bounded without turning memory safety into a
 per-call cache-eviction cost.
 
+Finite-tree unification also recognizes a conservative first-use case inspired
+by the local-variable optimization used by WAM-family systems. In a freshly
+renamed clause, a singleton head variable or a variable that first appears once
+in a direct `=/2` goal cannot already occur in the value it is about to receive,
+so that one binding can skip an otherwise redundant occurs traversal. Repeated
+variables, variables seen earlier in the clause, and ordinary public unification
+remain fully occurs-checked. This is a source-level proof, not a WAM-style
+local/global variable stack. `phrase/2` likewise supplies its fixed `[]`
+remainder directly to the grammar; `phrase/3` retains its delayed final output
+unification for steadfastness.
+
 Recursion through negation is explicit. EyeProlog provides `tnot/1` for
 well-founded negation over finite, range-restricted, function-free Datalog
 components. Ordinary `\+/1` remains negation-as-failure and is not silently

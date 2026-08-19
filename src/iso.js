@@ -181,7 +181,8 @@ export const eyePrologLibraryBuiltins = {
 
 function* unification({ goal, env }) {
   const next = env.clone();
-  if (unify(goal.args[0], goal.args[1], next)) yield next;
+  const localFreshVariables = goal._localFreshVariables ?? null;
+  if (unify(goal.args[0], goal.args[1], next, { localFreshVariables })) yield next;
 }
 function* unificationWithOccursCheck({ goal, env }) {
   const next = env.clone();
@@ -2033,14 +2034,17 @@ function* phraseBuiltin({ solver, goal, env }) {
     throw new PrologError('type_error(list)', deref(requestedOutput, env));
   }
 
-  // Delay the final output unification to keep phrase/3 steadfast in its
-  // third argument, as required by the Part 3 execution model.
-  const finalOutput = variable(`\u0000phrase:${++isoFresh}`);
+  // phrase/2 fixes the remainder to [] from the outset. phrase/3 keeps a
+  // private output variable and delays the final unification so its third
+  // argument remains steadfast as required by the Part 3 execution model.
+  const finalOutput = goal.arity === 2
+    ? requestedOutput
+    : variable(`\u0000phrase:${++isoFresh}`);
   const expanded = expandDcgBody(grammarBody, input, finalOutput, {
     env,
     module: goal.module ?? grammarBody.module ?? 'user',
   });
-  const finish = compound('=', [finalOutput, requestedOutput]);
+  const finish = goal.arity === 2 ? null : compound('=', [finalOutput, requestedOutput]);
   // Recursive DCGs are automatically tabled in normal mode. Keep tables in a
   // phrase-local scope keyed by the whole invocation. Repeatedly testing the
   // same grammar/input (issue #48) reuses its completed table, while switching
@@ -2064,7 +2068,7 @@ function* phraseBuiltin({ solver, goal, env }) {
     skipListTailTabling: !repeatedInvocation,
   });
   try {
-    yield* child.solve([expanded, finish], env, 0);
+    yield* child.solve(finish == null ? [expanded] : [expanded, finish], env, 0);
   } finally {
     solver.absorbStatsFrom(child);
     solver.trimInnerTableScope('phrase');

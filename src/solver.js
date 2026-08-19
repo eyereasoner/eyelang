@@ -799,9 +799,12 @@ export class Solver {
         const freshVariables = new Map();
         const freshHead = freshTerm(clause.head, id, freshVariables);
         const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
+        const localFreshPlan = clauseLocalFreshPlan(clause);
+        const headLocalFresh = freshVariableSet(localFreshPlan.head, freshVariables);
+        attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
         const next = env.clone();
         this.stats.unify_calls++;
-        if (!unify(goal, freshHead, next)) continue;
+        if (!unify(goal, freshHead, next, { localFreshVariables: headLocalFresh })) continue;
         if (freshBody.length === 0) {
           yield* this.solve(rest, next, depth + 1);
         } else if (!groupNeedsActiveFrame(group)) {
@@ -1013,9 +1016,12 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
       const freshVariables = new Map();
       const freshHead = freshTerm(clause.head, id, freshVariables);
       const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
+      const localFreshPlan = clauseLocalFreshPlan(clause);
+      const headLocalFresh = freshVariableSet(localFreshPlan.head, freshVariables);
+      attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
       const next = env.clone();
       solver.stats.unify_calls++;
-      if (!unify(goal, freshHead, next)) continue;
+      if (!unify(goal, freshHead, next, { localFreshVariables: headLocalFresh })) continue;
       if (freshBody.length === 0) {
         frames.push({
           kind: 'goals',
@@ -1036,6 +1042,53 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
     }
   }
   for (let i = frames.length - 1; i >= 0; i--) stack.push(frames[i]);
+}
+
+function clauseLocalFreshPlan(clause) {
+  if (clause._localFreshPlan != null) return clause._localFreshPlan;
+  const seen = new Set();
+  const planForTerm = (term) => {
+    const counts = new Map();
+    const stack = [term];
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (current?.type === VAR) {
+        counts.set(current.name, (counts.get(current.name) ?? 0) + 1);
+        continue;
+      }
+      if (current?.type !== COMPOUND) continue;
+      for (let index = 0; index < current.arity; index++) stack.push(current.args[index]);
+    }
+    const local = [];
+    for (const [name, count] of counts) {
+      if (!seen.has(name) && count === 1) local.push(name);
+      seen.add(name);
+    }
+    return local;
+  };
+  const head = planForTerm(clause.head);
+  const body = clause.body.map(planForTerm);
+  return clause._localFreshPlan = { head, body };
+}
+
+function freshVariableSet(names, freshVariables) {
+  if (names.length === 0) return null;
+  const fresh = new Set();
+  for (const name of names) {
+    const term = freshVariables.get(name);
+    if (term != null) fresh.add(term.name);
+  }
+  return fresh.size === 0 ? null : fresh;
+}
+
+function attachBodyLocalFreshVariables(freshBody, plan, freshVariables) {
+  for (let index = 0; index < freshBody.length; index++) {
+    const localFreshVariables = freshVariableSet(plan[index] ?? [], freshVariables);
+    if (localFreshVariables != null && freshBody[index]?.type === COMPOUND &&
+        freshBody[index].name === '=' && freshBody[index].arity === 2) {
+      freshBody[index]._localFreshVariables = localFreshVariables;
+    }
+  }
 }
 
 function groupNeedsActiveFrame(group) {
@@ -1900,10 +1953,14 @@ function compactIndexBucket(index, type, name) {
 
 function tryPushCompactBinaryChainFrames(stack, solver, group, goal, rest, env, depth, active) {
   if (active.length !== 0 || goal.type !== COMPOUND || goal.arity !== 2) return false;
-  const resolved = copyResolved(goal, env);
-  const first = resolved.args[0];
-  let secondType = resolved.args[1]?.type;
-  let secondName = resolved.args[1]?.name;
+  // This fast path only accepts scalar arguments. Dereference those arguments
+  // directly instead of deep-copying the whole goal before discovering that a
+  // list/compound argument is ineligible. Besides avoiding wasted work, this
+  // keeps deep DCG state lists away from recursive copyResolved().
+  const first = derefForLocal(goal.args[0], env);
+  const second = derefForLocal(goal.args[1], env);
+  let secondType = second?.type;
+  let secondName = second?.name;
   if (!isScalarTerm(first) || !['atom', 'string', 'number'].includes(secondType)) return false;
 
   const index = group.argIndexes[1];
@@ -2014,10 +2071,17 @@ function tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, 
   // has exactly one matching clause and a single ground body goal; otherwise the
   // normal clause path below remains authoritative.
   if (!termIsGround(goal, env)) return false;
+  // The chain matcher below only propagates variables bound to flat scalar
+  // head arguments (or literal scalars). Keep this optimization on that flat
+  // domain instead of recursively copying an arbitrary ground compound just
+  // to discover later that a rule shape is unsupported. Deep list arguments
+  // such as DCG state therefore fall straight through to normal resolution.
+  const resolvedArgs = goal.args.map((arg) => derefForLocal(arg, env));
+  if (!resolvedArgs.every(isScalarTerm)) return false;
 
   const baseEnv = env;
   let currentGroup = group;
-  let currentGoal = copyResolved(goal, env);
+  let currentGoal = compound(goal.name, resolvedArgs);
   let currentDepth = depth;
   const currentEnv = new Env();
   const seen = new Set();
@@ -2328,6 +2392,10 @@ function selectReadyDeterministicBuiltin(goals, env, registry) {
   for (let i = 0; i < goals.length; i++) {
     const goal = goals[i];
     if (goal?.kind === 'releaseActive' || goal?.kind === 'memoStore') return 0;
+    // A first-use proof is derived from source goal order. Do not move a later
+    // deterministic builtin across that equality: doing so could touch one of
+    // its proven-fresh variables before the checked binding executes.
+    if (goal?._localFreshVariables != null) return 0;
     if (goal.type !== COMPOUND && goal.type !== 'atom') continue;
     const def = registry.get(goal.name, goal.arity);
     if (!def?.deterministic || typeof def.ready !== 'function') continue;
