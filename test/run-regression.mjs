@@ -3308,6 +3308,68 @@ check(A, B, C, D, E, F) :-
       },
     },
     {
+      name: 'library(lambda) supports Scryer-style maplist lambdas',
+      run: () => {
+        const source = String.raw`:- use_module(library(lambda)).
+:- use_module(library(lists)).
+answer :- maplist(\X^(X>3), [4,5,9]).
+`;
+        const result = run(source, { goal: 'answer' });
+        assertEqual(result.stdout, 'answer.\n', 'stdout');
+      },
+    },
+    {
+      name: 'library(lambda) refreshes local variables on each invocation',
+      run: () => {
+        const source = String.raw`:- use_module(library(lambda)).
+:- use_module(library(lists)).
+answer :- maplist(\X^(Y=X), [a,b]).
+`;
+        const result = run(source, { goal: 'answer' });
+        assertEqual(result.stdout, 'answer.\n', 'fresh local variables');
+      },
+    },
+    {
+      name: 'library(lambda) preserves explicitly free variables with +\\',
+      run: () => {
+        const source = String.raw`:- use_module(library(lambda)).
+:- use_module(library(lists)).
+answer(Y) :- maplist(Y+\X^(Y=X), [a,a]).
+`;
+        const program = Program.parse(source);
+        const imported = [...program.operators.values()].find((operator) => operator.name === '+\\');
+        assertEqual(`${imported?.priority}/${imported?.specifier}`, '201/xfx', '+\\ operator import');
+        const result = run(program, { goal: 'answer(Y)' });
+        assertEqual(result.stdout, 'answer(a).\n', 'free variable sharing');
+      },
+    },
+    {
+      name: 'library(lambda) supports continuations and seven call arguments',
+      run: () => {
+        const source = String.raw`:- use_module(library(lambda)).
+f(x,y).
+tuple(a,b,c,d,e,f,g).
+answer(A,B) :-
+  call(\X^f(X), A, B),
+  call(\X^Y^f(X,Y), A, B),
+  call(\P^Q^R^S^T^U^V^tuple(P,Q,R,S,T,U,V), a,b,c,d,e,f,g).
+`;
+        const result = run(source, { goal: 'answer(A,B)' });
+        assertEqual(result.stdout, 'answer(x, y).\n', 'continuations');
+      },
+    },
+    {
+      name: 'library(lambda) diagnoses a missing lambda parameter',
+      run: () => {
+        const source = String.raw`:- use_module(library(lambda)).
+answer(ok) :-
+  catch(call(\X^true), error(existence_error(lambda_parameter,_),_), true).
+`;
+        const result = run(source, { goal: 'answer(X)' });
+        assertEqual(result.stdout, 'answer(ok).\n', 'lambda parameter error');
+      },
+    },
+    {
       name: 'autoload metadata records canonical interop imports',
       run: () => {
         const program = Program.parse('answer(X) :- member(X, [a]), between(1, 1, _).\n');
@@ -3733,16 +3795,16 @@ check(A, B, C, D, E, F) :-
         assertEqual(registry.get('tnot', 1), null, 'tnot/1 is absent from the ISO registry');
         assertEqual(Boolean(library.get('tnot', 1)), true, 'tnot/1 is an EyeProlog WFS extension');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 40, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 62, 'portable Prolog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 86, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 27, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext', 'common explicit library module profile');
+        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
         assertEqual(eyePrologNativeLibraryIndicators.length, 40, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 102, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 126, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');

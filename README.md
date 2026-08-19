@@ -189,12 +189,13 @@ noun --> [world] | [prolog].
 %% goal: phrase(sentence, Words)
 ```
 
-EyeProlog also adds 102 public library predicate indicators to its 129-entry ISO
-profile. **63 are implemented entirely as ordinary Prolog clauses** in focused
-modules under `src/lib/`; the control predicates and finite-domain
+EyeProlog also adds 126 public library predicate indicators to its 129-entry ISO
+profile. **87 are implemented entirely as ordinary Prolog clauses** in focused
+modules under `src/lib/`; the remaining control predicates and finite-domain
 `library(clpz)` kernel use backtrackable host support.
 They are ISO/IEC 13211-2 modules loaded explicitly by purpose, such as
-`library(lists)`, `library(strings)`, `library(aggregate)`, or `library(clpz)`.
+`library(lists)`, `library(lambda)`, `library(strings)`, `library(aggregate)`, or
+`library(clpz)`.
 Portable text
 predicates use ISO atoms or character lists. The old catch-all
 `library(eyeprolog)` module is no longer needed.
@@ -216,6 +217,24 @@ The aligned `library(lists)` and `library(iso_ext)` exports are kept disjoint so
 they can be imported together without an accidental import conflict. EyeProlog's
 legacy `library(prologue)` remains a compatibility umbrella and should be
 selectively imported when mixed with the aligned modules.
+
+`library(lambda)` follows Scryer's higher-order lambda notation, adapted from
+Ulrich Neumerkel's permissively licensed implementation. Importing it installs
+the `+\` operator and enables closures such as `\X^Goal` and
+`Free+\X^Goal`. Parameters are supplied by `call/N`; variables not listed in
+`Free` are copied afresh for each invocation, while explicitly free variables
+remain shared. For example:
+
+```prolog
+:- use_module(library(lambda)).
+:- use_module(library(lists)).
+
+all_positive(Xs) :- maplist(\X^(X > 0), Xs).
+all_equal(Y, Xs) :- maplist(Y+\X^(X = Y), Xs).
+```
+
+The explicit import is intentional: unlike ordinary predicate autoloading, the
+lambda syntax also changes the active operator table.
 
 Outside `--iso-strict`, an otherwise undefined unqualified call may autoload a
 predicate only when the interop profile has one canonical EyeProlog provider.

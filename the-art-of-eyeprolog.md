@@ -6039,19 +6039,19 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **102 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **63 are defined as ordinary Prolog
+EyeProlog exposes **126 library predicate indicators** in addition to the 129
+indicators in its isolated ISO profile. **87 are defined as ordinary Prolog
 clauses** in focused modules under `src/lib/`. The remaining 39
 are public wrappers around backtrackable host support: Prologue `call_nth/2` and
 `freeze/2`, plus the 37-predicate finite-domain `library(clpz)` kernel. The
-resulting normal EyeProlog language surface is therefore **228 public predicate
+resulting normal EyeProlog language surface is therefore **255 public predicate
 indicators**. Internally, the runtime registry contains the 129 ISO definitions
 plus 23 private library adapters; public relations remain module source clauses.
 
 The sources are `src/lib/aggregate.pl`, `src/lib/clpz.pl`, `src/lib/comparison.pl`,
-`src/lib/dates.pl`, `src/lib/iso_ext.pl`, `src/lib/lists.pl`,
-`src/lib/primes.pl`, `src/lib/prologue.pl`, `src/lib/random.pl`,
-`src/lib/strings.pl`, and `src/lib/uuid.pl`. Each declares a same-named module
+`src/lib/dates.pl`, `src/lib/iso_ext.pl`, `src/lib/lambda.pl`,
+`src/lib/lists.pl`, `src/lib/primes.pl`, `src/lib/prologue.pl`,
+`src/lib/random.pl`, `src/lib/strings.pl`, and `src/lib/uuid.pl`. Each declares a same-named module
 with `module/2`; there is no catch-all `library(eyeprolog)`. A program imports
 only the modules it needs, and
 `use_module/2` can select an even smaller indicator list. The Prologue
@@ -6083,6 +6083,7 @@ between solution branches.
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
 | `library(dates)` | `difference/3` |
 | `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2` |
+| `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` |
 | `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
 | `library(primes)` | `smallest_divisor_from/3` |
 | `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` |
@@ -6117,6 +6118,39 @@ so a source file may import both without an accidental predicate collision.
 `library(prologue)` is retained as an EyeProlog compatibility umbrella and may
 overlap these modules; use selective imports when legacy code combines it with
 the aligned libraries.
+
+`library(lambda)` is an explicitly imported Scryer-aligned module for
+higher-order programming. Its implementation is adapted from Ulrich Neumerkel's
+`library(lambda)` as distributed by Scryer Prolog, retaining the upstream
+copyright and redistribution notice. The public syntax is:
+
+```text
+\X1^X2^...^XN^Goal
+Free+\X1^X2^...^XN^Goal
+```
+
+The first form has no explicitly shared free variables. Before each invocation
+EyeProlog copies the closure term, so local variables are fresh on successive
+`maplist/2-8`, `foldl/4-6`, or direct `call/N` uses. In the second form, the
+variables contained in `Free` remain shared with the surrounding goal. Importing
+the library installs `+\` as a priority-201 `xfx` operator; `\` and `^` use
+their existing ISO operator definitions. Parenthesize lower-priority goal
+operators after `^`, for example `\X^(X > 3)`.
+
+A continuation lambda may leave arguments for a later call:
+
+```text
+f(x, y).
+
+answer(A, B) :- call(\X^f(X), A, B).
+```
+
+This is equivalent to supplying both arguments directly. A lambda that is
+called with too few parameters raises `existence_error(lambda_parameter, ...)`,
+matching the diagnostic intent of the Scryer library. EyeProlog uses its ISO
+`copy_term/2` implementation for the fresh-copy step; in EyeProlog this gives
+the natural-copy behavior needed by the library without requiring a separate
+`copy_term_nat/2` predicate.
 
 Normal EyeProlog execution can autoload an otherwise undefined unqualified call
 only when the interop table assigns it one canonical provider. Thus `member/2`

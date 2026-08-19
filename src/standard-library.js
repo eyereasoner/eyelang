@@ -13,6 +13,7 @@ const moduleFiles = Object.freeze({
   comparison: 'comparison.pl',
   dates: 'dates.pl',
   iso_ext: 'iso_ext.pl',
+  lambda: 'lambda.pl',
   lists: 'lists.pl',
   primes: 'primes.pl',
   prologue: 'prologue.pl',
@@ -68,6 +69,9 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'length/2', 'sum_list/2', 'min_list/2', 'max_list/2', 'list_to_set/2',
   'succ/2', 'foldl/4', 'foldl/5', 'foldl/6',
   'forall/2', 'cfor/3', 'findall/4', 'variant/2', 'uuid/3',
+  '^/3', '^/4', '^/5', '^/6', '^/7', '^/8', '^/9', '^/10',
+  '\\/1', '\\/2', '\\/3', '\\/4', '\\/5', '\\/6', '\\/7', '\\/8',
+  '+\\/2', '+\\/3', '+\\/4', '+\\/5', '+\\/6', '+\\/7', '+\\/8', '+\\/9',
 ]);
 export const eyePrologLibraryIndicators = Object.freeze([
   ...eyePrologPortableLibraryIndicators,
@@ -127,7 +131,7 @@ export const eyePrologInteropLibraryIndicators = Object.freeze(
 // Libraries whose *name* is part of the current interop profile.  A program
 // may freely use_module/1 with these common module names; predicates in those
 // modules outside eyePrologInteropLibraryIndicators are still diagnosed when used.
-export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext']);
+export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext', 'lambda']);
 
 function* tabledNegationBuiltin({ solver, goal, env }) {
   yield* solver.solveTabledNegation(goal.args[0], env);
