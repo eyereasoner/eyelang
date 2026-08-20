@@ -29,9 +29,18 @@ closures. The larger `orb-small` profile is still available from the generator.
 Generate a base profile with:
 
 ```sh
-python3 tools/generate.py --profile portable --output benchmarks-portable
-python3 tools/generate.py --profile orb-small --output benchmarks-orb-small
+node tools/generate.mjs --profile portable --output benchmarks-portable
+node tools/generate.mjs --profile orb-small --output benchmarks-orb-small
 ```
+
+Validate the four generated engine trees with:
+
+```sh
+node tools/check_sources.mjs
+node tools/check_multiengine.mjs
+```
+
+All OpenRuleBench tooling in this repository is JavaScript/ESM; no Python runtime is required.
 
 The portable profile specifically addresses the two SWI 1 GB stack failures seen in
 `join1` and `joindup`, and reduces the maximum transitive-closure answer space from
@@ -41,28 +50,28 @@ The portable profile specifically addresses the two SWI 1 GB stack failures seen
 ## Run
 
 ```sh
-./run-eyeprolog.sh
-./run-trealla.sh
-./run-scryer.sh
-./run-swipl.sh
-./run-all.sh
+./run-eyeprolog.mjs
+./run-trealla.mjs
+./run-scryer.mjs
+./run-swipl.mjs
+./run-all.mjs
 ```
 
 The runner prints TSV columns: `engine`, `benchmark`, `seconds`, `status`, and
 captured output. It uses a 300-second per-benchmark timeout by default:
 
 ```sh
-./run-swipl.sh --timeout 900
-./run-all.sh --only tc,sg,modsg
+./run-swipl.mjs --timeout 900
+./run-all.mjs --only tc,sg,modsg
 ```
 
 Override executable locations with environment variables:
 
 ```sh
-EYEPROLOG=/path/to/eyeprolog ./run-eyeprolog.sh
-TREALLA=/path/to/tpl ./run-trealla.sh
-SCRYER=/path/to/scryer-prolog ./run-scryer.sh
-SWIPL=/path/to/swipl ./run-swipl.sh
+EYEPROLOG=/path/to/eyeprolog ./run-eyeprolog.mjs
+TREALLA=/path/to/tpl ./run-trealla.mjs
+SCRYER=/path/to/scryer-prolog ./run-scryer.mjs
+SWIPL=/path/to/swipl ./run-swipl.mjs
 ```
 
 ## Tabling portability
@@ -85,7 +94,7 @@ The SWI-Prolog copies use its built-in tabling directive directly:
 
 Current SWI-Prolog documents `table/1` as built-in SLG tabling. Current Trealla
 `main` also contains `library(tabling)` and the same `table` directive. Since
-older Trealla releases/builds may not contain that newer facility, `run.py`
+older Trealla releases/builds may not contain that newer facility, `run.mjs`
 probes it before running recursive workloads and reports `skipped-no-tabling`
 when unavailable.
 
@@ -119,8 +128,8 @@ normal runners therefore skip `win_cycle` and `magicset`. You can deliberately
 try them as capability experiments:
 
 ```sh
-./run-trealla.sh --unsafe-wfs --only win_cycle,magicset --timeout 10
-./run-scryer.sh --unsafe-wfs --only win_cycle,magicset --timeout 10
+./run-trealla.mjs --unsafe-wfs --only win_cycle,magicset --timeout 10
+./run-scryer.mjs --unsafe-wfs --only win_cycle,magicset --timeout 10
 ```
 
 Those unsafe results are **not OpenRuleBench-equivalent WFS results** unless the
@@ -156,7 +165,7 @@ eyeprolog --goal 'benchmark(Count)' eyeprolog/tc.pl
 ```
 
 For Join1 the default goal is `benchmark_ff(Count)` rather than `benchmark(Count)`;
-`run.py` reads each file's `%% goal:` line automatically.
+`run.mjs` reads each file's `%% goal:` line automatically.
 
 ## Expected portable-profile counts
 
@@ -202,7 +211,7 @@ Engine references:
 - Trealla native tabling documentation is in the Trealla repository under `docs/README-native-tabling.md`.
 
 The benchmark source files are deterministic outputs of the retained generator
-in `tools/generate.py`; the engine-specific adaptations are intentionally small
+in `tools/generate.mjs`; the engine-specific adaptations are intentionally small
 wrappers/directives over those generated clauses and facts.
 
 ## EyeProlog requirements

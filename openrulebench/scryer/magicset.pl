@@ -3,7 +3,7 @@
 % The normal runner skips it. Use --unsafe-wfs only as a capability experiment.
 
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 % Non-stratified after magic-set transformation; ORB semantics is well-founded negation.

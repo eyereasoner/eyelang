@@ -158,7 +158,7 @@ avoiding benchmark sizes that require multi-gigabyte collectors on some
 engines. Run EyeProlog's complete profile with:
 
 ```sh
-./openrulebench/run-eyeprolog.sh
+./openrulebench/run-eyeprolog.mjs
 ```
 
 The benchmark README records the expected answer counts. Timing values are

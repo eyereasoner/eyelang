@@ -227,7 +227,7 @@
 :- table w224/1.
 
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 % Structural Wine surrogate: preserves 961-rule / 225-IDB / 113-EDB / 654-fact stress shape; not the historical OWL-to-rules program.

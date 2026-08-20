@@ -1,6 +1,6 @@
 % OpenRuleBench multi-engine adaptation: SWI-Prolog
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 % Structural Mondial port. OpenRuleBench uses compound terms such as prov(Y,X).

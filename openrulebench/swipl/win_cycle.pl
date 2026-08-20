@@ -2,7 +2,7 @@
 :- table win/1.
 
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 % Non-locally-stratified Win instance; requires well-founded negation for ORB-equivalent semantics.

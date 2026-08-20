@@ -2,7 +2,7 @@
 :- table tc/2.
 
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 tc(X,Y) :- par(X,Y).

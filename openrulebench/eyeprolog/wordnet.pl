@@ -1,5 +1,5 @@
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 % Structural WordNet 3.0 port: same predicate shape and recursive query kernels, synthetic lexicon data.

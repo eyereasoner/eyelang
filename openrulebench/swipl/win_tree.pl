@@ -1,6 +1,6 @@
 % OpenRuleBench multi-engine adaptation: SWI-Prolog
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 % Locally stratified Win instance (scaled portable data).

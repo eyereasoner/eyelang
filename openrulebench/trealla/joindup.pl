@@ -2,7 +2,7 @@
 % No engine-specific directives are required for this workload.
 
 % OpenRuleBench -> EyeProlog portable benchmark
-% Generated deterministically by tools/generate.py.
+% Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
 a1(X,Y) :- b1_1(X,Z), b2_1(Z,Y).
