@@ -6951,7 +6951,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **210 self-contained runnable programs**. Every
+top-level directory contains **211 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -7281,6 +7281,7 @@ ground RDF-shaped results that can be serialized back to RDF.
 | [ODRL–DPV consumer risk ranking](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-risk-ranked.pl) | Score consumer-policy conflicts and return a deterministic risk ranking. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-risk-ranked.pl) |
 | [ODRL policy](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-policy.pl) | Read one purpose-constrained permission from an ODRL policy graph. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-policy.pl) |
 | [Advanced ODRL policy](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-policy-advanced.pl) | Evaluate permission, duty, constraint failure, and prohibition outcomes. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-policy-advanced.pl) |
+| [ODRL policy reasoning](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-policy-reasoning.pl) | Query action relationships, rule and enforcement outcomes, conflict strategies and kinds, action/rule/policy subsumption, and three-valued WFS defaults. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-policy-reasoning.pl) |
 | [RDF 1.2 annotated claims](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-annotated-claims.pl) | Rank conflicting annotated claims by confidence and source trust. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-annotated-claims.pl) |
 | [RDF 1.2 annotation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-annotation.pl) | Recover an asserted triple together with its reifier and annotations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-annotation.pl) |
 | [RDF 1.2 directional language](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-directional-language.pl) | Preserve language and base-direction metadata in derived labels. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-directional-language.pl) |
