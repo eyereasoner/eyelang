@@ -4,9 +4,10 @@ Source: [Conformity Testing I: Syntax](https://www.complang.tuwien.ac.at/ulrich/
 Upstream inventory checked: 2026-08-16
 
 This ledger counts an upstream case when its WG17 identifier, query, and
-expected ISO disposition are stored in the offline executable matrix. Existing
-cases may pin an exact reviewed EyeProlog outcome; newly upgraded cases are
-executed directly against the upstream Codex expectation.
+expected ISO disposition are stored in the offline executable matrix. Every
+case is executed against the upstream Codex expectation. Reviewed exact
+EyeProlog outcomes are additional regression locks and can never override the
+upstream assertion.
 
 ## Current standing
 
@@ -19,8 +20,9 @@ executed directly against the upstream Codex expectation.
 
 The matrix runs in strict ISO stream-reader mode as part of `npm test`. The
 3 upstream `waits` cases are checked through EyeProlog's interactive input
-hook. 1 case uses the upstream Codex expectation directly; the remaining
-365 cases retain exact stored outcomes for stronger regression checking.
+hook. All 366 executable cases are independently checked against the
+upstream Codex expectation. 365 cases additionally retain exact reviewed
+outcomes for stronger regression checking; 1 case currently relies on the upstream assertion alone.
 
 ## Traceable evidence
 

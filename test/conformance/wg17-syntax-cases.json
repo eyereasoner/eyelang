@@ -1308,7 +1308,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "- 1",
+            "output": "- (1)",
             "variables": "[]"
           }
         ]
@@ -1340,7 +1340,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "- 1 ^ 2",
+            "output": "- (1 ^ 2)",
             "variables": "[]"
           }
         ]
@@ -1532,7 +1532,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "- - 1",
+            "output": "- - (1)",
             "variables": "[]"
           }
         ]
@@ -1552,7 +1552,7 @@
             "variables": "[]"
           },
           {
-            "output": "- 1 ~ 2 ~ 3",
+            "output": "- (1 ~ 2 ~ 3)",
             "variables": "[]"
           }
         ]
@@ -1572,7 +1572,7 @@
             "variables": "[]"
           },
           {
-            "output": "- 1 ~ 2",
+            "output": "- (1 ~ 2)",
             "variables": "[]"
           }
         ]
@@ -3162,7 +3162,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "A",
+            "output": "$VAR(0)",
             "variables": "[]"
           }
         ]
@@ -5092,7 +5092,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "- (1 * 2) ^ 3",
+            "output": "- ((1 * 2) ^ 3)",
             "variables": "[]"
           }
         ]

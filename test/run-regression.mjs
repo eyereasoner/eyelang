@@ -54,7 +54,7 @@ import { proofExamples } from './run-examples.mjs';
 import { goalsFromSource } from './goal-metadata.mjs';
 import { renderWg17SyntaxStatus } from '../tools/report-wg17-syntax-coverage.mjs';
 import { parseWg17SyntaxTable } from '../tools/upgrade-wg17.mjs';
-import { matchesUpstreamExpectation } from './run-wg17.mjs';
+import { executeWg17Item, matchesUpstreamExpectation, readWg17SyntaxFixture } from './run-wg17.mjs';
 
 const testRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRoot = path.resolve(testRoot, '..');
@@ -3236,7 +3236,7 @@ function documentationSyncCases() {
       },
     },
     {
-      name: 'WG17 direct upstream assertions are executable without local outcomes',
+      name: 'WG17 upstream expectations independently validate reviewed outcomes',
       run: () => {
         assertEqual(matchesUpstreamExpectation('succeeds', { type: 'success', stages: [] }), true, 'succeeds');
         assertEqual(matchesUpstreamExpectation('fails', { type: 'failure' }), true, 'fails');
@@ -3251,6 +3251,39 @@ function documentationSyncCases() {
           true,
           'observable output',
         );
+        const repeated = {
+          id: 227, input: 'write_canonical(B+B).',
+          outcome: { type: 'success', stages: [{ output: '+(_A,_A)', variables: "['B' = B]" }] },
+        };
+        assertEqual(
+          matchesUpstreamExpectation('e.g. +(_1,_1)', repeated.outcome, repeated),
+          true,
+          'anonymous spelling accepted',
+        );
+        assertEqual(
+          matchesUpstreamExpectation(
+            'e.g. +(_1,_1)',
+            { type: 'success', stages: [{ output: '+(B,B)', variables: "['B' = B]" }] },
+            repeated,
+          ),
+          false,
+          'named-variable spelling rejected',
+        );
+      },
+    },
+    {
+      name: 'WG17 stream-sensitive cases #270 and #271 follow the upstream input protocol',
+      run: () => {
+        const fixture = readWg17SyntaxFixture();
+        const byId = new Map(fixture.cases.map((item) => [item.id, item]));
+        for (const [id, expected] of [[270, "C = ' '"], [271, "C = '%'"]]) {
+          const item = byId.get(id);
+          if (item == null) throw new Error(`missing WG17 #${id}`);
+          assertEqual(item.expected, expected, `WG17 #${id} upstream expectation`);
+          const actual = executeWg17Item(item);
+          assertEqual(matchesUpstreamExpectation(item.expected, actual, item), true, `WG17 #${id} result`);
+          assertEqual(JSON.stringify(actual), JSON.stringify(item.outcome), `WG17 #${id} reviewed outcome`);
+        }
       },
     },
     {

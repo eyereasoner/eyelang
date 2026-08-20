@@ -364,7 +364,7 @@ function printHelp() {
   process.stdout.write(`Usage: npm run wg17:upgrade -- [--check] [--source URL_OR_FILE]\n\n` +
     `Refreshes the vendored WG17 conformity tests from the TU Wien table.\n` +
     `New or changed rows are executable immediately against the upstream\n` +
-    `Codex expectation; existing reviewed exact outcomes remain pinned.\n`);
+    `Codex expectation; existing reviewed exact outcomes remain pinned only as additional regression checks.\n`);
 }
 
 export async function upgradeWg17({ check = false, source = syntaxSource } = {}) {

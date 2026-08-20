@@ -143,6 +143,28 @@ function chooseOperator(term, table) {
   return null;
 }
 
+function startsWithUnsignedNumber(term, env, table, options) {
+  const resolved = deref(term, env);
+  if (resolved.type === NUMBER) return !resolved.name.startsWith('-');
+  if (resolved.type !== COMPOUND || isCons(resolved)) return false;
+  if (options.numbervars && resolved.name === '$VAR' && resolved.arity === 1) {
+    const index = deref(resolved.args[0], env);
+    if (index.type === NUMBER && /^\d+$/.test(index.name) &&
+        writeNumberedVariable(Number(index.name)) != null) {
+      return false;
+    }
+  }
+  const definition = chooseOperator(resolved, table);
+  if (definition == null) return false;
+  if (definition.specifier === 'xf' || definition.specifier === 'yf') {
+    return startsWithUnsignedNumber(resolved.args[0], env, table, options);
+  }
+  if (definition.specifier === 'xfx' || definition.specifier === 'xfy' || definition.specifier === 'yfx') {
+    return startsWithUnsignedNumber(resolved.args[0], env, table, options);
+  }
+  return false;
+}
+
 function printableReadVariableNames(term, env, explicit) {
   const names = new Map(explicit);
   const used = new Set(names.values());
@@ -286,7 +308,15 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
       let text;
       if (specifier === 'fx' || specifier === 'fy') {
         const argumentPriority = specifier === 'fx' ? priority - 1 : priority;
-        text = `${token} ${format(resolved.args[0], env, options, table, argumentPriority)}`;
+        // A separated `- 1` is still read as the negative number -1.  When
+        // the source term is the unary -/1 compound, parenthesize a positive
+        // numeric-leading argument so writeq/write_term remain read-back safe
+        // (WG17 #135, #183, #215, #216, and #248).
+        if (resolved.name === '-' && startsWithUnsignedNumber(resolved.args[0], env, table, options)) {
+          text = `${token} (${format(resolved.args[0], env, options, table, 1200)})`;
+        } else {
+          text = `${token} ${format(resolved.args[0], env, options, table, argumentPriority)}`;
+        }
       } else if (specifier === 'xf' || specifier === 'yf') {
         let argumentPriority = specifier === 'xf' ? priority - 1 : priority;
         const childDefinition = chooseOperator(deref(resolved.args[0], env), table);

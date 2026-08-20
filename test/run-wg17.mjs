@@ -1,13 +1,16 @@
 #!/usr/bin/env node
-// Aggregate all vendored WG17 conformity suites behind one stable entry point.
-// The current upstream conformity table is syntax-focused; additional WG17
-// suites can be added here without changing npm/CI commands.
+// Offline execution of the vendored WG17 conformity-testing syntax matrix.
+// Every case is checked against the upstream Codex expectation. Reviewed
+// exact EyeProlog outcomes are an additional regression lock, never a
+// replacement for the upstream assertion.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   Env, Program, Solver, parseGoalText, run,
 } from '../src/index.js';
+import { parseTermText } from '../src/parser.js';
+import { variantTerms } from '../src/term.js';
 import { TestReporter, isMainModule } from './test-style.mjs';
 
 const testRoot = path.dirname(fileURLToPath(import.meta.url));
@@ -32,6 +35,9 @@ function capturedStages(stdout) {
 
 function executeFinite(item) {
   try {
+    // Match the upstream protocol: the Query cell plus its terminating newline
+    // is input to read(G), G (and subsequent read/call stages when present).
+    // This is essential for stream-sensitive cases such as #270 and #271.
     const result = run('', {
       isoStrict: true,
       goal: runnerStage(1, item.readCount ?? 16),
@@ -48,7 +54,7 @@ function executeWait(item) {
   const program = Program.parse('', { isoStrict: true });
   const solver = new Solver(program, {
     isoStrict: true,
-    ioOptions: { input: item.input },
+    ioOptions: { input: `${item.input}\n` },
   });
   const stream = solver.io.resolve('user_input');
   let requests = 0;
@@ -63,32 +69,203 @@ function executeWait(item) {
   try {
     [...solver.solve([goal], new Env(), 0)];
   } catch (_) {
-    // Returning null from the hook models EOF after EyeProlog has asked the
-    // interactive source for the continuation that the upstream case awaits.
+    // Returning null models EOF only after EyeProlog has requested the extra
+    // input that the upstream case classifies as "waits".
   }
   return requests === 1 ? { type: 'waits' } : { type: 'did_not_wait', requests };
 }
 
-function canonicalUpstreamExpected(expected) {
-  return String(expected)
+function presentationText(value) {
+  return String(value ?? '')
+    .replace(/&sup[23];/gi, '')
     .replace(/[²³°]/g, '')
     .replace(/\u00a0/g, ' ')
-    .replace(/[ \t\n]+/g, ' ')
+    .replace(/\r\n?/g, '\n')
     .trim();
 }
 
-function observableOutput(actual) {
-  if (actual.type !== 'success') return null;
-  return actual.stages.map(({ output }) => output).join('');
+function canonicalUpstreamExpected(expected) {
+  return presentationText(expected).replace(/[ \t\n]+/g, ' ').trim();
 }
 
-export function matchesUpstreamExpectation(expectedText, actual) {
+function bindingAnswer(text) {
+  let value = String(text ?? '').trim();
+  if (value === '[]') return '';
+  if (value.startsWith('[') && value.endsWith(']')) value = value.slice(1, -1);
+  return value.replace(/'([A-Z_][A-Za-z0-9_]*)'\s*=/g, '$1 =');
+}
+
+function observableCandidates(actual) {
+  if (actual.type !== 'success') return [];
+  const outputs = actual.stages.map(({ output }) => output ?? '').filter(Boolean);
+  const bindings = actual.stages.map(({ variables }) => bindingAnswer(variables)).filter(Boolean);
+  const candidates = new Set([...outputs, ...bindings]);
+  if (outputs.length > 0) {
+    candidates.add(outputs.join(''));
+    candidates.add(outputs.join(' '));
+  }
+  if (bindings.length > 0) candidates.add(bindings.join(', '));
+  if (outputs.length > 0 && bindings.length > 0) {
+    candidates.add([...outputs, ...bindings].join(' '));
+    candidates.add(`${outputs.join('')} ${bindings.join(', ')}`);
+  }
+  return [...candidates].filter(Boolean);
+}
+
+function stripLayoutOutsideQuotes(text) {
+  const source = presentationText(text);
+  let output = '';
+  let quote = null;
+  for (let index = 0; index < source.length; index++) {
+    const ch = source[index];
+    if (quote != null) {
+      output += ch;
+      if (ch === '\\' && index + 1 < source.length) {
+        output += source[++index];
+        continue;
+      }
+      if (ch === quote) {
+        if (source[index + 1] === quote) output += source[++index];
+        else quote = null;
+      }
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+      output += ch;
+    } else if (!/\s/.test(ch)) {
+      output += ch;
+    }
+  }
+  return output.replace(/\.$/, '').replace(/([eE])\+(?=\d)/g, '$1');
+}
+
+function normalizeExampleVariables(text) {
+  const names = new Map();
+  let next = 0;
+  return String(text).replace(/(?<![A-Za-z0-9_])_[A-Za-z0-9]+/g, (name) => {
+    if (!names.has(name)) names.set(name, `_V${++next}`);
+    return names.get(name);
+  });
+}
+
+function unquoteAtomText(text) {
+  const source = text.trim();
+  if (!(source.startsWith("'") && source.endsWith("'"))) return source;
+  let output = '';
+  for (let index = 1; index < source.length - 1; index++) {
+    const ch = source[index];
+    if (ch === "'" && source[index + 1] === "'") {
+      output += "'";
+      index++;
+      continue;
+    }
+    if (ch === '\\' && index + 1 < source.length - 1) {
+      const escaped = source[++index];
+      const symbolic = { a: '\x07', b: '\b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v' };
+      output += symbolic[escaped] ?? escaped;
+      continue;
+    }
+    output += ch;
+  }
+  return output;
+}
+
+function splitOperatorNames(text) {
+  const source = text.trim();
+  if (!source.startsWith('[')) return [unquoteAtomText(source)];
+  const body = source.slice(1, -1);
+  const names = [];
+  let quote = false;
+  let start = 0;
+  for (let index = 0; index <= body.length; index++) {
+    const ch = body[index];
+    if (quote) {
+      if (ch === "'" && body[index + 1] === "'") index++;
+      else if (ch === "'") quote = false;
+      continue;
+    }
+    if (ch === "'") {
+      quote = true;
+      continue;
+    }
+    if (ch === ',' || index === body.length) {
+      names.push(unquoteAtomText(body.slice(start, index)));
+      start = index + 1;
+    }
+  }
+  return names.filter(Boolean);
+}
+
+function operatorDefinitionsFromInput(input) {
+  const definitions = [];
+  const pattern = /\bop\(\s*(\d+)\s*,\s*(fx|fy|xf|yf|xfx|xfy|yfx)\s*,\s*(\[[^\]]*\]|'(?:''|[^'])*'|[^)\s,]+)\s*\)/g;
+  for (const match of String(input ?? '').matchAll(pattern)) {
+    for (const name of splitOperatorNames(match[3])) {
+      definitions.push([Number(match[1]), match[2], name]);
+    }
+  }
+  return definitions;
+}
+
+function termEquivalent(expected, actual, item) {
+  try {
+    const operatorDefinitions = operatorDefinitionsFromInput(item?.input);
+    const options = { isoStrict: true, operatorDefinitions };
+    const left = parseTermText(`${presentationText(expected).replace(/\.$/, '')}.`, options);
+    const right = parseTermText(`${presentationText(actual).replace(/\.$/, '')}.`, options);
+    return variantTerms(left, new Env(), right, new Env());
+  } catch (_) {
+    return false;
+  }
+}
+
+function abbreviatedErrorMatches(expected, actual) {
+  if (actual.type !== 'error') return false;
+  const formal = actual.formal ?? '';
+  const patterns = [
+    [/p\._e\./i, 'permission_error'],
+    [/d\._e\./i, 'domain_error'],
+    [/ex\._e\./i, 'existence_error'],
+    [/rep(?:r)?\._e\.|repr\.\s*err\./i, 'representation_error'],
+  ];
+  return patterns.some(([pattern, prefix]) => pattern.test(expected) && formal.startsWith(prefix));
+}
+
+function textExpectationMatches(expectedText, actual, item, example = false) {
+  const candidates = observableCandidates(actual);
+  if (candidates.length === 0) return false;
+  let expected = presentationText(expectedText);
+  if (example) expected = expected.replace(/^e\.g\.\s*/i, '');
+
+  for (const candidate of candidates) {
+    let left = expected;
+    let right = candidate;
+    if (example && /(?<![A-Za-z0-9_])_[A-Za-z0-9]+/.test(left)) {
+      // ISO 7.10.5 requires the generated spelling to be an anonymous-variable
+      // token. Normalise only the choice of suffix/name, not the leading `_`.
+      if (!/(?<![A-Za-z0-9_])_[A-Za-z0-9]+/.test(right)) continue;
+      left = normalizeExampleVariables(left);
+      right = normalizeExampleVariables(right);
+    }
+    if (stripLayoutOutsideQuotes(left) === stripLayoutOutsideQuotes(right)) return true;
+    if (termEquivalent(left, right, item)) return true;
+    if (example) {
+      const expectedNumber = Number(left);
+      const actualNumber = Number(right);
+      if (Number.isFinite(expectedNumber) && Number.isFinite(actualNumber) &&
+          Object.is(expectedNumber, actualNumber)) return true;
+    }
+  }
+  return false;
+}
+
+export function matchesUpstreamExpectation(expectedText, actual, item = {}) {
   const expected = canonicalUpstreamExpected(expectedText);
 
   if (/^waits$/i.test(expected)) return actual.type === 'waits';
   if (/^succeeds(?:\b|$)/i.test(expected)) return actual.type === 'success';
   if (/^fails(?:\b|$)/i.test(expected)) return actual.type === 'failure';
-
   if (/^syntax\s*err\.?$/i.test(expected)) {
     return actual.type === 'error' && /^syntax_error\(/.test(actual.formal ?? '');
   }
@@ -96,26 +273,24 @@ export function matchesUpstreamExpectation(expectedText, actual) {
     return actual.type === 'error' && /^representation_error\(/.test(actual.formal ?? '');
   }
   if (/^syntax\/repr\.\s*err\.?$/i.test(expected)) {
-    return actual.type === 'error' &&
-      /^(?:syntax_error|representation_error)\(/.test(actual.formal ?? '');
+    return actual.type === 'error' && /^(?:syntax_error|representation_error)\(/.test(actual.formal ?? '');
   }
   if (/^syntax\s*err\.\/waits$/i.test(expected)) {
     return actual.type === 'waits' ||
       (actual.type === 'error' && /^syntax_error\(/.test(actual.formal ?? ''));
   }
+  if (abbreviatedErrorMatches(expected, actual)) return true;
 
-  // Most new WG17 rows are observable write/read examples.  For those, the
-  // Codex cell itself is the expected output, so no hand-written local
-  // outcome is needed before the case can be executed.
-  const output = observableOutput(actual);
-  if (output != null && canonicalUpstreamExpected(output) === expected) return true;
-
-  return false;
+  if (/\s+or\s+/i.test(expected)) {
+    return expected.split(/\s+or\s+/i)
+      .some((alternative) => matchesUpstreamExpectation(alternative, actual, item));
+  }
+  if (/^e\.g\.\s*/i.test(expected)) return textExpectationMatches(expected, actual, item, true);
+  return textExpectationMatches(expected, actual, item, false);
 }
 
 function usesWaitMatcher(expectedText) {
-  const expected = canonicalUpstreamExpected(expectedText);
-  return /^waits$/i.test(expected);
+  return /^waits$/i.test(canonicalUpstreamExpected(expectedText));
 }
 
 function compactTestText(value, maximum) {
@@ -135,30 +310,34 @@ export function wg17TestDescription(item) {
   return `#${item.id} ${query} -> ${expected}`;
 }
 
-function assertOutcome(item) {
-  if (item.outcome != null) {
-    const actual = item.outcome.type === 'waits' ? executeWait(item) : executeFinite(item);
-    if (JSON.stringify(actual) !== JSON.stringify(item.outcome)) {
-      throw new Error(
-        `WG17 #${item.id} (${item.expected})\n` +
-        `expected ${JSON.stringify(item.outcome)}\n` +
-        `actual   ${JSON.stringify(actual)}`,
-      );
-    }
-    return;
-  }
+export function executeWg17Item(item) {
+  return usesWaitMatcher(item.expected) || item.outcome?.type === 'waits'
+    ? executeWait(item)
+    : executeFinite(item);
+}
 
-  const actual = usesWaitMatcher(item.expected) ? executeWait(item) : executeFinite(item);
-  if (!matchesUpstreamExpectation(item.expected, actual)) {
+function assertOutcome(item) {
+  const actual = executeWg17Item(item);
+
+  if (!matchesUpstreamExpectation(item.expected, actual, item)) {
     throw new Error(
       `WG17 #${item.id} (${item.expected})\n` +
-      `upstream expectation did not match\n` +
+      `upstream Codex expectation did not match\n` +
       `actual ${JSON.stringify(actual)}`,
+    );
+  }
+
+  if (item.outcome != null && JSON.stringify(actual) !== JSON.stringify(item.outcome)) {
+    throw new Error(
+      `WG17 #${item.id} (${item.expected})\n` +
+      `reviewed regression outcome changed\n` +
+      `expected ${JSON.stringify(item.outcome)}\n` +
+      `actual   ${JSON.stringify(actual)}`,
     );
   }
 }
 
-function readWg17SyntaxFixture() {
+export function readWg17SyntaxFixture() {
   const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
   if (!Array.isArray(fixture.cases) || fixture.cases.length === 0) {
     throw new Error('WG17 syntax fixture has no cases');
@@ -167,6 +346,16 @@ function readWg17SyntaxFixture() {
   for (const item of fixture.cases) {
     if (!Number.isInteger(item.id) || ids.has(item.id)) {
       throw new Error(`invalid or duplicate WG17 syntax id #${item.id}`);
+    }
+    if (typeof item.query !== 'string' || typeof item.input !== 'string' || typeof item.expected !== 'string') {
+      throw new Error(`incomplete WG17 syntax fixture row #${item.id}`);
+    }
+    if (item.outcome != null && !matchesUpstreamExpectation(item.expected, item.outcome, item)) {
+      throw new Error(
+        `WG17 #${item.id} reviewed outcome contradicts upstream Codex expectation\n` +
+        `upstream ${JSON.stringify(item.expected)}\n` +
+        `outcome  ${JSON.stringify(item.outcome)}`,
+      );
     }
     ids.add(item.id);
   }
@@ -183,10 +372,8 @@ function runWg17Syntax(reporter = new TestReporter()) {
   reporter.sectionTotal('WG17 syntax');
 }
 
-const suites = [runWg17Syntax];
-
 export function runWg17(reporter = new TestReporter()) {
-  for (const runSuite of suites) runSuite(reporter);
+  runWg17Syntax(reporter);
 }
 
 if (isMainModule(import.meta.url)) {

@@ -72,7 +72,7 @@ Run the Part 1 + Corrigenda strict-core processor gate:
 npm run test:iso-strict
 ```
 
-Run all vendored WG17 conformity matrices independently:
+Run the vendored WG17 conformity matrix independently:
 
 ```sh
 npm run test:wg17
@@ -87,12 +87,15 @@ npm run test:wg17
 ```
 
 `wg17:upgrade` reconciles the upstream inventory by identifier: unchanged cases
-keep their reviewed exact outcomes, removed cases disappear, and new or
-semantically changed cases are executed directly against the upstream Codex
-expectation. This means `npm run test:wg17` can test an upgraded snapshot
-immediately without first copying EyeProlog's current behaviour into an
-expected result. Normal `npm test` remains offline and uses only the committed
-snapshot.
+may keep their reviewed exact outcomes as an additional regression lock,
+removed cases disappear, and new or semantically changed cases initially have
+no local snapshot. **Every case is always checked independently against the
+upstream Codex expectation**, so a reviewed EyeProlog outcome can never make a
+non-conforming result pass (the failure mode that previously hid WG17 #227).
+The runner follows the upstream `read(G), G` input protocol, including the
+terminating newline, so stream-sensitive cases such as #270 and #271 exercise
+the characters left after `read/1`. Normal `npm test` remains offline and uses
+only the committed upstream snapshot.
 
 Summarize conformance coverage by category:
 

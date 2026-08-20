@@ -92,9 +92,10 @@ Source: [Conformity Testing I: Syntax](${manifest.source})
 Upstream inventory checked: ${manifest.checkedOn}
 
 This ledger counts an upstream case when its WG17 identifier, query, and
-expected ISO disposition are stored in the offline executable matrix. Existing
-cases may pin an exact reviewed EyeProlog outcome; newly upgraded cases are
-executed directly against the upstream Codex expectation.
+expected ISO disposition are stored in the offline executable matrix. Every
+case is executed against the upstream Codex expectation. Reviewed exact
+EyeProlog outcomes are additional regression locks and can never override the
+upstream assertion.
 
 ## Current standing
 
@@ -107,8 +108,9 @@ executed directly against the upstream Codex expectation.
 
 The matrix runs in strict ISO stream-reader mode as part of \`npm test\`. The
 ${waits} upstream \`waits\` case${waits === 1 ? '' : 's'} ${waits === 1 ? 'is' : 'are'} checked through EyeProlog's interactive input
-hook. ${direct} case${direct === 1 ? '' : 's'} use${direct === 1 ? 's' : ''} the upstream Codex expectation directly; the remaining
-${coveredIds.length - direct} case${coveredIds.length - direct === 1 ? '' : 's'} retain exact stored outcomes for stronger regression checking.
+hook. All ${coveredIds.length} executable cases are independently checked against the
+upstream Codex expectation. ${coveredIds.length - direct} case${coveredIds.length - direct === 1 ? '' : 's'} additionally retain exact reviewed
+outcomes for stronger regression checking; ${direct} case${direct === 1 ? '' : 's'} currently ${direct === 1 ? 'relies' : 'rely'} on the upstream assertion alone.
 
 ## Traceable evidence
 

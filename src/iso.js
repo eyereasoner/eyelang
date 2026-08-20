@@ -1322,6 +1322,7 @@ function* readTermBuiltin({ solver, goal, env }) {
 function defaultTermWriteOptions(mode) {
   if (mode === 'writeq') return { quoted: true, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
   if (mode === 'canonical') return { quoted: true, ignoreOps: true, numbervars: false, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
+  if (mode === 'write_term') return { quoted: false, ignoreOps: false, numbervars: false, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
   return { quoted: false, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
 }
 
@@ -1361,7 +1362,7 @@ function writeVariableNames(value, env, option) {
   return names;
 }
 
-function termWriteOptions(term, env, mode = 'write') {
+function termWriteOptions(term, env, mode = 'write_term') {
   const result = defaultTermWriteOptions(mode);
   for (const option of optionList(term, env)) {
     if (option.type === VAR) throw new PrologError('instantiation_error');
