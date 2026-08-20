@@ -850,6 +850,29 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'mixed integer/float arithmetic comparison preserves exact order (STC #50)',
+      run: () => {
+        const hugeInteger = `1${'0'.repeat(309)}`;
+        const program = `
+          check :-
+            9007199254740993 > 9007199254740992.0,
+            9007199254740992.0 < 9007199254740993,
+            9007199254740993 =\\= 9007199254740992.0,
+            -9007199254740993 < -9007199254740992.0,
+            ${hugeInteger} > 1.0e308,
+            -${hugeInteger} < -1.0e308,
+            Max is max(9007199254740993, 9007199254740992.0),
+            integer(Max),
+            Max =:= 9007199254740993,
+            Min is min(9007199254740993, 9007199254740992.0),
+            float(Min),
+            Min =:= 9007199254740992.0.
+        `;
+        const result = runEyeProlog(program, { goal: 'check' });
+        assertEqual(result.stdout, 'check.\n', 'mixed integer/float ordering');
+      },
+    },
+    {
       name: 'readers keep a full stop inside a character-code constant (WG17 #367)',
       run: () => {
         const streamResult = runEyeProlog('', {

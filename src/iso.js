@@ -2404,7 +2404,8 @@ function evaluateOperation(term, args) {
   if (name === '/' && y === 0) throw new PrologError('evaluation_error(zero_divisor)');
   let value;
   if (name === 'max' || name === 'min') {
-    const chooseLeft = name === 'max' ? x >= y : x <= y;
+    const cmp = compareArithmeticValues(args[0], args[1]);
+    const chooseLeft = name === 'max' ? cmp >= 0 : cmp <= 0;
     return chooseLeft ? args[0] : args[1];
   }
   if (name === 'atan2') {
@@ -2436,12 +2437,33 @@ function numericTerm(value) {
 export function evaluateArithmetic(term, env) {
   return evaluate(term, env);
 }
+function compareIntegerToFloat(integerValue, floatValue) {
+  if (!Number.isFinite(floatValue)) throw new PrologError('evaluation_error(float_overflow)');
+
+  // Do not round an unbounded integer through JavaScript Number before a
+  // mixed arithmetic comparison.  Every integral IEEE-754 double can be
+  // converted back to the exact integer value it represents; fractional
+  // doubles necessarily have magnitude below 2^53, so their truncation is
+  // also exact.  This preserves mathematical ordering across the I/F boundary
+  // (STC #50), e.g. 9007199254740993 > 9007199254740992.0.
+  if (Number.isInteger(floatValue)) {
+    const floatInteger = BigInt(floatValue);
+    return integerValue < floatInteger ? -1 : integerValue > floatInteger ? 1 : 0;
+  }
+
+  const truncated = BigInt(Math.trunc(floatValue));
+  if (integerValue < truncated) return -1;
+  if (integerValue > truncated) return 1;
+  return floatValue > 0 ? -1 : 1;
+}
+
 export function compareArithmeticValues(left, right) {
   const a = left.value;
   const b = right.value;
-  return left.integer && right.integer
-    ? (a < b ? -1 : a > b ? 1 : 0)
-    : (Number(a) < Number(b) ? -1 : Number(a) > Number(b) ? 1 : 0);
+  if (left.integer && right.integer) return a < b ? -1 : a > b ? 1 : 0;
+  if (left.integer) return compareIntegerToFloat(a, b);
+  if (right.integer) return -compareIntegerToFloat(b, a);
+  return a < b ? -1 : a > b ? 1 : 0;
 }
 function* isBuiltin({ goal, env }) {
   const result = arithmeticValueTerm(evaluateArithmetic(goal.args[1], env));

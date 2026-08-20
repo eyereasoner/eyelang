@@ -7414,7 +7414,7 @@ upstream syntax cases. Reviewed cases can pin exact strict-reader outcomes, whil
 newly upgraded cases execute directly against the upstream Codex expectation.
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 791 cases, including 386 focused ISO
+contains 800 cases, including 386 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 210 normal
