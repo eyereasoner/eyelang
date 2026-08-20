@@ -182,6 +182,18 @@ class LineReader {
     }
   }
 
+  readInteractiveUnitSync() {
+    if (!this.canReadTermSynchronously()) return null;
+    this.output.write('|: ');
+    const line = this.readTerminalLineSync();
+    if (line == null) return null;
+    // The interactive line editor uses Enter to submit character input.  Do
+    // not leave that submission newline buffered for the next get_/peek_
+    // call (matching SWI/Scryer top-level behaviour).  An empty submitted
+    // line still represents an actual newline character.
+    return line.length === 0 ? '\n' : line;
+  }
+
   readTerminalLineSync() {
     const byte = Buffer.allocUnsafe(1);
     const bytes = [];
@@ -257,11 +269,13 @@ function makeState(engine, sources, output, options = {}, previousState = null, 
   });
   const userInput = solver.io.resolve('user_input');
   if (userInput && reader?.canReadTermSynchronously()) {
-    // The solver is synchronous.  While pullSolution() has readline suspended,
-    // let ISO term input request a complete terminal term exactly when read/1-2
-    // or read_term/2-3 actually executes.  This also works inside conjunctions
-    // and user predicates instead of only when read/* is the whole REPL goal.
+    // The solver is synchronous. While pullSolution() has readline suspended,
+    // let ISO input request terminal data exactly when read/1-2, read_term/2-3,
+    // or a character/code input predicate actually executes. This also works
+    // inside conjunctions and user predicates instead of only when an input
+    // predicate is the whole REPL goal.
     userInput.interactiveReadTerm = () => reader.readInteractiveTermSync(solver);
+    userInput.interactiveReadUnit = () => reader.readInteractiveUnitSync();
   }
   const flagOverrides = new Map(previousState?.flagOverrides ?? []);
   for (const [name, value] of flagOverrides) {

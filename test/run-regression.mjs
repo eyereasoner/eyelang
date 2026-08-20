@@ -1962,6 +1962,34 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL character input is on demand and Ctrl-D stays local (issue #55)',
+      run: () => {
+        if (process.platform === 'win32') return;
+        const available = spawnSync('sh', ['-c',
+          'command -v script >/dev/null 2>&1 && script --version 2>/dev/null | grep -qi util-linux']);
+        if (available.status !== 0) return;
+        const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
+        const scriptCommand =
+          `{ printf 'peek_char(P), get_char(C), get_code(K).\n'; sleep 0.3; ` +
+          `printf 'ab\n'; sleep 0.3; printf 'get_char(N).\n'; sleep 0.3; ` +
+          `printf 'z\n'; sleep 0.3; printf 'get_char(E).\n'; sleep 0.3; ` +
+          `printf '\\004'; sleep 0.3; printf 'get_char(D).\n'; sleep 0.3; ` +
+          `printf 'q\n'; sleep 0.3; printf 'halt.\n'; } | ` +
+          `script -qefc ${shellQuote(command)} /dev/null`;
+        const result = spawnSync('sh', ['-c', scriptCommand], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+          timeout: 5000,
+        });
+        assertEqual(result.error?.code, undefined, 'interactive character input timeout');
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'P = a, C = a, K = 98.', 'peek/get char and code input');
+        assertIncludes(result.stdout, 'N = z.', 'Enter submits but is not buffered as the next character');
+        assertIncludes(result.stdout, 'E = end_of_file.', 'Ctrl-D character result');
+        assertIncludes(result.stdout, 'D = q.', 'character input resumes after Ctrl-D');
+      },
+    },
+    {
       name: 'interactive user_input hook serves reads reached through user predicates',
       run: () => {
         const program = Program.parse('pair(A, B) :- read(A), read(B).\n');

@@ -1025,10 +1025,21 @@ function inputUnitBuiltin(name) {
       throw new PrologError('permission_error(input, past_end_of_stream)', streamHandle(stream.id));
     }
     if (stream.pastEnd && stream.eofAction === 'reset') {
-      stream.position = 0;
+      // A terminal EOF (Ctrl-D) is local to one input operation. The next
+      // operation should wait for fresh terminal input rather than rewinding
+      // and replaying the already-consumed interactive buffer.
+      if (typeof stream.interactiveReadUnit !== 'function') stream.position = 0;
       stream.pastEnd = false;
     }
     const peek = name.startsWith('peek');
+    if (stream.position >= stream.content.length &&
+        typeof stream.interactiveReadUnit === 'function') {
+      const text = stream.interactiveReadUnit();
+      if (text != null) {
+        stream.content += String(text);
+        stream.pastEnd = false;
+      }
+    }
     let unit;
     try {
       unit = solver.io.readUnit(stream, peek);
