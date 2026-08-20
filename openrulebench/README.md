@@ -40,7 +40,7 @@ node tools/check_sources.mjs
 node tools/check_multiengine.mjs
 ```
 
-All OpenRuleBench tooling in this repository is JavaScript/ESM; no Python runtime is required.
+All OpenRuleBench tooling in this repository is JavaScript/ESM.
 
 The portable profile specifically addresses the two SWI 1 GB stack failures seen in
 `join1` and `joindup`, and reduces the maximum transitive-closure answer space from
@@ -221,4 +221,3 @@ EyeProlog build that provides finite-Datalog WFS through explicit `tnot/1`.
 Ordinary `\+/1` remains negation-as-failure. Positive recursive benchmarks do
 not need source-level `table/1` directives in EyeProlog because eligible
 recursion is tabled automatically.
-

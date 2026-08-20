@@ -7,9 +7,9 @@ const TOOL_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.dirname(TOOL_DIR);
 const HEADER = `% OpenRuleBench -> EyeProlog portable benchmark\n% Generated deterministically by tools/generate.mjs.\n% See ../README.md for provenance and fidelity notes.\n\n`;
 
-// Python's random.Random uses MT19937. Port the integer-seed and sample(range)
-// paths used by the original Python generator so benchmark data stays byte-stable.
-class PythonRandom {
+// Preserve the historical generator's MT19937 integer-seed and sample(range)
+// behavior so benchmark data stays byte-stable.
+class DeterministicRandom {
   constructor(seed) {
     this.mt = new Uint32Array(624);
     this.index = 624;
@@ -136,7 +136,7 @@ function write(file, text) {
 }
 
 function pairs(count, domain, seed) {
-  const random = new PythonRandom(seed);
+  const random = new DeterministicRandom(seed);
   return random.sampleRange(domain * domain, count)
     .map((value) => [Math.floor(value / domain) + 1, value % domain + 1]);
 }
