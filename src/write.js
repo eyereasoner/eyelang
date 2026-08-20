@@ -180,13 +180,14 @@ function generatedVariableName(index) {
   return suffix === 0 ? `_${letter}` : `_${letter}${suffix}`;
 }
 
-function printableGeneratedVariableNames(term, env, explicit) {
+function printableGeneratedVariableNames(term, env, explicit, state = null) {
   const names = new Map(explicit);
-  const used = new Set(names.values());
+  const sharedNames = state?.names instanceof Map ? state.names : new Map();
+  const used = new Set([...sharedNames.values(), ...names.values()]);
   const seenVariables = new Set();
   const seenTerms = new Set();
   const stack = [term];
-  let generated = 0;
+  let generated = Number.isSafeInteger(state?.next) ? state.next : 0;
 
   while (stack.length) {
     const current = deref(stack.pop(), env);
@@ -194,8 +195,14 @@ function printableGeneratedVariableNames(term, env, explicit) {
       if (seenVariables.has(current.name)) continue;
       seenVariables.add(current.name);
       if (names.has(current.name)) continue;
+      const shared = sharedNames.get(current.name);
+      if (shared != null) {
+        names.set(current.name, shared);
+        continue;
+      }
       let candidate;
       do candidate = generatedVariableName(generated++); while (used.has(candidate));
+      sharedNames.set(current.name, candidate);
       names.set(current.name, candidate);
       used.add(candidate);
       continue;
@@ -205,6 +212,7 @@ function printableGeneratedVariableNames(term, env, explicit) {
     for (let i = current.arity - 1; i >= 0; i--) stack.push(current.args[i]);
   }
 
+  if (state != null) state.next = generated;
   return names;
 }
 
@@ -317,7 +325,7 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
     numbervars: options.numbervars !== false,
     doubleQuotes: options.doubleQuotes,
     variableNames: options.generateVariableNames === true
-      ? printableGeneratedVariableNames(term, env, explicitVariableNames)
+      ? printableGeneratedVariableNames(term, env, explicitVariableNames, options.variableNameState)
       : printableReadVariableNames(term, env, explicitVariableNames),
     compact: options.compact === true,
     operatorAtomsAsArgs: options.operatorAtomsAsArgs === true,

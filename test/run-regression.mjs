@@ -2990,6 +2990,20 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'write predicates keep generated variable names stable across calls (issue #53 comment 5356861151)',
+      run: () => {
+        const result = run([
+          "emit :- write_term(pair(A,B), []), write(' / '), write_term(user_output,B,[]), write(' / '), writeq(A), write(' / '), write_canonical(B), nl.",
+          "again :- write_canonical(B+B), nl.",
+        ].join('\n'), { goals: ['emit', 'again'] });
+        assertEqual(
+          result.stdout,
+          'pair(_A,_B) / _B / _A / _B\nemit.\n+(_A,_A)\nagain.\n',
+          'stable names across calls and reset at the next top-level query',
+        );
+      },
+    },
+    {
       name: 'write predicates and write_term options select distinct formats',
       run: () => {
         const source = [

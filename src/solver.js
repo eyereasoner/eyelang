@@ -116,6 +116,11 @@ export class Solver {
       }
     }
     this.io = options.io ?? new StreamManager(options.ioOptions);
+    // Keep generated write-variable names stable for the lifetime of one
+    // top-level query. Inner/meta-call solvers share this state so separate
+    // write/1, writeq/1, write_canonical/1, and write_term/2-3 calls can refer
+    // to the same logical variable by the same printed name.
+    this.writeVariableState = options.writeVariableState ?? { depth: 0, names: new Map(), next: 0 };
     this.solveStacks = [];
     this.active = [];
     this.cutEpoch = 0;
@@ -163,6 +168,7 @@ export class Solver {
       io: this.io,
       innerTableScopes: this.innerTableScopes,
       inferenceObservation: this.inferenceObservation,
+      writeVariableState: this.writeVariableState,
       skipListTailTabling: options.skipListTailTabling ?? this.skipListTailTabling,
     });
     if (options.tableScope != null) {
@@ -278,6 +284,13 @@ export class Solver {
   *solve(goals, env = new Env(), depth = 0) {
     if (!Array.isArray(goals)) goals = [goals];
     env.setOccursCheckHandler(this.occursCheckHandler);
+
+    const writeVariableState = this.writeVariableState;
+    if (writeVariableState.depth === 0) {
+      writeVariableState.names.clear();
+      writeVariableState.next = 0;
+    }
+    writeVariableState.depth++;
 
     const savedActive = this.active;
     let registeredStack = null;
@@ -651,6 +664,11 @@ export class Solver {
       const stackIndex = this.solveStacks.indexOf(registeredStack);
       if (stackIndex >= 0) this.solveStacks.splice(stackIndex, 1);
       this.active = savedActive;
+      writeVariableState.depth = Math.max(0, writeVariableState.depth - 1);
+      if (writeVariableState.depth === 0) {
+        writeVariableState.names.clear();
+        writeVariableState.next = 0;
+      }
     }
   }
 
