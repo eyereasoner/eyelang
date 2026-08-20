@@ -4076,8 +4076,8 @@ generation contains `n^k` leaves. If order does not matter, permutations may
 be redundant. If partial choices already violate a constraint, pruning saves
 an entire subtree.
 
-This is why combinatorial examples are not toys. `n-queens.pl` exposes the
-complete 92-solution search. Together with `send-more-money.pl`,
+This is why combinatorial examples are not toys. `clpz-n-queens.pl` exposes
+the classic eight-queens search through finite-domain constraints. Together with `send-more-money.pl`,
 `integer-partitions.pl`, `stirling-bell-numbers.pl`,
 and `weighted-interval-scheduling.pl`, they show different geometries of
 choice: permutations, digit assignments, recursive decompositions, set
@@ -6301,7 +6301,7 @@ library autoloading.
 calls to non-profile predicates from otherwise common modules. `--portable`
 turns those diagnostics into a failing run, making the conservative profile
 suitable for continuous integration. `npm run test:interop` executes the same
-portable Sudoku source under EyeProlog, Trealla, and Scryer when those commands
+portable Towers of Hanoi source under EyeProlog, Trealla, and Scryer when those commands
 are installed; the repository interoperability workflow installs them and runs
 that check.
 
@@ -6769,7 +6769,7 @@ For example:
 eyeprolog --goal 'ancestor(X, Y)' examples/ancestor.pl
 eyeprolog --proof --goal 'type(X, Y)' examples/socrates.pl
 eyeprolog --warnings --goal 'answer(X)' test/conformance/warnings/negation/unstratified_mutual.pl
-eyeprolog --portable --goal 'sudoku_solution(S)' examples/sudoku.pl
+eyeprolog --portable --goal 'sudoku9_solution(S)' examples/clpz-sudoku-9x9.pl
 eyeprolog --stats --goal 'path(a, X)' examples/path-discovery.pl > answers.pl 2> run.stats
 ```
 
@@ -6951,7 +6951,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **212 self-contained runnable programs**. Every
+top-level directory contains **210 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -7001,7 +7001,7 @@ mode at a time.
 | --- | --- | --- |
 | [CLP(Z) factorial](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-factorial.pl) | Declarative predecessor and product constraints propagate a factorial without mode-sensitive `is/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-factorial.pl) |
 | [CLP(Z) global constraints](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-global-constraints.pl) | Compatibility tables, lexicographic and serialized schedules, global cardinality with costs, circuits, value counting, and integer comparison. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-global-constraints.pl) |
-| [CLP(Z) N-queens](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-n-queens.pl) | Six-queens using finite domains, delayed diagonal constraints, `all_distinct/1`, and first-fail labeling. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-n-queens.pl) |
+| [CLP(Z) N-queens](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-n-queens.pl) | Eight-queens using finite domains, delayed diagonal constraints, `all_distinct/1`, and first-fail labeling, plus a small multi-solution enumeration check. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-n-queens.pl) |
 | [CLP(Z) resource allocation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-resource-allocation.pl) | Resource assignment using `element/3`, `sum/3`, `scalar_product/4`, reification, labeling options, and domain reflection. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-resource-allocation.pl) |
 | [CLP(Z) Sudoku 9×9](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-sudoku-9x9.pl) | The difficult AI Escargot puzzle modeled with finite domains, 27 all-distinct constraints, and first-fail labeling. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-sudoku-9x9.pl) |
 | [Combinatorics Findall Sort](https://github.com/eyereasoner/eyeprolog/blob/main/examples/combinatorics-findall-sort.pl) | Eyelet-inspired combinations example using `findall/3` and ISO `sort/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/combinatorics-findall-sort.pl) |
@@ -7097,11 +7097,9 @@ finite search space, and which constraint removes which branches?
 | [Map Four Color Search](https://github.com/eyereasoner/eyeprolog/blob/main/examples/map-four-color-search.pl) | Four-colour search for the European Union neighbour graph. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/map-four-color-search.pl) |
 | [Markov Logic Network](https://github.com/eyereasoner/eyeprolog/blob/main/examples/markov-logic-network.pl) | Markov Logic Network style scoring over a tiny finite domain. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/markov-logic-network.pl) |
 | [Matrix Chain Order](https://github.com/eyereasoner/eyeprolog/blob/main/examples/matrix-chain-order.pl) | Matrix-chain multiplication order by automatically tabled interval dynamic programming. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/matrix-chain-order.pl) |
-| [N-Queens enumeration](https://github.com/eyereasoner/eyeprolog/blob/main/examples/n-queens.pl) | `select/3` chooses each row and diagonal checks prune partial placements; the query enumerates all 92 eight-queen solutions in the default runtime. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/n-queens.pl) |
 | [Register allocation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/register-allocation.pl) | Interference constraints turn compiler allocation into graph coloring. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/register-allocation.pl) |
 | [SEND + MORE = MONEY](https://github.com/eyereasoner/eyeprolog/blob/main/examples/send-more-money.pl) | Digit assignments are generated under distinctness, leading-zero, and column constraints. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/send-more-money.pl) |
 | [Stable marriage](https://github.com/eyereasoner/eyeprolog/blob/main/examples/stable-marriage.pl) | Preference data, matching generation, and the absence of blocking pairs define stability. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/stable-marriage.pl) |
-| [Sudoku 9×9](https://github.com/eyereasoner/eyeprolog/blob/main/examples/sudoku.pl) | Minimum-remaining-values search fills a standard grid while enforcing row, column, and 3×3 block constraints. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/sudoku.pl) |
 | [Weighted interval scheduling](https://github.com/eyereasoner/eyeprolog/blob/main/examples/weighted-interval-scheduling.pl) | Compatibility constraints and an ordered objective select a maximum-value schedule. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/weighted-interval-scheduling.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/weighted-interval-scheduling.pl) |
 | [Zebra puzzle](https://github.com/eyereasoner/eyeprolog/blob/main/examples/zebra.pl) | House records, adjacency relations, and clue constraints jointly determine the famous solution. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/zebra.pl) |
 
@@ -7354,7 +7352,7 @@ hand.
 
 #### Running and extending the corpus
 
-Run all 212 normal answer goldens and the 61 selected proof goldens with:
+Run all 210 normal answer goldens and the 61 selected proof goldens with:
 
 ```sh
 npm run test:examples
@@ -7418,7 +7416,7 @@ The complete suite must pass before release. The file-based conformance corpus
 contains 791 cases, including 386 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
-Separate exact-output suites check 212 normal
+Separate exact-output suites check 210 normal
 examples and 61 proof examples; all extracted book programs are parsed and
 their declared goals are executed. The eight-case
 playground contract suite imports the production worker, sends real reasoning

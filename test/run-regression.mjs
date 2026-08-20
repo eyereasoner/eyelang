@@ -4886,10 +4886,22 @@ path(X, Z) :- edge(X, Y), path(Y, Z).
       },
     },
     {
-      name: 'n-queens example keeps recursive search predicates tabled',
+      name: 'recursive search pattern keeps scan and search predicates tabled',
       run: () => {
-        const text = fs.readFileSync(path.join(packageRoot, 'examples', 'n-queens.pl'), 'utf8');
-        const program = Program.parseSources([{ text, filename: 'n-queens.pl' }]);
+        const text = `
+          queens([], Qs, Qs).
+          queens(Us, Ps, Qs) :-
+            select(Q, Us, Us1),
+            \+ attack(Q, 1, Ps),
+            queens(Us1, [Q|Ps], Qs).
+
+          attack(X, N, [Y|_]) :- X is Y + N.
+          attack(X, N, [Y|_]) :- X is Y - N.
+          attack(X, N, [_|Ys]) :-
+            N1 is N + 1,
+            attack(X, N1, Ys).
+        `;
+        const program = Program.parseSources([{ text, filename: 'recursive-search.pl' }]);
         const attack = program.findGroup('attack', 3);
         assertEqual(Boolean(attack), true, 'attack/3 group exists');
         assertEqual(attack.tabled, true, 'attack/3 tabled');

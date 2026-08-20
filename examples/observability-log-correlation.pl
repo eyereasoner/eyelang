@@ -20,10 +20,17 @@ raw_log(l2, 'ts=2026-06-18T10:00:03Z level=error event=payment_denied user=alice
 raw_log(l3, 'ts=2026-06-18T10:01:12Z level=info event=login_success user=bob ip=198.51.100.4 traceparent=00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01').
 raw_log(noise, 'healthcheck ok').
 
+% Walk the batch recursively so EyeProlog can table parsed_logs/3 and reuse
+% each regex parse across the captured-field, event, and alert queries.
 parsed(Log, Context) :-
-  raw_log(Log, Text),
+  findall(raw(Log0, Text), raw_log(Log0, Text), Logs),
+  parsed_logs(Logs, Log, Context).
+
+parsed_logs([raw(Log, Text)|_], Log, Context) :-
   log_pattern(Pattern),
   matches(Text, Pattern, Context).
+parsed_logs([_|Logs], Log, Context) :-
+  parsed_logs(Logs, Log, Context).
 
 context_member((Left, _right), Member) :- context_member(Left, Member).
 context_member((_left, Right), Member) :- context_member(Right, Member).
@@ -46,4 +53,4 @@ parsed_event(Log, Event, User, Ip, Traceid) :-
 trace_alert(User, Traceid, Ip) :-
   parsed_event(Loginlog, 'login_failed', User, Ip, Traceid),
   parsed_event(Paymentlog, 'payment_denied', User, Ip, Traceid),
-  (Loginlog \= Paymentlog).
+  Loginlog \= Paymentlog.

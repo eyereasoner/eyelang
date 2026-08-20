@@ -292,7 +292,7 @@ npm run test:interop
 ```
 
 The GitHub interoperability workflow builds both implementations and runs the
-same portable Sudoku source under EyeProlog, Trealla, and Scryer.
+same portable Towers of Hanoi source under EyeProlog, Trealla, and Scryer.
 
 ## Development
 
