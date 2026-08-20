@@ -6,7 +6,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { Program, run } from '../src/index.js';
 import { fileURLToPath } from 'node:url';
-import { TestReporter, isMainModule } from './test-style.mjs';
+import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
 import { goalsInProgramOrder } from './goal-metadata.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
@@ -156,11 +156,5 @@ function diffText(expected, actualText) {
 }
 
 if (isMainModule(import.meta.url)) {
-  const reporter = new TestReporter();
-  try {
-    runExamples(reporter);
-    reporter.totalLine();
-  } catch (_) {
-    process.exit(1);
-  }
+  await runStandalone(runExamples);
 }

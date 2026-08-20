@@ -27,14 +27,12 @@ export {
 export { StreamManager } from './io.js';
 export { runQuads } from './quads.js';
 
-import { ATOM, COMPOUND, VAR, Env, copyResolved, termIsGround } from './term.js';
 import { Program, autoloadProgramGoals } from './program.js';
 import { Solver } from './solver.js';
 import { whyNoProof, whyProof } from './explain.js';
-import { HaltSignal, PrologError, getStrictIsoRegistry } from './iso.js';
+import { getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
-import { parseGoalText } from './parser.js';
-import { formatTermForWrite } from './write.js';
+import { executeGoals, normalizeGoals } from './execute.js';
 
 export function run(source, options = {}) {
   const includeWhy = options.proof === true || options.why === true || options.explain === true;
@@ -67,56 +65,14 @@ export function run(source, options = {}) {
     },
   });
   program = solver.program;
-  const goals = normalizeGoals(options, solver);
-  const writeOptions = {
-    doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-    operators: [...program.operators.values()],
-    quoted: true,
-  };
-  const queriedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
-  const facts = program.sourceFactLines(queriedKeys, writeOptions);
-  const seen = new Set();
-  let haltCode = null;
-  try {
-    solver.runInitializations();
-    for (const goal of goals) {
-      solver.solutionsSeen = 0;
-      for (const env of solver.solve([goal], new Env(), 0)) {
-        const resolved = copyResolved(goal, env);
-        if (!termIsGround(resolved)) continue;
-        const currentWriteOptions = {
-          doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-          operators: [...program.operators.values()],
-          quoted: true,
-        };
-        const line = `${formatTermForWrite(resolved, new Env(), currentWriteOptions)}.\n`;
-        if (facts.has(line) || seen.has(line)) continue;
-        seen.add(line);
-        output.push(line);
-        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
-      }
-    }
-  } catch (error) {
-    if (!(error instanceof HaltSignal)) throw error;
-    haltCode = error.code;
-  }
-  return { stdout: output.join(''), stats: solver.stats, haltCode };
-}
-
-function normalizeGoals(options, solver) {
-  const requested = options.goals ?? (options.goal == null ? [] : [options.goal]);
-  return requested.map((requestedGoal) => {
-    const goal = typeof requestedGoal === 'string'
-      ? parseGoalText(requestedGoal, {
-          doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-          operatorDefinitions: [...solver.program.operators.values()],
-          isoStrict: solver.isoStrict,
-        })
-      : requestedGoal;
-    if (goal.type === VAR) throw new PrologError('instantiation_error');
-    if (goal.type !== ATOM && goal.type !== COMPOUND) throw new PrologError('type_error(callable)', goal);
-    return goal;
+  const goals = normalizeGoals(requestedGoals, solver);
+  const { haltCode } = executeGoals(program, solver, goals, {
+    onAnswer: (line, resolved) => {
+      output.push(line);
+      if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
+    },
   });
+  return { stdout: output.join(''), stats: solver.stats, haltCode };
 }
 
 function appendExplanation(output, program, resolved, registry) {

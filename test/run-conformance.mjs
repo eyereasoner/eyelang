@@ -6,27 +6,12 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { Program, createDefaultRegistry, run } from '../src/index.js';
 import { fileURLToPath } from 'node:url';
-import { TestReporter, isMainModule } from './test-style.mjs';
+import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
 import { goalsFromSource } from './goal-metadata.mjs';
+import { listPrologFiles, withStandardModules } from './test-support.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const filterArg = process.argv[2] ?? null;
-const libraryCall = /\b(?:uuid|difference|maplist|lt|gt|le|ge|between|smallest_divisor_from|random|matches|split|replace|lowercase|uppercase|trim|number_string|atom_string|term_string|append|string_concat|contains|join|substring|member|select|last|nth0|nth1|set_nth0|take|drop|slice|reverse|length|sum_list|min_list|max_list|list_to_set|countall|sumall|aggregate_min|aggregate_max)\s*\(/;
-
-function withStandardModules(text) {
-  if (!libraryCall.test(text) || text.includes('use_module(library(')) return text;
-  return `:- use_module(library(aggregate)).
-:- use_module(library(comparison)).
-:- use_module(library(dates)).
-:- use_module(library(iso_ext)).
-:- use_module(library(lists)).
-:- use_module(library(primes)).
-:- use_module(library(prologue), [between/3]).
-:- use_module(library(random)).
-:- use_module(library(strings)).
-:- use_module(library(uuid)).
-${text}`;
-}
 
 export function runConformance(reporter = new TestReporter(), requestedFilter = null) {
   const filter = requestedFilter ?? filterArg;
@@ -42,7 +27,7 @@ export function runConformance(reporter = new TestReporter(), requestedFilter = 
 function listCaseFiles(kind, filter = null) {
   const base = path.join(root, 'conformance', kind);
   if (!fs.existsSync(base)) return [];
-  return listEyePrologFiles(base)
+  return listPrologFiles(base)
     .filter((name) => matchesFilter(kind, name, filter))
     .sort();
 }
@@ -56,19 +41,6 @@ function matchesFilter(kind, name, filter) {
     || stem.includes(filter)
     || `${kind}/${stem}`.includes(filter)
     || `${label}/${stem}`.includes(filter);
-}
-
-function listEyePrologFiles(base, dir = base) {
-  const files = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...listEyePrologFiles(base, full));
-    } else if (entry.isFile() && entry.name.endsWith('.pl')) {
-      files.push(path.relative(base, full).split(path.sep).join('/'));
-    }
-  }
-  return files;
 }
 
 function runCaseFile(reporter, file) {
@@ -194,11 +166,5 @@ function diffText(expected, actualText) {
 }
 
 if (isMainModule(import.meta.url)) {
-  const reporter = new TestReporter();
-  try {
-    runConformance(reporter);
-    reporter.totalLine();
-  } catch (_) {
-    process.exit(1);
-  }
+  await runStandalone(runConformance);
 }

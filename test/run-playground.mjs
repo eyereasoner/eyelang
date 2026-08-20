@@ -10,7 +10,14 @@ import {
   executePlaygroundRequest,
   installPlaygroundWorker,
 } from '../src/playground-worker.js';
-import { TestReporter, isMainModule } from './test-style.mjs';
+import {
+  TestReporter,
+  assertEqual,
+  assertIncludes,
+  assertNotIncludes,
+  isMainModule,
+  runStandalone,
+} from './test-style.mjs';
 
 const testRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRoot = path.resolve(testRoot, '..');
@@ -220,30 +227,6 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function assertEqual(actual, expected, label) {
-  if (actual !== expected) {
-    throw new Error(`${label} mismatch\nexpected: ${JSON.stringify(expected)}\nactual:   ${JSON.stringify(actual)}`);
-  }
-}
-
-function assertIncludes(actual, expected, label) {
-  if (!String(actual).includes(expected)) {
-    throw new Error(`${label} did not include ${JSON.stringify(expected)}\nactual: ${JSON.stringify(actual)}`);
-  }
-}
-
-function assertNotIncludes(actual, expected, label) {
-  if (String(actual).includes(expected)) {
-    throw new Error(`${label} unexpectedly included ${JSON.stringify(expected)}`);
-  }
-}
-
 if (isMainModule(import.meta.url)) {
-  const reporter = new TestReporter();
-  try {
-    await runPlayground(reporter);
-    reporter.totalLine();
-  } catch (_) {
-    process.exit(1);
-  }
+  await runStandalone(runPlayground);
 }

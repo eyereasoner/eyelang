@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listPrologFiles } from './test-support.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRoot = path.resolve(root, '..');
@@ -24,7 +25,7 @@ export function buildConformanceReport() {
   for (const { kind, expectedKind, expectedExt, column } of KINDS) {
     const base = path.join(conformanceRoot, kind);
     if (!fs.existsSync(base)) continue;
-    for (const file of listEyePrologFiles(base)) {
+    for (const file of listPrologFiles(base)) {
       const category = categoryOf(file);
       const counts = ensureCategory(categories, category);
       counts[column]++;
@@ -75,19 +76,6 @@ export function formatConformanceReport(report = buildConformanceReport()) {
   }
 
   return `${lines.join('\n')}\n`;
-}
-
-function listEyePrologFiles(base, dir = base) {
-  const files = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...listEyePrologFiles(base, full));
-    } else if (entry.isFile() && entry.name.endsWith('.pl')) {
-      files.push(path.relative(base, full).split(path.sep).join('/'));
-    }
-  }
-  return files.sort();
 }
 
 function categoryOf(file) {

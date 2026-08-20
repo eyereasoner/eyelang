@@ -11,7 +11,7 @@ import {
 } from '../src/index.js';
 import { parseTermText } from '../src/parser.js';
 import { variantTerms } from '../src/term.js';
-import { TestReporter, isMainModule } from './test-style.mjs';
+import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
 
 const testRoot = path.dirname(fileURLToPath(import.meta.url));
 const fixturePath = path.join(testRoot, 'conformance', 'wg17-syntax-cases.json');
@@ -377,12 +377,5 @@ export function runWg17(reporter = new TestReporter()) {
 }
 
 if (isMainModule(import.meta.url)) {
-  const reporter = new TestReporter();
-  try {
-    runWg17(reporter);
-    reporter.totalLine();
-  } catch (error) {
-    process.stderr.write(`${error?.stack ?? error}\n`);
-    process.exitCode = 1;
-  }
+  await runStandalone(runWg17);
 }

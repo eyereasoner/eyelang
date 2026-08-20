@@ -48,13 +48,21 @@ import { PrologError, formalErrorTerm } from '../src/iso.js';
 import { compareTerms } from '../src/term.js';
 import { formatTermForWrite } from '../src/write.js';
 import { selectClauseCandidates } from '../src/program.js';
-import { TestReporter, isMainModule } from './test-style.mjs';
+import {
+  TestReporter,
+  assertEqual,
+  assertIncludes,
+  assertNotIncludes,
+  isMainModule,
+  runStandalone,
+} from './test-style.mjs';
 import { buildConformanceReport, formatConformanceReport } from './run-conformance-report.mjs';
 import { proofExamples } from './run-examples.mjs';
 import { goalsFromSource } from './goal-metadata.mjs';
 import { renderWg17SyntaxStatus } from '../tools/report-wg17-syntax-coverage.mjs';
 import { parseWg17SyntaxTable } from '../tools/upgrade-wg17.mjs';
 import { executeWg17Item, matchesUpstreamExpectation, readWg17SyntaxFixture } from './run-wg17.mjs';
+import { withStandardModules } from './test-support.mjs';
 
 const testRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRoot = path.resolve(testRoot, '..');
@@ -62,22 +70,6 @@ const bin = path.join(packageRoot, 'bin', 'eyeprolog.js');
 const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
 let tmp = null;
 let tmpCounter = 0;
-const libraryCall = /\b(?:uuid|difference|maplist|foldl|call_nth|lt|gt|le|ge|between|smallest_divisor_from|random|matches|split|replace|lowercase|uppercase|trim|number_string|atom_string|term_string|append|string_concat|contains|join|substring|member|select|last|nth0|nth1|set_nth0|take|drop|slice|reverse|length|sum_list|min_list|max_list|list_to_set|countall|sumall|aggregate_min|aggregate_max)\s*\(/;
-
-function withStandardModules(source) {
-  if (!libraryCall.test(source) || source.includes('use_module(library(') || source.includes(':- module(')) return source;
-  return `:- use_module(library(aggregate)).
-:- use_module(library(comparison)).
-:- use_module(library(dates)).
-:- use_module(library(iso_ext)).
-:- use_module(library(lists)).
-:- use_module(library(primes)).
-:- use_module(library(prologue), [between/3]).
-:- use_module(library(random)).
-:- use_module(library(strings)).
-:- use_module(library(uuid)).
-${source}`;
-}
 
 function run(source, options = {}) {
   const programSource = Array.isArray(source) ? source.join('\n') : source;
@@ -92,15 +84,24 @@ function sourceAtom(value) {
   return `'${String(value).replaceAll('\\', '\\\\').replaceAll("'", "''")}'`;
 }
 
-export function runRegression(reporter = new TestReporter()) {
+export function runRegression(reporter = new TestReporter(), requestedSection = null) {
+  const sections = [
+    { key: 'regression', name: 'Regression', cases: regressionCases },
+    { key: 'docs', name: 'Documentation sync', cases: documentationSyncCases },
+    { key: 'api', name: 'API', cases: apiCases },
+    { key: 'white-box', name: 'White-box', cases: whiteBoxCases },
+  ];
+  const selected = requestedSection == null
+    ? sections
+    : sections.filter((section) => section.key === requestedSection);
+  if (selected.length === 0) {
+    throw new Error(`unknown regression section: ${requestedSection}; expected ${sections.map(({ key }) => key).join(', ')}`);
+  }
+
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'eyeprolog-regression.'));
   tmpCounter = 0;
-
   try {
-    runSection(reporter, 'Regression', regressionCases());
-    runSection(reporter, 'Documentation sync', documentationSyncCases());
-    runSection(reporter, 'API', apiCases());
-    runSection(reporter, 'White-box', whiteBoxCases());
+    for (const section of selected) runSection(reporter, section.name, section.cases());
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
     tmp = null;
@@ -5739,18 +5740,6 @@ function runCli(args, options = {}) {
   });
 }
 
-function assertEqual(actual, expected, label) {
-  if (actual !== expected) throw new Error(`${label} mismatch\nexpected: ${format(expected)}\nactual:   ${format(actual)}`);
-}
-
-function assertIncludes(actual, expected, label) {
-  if (!actual.includes(expected)) throw new Error(`${label} did not include ${format(expected)}\nactual: ${format(actual)}`);
-}
-
-function assertNotIncludes(actual, expected, label) {
-  if (String(actual).includes(expected)) throw new Error(`${label} unexpectedly included ${format(expected)}\nactual: ${format(actual)}`);
-}
-
 function arrayDiffMessages(actual, expected, label) {
   const messages = [];
   const actualSet = new Set(actual);
@@ -5776,11 +5765,5 @@ function format(value) {
 }
 
 if (isMainModule(import.meta.url)) {
-  const reporter = new TestReporter();
-  try {
-    runRegression(reporter);
-    reporter.totalLine();
-  } catch (_) {
-    process.exit(1);
-  }
+  await runStandalone((reporter) => runRegression(reporter, process.argv[2] ?? null));
 }

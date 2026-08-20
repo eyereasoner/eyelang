@@ -173,7 +173,7 @@ export async function main(argv) {
 
 async function loadEngine() {
   if (engineModule == null) {
-    const [term, parser, program, solver, iso, library, write, quads] = await Promise.all([
+    const [term, parser, program, solver, iso, library, write, quads, execute] = await Promise.all([
       import('./term.js'),
       import('./parser.js'),
       import('./program.js'),
@@ -182,8 +182,9 @@ async function loadEngine() {
       import('./standard-library.js'),
       import('./write.js'),
       import('./quads.js'),
+      import('./execute.js'),
     ]);
-    engineModule = { ...term, ...parser, ...program, ...solver, ...iso, ...library, ...write, ...quads };
+    engineModule = { ...term, ...parser, ...program, ...solver, ...iso, ...library, ...write, ...quads, ...execute };
   }
   return engineModule;
 }
@@ -201,49 +202,16 @@ async function runDefault(engine, program, options) {
     ioOptions: { write: (text) => process.stdout.write(String(text)) },
   });
   program = solver.program;
-  const goals = options.goals.map((text) => {
-    const goal = engine.parseGoalText(text, {
-      doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-      operatorDefinitions: [...program.operators.values()],
-      isoStrict: options.isoStrict,
-    });
-    if (goal.type === 'var') throw new engine.PrologError('instantiation_error');
-    if (goal.type !== 'atom' && goal.type !== 'compound') throw new engine.PrologError('type_error(callable)', goal);
-    return goal;
-  });
-  const queriedKeys = new Set(goals.map((goal) => `${goal.name}/${goal.arity}`));
-  const writeOptions = {
-    doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-    operators: [...program.operators.values()],
-    quoted: true,
-  };
-  const facts = program.sourceFactLines(queriedKeys, writeOptions);
-  const lines = new Set();
+  const goals = engine.normalizeGoals(options.goals, solver);
   const explanation = options.proof ? await loadExplanation() : null;
   try {
-    solver.runInitializations();
-    for (const goal of goals) {
-      solver.solutionsSeen = 0;
-      for (const env of solver.solve([goal], new engine.Env(), 0)) {
-        if (!engine.termIsGround(goal, env)) continue;
-
-        const currentWriteOptions = {
-          doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
-          operators: [...program.operators.values()],
-          quoted: true,
-        };
-        const line = `${engine.formatTermForWrite(goal, env, currentWriteOptions)}.\n`;
-        if (facts.has(line) || lines.has(line)) continue;
-
-        lines.add(line);
-
+    const { haltCode } = engine.executeGoals(program, solver, goals, {
+      onAnswer: (line, resolved) => {
         process.stdout.write(line);
-        if (options.proof) writeExplanation(explanation, program, engine.copyResolved(goal, env), registry);
-      }
-    }
-  } catch (error) {
-    if (error?.name !== 'HaltSignal') throw error;
-    process.exitCode = error.code;
+        if (options.proof) writeExplanation(explanation, program, resolved, registry);
+      },
+    });
+    if (haltCode != null) process.exitCode = haltCode;
   } finally {
     if (options.stats) printStats(solver.stats);
   }

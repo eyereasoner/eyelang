@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { Program, run } from '../src/index.js';
-import { TestReporter, isMainModule } from './test-style.mjs';
+import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
 import { goalsFromSource } from './goal-metadata.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -39,11 +39,5 @@ function listPrograms(directory) {
 }
 
 if (isMainModule(import.meta.url)) {
-  const reporter = new TestReporter();
-  try {
-    runBookExamples(reporter);
-    reporter.totalLine();
-  } catch (_) {
-    process.exit(1);
-  }
+  await runStandalone(runBookExamples);
 }

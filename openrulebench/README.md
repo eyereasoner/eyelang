@@ -36,8 +36,7 @@ node tools/generate.mjs --profile orb-small --output benchmarks-orb-small
 Validate the four generated engine trees with:
 
 ```sh
-node tools/check_sources.mjs
-node tools/check_multiengine.mjs
+node tools/check.mjs
 ```
 
 All OpenRuleBench tooling in this repository is JavaScript/ESM.

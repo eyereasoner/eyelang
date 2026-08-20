@@ -102,6 +102,43 @@ export function isMainModule(metaUrl) {
   return process.argv[1] != null && path.resolve(process.argv[1]) === fileURLToPath(metaUrl);
 }
 
+export async function runStandalone(runSuite) {
+  const reporter = new TestReporter();
+  try {
+    await runSuite(reporter);
+    reporter.totalLine();
+  } catch (error) {
+    // TestReporter already prints failures raised inside a test. Preserve a
+    // diagnostic for setup/teardown failures that occur outside reporter.test.
+    if (reporter.ok === reporter.total) {
+      reporter.stderr.write(`${error?.stack ?? String(error)}\n`);
+    }
+    process.exitCode = 1;
+  }
+}
+
+export function assertEqual(actual, expected, label) {
+  if (actual !== expected) {
+    throw new Error(`${label} mismatch\nexpected: ${formatValue(expected)}\nactual:   ${formatValue(actual)}`);
+  }
+}
+
+export function assertIncludes(actual, expected, label) {
+  if (!String(actual).includes(expected)) {
+    throw new Error(`${label} did not include ${formatValue(expected)}\nactual: ${formatValue(actual)}`);
+  }
+}
+
+export function assertNotIncludes(actual, expected, label) {
+  if (String(actual).includes(expected)) {
+    throw new Error(`${label} unexpectedly included ${formatValue(expected)}\nactual: ${formatValue(actual)}`);
+  }
+}
+
+function formatValue(value) {
+  return typeof value === 'string' ? JSON.stringify(value) : String(value);
+}
+
 function defaultSectionLabel(name) {
   return String(name)
     .replace(/^Conformance\s+/, 'conformance ')

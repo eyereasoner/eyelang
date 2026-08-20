@@ -10,7 +10,7 @@ import {
   parseGoalText,
   run,
 } from '../src/index.js';
-import { TestReporter, isMainModule } from './test-style.mjs';
+import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
 
 export function runIsoStrict(reporter = new TestReporter()) {
   reporter.section('Strict ISO core');
@@ -103,11 +103,5 @@ function includes(actual, expected, label) {
 }
 
 if (isMainModule(import.meta.url)) {
-  const reporter = new TestReporter();
-  try {
-    runIsoStrict(reporter);
-    reporter.totalLine();
-  } catch (_) {
-    process.exit(1);
-  }
+  await runStandalone(runIsoStrict);
 }
