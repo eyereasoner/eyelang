@@ -513,6 +513,23 @@ export class Solver {
           break;
         }
 
+        const betweenIterator = bundledBetweenIterator(this, group, goal, env);
+        if (betweenIterator != null) {
+          const firstResult = betweenIterator.next();
+          if (firstResult.done) break;
+          stack.push({
+            kind: 'resumeBuiltin',
+            iterator: betweenIterator,
+            goals: rest,
+            depth: depth + 1,
+            active,
+          });
+          goals = rest;
+          env = firstResult.value;
+          depth++;
+          continue;
+        }
+
         const memberIterator = bundledMemberIterator(this, group, goal, env);
         if (memberIterator != null) {
           const firstResult = memberIterator.next();
@@ -1213,6 +1230,53 @@ function pushWfsAnswerFrames(stack, model, group, goal, rest, env, depth, active
     if (!ok) continue;
     if (!lower?.has(row)) solver.stats.wfs_undefined_answers++;
     stack.push({ kind: 'goals', goals: rest, env: next, depth: depth + 1, active });
+  }
+}
+
+function bundledBetweenIterator(solver, group, goal, env) {
+  if (solver.registry.eyePrologLibrary !== true ||
+      group.module !== 'prologue' || group.name !== 'between' || group.arity !== 3 ||
+      group.bundledLibrary !== true || group.clauses.length !== 1) {
+    return null;
+  }
+
+  // The portable Prologue definition is intentionally kept as the semantic
+  // source of between/3. Its recursive helper, however, carries the output
+  // variable through one fresh clause instance per integer. With persistent
+  // environments that builds a growing variable-alias chain, so dereferencing
+  // the generated value in the caller repeatedly revisits all earlier frames.
+  // Enumerate the canonical bundled relation directly while leaving user
+  // definitions and non-EyeProlog registries on the ordinary Prolog path.
+  return bundledBetweenSolutions(solver, goal, env);
+}
+
+function requireBetweenInteger(term, env) {
+  const value = deref(term, env);
+  if (value.type === VAR) throw new PrologError('instantiation_error');
+  if (value.type !== NUMBER || !isDecimalInteger(value.name)) {
+    throw new PrologError('type_error(integer)', value);
+  }
+  return BigInt(value.name);
+}
+
+function* bundledBetweenSolutions(solver, goal, env) {
+  const lower = requireBetweenInteger(goal.args[0], env);
+  const upper = requireBetweenInteger(goal.args[1], env);
+  const requested = deref(goal.args[2], env);
+
+  if (requested.type !== VAR) {
+    if (requested.type !== NUMBER || !isDecimalInteger(requested.name)) {
+      throw new PrologError('type_error(integer)', requested);
+    }
+    const value = BigInt(requested.name);
+    if (value >= lower && value <= upper) yield env;
+    return;
+  }
+
+  for (let value = lower; value <= upper; value++) {
+    const next = env.clone();
+    solver.stats.unify_calls++;
+    if (unify(goal.args[2], numberTerm(value), next)) yield next;
   }
 }
 

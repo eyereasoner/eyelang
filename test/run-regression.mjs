@@ -2399,6 +2399,22 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'between/3 generated values avoid recursive environment chains (issue #52)',
+      run: () => {
+        const goalText = 'between(1, 1024, X), X < 0';
+        const program = Program.parse('', { autoloadGoals: [goalText] });
+        const solver = new Solver(program, { registry: getEyePrologRegistry() });
+        const goal = parseGoalText(goalText, {
+          operatorDefinitions: [...solver.program.operators.values()],
+        });
+        let answers = 0;
+        for (const _env of solver.solve([goal], new Env(), 0)) answers++;
+        assertEqual(answers, 0, 'positive generated values fail X < 0');
+        assertEqual(solver.stats.unify_calls, 1024, 'one output unification per generated integer');
+        assertEqual(solver.stats.max_depth <= 4, true, 'generation stays at bounded solver depth');
+      },
+    },
+    {
       name: 'library(lists) length/2 stays relational and call_nth/2 autoloads (issue #28)',
       run: () => {
         const input = [
