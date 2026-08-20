@@ -12,10 +12,16 @@ export class NumberRepresentationError extends Error {
   }
 }
 
+export function floatRepresentationErrorFormal(text) {
+  return String(text ?? '').startsWith('-')
+    ? 'representation_error(min_float)'
+    : 'representation_error(max_float)';
+}
+
 function finiteFloatTokenText(text) {
   const value = Number(text);
   if (!Number.isFinite(value)) {
-    throw new NumberRepresentationError('representation_error(max_float)');
+    throw new NumberRepresentationError(floatRepresentationErrorFormal(text));
   }
   return value === 0 ? '0.0' : text;
 }

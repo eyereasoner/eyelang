@@ -745,6 +745,7 @@ c4 ?- call((!;1)).
           input: [
             'T = 1.0e-99999, F is T.',
             'T = 1.0e99999, float(T).',
+            'T = -1.0e99999, float(T).',
             'T = 1.0e99999, float(T), F is T.',
             'T = 1.0e99999, U = 2.0e99999, T > U.',
             'T = 1.0e99999, U = 2.0e99999, T < U.',
@@ -759,7 +760,12 @@ c4 ?- call((!;1)).
         assertEqual(
           (result.stdout.match(/error\(representation_error\(max_float\)\)\./g) ?? []).length,
           6,
-          'all overflowing literals fail while being read',
+          'positive overflowing literals fail while being read',
+        );
+        assertEqual(
+          (result.stdout.match(/error\(representation_error\(min_float\)\)\./g) ?? []).length,
+          1,
+          'negative overflowing literal reports min_float',
         );
         assertEqual(result.stderr, '', 'stderr');
 
@@ -769,7 +775,14 @@ c4 ?- call((!;1)).
         } catch (error) {
           overflow = error;
         }
-        assertEqual(overflow?.formal, 'representation_error(max_float)', 'number token overflow');
+        assertEqual(overflow?.formal, 'representation_error(max_float)', 'positive number token overflow');
+        let negativeOverflow = null;
+        try {
+          parseNumberTokenText('-1.0e99999');
+        } catch (error) {
+          negativeOverflow = error;
+        }
+        assertEqual(negativeOverflow?.formal, 'representation_error(min_float)', 'negative number token overflow');
         assertEqual(parseNumberTokenText('1.0e-99999').name, '0.0', 'number token underflow');
 
         const chars = Array.from('1.0e99999', atom);
@@ -783,7 +796,34 @@ c4 ?- call((!;1)).
         } catch (error) {
           numberCharsError = error;
         }
-        assertEqual(numberCharsError?.formal, 'representation_error(max_float)', 'number_chars overflow');
+        assertEqual(numberCharsError?.formal, 'representation_error(max_float)', 'number_chars positive overflow');
+
+        const negativeChars = Array.from('-1.0e99999', atom);
+        let negativeNumberCharsError = null;
+        try {
+          numberChars({
+            goal: compound('number_chars', [variable('N'), listFromItems(negativeChars)]),
+            env: new Env(),
+          }).next();
+        } catch (error) {
+          negativeNumberCharsError = error;
+        }
+        assertEqual(negativeNumberCharsError?.formal, 'representation_error(min_float)', 'number_chars negative overflow');
+
+        let boundNegativeNumberCharsError = null;
+        try {
+          numberChars({
+            goal: compound('number_chars', [numberTerm('-1.0e99999'), variable('Chars')]),
+            env: new Env(),
+          }).next();
+        } catch (error) {
+          boundNegativeNumberCharsError = error;
+        }
+        assertEqual(
+          boundNegativeNumberCharsError?.formal,
+          'representation_error(min_float)',
+          'number_chars host-created negative overflow',
+        );
 
         let readError = null;
         try {

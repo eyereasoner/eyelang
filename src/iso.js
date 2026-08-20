@@ -6,7 +6,10 @@ import {
   properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
 import { sameNumberValue } from './number-value.js';
-import { NumberRepresentationError, createParserOperatorState, parseGoalText, parseNumberTokenText, parseTermText } from './parser.js';
+import {
+  NumberRepresentationError, createParserOperatorState, floatRepresentationErrorFormal,
+  parseGoalText, parseNumberTokenText, parseTermText,
+} from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 import {
@@ -1695,7 +1698,7 @@ function canonicalNumberText(value) {
     return value.name;
   }
   const text = numberTextFromDouble(finite);
-  if (text == null) throw new PrologError('representation_error(max_float)');
+  if (text == null) throw new PrologError(floatRepresentationErrorFormal(value.name));
   return text;
 }
 
