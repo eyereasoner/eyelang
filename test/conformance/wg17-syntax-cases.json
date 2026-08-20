@@ -4128,7 +4128,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "+(__anon0,__anon1)",
+            "output": "+(_A,_B)",
             "variables": "[]"
           }
         ]
@@ -4144,7 +4144,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "+(B,B)",
+            "output": "+(_A,_A)",
             "variables": "['B' = B]"
           }
         ]
@@ -5221,7 +5221,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "1 is __anon0",
+            "output": "1 is _A",
             "variables": "[]"
           }
         ]

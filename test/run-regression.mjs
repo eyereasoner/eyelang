@@ -1860,7 +1860,7 @@ c4 ?- call((!;1)).
           'check :- read(A), read(B), A \\== B, write_canonical(pair(A, B)), nl.\n',
           { goal: 'check', ioOptions: { input: 'V.\nV.\n' } },
         );
-        assertEqual(distinctReads.stdout, 'pair(V,V_1)\ncheck.\n', 'separate read variable sets');
+        assertEqual(distinctReads.stdout, 'pair(_A,_B)\ncheck.\n', 'separate read variable sets');
       },
     },
     {
@@ -2973,6 +2973,20 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
           }
           assertEqual(caught?.formal, 'representation_error(character)', `${predicate}/2 invalid UTF-8`);
         }
+      },
+    },
+    {
+      name: 'writeq gives unnamed variables underscore-prefixed names (issue #53)',
+      run: () => {
+        const result = runCli([], {
+          input: "writeq(E).\nwriteq(pair(X,X,Y)).\nwrite_term(pair(X,Y), [variable_names(['Left'=X])]).\nhalt.\n",
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, '  _A true.\n', 'single unnamed variable');
+        assertIncludes(result.stdout, '  pair(_A,_A,_B) true.\n', 'stable repeated variable names');
+        assertIncludes(result.stdout, '  pair(Left,_A) true.\n', 'explicit variable name plus generated fallback');
+        const fresh = run('emit :- writeq(E), nl.\n', { goal: 'emit' });
+        assertEqual(fresh.stdout, '_A\nemit.\n', 'fresh clause variable hides its internal suffix');
       },
     },
     {

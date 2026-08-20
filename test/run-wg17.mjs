@@ -18,7 +18,7 @@ function runnerStage(index, maximum) {
   return `read_term(G${index}, [variable_names(V${index})]), ` +
     `(G${index} == end_of_file -> write('\\n<WG17-COMPLETE>') ; (` +
     `write('\\n<WG17-BEGIN-${index}>'), call(G${index}), ` +
-    `write('<WG17-VARS>'), writeq(V${index}), write('<WG17-END>'), ` +
+    `write('<WG17-VARS>'), write_term(V${index}, [quoted(true), variable_names(V${index})]), write('<WG17-END>'), ` +
     `${runnerStage(index + 1, maximum)}))`;
 }
 

@@ -1370,6 +1370,7 @@ function writeBuiltin(mode) {
     const options = defaultTermWriteOptions(mode);
     solver.io.writeUnit(stream, formatTermForWrite(goal.args[goal.arity - 1], env, {
       ...options,
+      generateVariableNames: true,
       operators: solver.program.operators.values(),
     }));
     yield env;
@@ -1386,6 +1387,7 @@ function* writeTermBuiltin({ solver, goal, env }) {
   }
   solver.io.writeUnit(stream, formatTermForWrite(goal.args[goal.arity - 2], env, {
     ...options,
+    generateVariableNames: true,
     operators: solver.program.operators.values(),
   }));
   yield env;

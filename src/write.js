@@ -174,6 +174,40 @@ function printableReadVariableNames(term, env, explicit) {
   return names;
 }
 
+function generatedVariableName(index) {
+  const letter = String.fromCharCode(65 + (index % 26));
+  const suffix = Math.floor(index / 26);
+  return suffix === 0 ? `_${letter}` : `_${letter}${suffix}`;
+}
+
+function printableGeneratedVariableNames(term, env, explicit) {
+  const names = new Map(explicit);
+  const used = new Set(names.values());
+  const seenVariables = new Set();
+  const seenTerms = new Set();
+  const stack = [term];
+  let generated = 0;
+
+  while (stack.length) {
+    const current = deref(stack.pop(), env);
+    if (current.type === VAR) {
+      if (seenVariables.has(current.name)) continue;
+      seenVariables.add(current.name);
+      if (names.has(current.name)) continue;
+      let candidate;
+      do candidate = generatedVariableName(generated++); while (used.has(candidate));
+      names.set(current.name, candidate);
+      used.add(candidate);
+      continue;
+    }
+    if (current.type !== COMPOUND || seenTerms.has(current)) continue;
+    seenTerms.add(current);
+    for (let i = current.arity - 1; i >= 0; i--) stack.push(current.args[i]);
+  }
+
+  return names;
+}
+
 function format(term, env, options, table, maxPriority = 1200, context = 'term') {
   const resolved = deref(term, env);
   if (resolved.type === VAR) {
@@ -282,7 +316,9 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
     ignoreOps: options.ignoreOps === true,
     numbervars: options.numbervars !== false,
     doubleQuotes: options.doubleQuotes,
-    variableNames: printableReadVariableNames(term, env, explicitVariableNames),
+    variableNames: options.generateVariableNames === true
+      ? printableGeneratedVariableNames(term, env, explicitVariableNames)
+      : printableReadVariableNames(term, env, explicitVariableNames),
     compact: options.compact === true,
     operatorAtomsAsArgs: options.operatorAtomsAsArgs === true,
     dottedGraphicAtoms: options.dottedGraphicAtoms === true,
