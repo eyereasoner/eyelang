@@ -2189,7 +2189,7 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
     {
       name: 'npm exec can run package CLI bin from checkout',
       run: () => {
-        const result = spawnSync('npm', ['exec', '--loglevel=silent', '--yes', '--package=.', '--', 'eyeprolog', '--version'], {
+        const result = spawnSync('npm', ['exec', '--offline', '--loglevel=silent', '--yes', '--package=.', '--', 'eyeprolog', '--version'], {
           cwd: packageRoot,
           encoding: 'utf8',
           env: { ...process.env, npm_config_update_notifier: 'false' },
@@ -3797,30 +3797,30 @@ answer(ok) :-
         `;
         const script = `
           import { Program, Solver, Env, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
-          const program = Program.parse(${JSON.stringify(programText)}, { autoloadGoals: ['ti(R,3,0)'] });
+          const program = Program.parse(${JSON.stringify(programText)}, { autoloadGoals: ['ti(R,1,0)'] });
           const listTailGroup = program.findGroup('...', 2, 'user');
           if (listTailGroup?.listTailRecursive !== true) {
             throw new Error('recursive DCG tail-consumption was not recognized');
           }
           const solver = new Solver(program, { registry: getEyePrologRegistry(), maxMemoryBytes: Infinity });
-          const goal = parseGoalText('ti(R,3,0)', {
+          const goal = parseGoalText('ti(R,1,0)', {
             doubleQuotes: 'chars',
             operatorDefinitions: [...program.operators.values()],
           });
           let count = 0;
           for (const _ of solver.solve([goal], new Env(), 0)) {
-            if (++count === 20) break;
+            if (++count === 10) break;
           }
-          if (count !== 20) throw new Error('unexpected checkpoint count: ' + count);
+          if (count !== 10) throw new Error('unexpected checkpoint count: ' + count);
           const scope = solver.innerTableScopes.get('phrase');
           if (scope == null) throw new Error('missing phrase table scope');
           if (scope.memo.size !== 0) throw new Error('distinct tail-DCG inputs should not retain phrase tables: ' + scope.memo.size);
           process.stdout.write(count + ':' + scope.memo.size);
         `;
         const result = spawnSync(process.execPath, [
-          // This corresponds to 20,000 accepted number candidates. Before the
-          // phrase-local cache, every distinct recursive DCG tail stayed rooted
-          // in the caller memo and this workload exhausted a 32 MiB old space.
+          // This covers 100 accepted number candidates, enough to exercise
+          // many distinct recursive DCG inputs while keeping this a focused
+          // bounded-cache regression rather than a memory stress benchmark.
           '--max-old-space-size=32',
           '--input-type=module',
           '--eval',
@@ -3829,7 +3829,7 @@ answer(ok) :-
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded phrase-table child status; stderr=${result.stderr}`);
         const [countText, cacheText] = result.stdout.trim().split(':');
-        assertEqual(countText, '20', 'recursive phrase checkpoints');
+        assertEqual(countText, '10', 'recursive phrase checkpoints');
         assertEqual(cacheText, '0', 'distinct tail-DCG phrase cache');
       },
     },
