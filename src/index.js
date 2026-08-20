@@ -28,7 +28,7 @@ export { StreamManager } from './io.js';
 export { runQuads } from './quads.js';
 
 import { ATOM, COMPOUND, VAR, Env, copyResolved, termIsGround } from './term.js';
-import { Program } from './program.js';
+import { Program, autoloadProgramGoals } from './program.js';
 import { Solver } from './solver.js';
 import { whyNoProof, whyProof } from './explain.js';
 import { HaltSignal, PrologError, getStrictIsoRegistry } from './iso.js';
@@ -49,6 +49,7 @@ export function run(source, options = {}) {
     autoloadGoals: requestedGoals,
   };
   let program = source instanceof Program ? source : Program.parse(source, parseOptions);
+  if (source instanceof Program) autoloadProgramGoals(program, requestedGoals, options);
   const strictIso = requestedStrictIso || program.strictIso === true;
   const runOptions = strictIso
     ? { ...options, isoStrict: true, registry: getStrictIsoRegistry() }

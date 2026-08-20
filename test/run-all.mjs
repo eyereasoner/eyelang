@@ -10,6 +10,7 @@ import { runPlayground } from './run-playground.mjs';
 import { runExamples } from './run-examples.mjs';
 import { runBookExamples } from './run-book-examples.mjs';
 import { runWg17 } from './run-wg17.mjs';
+import { runOpenRuleBenchChecks } from './run-openrulebench.mjs';
 
 const reporter = new TestReporter();
 
@@ -17,6 +18,7 @@ try {
   runConformance(reporter);
   runIsoStrict(reporter);
   runWg17(reporter);
+  runOpenRuleBenchChecks(reporter);
   runRegression(reporter);
   await runPlayground(reporter);
   runExamples(reporter);

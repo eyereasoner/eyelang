@@ -1819,6 +1819,11 @@ additional logical answer.
 `analyzeNegation`. It returns `stdout`, the solver's numeric `stats`, and a
 nullable `haltCode`; it does not write to the process streams.
 
+When `run` receives an already parsed `Program`, canonical interop imports
+needed only by its host-supplied goals are added to that Program before solving,
+just as they are while source text is parsed. Pass `autoload: false` when the
+Program must retain only explicitly imported predicates.
+
 For applications that inspect or prepare a theory before running it, use
 `Program` directly:
 
@@ -6302,8 +6307,10 @@ calls to non-profile predicates from otherwise common modules. `--portable`
 turns those diagnostics into a failing run, making the conservative profile
 suitable for continuous integration. `npm run test:interop` executes the same
 portable Towers of Hanoi source under EyeProlog, Trealla, and Scryer when those commands
-are installed; the repository interoperability workflow installs them and runs
-that check.
+are installed. Because those are external runtimes, the default `npm test`
+instead validates all four generated OpenRuleBench source trees and their
+engine-specific tabling and WFS adaptations without requiring them. The fast
+structural check is also available directly as `npm run test:openrulebench`.
 
 #### Library notes beyond the interoperability profile
 

@@ -3408,6 +3408,23 @@ function documentationSyncCases() {
       run: () => assertArrayEqual(missingDocumentedPackageScripts(), [], 'missing documented npm scripts'),
     },
     {
+      name: 'CI verifies the supported Node floor and gates npm publishing',
+      run: () => {
+        const testWorkflow = fs.readFileSync(path.join(packageRoot, '.github', 'workflows', 'test.yml'), 'utf8');
+        assertIncludes(testWorkflow, "node-version: ['18', '24']", 'test workflow Node matrix');
+        assertIncludes(testWorkflow, 'run: npm test', 'test workflow suite');
+        assertIncludes(testWorkflow, 'run: npm pack --dry-run', 'test workflow package check');
+
+        const publishWorkflow = fs.readFileSync(path.join(packageRoot, '.github', 'workflows', 'publish-npm.yml'), 'utf8');
+        const testIndex = publishWorkflow.indexOf('run: npm test');
+        const packIndex = publishWorkflow.indexOf('run: npm pack --dry-run');
+        const publishIndex = publishWorkflow.indexOf('run: npm publish');
+        assertEqual(testIndex >= 0 && testIndex < publishIndex, true, 'publish workflow test gate');
+        assertEqual(packIndex >= 0 && packIndex < publishIndex, true, 'publish workflow package gate');
+        assertEqual(pkg.scripts?.['test:openrulebench'], 'node test/run-openrulebench.mjs', 'OpenRuleBench test script');
+      },
+    },
+    {
       name: 'documented conformance totals match the generated report',
       run: () => assertArrayEqual(documentedConformanceMetricIssues(), [], 'documented conformance totals'),
     },
@@ -3854,6 +3871,21 @@ answer(ok) :-
       run: () => {
         const result = runEyeProlog('', { goal: 'member(X,[a,b])' });
         assertEqual(result.stdout, 'member(a, "ab").\nmember(b, "ab").\n', 'stdout');
+      },
+    },
+    {
+      name: 'JavaScript run autoloads top-level goals for parsed Program instances',
+      run: () => {
+        const program = Program.parse('');
+        const revision = program.revision;
+        program.stratifiedNegation;
+        const result = runEyeProlog(program, { goal: 'member(X,[a,b])' });
+        assertEqual(result.stdout, 'member(a, "ab").\nmember(b, "ab").\n', 'stdout');
+        assertEqual(program.findGroup('member', 2)?.module, 'lists', 'autoloaded Program predicate');
+        assertEqual(program.autoloadedPredicates.map((entry) => `${entry.indicator}:${entry.library}`).join(','),
+          'member/2:lists', 'autoload metadata');
+        assertEqual(program.revision, revision + 1, 'Program revision after autoload');
+        assertEqual(program.stratifiedNegation, true, 'negation metadata recomputed after autoload');
       },
     },
     {

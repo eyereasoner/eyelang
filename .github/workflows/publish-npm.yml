@@ -24,5 +24,11 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
 
+      - name: Run release checks
+        run: npm test
+
+      - name: Check package contents
+        run: npm pack --dry-run
+
       - name: Publish to npm
         run: npm publish

@@ -706,6 +706,48 @@ function buildProgramFromSources(sources, options) {
   return builder.finish();
 }
 
+// Program.parse() can see host-supplied goals through autoloadGoals while it
+// builds the program. A Program passed directly to run() has already completed
+// that phase, so extend the existing instance with the same canonical interop
+// imports before solving those goals. Keeping this here lets both paths share
+// the dependency analysis and module-loading rules.
+export function autoloadProgramGoals(program, inputs, options = {}) {
+  if (inputs == null || (Array.isArray(inputs) && inputs.length === 0)) return program;
+  const operatorState = createParserOperatorState(
+    [...program.operators.values()],
+    false,
+    { isoStrict: program.strictIso },
+  );
+  const parserFlagState = { doubleQuotes: program.doubleQuotes ?? options.doubleQuotes ?? 'chars' };
+  const goals = parseInteropGoalInputs(inputs, {
+    ...options,
+    isoStrict: program.strictIso,
+    operatorState,
+    parserFlagState,
+  }, program);
+
+  if (!program.strictIso && options.autoload !== false) {
+    const builder = new ProgramBuilder({ ...options, isoStrict: false }, program);
+    const loadedModules = new Set([...program.modules.keys()].filter((name) => name !== 'user'));
+    const autoloadCount = program.autoloadedPredicates.length;
+    autoloadInteropDependencies(builder, {
+      ...options,
+      isoStrict: false,
+      operatorState,
+      parserFlagState,
+    }, new Set(), loadedModules, goals);
+    if (program.autoloadedPredicates.length !== autoloadCount) {
+      // Existing Solver instances key their tables by Program revision, and a
+      // previously requested negation analysis is no longer complete once new
+      // library groups become reachable.
+      program.noteMutation(false);
+      builder.finish();
+    }
+  }
+  analyzeInteropPortability(program, goals);
+  return program;
+}
+
 function loadSourcesIntoBuilder(builder, sources, options, fast) {
   const ensured = new Set();
   const loadedModules = new Set();

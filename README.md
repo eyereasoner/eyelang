@@ -291,8 +291,11 @@ and Scryer (`scryer-prolog`) installed, run:
 npm run test:interop
 ```
 
-The GitHub interoperability workflow builds both implementations and runs the
-same portable Towers of Hanoi source under EyeProlog, Trealla, and Scryer.
+This optional check runs the same portable Towers of Hanoi source under
+EyeProlog, Trealla, and Scryer. The default `npm test` does not require external
+Prolog implementations; it does validate all four generated OpenRuleBench
+source trees and their engine-specific tabling and WFS adaptations. Run those
+fast structural checks separately with `npm run test:openrulebench`.
 
 ## Development
 
@@ -302,5 +305,9 @@ cd eyeprolog
 npm install
 npm test
 ```
+
+The GitHub test workflow runs the complete suite and an npm package dry-run on
+both the minimum supported Node.js 18 release line and Node.js 24. Publishing
+repeats those release checks before uploading the package.
 
 EyeProlog is released under the [MIT License](LICENSE.md).
