@@ -366,7 +366,6 @@ function terminalFullStop(source, solver = null) {
   let quote = null;
   let lineComment = false;
   let blockComment = false;
-  let depth = 0;
 
   for (let i = 0; i < source.length; i++) {
     const ch = source[i];
@@ -415,10 +414,12 @@ function terminalFullStop(source, solver = null) {
       quote = ch;
       continue;
     }
-    if ('([{'.includes(ch)) depth++;
-    else if (')]}'.includes(ch)) depth = Math.max(0, depth - 1);
-    else if (depth === 0 && isTerminatingFullStop(source, i, convert) &&
-             onlyLayoutAndComments(source.slice(i + 1))) return i;
+    // ISO 8.14.1.1 locates the end token lexically before read-term parsing.
+    // An unmatched opening bracket therefore must not make the top level wait
+    // for more input after a terminating full stop; parsing the collected text
+    // is what reports the syntax error (for example `[l.` or `{.`).
+    if (isTerminatingFullStop(source, i, convert) &&
+        onlyLayoutAndComments(source.slice(i + 1))) return i;
   }
   return -1;
 }

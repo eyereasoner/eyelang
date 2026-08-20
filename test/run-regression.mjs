@@ -1411,6 +1411,27 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'DCG state hand-off reaches the next non-terminal at 8192 cells (issue #49 comment 5347991607)',
+      run: () => {
+        const filename = path.join(tmp, `issue49-small-handoff-${tmpCounter++}.pl`);
+        fs.writeFileSync(filename,
+          ':- set_prolog_flag(occurs_check, true).\na --> ..., epsilon.\nepsilon --> [].\n');
+        const result = runCli([], {
+          input:
+            `[${sourceAtom(filename)}].\n` +
+            'use_module(library(lists)).\n' +
+            '\\+ \\+ (length(L,8192), phrase(a,L)).\n' +
+            'halt.\n',
+          timeout: 3000,
+        });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `small DCG hand-off status; stderr=${result.stderr}`);
+        assertNotIncludes(result.stdout, 'resource_error', 'small DCG hand-off resource error');
+        assertNotIncludes(result.stdout, 'depth_limit_exceeded', 'small DCG hand-off depth error');
+        assertEqual(result.stderr, '', 'small DCG hand-off stderr');
+      },
+    },
+    {
       name: 'Trealla-style DCG hand-off reaches 65536 cells without the solver depth ceiling',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;
@@ -1908,6 +1929,19 @@ c4 ?- call((!;1)).
         assertEqual(result.error?.code, undefined, 'terminal interrupt timeout');
         assertEqual(result.status, 130, 'SIGINT exit status');
         assertIncludes(result.stdout, '?- repeat, fail.', 'terminal query echo');
+      },
+    },
+    {
+      name: 'REPL stops at the end token before parsing unmatched brackets (issue #51)',
+      run: () => {
+        const result = runCli([], { input: '[l.\ntrue.\n{.\ntrue.\nhalt.\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertNotIncludes(result.stdout, '|    ', 'no continuation prompt after malformed end token');
+        assertEqual((result.stdout.match(/\?-    true\./g) ?? []).length, 2,
+          'following lines remain separate top-level queries');
+        assertEqual((result.stdout.match(/parse line 1:/g) ?? []).length, 2,
+          'both malformed bracketed queries report syntax errors');
+        assertEqual(result.stderr, '', 'stderr');
       },
     },
     {
