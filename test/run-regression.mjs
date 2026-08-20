@@ -739,6 +739,77 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'float literals reject overflow and normalize underflow (issue #54)',
+      run: () => {
+        const result = runCli([], {
+          input: [
+            'T = 1.0e-99999, F is T.',
+            'T = 1.0e99999, float(T).',
+            'T = 1.0e99999, float(T), F is T.',
+            'T = 1.0e99999, U = 2.0e99999, T > U.',
+            'T = 1.0e99999, U = 2.0e99999, T < U.',
+            'T = 1.0e99999, U = 2.0e99999, T = U.',
+            'T = 1.0e99999, U = 2.0e99999, T =:= U.',
+            'halt.',
+            '',
+          ].join('\n'),
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'T = 0.0, F = 0.0.', 'underflow rounds on input');
+        assertEqual(
+          (result.stdout.match(/error\(representation_error\(max_float\)\)\./g) ?? []).length,
+          6,
+          'all overflowing literals fail while being read',
+        );
+        assertEqual(result.stderr, '', 'stderr');
+
+        let overflow = null;
+        try {
+          parseNumberTokenText('1.0e99999');
+        } catch (error) {
+          overflow = error;
+        }
+        assertEqual(overflow?.formal, 'representation_error(max_float)', 'number token overflow');
+        assertEqual(parseNumberTokenText('1.0e-99999').name, '0.0', 'number token underflow');
+
+        const chars = Array.from('1.0e99999', atom);
+        const numberChars = createDefaultRegistry().get('number_chars', 2).handler;
+        let numberCharsError = null;
+        try {
+          numberChars({
+            goal: compound('number_chars', [variable('N'), listFromItems(chars)]),
+            env: new Env(),
+          }).next();
+        } catch (error) {
+          numberCharsError = error;
+        }
+        assertEqual(numberCharsError?.formal, 'representation_error(max_float)', 'number_chars overflow');
+
+        let readError = null;
+        try {
+          runEyeProlog('', {
+            goal: 'read(X)',
+            ioOptions: { input: '1.0e99999.\n' },
+          });
+        } catch (error) {
+          readError = error;
+        }
+        assertEqual(readError?.formal, 'representation_error(max_float)', 'read/1 overflow');
+
+        const isHandler = createDefaultRegistry().get('is', 2).handler;
+        let hostTermError = null;
+        try {
+          isHandler({
+            goal: compound('is', [variable('F'), numberTerm('1.0e99999')]),
+            env: new Env(),
+          }).next();
+        } catch (error) {
+          hostTermError = error;
+        }
+        assertEqual(hostTermError?.formal, 'evaluation_error(float_overflow)', 'host-created non-finite term');
+      },
+    },
+    {
       name: 'readers keep a full stop inside a character-code constant (WG17 #367)',
       run: () => {
         const streamResult = runEyeProlog('', {

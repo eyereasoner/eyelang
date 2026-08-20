@@ -3,6 +3,23 @@
 import { ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
 import { continuesGraphicToken, isTerminatingFullStop } from './syntax-scan.js';
 
+
+export class NumberRepresentationError extends Error {
+  constructor(formal) {
+    super(`error(${formal})`);
+    this.name = 'NumberRepresentationError';
+    this.formal = formal;
+  }
+}
+
+function finiteFloatTokenText(text) {
+  const value = Number(text);
+  if (!Number.isFinite(value)) {
+    throw new NumberRepresentationError('representation_error(max_float)');
+  }
+  return value === 0 ? '0.0' : text;
+}
+
 const TOK = {
   EOF: 'eof', ATOM: 'atom', VAR: 'var', STRING: 'string', NUMBER: 'number',
   LPAREN: '(', RPAREN: ')', LBRACKET: '[', RBRACKET: ']', LBRACE: '{', RBRACE: '}',
@@ -536,7 +553,7 @@ class Parser {
       }
       let text = this.source.slice(start, this.pos);
       if (!hasFraction) text = BigInt(text).toString();
-      else if (Object.is(Number(text), -0)) text = '0.0';
+      else text = finiteFloatTokenText(text);
       return { type: TOK.NUMBER, text, line };
     }
 
@@ -1510,8 +1527,7 @@ export function parseNumberTokenText(text) {
   }
   if (position !== source.length) throw invalidNumberTokenError;
   if (/^-?\d+$/.test(source)) return numberTerm(BigInt(source).toString());
-  if (Object.is(Number(source), -0)) return numberTerm('0.0');
-  return numberTerm(source);
+  return numberTerm(finiteFloatTokenText(source));
 }
 
 export function parseTermText(text, options = {}) {

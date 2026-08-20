@@ -6,7 +6,7 @@ import {
   properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
 import { sameNumberValue } from './number-value.js';
-import { createParserOperatorState, parseGoalText, parseNumberTokenText, parseTermText } from './parser.js';
+import { NumberRepresentationError, createParserOperatorState, parseGoalText, parseNumberTokenText, parseTermText } from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 import {
@@ -1235,7 +1235,8 @@ function readTermFromStream(stream, solver) {
         const term = parseReadTermText(candidate.text, solver);
         stream.position = candidate.end;
         return scopeReadTerm(term);
-      } catch (_) {
+      } catch (error) {
+        if (error instanceof NumberRepresentationError) throw new PrologError(error.formal);
         // A dot inside a graphic operator, such as =.., is only a possible
         // terminator. Keep scanning until a complete term parses.
       }
@@ -1661,7 +1662,8 @@ function parseIsoNumber(text) {
     const finite = Number(value.name);
     if (!Number.isFinite(finite)) return null;
     return numberTerm(numberTextFromDouble(finite));
-  } catch (_) {
+  } catch (error) {
+    if (error instanceof NumberRepresentationError) throw new PrologError(error.formal);
     return null;
   }
 }
@@ -2299,9 +2301,10 @@ function evaluate(term, env) {
   term = deref(term, env);
   if (term.type === VAR) throw new PrologError('instantiation_error');
   if (term.type === NUMBER) {
-    return isDecimalInteger(term.name)
-      ? { integer: true, value: BigInt(term.name) }
-      : { integer: false, value: Number(term.name) };
+    if (isDecimalInteger(term.name)) return { integer: true, value: BigInt(term.name) };
+    const value = Number(term.name);
+    if (!Number.isFinite(value)) throw new PrologError('evaluation_error(float_overflow)');
+    return { integer: false, value };
   }
   if (term.type === ATOM) {
     if (term.name === 'pi') return { integer: false, value: Math.PI };
