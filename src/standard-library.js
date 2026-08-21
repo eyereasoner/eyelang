@@ -118,7 +118,7 @@ export const eyePrologInteropAutoload = Object.freeze({
   // allowing Trealla-style unqualified source to use the same autoload entry.
   'call_nth/2': 'iso_ext',
   // Trealla exposes time/1 as a meta timing predicate and library(iso_ext)
-  // supplies ...//0. Autoload both so UWN's DCG hand-off benchmark runs
+  // supplies ... //0. Autoload both so UWN's DCG hand-off benchmark runs
   // unchanged while their implementations remain outside the ISO core.
   'time/1': 'iso_ext',
   '.../2': 'iso_ext',

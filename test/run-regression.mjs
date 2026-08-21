@@ -740,6 +740,14 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'arithmetic underflow choice differs from float-token input underflow (issue #56)',
+      run: () => {
+        const result = run('', { goal: 'catch((N is 0.1*10** -999), error(evaluation_error(underflow), _), N = underflow)' });
+        assertEqual(result.stdout, 'catch(underflow is 0.1 * 10 ** -999, error(evaluation_error(underflow), eyeprolog), underflow = underflow).\n', 'operation underflow');
+        assertEqual(run('', { goal: 'N = 0.1e-999' }).stdout, '0.0 = 0.0.\n', 'float-token input underflow');
+      },
+    },
+    {
       name: 'float literals reject overflow and normalize underflow (issue #54)',
       run: () => {
         const result = runCli([], {
@@ -1520,7 +1528,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'Trealla-style DCG hand-off autoloads time/1 and ...//0 without quadratic occurs checks (issue #49)',
+      name: 'Trealla-style DCG hand-off autoloads time/1 and ... //0 without quadratic occurs checks (issue #49)',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;
         const script = `
@@ -1593,7 +1601,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'REPL applies conservative autoloading to interactive time/1 and consulted ...//0',
+      name: 'REPL applies conservative autoloading to interactive time/1 and consulted ... //0',
       run: () => {
         const filename = path.join(tmp, `issue49-handoff-${tmpCounter++}.pl`);
         fs.writeFileSync(filename, 'a --> ..., epsilon.\nepsilon --> [].\n');
@@ -3399,6 +3407,33 @@ function documentationSyncCases() {
     {
       name: 'documentation uses EyeProlog source style',
       run: () => assertArrayEqual(documentationSourceStyleIssues(), [], 'documentation source style'),
+    },
+    {
+      name: 'DCG nonterminal indicator prose uses valid ... //0 spacing (issue #49)',
+      run: () => {
+        for (const filename of ['README.md', 'the-art-of-eyeprolog.md', 'src/standard-library.js', 'src/solver.js']) {
+          const text = fs.readFileSync(path.join(packageRoot, filename), 'utf8');
+          assertNotIncludes(text, '...' + '//0', `${filename} invalid compact nonterminal indicator`);
+        }
+      },
+    },
+    {
+      name: 'ISO 5.4 decision index inventories implementation-defined choices (issue #56)',
+      run: () => {
+        const filename = path.join(testRoot, 'conformance', 'ISO-IMPLEMENTATION-DEFINED.md');
+        const text = fs.readFileSync(filename, 'utf8');
+        for (const clause of [
+          '5.5.11', '6.5', '6.6', '7.1.2.2', '7.1.4.1', '7.4.2.4', '7.4.2.5',
+          '7.4.2.6', '7.4.2.7', '7.4.2.8', '7.4.2.9', '7.5.1', '7.7.1', '7.7.3',
+          '7.10.1', '7.10.2.6', '7.10.2.7', '7.10.2.8', '7.10.2.9', '7.10.2.11',
+          '7.10.2.13', '7.11.1.1', '7.11.1.2', '7.11.1.3', '7.11.1.4', '7.11.2.1',
+          '7.11.2.2', '7.11.2.3', '7.11.2.5', '7.12.1', '7.12.2(f)', '8.17.1',
+          '8.17.3', '8.17.4', '9.1.3.1', '9.1.4.1', '9.1.4.2', '9.1.4.3', '9.4',
+          '9.4.1', '9.4.2', '9.4.3', '9.4.4', '9.4.5', 'Cor.2 9.4.6',
+        ]) assertIncludes(text, `| ${clause} |`, `ISO 5.4 clause ${clause}`);
+        assertIncludes(text, 'Why issue #56', 'issue #56 explanation');
+        assertIncludes(text, 'Implementation-specific features required to be documented by 5.4', '5.5 extension inventory');
+      },
     },
     {
       name: 'book is the single implementation reference',

@@ -28,12 +28,13 @@ uninstantiation errors, and corrected `catch/3` behavior (Cor.2); and option
 validation, variable-name traversal/output, canonical list output, and negative
 integer powers (Cor.3).
 
-Implementation-defined choices are documented in *The Art of EyeProlog*:
-integers and arity are unbounded by the Prolog model (subject to host memory),
-ordinary unification performs an occurs check, `double_quotes` defaults to
-`chars`, both strict core mode and normal EyeProlog use the ISO
-`unknown=error` default, `//` rounds toward zero, floating-point operations use
-finite ECMAScript numbers, and character codes use Unicode scalar values.
+Implementation-defined and implementation-specific choices are indexed
+clause-by-clause in [ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.md),
+with *The Art of EyeProlog* remaining the implementation reference. In
+particular, the index records the unbounded integer model, `double_quotes=chars`,
+`//` rounding toward zero, the ECMAScript binary64 float policy (including the
+9.1.4.2 arithmetic-underflow choice), stream/character decisions, and the
+normal-profile extension boundary.
 
 This is an executable conformance matrix, not a certification issued by an
 independent standards body. Release gating runs the ISO cases and the dedicated

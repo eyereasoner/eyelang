@@ -1333,7 +1333,7 @@ function bundledEllipsisPlan(solver, group, goal, rest, env) {
   }
 
   // length/2 and other native constructors can leave a known finite list as a
-  // compact spine.  The ordinary ...//0 relation simply enumerates every
+  // compact spine.  The ordinary ... //0 relation simply enumerates every
   // suffix of such a list; doing that directly avoids clause freshening and
   // recursive solver depth for every consumed element.  Non-compact and open
   // list cases retain the ordinary Prolog definition.

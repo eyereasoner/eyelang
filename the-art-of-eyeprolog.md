@@ -5668,7 +5668,7 @@ round-tripping.  The checked answers are in
 
 #### Deep sequence hand-off
 
-`library(iso_ext)` provides the common `...//0` helper, which describes an
+`library(iso_ext)` provides the common `... //0` helper, which describes an
 arbitrary number of input elements.  It is not part of ISO Part 3, but it is a
 useful interoperability and stress-test relation.  A compact hand-off test is:
 
@@ -5677,7 +5677,7 @@ a --> ..., epsilon.
 epsilon --> [].
 ```
 
-Here the remaining sequence is repeatedly passed from `...//0` to another
+Here the remaining sequence is repeatedly passed from `... //0` to another
 nonterminal.  For a finite compact list, EyeProlog can scan the arbitrary
 sequence iteratively instead of consuming one ordinary solver depth level per
 list cell.  If the continuation is structurally proven to be a zero-width
@@ -6207,7 +6207,7 @@ The current interoperability profile recognizes these library roles:
 | Library | Role in the interoperability profile |
 | --- | --- |
 | `library(lists)` | Common list module. A conservative subset of its exports is in the shared predicate profile. |
-| `library(iso_ext)` | Common extension-module name. `call_nth/2`, `time/1`, and the `...//0` arbitrary-sequence helper are conservatively autoloaded for cross-engine source. |
+| `library(iso_ext)` | Common extension-module name. `call_nth/2`, `time/1`, and the `... //0` arbitrary-sequence helper are conservatively autoloaded for cross-engine source. |
 | `library(lambda)` | Scryer-aligned higher-order notation. It is imported explicitly because loading it also installs the `+\` operator. |
 | `library(prologue)` | EyeProlog compatibility module, not a common interop library name. `between/3` is nevertheless autoloaded from it so portable source need not name this EyeProlog-specific provider. |
 
@@ -6234,7 +6234,7 @@ recovery headroom so finite-heap exhaustion remains a catchable
 EyeProlog API belongs to the shared profile. `call_nth/2`, `time/1`, and
 `.../2` are mapped there. `time/1` measures each solution of a meta-call and
 prints elapsed time, EyeProlog inference count, and MLips in Trealla-style form,
-for example `% Time elapsed 0.832s, 65551 Inferences, 0.079 MLips`; `...//0`
+for example `% Time elapsed 0.832s, 65551 Inferences, 0.079 MLips`; `... //0`
 describes an arbitrary number of input elements. Together they let the
 Trealla/Scryer DCG hand-off benchmark run in EyeProlog without source changes
 (assuming the usual list library is already imported in an interactive
@@ -7416,6 +7416,10 @@ Part 1 conformance audit. It distinguishes implemented/tested families from
 requirements whose normative `shall` clauses, option combinations, or error
 precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
+`test/conformance/ISO-IMPLEMENTATION-DEFINED.md` is the ISO 5.4 decision
+index: it enumerates the Part 1 implementation-defined decisions, the
+implementation-specific extension families, and any remaining strict-mode audit
+gaps without turning draft WG17/STC proposals into the licensed baseline.
 `test/conformance/WG17-SYNTAX-STATUS.md` separately traces the vendored active
 upstream syntax cases. Reviewed cases can pin exact strict-reader outcomes, while
 newly upgraded cases execute directly against the upstream Codex expectation.

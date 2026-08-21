@@ -182,6 +182,8 @@ modules, DCGs, quads, libraries, proofs, and the other documented extensions.
 
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
+The ISO 5.4 implementation-defined/implementation-specific decision index is
+[`test/conformance/ISO-IMPLEMENTATION-DEFINED.md`](test/conformance/ISO-IMPLEMENTATION-DEFINED.md).
 The separate [WG17 syntax ledger](test/conformance/WG17-SYNTAX-STATUS.md)
 records executable dispositions for the vendored active upstream WG17 syntax
 cases and runs as part of `npm test`. Reviewed cases can pin exact outcomes;
@@ -211,7 +213,7 @@ left-associative operators, so state is handed repeatedly from one nonterminal
 to the next rather than hidden in host code.
 
 Deep finite DCG traversal is kept relational but does not have to consume one
-general solver frame per token.  In particular, the interoperable `...//0`
+general solver frame per token.  In particular, the interoperable `... //0`
 helper from `library(iso_ext)` can scan a finite compact list iteratively, and a
 following grammar that is statically known to leave the DCG state unchanged can
 be continued without rebuilding a full clause-resolution frame for every
@@ -242,7 +244,7 @@ headroom, so an exhausted finite heap is reported as a catchable
 `resource_error(memory)` instead of degenerating into quadratic list checks.
 
 `library(iso_ext)` is also accepted as a common interop module name.
-EyeProlog exports `call_nth/2`, `time/1`, and the DCG helper `...//0` there.
+EyeProlog exports `call_nth/2`, `time/1`, and the DCG helper `... //0` there.
 The latter describes an arbitrary number of input elements and supports the
 nonterminal hand-off benchmark discussed in issue #49. These common predicates
 may be imported explicitly, while source/CLI/API dependency loading can resolve

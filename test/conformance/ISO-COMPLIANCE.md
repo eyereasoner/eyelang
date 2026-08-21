@@ -21,9 +21,9 @@ error-ordering alternative to an individual executable assertion.
 | 5.1(a) prepare conforming Prolog text | audit | Clause 6 parser/tokenizer coverage, directive coverage, syntax-error corpus, and the [complete vendored WG17 syntax matrix](WG17-SYNTAX-STATUS.md). Wider shall-by-shall text-processing audit remains open. |
 | 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 conformance corpus plus regression/API/example gates. A normative goal-semantics ledger is still being expanded. |
 | 5.1(c) reject nonconforming text/read-terms | audit | Dedicated syntax-error cases and strict-core extension rejection. Exhaustive lexical rejection coverage remains open. |
-| 5.1(d) document permitted variations | audit | Major implementation-defined choices are documented in *The Art of EyeProlog*. Every occurrence of “implementation defined/dependent/specific” in Part 1 still needs a final documentation cross-check. |
+| 5.1(d) document permitted variations | covered | The clause-by-clause [ISO 5.4 decision index](ISO-IMPLEMENTATION-DEFINED.md) records every explicit implementation-defined decision found in the Part 1 + Corrigenda baseline and separately inventories implementation-specific extension families. Rows marked `audit gap` remain conformance work, but the variation is no longer undocumented. |
 | 5.1(e) offer a strictly conforming mode | covered | `--iso-strict` and API option `isoStrict: true` restrict the processor to the Part 1 + Corrigenda 1-3 core language surface, remove EyeProlog-only registry/flag/operator features, and disable automatic tabling/recursion guards. |
-| 5.4 accompanying documentation | audit | The book is the implementation reference. The implementation-defined-feature inventory is not yet a closed checklist. |
+| 5.4 accompanying documentation | covered | *The Art of EyeProlog* remains the implementation reference; [ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.md) is the closed clause-by-clause 5.4 decision index and points each decision to implementation evidence or an explicit audit gap. |
 | 5.5 extensions preserve standard text | covered | Default mode retains EyeProlog extensions; strict core mode removes their language/runtime interpretation. Regression tests ensure the default profile remains unchanged. |
 
 ## Normative language families
@@ -95,6 +95,6 @@ ISO/IEC 13211-1 processor” until all of the following are true:
    difference explained or fixed;
 4. prescribed modes, errors, side effects, and relevant error precedence for
    every Part 1 built-in have executable coverage;
-5. every implementation-defined/dependent/specific choice required to be
-   documented is linked to the implementation reference; and
+5. every `audit gap` recorded in the ISO 5.4 decision index is either fixed or
+   explicitly excluded from the strict-conformance claim; and
 6. an external conformance run has found no unexplained deviations.
