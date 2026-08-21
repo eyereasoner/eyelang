@@ -5,7 +5,7 @@ import {
   ATOM, COMPOUND, VAR, Env, atom, compactListLength, compound, deref, emptyList,
   flattenConjunction, variable,
 } from './term.js';
-import { PrologError } from './iso.js';
+import { PrologError } from './errors.js';
 
 let dcgFresh = 0;
 

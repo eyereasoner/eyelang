@@ -45,6 +45,15 @@ relations such as list processing remain ordinary Prolog clauses imported with
 standard sorting, arithmetic, meta-calls, streams, and database operations use
 their ISO definitions directly.
 
+The implementation follows the same compactness rule. JavaScript runtime
+modules stay flat under `src/`: `program.js` and `iso.js` remain stable facade
+modules, while static program analysis, clause indexing, arithmetic evaluation,
+and processor error types are factored into focused sibling files. The
+execution fast paths remain direct code in `solver.js`; source cleanup is not
+allowed to add dispatch or abstraction overhead merely to make that file
+smaller. `src/ARCHITECTURE.md` records these boundaries and an automated test
+rejects JavaScript import cycles.
+
 
 ## Why keep well-founded negation explicit?
 

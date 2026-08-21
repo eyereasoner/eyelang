@@ -312,4 +312,10 @@ The GitHub test workflow runs the complete suite and an npm package dry-run on
 both the minimum supported Node.js 18 release line and Node.js 24. Publishing
 repeats those release checks before uploading the package.
 
+The runtime JavaScript modules stay flat under `src/`; the existing `src/lib/`
+directory contains the portable Prolog library modules. See
+[`src/ARCHITECTURE.md`](src/ARCHITECTURE.md) for the source-layer boundaries,
+facade modules, dependency rule, and the requirement that architectural cleanup
+must preserve the existing solver hot paths and benchmark performance.
+
 EyeProlog is released under the [MIT License](LICENSE.md).

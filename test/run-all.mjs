@@ -11,12 +11,14 @@ import { runExamples } from './run-examples.mjs';
 import { runBookExamples } from './run-book-examples.mjs';
 import { runWg17 } from './run-wg17.mjs';
 import { runOpenRuleBenchChecks } from './run-openrulebench.mjs';
+import { runArchitecture } from './run-architecture.mjs';
 
 await runStandalone(async (reporter) => {
   runConformance(reporter);
   runIsoStrict(reporter);
   runWg17(reporter);
   runOpenRuleBenchChecks(reporter);
+  runArchitecture(reporter);
   runRegression(reporter);
   await runPlayground(reporter);
   runExamples(reporter);

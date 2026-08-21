@@ -1939,23 +1939,39 @@ or finite-domain constraints require their normal wake-up points.
 
 ### Implementation boundary
 
-The source layout mirrors the language boundary. `src/iso.js` contains the
-isolated ISO processor predicates and registry. `src/dcg.js` implements the
-shared ISO Part 3 grammar-rule and dynamic-body expansion. Focused files under
-`src/lib/` contain the portable extensions, with `src/lib/lists.pl` supplying
-common list relations. They are ordinary ISO/IEC 13211-2 modules, organized
-like Trealla's `library/` and registered for `library(Name)` by
-`src/standard-library.js` in Node and the browser.
-The browser entry point `src/playground-worker.js` uses that same program and
-module-loading path in a dedicated worker.
+The source layout mirrors the language boundary while keeping the JavaScript
+runtime flat under `src/`. `src/iso.js` remains the stable ISO facade and
+built-in registry; arithmetic evaluation lives in `src/iso-arithmetic.js`, and
+processor control/error classes live in `src/errors.js`. `src/dcg.js`
+implements the shared ISO Part 3 grammar-rule and dynamic-body expansion
+without depending back on the ISO registry. This keeps the low-level syntax and
+error layers acyclic while preserving the existing `src/iso.js` exports.
+
+Program preparation follows the same pattern. `src/program.js` remains the
+`Program` facade and source/module loader. Static recursion, Datalog, WFS, and
+negation-stratification analysis is isolated in `src/program-analysis.js`,
+while compact-clause representation and conservative candidate indexes live in
+`src/program-indexing.js`. The solver consumes those same indexes directly;
+large execution fast paths deliberately remain in `src/solver.js` rather than
+being split through extra strategy objects or callbacks. Architectural cleanup
+is required to preserve benchmark performance as well as semantics.
+
+Focused files under `src/lib/` contain the portable extensions, with
+`src/lib/lists.pl` supplying common list relations. They are ordinary ISO/IEC
+13211-2 modules, organized like Trealla's `library/` and registered for
+`library(Name)` by `src/standard-library.js` in Node and the browser. The
+browser entry point `src/playground-worker.js` uses that same program and
+module-loading path in a dedicated worker. `src/ARCHITECTURE.md` records the
+layering and dependency rules, and the architecture regression rejects
+JavaScript import cycles.
 
 Normal CLI, JavaScript, `Solver`, proof replay, and the browser playground use
 the same module loader. A library is added to a `Program` only when its source
 uses `use_module/1` or `use_module/2`; exported predicates are imported into the
-calling module and private predicates remain module-local. Advanced embedders and conformance tests can select
-`getStrictIsoRegistry()` together with `isoStrict: true` for the Part 1 +
-Corrigenda strict surface. All paths share the parser, term representation,
-solver, streams, and proof machinery.
+calling module and private predicates remain module-local. Advanced embedders
+and conformance tests can select `getStrictIsoRegistry()` together with
+`isoStrict: true` for the Part 1 + Corrigenda strict surface. All paths share
+the parser, term representation, solver, streams, and proof machinery.
 
 ### Extending the built-in registry
 
