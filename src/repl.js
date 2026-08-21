@@ -18,6 +18,8 @@ RETURN or ".": stop enumeration
 "p": print terms with depth limit
 `;
 
+const SCRIPTED_NEXT_QUERY = Symbol('scripted-next-query');
+
 export async function runRepl(engine, options = {}) {
   const input = options.input ?? process.stdin;
   const output = options.output ?? process.stdout;
@@ -102,6 +104,7 @@ class LineReader {
     this.output = output;
     this.terminal = Boolean(input.isTTY && output.isTTY && typeof input.setRawMode === 'function');
     this.history = [];
+    this.pendingLines = [];
     this.currentPrompt = '?- ';
     this.open();
   }
@@ -119,16 +122,30 @@ class LineReader {
     this.lines = this.readline[Symbol.asyncIterator]();
   }
 
+  async nextLine() {
+    if (this.pendingLines.length > 0) return { done: false, value: this.pendingLines.shift() };
+    return this.lines.next();
+  }
+
   async read(prompt) {
     this.currentPrompt = prompt;
     this.readline.setPrompt(prompt);
     this.output.write(prompt);
-    const result = await this.lines.next();
+    const result = await this.nextLine();
     return result.done ? null : result.value;
   }
 
   async readControl(prompt) {
-    if (!this.terminal) return this.read(prompt);
+    if (!this.terminal) {
+      const result = await this.nextLine();
+      if (result.done) return null;
+      if (!isScriptedAnswerControl(result.value)) {
+        this.pendingLines.unshift(result.value);
+        return SCRIPTED_NEXT_QUERY;
+      }
+      this.output.write(prompt);
+      return result.value;
+    }
     this.output.write(prompt);
     this.history = [...this.readline.history];
     this.currentPrompt = '?- ';
@@ -248,6 +265,12 @@ class LineReader {
     if (this.input.isRaw) this.input.setRawMode(false);
     this.readline?.close();
   }
+}
+
+function isScriptedAnswerControl(line) {
+  if (line == null || line === '' || line === '\r' || line === '\n' || line === ' ') return true;
+  const control = line.trim();
+  return control.startsWith('.') || [';', 'n', 'a', 'f', 'w', 'p', 'h'].includes(control);
 }
 
 function runWithTerminalSignals(reader, operation) {
@@ -541,7 +564,6 @@ async function readSource(designation) {
 async function solveQuery(engine, state, goal, reader, output) {
   const variables = queryVariables(goal);
   const solver = state.solver;
-  const demandDriven = containsTimedGoal(goal);
   solver.solutionsSeen = 0;
   const solutions = solver.solve([goal], new engine.Env(), 0);
   let current = pullSolution(solver, solutions, reader);
@@ -560,12 +582,11 @@ async function solveQuery(engine, state, goal, reader, output) {
   let firstAnswer = true;
   let formattingAfterAdvance = false;
   while (!current.result.done) {
-    // Ordinary queries keep the existing eager look-ahead so deterministic
-    // answers can end with a full stop without showing an unnecessary answer
-    // prompt. `time/1` is different: running a future solution changes what is
-    // being measured and can retain a very large current substitution. Timed
-    // queries therefore advance only after the user asks for another answer.
-    const next = demandDriven ? null : pullSolution(solver, solutions, reader);
+    // Enumeration is demand-driven: never execute search for a future answer
+    // merely to decide how to punctuate the current one. That search may have
+    // side effects, and it belongs only to an explicit request for another
+    // answer. A scripted non-TTY session may start its next query directly;
+    // LineReader treats that as an implicit stop without consuming the query.
     if (formattingAfterAdvance) output.write(' ');
     formattingAfterAdvance = false;
     output.write(current.output);
@@ -574,7 +595,11 @@ async function solveQuery(engine, state, goal, reader, output) {
     answersShown++;
     firstAnswer = false;
 
-    if (demandDriven ? !solver.hasPendingAlternatives() : (!next.error && next.result.done)) {
+    if (!solver.hasPendingAlternatives()) {
+      // The solver is suspended at the yielded answer even though no work is
+      // left. Close the generator to run its cleanup/finally blocks without
+      // advancing search or executing future side effects.
+      if (typeof solutions.return === 'function') solutions.return();
       output.write(`${continuesGraphicToken(answer, answer.length) ? ' ' : ''}.\n`);
       return null;
     }
@@ -586,6 +611,11 @@ async function solveQuery(engine, state, goal, reader, output) {
     } else {
       while (true) {
         const controlLine = await reader.readControl('\n;');
+        if (controlLine === SCRIPTED_NEXT_QUERY) {
+          if (typeof solutions.return === 'function') solutions.return();
+          output.write(`${continuesGraphicToken(answer, answer.length) ? ' ' : ''}.\n`);
+          return null;
+        }
         if (controlLine == null || controlLine === '' || controlLine === '\r' || controlLine === '\n' ||
             controlLine.trimStart().startsWith('.')) {
           if (typeof solutions.return === 'function') solutions.return();
@@ -618,50 +648,27 @@ async function solveQuery(engine, state, goal, reader, output) {
       formattingAfterAdvance = true;
     }
 
-    if (demandDriven) {
-      // The displayed timed answer is no longer needed. Drop it before
-      // resuming search so a large list substitution does not remain live only
-      // because the top level is looking for its successor.
-      current = null;
-      const requested = pullSolution(solver, solutions, reader);
-      if (requested.error) {
-        if (formattingAfterAdvance) output.write(' ');
-        formattingAfterAdvance = false;
-        output.write(requested.output);
-        if (requested.error?.name === 'HaltSignal') return { halted: true, code: requested.error.code };
-        throw requested.error;
-      }
-      if (requested.result.done) {
-        if (formattingAfterAdvance) output.write(' ');
-        formattingAfterAdvance = false;
-        output.write(`${requested.output}false.\n`);
-        return null;
-      }
-      current = requested;
-      continue;
-    }
-
-    if (next.error) {
+    // Drop the displayed substitution before resuming search. The next search
+    // step, including any side effects, happens only after the user asked for
+    // another answer (or selected automatic enumeration).
+    current = null;
+    const requested = pullSolution(solver, solutions, reader);
+    if (requested.error) {
       if (formattingAfterAdvance) output.write(' ');
       formattingAfterAdvance = false;
-      output.write(next.output);
-      if (next.error?.name === 'HaltSignal') return { halted: true, code: next.error.code };
-      throw next.error;
+      output.write(requested.output);
+      if (requested.error?.name === 'HaltSignal') return { halted: true, code: requested.error.code };
+      throw requested.error;
     }
-    current = next;
+    if (requested.result.done) {
+      if (formattingAfterAdvance) output.write(' ');
+      formattingAfterAdvance = false;
+      output.write(`${requested.output}false.\n`);
+      return null;
+    }
+    current = requested;
   }
   return null;
-}
-
-function containsTimedGoal(goal) {
-  const stack = [goal];
-  while (stack.length !== 0) {
-    const term = stack.pop();
-    if (term?.type !== 'compound') continue;
-    if (term.name === 'time' && term.arity === 1) return true;
-    for (let index = term.args.length - 1; index >= 0; index--) stack.push(term.args[index]);
-  }
-  return false;
 }
 
 function pullSolution(solver, solutions, reader) {

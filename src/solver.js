@@ -679,7 +679,7 @@ export class Solver {
 
   hasPendingAlternatives() {
     // When solve() is suspended at an answer, active solve stacks contain only
-    // unexplored work. The timed REPL path uses this without speculatively
+    // unexplored work. The demand-driven REPL uses this without speculatively
     // pulling the next answer.
     return this.solveStacks.some((stack) => stack.length !== 0);
   }

@@ -1676,6 +1676,52 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL does not precompute an unrequested future alternative (issue #48)',
+      run: () => {
+        const result = runCli([], {
+          input: '(X = first; (repeat, fail)).\nhalt.\n',
+          timeout: 2000,
+        });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    X = first.\n?- ', 'first answer is immediate');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL executes future side effects only after another answer is requested (issue #48)',
+      run: () => {
+        const stopped = runCli([], {
+          input:
+            '(X = first; (assertz(issue48_seen), X = second)).\n' +
+            'current_predicate(issue48_seen/0).\n' +
+            'halt.\n',
+        });
+        assertEqual(stopped.status, 0, 'stopped status');
+        assertEqual(
+          stopped.stdout,
+          '?-    X = first.\n?-    false.\n?- ',
+          'unrequested branch has no side effect',
+        );
+
+        const advanced = runCli([], {
+          input:
+            '(X = first; (assertz(issue48_seen), X = second)).\n' +
+            ';\n' +
+            'current_predicate(issue48_seen/0).\n' +
+            'halt.\n',
+        });
+        assertEqual(advanced.status, 0, 'advanced status');
+        assertEqual(
+          advanced.stdout,
+          '?-    X = first\n;  X = second.\n?-    true.\n?- ',
+          'requested branch performs its side effect',
+        );
+        assertEqual(stopped.stderr, '', 'stopped stderr');
+        assertEqual(advanced.stderr, '', 'advanced stderr');
+      },
+    },
+    {
       name: 'REPL bindings use argument syntax for operator atoms',
       run: () => {
         const result = runCli([], {
@@ -1707,7 +1753,7 @@ c4 ?- call((!;1)).
           child.stdout.on('data', (text) => {
             stdout += text;
             if (stdout.endsWith('?-   ')) sawQueryComputingPrompt = true;
-            if (stdout.endsWith('\\n; ')) sawComputingPrompt = true;
+            if (stdout.includes('\\n; ')) sawComputingPrompt = true;
           });
           child.stderr.on('data', (text) => { stderr += text; });
 
@@ -1728,10 +1774,10 @@ c4 ?- call((!;1)).
           await waitFor(() => sawQueryComputingPrompt, 'query computing prompt');
           await waitFor(() => stdout.endsWith('   false.\\n?- '), 'query result');
           child.stdin.write('(N = 0; N = 1; (call_nth(repeat, 100000), N = 2)).\\n');
-          await waitFor(() => stdout.endsWith('   N = 0\\n;'), 'waiting prompt');
+          await waitFor(() => stdout.endsWith('   N = 0'), 'first answer');
           child.stdin.write(';\\n');
           await waitFor(() => sawComputingPrompt, 'computing prompt');
-          await waitFor(() => stdout.endsWith(';  N = 1\\n;'), 'formatted answer');
+          await waitFor(() => stdout.endsWith(';  N = 1'), 'formatted answer');
           child.stdin.write('\\n');
           await waitFor(() => stdout.endsWith('  ... .\\n?- '), 'stopped enumeration');
           child.stdin.write('halt.\\n');

@@ -6645,8 +6645,16 @@ When another answer exists in an interactive terminal, press `;`, Space, or
 enumeration, `a` enumerates all remaining answers, and `f` advances to the
 next five-answer boundary (5, 10, 15, ... displayed leaf answers), regardless
 of how many answers were stepped through individually beforehand. `h` displays
-the answer-control help. Once the top-level reader has accepted a complete
-query, the following line begins with two spaces to mark active execution; a
+the answer-control help. Enumeration is demand-driven: after an answer is
+found, the top level does not pull a successor merely to discover whether the
+current answer is the last one. Search for a later answer, including any side
+effects reached on that path, starts only after an answer-control command asks
+to continue. If an unresolved alternative ultimately has no solution, asking
+for it may therefore finish with `false.`. In scripted non-TTY input, a new
+query line implicitly stops the preceding answer enumeration without consuming
+the new query; explicit `;`, `n`, Space, `a`, or `f` still requests more
+answers. Once the top-level reader has accepted a complete query, the following
+line begins with two spaces to mark active execution; a
 third space appears when its result is ready for formatting. The answer prompt
 is `;` with no trailing space while it waits for input; after an advance
 command, one space marks active search and a second marks an answer ready for
