@@ -6831,9 +6831,12 @@ variable in the renamed exception term. `...` and `ad_infinitum` accept further 
 indented descriptions after one query are independent checks: each re-runs the
 query, each is counted in the `quads:` summary, and a failing description does
 not suppress later descriptions for that query. `inputs/1` supplies and checks
-consumed characters; `outputs/1` checks emitted characters. `sto` marks
-an answer description that this finite-tree implementation skips. `loops` is
-checked with a deterministic solver-depth budget. The advanced stream
+consumed characters; `outputs/1` checks characters emitted while reaching
+the described answer or error, including output produced before a later
+exception. `sto` marks an answer description that this finite-tree
+implementation skips. `loops` accepts direct active-variant cycle evidence from
+EyeProlog's normal recursion guard, with bounded depth/inference exhaustion as a
+fallback for loops that have no such structural witness. The advanced stream
 annotations `peeks/1` and `waits`, and the unordered `other_answer_sequence`
 annotation, are not executed by the current runner.
 

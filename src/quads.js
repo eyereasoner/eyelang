@@ -247,7 +247,10 @@ function executeQuery(program, query, input, maxSolutions, options) {
     error,
     tailOutput,
     inputPosition,
-    loops: solver.depthLimitExceeded || solver.inferenceLimitExceeded,
+    // Accept direct structural evidence from EyeProlog's recursion guard as
+    // well as bounded-search evidence. A detected active-variant cycle is
+    // stronger evidence than merely reaching a timeout/inference ceiling.
+    loops: solver.recursionCycleDetected || solver.depthLimitExceeded || solver.inferenceLimitExceeded,
   };
 }
 

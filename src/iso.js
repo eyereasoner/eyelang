@@ -1939,7 +1939,13 @@ function validateControlCallable(term, culprit, env) {
     if (current.type !== COMPOUND || ![',', ';', '->'].includes(current.name) || current.arity !== 2) continue;
     for (let index = current.arity - 1; index >= 0; index--) {
       const argument = deref(current.args[index], env);
-      if (argument.type === VAR) throw new PrologError('instantiation_error');
+      // A variable nested in a control construct is not an error at call/1
+      // entry: an earlier goal may instantiate it before execution reaches
+      // that position. If it is still unbound when selected, the solver then
+      // raises instantiation_error at that point, after any preceding effects.
+      // Non-variable non-callables are different: ISO call/1 validates those
+      // eagerly and reports the whole control term as the culprit.
+      if (argument.type === VAR) continue;
       if (argument.type !== ATOM && argument.type !== COMPOUND) {
         throw new PrologError('type_error(callable)', culprit);
       }

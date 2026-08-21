@@ -1318,6 +1318,22 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'runQuads preserves output before a delayed call/1 instantiation error (issue #57)',
+      run: () => {
+        const result = publicApi.runQuads(`16, "7.8.3.4#9"\n?- call((write(3), X)).\n   outputs("3"), instantiation_error.\n`);
+        assertEqual(result.passed, 1, 'quad passed');
+        assertEqual(result.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
+      name: 'runQuads recognizes recursion-guard cycle evidence as loops (issue #58)',
+      run: () => {
+        const result = publicApi.runQuads(`inf :- inf, inf.\n\n23\n?- inf.\n   loops.\n`);
+        assertEqual(result.passed, 1, 'quad passed');
+        assertEqual(result.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: '--quads runs embedded tests and reports failures through exit status',
       run: () => {
         const passing = runCli(['--quads', '-'], {

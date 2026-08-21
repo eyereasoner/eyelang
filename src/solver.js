@@ -63,6 +63,10 @@ export class Solver {
     // limit accounting. time/1 snapshots this counter around the measured goal.
     this.inferenceObservation = options.inferenceObservation ?? { value: 0 };
     this.inferenceLimitExceeded = false;
+    // Set when the normal-profile recursion guard detects re-entry of an
+    // already active variant on the current search path. Quad `loops` checks
+    // use this structural evidence in addition to bounded resource probes.
+    this.recursionCycleDetected = false;
     this.maxMemoryBytes = options.maxMemoryBytes ?? softHeapLimit();
     this.memoryRecovery = options.memoryRecovery ?? {
       active: false,
@@ -261,6 +265,7 @@ export class Solver {
     if (!child || child === this || !child.stats) return;
     this.depthLimitExceeded ||= child.depthLimitExceeded;
     this.inferenceLimitExceeded ||= child.inferenceLimitExceeded;
+    this.recursionCycleDetected ||= child.recursionCycleDetected;
     for (const [key, value] of Object.entries(child.stats)) {
       if (key === 'max_depth' || key === 'max_goal_count') {
         this.stats[key] = Math.max(this.stats[key] ?? 0, value ?? 0);
@@ -845,7 +850,10 @@ export class Solver {
   }
 
   *solveUserGoalUncached(group, goal, rest, env, depth) {
-    if (group.recursive && !group.cutRecursive && !group.linearNumeric && this.activeVariant(goal, env)) return;
+    if (group.recursive && !group.cutRecursive && !group.linearNumeric && this.activeVariant(goal, env)) {
+      this.recursionCycleDetected = true;
+      return;
+    }
     // Program indexes provide candidate clauses, but every candidate is still
     // freshened and unified below. The index is a performance hint, not a
     // semantic shortcut.
@@ -1047,7 +1055,10 @@ function pushMemoAnswerFrames(stack, entry, goal, rest, env, depth, active, solv
 }
 
 function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth, active) {
-  if (group.recursive && !group.cutRecursive && !group.linearNumeric && activeVariantIn(goal, env, active)) return;
+  if (group.recursive && !group.cutRecursive && !group.linearNumeric && activeVariantIn(goal, env, active)) {
+    solver.recursionCycleDetected = true;
+    return;
+  }
   if (group.fastPi && pushFastPiFrames(stack, goal, rest, env, depth, active)) return;
   if (tryPushGroundScalarRuleFrame(stack, solver, group, goal, rest, env, depth, active)) return;
   if (tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, active)) return;
@@ -1981,7 +1992,10 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
     }
 
     const goal = runGoals[state.index];
-    if (activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) continue;
+    if (activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
+      solver.recursionCycleDetected = true;
+      continue;
+    }
     solver.stats.solve_one_goal_calls++;
     const candidates = selectScalarFactCandidates(groups[state.index], goal, env, state.names, state.values);
     const nextStates = [];
@@ -2035,7 +2049,10 @@ function* scalarFactRunSolutions(solver, goals, groups, env, depth, active) {
     }
 
     const goal = goals[state.index];
-    if (activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) continue;
+    if (activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
+      solver.recursionCycleDetected = true;
+      continue;
+    }
     solver.stats.solve_one_goal_calls++;
     const candidates = selectScalarFactCandidates(groups[state.index], goal, env, state.names, state.values);
     const nextStates = [];
@@ -2205,7 +2222,11 @@ function tryPushCompactBinaryChainFrames(stack, solver, group, goal, rest, env, 
     if (solver.solutionsSeen >= solver.solutionLimit) return true;
     solver.stats.max_depth = Math.max(solver.stats.max_depth, currentDepth);
     const seenSet = seen[secondType];
-    if (!seenSet || seenSet.has(secondName)) return true;
+    if (!seenSet) return true;
+    if (seenSet.has(secondName)) {
+      solver.recursionCycleDetected = true;
+      return true;
+    }
     if (cache[secondType].has(secondName)) {
       rememberCompactChainSuccess(cache, seen);
       stack.push({ kind: 'goals', goals: rest, env, depth: depth + 1, active });
@@ -2326,8 +2347,14 @@ function tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, 
     if (solver.solutionsSeen >= solver.solutionLimit) return true;
     solver.stats.max_depth = Math.max(solver.stats.max_depth, currentDepth);
     const key = groundChainKey(currentGoal);
-    if (seen.has(key)) return true;
-    if (activeVariantIn(currentGoal, currentEnv, active)) return true;
+    if (seen.has(key)) {
+      solver.recursionCycleDetected = true;
+      return true;
+    }
+    if (activeVariantIn(currentGoal, currentEnv, active)) {
+      solver.recursionCycleDetected = true;
+      return true;
+    }
     if (solver.groundChainSuccess.has(key)) {
       rememberGroundChainSuccess(solver, seen);
       stack.push({ kind: 'goals', goals: rest, env: baseEnv, depth: depth + 1, active });
