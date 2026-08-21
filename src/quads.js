@@ -3,7 +3,7 @@
 // used by Trealla and the ISO Prolog working examples linked from issue #1.
 import {
   ATOM, COMPOUND, VAR, Env, atom, compound, copyResolved, deref,
-  flattenConjunction, properListItems, termIsGround,
+  flattenConjunction, listFromItems, properListItems, termIsGround,
   unify, variable,
 } from './term.js';
 import { parseGoalText } from './parser.js';
@@ -12,13 +12,16 @@ import { Solver } from './solver.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { formatTermForWrite } from './write.js';
 
+const DEFAULT_QUAD_MAX_INFERENCES = 100000;
+const DEFAULT_LOOP_MAX_INFERENCES = 10000;
+
 export function runQuads(source, options = {}) {
   const program = source instanceof Program
     ? source
     : Program.parse(source, { ...options, sourceMetadata: true });
   const quads = program.quads ?? [];
   if (quads.length === 0) {
-    return { stdout: 'quads: nothing to run.\n', total: 0, passed: 0, failed: 0, results: [] };
+    return { stdout: 'quads: nothing to run.\n', total: 0, passed: 0, failed: 0, undecided: 0, results: [] };
   }
 
   if (options.initialize !== false) {
@@ -43,9 +46,11 @@ export function runQuads(source, options = {}) {
     }
   }
   const passed = results.filter((result) => result.ok).length;
-  const failed = results.length - passed;
-  lines.push(`quads: ${results.length} run, ${passed} passed, ${failed} failed.\n`);
-  return { stdout: lines.join(''), total: results.length, passed, failed, results };
+  const undecided = results.filter((result) => result.kind === 'undecided').length;
+  const failed = results.length - passed - undecided;
+  const undecidedSummary = undecided === 0 ? '' : `, ${undecided} undecided`;
+  lines.push(`quads: ${results.length} run, ${passed} passed, ${failed} failed${undecidedSummary}.\n`);
+  return { stdout: lines.join(''), total: results.length, passed, failed, undecided, results };
 }
 
 function checkQuadDescription(program, quad, description, options) {
@@ -66,12 +71,14 @@ function checkDescription(program, quad, description, options) {
     if (malformed != null) return { ok: false, kind: 'malformed', expected: malformed };
   }
   let unsupported = null;
+  let undecided = null;
   for (const alternative of ordered) {
     const checked = checkAlternative(program, quad, alternative, options);
     if (checked.ok) return checked;
     if (checked.kind === 'unsupported') unsupported ??= checked;
+    if (checked.kind === 'undecided') undecided ??= checked;
   }
-  return unsupported ?? { ok: false, kind: 'failed', expected: description };
+  return unsupported ?? undecided ?? { ok: false, kind: 'failed', expected: description };
 }
 
 function checkAlternative(program, quad, alternative, options) {
@@ -98,15 +105,21 @@ function checkAlternative(program, quad, alternative, options) {
 
   if (inputSpecs.length > 0) {
     const leaf = leaves[0];
-    const matches = actual.inputPosition === input.length && matchLeaf(quad.query, leaf, actual, 0);
+    const matches = actual.inputPosition === input.length && matchLeaf(program, quad.query, leaf, actual, 0);
+    if (actual.undecided && !matches) return undecidedResult(actual, alternative);
     return { ok: leaf.unexpected ? !matches : matches };
   }
 
   let position = 0;
   for (const leaf of leaves) {
     if (leaf.more && !leaf.hasExpectation) return { ok: true };
-    const matches = matchLeaf(quad.query, leaf, actual, position);
-    if (leaf.unexpected ? matches : !matches) return { ok: false };
+    const matches = matchLeaf(program, quad.query, leaf, actual, position);
+    if (leaf.unexpected ? matches : !matches) {
+      if (actual.undecided && leafNeedsMoreSearch(leaf, actual, position)) {
+        return undecidedResult(actual, alternative);
+      }
+      return { ok: false };
+    }
     // An unexpected error description is a negative assertion about that
     // particular error pattern.  A different exception may be present and is
     // checked by other descriptions; do not make the final 'no error' test
@@ -114,12 +127,16 @@ function checkAlternative(program, quad, alternative, options) {
     if (leaf.unexpected && leaf.error != null) return { ok: true };
     if (leaf.more) return { ok: true };
     if (!leaf.unexpected && (leaf.false || leaf.error != null)) {
+      if (actual.undecided) return undecidedResult(actual, alternative);
       return { ok: position === leaves.length - 1 };
     }
     position++;
   }
 
-  const ended = position >= actual.solutions.length && actual.error == null;
+  const ended = position >= actual.solutions.length && actual.error == null && !actual.undecided;
+  if (!ended && actual.undecided && position >= actual.solutions.length && actual.error == null) {
+    return undecidedResult(actual, alternative);
+  }
   return { ok: ended };
 }
 
@@ -184,9 +201,8 @@ function describeLeaf(term) {
       continue;
     }
     if (item.type === COMPOUND && item.name === 'outputs' && item.arity === 1) {
-      const text = characterText(item.args[0]);
-      if (text == null || leaf.output != null) leaf.malformed ??= item;
-      else leaf.output = text;
+      if (leaf.output != null) leaf.malformed ??= item;
+      else leaf.output = item.args[0];
       continue;
     }
     if (item.type === COMPOUND && item.name === 'peeks' && item.arity === 1) {
@@ -208,7 +224,9 @@ function executeQuery(program, query, input, maxSolutions, options) {
     ...options,
     registry: options.registry ?? getEyePrologRegistry(),
     maxDepth: options.detectLoops ? (options.loopMaxDepth ?? 1000) : options.maxDepth,
-    maxInferences: options.detectLoops ? (options.loopMaxInferences ?? 10000) : options.maxInferences,
+    maxInferences: options.detectLoops
+      ? (options.loopMaxInferences ?? DEFAULT_LOOP_MAX_INFERENCES)
+      : (options.quadMaxInferences ?? options.maxInferences ?? DEFAULT_QUAD_MAX_INFERENCES),
     // The solver's counter also observes completed nested searches (for
     // example each arm of a DCG disjunction).  Bound the public iterator here
     // instead of letting those internal completions consume the quad's answer
@@ -242,29 +260,37 @@ function executeQuery(program, query, input, maxSolutions, options) {
     error = { term: errorTerm(caught), output: pendingOutput };
   }
   const inputPosition = solver.io.resolve('user_input')?.position ?? 0;
+  const bounded = solver.depthLimitExceeded || solver.inferenceLimitExceeded;
+  const undecided = !options.detectLoops && (solver.recursionCycleDetected || bounded);
   return {
     solutions,
     error,
     tailOutput,
     inputPosition,
-    // Accept direct structural evidence from EyeProlog's recursion guard as
-    // well as bounded-search evidence. A detected active-variant cycle is
-    // stronger evidence than merely reaching a timeout/inference ceiling.
-    loops: solver.recursionCycleDetected || solver.depthLimitExceeded || solver.inferenceLimitExceeded,
+    // A loops expectation explicitly asks for bounded nontermination evidence.
+    // Other descriptions treat the same exhausted search budget as undecided:
+    // a timeout cannot establish finite failure or an exact answer sequence.
+    loops: options.detectLoops && (solver.recursionCycleDetected || bounded),
+    undecided,
+    undecidedReason: solver.inferenceLimitExceeded ? 'inference limit reached'
+      : solver.depthLimitExceeded ? 'depth limit reached'
+        : solver.recursionCycleDetected ? 'recursion cycle encountered'
+          : null,
   };
 }
 
-function matchLeaf(query, leaf, actual, position) {
+function matchLeaf(program, query, leaf, actual, position) {
   if (leaf.loops) return actual.loops;
   if (leaf.false) {
-    return position >= actual.solutions.length && actual.error == null && outputMatches(leaf.output, actual.tailOutput);
+    return position >= actual.solutions.length && actual.error == null && !actual.undecided &&
+      outputMatches(program, leaf.output, actual.tailOutput);
   }
   if (leaf.error != null) {
     return position === actual.solutions.length && actual.error != null &&
-      errorMatches(query, leaf.error, actual.error.term) && outputMatches(leaf.output, actual.error.output);
+      errorMatches(query, leaf.error, actual.error.term) && outputMatches(program, leaf.output, actual.error.output);
   }
   const solution = actual.solutions[position];
-  if (!solution || !outputMatches(leaf.output, solution.output)) return false;
+  if (!solution || !outputMatches(program, leaf.output, solution.output)) return false;
   return substitutionMatches(query, leaf.bindings, solution.env);
 }
 
@@ -391,9 +417,161 @@ function characterText(term) {
   return text;
 }
 
-function outputMatches(expected, actual) {
-  return expected == null || expected === actual;
+function outputMatches(program, expected, actual) {
+  if (expected == null) return true;
+
+  // Preserve the original exact character-list/code-list shorthand first.
+  const exactText = characterText(expected);
+  if (exactText != null && exactText === actual) return true;
+
+  // Trealla's portable quad convention also permits the captured character
+  // sequence to unify directly with outputs/1's argument before trying it as a
+  // DCG body. This makes outputs(Cs) and partially instantiated character lists
+  // useful without weakening the DCG interpretation.
+  const actualList = listFromItems(Array.from(actual, (character) => atom(character)));
+  if (unify(expected, actualList, new Env())) return true;
+
+  return outputDcgMatches(program, expected, actual);
 }
+
+function outputDcgMatches(program, body, actual) {
+  const characters = Array.from(actual);
+  for (const state of matchOutputDcg(program, body, characters, 0, new Env())) {
+    if (state.position === characters.length) return true;
+  }
+  return false;
+}
+
+function* matchOutputDcg(program, body, characters, position, env) {
+  body = deref(body, env);
+
+  if (body.type === ATOM && (body.name === '...' || body.name === 'ad_infinitum')) {
+    for (let next = position; next <= characters.length; next++) {
+      yield { position: next, env: env.clone() };
+    }
+    return;
+  }
+
+  if (body.type === ATOM && body.name === '[]') {
+    yield { position, env };
+    return;
+  }
+
+  if (body.type === COMPOUND && body.name === '.' && body.arity === 2) {
+    const items = properListItems(body, env);
+    if (items == null) return;
+    let states = [{ position, env }];
+    for (const item of items) {
+      const nextStates = [];
+      for (const state of states) {
+        if (state.position >= characters.length) continue;
+        const expected = outputTerminalTerm(item, state.env);
+        if (expected == null) continue;
+        const nextEnv = state.env.clone();
+        if (unify(expected, atom(characters[state.position]), nextEnv)) {
+          nextStates.push({ position: state.position + 1, env: nextEnv });
+        }
+      }
+      states = nextStates;
+      if (states.length === 0) return;
+    }
+    yield* states;
+    return;
+  }
+
+  if (body.type === COMPOUND && body.name === ',' && body.arity === 2) {
+    for (const left of matchOutputDcg(program, body.args[0], characters, position, env)) {
+      yield* matchOutputDcg(program, body.args[1], characters, left.position, left.env);
+    }
+    return;
+  }
+
+  if (body.type === COMPOUND && [';', '|'].includes(body.name) && body.arity === 2) {
+    yield* matchOutputDcg(program, body.args[0], characters, position, env.clone());
+    yield* matchOutputDcg(program, body.args[1], characters, position, env.clone());
+    return;
+  }
+
+  if ((body.type === ATOM && ['!', '{}'].includes(body.name)) ||
+      (body.type === COMPOUND && body.name === '{}' && body.arity === 1 &&
+       body.args[0].type === ATOM && body.args[0].name === 'true')) {
+    yield { position, env };
+    return;
+  }
+
+  if (body.type === COMPOUND && body.name === '{}' && body.arity === 1 &&
+      body.args[0].type === ATOM && body.args[0].name === 'fail') return;
+
+  // A nonterminal in an outputs/1 DCG body is interpreted against the same
+  // program as the query. Ask its expanded /2 relation how much of the
+  // remaining captured character list it consumes. This covers user-defined
+  // DCGs while the structural cases above handle terminals and ... without
+  // requiring a harness-only library import.
+  if (body.type === ATOM || body.type === COMPOUND) {
+    yield* matchOutputNonterminal(program, body, characters, position, env);
+  }
+}
+
+let outputDcgFresh = 0;
+function* matchOutputNonterminal(program, body, characters, position, env) {
+  const input = listFromItems(characters.slice(position).map((character) => atom(character)));
+  const output = variable(`\u0000quad-output:${++outputDcgFresh}`);
+  let goal;
+  if (body.type === ATOM) goal = compound(body.name, [input, output]);
+  else goal = compound(body.name, [...body.args, input, output]);
+  goal.module = body.module ?? 'user';
+
+  const solver = new Solver(program, {
+    registry: getEyePrologRegistry(),
+    maxInferences: DEFAULT_QUAD_MAX_INFERENCES,
+    solutionLimit: characters.length + 2,
+    ioOptions: { write: () => {} },
+  });
+  try {
+    for (const solutionEnv of solver.solve([goal], env.clone(), 0)) {
+      const tail = characterText(deref(output, solutionEnv));
+      if (tail == null) continue;
+      const remaining = characters.slice(position).join('');
+      if (!remaining.endsWith(tail)) continue;
+      yield {
+        position: characters.length - Array.from(tail).length,
+        env: solutionEnv,
+      };
+    }
+  } catch (_) {
+    // A DCG body that raises while being used as an output matcher simply does
+    // not match, mirroring catch(phrase(Expected, Cs), _, fail).
+  }
+}
+
+function outputTerminalTerm(term, env) {
+  term = deref(term, env);
+  if (term.type === 'number' && /^\d+$/.test(term.name)) {
+    const code = Number(term.name);
+    if (!Number.isSafeInteger(code) || code < 0 || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
+      return null;
+    }
+    return atom(String.fromCodePoint(code));
+  }
+  return term;
+}
+
+function leafNeedsMoreSearch(leaf, actual, position) {
+  if (!actual.undecided) return false;
+  if (leaf.false) return true;
+  if (leaf.error != null) return actual.error == null && position >= actual.solutions.length;
+  return position >= actual.solutions.length;
+}
+
+function undecidedResult(actual, expected) {
+  return {
+    ok: false,
+    kind: 'undecided',
+    expected,
+    reason: actual.undecidedReason ?? 'search budget exhausted',
+  };
+}
+
 
 function splitOperator(term, name) {
   if (term.type === COMPOUND && term.name === name && term.arity === 2) {
@@ -408,11 +586,14 @@ function formatFailure(program, quad, result, description = quad.answers[0]) {
   const reason = result.kind === 'malformed' ? 'MALFORMED'
     : result.kind === 'bad_identifier' ? 'BAD_ID'
       : result.kind === 'unsupported' ? 'UNSUPPORTED'
-        : 'FAILED';
+        : result.kind === 'undecided' ? 'UNDECIDED'
+          : 'FAILED';
   const expected = result.expected ?? description;
+  const detail = result.kind === 'undecided'
+    ? `   undecided: ${result.reason}.\n`
+    : `   expected: ${formatQuadTerm(program, expected)}.\n`;
   return `quads: ${reason} ${label}${source.filename}:${source.line}\n` +
-    `   ?- ${formatQuadTerm(program, quad.query)}.\n` +
-    `   expected: ${formatQuadTerm(program, expected)}.\n`;
+    `   ?- ${formatQuadTerm(program, quad.query)}.\n` + detail;
 }
 
 function formatQuadTerm(program, term) {

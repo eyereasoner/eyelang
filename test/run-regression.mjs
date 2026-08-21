@@ -1334,6 +1334,53 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'quad search-budget exhaustion is undecided rather than loops or failure (issue #58)',
+      run: () => {
+        const result = runCli(['--quads', '-'], {
+          input:
+            '24,passes/too_expensive\n' +
+            '?- N is 10^9, between(1,N,I), I = 1.\n' +
+            '   N = ..., I = 1\n' +
+            ';  false.\n',
+          timeout: 5000,
+        });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 2, 'undecided exit status');
+        assertIncludes(result.stdout,
+          'quads: UNDECIDED 24, passes / too_expensive, <stdin>:1',
+          'undecided diagnostic');
+        assertIncludes(result.stdout, 'undecided: inference limit reached.', 'undecided reason');
+        assertIncludes(result.stdout,
+          'quads: 1 run, 0 passed, 0 failed, 1 undecided.',
+          'undecided summary');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'outputs/1 accepts DCG bodies over captured characters (issue #59)',
+      run: () => {
+        const source = [
+          'pair --> "_", "A".',
+          '22',
+          "?- write('_A').",
+          '   outputs("_A").',
+          '   outputs("_"), unexpected.',
+          '   outputs(("_","A")).',
+          '   outputs(("_",...,"A")).',
+          '   outputs(("_",...,"B")), unexpected.',
+          '   outputs(("_",[_],[_])), unexpected.',
+          '   outputs(pair).',
+          '',
+        ].join('\n');
+        const result = publicApi.runQuads(source);
+        assertEqual(result.total, 7, 'quad total');
+        assertEqual(result.passed, 7, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.undecided, 0, 'quad undecided');
+        assertEqual(result.stdout, 'quads: 7 run, 7 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: '--quads runs embedded tests and reports failures through exit status',
       run: () => {
         const passing = runCli(['--quads', '-'], {

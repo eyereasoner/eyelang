@@ -6820,9 +6820,11 @@ requires that argument to be ground; a non-ground label is reported as a quad
 failure rather than aborting source parsing. Loading the file normally only
 records its quads; it does not execute them or add their queries and answers as
 program clauses. A quad run prints a summary and exits with status `1` when any
-description fails. Quad mode imports `library(prologue)` as a compatibility
-prelude because the ISO Prolog working-example files use those predicates as
-system predicates without an explicit module directive.
+description fails. If no description fails but a bounded search cannot decide
+an exact answer sequence, the case is reported separately as `UNDECIDED` and
+the CLI exits with status `2`. Quad mode imports `library(prologue)` as a
+compatibility prelude because the ISO Prolog working-example files use those
+predicates as system predicates without an explicit module directive.
 
 Unless the source explicitly selects another `unknown` flag, quad execution
 uses `unknown=error`, so an undefined predicate is reported rather than being
@@ -6839,12 +6841,19 @@ variable in the renamed exception term. `...` and `ad_infinitum` accept further 
 indented descriptions after one query are independent checks: each re-runs the
 query, each is counted in the `quads:` summary, and a failing description does
 not suppress later descriptions for that query. `inputs/1` supplies and checks
-consumed characters; `outputs/1` checks characters emitted while reaching
-the described answer or error, including output produced before a later
-exception. `sto` marks an answer description that this finite-tree
-implementation skips. `loops` accepts direct active-variant cycle evidence from
-EyeProlog's normal recursion guard, with bounded depth/inference exhaustion as a
-fallback for loops that have no such structural witness. The advanced stream
+consumed characters. `outputs/1` checks characters emitted while reaching the
+described answer or error, including output produced before a later exception.
+Its argument may be an exact character list/string or a DCG body: terminal
+sequences, conjunction/disjunction, `...`/`ad_infinitum` sequence wildcards,
+and user-defined DCG nonterminals are matched against the captured characters.
+`sto` marks an answer description that this finite-tree implementation skips.
+`loops` explicitly asks for bounded nontermination evidence and accepts direct
+active-variant cycle evidence from EyeProlog's normal recursion guard, with the
+loop depth/inference bounds as a fallback. Ordinary quad descriptions also have
+a finite inference budget (100000 by default); exhausting it does **not** mean
+`loops` or `false`, but produces an `UNDECIDED` result. The JavaScript API may
+override this with `quadMaxInferences`, while `loopMaxDepth` and
+`loopMaxInferences` control the explicit `loops` probe. The advanced stream
 annotations `peeks/1` and `waits`, and the unordered `other_answer_sequence`
 annotation, are not executed by the current runner.
 
@@ -6855,7 +6864,7 @@ import { Program, runQuads } from 'eyeprolog';
 
 const program = Program.parse(source);
 const report = runQuads(program);
-console.log(report.passed, report.failed, report.stdout);
+console.log(report.passed, report.failed, report.undecided, report.stdout);
 ```
 
 The syntax follows the “queries using answer descriptions” convention used by

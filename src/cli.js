@@ -168,6 +168,7 @@ export async function main(argv) {
     const result = engine.runQuads(program, { initialize: options.goals.length === 0 });
     process.stdout.write(result.stdout);
     if (result.failed > 0) process.exitCode = 1;
+    else if (result.undecided > 0) process.exitCode = 2;
   }
 }
 

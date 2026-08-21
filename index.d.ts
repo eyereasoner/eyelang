@@ -77,8 +77,9 @@ export interface EyePrologQuad {
 
 export interface EyePrologQuadResult {
   ok: boolean;
-  kind?: 'failed' | 'malformed' | 'bad_identifier' | 'unsupported';
+  kind?: 'failed' | 'malformed' | 'bad_identifier' | 'unsupported' | 'undecided';
   expected?: EyePrologTerm;
+  reason?: string;
 }
 
 export interface EyePrologQuadRunResult {
@@ -86,7 +87,18 @@ export interface EyePrologQuadRunResult {
   total: number;
   passed: number;
   failed: number;
+  undecided: number;
   results: EyePrologQuadResult[];
+}
+
+export interface EyePrologQuadRunOptions extends EyePrologRunOptions {
+  initialize?: boolean;
+  /** Search budget for ordinary quad descriptions before reporting an undecided result. */
+  quadMaxInferences?: number;
+  /** Depth bound used when a quad explicitly expects loops. */
+  loopMaxDepth?: number;
+  /** Inference bound used when a quad explicitly expects loops. */
+  loopMaxInferences?: number;
 }
 
 export interface EyePrologPredicateGroup {
@@ -271,7 +283,7 @@ export class HaltSignal extends Error {
   constructor(code?: number);
 }
 export function run(source: string | Program, options?: EyePrologRunOptions): EyePrologRunResult;
-export function runQuads(source: string | Program, options?: EyePrologRunOptions & { initialize?: boolean }): EyePrologQuadRunResult;
+export function runQuads(source: string | Program, options?: EyePrologQuadRunOptions): EyePrologQuadRunResult;
 export function whyProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): { ok: boolean; text: string };
 export function whyNoProof(goal: EyePrologTerm): string;
 export function explainProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): { ok: boolean; text: string };
