@@ -73,7 +73,7 @@ Status values are:
 | 8.17.3 | Other effects of `halt/0` | Terminates EyeProlog execution and returns host/process status `0`; it produces no Prolog solution. | **defined** — `HaltSignal`, `haltBuiltin()`, CLI/runner handling. |
 | 8.17.4 | Meaning/effects of `halt(Status)` | Integer `Status` is converted to the host process/runner halt code; it produces no Prolog solution. | **defined** — `haltBuiltin()`, `src/execute.js`, `src/cli.js`. |
 | 9.1.4.1 | Floating-point rounding function `rndF` | Floating values and operations use ECMAScript `Number` (IEEE-754 binary64) and the host's specified binary64 arithmetic/conversions. | **defined** — `src/iso.js`, `src/number-value.js`. |
-| 9.1.4.2 | Floating-point result function, including tiny non-zero arithmetic results | For arithmetic operation results that underflow to zero from non-zero operands, EyeProlog chooses the exceptional value `underflow`, exposed as `evaluation_error(underflow)`. Float token/`number_chars/2` input is a separate conversion path and finite input underflow rounds to `0.0`. | **defined** — `evaluateOperation()` and parser/number conversion; executable issue-56 regression below. |
+| 9.1.4.2 | Floating-point result function, including tiny non-zero arithmetic results | EyeProlog chooses `round(x)` rather than the exceptional value `underflow`. ECMAScript binary64 arithmetic therefore preserves a representable subnormal result and rounds a still-smaller result to `0.0`, consistently with float-token and `number_chars/2` input. | **defined** — `evaluateOperation()` and parser/number conversion; executable issue-56 regression below. |
 | 9.1.4.3 | Approximate-addition function | ECMAScript binary64 addition is used; subtraction is implemented through the corresponding host operation and all finite results remain binary64 values. | **defined** — `evaluateOperation()` in `src/iso.js`. |
 | 9.4 | Representation of negative integers for bitwise operations | BigInt's unbounded signed binary semantics are used, equivalent to an infinite two's-complement sign extension for bitwise operations. | **defined** — `src/iso.js` BigInt bitwise operators. |
 | 9.4.1 | Right shift of negative integers and unusual shift counts | `>>` is arithmetic/sign-propagating. A negative count reverses direction according to JavaScript BigInt shift semantics; there is no finite integer bit-size ceiling in the Prolog model. | **defined** — `a >> b` in `src/iso.js`. |
@@ -83,22 +83,18 @@ Status values are:
 | 9.4.5 | Bitwise complement | BigInt complement, i.e. `~N = -N-1`. | **defined** — `~a`. |
 | Cor.2 9.4.6 | `xor/2` with negative operands | BigInt infinite-two's-complement semantics. | **defined** — `a ^ b`. |
 
-### Why issue #56's two float results differ
+### Issue #56: one underflow policy
 
-The arithmetic expression and the float token go through different specified
-layers. Clause 9.1.4 defines arithmetic operations in terms of the
-implementation-defined floating rounding/result functions, and EyeProlog's
-chosen `resultF` policy reports underflow for a non-zero arithmetic result that
-falls below the normal range and rounds to zero. By contrast, reading the token
-`0.1e-999` is an input conversion; the 1995 text does not precisely define the
-rounding of an inexact float token, a gap also called out in the later
-[WG17/STC item #40](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#40).
-EyeProlog's documented input policy is therefore to accept finite token
-underflow as `0.0` while arithmetic underflow remains an evaluation error.
+Clause 9.1.4.2 permits the processor to choose `round(x)` or the exceptional
+value `underflow` for a tiny non-zero arithmetic result. EyeProlog chooses
+`round(x)`. Because its floating-point profile is ECMAScript IEEE-754 binary64,
+representable subnormal values remain non-zero and smaller results round to
+`0.0`. Float-token and `number_chars/2` input use the same finite-double
+rounding policy, so the same mathematical magnitude is no longer accepted as
+`0.0` on input while rejected as an arithmetic result.
 
-The regression suite contains an issue-56 case that checks both observations,
-and the existing `stc/float_underflow_input` conformance case covers the related
-input-conversion policy.
+The regression suite checks both arithmetic and token input, and the existing
+`stc/float_underflow_input` conformance case covers the related input conversion.
 
 ## Implementation-specific features required to be documented by 5.4
 

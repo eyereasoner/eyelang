@@ -2360,7 +2360,6 @@ function evaluateOperation(term, args) {
     const value = fn(a);
     if (Number.isNaN(value) || (name === 'log' && a === 0)) throw new PrologError('evaluation_error(undefined)');
     if (!Number.isFinite(value)) throw new PrologError('evaluation_error(float_overflow)');
-    if (value === 0 && a !== 0 && name === 'exp') throw new PrologError('evaluation_error(underflow)');
     return { integer: false, value };
   }
   if (arity !== 2) throw new PrologError('type_error(evaluable)', compound('/', [atom(name), numberTerm(arity)]));
@@ -2420,12 +2419,6 @@ function evaluateOperation(term, args) {
   else throw new PrologError('type_error(evaluable)', compound('/', [atom(name), numberTerm(arity)]));
   if (Number.isNaN(value)) throw new PrologError('evaluation_error(undefined)');
   if (!Number.isFinite(value)) throw new PrologError('evaluation_error(float_overflow)');
-  const underflow = value === 0 && (
-    (name === '*' && x !== 0 && y !== 0) ||
-    (name === '/' && x !== 0) ||
-    ((name === '**' || name === '^') && x !== 0)
-  );
-  if (underflow) throw new PrologError('evaluation_error(underflow)');
   return { integer: false, value };
 }
 export function arithmeticValueTerm(value) {

@@ -740,10 +740,10 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'arithmetic underflow choice differs from float-token input underflow (issue #56)',
+      name: 'arithmetic and float-token underflow both round to zero (issue #56)',
       run: () => {
-        const result = run('', { goal: 'catch((N is 0.1*10** -999), error(evaluation_error(underflow), _), N = underflow)' });
-        assertEqual(result.stdout, 'catch(underflow is 0.1 * 10 ** -999, error(evaluation_error(underflow), eyeprolog), underflow = underflow).\n', 'operation underflow');
+        assertEqual(run('', { goal: 'N is 0.1*10** -999' }).stdout, '0.0 is 0.1 * 10 ** -999.\n', 'operation underflow');
+        assertEqual(run('', { goal: 'N is exp(-1000.0)' }).stdout, '0.0 is exp(-1000.0).\n', 'function underflow');
         assertEqual(run('', { goal: 'N = 0.1e-999' }).stdout, '0.0 = 0.0.\n', 'float-token input underflow');
       },
     },
@@ -3431,7 +3431,7 @@ function documentationSyncCases() {
           '8.17.3', '8.17.4', '9.1.3.1', '9.1.4.1', '9.1.4.2', '9.1.4.3', '9.4',
           '9.4.1', '9.4.2', '9.4.3', '9.4.4', '9.4.5', 'Cor.2 9.4.6',
         ]) assertIncludes(text, `| ${clause} |`, `ISO 5.4 clause ${clause}`);
-        assertIncludes(text, 'Why issue #56', 'issue #56 explanation');
+        assertIncludes(text, 'Issue #56: one underflow policy', 'issue #56 explanation');
         assertIncludes(text, 'Implementation-specific features required to be documented by 5.4', '5.5 extension inventory');
       },
     },

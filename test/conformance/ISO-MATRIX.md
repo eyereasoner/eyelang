@@ -33,8 +33,8 @@ clause-by-clause in [ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.m
 with *The Art of EyeProlog* remaining the implementation reference. In
 particular, the index records the unbounded integer model, `double_quotes=chars`,
 `//` rounding toward zero, the ECMAScript binary64 float policy (including the
-9.1.4.2 arithmetic-underflow choice), stream/character decisions, and the
-normal-profile extension boundary.
+9.1.4.2 choice to round tiny arithmetic results rather than raise underflow),
+stream/character decisions, and the normal-profile extension boundary.
 
 This is an executable conformance matrix, not a certification issued by an
 independent standards body. Release gating runs the ISO cases and the dedicated

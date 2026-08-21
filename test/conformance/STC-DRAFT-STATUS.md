@@ -37,7 +37,8 @@ record the behavior discussed in issue #54:
 - a positive finite numeric token beyond the representable range raises
   `representation_error(max_float)`;
 - the corresponding negative overflow raises `representation_error(min_float)`;
-- input underflow may round to `0.0`;
+- float input and arithmetic underflow use the same binary64 rounding policy;
+  values smaller than the representable range round to `0.0`;
 - overflow produced by arithmetic evaluation remains
   `evaluation_error(float_overflow)`.
 
