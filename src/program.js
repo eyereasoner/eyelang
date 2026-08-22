@@ -44,6 +44,8 @@ export class Program {
     this.libraryImports = [];
     this.interopPortabilityWarnings = [];
     this.dynamicPredicates = new Set();
+    this.multifilePredicates = new Set();
+    this.discontiguousPredicates = new Set();
     this.strictIso = options.isoStrict === true;
     this.operators = new Map();
     const predefinedOperatorSets = this.strictIso
@@ -55,6 +57,7 @@ export class Program {
       }
     }
     this.initializations = [];
+    this._initializationsExecuted = false;
     this.quads = [];
     this.prologFlagDirectives = [];
     this.charConversionDirectives = [];
@@ -476,9 +479,92 @@ class ProgramBuilder {
     this.options = options;
     this.program = program ?? new Program([], { ...options, [DEFER_PROGRAM_BUILD]: true });
     this.declaredDynamicIndicators = new Map();
+    this.declaredMultifileIndicators = new Map();
+    this.declaredDiscontiguousIndicators = new Map();
+    this.directiveDeclarationsByText = new Map();
+    this.clauseTextUnitsByKey = new Map();
+    this.lastPredicateByText = new Map();
     this.lastGroupKey = null;
     this.lastGroup = null;
     this.finished = false;
+  }
+
+  declarationSet(textUnit, kind) {
+    const unit = textUnit ?? '<input>';
+    let declarations = this.directiveDeclarationsByText.get(unit);
+    if (!declarations) {
+      declarations = { dynamic: new Set(), multifile: new Set(), discontiguous: new Set() };
+      this.directiveDeclarationsByText.set(unit, declarations);
+    }
+    return declarations[kind];
+  }
+
+  noteProcedureClause(key, textUnit) {
+    if (!this.program.strictIso) return;
+    const unit = textUnit ?? '<input>';
+    const declarations = this.directiveDeclarationsByText.get(unit);
+    const units = this.clauseTextUnitsByKey.get(key) ?? new Set();
+
+    if (this.program.dynamicPredicates.has(key) && !declarations?.dynamic.has(key)) {
+      throw new Error(`ISO preparation error: dynamic(${key}) must precede clauses for ${key} in every Prolog text`);
+    }
+
+    if (units.size > 0 && !units.has(unit)) {
+      if (!declarations?.multifile.has(key)) {
+        throw new Error(`ISO preparation error: multifile(${key}) is required before clauses for ${key} in this Prolog text`);
+      }
+      for (const prior of units) {
+        if (!this.directiveDeclarationsByText.get(prior)?.multifile.has(key)) {
+          throw new Error(`ISO preparation error: multifile(${key}) is required in every Prolog text containing clauses for ${key}`);
+        }
+      }
+    }
+
+    const last = this.lastPredicateByText.get(unit);
+    if (last != null && last !== key && units.has(unit) && !declarations?.discontiguous.has(key)) {
+      throw new Error(`ISO preparation error: discontiguous(${key}) must precede non-consecutive clauses for ${key}`);
+    }
+    units.add(unit);
+    this.clauseTextUnitsByKey.set(key, units);
+    this.lastPredicateByText.set(unit, key);
+  }
+
+  addProcedureDirective(clause, kind, targetSet, declaredMap) {
+    const program = this.program;
+    const indicators = procedureDirectiveIndicators(clause, kind, program.strictIso);
+    if (indicators == null) return false;
+    const textUnit = clause.textUnit ?? '<input>';
+    const local = this.declarationSet(textUnit, kind);
+    for (const indicator of indicators) {
+      assertDynamicIndicatorIsDefinable(indicator, program.strictIso);
+      const module = clause.module ?? 'user';
+      const key = modulePredicateKey(module, indicator.name, indicator.arity);
+      if (program.strictIso && this.clauseTextUnitsByKey.get(key)?.has(textUnit)) {
+        throw new Error(`ISO preparation error: ${kind}(${indicator.key}) must precede all clauses for ${indicator.key}`);
+      }
+      if (program.strictIso && kind === 'dynamic') {
+        for (const prior of this.clauseTextUnitsByKey.get(key) ?? []) {
+          if (prior !== textUnit && !this.directiveDeclarationsByText.get(prior)?.dynamic.has(key)) {
+            throw new Error(`ISO preparation error: dynamic(${indicator.key}) is required in every Prolog text containing clauses for ${indicator.key}`);
+          }
+        }
+      }
+      if (program.strictIso && kind === 'multifile') {
+        for (const prior of this.clauseTextUnitsByKey.get(key) ?? []) {
+          if (prior !== textUnit && !this.directiveDeclarationsByText.get(prior)?.multifile.has(key)) {
+            throw new Error(`ISO preparation error: multifile(${indicator.key}) is required in every Prolog text containing clauses for ${indicator.key}`);
+          }
+        }
+      }
+      local.add(key);
+      targetSet.add(key);
+      declaredMap.set(`${textUnit}\u0000${key}`, { ...indicator, key, module, textUnit });
+      if (kind === 'dynamic') {
+        const existing = program.groups.get(key);
+        if (existing) existing.dynamic = true;
+      }
+    }
+    return true;
   }
 
   addClauses(clauses) {
@@ -501,6 +587,7 @@ class ProgramBuilder {
         assertPredicateIsDefinable(clause.headName, 2, program.strictIso);
         const module = clause.module ?? 'user';
         const key = modulePredicateKey(module, clause.headName, 2);
+        this.noteProcedureClause(key, clause.textUnit);
         let group = key === lastGroupKey ? lastGroup : program.groups.get(key);
         if (!group) {
           group = program.makeGroup(clause.headName, 2, module);
@@ -524,6 +611,7 @@ class ProgramBuilder {
         if (head.type !== ATOM && head.type !== COMPOUND) continue;
         const module = clause.module ?? 'user';
         const key = modulePredicateKey(module, head.name, head.arity);
+        this.noteProcedureClause(key, clause.textUnit);
         let group = key === lastGroupKey ? lastGroup : program.groups.get(key);
         if (!group) {
           group = program.makeGroup(head.name, head.arity, module);
@@ -553,14 +641,10 @@ class ProgramBuilder {
   addDirectiveClause(clause) {
     const program = this.program;
     const module = clause.module ?? 'user';
-    for (const indicator of dynamicDirectiveIndicators(clause)) {
-      assertDynamicIndicatorIsDefinable(indicator, program.strictIso);
-      const key = modulePredicateKey(module, indicator.name, indicator.arity);
-      program.dynamicPredicates.add(key);
-      this.declaredDynamicIndicators.set(key, { ...indicator, key, module });
-      const existing = program.groups.get(key);
-      if (existing) existing.dynamic = true;
-    }
+    const textUnit = clause.textUnit ?? '<input>';
+    this.addProcedureDirective(clause, 'dynamic', program.dynamicPredicates, this.declaredDynamicIndicators);
+    this.addProcedureDirective(clause, 'multifile', program.multifilePredicates, this.declaredMultifileIndicators);
+    this.addProcedureDirective(clause, 'discontiguous', program.discontiguousPredicates, this.declaredDiscontiguousIndicators);
 
     const operator = operatorDirective(clause);
     if (operator) {
@@ -586,6 +670,7 @@ class ProgramBuilder {
     } else if (directive?.type === COMPOUND && directive.name === 'char_conversion' && directive.arity === 2) {
       program.charConversionDirectives.push(directive.args);
     }
+    if (program.strictIso) this.lastPredicateByText.set(textUnit, '@directive');
   }
 
   finish() {
@@ -596,9 +681,13 @@ class ProgramBuilder {
     // A dynamic declaration creates a procedure even when it has no clauses.
     // Calls to that procedure fail normally instead of being treated as calls
     // to an unknown predicate.
-    for (const indicator of this.declaredDynamicIndicators.values()) {
-      if (!program.groups.has(indicator.key)) {
-        program.groups.set(indicator.key, program.makeGroup(indicator.name, indicator.arity, indicator.module));
+    for (const declarations of [
+      this.declaredDynamicIndicators, this.declaredMultifileIndicators, this.declaredDiscontiguousIndicators,
+    ]) {
+      for (const indicator of declarations.values()) {
+        if (!program.groups.has(indicator.key)) {
+          program.groups.set(indicator.key, program.makeGroup(indicator.name, indicator.arity, indicator.module));
+        }
       }
     }
     program.mutable = program.dynamicPredicates.size > 0;
@@ -694,11 +783,14 @@ function loadSourcesIntoBuilder(builder, sources, options, fast) {
     if (filename) ensured.add(filename);
   }
   try {
-    for (const item of prepared) {
+    for (const [sourceIndex, item] of prepared.entries()) {
       const text = typeof item.source === 'string'
         ? item.source
         : item.source?.text ?? item.source?.source ?? '';
-      const context = { module: 'user' };
+      const context = {
+        module: 'user',
+        textUnit: sourcePath(item.options) ?? `<input:${sourceIndex}>`,
+      };
       if (!loadSourceIntoBuilder(builder, text, item.options, ensured, loadedModules, fast, context)) return false;
     }
     const autoloadGoals = parseInteropGoalInputs(options.autoloadGoals, {
@@ -964,6 +1056,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     if (moduleDeclaration) {
       flush();
       clause.module = moduleDeclaration.name;
+      clause.textUnit = context.textUnit;
       clause.moduleFilename = options.filename ?? '<input>';
       builder.addClauses([clause]);
       context.module = moduleDeclaration.name;
@@ -974,6 +1067,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     if (use) {
       flush();
       clause.module = context.module;
+      clause.textUnit = context.textUnit;
       builder.addClauses([clause]);
       const libraryName = libraryDesignationName(use.designation);
       if (libraryName != null) {
@@ -996,6 +1090,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     const include = includeDirective(clause);
     if (!include) {
       clause.module ??= context.module;
+      clause.textUnit ??= context.textUnit;
       if (!isDirectiveClause(clause)) {
         for (const goal of clause.body) annotateGoalModule(goal, clause.module);
       }
@@ -1004,9 +1099,15 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       return;
     }
     flush();
+    if (builder.program.strictIso && include.name === 'ensure_loaded') {
+      builder.lastPredicateByText.set(context.textUnit ?? '<input>', '@directive');
+    }
     const child = readIncludedSource(include, options, ensured);
     if (!child) return;
-    if (!loadSourceIntoBuilder(builder, child.text, child.options, ensured, loadedModules, fast, context)) {
+    const childContext = include.name === 'include'
+      ? context
+      : { module: context.module, textUnit: sourcePath(child.options) ?? context.textUnit };
+    if (!loadSourceIntoBuilder(builder, child.text, child.options, ensured, loadedModules, fast, childContext)) {
       throw FAST_PARSE_ABORT;
     }
   };
@@ -1019,6 +1120,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
         bodyName, body0Type, body0Name, body1Type, body1Name,
       ));
       batch[batch.length - 1].module = context.module;
+      batch[batch.length - 1].textUnit = context.textUnit;
       if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
     };
     const parsed = tryParseClausesFastInto(source, accept, acceptBinary, options);
@@ -1148,16 +1250,25 @@ function isDirectiveClause(clause) {
     clause.head.name === ':-' && clause.head.arity === 1;
 }
 
-function dynamicDirectiveIndicators(clause) {
-  if (!isDirectiveClause(clause)) return [];
+function procedureDirectiveIndicators(clause, name, strictIso = false) {
+  if (!isDirectiveClause(clause)) return null;
   const directive = clause.head.args[0];
-  if (directive.type !== COMPOUND || directive.name !== 'dynamic' || directive.arity !== 1) return [];
+  if (directive.type !== COMPOUND || directive.name !== name || directive.arity !== 1) return null;
   const terms = properListItems(directive.args[0], new Env()) ?? flattenDirectiveSequence(directive.args[0]);
-  return terms.map((indicator) =>
+  const indicators = terms.map((indicator) =>
     indicator.type === COMPOUND && ['/', '//'].includes(indicator.name) && indicator.arity === 2
       ? nonterminalOrPredicateIndicator(indicator)
       : null
-  ).filter(Boolean);
+  );
+  if (indicators.some((indicator) => indicator == null)) {
+    if (strictIso) throw new Error(`ISO preparation error: invalid ${name}/1 predicate indicator`);
+    return [];
+  }
+  return indicators;
+}
+
+function dynamicDirectiveIndicators(clause) {
+  return procedureDirectiveIndicators(clause, 'dynamic', false) ?? [];
 }
 
 function nonterminalOrPredicateIndicator(term) {

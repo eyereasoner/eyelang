@@ -223,7 +223,12 @@ and `write_term/2-3` accept the Part 1 plus Corrigendum 3 options, while the
 normal-profile `write_term(...,[double_quotes(...)])` option remains an
 EyeProlog extension. The strict gate also checks the prescribed ISO error
 precedence for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`, and
-the complete Part 1 flag defaults/value domains/changeability rules.
+the complete Part 1 flag defaults/value domains/changeability rules. The
+ongoing issue #65 audit additionally tightens Prolog-text declaration ordering,
+initialization lifetime, stream/open/close behavior, character/byte stream
+errors, `keysort/2` error cases, and strict arithmetic-extension boundaries.
+Those additions improve the Part 1 surface without turning the remaining audit
+rows into a blanket conformance claim.
 
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).

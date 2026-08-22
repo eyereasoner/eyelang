@@ -96,7 +96,7 @@ export const isoBuiltins = {
     registry.add('current_output', 1, currentOutputBuiltin, { deterministic: true });
     registry.add('set_input', 1, setCurrentStreamBuiltin('read'), { deterministic: true });
     registry.add('set_output', 1, setCurrentStreamBuiltin('write'), { deterministic: true });
-    registry.add('flush_output', 0, succeed, { deterministic: true });
+    registry.add('flush_output', 0, flushOutputBuiltin, { deterministic: true });
     registry.add('flush_output', 1, flushOutputBuiltin, { deterministic: true });
     registry.add('stream_property', 2, streamPropertyBuiltin);
     registry.add('set_stream_position', 2, setStreamPositionBuiltin, { deterministic: true });
@@ -346,8 +346,16 @@ function* keysortBuiltin({ goal, env }) {
   validateListOutput(goal.args[1], env);
   for (const item of items) {
     const resolved = deref(item, env);
+    if (resolved.type === VAR) throw new PrologError('instantiation_error');
     if (resolved.type !== COMPOUND || resolved.name !== '-' || resolved.arity !== 2) {
       throw new PrologError('type_error(pair)', resolved);
+    }
+  }
+  const { items: outputPrefix } = listElements(goal.args[1], env);
+  for (const item of outputPrefix) {
+    if (item.type === VAR) continue;
+    if (item.type !== COMPOUND || item.name !== '-' || item.arity !== 2) {
+      throw new PrologError('type_error(pair)', item);
     }
   }
   // Modern ECMAScript specifies a stable Array#sort, as required by keysort/2.
@@ -830,6 +838,16 @@ function streamReference(term, env) {
   throw new PrologError('domain_error(stream_or_alias)', value);
 }
 
+function streamTermReference(term, env) {
+  const value = deref(term, env);
+  if (value.type === VAR) return null;
+  if (value.type === COMPOUND && value.name === '$stream' && value.arity === 1 &&
+      value.args[0].type === NUMBER && isDecimalInteger(value.args[0].name)) {
+    return Number(value.args[0].name);
+  }
+  throw new PrologError('domain_error(stream)', value);
+}
+
 function requireStream(solver, term, env, mode = null) {
   const culprit = deref(term, env);
   const stream = solver.io.resolve(streamReference(term, env));
@@ -886,13 +904,14 @@ function openOptions(term, env) {
     if ((value = optionAtom(option, 'type'))) {
       value = deref(value, env);
       if (value.type === VAR) throw new PrologError('instantiation_error');
-      if (value.type !== ATOM) throw new PrologError('type_error(atom)', value);
-      if (!['text', 'binary'].includes(value.name)) throw new PrologError('domain_error(stream_option)', option);
+      if (value.type !== ATOM || !['text', 'binary'].includes(value.name)) {
+        throw new PrologError('domain_error(stream_option)', option);
+      }
       result.type = value.name;
     } else if ((value = optionAtom(option, 'alias'))) {
       value = deref(value, env);
       if (value.type === VAR) throw new PrologError('instantiation_error');
-      if (value.type !== ATOM) throw new PrologError('type_error(atom)', value);
+      if (value.type !== ATOM) throw new PrologError('domain_error(stream_option)', option);
       result.alias = value.name;
     } else if ((value = optionAtom(option, 'reposition'))) {
       value = deref(value, env);
@@ -911,19 +930,45 @@ function openOptions(term, env) {
   return result;
 }
 
+function streamOptionHasRequiredVariable(option, env) {
+  option = deref(option, env);
+  if (option.type !== COMPOUND || option.arity !== 1 ||
+      !['type', 'alias', 'reposition', 'eof_action'].includes(option.name)) return false;
+  return deref(option.args[0], env).type === VAR;
+}
+
 function* openBuiltin({ solver, goal, env }) {
-  const path = requireAtom(goal.args[0], env);
-  const mode = requireAtom(goal.args[1], env);
-  if (!['read', 'write', 'append'].includes(mode.name)) throw new PrologError('domain_error(io_mode)', mode);
+  const source = deref(goal.args[0], env);
+  const mode = deref(goal.args[1], env);
   const streamTarget = deref(goal.args[2], env);
+  const optionTerm = goal.arity === 3 ? emptyList() : goal.args[3];
+
+  // ISO 8.11.5.3 + Corrigenda 2/3.  Keep each prescribed condition
+  // observable on its own and apply the published ordering for deterministic
+  // diagnostics when several arguments are erroneous.
+  if (source.type === VAR) throw new PrologError('instantiation_error');
+  if (mode.type === VAR) throw new PrologError('instantiation_error');
+  const preflight = preflightOptionList(optionTerm, env);
+  if (preflight.items.some((option) => streamOptionHasRequiredVariable(option, env))) {
+    throw new PrologError('instantiation_error');
+  }
+  if (mode.type !== ATOM) throw new PrologError('type_error(atom)', mode);
+  const optionItems = requireProperOptionList(preflight);
   if (streamTarget.type !== VAR) throw new PrologError('uninstantiation_error', streamTarget);
-  const options = goal.arity === 3 ? {} : openOptions(goal.args[3], env);
-  if (options.alias && solver.io.resolve(options.alias)) throw new PrologError('permission_error(open, source_sink)', atom(options.alias));
+  if (source.type !== ATOM) throw new PrologError('domain_error(source_sink)', source);
+  if (!['read', 'write', 'append'].includes(mode.name)) throw new PrologError('domain_error(io_mode)', mode);
+  const options = goal.arity === 3 ? {} : openOptions(optionTerm, env);
+  if (options.alias && solver.io.resolve(options.alias)) {
+    throw new PrologError('permission_error(open, source_sink)', atom(options.alias));
+  }
   let stream;
   try {
-    stream = solver.io.open(path.name, mode.name, options);
-  } catch (_) {
-    throw new PrologError('existence_error(source_sink)', path);
+    stream = solver.io.open(source.name, mode.name, options);
+  } catch (error) {
+    if (error?.code === 'ENOENT' && mode.name === 'read') {
+      throw new PrologError('existence_error(source_sink)', source);
+    }
+    throw new PrologError('permission_error(open, source_sink)', source);
   }
   const next = env.clone();
   if (unify(goal.args[2], streamHandle(stream.id), next)) yield next;
@@ -931,22 +976,35 @@ function* openBuiltin({ solver, goal, env }) {
 }
 
 function* closeBuiltin({ solver, goal, env }) {
-  if (goal.arity === 2) {
-    for (const option of optionList(goal.args[1], env)) {
-      if (option.type === VAR) throw new PrologError('instantiation_error');
-      const force = optionAtom(option, 'force');
-      const value = force && deref(force, env);
-      if (value?.type === VAR) throw new PrologError('instantiation_error');
-      if (!value || value.type !== ATOM || !['true', 'false'].includes(value.name)) {
-        throw new PrologError('domain_error(close_option)', option);
-      }
+  const reference = deref(goal.args[0], env);
+  if (reference.type === VAR) throw new PrologError('instantiation_error');
+  const optionTerm = goal.arity === 2 ? goal.args[1] : emptyList();
+  const preflight = preflightOptionList(optionTerm, env);
+  if (preflight.items.some((option) => {
+    const force = optionAtom(option, 'force');
+    return force != null && deref(force, env).type === VAR;
+  })) throw new PrologError('instantiation_error');
+  const options = requireProperOptionList(preflight);
+  streamReference(goal.args[0], env);
+  let forceClose = false;
+  for (const option of options) {
+    const force = optionAtom(option, 'force');
+    const value = force && deref(force, env);
+    if (!value || value.type !== ATOM || !['true', 'false'].includes(value.name)) {
+      throw new PrologError('domain_error(close_option)', option);
     }
+    forceClose = value.name === 'true'; // rightmost contradictory option applies
   }
   const stream = requireStream(solver, goal.args[0], env);
   if (!stream.standard) {
+    try {
+      solver.io.close(stream);
+    } catch (_) {
+      if (!forceClose) throw new PrologError('system_error');
+      solver.io.discard(stream);
+    }
     if (solver.io.currentInput === stream.id) solver.io.currentInput = 0;
     if (solver.io.currentOutput === stream.id) solver.io.currentOutput = 1;
-    solver.io.close(stream);
   }
   yield env;
 }
@@ -954,7 +1012,8 @@ function* closeBuiltin({ solver, goal, env }) {
 function* currentInputBuiltin({ solver, goal, env }) {
   const value = deref(goal.args[0], env);
   if (value.type !== VAR) {
-    const stream = solver.io.resolve(streamReference(goal.args[0], env));
+    const id = streamTermReference(goal.args[0], env);
+    const stream = solver.io.resolve(id);
     if (!stream) throw new PrologError('domain_error(stream)', value);
     if (stream.id === solver.io.currentInput) yield env;
     return;
@@ -965,7 +1024,8 @@ function* currentInputBuiltin({ solver, goal, env }) {
 function* currentOutputBuiltin({ solver, goal, env }) {
   const value = deref(goal.args[0], env);
   if (value.type !== VAR) {
-    const stream = solver.io.resolve(streamReference(goal.args[0], env));
+    const id = streamTermReference(goal.args[0], env);
+    const stream = solver.io.resolve(id);
     if (!stream) throw new PrologError('domain_error(stream)', value);
     if (stream.id === solver.io.currentOutput) yield env;
     return;
@@ -973,6 +1033,7 @@ function* currentOutputBuiltin({ solver, goal, env }) {
   const next = env.clone();
   if (unify(goal.args[0], streamHandle(solver.io.currentOutput), next)) yield next;
 }
+
 function setCurrentStreamBuiltin(mode) {
   return function* ({ solver, goal, env }) {
     const stream = requireStream(solver, goal.args[0], env, mode);
@@ -982,7 +1043,14 @@ function setCurrentStreamBuiltin(mode) {
   };
 }
 function* flushOutputBuiltin({ solver, goal, env }) {
-  requireStream(solver, goal.args[0], env, 'write');
+  const stream = goal.arity === 0
+    ? solver.io.resolve(solver.io.currentOutput)
+    : requireStream(solver, goal.args[0], env, 'write');
+  try {
+    solver.io.flush(stream);
+  } catch (_) {
+    throw new PrologError('system_error');
+  }
   yield env;
 }
 
@@ -1003,23 +1071,51 @@ function streamProperties(stream) {
   return properties;
 }
 function* setStreamPositionBuiltin({ solver, goal, env }) {
-  const stream = requireStream(solver, goal.args[0], env);
-  if (!stream.reposition) throw new PrologError('permission_error(reposition, stream)', deref(goal.args[0], env));
+  const reference = deref(goal.args[0], env);
+  if (reference.type === VAR) throw new PrologError('instantiation_error');
   let position = deref(goal.args[1], env);
-  if (position.type === COMPOUND && position.name === 'position' && position.arity === 1) {
+  if (position.type === VAR) throw new PrologError('instantiation_error');
+  streamReference(goal.args[0], env);
+  if (!solver.isoStrict && position.type === COMPOUND && position.name === 'position' && position.arity === 1) {
+    // Historical EyeProlog convenience form.  Strict Part 1 mode uses only
+    // the implementation-defined integer stream-position terms returned by
+    // stream_property/2.
     position = deref(position.args[0], env);
   }
-  if (position.type === VAR) throw new PrologError('instantiation_error');
-  if (position.type !== NUMBER || !isDecimalInteger(position.name)) throw new PrologError('domain_error(stream_position)', position);
+  if (position.type === VAR || position.type !== NUMBER || !isDecimalInteger(position.name)) {
+    throw new PrologError('domain_error(stream_position)', position);
+  }
   const offset = BigInt(position.name);
-  if (offset < 0n || offset > BigInt(stream.content.length)) throw new PrologError('domain_error(stream_position)', position);
+  if (offset < 0n) throw new PrologError('domain_error(stream_position)', position);
+  const stream = requireStream(solver, goal.args[0], env);
+  if (!stream.reposition) throw new PrologError('permission_error(reposition, stream)', reference);
+  if (offset > BigInt(stream.content.length)) throw new PrologError('domain_error(stream_position)', position);
   stream.position = Number(offset);
   stream.pastEnd = false;
   yield env;
 }
+
+function isStreamPropertyPattern(value) {
+  if (value.type === VAR) return true;
+  if (value.type === ATOM) return value.name === 'input' || value.name === 'output';
+  return value.type === COMPOUND && value.arity === 1 && [
+    'file_name', 'mode', 'alias', 'position', 'end_of_stream', 'eof_action', 'reposition', 'type',
+  ].includes(value.name);
+}
+
 function* streamPropertyBuiltin({ solver, goal, env }) {
   const reference = deref(goal.args[0], env);
-  const streams = reference.type === VAR ? [...solver.io.streams.values()] : [requireStream(solver, goal.args[0], env)];
+  const propertyPattern = deref(goal.args[1], env);
+  if (reference.type !== VAR) {
+    const id = streamTermReference(goal.args[0], env);
+    if (!solver.io.resolve(id)) throw new PrologError('domain_error(stream)', reference);
+  }
+  if (!isStreamPropertyPattern(propertyPattern)) {
+    throw new PrologError('domain_error(stream_property)', propertyPattern);
+  }
+  const streams = reference.type === VAR
+    ? [...solver.io.streams.values()]
+    : [solver.io.resolve(streamTermReference(goal.args[0], env))];
   for (const stream of streams) {
     for (const property of streamProperties(stream)) {
       const next = env.clone();
@@ -1035,27 +1131,69 @@ function outputStreamFor(solver, goal, env) {
   return goal.arity === 1 ? solver.io.resolve(solver.io.currentOutput) : requireStream(solver, goal.args[0], env, 'write');
 }
 function* atEndBuiltin({ solver, goal, env }) {
-  const stream = goal.arity === 0 ? solver.io.resolve(solver.io.currentInput) : requireStream(solver, goal.args[0], env, 'read');
-  if (stream.position >= stream.content.length) yield env;
+  // at_end_of_stream/1 is bootstrapped in Part 1 from the end_of_stream/1
+  // stream property and therefore accepts any open stream-or-alias; it is not
+  // an input-only operation.
+  const stream = goal.arity === 0 ? solver.io.resolve(solver.io.currentInput) : requireStream(solver, goal.args[0], env);
+  if (stream.pastEnd || stream.position >= stream.content.length) yield env;
 }
+function validStrictInputCharacterCode(value, solver) {
+  if (value.type !== NUMBER || !isDecimalInteger(value.name)) return false;
+  const code = BigInt(value.name);
+  if (code === -1n) return true;
+  if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) return false;
+  return !solver.isoStrict || isStrictIsoPcsCodePoint(Number(code));
+}
+
+function preflightInputUnitTarget(name, target, env, solver) {
+  const value = deref(target, env);
+  if (name.endsWith('char')) {
+    if (value.type !== VAR && !(oneChar(value) || (value.type === ATOM && value.name === 'end_of_file'))) {
+      throw new PrologError('type_error(in_character)', value);
+    }
+    if (value.type === ATOM && oneChar(value) && solver.isoStrict && !isStrictIsoPcsCharacter(value.name)) {
+      throw new PrologError('type_error(in_character)', value);
+    }
+  } else if (name.endsWith('code')) {
+    if (value.type !== VAR && (value.type !== NUMBER || !isDecimalInteger(value.name))) {
+      throw new PrologError('type_error(integer)', value);
+    }
+    if (value.type !== VAR && !validStrictInputCharacterCode(value, solver)) {
+      throw new PrologError('representation_error(in_character_code)');
+    }
+  } else {
+    if (value.type !== VAR) {
+      if (value.type !== NUMBER || !isDecimalInteger(value.name)) throw new PrologError('type_error(in_byte)', value);
+      const byte = BigInt(value.name);
+      if (byte !== -1n && (byte < 0n || byte > 255n)) throw new PrologError('type_error(in_byte)', value);
+    }
+  }
+  return value;
+}
+
 function inputUnitBuiltin(name) {
   return function* ({ solver, goal, env }) {
+    const explicit = goal.arity === 2;
+    if (explicit && deref(goal.args[0], env).type === VAR) throw new PrologError('instantiation_error');
+    const target = goal.args[goal.arity - 1];
+    preflightInputUnitTarget(name, target, env, solver);
     const stream = inputStreamFor(solver, goal, env);
     const binary = name.endsWith('byte');
-    if (binary !== (stream.type === 'binary')) throw new PrologError('permission_error(input, stream)', streamHandle(stream.id));
+    if (binary && stream.type !== 'binary') {
+      throw new PrologError('permission_error(input, text_stream)', streamHandle(stream.id));
+    }
+    if (!binary && stream.type !== 'text') {
+      throw new PrologError('permission_error(input, binary_stream)', streamHandle(stream.id));
+    }
     if (stream.pastEnd && stream.eofAction === 'error') {
       throw new PrologError('permission_error(input, past_end_of_stream)', streamHandle(stream.id));
     }
     if (stream.pastEnd && stream.eofAction === 'reset') {
-      // A terminal EOF (Ctrl-D) is local to one input operation. The next
-      // operation should wait for fresh terminal input rather than rewinding
-      // and replaying the already-consumed interactive buffer.
       if (typeof stream.interactiveReadUnit !== 'function') stream.position = 0;
       stream.pastEnd = false;
     }
     const peek = name.startsWith('peek');
-    if (stream.position >= stream.content.length &&
-        typeof stream.interactiveReadUnit === 'function') {
+    if (stream.position >= stream.content.length && typeof stream.interactiveReadUnit === 'function') {
       const text = stream.interactiveReadUnit();
       if (text != null) {
         stream.content += String(text);
@@ -1066,50 +1204,68 @@ function inputUnitBuiltin(name) {
     try {
       unit = solver.io.readUnit(stream, peek);
     } catch (error) {
-      if (error?.name === 'InvalidCharacterEncodingError') {
-        throw new PrologError('representation_error(character)');
-      }
+      if (error?.name === 'InvalidCharacterEncodingError') throw new PrologError('representation_error(character)');
       throw error;
     }
     if (unit == null && !peek) stream.pastEnd = true;
     if (!binary && unit != null && solver.isoStrict && !isStrictIsoPcsCharacter(unit)) {
       throw new PrologError('representation_error(character)');
     }
-    const result = unit == null ? (binary ? numberTerm(-1) : name.endsWith('code') ? numberTerm(-1) : atom('end_of_file'))
+    const result = unit == null
+      ? (binary ? numberTerm(-1) : name.endsWith('code') ? numberTerm(-1) : atom('end_of_file'))
       : binary ? numberTerm(unit) : name.endsWith('code') ? numberTerm(unit.codePointAt(0)) : atom(unit);
-    const target = goal.args[goal.arity - 1];
     const next = env.clone();
     if (unify(target, result, next)) yield next;
   };
 }
+
+function preflightOutputUnitValue(name, target, env) {
+  const value = deref(target, env);
+  if (value.type === VAR) throw new PrologError('instantiation_error');
+  if (name === 'put_char') {
+    if (!oneChar(value)) throw new PrologError('type_error(character)', value);
+    return value;
+  }
+  if (name === 'put_byte') {
+    if (value.type !== NUMBER || !isDecimalInteger(value.name)) throw new PrologError('type_error(byte)', value);
+    const byte = BigInt(value.name);
+    if (byte < 0n || byte > 255n) throw new PrologError('type_error(byte)', value);
+    return value;
+  }
+  if (value.type !== NUMBER || !isDecimalInteger(value.name)) throw new PrologError('type_error(integer)', value);
+  return value;
+}
+
 function outputUnitBuiltin(name) {
   return function* ({ solver, goal, env }) {
+    const explicit = goal.arity === 2;
+    if (explicit && deref(goal.args[0], env).type === VAR) throw new PrologError('instantiation_error');
+    const value = preflightOutputUnitValue(name, goal.args[goal.arity - 1], env);
     const stream = outputStreamFor(solver, goal, env);
-    const value = deref(goal.args[goal.arity - 1], env);
-    if (value.type === VAR) throw new PrologError('instantiation_error');
     if (name === 'put_char') {
       if (stream.type !== 'text') throw new PrologError('permission_error(output, binary_stream)', streamHandle(stream.id));
-      if (!oneChar(value)) throw new PrologError('type_error(character)', value);
       if (solver.isoStrict && !isStrictIsoPcsCharacter(value.name)) {
         throw new PrologError('representation_error(character)', value);
       }
       solver.io.writeUnit(stream, value.name);
+    } else if (name === 'put_byte') {
+      if (stream.type !== 'binary') throw new PrologError('permission_error(output, text_stream)', streamHandle(stream.id));
+      solver.io.writeUnit(stream, Number(value.name));
     } else {
-      if ((name === 'put_byte') !== (stream.type === 'binary')) {
-        throw new PrologError('permission_error(output, stream)', streamHandle(stream.id));
-      }
-      if (value.type !== NUMBER || !isDecimalInteger(value.name)) throw new PrologError('type_error(integer)', value);
+      if (stream.type !== 'text') throw new PrologError('permission_error(output, binary_stream)', streamHandle(stream.id));
       const code = BigInt(value.name);
-      const max = name === 'put_byte' ? 255n : 0x10ffffn;
-      if (code < 0n || code > max) throw new PrologError(name === 'put_byte' ? 'type_error(byte)' : 'representation_error(character_code)');
-      if (name === 'put_code' && solver.isoStrict && !isStrictIsoPcsCodePoint(Number(code))) {
+      if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) {
         throw new PrologError('representation_error(character_code)');
       }
-      solver.io.writeUnit(stream, name === 'put_byte' ? Number(code) : String.fromCodePoint(Number(code)));
+      if (solver.isoStrict && !isStrictIsoPcsCodePoint(Number(code))) {
+        throw new PrologError('representation_error(character_code)');
+      }
+      solver.io.writeUnit(stream, String.fromCodePoint(Number(code)));
     }
     yield env;
   };
 }
+
 function* nlBuiltin({ solver, goal, env }) {
   const stream = goal.arity === 0
     ? solver.io.resolve(solver.io.currentOutput)
@@ -1274,6 +1430,13 @@ export function isCompleteReadTermText(text, solver) {
 }
 
 function readTermFromStream(stream, solver) {
+  if (stream.pastEnd && stream.eofAction === 'error') {
+    throw new PrologError('permission_error(input, past_end_of_stream)', streamHandle(stream.id));
+  }
+  if (stream.pastEnd && stream.eofAction === 'reset') {
+    if (typeof stream.interactiveReadTerm !== 'function') stream.position = 0;
+    stream.pastEnd = false;
+  }
   let requestedInteractiveTerm = false;
   while (true) {
     let sawCandidate = false;
@@ -1317,6 +1480,7 @@ function readTermFromStream(stream, solver) {
     stream.position = source.length;
     if (!sawCandidate) {
       if (hasNonLayoutRemainder(source, remainderStart)) throw new PrologError('syntax_error(read_term)');
+      stream.pastEnd = true;
       return { term: atom('end_of_file'), variables: [] };
     }
     throw new PrologError('syntax_error(read_term)');
@@ -1789,14 +1953,14 @@ function canonicalNumberText(value) {
   return text;
 }
 
-function numberListText(list, env, kind, valueIsBound) {
+function numberListText(list, env, kind, valueIsBound, solver = null) {
   const whole = deref(list, env);
   const { items, tail } = listElements(list, env);
   const proper = tail.type === ATOM && tail.name === '[]';
   if (tail.type !== VAR && !proper) throw new PrologError('type_error(list)', whole);
 
   const invalid = items.find((item) => item.type !== VAR &&
-    (kind === 'chars' ? !oneChar(item) : !validCharacterCode(item)));
+    (kind === 'chars' ? !oneChar(item) : !validCharacterCode(item, solver)));
   if (invalid) {
     if (kind === 'chars') throw new PrologError('type_error(character)', invalid);
     if (invalid.type !== NUMBER || !isDecimalInteger(invalid.name)) {
@@ -1816,12 +1980,12 @@ function numberListText(list, env, kind, valueIsBound) {
 const numberSyntaxError = new PrologError('syntax_error(number)');
 
 function numberListBuiltin(kind) {
-  return function* ({ goal, env }) {
+  return function* ({ solver, goal, env }) {
     const value = deref(goal.args[0], env);
     if (value.type !== VAR && value.type !== NUMBER) throw new PrologError('type_error(number)', value);
     const list = deref(goal.args[1], env);
     if (value.type === VAR && list.type === VAR) throw new PrologError('instantiation_error');
-    const text = numberListText(list, env, kind, value.type === NUMBER);
+    const text = numberListText(list, env, kind, value.type === NUMBER, solver);
     if (value.type === NUMBER) {
       if (text != null) {
         const parsed = parseIsoNumber(text);

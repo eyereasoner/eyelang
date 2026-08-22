@@ -283,6 +283,7 @@ export class Solver {
   }
 
   runInitializations() {
+    if (this.program._initializationsExecuted) return;
     for (const goal of this.program.initializations ?? []) {
       let succeeded = false;
       for (const _ of this.solve([goal], new Env(), 0)) {
@@ -291,6 +292,9 @@ export class Solver {
       }
       if (!succeeded) throw new PrologError('initialization_error');
     }
+    // 7.4.2.6 attaches initialization to preparation of the Prolog text, not
+    // to each later Solver instance created for the same prepared Program.
+    this.program._initializationsExecuted = true;
   }
 
   *solve(goals, env = new Env(), depth = 0) {

@@ -7653,7 +7653,13 @@ integrity relations, automatic tabling, and the EyeProlog library. The strict au
 set and the prescribed 8.14 error precedence for `read_term/3`, `write_term/3`,
 `op/3`, and `current_op/3`; these checks distinguish invalid values from
 valid-but-fixed flag values and reject normal-profile write options at the
-strict boundary. The remaining qualifications are:
+strict boundary. The continuing issue #65 audit also enforces Part 1
+preparation constraints for `dynamic/1`, `multifile/1`, and `discontiguous/1`,
+keeps initialization tied to preparation of a program, tightens stream
+creation/position/EOF behavior and text-vs-binary permission errors, corrects
+Corrigendum 2 `keysort/2` error cases, and keeps the non-standard evaluable atom
+`e` outside strict mode. These are conformance improvements, while the
+remaining qualifications are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
   `ready`;

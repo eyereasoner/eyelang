@@ -88,8 +88,13 @@ export class StreamManager {
       const raw = fs.readFileSync(path);
       if (type === 'binary') content = raw;
       else { content = decodeUtf8ForTextStream(raw); strictUtf8 = true; }
-    } else if (mode === 'append' && fs.existsSync(path)) {
-      content = fs.readFileSync(path, type === 'binary' ? null : 'utf8');
+    } else if (mode === 'write') {
+      // ISO 7.10.1.1: opening an existing sink in write mode empties it,
+      // while a missing sink is created at open time (not deferred to close).
+      fs.writeFileSync(path, type === 'binary' ? BufferCtor.from([]) : '');
+    } else if (mode === 'append') {
+      if (fs.existsSync(path)) content = fs.readFileSync(path, type === 'binary' ? null : 'utf8');
+      else fs.writeFileSync(path, type === 'binary' ? BufferCtor.from([]) : '');
     }
     if (BufferCtor?.isBuffer(content)) content = [...content];
     return this.add({
@@ -100,12 +105,17 @@ export class StreamManager {
       pastEnd: false,
     });
   }
-  close(stream) {
-    if (!stream.standard && stream.mode !== 'read') {
-      fs.writeFileSync(stream.path, stream.type === 'binary' ? BufferCtor.from(stream.content) : stream.content);
-    }
+  flush(stream) {
+    if (!stream || stream.standard || stream.mode === 'read') return;
+    fs.writeFileSync(stream.path, stream.type === 'binary' ? BufferCtor.from(stream.content) : stream.content);
+  }
+  discard(stream) {
     if (stream.alias) this.aliases.delete(stream.alias);
     this.streams.delete(stream.id);
+  }
+  close(stream) {
+    this.flush(stream);
+    this.discard(stream);
   }
   readUnit(stream, peek = false) {
     if (stream.position >= stream.content.length) return null;
@@ -126,9 +136,22 @@ export class StreamManager {
     return value;
   }
   writeUnit(stream, value) {
-    if (stream.standard && stream.write) stream.write(String(value));
-    else if (stream.type === 'binary') stream.content.push(value);
-    else stream.content += value;
-    stream.position = stream.content.length;
+    if (stream.standard && stream.write) {
+      stream.write(String(value));
+      return;
+    }
+    // 7.10.2.8: output after repositioning overwrites the existing sink
+    // contents at the selected stream position rather than always appending.
+    if (stream.type === 'binary') {
+      if (stream.position < stream.content.length) stream.content[stream.position] = value;
+      else stream.content.push(value);
+      stream.position++;
+      return;
+    }
+    const text = String(value);
+    const content = String(stream.content);
+    const end = Math.min(content.length, stream.position + text.length);
+    stream.content = `${content.slice(0, stream.position)}${text}${content.slice(end)}`;
+    stream.position += text.length;
   }
 }

@@ -5,7 +5,7 @@ import {
 } from './term.js';
 import { PrologError } from './errors.js';
 
-function evaluate(term, env) {
+function evaluate(term, env, options = {}) {
   term = deref(term, env);
   if (term.type === VAR) throw new PrologError('instantiation_error');
   if (term.type === NUMBER) {
@@ -16,10 +16,11 @@ function evaluate(term, env) {
   }
   if (term.type === ATOM) {
     if (term.name === 'pi') return { integer: false, value: Math.PI };
-    if (term.name === 'e') return { integer: false, value: Math.E };
+    if (term.name === 'e' && options.isoStrict !== true) return { integer: false, value: Math.E };
+    throw new PrologError('type_error(evaluable)', compound('/', [atom(term.name), numberTerm(0)]));
   }
   if (term.type !== COMPOUND) throw new PrologError('type_error(evaluable)', term);
-  const args = term.args.map((arg) => evaluate(arg, env));
+  const args = term.args.map((arg) => evaluate(arg, env, options));
   return evaluateOperation(term, args);
 }
 function evaluateOperation(term, args) {
@@ -120,8 +121,8 @@ export function arithmeticValueTerm(value) {
 function numericTerm(value) {
   return arithmeticValueTerm(value);
 }
-export function evaluateArithmetic(term, env) {
-  return evaluate(term, env);
+export function evaluateArithmetic(term, env, options = {}) {
+  return evaluate(term, env, options);
 }
 function compareIntegerToFloat(integerValue, floatValue) {
   if (!Number.isFinite(floatValue)) throw new PrologError('evaluation_error(float_overflow)');
@@ -151,15 +152,16 @@ export function compareArithmeticValues(left, right) {
   if (right.integer) return -compareIntegerToFloat(b, a);
   return a < b ? -1 : a > b ? 1 : 0;
 }
-export function* isBuiltin({ goal, env }) {
-  const result = arithmeticValueTerm(evaluateArithmetic(goal.args[1], env));
+export function* isBuiltin({ solver, goal, env }) {
+  const result = arithmeticValueTerm(evaluateArithmetic(goal.args[1], env, { isoStrict: solver?.isoStrict === true }));
   const next = env.clone();
   if (unify(goal.args[0], result, next)) yield next;
 }
 export function arithmeticComparison(test) {
-  return function* ({ goal, env }) {
-    const left = evaluateArithmetic(goal.args[0], env);
-    const right = evaluateArithmetic(goal.args[1], env);
+  return function* ({ solver, goal, env }) {
+    const options = { isoStrict: solver?.isoStrict === true };
+    const left = evaluateArithmetic(goal.args[0], env, options);
+    const right = evaluateArithmetic(goal.args[1], env, options);
     const cmp = compareArithmeticValues(left, right);
     if (test(cmp)) yield env;
   };
