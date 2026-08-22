@@ -27,12 +27,17 @@ export {
 export { StreamManager } from './io.js';
 export { runQuads } from './quads.js';
 
+import { installCleanupLifecycle } from './cleanup.js';
 import { Program, autoloadProgramGoals } from './program.js';
 import { Solver } from './solver.js';
 import { whyNoProof, whyProof } from './explain.js';
 import { getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { executeGoals, normalizeGoals } from './execute.js';
+
+// The public API is an entry point above the solver/registry layers, so it can
+// install pruning-aware iterator disposal without introducing an import cycle.
+installCleanupLifecycle(Solver);
 
 export function run(source, options = {}) {
   const includeWhy = options.proof === true || options.why === true || options.explain === true;

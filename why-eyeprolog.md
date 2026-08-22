@@ -36,6 +36,7 @@ keeps a narrow architecture:
 - the ISO built-in registry;
 - lean portable ISO Part 2 library modules;
 - ISO Part 3 definite clause grammars and `phrase/2-3`;
+- lifecycle-aware `call_cleanup/2` and `setup_call_cleanup/3` in normal mode;
 - optional proof explanations; and
 - the same implementation in Node.js and the browser.
 
@@ -48,11 +49,13 @@ their ISO definitions directly.
 The implementation follows the same compactness rule. JavaScript runtime
 modules stay flat under `src/`: `program.js` and `iso.js` remain stable facade
 modules, while static program analysis, clause indexing, arithmetic evaluation,
-and processor error types are factored into focused sibling files. The
-execution fast paths remain direct code in `solver.js`; source cleanup is not
-allowed to add dispatch or abstraction overhead merely to make that file
-smaller. `src/ARCHITECTURE.md` records these boundaries and an automated test
-rejects JavaScript import cycles.
+processor error types, and cleanup lifecycle handling are factored into focused
+sibling files. `cleanup.js` closes protected builtin iterators when search is
+committed, abandoned, or unwound without making `solver.js` depend on the
+language registry. The execution fast paths remain direct code in `solver.js`;
+source cleanup is not allowed to add dispatch or abstraction overhead merely to
+make that file smaller. `src/ARCHITECTURE.md` records these boundaries and an
+automated test rejects JavaScript import cycles.
 
 
 ## Why keep well-founded negation explicit?
@@ -76,6 +79,16 @@ frame per token.  Relational remainder-producing modes are preserved.  The
 checked `examples/dcg-expression-language.pl` program shows the declarative side
 of that design: one grammar builds precedence-aware syntax trees and another
 generates minimally parenthesized token sequences back from them.
+
+## Why cleanup follows search lifecycle?
+
+A Prolog resource lifetime is tied to search, not just to ordinary function
+return. A protected goal can finish, fail, be cut, be abandoned at the top
+level while alternatives remain, or unwind through an exception. Normal-mode
+`call_cleanup/2` and `setup_call_cleanup/3` make those exits explicit and run
+Cleanup exactly once. This also preserves demand-driven answer interaction: the
+top level need not execute a successor merely to decide whether a choicepoint
+exists. Strict ISO mode leaves these predicates out.
 
 ## Why proofs?
 

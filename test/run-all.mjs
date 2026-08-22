@@ -12,6 +12,7 @@ import { runBookExamples } from './run-book-examples.mjs';
 import { runWg17 } from './run-wg17.mjs';
 import { runOpenRuleBenchChecks } from './run-openrulebench.mjs';
 import { runArchitecture } from './run-architecture.mjs';
+import { runCleanup } from './run-cleanup.mjs';
 
 await runStandalone(async (reporter) => {
   runConformance(reporter);
@@ -19,6 +20,7 @@ await runStandalone(async (reporter) => {
   runWg17(reporter);
   runOpenRuleBenchChecks(reporter);
   runArchitecture(reporter);
+  runCleanup(reporter);
   runRegression(reporter);
   await runPlayground(reporter);
   runExamples(reporter);

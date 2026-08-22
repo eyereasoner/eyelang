@@ -1947,6 +1947,13 @@ implements the shared ISO Part 3 grammar-rule and dynamic-body expansion
 without depending back on the ISO registry. This keeps the low-level syntax and
 error layers acyclic while preserving the existing `src/iso.js` exports.
 
+`src/cleanup.js` is an execution-layer sibling of the solver. It installs
+lifecycle-aware closing of protected builtin iterators from the supported API
+and CLI entry paths and registers `call_cleanup/2` and
+`setup_call_cleanup/3` for the normal EyeProlog profile. The standard-library
+layer does not import the solver back through this module, preserving the
+acyclic source graph.
+
 Program preparation follows the same pattern. `src/program.js` remains the
 `Program` facade and source/module loader. Static recursion, Datalog, WFS, and
 negation-stratification analysis is isolated in `src/program-analysis.js`,
@@ -5167,6 +5174,18 @@ for example malformed input or an unavailable required resource. ISO
 instantiation, type, domain, permission, representation, and evaluation errors
 follow this same exception path.
 
+Normal EyeProlog also provides `call_cleanup(Goal, Cleanup)` and
+`setup_call_cleanup(Setup, Goal, Cleanup)`. Cleanup is run exactly once when the
+protected search completes deterministically, is exhausted, is cut or otherwise
+pruned, top-level answer enumeration is abandoned, or an exception unwinds the
+search. `setup_call_cleanup/3` runs Setup once and installs Cleanup only after
+Setup succeeds. On cut or ordinary pruning Cleanup sees the current Goal
+bindings; on exception unwind the Goal bindings have been removed and Cleanup
+sees the Setup environment. Cleanup failure is ignored, and an exception already
+being propagated takes precedence over a cleanup exception. Nested cleanups run
+inside-out. These two controls are EyeProlog extensions and are absent from
+`--iso-strict`.
+
 Collection also makes search boundaries explicit. `findall/3` returns one list
 and existentially closes variables that occur only in its goal. `bagof/3`
 instead creates a group for each binding of a free variable and fails when
@@ -5372,12 +5391,20 @@ application code.
 
 ```eyeprolog
 write_event(Path, Event) :-
-  open(Path, write, Stream, [type(text)]),
-  write_canonical(Stream, Event),
-  put_char(Stream, '.'),
-  nl(Stream),
-  close(Stream).
+  setup_call_cleanup(
+    open(Path, write, Stream, [type(text)]),
+    ( write_canonical(Stream, Event),
+      put_char(Stream, '.'),
+      nl(Stream)
+    ),
+    close(Stream)
+  ).
 ```
+
+In normal mode, `setup_call_cleanup/3` is the preferred lifecycle boundary for
+resources such as streams: `close(Stream)` still runs if the protected work
+fails, throws, is cut, or its remaining alternatives are abandoned. Strict ISO
+mode does not provide this EyeProlog extension.
 
 The period is essential when another Prolog processor will read the result as
 a term. `write/1-2` uses readable conventional syntax, `writeq/1-2` quotes
@@ -5586,8 +5613,10 @@ negation.
 
 EyeProlog supports cut, operator declarations, dynamic database updates, grouped
 solutions, exceptions, flags, initialization and inclusion directives, and
-standard stream and term I/O. ISO Part 2 modules and Part 3 definite clause
-grammars complement this Part 1 core.
+standard stream and term I/O. Normal mode additionally provides lifecycle-aware
+`call_cleanup/2` and `setup_call_cleanup/3`; these cleanup controls are
+EyeProlog extensions and are excluded by `--iso-strict`. ISO Part 2 modules and
+Part 3 definite clause grammars complement this Part 1 core.
 
 ### ISO Part 2 modules
 
@@ -5838,8 +5867,7 @@ collision because other Prolog systems commonly reject it while loading.
 `;/2` recognizes an `->/2` term on its left and implements the ISO
 if-then-else commitment described above. Cuts and committed conditions are
 operational controls; use ordinary relations when all alternatives should
-remain observable.
-
+remain observable. 
 ### Definite clause grammar processing
 
 | Predicate and principal call | Behavior |
@@ -6141,6 +6169,10 @@ and solution collectors. `user_input` and `user_output` are always present.
 The JavaScript `ioOptions.input` and `ioOptions.write` hooks connect standard
 streams to an embedder. File-backed streams use synchronous lifecycle semantics
 so side effects occur in Prolog execution order.
+
+### Normal-mode cleanup controls
+
+`call_cleanup/2` and `setup_call_cleanup/3` are normal EyeProlog runtime extensions rather than members of the isolated ISO builtin registry. They protect a goal across deterministic completion, exhaustion, cut, top-level abandonment, and exception unwinding, running Cleanup exactly once. `setup_call_cleanup/3` runs Setup once and installs Cleanup only after Setup succeeds. Nested cleanups run inside-out, and strict ISO mode does not provide either predicate.
 
 ### The EyeProlog library
 
@@ -6665,8 +6697,10 @@ the answer-control help. Enumeration is demand-driven: after an answer is
 found, the top level does not pull a successor merely to discover whether the
 current answer is the last one. Search for a later answer, including any side
 effects reached on that path, starts only after an answer-control command asks
-to continue. If an unresolved alternative ultimately has no solution, asking
-for it may therefore finish with `false.`. In scripted non-TTY input, a new
+to continue. Stopping enumeration closes any active `call_cleanup/2` or
+`setup_call_cleanup/3` protection exactly once; detecting that a choicepoint
+remains does not execute that next branch. If an unresolved alternative
+ultimately has no solution, asking for it may therefore finish with `false.`. In scripted non-TTY input, a new
 query line implicitly stops the preceding answer enumeration without consuming
 the new query; explicit `;`, `n`, Space, `a`, or `f` still requests more
 answers. Once the top-level reader has accepted a complete query, the following
@@ -7510,7 +7544,8 @@ Corrigenda 1–3. Corrigendum 2 additions—including `subsumes_term/2`,
 `acyclic_term/1`, `sort/2`, `keysort/2`, `term_variables/2`, `retractall/1`,
 and `call/2-8`—remain part of that strict baseline. Part 2 modules, Part 3 DCG
 expansion/`phrase/2-3`, quads, EyeProlog libraries, the `occurs_check` flag,
-and automatic tabling are outside that Part 1 strict surface.
+automatic tabling, `call_cleanup/2`, and `setup_call_cleanup/3` are outside
+that Part 1 strict surface.
 
 This release establishes the strict-mode mechanism required for the ongoing
 conformance audit; it does **not** yet claim that every processor requirement
@@ -7738,6 +7773,14 @@ equivalent in a domain. Canonicalization can make some domain equality
 decidable by structural equality.
 
 **Clause.** A fact or rule terminated by a period.
+
+**Choicepoint.** A remaining search alternative that may produce another
+answer if the caller asks the solver to continue. EyeProlog's top level reports
+choicepoint availability without speculatively executing the next alternative.
+
+**Cleanup.** A protected finalization goal installed by normal-mode
+`call_cleanup/2` or `setup_call_cleanup/3`. It runs exactly once when the
+protected search ends, is pruned or abandoned, or unwinds through an exception.
 
 **Closed-world assumption.** The decision to treat failure to derive a
 sufficiently scoped claim as evidence for its absence. EyeProlog's `\+/1` performs

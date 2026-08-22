@@ -4,6 +4,7 @@
 // source-level interop autoloader declared below.
 import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
 import { clpzBuiltins } from './clpz.js';
+import { registerCleanupBuiltins } from './cleanup.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
 
@@ -181,6 +182,7 @@ export function createEyePrologRegistry() {
   registry.add('statistics', 0, statisticsBuiltin, { deterministic: true });
   registry.add('statistics', 2, statisticsValueBuiltin);
   registry.add('tnot', 1, tabledNegationBuiltin, { deterministic: true });
+  registerCleanupBuiltins(registry);
   eyePrologLibraryBuiltins.register(registry);
   clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;

@@ -11,7 +11,10 @@ higher-level frontends.
    `program-indexing.js`. Static recursion/Datalog/WFS classification lives in
    `program-analysis.js`; compact clauses and candidate indexes live in
    `program-indexing.js`.
-3. **Execution** — `solver.js`, `io.js`, `datalog.js`, `wfs.js`, `clpz.js`.
+3. **Execution** — `solver.js`, `cleanup.js`, `io.js`, `datalog.js`, `wfs.js`,
+   `clpz.js`. `cleanup.js` owns lifecycle-aware disposal of protected builtin
+   iterators and registers the normal-profile cleanup controls without making
+   `solver.js` depend back on the language registry.
 4. **Language services** — `iso.js`, `iso-arithmetic.js`, `dcg.js`,
    `standard-library.js`, and `src/lib/`.
 5. **Frontends/tools** — `execute.js`, `repl.js`, `cli.js`, `quads.js`,
@@ -30,7 +33,9 @@ report processor errors without importing `iso.js` and creating an
 
 The JavaScript runtime stays flat directly under `src/`; the existing `src/lib/`
 contains Prolog library sources rather than JavaScript runtime modules. The architecture
-test rejects JavaScript import cycles under `src/`.
+test rejects JavaScript import cycles under `src/`. Cleanup lifecycle hooks are
+installed from the public API and CLI entry paths; `standard-library.js` only
+registers the predicates, so the execution layer remains acyclic.
 
 ## Performance rule
 

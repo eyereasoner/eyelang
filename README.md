@@ -149,6 +149,24 @@ statistics(wfs_undefined_answers, UndefinedObservations).
 Both automatic tabling and `tnot/1` are EyeProlog extensions. Strict ISO mode
 disables automatic tabling and does not provide `tnot/1`.
 
+## Cleanup-aware control
+
+Normal mode provides `call_cleanup/2` and `setup_call_cleanup/3` for resource
+lifetimes that follow Prolog search. Cleanup runs exactly once when the protected
+goal completes deterministically, is exhausted, is cut or otherwise pruned, the
+top level stops answer enumeration, or an exception unwinds the search.
+`setup_call_cleanup/3` runs Setup once and installs Cleanup only after Setup
+succeeds. On ordinary pruning Cleanup sees the current goal bindings; during
+exception unwinding bindings made by the protected goal have already been
+unwound. Cleanup failure is ignored, and an exception already being propagated
+takes precedence over a cleanup exception. Nested cleanups run inside-out.
+
+These predicates are EyeProlog normal-mode extensions and are absent from
+`--iso-strict`. Their implementation is lifecycle-aware: the interactive top
+level can report a remaining choicepoint without speculatively requesting the
+next solution, while abandoning that choicepoint still closes protected
+resources.
+
 ## OpenRuleBench portable profile
 
 The `openrulebench/` directory contains a deterministic four-engine adaptation
@@ -176,9 +194,10 @@ eyeprolog --iso-strict --goal 'p(X)' program.pl
 
 The equivalent JavaScript option is `isoStrict: true`. Strict mode rejects
 EyeProlog language extensions, Part 2 module directives, and Part 3 grammar-rule
-expansion/`phrase/2-3`; it also removes the EyeProlog `occurs_check` flag and
-disables automatic tabling. Normal mode is unchanged and continues to support
-modules, DCGs, quads, libraries, proofs, and the other documented extensions.
+expansion/`phrase/2-3`; it also removes the EyeProlog `occurs_check` flag,
+`call_cleanup/2`, and `setup_call_cleanup/3`, and disables automatic tabling.
+Normal mode is unchanged and continues to support modules, DCGs, quads,
+libraries, proofs, cleanup-aware control, and the other documented extensions.
 
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
