@@ -6004,7 +6004,7 @@ silently changing a static program.
 | `debug` | `off` | `on`, `off` | yes |
 | `max_integer` | no current value because `bounded=false` | not applicable | no |
 | `min_integer` | no current value because `bounded=false` | not applicable | no |
-| `max_arity` | `unbounded` | `unbounded` | no |
+| `max_arity` | `65535` | `65535` | no |
 | `unknown` | `error` | `error`, `fail`, `warning` | yes |
 | `double_quotes` | `chars` | `chars`, `codes`, `atom` | yes |
 | `occurs_check` | `true` | `true`, `error` | yes |

@@ -3,6 +3,7 @@
 import { ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
 import { continuesGraphicToken, isTerminatingFullStop } from './syntax-scan.js';
 import { CharacterRepresentationError, isStrictIsoPcsCodePoint } from './iso-character.js';
+import { ISO_MAX_ARITY } from './iso-limits.js';
 
 
 export class NumberRepresentationError extends Error {
@@ -723,6 +724,7 @@ class Parser {
     }
     while (true) {
       args.push(this.parseTerm(ARG_MIN_PRECEDENCE, false, false, true));
+      if (args.length > ISO_MAX_ARITY) throw new NumberRepresentationError('representation_error(max_arity)');
       if (this.token.type !== TOK.COMMA) break;
       this.advance();
     }

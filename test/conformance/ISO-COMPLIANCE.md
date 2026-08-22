@@ -31,9 +31,9 @@ error-ordering alternative to an individual executable assertion.
 | Standard area | Status | Current evidence |
 | --- | --- | --- |
 | Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete vendored WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, writer/read-back regressions, and strict ASCII PCS/collation boundary tests. The implementation-defined 6.5/6.6 character-model decisions are now closed; wider shall-by-shall lexical mapping remains open. |
-| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates, plus strict checks for the required `variable < float < integer < atom < compound` type order and PCS-based atom collation. |
+| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates, plus strict checks for the required `variable < float < integer < atom < compound` type order, PCS-based atom collation, and the finite `max_arity` representation boundary used by term construction. |
 | 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Preparation-time `char_conversion/2` affects later unquoted source text and respects `char_conversion=off`. Strict preparation now enforces declaration-before-clause ordering for `dynamic/1`, `multifile/1`, and `discontiguous/1`, cross-text `multifile/1`, discontiguous clause grouping, empty declared procedures, include textual-replacement behavior, and one-time initialization per prepared program. The remaining shall-by-shall mapping is still open. |
-| 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access. Public/private and multi-text requirements still need complete mapping. |
+| 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access; focused strict checks now cover `current_predicate/1`, `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, Corrigendum 2 `retractall/1`, and `abolish/1` errors plus empty-procedure lifetime. The remaining clause-conversion shall-by-shall mapping is still open. |
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
 | 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. |
 | 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Exceptional-value/error-precedence matrix remains to be exhaustively enumerated. |
@@ -68,6 +68,21 @@ parsing, term input, character conversion, and character-code predicates. The
 normal profile retains Unicode scalar character data as an explicit extension.
 The complete WG17 syntax matrix remains green under this narrower strict
 boundary.
+
+
+The subsequent audit also reconciles the processor's arity limit: EyeProlog no
+longer advertises `max_arity=unbounded` while enforcing a hidden host ceiling.
+The implementation-defined Part 1 value is now `65535`, and the same boundary
+is used by parsing and the standard predicates whose error tables prescribe
+`representation_error(max_arity)`. Focused strict tests also lock the corrected
+8.5 term-construction errors, 8.8 clause-access precedence, 8.10 all-solutions
+goal/list precedence, database update errors, and Corrigendum 3 variable
+metadata traversal/write naming.
+
+The public WG17 `number_chars/2` comparison used in preparation of Corrigendum
+2 has additionally been checked against the current strict profile. That
+external comparison is useful independent evidence, but it is not yet vendored
+as an offline release gate; the exit criterion below therefore remains open.
 
 A further issue #65 audit closes the Part 1 flag family and tightens the 8.14
 term-I/O/operator error rules. The strict flag registry now distinguishes a

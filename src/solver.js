@@ -13,6 +13,7 @@ import { StreamManager } from './io.js';
 import { clpzStateConsistent } from './clpz.js';
 import { hardHeapLimit, softHeapLimit, usedHeapSize } from './platform.js';
 import { evaluateWfs, relationForGroup, truthOfGroundGoal } from './wfs.js';
+import { ISO_MAX_ARITY } from './iso-limits.js';
 import { evaluatePositiveDatalog, relationForDatalogGroup, datalogCandidateIndexes } from './datalog.js';
 
 let freshCounter = 0;
@@ -961,7 +962,7 @@ function defaultPrologFlags(unknown = 'error', strictIso = false) {
     ['debug', { value: compound('off', []), allowed: ['on', 'off'], changeable: true }],
     ['max_integer', { value: null, allowed: [], changeable: false }],
     ['min_integer', { value: null, allowed: [], changeable: false }],
-    ['max_arity', { value: compound('unbounded', []), allowed: ['unbounded'], changeable: false }],
+    ['max_arity', { value: numberTerm(ISO_MAX_ARITY), allowed: [String(ISO_MAX_ARITY)], valueType: NUMBER, changeable: false }],
     ['unknown', { value: compound(unknown, []), allowed: ['error', 'fail', 'warning'], changeable: true }],
     ['double_quotes', { value: compound('chars', []), allowed: ['chars', 'codes', 'atom'], changeable: true }],
     ['occurs_check', { value: compound('true', []), allowed: ['true', 'error'], changeable: true }],

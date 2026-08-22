@@ -55,7 +55,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'current_prolog_flag(integer_rounding_function,toward_zero)',
       'current_prolog_flag(char_conversion,on)',
       'current_prolog_flag(debug,off)',
-      'current_prolog_flag(max_arity,unbounded)',
+      'current_prolog_flag(max_arity,65535)',
       'current_prolog_flag(unknown,error)',
       'current_prolog_flag(double_quotes,chars)',
     ]) equal(answers(goalText), 1, goalText);
@@ -71,14 +71,23 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'permission_error(modify, flag)', 'bounded valid-but-fixed value');
     equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(integer_rounding_function,down)' })).formal,
       'permission_error(modify, flag)', 'rounding valid-but-fixed value');
-    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_arity,unbounded)' })).formal,
-      'permission_error(modify, flag)', 'max_arity fixed value');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_arity,65535)' })).formal,
+      'permission_error(modify, flag)', 'max_arity valid-but-fixed value');
     equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_integer,unbounded)' })).formal,
       'domain_error(flag_value)', 'max_integer has no value when unbounded');
     equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(unknown,maybe)' })).formal,
       'domain_error(flag_value)', 'unknown value domain');
     equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(not_a_flag,on)' })).formal,
       'domain_error(prolog_flag)', 'unsupported flag');
+  });
+
+  reporter.test('keeps max_arity consistent with term and predicate-indicator limits', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'functor(_,foo,65536)' })).formal,
+      'representation_error(max_arity)', 'functor/3 arity boundary');
+    equal(capture(() => run('', { isoStrict: true, goal: 'abolish(foo/65536)' })).formal,
+      'representation_error(max_arity)', 'abolish/1 arity boundary');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_arity,unbounded)' })).formal,
+      'domain_error(flag_value)', 'unbounded is not the selected max_arity value');
   });
 
   reporter.test('preparation-time char_conversion affects later unquoted source only', () => {
@@ -153,6 +162,27 @@ export function runIsoStrict(reporter = new TestReporter()) {
     includes(normal.stdout, '"ab"', 'normal-profile extension remains available');
   });
 
+  reporter.test('follows Corrigendum 3 variable metadata traversal and write naming', () => {
+    const readMetadata = run('', {
+      isoStrict: true,
+      goal: "read_term(f(B,A,B,C,D,E),[variables([B,A,C,D,E]),variable_names(['B'=B,'A'=A,'C'=C,'_D'=D]),singletons(['A'=A,'C'=C,'_D'=D])])",
+      ioOptions: { input: 'f(B,A,B,C,_D,_).' },
+    });
+    equal(readMetadata.stats.completed_goal_lists, 1, 'read metadata order');
+
+    const named = run('', {
+      isoStrict: true,
+      goal: "write_term(f(X,Y,X),[quoted(true),variable_names([z=X,a=X,y=Y])])",
+    });
+    includes(named.stdout, 'f(z,y,z)', 'leftmost variable name wins');
+
+    const ignoredNonVariable = run('', {
+      isoStrict: true,
+      goal: "write_term(X,[variable_names([ignored=42,x=X])])",
+    });
+    includes(ignoredNonVariable.stdout, 'x', 'non-variable right side is permitted and ignored');
+  });
+
   reporter.test('follows the ISO 8.14.1.3 read_term/3 error order', () => {
     equal(capture(() => run('', { isoStrict: true, goal: 'read_term(f(a),_,[X])' })).formal,
       'instantiation_error', 'partial/variable option before stream domain');
@@ -213,6 +243,29 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'type_error(atom)', 'operator type');
   });
 
+  reporter.test('follows ISO term-construction error types and precedence', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'functor(_,foo(a),1)' })).formal,
+      'type_error(atomic)', 'functor compound name');
+    equal(capture(() => run('', { isoStrict: true, goal: 'functor(_,foo(a),bad)' })).formal,
+      'type_error(atomic)', 'functor name error before arity type');
+    equal(capture(() => run('', { isoStrict: true, goal: "'=..'(foo,bar)" })).formal,
+      'type_error(list)', '=../2 fixed non-list');
+  });
+
+  reporter.test('follows ISO clause/2 private-procedure error precedence', () => {
+    equal(capture(() => run('p.\n', { isoStrict: true, goal: 'clause(atom(_),4)' })).formal,
+      'permission_error(access, private_procedure)', 'private procedure before body callability');
+  });
+
+  reporter.test('validates all-solutions goals before their output lists', () => {
+    for (const predicate of ['findall', 'bagof', 'setof']) {
+      equal(capture(() => run('', { isoStrict: true, goal: `${predicate}(X,Y,foo)` })).formal,
+        'instantiation_error', `${predicate}/3 variable goal`);
+      equal(capture(() => run('', { isoStrict: true, goal: `${predicate}(X,4,foo)` })).formal,
+        'type_error(callable)', `${predicate}/3 non-callable goal`);
+    }
+  });
+
   reporter.test('uses the Part 1 predefined operator table', () => {
     const program = Program.parse('', { isoStrict: true });
     equal(program.operators.has('fx\u0000?-'), true, 'fx ?-');
@@ -251,6 +304,47 @@ export function runIsoStrict(reporter = new TestReporter()) {
       parseGoalText('clause(p,B)', { isoStrict: true }),
     ], new Env(), 0)];
     equal(answers.length, 1, 'answer count');
+  });
+
+  reporter.test('covers ISO database predicate errors and empty-procedure lifetime', () => {
+    const errors = [
+      ['current_predicate(4)', '', 'type_error(predicate_indicator)'],
+      ['asserta(_)', '', 'instantiation_error'],
+      ['asserta(4)', '', 'type_error(callable)'],
+      ['asserta((atom(_):-true))', '', 'permission_error(modify, static_procedure)'],
+      ['assertz(_)', '', 'instantiation_error'],
+      ['assertz(4)', '', 'type_error(callable)'],
+      ['retract(_)', '', 'instantiation_error'],
+      ['retract(4)', '', 'type_error(callable)'],
+      ['retract(atom(_))', '', 'permission_error(modify, static_procedure)'],
+      ['retractall(_)', '', 'instantiation_error'],
+      ['retractall(3)', '', 'type_error(callable)'],
+      ['retractall(retractall(_))', '', 'permission_error(modify, static_procedure)'],
+      ['abolish(foo/_)', '', 'instantiation_error'],
+      ['abolish(foo)', '', 'type_error(predicate_indicator)'],
+      ['abolish(foo/a)', '', 'type_error(integer)'],
+      ['abolish(4/1)', '', 'type_error(atom)'],
+      ['abolish(foo/(-1))', '', 'domain_error(not_less_than_zero)'],
+      ['abolish(atom/1)', '', 'permission_error(modify, static_procedure)'],
+    ];
+    for (const [goal, source, formal] of errors) {
+      equal(capture(() => run(source, { isoStrict: true, goal })).formal, formal, goal);
+    }
+
+    const retained = run(':- dynamic(p/1).\np(a).\n', {
+      isoStrict: true,
+      goal: 'retractall(p(_)), current_predicate(p/1), \\+ clause(p(_),_)',
+    });
+    equal(retained.stats.completed_goal_lists, 1, 'retractall keeps the dynamic procedure');
+
+    const empty = run(':- dynamic(empty/1).\n', { isoStrict: true, goal: 'current_predicate(empty/1)' });
+    equal(empty.stats.completed_goal_lists, 1, 'declared empty procedure exists');
+
+    const abolished = run(':- dynamic(q/1).\nq(a).\n', {
+      isoStrict: true,
+      goal: 'abolish(q/1), \\+ current_predicate(q/1)',
+    });
+    equal(abolished.stats.completed_goal_lists, 1, 'abolish removes the procedure');
   });
 
   reporter.test('disables automatic tabling and recursion guards', () => {

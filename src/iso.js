@@ -14,6 +14,7 @@ import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 import { INVALID_UTF8_SENTINEL } from './io.js';
 import { CharacterRepresentationError, isStrictIsoPcsCharacter, isStrictIsoPcsCodePoint } from './iso-character.js';
+import { ISO_MAX_ARITY } from './iso-limits.js';
 import {
   characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
 } from './syntax-scan.js';
@@ -389,18 +390,26 @@ function* functorBuiltin({ goal, env }) {
     if (unify(goal.args[1], name, next) && unify(goal.args[2], numberTerm(term.arity), next)) yield next;
     return;
   }
+
   const name = deref(goal.args[1], env);
-  const arity = requireInteger(goal.args[2], env);
-  if (arity < 0n) throw new PrologError('domain_error(not_less_than_zero)', deref(goal.args[2], env));
-  if (arity > BigInt(Number.MAX_SAFE_INTEGER)) throw new PrologError('representation_error(max_arity)');
+  const arityTerm = deref(goal.args[2], env);
+  // ISO 8.5.1.3 orders construction-mode diagnostics. A compound Name is an
+  // atomic type error (before an Arity type error); only an atomic non-atom
+  // used for positive arity receives type_error(atom,...).
+  if (name.type === VAR) throw new PrologError('instantiation_error');
+  if (arityTerm.type === VAR) throw new PrologError('instantiation_error');
+  if (name.type === COMPOUND) throw new PrologError('type_error(atomic)', name);
+  if (arityTerm.type !== NUMBER || !isDecimalInteger(arityTerm.name)) {
+    throw new PrologError('type_error(integer)', arityTerm);
+  }
+  const arity = BigInt(arityTerm.name);
+  if (arity > 0n && name.type !== ATOM) throw new PrologError('type_error(atom)', name);
+  if (arity > BigInt(ISO_MAX_ARITY)) throw new PrologError('representation_error(max_arity)');
+  if (arity < 0n) throw new PrologError('domain_error(not_less_than_zero)', arityTerm);
   if (arity === 0n) {
-    if (name.type === VAR) throw new PrologError('instantiation_error');
-    if (name.type === COMPOUND) throw new PrologError('type_error(atomic)', name);
     if (unify(goal.args[0], name, next)) yield next;
     return;
   }
-  if (name.type === VAR) throw new PrologError('instantiation_error');
-  if (name.type !== ATOM) throw new PrologError('type_error(atom)', name);
   const id = ++isoFresh;
   if (unify(goal.args[0], compound(name.name, Array.from({ length: Number(arity) }, (_, i) => variable(`__functor${id}_${i}`))), next)) yield next;
 }
@@ -420,6 +429,11 @@ function* univBuiltin({ goal, env }) {
   const term = deref(goal.args[0], env);
   const next = env.clone();
   if (term.type !== VAR) {
+    // 8.5.3.3(b) also applies in decomposition mode: a fixed second argument
+    // that is neither a list nor a partial list is an error, not failure.
+    if (listKind(goal.args[1], env) === 'nonlist') {
+      throw new PrologError('type_error(list)', deref(goal.args[1], env));
+    }
     const items = term.type === COMPOUND ? [atom(term.name), ...term.args] : [term];
     if (unify(goal.args[1], listFromItems(items), next)) yield next;
     return;
@@ -438,6 +452,7 @@ function* univBuiltin({ goal, env }) {
     return;
   }
   const name = requireAtom(items[0], env);
+  if (items.length - 1 > ISO_MAX_ARITY) throw new PrologError('representation_error(max_arity)');
   if (unify(goal.args[0], compound(name.name, items.slice(1)), next)) yield next;
 }
 
@@ -519,20 +534,15 @@ function* clauseBuiltin({ solver, goal, env }) {
   const head = deref(goal.args[0], env);
   if (head.type === VAR) throw new PrologError('instantiation_error');
   if (head.type !== ATOM && head.type !== COMPOUND) throw new PrologError('type_error(callable)', head);
-  callableOrVariable(goal.args[1], env);
   const indicator = compound('/', [atom(head.name), numberTerm(head.arity)]);
-  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head)) {
-    throw new PrologError('permission_error(access, private_procedure)', indicator);
-  }
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
-  if (!group) return;
-  // ISO 7.5.3 makes dynamic procedures public and static user-defined
-  // procedures private by default.  EyeProlog's normal profile keeps static
-  // clauses inspectable for proof tooling; strict core mode restores the ISO
-  // access rule used by clause/2.
-  if (solver.isoStrict && !group.dynamic) {
+  // ISO 8.8.1.3 places private-procedure access before Body callability.
+  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head) ||
+      (solver.isoStrict && group && !group.dynamic)) {
     throw new PrologError('permission_error(access, private_procedure)', indicator);
   }
+  callableOrVariable(goal.args[1], env);
+  if (!group) return;
   for (const clause of group.clauses) {
     const pair = compound('$clause', [clause.head, clauseBodyTerm(clause.body)]);
     const copied = freshCopy(pair, new Env());
@@ -649,7 +659,7 @@ function predicateIndicatorParts(term, env) {
   if (name.type !== ATOM) throw new PrologError('type_error(atom)', name);
   const integer = BigInt(arity.name);
   if (integer < 0n) throw new PrologError('domain_error(not_less_than_zero)', arity);
-  if (integer > BigInt(Number.MAX_SAFE_INTEGER)) throw new PrologError('representation_error(max_arity)');
+  if (integer > BigInt(ISO_MAX_ARITY)) throw new PrologError('representation_error(max_arity)');
   return { name: name.name, arity: Number(integer), indicator };
 }
 
@@ -688,7 +698,8 @@ function* setPrologFlagBuiltin({ solver, goal, env }) {
   if (flag.type !== ATOM) throw new PrologError('type_error(atom)', flag);
   const definition = solver.prologFlags.get(flag.name);
   if (!definition) throw new PrologError('domain_error(prolog_flag)', flag);
-  if (value.type !== ATOM || !definition.allowed.includes(value.name)) {
+  const expectedType = definition.valueType ?? ATOM;
+  if (value.type !== expectedType || !definition.allowed.includes(value.name)) {
     throw new PrologError('domain_error(flag_value)', compound('+', [flag, value]));
   }
   if (!definition.changeable) throw new PrologError('permission_error(modify, flag)', flag);
@@ -2072,11 +2083,13 @@ function flatFindallTemplate(template) {
 
 function* findallBuiltin({ solver, goal, env }) {
   const [template, innerGoal, bag] = goal.args;
+  // ISO 8.10.1.3 diagnoses Goal before Instances when both are erroneous.
+  const invoked = callable(innerGoal, env);
   assertListOrPartial(bag, env);
   const collector = solver.cloneForInnerGoal(10000000);
   let compact = flatFindallTemplate(template);
   let collected = compact == null ? [] : null;
-  for (const answerEnv of collector.solve([callable(innerGoal, env)], env.clone(), 0)) {
+  for (const answerEnv of collector.solve([invoked], env.clone(), 0)) {
     if (compact != null && compact.push(template, answerEnv)) continue;
     if (compact != null) {
       collected = compact.materialize();
@@ -2135,8 +2148,9 @@ function sortedUnique(items) {
 
 function allSolutionsBuiltin(asSet) {
   return function* ({ solver, goal, env }) {
-    assertListOrPartial(goal.args[2], env);
+    // ISO 8.10.2.3/8.10.3.3 diagnose the iterated goal before Instances.
     const { iterated, quantified } = bagGoalParts(goal.args[1], env);
+    assertListOrPartial(goal.args[2], env);
     const free = freeVariables(iterated, goal.args[0], quantified, env);
     const collector = solver.cloneForInnerGoal(10000000);
     const groups = [];
