@@ -37,10 +37,10 @@ error-ordering alternative to an individual executable assertion.
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
 | 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. |
 | 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Exceptional-value/error-precedence matrix remains to be exhaustively enumerated. |
-| 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, Corrigendum 3 writer cases. Full option cross-product remains open. |
-| 7.11 — flags | audit | Required Part 1 flags implemented. Normal and strict modes use the ISO `unknown=error` default; strict mode excludes the EyeProlog `occurs_check` extension. With `bounded=false`, `max_integer` and `min_integer` correctly have no current value. |
-| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax families and focused error cases. Complete prescribed-error ordering remains open. |
-| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. Mode/error matrix is not yet one-row-per-standard-row. |
+| 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, and Corrigendum 3 writer cases. The Part 1/Corrigendum 3 `read_term/2-3` and `write_term/2-3` option surfaces and ISO 8.14.1-8.14.2 prescribed error ordering now have dedicated strict tests; the wider stream/open/close option cross-product remains open. |
+| 7.11 — flags | covered | The complete Part 1 flag set, selected defaults, standard value domains, changeability, `current_prolog_flag/2`, and `set_prolog_flag/2` error behavior have dedicated strict tests. EyeProlog selects `bounded=false` and `integer_rounding_function=toward_zero`; valid alternative values of those fixed flags reach `permission_error(modify,flag,...)`, while `max_integer` and `min_integer` have no current value. Strict mode excludes the EyeProlog `occurs_check` extension. |
+| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax families and focused error cases. Exact ISO 8.14.1-8.14.4 error precedence is now covered for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`; prescribed ordering for the remaining built-in families is still being mapped. |
+| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. The 8.14 term-I/O/operator subfamily now has dedicated strict option-surface and prescribed-error-order assertions, and 8.17 flag behavior is closed; the remaining mode/error matrix is not yet one-row-per-standard-row. |
 | Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Host floating-point representation choices remain documented implementation-defined behavior. |
 | Corrigendum 1 | covered | Double-quoted atom/operator-priority corrections have dedicated cases. |
 | Corrigendum 2 | covered | Added predicates/functors, catch corrections, bar/operator and uninstantiation corrections have dedicated cases. |
@@ -68,6 +68,18 @@ parsing, term input, character conversion, and character-code predicates. The
 normal profile retains Unicode scalar character data as an explicit extension.
 The complete WG17 syntax matrix remains green under this narrower strict
 boundary.
+
+A further issue #65 audit closes the Part 1 flag family and tightens the 8.14
+term-I/O/operator error rules. The strict flag registry now distinguishes a
+standard value that is valid but not selectable from a value outside the
+standard domain: attempts to change fixed `bounded` or
+`integer_rounding_function` to another standard value therefore reach the
+required permission error. `read_term/3`, `write_term/3`, `op/3`, and
+`current_op/3` now follow their prescribed error precedence, including cases
+where more than one argument is erroneous. Strict `write_term/2-3` accepts only
+the Part 1 plus Corrigendum 3 option surface; the normal-profile
+`double_quotes/1` write option remains an explicitly documented EyeProlog
+extension.
 
 ## Strict-core boundary
 

@@ -21,7 +21,9 @@ predicate indicators listed in Appendix B of the book across the Part 1 strict-c
 target and the normal-mode module/DCG compatibility families. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the explicit
 processor-requirement ledger for the Part 1 strict-core audit. This suite is
 still not an independent certification of every processor requirement, lexical
-edge, option combination, or prescribed error precedence. Cases under `iso/`
+edge, or option combination. Selected prescribed-error sequences are now
+checked exactly (including ISO 8.14.1-8.14.4), while the remaining built-in
+error-order matrix is tracked in the compliance ledger. Cases under `iso/`
 identify standards-derived behavior; other directories cover EyeProlog host
 contracts and extensions. EyeProlog-only execution features such as automatic
 tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core

@@ -218,6 +218,13 @@ raise representation errors in strict parsing and character operations. Normal
 mode retains Unicode scalar character data as an implementation-specific
 extension.
 
+Strict term I/O likewise keeps the standardized option boundary: `read_term/2-3`
+and `write_term/2-3` accept the Part 1 plus Corrigendum 3 options, while the
+normal-profile `write_term(...,[double_quotes(...)])` option remains an
+EyeProlog extension. The strict gate also checks the prescribed ISO error
+precedence for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`, and
+the complete Part 1 flag defaults/value domains/changeability rules.
+
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
 The ISO 5.4 implementation-defined/implementation-specific decision index is

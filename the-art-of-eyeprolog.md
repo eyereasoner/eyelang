@@ -5425,7 +5425,10 @@ emitted compactly when no lexical ambiguity would arise. For example,
 still retained where adjacent graphic tokens would otherwise merge, as in
 `a+ -b`.
 `write_term/2-3` supports `quoted/1`, `ignore_ops/1`, `numbervars/1`, and
-`variable_names/1`.
+`variable_names/1`. Normal mode additionally accepts the EyeProlog extension
+`double_quotes(true|false)`: `true` lets eligible character/code lists use the
+current `double_quotes` representation, while strict ISO mode rejects this
+non-standard write option.
 
 Character operations are `get_char`, `peek_char`, `put_char`, `get_code`,
 `peek_code`, and `put_code`; byte streams use the corresponding byte
@@ -7646,8 +7649,11 @@ conformance audit; it does **not** yet claim that every processor requirement
 has been independently certified. `test/conformance/ISO-COMPLIANCE.md` tracks
 the remaining normative audit work. The executable examples are mostly
 EyeProlog-profile programs using host-supplied goals, character lists, explicit
-integrity relations, automatic tabling, and the EyeProlog library. The
-remaining qualifications are:
+integrity relations, automatic tabling, and the EyeProlog library. The strict audit also exercises the complete Part 1 flag
+set and the prescribed 8.14 error precedence for `read_term/3`, `write_term/3`,
+`op/3`, and `current_op/3`; these checks distinguish invalid values from
+valid-but-fixed flag values and reject normal-profile write options at the
+strict boundary. The remaining qualifications are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
   `ready`;
@@ -7655,8 +7661,11 @@ remaining qualifications are:
 - variables cannot occupy functor or predicate position;
 - double-quoted text follows `double_quotes` exactly; the default `chars` value
   matches Trealla and Scryer and may be changed to `codes` or `atom`;
-- `write_term/2-3` implements `quoted/1`, `ignore_ops/1`, `numbervars/1`,
-  and `variable_names/1`, including Corrigendum 3 option validation and traversal rules;
+- `write_term/2-3` implements the Part 1 plus Corrigendum 3 `quoted/1`,
+  `ignore_ops/1`, `numbervars/1`, and `variable_names/1` option surface,
+  including option validation and traversal rules; normal mode also offers
+  `double_quotes(true|false)` as an explicitly non-standard extension, which
+  strict mode rejects;
 - unification consistently performs an occurs check, rejecting rational-tree
   bindings accepted as extensions by some systems.
 

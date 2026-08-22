@@ -46,6 +46,41 @@ export function runIsoStrict(reporter = new TestReporter()) {
   });
 
 
+  reporter.test('covers the Part 1 flag defaults, value domains, and changeability', () => {
+    const program = Program.parse('', { isoStrict: true });
+    const solver = new Solver(program, { isoStrict: true });
+    const answers = (text) => [...solver.solve([parseGoalText(text, { isoStrict: true })], new Env(), 0)].length;
+    for (const goalText of [
+      'current_prolog_flag(bounded,false)',
+      'current_prolog_flag(integer_rounding_function,toward_zero)',
+      'current_prolog_flag(char_conversion,on)',
+      'current_prolog_flag(debug,off)',
+      'current_prolog_flag(max_arity,unbounded)',
+      'current_prolog_flag(unknown,error)',
+      'current_prolog_flag(double_quotes,chars)',
+    ]) equal(answers(goalText), 1, goalText);
+
+    for (const goalText of [
+      'set_prolog_flag(char_conversion,off)',
+      'set_prolog_flag(debug,on)',
+      'set_prolog_flag(unknown,fail)',
+      'set_prolog_flag(double_quotes,codes)',
+    ]) run('', { isoStrict: true, goal: goalText });
+
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(bounded,true)' })).formal,
+      'permission_error(modify, flag)', 'bounded valid-but-fixed value');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(integer_rounding_function,down)' })).formal,
+      'permission_error(modify, flag)', 'rounding valid-but-fixed value');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_arity,unbounded)' })).formal,
+      'permission_error(modify, flag)', 'max_arity fixed value');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_integer,unbounded)' })).formal,
+      'domain_error(flag_value)', 'max_integer has no value when unbounded');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(unknown,maybe)' })).formal,
+      'domain_error(flag_value)', 'unknown value domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(not_a_flag,on)' })).formal,
+      'domain_error(prolog_flag)', 'unsupported flag');
+  });
+
   reporter.test('preparation-time char_conversion affects later unquoted source only', () => {
     const program = Program.parse(
       ":- char_conversion(x,y).\np(x).\nquoted('x').\n:- set_prolog_flag(char_conversion,off).\nraw(x).\n",
@@ -105,6 +140,77 @@ export function runIsoStrict(reporter = new TestReporter()) {
   reporter.test('keeps broader Unicode character handling as a normal-mode extension', () => {
     const result = run('', { goal: "char_code('é',233)" });
     equal(result.stdout, "char_code('é', 233).\n", 'normal Unicode char_code/2');
+  });
+
+  reporter.test('keeps the strict write-option surface to Part 1 plus Corrigendum 3', () => {
+    const strictError = capture(() => run('', {
+      isoStrict: true,
+      goal: 'write_term(a,[double_quotes(true)])',
+    }));
+    equal(strictError.formal, 'domain_error(write_option)', 'strict extension rejection');
+
+    const normal = run('', { goal: 'write_term("ab",[double_quotes(true)])' });
+    includes(normal.stdout, '"ab"', 'normal-profile extension remains available');
+  });
+
+  reporter.test('follows the ISO 8.14.1.3 read_term/3 error order', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'read_term(f(a),_,[X])' })).formal,
+      'instantiation_error', 'partial/variable option before stream domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'read_term(f(a),_,foo)' })).formal,
+      'domain_error(stream_or_alias)', 'stream domain before non-list options');
+    equal(capture(() => run('', { isoStrict: true, goal: 'read_term(user_output,_,foo)' })).formal,
+      'type_error(list)', 'non-list options before stream permission');
+    equal(capture(() => run('', { isoStrict: true, goal: 'read_term(user_output,_,[bogus])' })).formal,
+      'domain_error(read_option)', 'invalid option before stream permission');
+    equal(capture(() => run('', { isoStrict: true, goal: "read_term('$stream'(999),_,[bogus])" })).formal,
+      'domain_error(read_option)', 'invalid option before stream existence');
+
+    const program = Program.parse('', { isoStrict: true });
+    const solver = new Solver(program, { isoStrict: true, ioOptions: { input: 'a.' } });
+    const error = capture(() => [...solver.solve([
+      parseGoalText('read_term(user_input,_,[bogus])', { isoStrict: true }),
+    ], new Env(), 0)]);
+    equal(error.formal, 'domain_error(read_option)', 'invalid read option');
+    equal(solver.io.resolve('user_input').position, 0, 'invalid options are rejected before input');
+  });
+
+  reporter.test('follows the ISO 8.14.2.3 write_term/3 error order', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'write_term(f(a),a,[X])' })).formal,
+      'instantiation_error', 'partial/variable option before stream domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'write_term(f(a),a,foo)' })).formal,
+      'type_error(list)', 'non-list options before stream domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'write_term(f(a),a,[bogus])' })).formal,
+      'domain_error(stream_or_alias)', 'stream domain before invalid option');
+    equal(capture(() => run('', { isoStrict: true, goal: "write_term('$stream'(999),a,[bogus])" })).formal,
+      'domain_error(write_option)', 'invalid option before stream existence');
+    equal(capture(() => run('', { isoStrict: true, goal: 'write_term(user_input,a,[bogus])' })).formal,
+      'domain_error(write_option)', 'invalid option before stream permission');
+  });
+
+  reporter.test('follows the ISO 8.14.3.3 op/3 error order', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'op(a,X,0)' })).formal,
+      'instantiation_error', 'specifier variable before priority type');
+    equal(capture(() => run('', { isoStrict: true, goal: 'op(a,xfy,[X])' })).formal,
+      'instantiation_error', 'operator variable element before priority type');
+    equal(capture(() => run('', { isoStrict: true, goal: 'op(a,1,0)' })).formal,
+      'type_error(integer)', 'priority type before specifier type');
+    equal(capture(() => run('', { isoStrict: true, goal: 'op(1,1,0)' })).formal,
+      'type_error(atom)', 'specifier type before operator-list type');
+    equal(capture(() => run('', { isoStrict: true, goal: 'op(1300,xfy,[1])' })).formal,
+      'type_error(atom)', 'operator element type before priority domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'op(1300,foo,a)' })).formal,
+      'domain_error(operator_priority)', 'priority domain before specifier domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'op(100,foo,a)' })).formal,
+      'domain_error(operator_specifier)', 'specifier domain');
+  });
+
+  reporter.test('uses ISO 8.14.4.3 domain errors for current_op/3 filters', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'current_op(a,_,_)' })).formal,
+      'domain_error(operator_priority)', 'priority domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'current_op(1,1,_)' })).formal,
+      'domain_error(operator_specifier)', 'specifier domain');
+    equal(capture(() => run('', { isoStrict: true, goal: 'current_op(1,fx,1)' })).formal,
+      'type_error(atom)', 'operator type');
   });
 
   reporter.test('uses the Part 1 predefined operator table', () => {

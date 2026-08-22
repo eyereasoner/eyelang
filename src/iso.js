@@ -690,44 +690,49 @@ function* setPrologFlagBuiltin({ solver, goal, env }) {
 
 const operatorSpecifiers = new Set(['fx', 'fy', 'xf', 'yf', 'xfx', 'xfy', 'yfx']);
 
-function operatorPriority(term, env) {
+function opListPreflight(term, env) {
   const value = deref(term, env);
   if (value.type === VAR) throw new PrologError('instantiation_error');
-  if (value.type !== NUMBER || !isDecimalInteger(value.name)) throw new PrologError('type_error(integer)', value);
-  const priority = BigInt(value.name);
-  if (priority < 0n || priority > 1200n) throw new PrologError('domain_error(operator_priority)', value);
-  return Number(priority);
-}
-
-function operatorSpecifier(term, env) {
-  const value = deref(term, env);
-  if (value.type === VAR) throw new PrologError('instantiation_error');
-  if (value.type !== ATOM) throw new PrologError('type_error(atom)', value);
-  if (!operatorSpecifiers.has(value.name)) throw new PrologError('domain_error(operator_specifier)', value);
-  return value.name;
-}
-
-function operatorNames(term, env) {
-  const value = deref(term, env);
-  if (value.type === VAR) throw new PrologError('instantiation_error');
-  if (value.type === ATOM) return [value];
-  const items = properListItems(value, env);
-  if (items == null) {
-    if (isPartialList(value, env)) throw new PrologError('instantiation_error');
-    throw new PrologError('type_error(list)', value);
+  if (value.type === ATOM) return { value, items: [value], proper: true, atom: true };
+  const { items, tail } = listElements(value, env);
+  if (tail.type === VAR || items.some((item) => item.type === VAR)) {
+    throw new PrologError('instantiation_error');
   }
-  for (const item of items) {
-    const resolved = deref(item, env);
-    if (resolved.type === VAR) throw new PrologError('instantiation_error');
-    if (resolved.type !== ATOM) throw new PrologError('type_error(atom)', resolved);
-  }
-  return items.map((item) => deref(item, env));
+  const proper = tail.type === ATOM && tail.name === '[]';
+  return { value, items, proper, atom: false };
 }
 
 function* opBuiltin({ solver, goal, env }) {
-  const priority = operatorPriority(goal.args[0], env);
-  const specifier = operatorSpecifier(goal.args[1], env);
-  for (const name of operatorNames(goal.args[2], env)) {
+  const priorityTerm = deref(goal.args[0], env);
+  const specifierTerm = deref(goal.args[1], env);
+
+  // ISO 8.14.3.3 prescribes the ordering below.  In particular, all three
+  // instantiation cases precede type/domain errors, and Operator list-shape
+  // errors precede priority/specifier domain errors.
+  if (priorityTerm.type === VAR) throw new PrologError('instantiation_error');
+  if (specifierTerm.type === VAR) throw new PrologError('instantiation_error');
+  const operator = opListPreflight(goal.args[2], env);
+
+  if (priorityTerm.type !== NUMBER || !isDecimalInteger(priorityTerm.name)) {
+    throw new PrologError('type_error(integer)', priorityTerm);
+  }
+  if (specifierTerm.type !== ATOM) throw new PrologError('type_error(atom)', specifierTerm);
+  if (!operator.atom && !operator.proper) throw new PrologError('type_error(list)', operator.value);
+  for (const item of operator.items) {
+    if (item.type !== ATOM) throw new PrologError('type_error(atom)', item);
+  }
+
+  const priorityBig = BigInt(priorityTerm.name);
+  if (priorityBig < 0n || priorityBig > 1200n) {
+    throw new PrologError('domain_error(operator_priority)', priorityTerm);
+  }
+  if (!operatorSpecifiers.has(specifierTerm.name)) {
+    throw new PrologError('domain_error(operator_specifier)', specifierTerm);
+  }
+
+  const priority = Number(priorityBig);
+  const specifier = specifierTerm.name;
+  for (const name of operator.items) {
     if (name.name === ',') {
       throw new PrologError('permission_error(modify, operator)', name);
     }
@@ -755,19 +760,16 @@ function* currentOpBuiltin({ solver, goal, env }) {
   const priority = deref(goal.args[0], env);
   const specifier = deref(goal.args[1], env);
   const name = deref(goal.args[2], env);
-  if (priority.type !== VAR) {
-    if (priority.type !== NUMBER || !isDecimalInteger(priority.name)) {
-      throw new PrologError('type_error(integer)', priority);
-    }
-    if (BigInt(priority.name) < 0n || BigInt(priority.name) > 1200n) {
-      throw new PrologError('domain_error(operator_priority)', priority);
-    }
+  // ISO 8.14.4.3 defines the first two argument errors by domain, not by
+  // their underlying atom/integer representation type.
+  if (priority.type !== VAR &&
+      (priority.type !== NUMBER || !isDecimalInteger(priority.name) ||
+       BigInt(priority.name) < 0n || BigInt(priority.name) > 1200n)) {
+    throw new PrologError('domain_error(operator_priority)', priority);
   }
-  if (specifier.type !== VAR) {
-    if (specifier.type !== ATOM) throw new PrologError('type_error(atom)', specifier);
-    if (!operatorSpecifiers.has(specifier.name)) {
-      throw new PrologError('domain_error(operator_specifier)', specifier);
-    }
+  if (specifier.type !== VAR &&
+      (specifier.type !== ATOM || !operatorSpecifiers.has(specifier.name))) {
+    throw new PrologError('domain_error(operator_specifier)', specifier);
   }
   if (name.type !== VAR && name.type !== ATOM) throw new PrologError('type_error(atom)', name);
   for (const definition of solver.program.operators.values()) {
@@ -847,6 +849,28 @@ function optionList(term, env) {
     throw new PrologError('type_error(list)', value);
   }
   return items.map((item) => deref(item, env));
+}
+
+// read_term/3 and write_term/3 have prescribed error ordering in ISO 8.14.
+// In particular, a partial option list (or a variable option element) is
+// diagnosed before several stream errors, while the relative order of a
+// non-list Options term and an invalid stream-or-alias differs between the
+// read and write predicates.  Split list-shape inspection from full option
+// validation so those predicates can follow the standard order exactly.
+function preflightOptionList(term, env) {
+  const value = deref(term, env);
+  if (value.type === VAR) throw new PrologError('instantiation_error');
+  const { items, tail } = listElements(value, env);
+  if (tail.type === VAR || items.some((item) => item.type === VAR)) {
+    throw new PrologError('instantiation_error');
+  }
+  const proper = tail.type === ATOM && tail.name === '[]';
+  return { value, items, proper };
+}
+
+function requireProperOptionList(preflight) {
+  if (!preflight.proper) throw new PrologError('type_error(list)', preflight.value);
+  return preflight.items;
 }
 
 function optionAtom(option, name) {
@@ -1306,17 +1330,38 @@ function* readBuiltin({ solver, goal, env }) {
   const { term } = readTermFromStream(stream, solver);
   if (unify(goal.args[goal.arity - 1], term, next)) yield next;
 }
+function validateReadOptions(options) {
+  for (const option of options) {
+    if (option.type !== COMPOUND || option.arity !== 1 ||
+        !['variables', 'variable_names', 'singletons'].includes(option.name)) {
+      throw new PrologError('domain_error(read_option)', option);
+    }
+  }
+}
+
 function* readTermBuiltin({ solver, goal, env }) {
-  const stream = goal.arity === 2 ? solver.io.resolve(solver.io.currentInput) : requireStream(solver, goal.args[0], env, 'read');
+  const optionTerm = goal.args[goal.arity - 1];
+  const streamTerm = goal.arity === 3 ? deref(goal.args[0], env) : null;
+
+  // ISO 8.14.1.3 error order:
+  // a) variable stream; b) partial/options-variable; c) bad stream-or-alias;
+  // d) non-list options; e) invalid read option; then stream existence/mode.
+  if (streamTerm?.type === VAR) throw new PrologError('instantiation_error');
+  const preflight = preflightOptionList(optionTerm, env);
+  if (goal.arity === 3) streamReference(goal.args[0], env);
+  const options = requireProperOptionList(preflight);
+  validateReadOptions(options);
+
+  const stream = goal.arity === 2
+    ? solver.io.resolve(solver.io.currentInput)
+    : requireStream(solver, goal.args[0], env, 'read');
   if (stream.type !== 'text') throw new PrologError('permission_error(input, binary_stream)', streamHandle(stream.id));
-  const options = optionList(goal.args[goal.arity - 1], env);
+
   const target = goal.args[goal.arity - 2];
   const { term, variables } = readTermFromStream(stream, solver);
   const next = env.clone();
   if (!unify(target, term, next)) return;
   for (const option of options) {
-    if (option.type === VAR) throw new PrologError('instantiation_error');
-    if (option.type !== COMPOUND || option.arity !== 1) throw new PrologError('domain_error(read_option)', option);
     let value;
     if (option.name === 'variables') {
       value = listFromItems(variables.map((item) => item.term));
@@ -1324,12 +1369,10 @@ function* readTermBuiltin({ solver, goal, env }) {
       value = listFromItems(variables
         .filter((item) => !item.anonymous)
         .map((item) => compound('=', [atom(item.sourceName), item.term])));
-    } else if (option.name === 'singletons') {
+    } else {
       value = listFromItems(variables
         .filter((item) => !item.anonymous && item.count === 1)
         .map((item) => compound('=', [atom(item.sourceName), item.term])));
-    } else {
-      throw new PrologError('domain_error(read_option)', option);
     }
     if (!unify(option.args[0], value, next)) return;
   }
@@ -1378,22 +1421,25 @@ function writeVariableNames(value, env, option) {
   return names;
 }
 
-function termWriteOptions(term, env, mode = 'write_term') {
+function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = null) {
   const result = defaultTermWriteOptions(mode);
-  for (const option of optionList(term, env)) {
-    if (option.type === VAR) throw new PrologError('instantiation_error');
+  for (const option of options) {
     if (option.type !== COMPOUND || option.arity !== 1) {
       throw new PrologError('domain_error(write_option)', option);
     }
     if (option.name === 'quoted') result.quoted = writeOptionBoolean(option.args[0], env, option);
     else if (option.name === 'ignore_ops') result.ignoreOps = writeOptionBoolean(option.args[0], env, option);
     else if (option.name === 'numbervars') result.numbervars = writeOptionBoolean(option.args[0], env, option);
-    else if (option.name === 'double_quotes') result.doubleQuotes = writeOptionBoolean(option.args[0], env, option);
     else if (option.name === 'variable_names') result.variableNames = writeVariableNames(option.args[0], env, option);
-    else throw new PrologError('domain_error(write_option)', option);
+    else if (option.name === 'double_quotes' && !solver?.isoStrict) {
+      result.doubleQuotes = writeOptionBoolean(option.args[0], env, option);
+    } else {
+      throw new PrologError('domain_error(write_option)', option);
+    }
   }
   return result;
 }
+
 
 function writeBuiltin(mode) {
   return function* ({ solver, goal, env }) {
@@ -1410,9 +1456,22 @@ function writeBuiltin(mode) {
   };
 }
 function* writeTermBuiltin({ solver, goal, env }) {
-  const stream = goal.arity === 2 ? solver.io.resolve(solver.io.currentOutput) : requireStream(solver, goal.args[0], env, 'write');
+  const optionTerm = goal.args[goal.arity - 1];
+  const streamTerm = goal.arity === 3 ? deref(goal.args[0], env) : null;
+
+  // ISO 8.14.2.3 error order:
+  // a) variable stream; b) partial/options-variable; c) non-list options;
+  // d) bad stream-or-alias; e) invalid write option; then stream errors.
+  if (streamTerm?.type === VAR) throw new PrologError('instantiation_error');
+  const preflight = preflightOptionList(optionTerm, env);
+  const optionItems = requireProperOptionList(preflight);
+  if (goal.arity === 3) streamReference(goal.args[0], env);
+  const options = termWriteOptionsFromItems(optionItems, env, 'write_term', solver);
+
+  const stream = goal.arity === 2
+    ? solver.io.resolve(solver.io.currentOutput)
+    : requireStream(solver, goal.args[0], env, 'write');
   if (stream.type !== 'text') throw new PrologError('permission_error(output, binary_stream)', streamHandle(stream.id));
-  const options = termWriteOptions(goal.args[goal.arity - 1], env);
   if (options.doubleQuotes === true) {
     options.doubleQuotes = solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars';
   } else {

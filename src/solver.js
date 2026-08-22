@@ -951,12 +951,12 @@ const ISO_CORE_FLAG_NAMES = new Set([
 
 function defaultPrologFlags(unknown = 'error', strictIso = false) {
   const flags = new Map([
-    ['bounded', { value: compound('false', []), allowed: ['false'], changeable: false }],
-    ['integer_rounding_function', { value: compound('toward_zero', []), allowed: ['toward_zero'], changeable: false }],
+    ['bounded', { value: compound('false', []), allowed: ['true', 'false'], changeable: false }],
+    ['integer_rounding_function', { value: compound('toward_zero', []), allowed: ['down', 'toward_zero'], changeable: false }],
     ['char_conversion', { value: compound('on', []), allowed: ['on', 'off'], changeable: true }],
     ['debug', { value: compound('off', []), allowed: ['on', 'off'], changeable: true }],
-    ['max_integer', { value: null, allowed: ['unbounded'], changeable: false }],
-    ['min_integer', { value: null, allowed: ['unbounded'], changeable: false }],
+    ['max_integer', { value: null, allowed: [], changeable: false }],
+    ['min_integer', { value: null, allowed: [], changeable: false }],
     ['max_arity', { value: compound('unbounded', []), allowed: ['unbounded'], changeable: false }],
     ['unknown', { value: compound(unknown, []), allowed: ['error', 'fail', 'warning'], changeable: true }],
     ['double_quotes', { value: compound('chars', []), allowed: ['chars', 'codes', 'atom'], changeable: true }],
