@@ -36,11 +36,15 @@ export function runQuads(source, options = {}) {
   const results = [];
   const lines = [];
   for (const quad of quads) {
+    // `sto` declares a property of the query, not merely of the leaf in which
+    // the annotation happens to be written. Preserve that context while each
+    // answer description is still checked independently.
+    const context = { declaresSto: quad.answers.some(descriptionDeclaresSto) };
     // Every indented answer description is an independent portable quad test.
     // Re-run the query for each description so a failed expectation does not
     // prevent later expectations for the same query from being checked.
     for (const description of quad.answers) {
-      const result = checkQuadDescription(program, quad, description, options);
+      const result = checkQuadDescription(program, quad, description, options, context);
       results.push(result);
       if (!result.ok) lines.push(formatFailure(program, quad, result, description));
     }
@@ -53,14 +57,14 @@ export function runQuads(source, options = {}) {
   return { stdout: lines.join(''), total: results.length, passed, failed, undecided, results };
 }
 
-function checkQuadDescription(program, quad, description, options) {
+function checkQuadDescription(program, quad, description, options, context) {
   if (quad.id != null && !termIsGround(quad.id, new Env())) {
     return { ok: false, kind: 'bad_identifier', expected: quad.id };
   }
-  return checkDescription(program, quad, description, options);
+  return checkDescription(program, quad, description, options, context);
 }
 
-function checkDescription(program, quad, description, options) {
+function checkDescription(program, quad, description, options, context) {
   const alternatives = splitOperator(description, '|');
   // Probe an explicitly accepted nontermination outcome before alternatives
   // that would run the same query without a bound.
@@ -73,7 +77,7 @@ function checkDescription(program, quad, description, options) {
   let unsupported = null;
   let undecided = null;
   for (const alternative of ordered) {
-    const checked = checkAlternative(program, quad, alternative, options);
+    const checked = checkAlternative(program, quad, alternative, options, context);
     if (checked.ok) return checked;
     if (checked.kind === 'unsupported') unsupported ??= checked;
     if (checked.kind === 'undecided') undecided ??= checked;
@@ -81,9 +85,9 @@ function checkDescription(program, quad, description, options) {
   return unsupported ?? undecided ?? { ok: false, kind: 'failed', expected: description };
 }
 
-function checkAlternative(program, quad, alternative, options) {
+function checkAlternative(program, quad, alternative, options, context) {
   const leaves = splitOperator(alternative, ';').map(describeLeaf);
-  if (leaves.some((leaf) => leaf.sto)) return { ok: true };
+  const requiresSto = leaves.some((leaf) => leaf.sto);
   const unsupported = leaves.find((leaf) => leaf.unsupported != null)?.unsupported;
   if (unsupported != null) {
     return { ok: false, kind: 'unsupported', expected: unsupported };
@@ -103,6 +107,18 @@ function checkAlternative(program, quad, alternative, options) {
     detectLoops: leaves.some((leaf) => leaf.loops),
   });
 
+  if (requiresSto) {
+    // Trealla currently treats the answer part of an `sto`-annotated leaf as
+    // implementation-dependent and skips it. EyeProlog can strengthen that
+    // conservatively: an observed occurs-check event proves the STO claim, and
+    // a naturally completed finite execution without one disproves it. When
+    // execution was cut short by a search/resource boundary, leave the claim
+    // unchecked rather than pretending to have proved NSTO.
+    if (actual.stoObserved) return { ok: true };
+    if (actual.nstoObserved) return { ok: false };
+    return { ok: true };
+  }
+
   if (inputSpecs.length > 0) {
     const leaf = leaves[0];
     const matches = actual.inputPosition === input.length && matchLeaf(program, quad.query, leaf, actual, 0);
@@ -114,7 +130,12 @@ function checkAlternative(program, quad, alternative, options) {
   for (const leaf of leaves) {
     if (leaf.more && !leaf.hasExpectation) return { ok: true };
     const matches = matchLeaf(program, quad.query, leaf, actual, position);
-    if (leaf.unexpected ? matches : !matches) {
+    // Once a quad explicitly declares the query STO and this execution has
+    // observed an occurs-check event, an unannotated `unexpected` leaf cannot
+    // portably outlaw the implementation's chosen STO outcome. This is the
+    // case behind issue #60's `false, unexpected` example.
+    const stoPermitsUnexpected = context.declaresSto && actual.stoObserved && leaf.unexpected && !leaf.sto;
+    if (!stoPermitsUnexpected && (leaf.unexpected ? matches : !matches)) {
       if (actual.undecided && leafNeedsMoreSearch(leaf, actual, position)) {
         return undecidedResult(actual, alternative);
       }
@@ -245,19 +266,28 @@ function executeQuery(program, query, input, maxSolutions, options) {
   const solutions = [];
   let error = null;
   let tailOutput = '';
+  let complete = false;
+  let resourceInterrupted = false;
+  let iterator = null;
   try {
-    const iterator = solver.solve([query], new Env(), 0);
+    iterator = solver.solve([query], new Env(), 0);
     while (solutions.length < maxSolutions) {
       pendingOutput = '';
       const result = iterator.next();
       if (result.done) {
         tailOutput += pendingOutput;
+        complete = true;
         break;
       }
       solutions.push({ env: result.value, output: pendingOutput });
     }
   } catch (caught) {
     error = { term: errorTerm(caught), output: pendingOutput };
+    resourceInterrupted = caught?.name === 'PrologError' &&
+      String(caught.formal ?? '').startsWith('resource_error(');
+    complete = true;
+  } finally {
+    if (!complete) iterator?.return?.();
   }
   const inputPosition = solver.io.resolve('user_input')?.position ?? 0;
   const bounded = solver.depthLimitExceeded || solver.inferenceLimitExceeded;
@@ -267,6 +297,10 @@ function executeQuery(program, query, input, maxSolutions, options) {
     error,
     tailOutput,
     inputPosition,
+    complete,
+    stoObserved: solver.occursCheckObserved,
+    nstoObserved: complete && !solver.occursCheckObserved && !solver.recursionCycleDetected &&
+      !bounded && !resourceInterrupted,
     // A loops expectation explicitly asks for bounded nontermination evidence.
     // Other descriptions treat the same exhausted search budget as undecided:
     // a timeout cannot establish finite failure or an exact answer sequence.
@@ -292,6 +326,11 @@ function matchLeaf(program, query, leaf, actual, position) {
   const solution = actual.solutions[position];
   if (!solution || !outputMatches(program, leaf.output, solution.output)) return false;
   return substitutionMatches(query, leaf.bindings, solution.env);
+}
+
+function descriptionDeclaresSto(description) {
+  return splitOperator(description, '|').some((alternative) =>
+    splitOperator(alternative, ';').some((term) => describeLeaf(term).sto));
 }
 
 function alternativeDescribesLoop(alternative) {

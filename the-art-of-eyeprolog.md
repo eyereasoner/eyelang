@@ -6896,7 +6896,17 @@ described answer or error, including output produced before a later exception.
 Its argument may be an exact character list/string or a DCG body: terminal
 sequences, conjunction/disjunction, `...`/`ad_infinitum` sequence wildcards,
 and user-defined DCG nonterminals are matched against the captured characters.
-`sto` marks an answer description that this finite-tree implementation skips.
+Following Trealla's quad convention, `sto` declares that the query is subject
+to occurs-check; the answer portion of an `sto`-annotated leaf remains
+implementation-dependent and is not compared. EyeProlog can nevertheless check
+some of the declaration without a second execution: the normal finite-tree
+unifier records a concrete occurs-check event as positive STO evidence. A
+naturally completed finite execution with no such event disproves `sto` (so
+`?- true. sto.` fails), while a search/resource boundary leaves the declaration
+conservatively unchecked. When the same quad declares STO and an occurs-check
+event is observed, an unannotated `unexpected` leaf does not reject an outcome
+that is implementation-dependent precisely because the query is STO. This is
+partial STO detection, not a decision procedure for the full STO/NSTO property.
 `loops` explicitly asks for bounded nontermination evidence and accepts direct
 active-variant cycle evidence from EyeProlog's normal recursion guard, with the
 loop depth/inference bounds as a fallback. Ordinary quad descriptions also have

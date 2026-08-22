@@ -1357,6 +1357,33 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'quad sto uses observed occurs-check evidence instead of unconditional acceptance (issue #60)',
+      run: () => {
+        const sto = publicApi.runQuads(String.raw`33
+?- X = s(X).
+   X = ..., unexpected.
+   false, unexpected.
+   sto, false
+|  sto, true.
+`);
+        assertEqual(sto.total, 3, 'STO description total');
+        assertEqual(sto.passed, 3, 'STO descriptions passed');
+        assertEqual(sto.failed, 0, 'STO descriptions failed');
+        assertEqual(sto.undecided, 0, 'STO descriptions undecided');
+        assertEqual(sto.stdout, 'quads: 3 run, 3 passed, 0 failed.\n', 'STO report');
+
+        const nsto = publicApi.runQuads(String.raw`34
+?- true.
+   sto.
+`);
+        assertEqual(nsto.total, 1, 'NSTO description total');
+        assertEqual(nsto.passed, 0, 'NSTO description passed');
+        assertEqual(nsto.failed, 1, 'NSTO description failed');
+        assertEqual(nsto.undecided, 0, 'NSTO description undecided');
+        assertIncludes(nsto.stdout, 'quads: FAILED 34, <input>:1', 'NSTO diagnostic');
+      },
+    },
+    {
       name: 'outputs/1 accepts DCG bodies over captured characters (issue #59)',
       run: () => {
         const source = [

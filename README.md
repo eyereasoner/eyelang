@@ -84,7 +84,13 @@ use any normal Prolog term syntax; EyeProlog only requires it to be ground when
 the quad is checked. A non-ground label is a quad failure, not a source syntax
 error, and later quads still run. When a query has multiple indented answer
 descriptions, each description is checked and counted independently, so one
-failed expectation does not prevent the later ones from running.
+failed expectation does not prevent the later ones from running. Following the
+Trealla quad convention, `sto` declares that the query is subject to occurs-check.
+EyeProlog now uses an occurs-check event observed during the query's ordinary
+execution as positive STO evidence, and rejects `sto` when a finite execution
+completes without such an event (for example `?- true. sto.`). If execution is
+cut short by a search/resource boundary, the STO claim remains conservatively
+unverified rather than being guessed.
 
 ## Tabling and well-founded negation
 

@@ -88,7 +88,13 @@ export class Solver {
         if (!ISO_CORE_FLAG_NAMES.has(name)) this.prologFlags.delete(name);
       }
     }
+    // Record a concrete occurs-check event even when the configured action is
+    // finite-tree failure rather than an exception. Quad `sto` checks can then
+    // use the query's real execution as evidence without running it a second
+    // time (which could repeat side effects).
+    this.occursCheckObserved = false;
     this.occursCheckHandler = (left, right, env) => {
+      this.occursCheckObserved = true;
       if (this.prologFlags.get('occurs_check')?.value?.name === 'error') {
         raiseOccursCheckError(left, right, env);
       }
@@ -266,6 +272,7 @@ export class Solver {
     this.depthLimitExceeded ||= child.depthLimitExceeded;
     this.inferenceLimitExceeded ||= child.inferenceLimitExceeded;
     this.recursionCycleDetected ||= child.recursionCycleDetected;
+    this.occursCheckObserved ||= child.occursCheckObserved;
     for (const [key, value] of Object.entries(child.stats)) {
       if (key === 'max_depth' || key === 'max_goal_count') {
         this.stats[key] = Math.max(this.stats[key] ?? 0, value ?? 0);
