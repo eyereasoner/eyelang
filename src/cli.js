@@ -174,7 +174,7 @@ export async function main(argv) {
 
 async function loadEngine() {
   if (engineModule == null) {
-    const [term, parser, program, solver, iso, library, write, quads, execute] = await Promise.all([
+    const [term, parser, program, solver, iso, library, write, quads, execute, cleanup] = await Promise.all([
       import('./term.js'),
       import('./parser.js'),
       import('./program.js'),
@@ -184,7 +184,11 @@ async function loadEngine() {
       import('./write.js'),
       import('./quads.js'),
       import('./execute.js'),
+      import('./cleanup.js'),
     ]);
+    // CLI loading is an entry-point layer above solver.js and the standard
+    // registry, so lifecycle installation stays acyclic.
+    cleanup.installCleanupLifecycle(solver.Solver);
     engineModule = { ...term, ...parser, ...program, ...solver, ...iso, ...library, ...write, ...quads, ...execute };
   }
   return engineModule;

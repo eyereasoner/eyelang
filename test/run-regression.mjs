@@ -4471,7 +4471,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 158, 'EyeProlog registry contains ISO definitions, observability extensions, WFS tnot/1, and private library adapters');
+        assertEqual(library.defs.size, 160, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -4482,6 +4482,10 @@ answer(ok) :-
         assertEqual(Boolean(library.get('tnot', 1)), true, 'tnot/1 is an EyeProlog WFS extension');
         assertEqual(registry.get('time', 1), null, 'time/1 is absent from the ISO registry');
         assertEqual(Boolean(library.get('time', 1)), true, 'time/1 is an EyeProlog timing extension');
+        assertEqual(registry.get('call_cleanup', 2), null, 'call_cleanup/2 is absent from the ISO registry');
+        assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
+        assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
+        assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 41, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 87, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 29, 'cross-implementation interop profile count');
