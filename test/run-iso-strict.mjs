@@ -252,6 +252,22 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'type_error(list)', '=../2 fixed non-list');
   });
 
+  reporter.test('enforces Corrigendum 2 call/N max-arity errors', () => {
+    equal(capture(() => run('', {
+      isoStrict: true,
+      goal: 'functor(T,f,65535), call(T,x)',
+    })).formal, 'representation_error(max_arity)', 'call/2 resulting arity');
+  });
+
+  reporter.test('reports the complete List culprit for Corrigendum 2 atomic conversions', () => {
+    for (const goal of ['atom_chars(A,[a|foo])', 'atom_codes(A,[97|foo])']) {
+      const error = capture(() => run('', { isoStrict: true, goal }));
+      equal(error.formal, 'type_error(list)', `${goal} formal`);
+      includes(error.message, '[', `${goal} complete list culprit`);
+      if (error.message.endsWith(', foo)')) throw new Error(`${goal}: reported only the improper tail`);
+    }
+  });
+
   reporter.test('follows ISO clause/2 private-procedure error precedence', () => {
     equal(capture(() => run('p.\n', { isoStrict: true, goal: 'clause(atom(_),4)' })).formal,
       'permission_error(access, private_procedure)', 'private procedure before body callability');

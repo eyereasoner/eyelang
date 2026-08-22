@@ -1772,7 +1772,7 @@ function validCharacterCode(value, solver = null) {
 function listToAtomInput(list, env, kind, solver = null) {
   const { items, tail } = listElements(list, env);
   if (tail.type === VAR || items.some((item) => item.type === VAR)) throw new PrologError('instantiation_error');
-  if (tail.type !== ATOM || tail.name !== '[]') throw new PrologError('type_error(list)', tail);
+  if (tail.type !== ATOM || tail.name !== '[]') throw new PrologError('type_error(list)', list);
   if (kind === 'chars') {
     const invalid = items.find((item) => !oneChar(item));
     if (invalid) throw new PrologError('type_error(character)', invalid);
@@ -2228,7 +2228,11 @@ function* callBuiltin({ solver, goal, env }) {
 function* callClosureBuiltin({ solver, goal, env }) {
   const closure = callable(goal.args[0], env);
   const existing = closure.type === COMPOUND ? closure.args : [];
-  const invoked = compound(closure.name, [...existing, ...goal.args.slice(1)]);
+  const extra = goal.args.slice(1);
+  if (existing.length + extra.length > ISO_MAX_ARITY) {
+    throw new PrologError('representation_error(max_arity)');
+  }
+  const invoked = compound(closure.name, [...existing, ...extra]);
   if (closure.module != null) invoked.module = closure.module;
   const child = solver.cloneForInnerGoal();
   try {

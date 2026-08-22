@@ -110,6 +110,15 @@ EyeProlog-only evaluable atom `e`, while the Corrigendum arithmetic additions
 remain available. These corrections narrow the remaining `audit` rows but do
 not by themselves close the full shall-by-shall/error-order exit criteria.
 
+The next Corrigendum 2 pass closes two smaller prescribed-error gaps.
+`call/2..8` now raises `representation_error(max_arity)` when appending its
+extra arguments would make the resulting goal exceed the declared `max_arity`,
+rather than falling through to a procedure-existence error. Reverse
+`atom_chars/2` and `atom_codes/2` now report the complete improper `List`
+argument as the culprit of `type_error(list, List)`, as required by the
+Corrigendum 2 replacement error clauses. Dedicated strict-core regressions pin
+both behaviors.
+
 ## Strict-core boundary
 
 `isoStrict: true` is intentionally a **Part 1 + Corrigenda 1-3** mode. It does
