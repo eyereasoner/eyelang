@@ -1,7 +1,7 @@
 // Synchronous ISO stream state shared by a solver and all of its inner solvers.
 import { BufferCtor, fs } from './platform.js';
 
-const INVALID_UTF8_SENTINEL = '\udc00';
+export const INVALID_UTF8_SENTINEL = '\udc00';
 
 export class InvalidCharacterEncodingError extends Error {
   constructor() {

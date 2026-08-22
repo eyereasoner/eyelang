@@ -11,6 +11,7 @@ import { Program } from './program.js';
 import { Solver } from './solver.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { formatTermForWrite } from './write.js';
+import { INVALID_UTF8_SENTINEL } from './io.js';
 
 const DEFAULT_QUAD_MAX_INFERENCES = 100000;
 const DEFAULT_LOOP_MAX_INFERENCES = 10000;
@@ -93,18 +94,24 @@ function checkAlternative(program, quad, alternative, options, context) {
     return { ok: false, kind: 'unsupported', expected: unsupported };
   }
 
-  const inputSpecs = [...new Set(leaves.filter((leaf) => leaf.input != null).map((leaf) => leaf.input))];
-  if (inputSpecs.length > 1) return { ok: false, kind: 'malformed', expected: alternative };
-  const input = inputSpecs[0] ?? '';
-  if (inputSpecs.length > 0 && leaves.length !== 1) return { ok: false };
+  const ioLeaves = leaves.filter((leaf) => leaf.input != null || leaf.peek != null);
+  if (ioLeaves.length > 1 || (ioLeaves.length > 0 && leaves.length !== 1)) {
+    return { ok: false, kind: 'malformed', expected: alternative };
+  }
+  const hasInputSpec = ioLeaves.length === 1;
+  const inputLeaf = ioLeaves[0] ?? null;
+  const input = inputLeaf?.input ?? '';
+  const peek = inputLeaf?.peek ?? null;
   const moreAt = leaves.findIndex((leaf) => leaf.more);
   const describedCount = moreAt < 0 ? leaves.length : moreAt + (leaves[moreAt].hasExpectation ? 1 : 0);
-  const maxSolutions = inputSpecs.length > 0
+  const maxSolutions = hasInputSpec
     ? 1
     : moreAt < 0 ? describedCount + 1 : Math.max(describedCount, 1);
   const actual = executeQuery(program, quad.query, input, maxSolutions, {
     ...options,
     detectLoops: leaves.some((leaf) => leaf.loops),
+    inputBoundary: hasInputSpec,
+    inputPeek: peek,
   });
 
   if (requiresSto) {
@@ -119,9 +126,12 @@ function checkAlternative(program, quad, alternative, options, context) {
     return { ok: true };
   }
 
-  if (inputSpecs.length > 0) {
+  if (hasInputSpec) {
     const leaf = leaves[0];
-    const matches = actual.inputPosition === input.length && matchLeaf(program, quad.query, leaf, actual, 0);
+    const exactConsumption = actual.inputPosition === input.length;
+    const expectedRemainder = `${peek ?? ''}${INVALID_UTF8_SENTINEL}`;
+    const boundaryPreserved = actual.inputRemainder === expectedRemainder;
+    const matches = exactConsumption && boundaryPreserved && matchLeaf(program, quad.query, leaf, actual, 0);
     if (actual.undecided && !matches) return undecidedResult(actual, alternative);
     return { ok: leaf.unexpected ? !matches : matches };
   }
@@ -147,14 +157,14 @@ function checkAlternative(program, quad, alternative, options, context) {
     // turn a successful negative match back into a failure.
     if (leaf.unexpected && leaf.error != null) return { ok: true };
     if (leaf.more) return { ok: true };
-    if (!leaf.unexpected && (leaf.false || leaf.error != null)) {
+    if (!leaf.unexpected && (leaf.false || leaf.loops || leaf.error != null)) {
       if (actual.undecided) return undecidedResult(actual, alternative);
       return { ok: position === leaves.length - 1 };
     }
     position++;
   }
 
-  const ended = position >= actual.solutions.length && actual.error == null && !actual.undecided;
+  const ended = position >= actual.solutions.length && actual.error == null && !actual.undecided && !actual.loopObserved;
   if (!ended && actual.undecided && position >= actual.solutions.length && actual.error == null) {
     return undecidedResult(actual, alternative);
   }
@@ -191,6 +201,7 @@ function describeLeaf(term) {
     loops: false,
     error: null,
     input: null,
+    peek: null,
     output: null,
     unsupported: null,
     malformed: null,
@@ -227,7 +238,9 @@ function describeLeaf(term) {
       continue;
     }
     if (item.type === COMPOUND && item.name === 'peeks' && item.arity === 1) {
-      leaf.unsupported ??= item;
+      const text = characterText(item.args[0]);
+      if (text == null || Array.from(text).length !== 1 || leaf.peek != null) leaf.malformed ??= item;
+      else leaf.peek = text;
       continue;
     }
     if (isErrorDescription(item)) leaf.error = item;
@@ -241,6 +254,9 @@ function describeLeaf(term) {
 
 function executeQuery(program, query, input, maxSolutions, options) {
   let pendingOutput = '';
+  const boundedInput = options.inputBoundary
+    ? `${input}${options.inputPeek ?? ''}${INVALID_UTF8_SENTINEL}`
+    : input;
   const solver = new Solver(program, {
     ...options,
     registry: options.registry ?? getEyePrologRegistry(),
@@ -254,10 +270,18 @@ function executeQuery(program, query, input, maxSolutions, options) {
     // allowance.
     solutionLimit: Math.max(maxSolutions, options.solutionLimit ?? 10000000),
     ioOptions: {
-      input,
+      input: boundedInput,
       write: (text) => { pendingOutput += String(text); },
     },
   });
+  if (options.inputBoundary) {
+    // Quads need a boundary that is neither EOF nor a valid character.  This
+    // mirrors Trealla's sentinel technique: inputs/1 says exactly what was
+    // consumed, while peeks/1 supplies one additional character that must
+    // remain unread.  If the query asks for anything beyond that boundary it
+    // sees representation_error(character), not an artificial EOF.
+    solver.io.resolve('user_input').strictUtf8 = true;
+  }
   // Undefined predicates are test failures rather than silent negative
   // answers unless the source explicitly selected another unknown policy.
   if (!(program.prologFlagDirectives ?? []).some(([flag]) => flag.type === ATOM && flag.name === 'unknown')) {
@@ -273,7 +297,15 @@ function executeQuery(program, query, input, maxSolutions, options) {
     iterator = solver.solve([query], new Env(), 0);
     while (solutions.length < maxSolutions) {
       pendingOutput = '';
+      const cycleBefore = solver.recursionCycleDetected;
       const result = iterator.next();
+      if (!cycleBefore && solver.recursionCycleDetected) {
+        // The recursion guard found an operational loop wall while advancing
+        // to this result.  Any answer produced only after that guard pruned the
+        // looping branch is not reachable by ordinary Prolog search, so do not
+        // count it as a leaf answer (issue #58 comment 5381101420).
+        break;
+      }
       if (result.done) {
         tailOutput += pendingOutput;
         complete = true;
@@ -289,22 +321,30 @@ function executeQuery(program, query, input, maxSolutions, options) {
   } finally {
     if (!complete) iterator?.return?.();
   }
-  const inputPosition = solver.io.resolve('user_input')?.position ?? 0;
+  const inputStream = solver.io.resolve('user_input');
+  const inputPosition = inputStream?.position ?? 0;
+  const inputRemainder = String(inputStream?.content ?? '').slice(inputPosition);
   const bounded = solver.depthLimitExceeded || solver.inferenceLimitExceeded;
-  const undecided = !options.detectLoops && (solver.recursionCycleDetected || bounded);
+  const loopObserved = solver.recursionCycleDetected;
+  // A structural recursion-cycle witness is stronger than a resource limit:
+  // it establishes an operational loop wall and can therefore refute a finite
+  // answer description.  Pure depth/inference exhaustion remains undecided.
+  const undecided = !options.detectLoops && !loopObserved && bounded;
   return {
     solutions,
     error,
     tailOutput,
     inputPosition,
+    inputRemainder,
     complete,
+    loopObserved,
     stoObserved: solver.occursCheckObserved,
-    nstoObserved: complete && !solver.occursCheckObserved && !solver.recursionCycleDetected &&
+    nstoObserved: complete && !solver.occursCheckObserved && !loopObserved &&
       !bounded && !resourceInterrupted,
     // A loops expectation explicitly asks for bounded nontermination evidence.
     // Other descriptions treat the same exhausted search budget as undecided:
     // a timeout cannot establish finite failure or an exact answer sequence.
-    loops: options.detectLoops && (solver.recursionCycleDetected || bounded),
+    loops: options.detectLoops && (loopObserved || bounded),
     undecided,
     undecidedReason: solver.inferenceLimitExceeded ? 'inference limit reached'
       : solver.depthLimitExceeded ? 'depth limit reached'
@@ -316,7 +356,7 @@ function executeQuery(program, query, input, maxSolutions, options) {
 function matchLeaf(program, query, leaf, actual, position) {
   if (leaf.loops) return actual.loops;
   if (leaf.false) {
-    return position >= actual.solutions.length && actual.error == null && !actual.undecided &&
+    return position >= actual.solutions.length && actual.error == null && !actual.undecided && !actual.loopObserved &&
       outputMatches(program, leaf.output, actual.tailOutput);
   }
   if (leaf.error != null) {

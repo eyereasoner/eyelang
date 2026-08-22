@@ -1334,6 +1334,24 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'quad recursion-cycle evidence consistently refutes finite failure (issue #58 comment 5381101420)',
+      run: () => {
+        const result = publicApi.runQuads(`inf :- inf, inf.
+
+23
+?- inf.
+   loops.
+   false.
+`);
+        assertEqual(result.total, 2, 'quad total');
+        assertEqual(result.passed, 1, 'loops passed');
+        assertEqual(result.failed, 1, 'false failed');
+        assertEqual(result.undecided, 0, 'no undecided result');
+        assertIncludes(result.stdout, 'expected: false.', 'finite failure diagnostic');
+        assertNotIncludes(result.stdout, 'undecided: recursion cycle encountered.', 'cycle is decisive');
+      },
+    },
+    {
       name: 'quad search-budget exhaustion is undecided rather than loops or failure (issue #58)',
       run: () => {
         const result = runCli(['--quads', '-'], {
@@ -1381,6 +1399,21 @@ c4 ?- call((!;1)).
         assertEqual(nsto.failed, 1, 'NSTO description failed');
         assertEqual(nsto.undecided, 0, 'NSTO description undecided');
         assertIncludes(nsto.stdout, 'quads: FAILED 34, <input>:1', 'NSTO diagnostic');
+      },
+    },
+    {
+      name: 'quads peeks/1 supplies one unconsumed look-ahead character (issue #62)',
+      run: () => {
+        const result = publicApi.runQuads(`29
+?- read(X).
+   inputs("1."), X = 1, unexpected.
+   inputs("1."), peeks(" "), X = 1.
+   inputs("1. "), peeks(" "), X = 1, unexpected.
+`);
+        assertEqual(result.total, 3, 'quad total');
+        assertEqual(result.passed, 3, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 3 run, 3 passed, 0 failed.\n', 'quad report');
       },
     },
     {
@@ -3283,6 +3316,28 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'read and read_term report invalid UTF-8 as representation_error(character) (issue #64)',
+      run: () => {
+        const invalidPath = path.join(tmp, `read-invalid-utf8-${++tmpCounter}.bin`);
+        fs.writeFileSync(invalidPath, Buffer.from([0xff]));
+        const quotedPath = sourceAtom(invalidPath);
+        for (const goal of [
+          `open(${quotedPath}, read, S, []), read(S, C)`,
+          `open(${quotedPath}, read, S, []), read_term(S, C, [])`,
+          `open(${quotedPath}, read, S, []), set_input(S), read(C)`,
+          `open(${quotedPath}, read, S, []), set_input(S), read_term(C, [])`,
+        ]) {
+          let caught = null;
+          try {
+            run('', { goal });
+          } catch (error) {
+            caught = error;
+          }
+          assertEqual(caught?.formal, 'representation_error(character)', `${goal} invalid UTF-8`);
+        }
+      },
+    },
+    {
       name: 'writeq gives unnamed variables underscore-prefixed names (issue #53)',
       run: () => {
         const result = runCli([], {
@@ -3311,6 +3366,13 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'writeq separates operators only where lexical ambiguity requires it (issue #63)',
+      run: () => {
+        const source = "emit :- writeq(1+2), put_char('|'), writeq(a+ -b), put_char('|'), writeq(a+b*c), nl.\n";
+        assertEqual(run(source, { goal: 'emit' }).stdout, '1+2|a+ -b|a+b*c\nemit.\n', 'minimal operator spacing');
+      },
+    },
+    {
       name: 'write predicates and write_term options select distinct formats',
       run: () => {
         const source = [
@@ -3332,7 +3394,7 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
         ].join('\n');
         assertEqual(
           run(source, { goal: 'emit' }).stdout,
-          "hello world|'hello world'|a + b * c|+(a,*(b,c))|hello world|'hello world'|+(a,b)|a + b|A|$VAR(0)|pair(Left,Right)|\"ab\"|[a,b]emit.\n",
+          "hello world|'hello world'|a+b*c|+(a,*(b,c))|hello world|'hello world'|+(a,b)|a+b|A|$VAR(0)|pair(Left,Right)|\"ab\"|[a,b]emit.\n",
           'stdout',
         );
       },

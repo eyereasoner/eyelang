@@ -21,8 +21,8 @@ upstream assertion.
 The matrix runs in strict ISO stream-reader mode as part of `npm test`. The
 3 upstream `waits` cases are checked through EyeProlog's interactive input
 hook. All 366 executable cases are independently checked against the
-upstream Codex expectation. 365 cases additionally retain exact reviewed
-outcomes for stronger regression checking; 1 case currently relies on the upstream assertion alone.
+upstream Codex expectation. 366 cases additionally retain exact reviewed
+outcomes for stronger regression checking; 0 cases currently rely on the upstream assertion alone.
 
 ## Traceable evidence
 

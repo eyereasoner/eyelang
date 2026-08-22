@@ -12,6 +12,7 @@ import {
 } from './parser.js';
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
+import { INVALID_UTF8_SENTINEL } from './io.js';
 import {
   characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
 } from './syntax-scan.js';
@@ -1089,6 +1090,13 @@ function* termTextCandidates(stream, solver) {
   let quote = null, lineComment = false, blockComment = false;
   for (let i = stream.position; i < source.length; i++) {
     const ch = source[i], next = source[i + 1];
+    // Text streams preserve invalid UTF-8 bytes as an impossible Unicode
+    // sentinel.  read/1-2 and read_term/2-3 must surface the same character
+    // representation error as get_char/1-2 instead of misclassifying the
+    // undecodable byte as malformed Prolog syntax (issue #64).
+    if (stream.strictUtf8 && ch === INVALID_UTF8_SENTINEL) {
+      throw new PrologError('representation_error(character)');
+    }
     if (lineComment) { if (ch === '\n') lineComment = false; continue; }
     if (blockComment) { if (ch === '*' && next === '/') { blockComment = false; i++; } continue; }
     if (quote) {
@@ -1305,10 +1313,10 @@ function* readTermBuiltin({ solver, goal, env }) {
   yield next;
 }
 function defaultTermWriteOptions(mode) {
-  if (mode === 'writeq') return { quoted: true, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
-  if (mode === 'canonical') return { quoted: true, ignoreOps: true, numbervars: false, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
-  if (mode === 'write_term') return { quoted: false, ignoreOps: false, numbervars: false, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
-  return { quoted: false, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, operatorAtomsAsArgs: true, doubleQuotes: null };
+  if (mode === 'writeq') return { quoted: true, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, minimalOperatorSpacing: true, operatorAtomsAsArgs: true, doubleQuotes: null };
+  if (mode === 'canonical') return { quoted: true, ignoreOps: true, numbervars: false, variableNames: new Map(), compact: true, minimalOperatorSpacing: true, operatorAtomsAsArgs: true, doubleQuotes: null };
+  if (mode === 'write_term') return { quoted: false, ignoreOps: false, numbervars: false, variableNames: new Map(), compact: true, minimalOperatorSpacing: true, operatorAtomsAsArgs: true, doubleQuotes: null };
+  return { quoted: false, ignoreOps: false, numbervars: true, variableNames: new Map(), compact: true, minimalOperatorSpacing: true, operatorAtomsAsArgs: true, doubleQuotes: null };
 }
 
 function writeOptionBoolean(value, env, option) {

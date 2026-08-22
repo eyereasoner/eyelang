@@ -6,8 +6,8 @@ wg17_hex_escape.
 f(*)
 f(;,'|',';;')
 wg17_operator_arguments.
-a * (b + c)
-a :- b, c
+a*(b+c)
+a:-b,c
 wg17_operator_precedence.
 wg17_spaced_prefix_operator((a, b)).
 '.'(a,[])

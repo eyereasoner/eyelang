@@ -5412,8 +5412,11 @@ where needed, and `write_canonical/1-2` exposes canonical structure. Dotted
 graphic atoms do not need quotes merely because they contain a period:
 `writeq(./*)`, `writeq(.*)`, and `writeq(...*)` output `./*`, `.*`, and `...*`
 respectively. ISO term output uses only the separator characters needed by the
-syntax, so functional arguments and list elements are emitted compactly; for
-example `writeq([a,b])` outputs `[a,b]`.
+syntax, so functional arguments, list elements, and operator applications are
+emitted compactly when no lexical ambiguity would arise. For example,
+`writeq([a,b])` outputs `[a,b]` and `writeq(1+2)` outputs `1+2`; a separator is
+still retained where adjacent graphic tokens would otherwise merge, as in
+`a+ -b`.
 `write_term/2-3` supports `quoted/1`, `ignore_ops/1`, `numbervars/1`, and
 `variable_names/1`.
 
@@ -6891,13 +6894,26 @@ variable in the renamed exception term. `...` and `ad_infinitum` accept further 
 indented descriptions after one query are independent checks: each re-runs the
 query, each is counted in the `quads:` summary, and a failing description does
 not suppress later descriptions for that query. `inputs/1` supplies and checks
-consumed characters. `outputs/1` checks characters emitted while reaching the
-described answer or error, including output produced before a later exception.
-Its argument may be an exact character list/string or a DCG body: terminal
-sequences, conjunction/disjunction, `...`/`ad_infinitum` sequence wildcards,
-and user-defined DCG nonterminals are matched against the captured characters.
-The advanced stream annotations `peeks/1` and `waits`, and the unordered
-`other_answer_sequence` annotation, are not executed by the current runner.
+exactly the characters consumed by the query. `peeks/1` may add one character
+that is available for look-ahead but must remain unconsumed. The runner puts an
+invalid-character sentinel immediately after the declared input boundary, so a
+reader cannot accidentally use an artificial end-of-file to decide that a full
+stop terminates the term. For example:
+
+```eyeprolog
+?- read(X).
+   inputs("1."), X = 1, unexpected.
+   inputs("1."), peeks(" "), X = 1.
+   inputs("1. "), peeks(" "), X = 1, unexpected.
+```
+
+`outputs/1` checks characters emitted while reaching the described answer or
+error, including output produced before a later exception. Its argument may be
+an exact character list/string or a DCG body: terminal sequences,
+conjunction/disjunction, `...`/`ad_infinitum` sequence wildcards, and
+user-defined DCG nonterminals are matched against the captured characters.
+The `waits` and unordered `other_answer_sequence` annotations are not executed
+by the current runner.
 
 #### STO, loops, and undecided quad results
 
@@ -6933,7 +6949,10 @@ does not guess.
 
 `loops` is kept distinct from merely exhausting the quad runner's resources.
 EyeProlog accepts structural nontermination evidence such as an active-variant
-recursion cycle, with the loop depth/inference bounds as a bounded fallback:
+recursion cycle, with the loop depth/inference bounds as a bounded fallback. A
+structural cycle is also strong enough to refute a finite `false` description;
+it is not reported as undecided merely because the same query was checked by a
+different answer description:
 
 ```eyeprolog
 inf :- inf, inf.

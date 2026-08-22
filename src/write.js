@@ -58,6 +58,51 @@ function isDottedGraphicAtom(name) {
     [...name].every((ch) => dottedGraphicAtomCharacters.has(ch));
 }
 
+function compactBoundaryNeedsSpace(left, right) {
+  const leftChars = Array.from(left);
+  const rightChars = Array.from(right);
+  const a = leftChars[leftChars.length - 1] ?? '';
+  const b = rightChars[0] ?? '';
+  if (!a || !b) return false;
+  // Adjacent quoted atoms need layout: `''` is part of quoted-atom syntax,
+  // so concatenating two quoted operator/argument tokens would change the
+  // tokenization (WG17 #169).
+  if (a === "'" && b === "'") return true;
+  // Adjacent graphic characters form one maximal graphic token. Keep them
+  // apart when an operator boundary would otherwise disappear (`a+ -b`,
+  // `a/ *b`, etc.).
+  if (graphicAtomCharacters.has(a) && graphicAtomCharacters.has(b)) return true;
+  // Alphanumeric operator names similarly need a lexical boundary from a
+  // neighbouring identifier/number token.  Most predefined word operators
+  // are handled explicitly below; this also protects quoted/custom cases that
+  // render without punctuation.
+  if (/^[A-Za-z0-9_]$/.test(a) && /^[A-Za-z0-9_]$/.test(b)) return true;
+  return false;
+}
+
+function isWordOperatorToken(token) {
+  return /^[a-z][A-Za-z0-9_]*$/.test(token);
+}
+
+function compactPrefixOperator(token, argument) {
+  if (isWordOperatorToken(token)) return `${token} ${argument}`;
+  return `${token}${compactBoundaryNeedsSpace(token, argument) ? ' ' : ''}${argument}`;
+}
+
+function compactPostfixOperator(argument, token) {
+  if (isWordOperatorToken(token)) return `${argument} ${token}`;
+  return `${argument}${compactBoundaryNeedsSpace(argument, token) ? ' ' : ''}${token}`;
+}
+
+function compactInfixOperator(left, token, right) {
+  // Solo punctuation operators already delimit themselves.
+  if (token === ',' || token === ';') return `${left}${token}${right}`;
+  if (isWordOperatorToken(token)) return `${left} ${token} ${right}`;
+  const before = compactBoundaryNeedsSpace(left, token) ? ' ' : '';
+  const after = compactBoundaryNeedsSpace(token, right) ? ' ' : '';
+  return `${left}${before}${token}${after}${right}`;
+}
+
 function legacyVariableToIso(name) {
   if (name === '?') return '_';
   const tail = name.slice(1);
@@ -313,9 +358,11 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
         // numeric-leading argument so writeq/write_term remain read-back safe
         // (WG17 #135, #183, #215, #216, and #248).
         if (resolved.name === '-' && startsWithUnsignedNumber(resolved.args[0], env, table, options)) {
-          text = `${token} (${format(resolved.args[0], env, options, table, 1200)})`;
+          const argument = format(resolved.args[0], env, options, table, 1200);
+          text = options.minimalOperatorSpacing ? `${token}(${argument})` : `${token} (${argument})`;
         } else {
-          text = `${token} ${format(resolved.args[0], env, options, table, argumentPriority)}`;
+          const argument = format(resolved.args[0], env, options, table, argumentPriority);
+          text = options.minimalOperatorSpacing ? compactPrefixOperator(token, argument) : `${token} ${argument}`;
         }
       } else if (specifier === 'xf' || specifier === 'yf') {
         let argumentPriority = specifier === 'xf' ? priority - 1 : priority;
@@ -324,7 +371,8 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
             ['fx', 'fy', 'xfx', 'xfy', 'yfx'].includes(childDefinition.specifier)) {
           argumentPriority = priority - 1;
         }
-        text = `${format(resolved.args[0], env, options, table, argumentPriority)} ${token}`;
+        const argument = format(resolved.args[0], env, options, table, argumentPriority);
+        text = options.minimalOperatorSpacing ? compactPostfixOperator(argument, token) : `${argument} ${token}`;
       } else {
         let leftPriority = specifier === 'yfx' ? priority : priority - 1;
         const rightPriority = specifier === 'xfy' ? priority : priority - 1;
@@ -334,9 +382,13 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
         }
         const left = format(resolved.args[0], env, options, table, leftPriority);
         const right = format(resolved.args[1], env, options, table, rightPriority);
-        text = resolved.name === ',' ? `${left}, ${right}`
-          : compactInfixOperators.has(resolved.name) ? `${left}${token}${right}`
-            : `${left} ${token} ${right}`;
+        if (options.minimalOperatorSpacing) {
+          text = resolved.name === ',' ? `${left},${right}` : compactInfixOperator(left, token, right);
+        } else if (resolved.name === ',') {
+          text = `${left}, ${right}`;
+        } else {
+          text = compactInfixOperators.has(resolved.name) ? `${left}${token}${right}` : `${left} ${token} ${right}`;
+        }
       }
       return priority > maxPriority ? `(${text})` : text;
     }
@@ -358,6 +410,7 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
       ? printableGeneratedVariableNames(term, env, explicitVariableNames, options.variableNameState)
       : printableReadVariableNames(term, env, explicitVariableNames),
     compact: options.compact === true,
+    minimalOperatorSpacing: options.minimalOperatorSpacing === true,
     operatorAtomsAsArgs: options.operatorAtomsAsArgs === true,
     dottedGraphicAtoms: options.dottedGraphicAtoms === true,
   };
