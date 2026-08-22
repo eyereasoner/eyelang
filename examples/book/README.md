@@ -248,3 +248,4 @@ npm run generate
 ## Chapter 40: Running EyeProlog: command line and corpus
 
 - [01-color.pl](chapter-40/01-color.pl) — Embedded quad tests
+- [02-program.pl](chapter-40/02-program.pl)

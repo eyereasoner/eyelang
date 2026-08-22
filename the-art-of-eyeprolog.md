@@ -6896,26 +6896,67 @@ described answer or error, including output produced before a later exception.
 Its argument may be an exact character list/string or a DCG body: terminal
 sequences, conjunction/disjunction, `...`/`ad_infinitum` sequence wildcards,
 and user-defined DCG nonterminals are matched against the captured characters.
-Following Trealla's quad convention, `sto` declares that the query is subject
-to occurs-check; the answer portion of an `sto`-annotated leaf remains
-implementation-dependent and is not compared. EyeProlog can nevertheless check
-some of the declaration without a second execution: the normal finite-tree
-unifier records a concrete occurs-check event as positive STO evidence. A
-naturally completed finite execution with no such event disproves `sto` (so
-`?- true. sto.` fails), while a search/resource boundary leaves the declaration
-conservatively unchecked. When the same quad declares STO and an occurs-check
-event is observed, an unannotated `unexpected` leaf does not reject an outcome
-that is implementation-dependent precisely because the query is STO. This is
-partial STO detection, not a decision procedure for the full STO/NSTO property.
-`loops` explicitly asks for bounded nontermination evidence and accepts direct
-active-variant cycle evidence from EyeProlog's normal recursion guard, with the
-loop depth/inference bounds as a fallback. Ordinary quad descriptions also have
-a finite inference budget (100000 by default); exhausting it does **not** mean
-`loops` or `false`, but produces an `UNDECIDED` result. The JavaScript API may
-override this with `quadMaxInferences`, while `loopMaxDepth` and
-`loopMaxInferences` control the explicit `loops` probe. The advanced stream
-annotations `peeks/1` and `waits`, and the unordered `other_answer_sequence`
-annotation, are not executed by the current runner.
+The advanced stream annotations `peeks/1` and `waits`, and the unordered
+`other_answer_sequence` annotation, are not executed by the current runner.
+
+#### STO, loops, and undecided quad results
+
+Following Trealla's quad convention, `sto` declares that a query is subject to
+occurs-check. EyeProlog checks this conservatively rather than attempting a
+complete STO/NSTO decision procedure. During the query's ordinary execution,
+the finite-tree unifier records a concrete occurs-check event as positive STO
+evidence; the query is not run a second time merely to probe STO-ness. A finite
+execution that completes naturally without such an event disproves `sto`, while
+a search or resource boundary leaves the declaration conservatively unchecked.
+The answer portion of an `sto`-annotated leaf remains implementation-dependent
+and is therefore not compared.
+
+For example, the cyclic binding in the first query provides positive STO
+evidence, whereas the second query is finite and cannot be STO:
+
+```eyeprolog
+?- X = s(X).
+   X = ..., unexpected.
+   false, unexpected.
+   sto, false
+|  sto, true.
+
+?- true.
+   sto.                  % fails: no STO evidence
+```
+
+When a quad declares STO and the execution observes an occurs-check event, an
+unannotated `unexpected` leaf does not reject the implementation-dependent
+finite-tree outcome. This is partial STO detection only: EyeProlog makes a
+definite statement where execution provides definite evidence and otherwise
+does not guess.
+
+`loops` is kept distinct from merely exhausting the quad runner's resources.
+EyeProlog accepts structural nontermination evidence such as an active-variant
+recursion cycle, with the loop depth/inference bounds as a bounded fallback:
+
+```eyeprolog
+inf :- inf, inf.
+
+?- inf.
+   loops.
+```
+
+Ordinary answer descriptions also have a finite inference budget (100000 by
+default). Exhausting that budget does **not** establish `loops` and does not
+turn an unfinished search into `false`; instead the description is reported as
+`UNDECIDED`, for example:
+
+```text
+quads: UNDECIDED expensive_case, program.pl:12
+   undecided: inference limit reached.
+```
+
+Thus quad execution has three useful outcomes: passed, failed, and undecided.
+When there are no failures but at least one undecided description, the CLI exits
+with status `2`. The JavaScript API may override the ordinary search budget with
+`quadMaxInferences`; `loopMaxDepth` and `loopMaxInferences` control the explicit
+`loops` probe.
 
 The JavaScript API exposes the same operation without process I/O:
 

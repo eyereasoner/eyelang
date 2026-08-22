@@ -91,6 +91,11 @@ execution as positive STO evidence, and rejects `sto` when a finite execution
 completes without such an event (for example `?- true. sto.`). If execution is
 cut short by a search/resource boundary, the STO claim remains conservatively
 unverified rather than being guessed.
+For nontermination expectations, `loops` is kept distinct from resource
+exhaustion: structural loop evidence may satisfy `loops`, while a bounded
+search that cannot establish the requested answer sequence is reported as
+`UNDECIDED`. In CLI quad mode, failures use exit status `1`; if there are no
+failures but at least one undecided quad, the exit status is `2`.
 
 ## Tabling and well-founded negation
 
