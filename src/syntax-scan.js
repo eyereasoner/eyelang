@@ -46,7 +46,7 @@ export function isTerminatingFullStop(source, index, convert = null) {
   // token character accepted by continuesGraphicToken().
   if (continuesGraphicToken(source, index, convert)) return false;
   if (next === '' || next === '%' || next === '\n' || next === '\r') return true;
-  if (/^[\u0009\u000b\u000c\u0020]$/.test(next)) return true;
+  if (/^[\u0000-\u0020\u007f]$/.test(next)) return true;
   return false;
 }
 

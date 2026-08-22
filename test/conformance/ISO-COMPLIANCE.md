@@ -30,8 +30,8 @@ error-ordering alternative to an individual executable assertion.
 
 | Standard area | Status | Current evidence |
 | --- | --- | --- |
-| Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete vendored WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, and writer/read-back regressions. |
-| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates. |
+| Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete vendored WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, writer/read-back regressions, and strict ASCII PCS/collation boundary tests. The implementation-defined 6.5/6.6 character-model decisions are now closed; wider shall-by-shall lexical mapping remains open. |
+| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates, plus strict checks for the required `variable < float < integer < atom < compound` type order and PCS-based atom collation. |
 | 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Preparation-time `char_conversion/2` now affects later unquoted source text and respects `char_conversion=off`. Cross-text `multifile/1` and ordering constraints still require explicit shall-by-shall audit. |
 | 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access. Public/private and multi-text requirements still need complete mapping. |
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
@@ -59,10 +59,15 @@ conformance claims:
   when the `char_conversion` flag is `on`, leaves quoted characters unchanged,
   and feeds the same mapping into execution-time term input.
 
-The processor-character-set/collation rows in
-[ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.md) remain explicit
-`audit gap`s. They were not papered over by narrowing strict mode without full
-WG17 and read/write/error validation.
+A follow-on audit closes the processor-character-set/collation choices rather
+than leaving them implicit. `--iso-strict` now selects the 128-character ASCII
+PCS U+0000..U+007F, classifies C0 controls and DEL as extended layout
+characters, and uses the code point itself as each collating-sequence integer.
+Characters/codes outside that PCS raise representation errors in strict
+parsing, term input, character conversion, and character-code predicates. The
+normal profile retains Unicode scalar character data as an explicit extension.
+The complete WG17 syntax matrix remains green under this narrower strict
+boundary.
 
 ## Strict-core boundary
 

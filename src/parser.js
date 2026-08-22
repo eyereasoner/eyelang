@@ -2,6 +2,7 @@
 // It preserves the compact Prolog-like syntax while producing Term objects for the solver.
 import { ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
 import { continuesGraphicToken, isTerminatingFullStop } from './syntax-scan.js';
+import { CharacterRepresentationError, isStrictIsoPcsCodePoint } from './iso-character.js';
 
 
 export class NumberRepresentationError extends Error {
@@ -33,7 +34,10 @@ const TOK = {
 };
 
 function isWhitespaceCode(code) {
-  return code === 32 || code === 9 || code === 10 || code === 13 || code === 12 || code === 11;
+  // EyeProlog classifies ASCII C0 controls and DEL as layout characters. In
+  // strict mode these are the implementation-defined extended-layout members
+  // of the ASCII processor character set.
+  return (code >= 0 && code <= 32) || code === 127;
 }
 
 function isDigitCode(code) {
@@ -232,7 +236,11 @@ class Parser {
     return this.parserFlagState.charConversions.get(character) ?? character;
   }
   rawPeek(offset = 0) {
-    return this.source[this.pos + offset] ?? '';
+    const ch = this.source[this.pos + offset] ?? '';
+    if (this.strictIso && ch && !isStrictIsoPcsCodePoint(ch.charCodeAt(0))) {
+      throw new CharacterRepresentationError();
+    }
+    return ch;
   }
   rawTake() {
     const ch = this.rawPeek();
@@ -410,6 +418,7 @@ class Parser {
       if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
         throw new Error(`parse line ${line}: character escape out of range`);
       }
+      if (this.strictIso && !isStrictIsoPcsCodePoint(code)) throw new CharacterRepresentationError();
       return String.fromCodePoint(code);
     }
     if (/^[0-7]$/.test(escaped)) {
@@ -420,6 +429,7 @@ class Parser {
       if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
         throw new Error(`parse line ${line}: character escape out of range`);
       }
+      if (this.strictIso && !isStrictIsoPcsCodePoint(code)) throw new CharacterRepresentationError();
       return String.fromCodePoint(code);
     }
     // A backslash followed by a decimal digit is numeric-escape syntax, but

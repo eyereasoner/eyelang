@@ -210,6 +210,14 @@ expansion/`phrase/2-3`; it also removes the EyeProlog `occurs_check` flag,
 Normal mode is unchanged and continues to support modules, DCGs, quads,
 libraries, proofs, cleanup-aware control, and the other documented extensions.
 
+Strict mode also makes the Part 1 processor-character-set choice explicit: its
+PCS is 7-bit ASCII (U+0000..U+007F), C0 controls and DEL are classified as
+extended layout characters, and the collating-sequence integer of each
+character is its ASCII code. Characters or character codes outside that set
+raise representation errors in strict parsing and character operations. Normal
+mode retains Unicode scalar character data as an implementation-specific
+extension.
+
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
 The ISO 5.4 implementation-defined/implementation-specific decision index is

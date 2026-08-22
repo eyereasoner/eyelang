@@ -56,6 +56,57 @@ export function runIsoStrict(reporter = new TestReporter()) {
     equal(Boolean(program.findGroup('raw', 1)?.clauses.some((clause) => clause.head.args[0]?.name === 'x')), true, 'conversion disabled');
   });
 
+
+  reporter.test('uses a documented 7-bit ASCII processor character set and collation', () => {
+    const program = Program.parse('', { isoStrict: true });
+    const solver = new Solver(program, { isoStrict: true });
+    const answers = (text) => [...solver.solve([parseGoalText(text, { isoStrict: true })], new Env(), 0)].length;
+    equal(answers("char_code('\\0\\',0)"), 1, 'NUL collating integer');
+    equal(answers("char_code('A',65)"), 1, 'A collating integer');
+    equal(answers("char_code('\\177\\',127)"), 1, 'DEL collating integer');
+    equal(answers("'\\0\\' @< 'A'"), 1, 'control before capital');
+    equal(answers("'A' @< 'a'"), 1, 'capital before small letter');
+  });
+
+
+  reporter.test('follows the Part 1 standard term-type and atom ordering', () => {
+    const program = Program.parse('', { isoStrict: true });
+    const solver = new Solver(program, { isoStrict: true });
+    const answers = (text) => [...solver.solve([parseGoalText(text, { isoStrict: true })], new Env(), 0)].length;
+    equal(answers("X @< 1.0"), 1, 'variable before float');
+    equal(answers("1.0 @< 1"), 1, 'float before integer');
+    equal(answers("1 @< a"), 1, 'integer before atom');
+    equal(answers("a @< f(a)"), 1, 'atom before compound');
+    equal(answers("'' @< 'A'"), 1, 'null atom first');
+    equal(answers("'A' @< 'B'"), 1, 'atom collation');
+  });
+
+  reporter.test('rejects characters outside the strict processor character set', () => {
+    const sourceError = capture(() => Program.parse("p('é').\n", { isoStrict: true }));
+    equal(sourceError.formal, 'representation_error(character)', 'source representation error');
+
+    const readError = capture(() => run('', {
+      isoStrict: true,
+      goal: 'read(X)',
+      ioOptions: { input: "'é'." },
+    }));
+    equal(readError.formal, 'representation_error(character)', 'read representation error');
+  });
+
+  reporter.test('restricts strict character codes to the processor character set', () => {
+    const charCodeError = capture(() => run('', { isoStrict: true, goal: 'char_code(_,128)' }));
+    equal(charCodeError.formal, 'representation_error(character_code)', 'char_code/2');
+    const atomCodesError = capture(() => run('', { isoStrict: true, goal: 'atom_codes(_, [128])' }));
+    equal(atomCodesError.formal, 'representation_error(character_code)', 'atom_codes/2');
+    const putCodeError = capture(() => run('', { isoStrict: true, goal: 'put_code(128)' }));
+    equal(putCodeError.formal, 'representation_error(character_code)', 'put_code/1');
+  });
+
+  reporter.test('keeps broader Unicode character handling as a normal-mode extension', () => {
+    const result = run('', { goal: "char_code('é',233)" });
+    equal(result.stdout, "char_code('é', 233).\n", 'normal Unicode char_code/2');
+  });
+
   reporter.test('uses the Part 1 predefined operator table', () => {
     const program = Program.parse('', { isoStrict: true });
     equal(program.operators.has('fx\u0000?-'), true, 'fx ?-');

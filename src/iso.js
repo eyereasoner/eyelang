@@ -13,6 +13,7 @@ import {
 import { formatTermForWrite } from './write.js';
 import { emptyTerminalSequence, expandDcgBody, isListOrPartialList, validateDcgEmbeddedGoals } from './dcg.js';
 import { INVALID_UTF8_SENTINEL } from './io.js';
+import { CharacterRepresentationError, isStrictIsoPcsCharacter, isStrictIsoPcsCodePoint } from './iso-character.js';
 import {
   characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
 } from './syntax-scan.js';
@@ -777,7 +778,7 @@ function* currentOpBuiltin({ solver, goal, env }) {
   }
 }
 
-function conversionCharacter(term, env, current = false) {
+function conversionCharacter(term, env, current = false, solver = null) {
   const value = deref(term, env);
   if (value.type === VAR) {
     if (current) return value;
@@ -787,18 +788,21 @@ function conversionCharacter(term, env, current = false) {
     if (current) throw new PrologError('type_error(character)', value);
     throw new PrologError('representation_error(character)');
   }
+  if (solver?.isoStrict && !isStrictIsoPcsCharacter(value.name)) {
+    throw new PrologError('representation_error(character)', value);
+  }
   return value;
 }
 function* charConversionBuiltin({ solver, goal, env }) {
-  const input = conversionCharacter(goal.args[0], env);
-  const output = conversionCharacter(goal.args[1], env);
+  const input = conversionCharacter(goal.args[0], env, false, solver);
+  const output = conversionCharacter(goal.args[1], env, false, solver);
   if (input.name === output.name) solver.charConversions.delete(input.name);
   else solver.charConversions.set(input.name, output.name);
   yield env;
 }
 function* currentCharConversionBuiltin({ solver, goal, env }) {
-  const input = conversionCharacter(goal.args[0], env, true);
-  const output = conversionCharacter(goal.args[1], env, true);
+  const input = conversionCharacter(goal.args[0], env, true, solver);
+  const output = conversionCharacter(goal.args[1], env, true, solver);
   for (const [from, to] of [...solver.charConversions]) {
     const next = env.clone();
     if (unify(input, atom(from), next) && unify(output, atom(to), next)) yield next;
@@ -1044,6 +1048,9 @@ function inputUnitBuiltin(name) {
       throw error;
     }
     if (unit == null && !peek) stream.pastEnd = true;
+    if (!binary && unit != null && solver.isoStrict && !isStrictIsoPcsCharacter(unit)) {
+      throw new PrologError('representation_error(character)');
+    }
     const result = unit == null ? (binary ? numberTerm(-1) : name.endsWith('code') ? numberTerm(-1) : atom('end_of_file'))
       : binary ? numberTerm(unit) : name.endsWith('code') ? numberTerm(unit.codePointAt(0)) : atom(unit);
     const target = goal.args[goal.arity - 1];
@@ -1059,6 +1066,9 @@ function outputUnitBuiltin(name) {
     if (name === 'put_char') {
       if (stream.type !== 'text') throw new PrologError('permission_error(output, binary_stream)', streamHandle(stream.id));
       if (!oneChar(value)) throw new PrologError('type_error(character)', value);
+      if (solver.isoStrict && !isStrictIsoPcsCharacter(value.name)) {
+        throw new PrologError('representation_error(character)', value);
+      }
       solver.io.writeUnit(stream, value.name);
     } else {
       if ((name === 'put_byte') !== (stream.type === 'binary')) {
@@ -1068,6 +1078,9 @@ function outputUnitBuiltin(name) {
       const code = BigInt(value.name);
       const max = name === 'put_byte' ? 255n : 0x10ffffn;
       if (code < 0n || code > max) throw new PrologError(name === 'put_byte' ? 'type_error(byte)' : 'representation_error(character_code)');
+      if (name === 'put_code' && solver.isoStrict && !isStrictIsoPcsCodePoint(Number(code))) {
+        throw new PrologError('representation_error(character_code)');
+      }
       solver.io.writeUnit(stream, name === 'put_byte' ? Number(code) : String.fromCodePoint(Number(code)));
     }
     yield env;
@@ -1095,6 +1108,9 @@ function* termTextCandidates(stream, solver) {
   let quote = null, lineComment = false, blockComment = false;
   for (let i = stream.position; i < source.length; i++) {
     const ch = source[i], next = source[i + 1];
+    if (solver.isoStrict && !isStrictIsoPcsCodePoint(ch.charCodeAt(0))) {
+      throw new PrologError('representation_error(character)');
+    }
     // Text streams preserve invalid UTF-8 bytes as an impossible Unicode
     // sentinel.  read/1-2 and read_term/2-3 must surface the same character
     // representation error as get_char/1-2 instead of misclassifying the
@@ -1106,7 +1122,7 @@ function* termTextCandidates(stream, solver) {
     if (blockComment) { if (ch === '*' && next === '/') { blockComment = false; i++; } continue; }
     if (quote) {
       if (ch === '\\') i = quotedEscapeEnd(source, i);
-      else if (ch !== ' ' && /^[\u0009-\u000d]$/.test(ch)) {
+      else if (ch !== ' ' && /^[\u0000-\u001f\u007f]$/.test(ch)) {
         // Literal layout characters are not quoted characters (6.4.2.1).
         // Surface the lexical error immediately even when there is no later
         // full stop; otherwise read/1 would misreport malformed input as EOF.
@@ -1137,7 +1153,7 @@ function hasNonLayoutRemainder(source, start) {
   return lastNonLayoutIndex(source, start) >= start;
 }
 function lastNonLayoutIndex(source, start = 0) {
-  const ignored = /[\u0009-\u000d\u0020]+|%[^\n]*(?:\n|$)|\/\*[\s\S]*?\*\//g;
+  const ignored = /[\u0000-\u0020\u007f]+|%[^\n]*(?:\n|$)|\/\*[\s\S]*?\*\//g;
   ignored.lastIndex = start;
   let cursor = start;
   let last = -1;
@@ -1248,7 +1264,9 @@ function readTermFromStream(stream, solver) {
         stream.position = candidate.end;
         return scopeReadTerm(term);
       } catch (error) {
-        if (error instanceof NumberRepresentationError) throw new PrologError(error.formal);
+        if (error instanceof NumberRepresentationError || error instanceof CharacterRepresentationError) {
+          throw new PrologError(error.formal);
+        }
         // A dot inside a graphic operator, such as =.., is only a possible
         // terminator. Keep scanning until a complete term parses.
       }
@@ -1510,30 +1528,35 @@ function oneChar(value) {
   return value.type === ATOM && characters(value.name).length === 1;
 }
 
-function validCharacterCode(value) {
+function validCharacterCode(value, solver = null) {
   if (value.type !== NUMBER || !isDecimalInteger(value.name)) return false;
   const code = BigInt(value.name);
-  return code >= 0n && code <= 0x10ffffn && !(code >= 0xd800n && code <= 0xdfffn);
+  if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) return false;
+  return !solver?.isoStrict || isStrictIsoPcsCodePoint(Number(code));
 }
 
-function listToAtomInput(list, env, kind) {
+function listToAtomInput(list, env, kind, solver = null) {
   const { items, tail } = listElements(list, env);
   if (tail.type === VAR || items.some((item) => item.type === VAR)) throw new PrologError('instantiation_error');
   if (tail.type !== ATOM || tail.name !== '[]') throw new PrologError('type_error(list)', tail);
   if (kind === 'chars') {
     const invalid = items.find((item) => !oneChar(item));
     if (invalid) throw new PrologError('type_error(character)', invalid);
+    if (solver?.isoStrict) {
+      const outsidePcs = items.find((item) => !isStrictIsoPcsCharacter(item.name));
+      if (outsidePcs) throw new PrologError('representation_error(character)', outsidePcs);
+    }
     return items.map((item) => item.name).join('');
   }
   const nonInteger = items.find((item) => item.type !== NUMBER || !isDecimalInteger(item.name));
   if (nonInteger) throw new PrologError('type_error(integer)', nonInteger);
-  const invalid = items.find((item) => !validCharacterCode(item));
+  const invalid = items.find((item) => !validCharacterCode(item, solver));
   if (invalid) throw new PrologError('representation_error(character_code)');
   return items.map((item) => String.fromCodePoint(Number(item.name))).join('');
 }
 
 function atomListBuiltin(kind) {
-  return function* ({ goal, env }) {
+  return function* ({ solver, goal, env }) {
     const value = deref(goal.args[0], env);
     if (value.type !== VAR && value.type !== ATOM) throw new PrologError('type_error(atom)', value);
     const list = deref(goal.args[1], env);
@@ -1546,7 +1569,7 @@ function atomListBuiltin(kind) {
       }
       const invalid = supplied.find((item) => item.type !== VAR &&
         (kind === 'chars' ? !oneChar(item) :
-          item.type !== NUMBER || !isDecimalInteger(item.name) || !validCharacterCode(item)));
+          item.type !== NUMBER || !isDecimalInteger(item.name) || !validCharacterCode(item, solver)));
       if (invalid) {
         if (kind === 'chars') throw new PrologError('type_error(character)', invalid);
         if (invalid.type !== NUMBER || !isDecimalInteger(invalid.name)) {
@@ -1554,26 +1577,32 @@ function atomListBuiltin(kind) {
         }
         throw new PrologError('representation_error(character_code)');
       }
+      if (solver.isoStrict && characters(value.name).some((ch) => !isStrictIsoPcsCharacter(ch))) {
+        throw new PrologError('representation_error(character)', value);
+      }
       const items = characters(value.name).map((ch) =>
         kind === 'chars' ? atom(ch) : numberTerm(ch.codePointAt(0)));
       if (unify(goal.args[1], listFromItems(items), next)) yield next;
       return;
     }
-    if (unify(goal.args[0], atom(listToAtomInput(list, env, kind)), next)) yield next;
+    if (unify(goal.args[0], atom(listToAtomInput(list, env, kind, solver)), next)) yield next;
   };
 }
 const atomCharsBuiltin = atomListBuiltin('chars');
 const atomCodesBuiltin = atomListBuiltin('codes');
 
-function* charCodeBuiltin({ goal, env }) {
+function* charCodeBuiltin({ solver, goal, env }) {
   const char = deref(goal.args[0], env);
   const code = deref(goal.args[1], env);
   if (char.type === VAR && code.type === VAR) throw new PrologError('instantiation_error');
   if (char.type !== VAR && !oneChar(char)) throw new PrologError('type_error(character)', char);
+  if (char.type === ATOM && solver.isoStrict && !isStrictIsoPcsCharacter(char.name)) {
+    throw new PrologError('representation_error(character)', char);
+  }
   if (code.type !== VAR && (code.type !== NUMBER || !isDecimalInteger(code.name))) {
     throw new PrologError('type_error(integer)', code);
   }
-  if (code.type !== VAR && !validCharacterCode(code)) throw new PrologError('representation_error(character_code)');
+  if (code.type !== VAR && !validCharacterCode(code, solver)) throw new PrologError('representation_error(character_code)');
   const next = env.clone();
   if (char.type === ATOM) {
     if (unify(goal.args[1], numberTerm(char.name.codePointAt(0)), next)) yield next;
@@ -1583,7 +1612,7 @@ function* charCodeBuiltin({ goal, env }) {
 function skipNumberLayout(text, start) {
   let position = start;
   while (true) {
-    while (position < text.length && /[\u0009-\u000d\u0020]/.test(text[position])) {
+    while (position < text.length && /[\u0000-\u0020\u007f]/.test(text[position])) {
       position++;
     }
     if (text[position] === '%') {
@@ -1647,7 +1676,7 @@ function parseIsoNumber(text) {
     // there without separating layout: `/` *can* continue the graphic token,
     // and the eager-consumer rule therefore keeps `-/**/1` ill-formed (the
     // number_chars continuation corpus case 24).
-    if (/[\u0009-\u000d\u0020]/.test(next) || next === '%') {
+    if (/[\u0000-\u0020\u007f]/.test(next) || next === '%') {
       position = skipNumberLayout(text, position + 1);
       sign = '-';
     }

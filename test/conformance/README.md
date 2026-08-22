@@ -26,7 +26,10 @@ identify standards-derived behavior; other directories cover EyeProlog host
 contracts and extensions. EyeProlog-only execution features such as automatic
 tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core
 claim. Their focused semantic coverage lives primarily in regression tests;
-`tnot/1` is absent from the strict ISO registry.
+`tnot/1` is absent from the strict ISO registry. The strict processor character
+set is the documented 7-bit ASCII PCS with ASCII-code collation; normal-mode
+Unicode character data is tested as an extension rather than folded into the
+Part 1 claim.
 
 All conformance files live under topic directories such as `arithmetic/`, `lists/`, `syntax/`, or `variables/`; new top-level numbered files should not be added. The report uses those directories as coverage categories.
 
