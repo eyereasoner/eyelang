@@ -234,7 +234,7 @@ npm run generate
 ## Chapter 38: Language and ISO profile
 
 - [01-city.pl](chapter-38/01-city.pl)
-- [02-look_ahead.pl](chapter-38/02-look_ahead.pl) — ISO Part 3 definite clause grammars
+- [02-look_ahead.pl](chapter-38/02-look_ahead.pl) — Part 3-oriented definite clause grammars
 
 ## Chapter 39: Built-in predicates by programming role
 

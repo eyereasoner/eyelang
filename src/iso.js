@@ -662,6 +662,11 @@ function* currentPrologFlagBuiltin({ solver, goal, env }) {
     throw new PrologError('domain_error(prolog_flag)', flag);
   }
   for (const [name, definition] of solver.prologFlags) {
+    // ISO 7.11.1.1: when bounded=false, max_integer and min_integer have no
+    // current value and current_prolog_flag/2 must therefore not enumerate
+    // them. The definitions remain registered so attempts to change these
+    // non-changeable flags still receive the normal flag error handling.
+    if (definition.value == null) continue;
     const next = env.clone();
     if (unify(goal.args[0], atom(name), next) && unify(goal.args[1], definition.value, next)) yield next;
   }

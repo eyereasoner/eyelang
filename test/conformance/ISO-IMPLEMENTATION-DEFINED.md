@@ -35,7 +35,7 @@ Status values are:
 | 7.1.2.2 | Mapping between a character code and bytes | Text file streams decode and encode UTF-8. Binary streams expose bytes 0..255 directly. | **defined** — `src/io.js`. |
 | 7.1.4.1 | Set `C` of characters represented by one-char atoms | Character predicates accept Unicode scalar values U+0000..U+10FFFF excluding surrogate code points. | **defined** — `src/iso.js` character-code validation. |
 | 7.4.2.4 | Whether `op/3` directives affect other Prolog texts or execution | An `op/3` directive changes parsing of subsequent text loaded into the same `Program`; the resulting operator table is also used by execution-time term I/O. Separately created `Program` objects are independent. | **defined** — `src/parser.js`, `src/program.js`, `src/iso.js`. |
-| 7.4.2.5 | Whether directive-created `Convc` affects other text/execution | Directive mappings are copied into the solver's execution-time `charConversions` map. The source tokenizer itself does not currently apply `char_conversion/2` to later unquoted source characters. | **audit gap** — `src/program.js`, `src/solver.js`; source-preparation conversion remains to be aligned with 7.11.2.1. |
+| 7.4.2.5 | Whether directive-created `Convc` affects other text/execution | Yes. A `char_conversion/2` directive updates preparation-time conversion for later unquoted source characters and the recorded mapping initializes execution-time term input. Quoted characters are not converted; `char_conversion=off` disables following preparation-time conversion. | **defined** — `src/parser.js`, `src/program.js`, `src/solver.js`; strict-core regression coverage. |
 | 7.4.2.6 | Order of `initialization/1` goals | Initialization goals run once, in source/inclusion order, before requested goals; each must obtain a first solution. | **defined** — `Program.initializations`, `Solver.runInitializations()`. |
 | 7.4.2.7 | Ground term designating a Prolog text for `include/1` | A source designation is an atom interpreted as a file path; relative paths resolve from the including file's directory (or the current working directory for unanchored input). | **defined** — `src/program.js` (`readIncludedSource`). |
 | 7.4.2.8 | Ground term designating a Prolog text for `ensure_loaded/1` | Same atom/file-path designation as `include/1`. | **defined** — `src/program.js`. |
@@ -59,17 +59,17 @@ Status values are:
 | 7.10.2.13 | `eof_action(Action)` property when the stream uses its default action | Reports the same selected action: `error` for ordinary opened files and `reset` for the predefined standard streams. | **defined** — `streamProperties()` in `src/iso.js`, defaults in `src/io.js`. |
 | 7.10.2.11 | Whether `reposition(false)` streams may nevertheless be repositioned | No. `set_stream_position/2` raises a permission error unless the stream was created with `reposition(true)`. | **defined** — `src/iso.js`. |
 | 7.11.1.1 | Default `bounded` flag | `false`: EyeProlog's Prolog integer model uses arbitrary-precision `BigInt`, subject to host resources. | **defined** — `defaultPrologFlags()` in `src/solver.js`. |
-| 7.11.1.2 | Default `max_integer` when `bounded=true` | The bounded-profile default is not applicable because EyeProlog selects `bounded=false`. However, EyeProlog currently exposes the sentinel atom `unbounded` through `current_prolog_flag/2` instead of making the `max_integer` query fail as 7.11.1.1 prescribes for an unbounded processor. | **audit gap** — `src/solver.js`, `current_prolog_flag/2`. |
-| 7.11.1.3 | Default `min_integer` when `bounded=true` | The bounded-profile default is not applicable because EyeProlog selects `bounded=false`. However, EyeProlog currently exposes the sentinel atom `unbounded` through `current_prolog_flag/2` instead of making the `min_integer` query fail as 7.11.1.1 prescribes for an unbounded processor. | **audit gap** — `src/solver.js`, `current_prolog_flag/2`. |
+| 7.11.1.2 | Default `max_integer` when `bounded=true` | Not applicable because EyeProlog selects `bounded=false`; consequently `current_prolog_flag(max_integer, _)` fails. | **not applicable** — `src/solver.js`, `current_prolog_flag/2`; strict-core regression coverage. |
+| 7.11.1.3 | Default `min_integer` when `bounded=true` | Not applicable because EyeProlog selects `bounded=false`; consequently `current_prolog_flag(min_integer, _)` fails. | **not applicable** — `src/solver.js`, `current_prolog_flag/2`; strict-core regression coverage. |
 | 7.11.1.4 | Default `integer_rounding_function` flag | `toward_zero`; `//` uses truncation toward zero. `div` is provided separately with downward/floor division semantics. | **defined** — `src/solver.js`, `src/iso-arithmetic.js`. |
 | 9.1.3.1 | Integer division rounding function `rndI` | Truncation toward zero, matching the `integer_rounding_function=toward_zero` flag. | **defined** — BigInt division for `//` in `src/iso-arithmetic.js`. |
-| 7.11.2.1 | Whether preparation-time `Convc` affects execution-time `Convc` | Yes: mappings recorded by `char_conversion/2` directives initialize the solver map. Source-token conversion itself has the audit gap noted at 7.4.2.5. | **defined / audit note** — `src/solver.js`. |
+| 7.11.2.1 | Whether preparation-time `Convc` affects execution-time `Convc` | Yes: mappings created while Prolog text is prepared are retained and initialize the solver's execution-time conversion map. | **defined** — `src/parser.js`, `src/program.js`, `src/solver.js`. |
 | 7.11.2.2 | Effect when `debug=on` | The flag is accepted and stored; it does not change goal semantics or enable a debugger. | **defined** — `src/solver.js`; no semantic branch depends on `debug`. |
 | 7.11.2.3 | Default `max_arity` | `unbounded` in the Prolog model, subject to host memory and practical JavaScript array/index limits. | **defined** — `src/solver.js`; relevant guards report representation/resource errors. |
 | 7.11.2.5 | Default `double_quotes` | `chars`. | **defined** — `src/solver.js`, parser flag state. |
 | 7.12.1 | Second argument of `error/2` | The default context term is the atom `eyeprolog`. A few implementation-specific diagnostics may deliberately supply a more specific context term. | **defined** — `formalErrorTerm()` in `src/iso.js`. |
 | 7.12.2(f) | Implementation-defined representation limits | Character and character-code operations use Unicode scalar limits; arity/integer values are modeled as unbounded but may hit host/resource limits. Float input overflow uses the implementation-specific `max_float`/`min_float` representation names documented by the STC-oriented tests. | **defined** — parser/ISO numeric and character guards. |
-| 8.17.1 | Implementation-defined flag value ranges | Strict mode exposes only Part 1 core flags and their standard value sets. Normal mode additionally exposes EyeProlog's `occurs_check` flag; `max_integer`/`min_integer` use the `unbounded` sentinel described above. | **defined** — strict registry/flag filtering in `src/solver.js`. |
+| 8.17.1 | Implementation-defined flag value ranges | Strict mode exposes only Part 1 core flags and their standard value sets. Normal mode additionally exposes EyeProlog's `occurs_check` flag. With `bounded=false`, `max_integer` and `min_integer` have no current value and their `current_prolog_flag/2` queries fail. | **defined** — strict registry/flag filtering in `src/solver.js`. |
 | 8.17.3 | Other effects of `halt/0` | Terminates EyeProlog execution and returns host/process status `0`; it produces no Prolog solution. | **defined** — `HaltSignal`, `haltBuiltin()`, CLI/runner handling. |
 | 8.17.4 | Meaning/effects of `halt(Status)` | Integer `Status` is converted to the host process/runner halt code; it produces no Prolog solution. | **defined** — `haltBuiltin()`, `src/execute.js`, `src/cli.js`. |
 | 9.1.4.1 | Floating-point rounding function `rndF` | Floating values and operations use ECMAScript `Number` (IEEE-754 binary64) and the host's specified binary64 arithmetic/conversions. | **defined** — `src/iso-arithmetic.js`, `src/number-value.js`. |
@@ -118,9 +118,10 @@ families; `--iso-strict` is intended to remove their Part 1 interpretation.
 | 5.5.11 Reserved atoms | None | None. |
 | Cor.3 5.5.12 Options | Extra library/host options may exist outside core option lists | Strict core accepts the standard option names implemented for Part 1; invalid options follow Corrigendum 3 validation. |
 
-Part 2 and Part 3 are separately standardized profiles when EyeProlog is run in
-its normal mode; the table above describes them as extensions only relative to
-the Part 1 strict-core boundary.
+Normal mode provides documented module and DCG compatibility profiles whose
+features overlap standardized Part 2 and Part 3 facilities. They are extensions
+relative to the Part 1 strict-core boundary and are tested separately; this
+ledger does not assert complete Part 2 or Part 3 conformance.
 
 ## Important implementation-dependent behavior (not the 5.4 mandatory table)
 

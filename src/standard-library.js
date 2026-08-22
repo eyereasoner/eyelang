@@ -1,4 +1,4 @@
-// ISO/IEC 13211-2 module sources shipped with EyeProlog.
+// Prolog library modules shipped with EyeProlog and loaded through its documented module compatibility surface.
 // The sources are registered here so library(Name) works in Node and browsers.
 // Modules are loaded on demand by explicit use_module/1-2 or by the conservative
 // source-level interop autoloader declared below.

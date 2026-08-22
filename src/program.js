@@ -650,7 +650,7 @@ export function autoloadProgramGoals(program, inputs, options = {}) {
     false,
     { isoStrict: program.strictIso },
   );
-  const parserFlagState = { doubleQuotes: program.doubleQuotes ?? options.doubleQuotes ?? 'chars' };
+  const parserFlagState = { doubleQuotes: program.doubleQuotes ?? options.doubleQuotes ?? 'chars', charConversion: 'on', charConversions: new Map() };
   const goals = parseInteropGoalInputs(inputs, {
     ...options,
     isoStrict: program.strictIso,
@@ -684,7 +684,7 @@ function loadSourcesIntoBuilder(builder, sources, options, fast) {
   const ensured = new Set();
   const loadedModules = new Set();
   const operatorState = createParserOperatorState([], true, { isoStrict: options.isoStrict === true });
-  const parserFlagState = { doubleQuotes: options.doubleQuotes ?? 'chars' };
+  const parserFlagState = { doubleQuotes: options.doubleQuotes ?? 'chars', charConversion: 'on', charConversions: new Map() };
   const prepared = sources.map((source) => ({
     source,
     options: { ...sourceOptionsFor(source, options), operatorState, parserFlagState },

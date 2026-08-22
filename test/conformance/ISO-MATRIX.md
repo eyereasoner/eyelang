@@ -19,8 +19,8 @@ compliance audit and the remaining work before a full conformance claim.
 | 8.16 atomic processing | atoms, characters, codes and number conversion with prescribed errors | `atomic_term_processing`, focused forward/reverse cases, parenthesized-number rejection, Logtalk-derived error cases |
 | 8.17 flags and hooks | required flags, mutation permissions, halt and character conversion | `exceptions_and_flags`, `remaining_builtins_and_directives`, flag error cases |
 | Clause 9 evaluable functors | integer, float, rounding, transcendental and bitwise operations | `arithmetic`, `corrigenda_arithmetic`, `corrigenda_atan2_zero`, `corrigenda_integer_negative_power` |
-| ISO/IEC 13211-2 modules | module declarations, exports, imports, qualification, meta-predicate context | `modules/qualified_call`, `modules/selective_library_import`, `dcg_module_nonterminal_indicator` |
-| ISO/IEC TS 13211-3 grammar rules | `-->`, terminal and partial sequences, grammar control constructs, semicontexts, nonterminal indicators, modules, `phrase/2-3`, steadfastness and errors | `dcg_terminals_and_remainder`, `dcg_control_constructs`, `dcg_partial_sequences`, `dcg_phrase_steadfastness`, `dcg_dynamic_nonterminal_indicator`, `logtalk_dcg_phrase_identity`, `logtalk_dcg_semicontexts`, DCG error and precedence cases |
+| Module compatibility profile (related to ISO/IEC 13211-2 and later WG17 amendment work) | module declarations, exports, imports, qualification, meta-predicate context | `modules/qualified_call`, `modules/selective_library_import`, `dcg_module_nonterminal_indicator` |
+| Part 3-oriented DCG compatibility profile | `-->`, terminal and partial sequences, grammar control constructs, semicontexts, nonterminal indicators, modules, `phrase/2-3`, steadfastness and errors | `dcg_terminals_and_remainder`, `dcg_control_constructs`, `dcg_partial_sequences`, `dcg_phrase_steadfastness`, `dcg_dynamic_nonterminal_indicator`, `logtalk_dcg_phrase_identity`, `logtalk_dcg_semicontexts`, DCG error and precedence cases |
 
 Corrigendum-specific coverage includes double-quoted atom operator priority
 (Cor.1); the added predicates and evaluable functors, bar-operator rules,
@@ -36,7 +36,9 @@ particular, the index records the unbounded integer model, `double_quotes=chars`
 9.1.4.2 choice to round tiny arithmetic results rather than raise underflow),
 stream/character decisions, and the normal-profile extension boundary.
 
-This is an executable conformance matrix, not a certification issued by an
-independent standards body. Release gating runs the ISO cases and the dedicated
+This is an executable conformance/compatibility matrix, not a certification issued by an
+independent standards body. The Part 2/Part 3-related rows describe tested
+normal-mode compatibility surfaces rather than a claim that every requirement
+of those standards has been closed. Release gating runs the ISO cases and the dedicated
 Part 1 strict-core suite together with the full regression, API, documentation,
 example, and browser suites.

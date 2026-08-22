@@ -6,8 +6,8 @@ answer.
 
 Its design rule is simple:
 
-> **Keep the ISO language core complete, keep extensions small and explicit,
-> and implement portable conveniences as ordinary Prolog whenever possible.**
+> **Keep the ISO language core explicit and auditable, keep extensions small and
+> explicit, and implement portable conveniences as ordinary Prolog whenever possible.**
 
 ## Why ISO Prolog?
 
@@ -17,12 +17,13 @@ arithmetic, control, streams, errors, and processor behavior. Reusing that
 language gives programs recognizable semantics without inventing another rule
 syntax.
 
-EyeProlog implements the Part 1 core together with Technical Corrigenda 1, 2,
-and 3, Part 2 modules, and the Part 3 definite clause grammar specification.
-Its executable conformance matrix and tests document the supported
-behavior, including an executable trace of the vendored active WG17 syntax
-cases. This is extensive implementation evidence, not certification by an
-independent standards body.
+EyeProlog targets the Part 1 core together with Technical Corrigenda 1, 2,
+and 3, and provides documented module and definite-clause-grammar compatibility
+profiles for normal-mode programs. Its executable conformance matrix and tests
+document the supported behavior, including an executable trace of the vendored
+active WG17 syntax cases. This is extensive implementation evidence, not a
+claim that every Part 1, Part 2, or Part 3 normative requirement has already
+been certified or closed.
 
 ## Why a small implementation?
 
@@ -34,8 +35,8 @@ keeps a narrow architecture:
 - explicit `tnot/1` with well-founded semantics for finite, range-restricted,
   function-free Datalog components;
 - the ISO built-in registry;
-- lean portable ISO Part 2 library modules;
-- ISO Part 3 definite clause grammars and `phrase/2-3`;
+- lean portable library modules using the documented module compatibility profile;
+- ISO Part 3-oriented definite clause grammars and `phrase/2-3`;
 - lifecycle-aware `call_cleanup/2` and `setup_call_cleanup/3` in normal mode;
 - optional proof explanations; and
 - the same implementation in Node.js and the browser.
@@ -72,8 +73,8 @@ positive Datalog closures with a shared relation-wide table, but the admission
 heuristics are implementation details. Programs should rely on the documented
 semantics and finiteness conditions, not on a particular internal threshold.
 
-DCGs follow the same rule.  Their meaning remains the ISO Part 3 difference-list
-model, while finite sequence scans and proven zero-width hand-offs may use
+DCGs follow the same rule. Their supported semantics follow the ISO Part 3
+difference-list model, while finite sequence scans and proven zero-width hand-offs may use
 lighter internal control paths so deep grammars do not pay one general solver
 frame per token.  Relational remainder-producing modes are preserved.  The
 checked `examples/dcg-expression-language.pl` program shows the declarative side
@@ -122,7 +123,7 @@ and integrations that can live outside the reasoning engine.
 ## The durable idea
 
 EyeProlog demonstrates that a useful proof-producing reasoner can be built from
-a complete standard core, small portable modules, and an ordinary JavaScript
+a carefully audited standard-oriented core, small portable modules, and an ordinary JavaScript
 API. Its value is not feature count; it is that the language boundary stays
 visible enough to understand.
 

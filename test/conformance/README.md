@@ -8,7 +8,7 @@ supported ISO Prolog profile, built-ins, extensions, and reasoner behavior.
 The suite is intentionally file-based. Exact standard output, errors, warnings,
 and proof output test the behavior of the JavaScript implementation.
 [ISO-MATRIX.md](ISO-MATRIX.md) maps Part 1 normative clause families, all three
-corrigenda, Part 2 modules, and Part 3 definite clause grammars to representative
+corrigenda, plus EyeProlog's module and DCG compatibility profiles, to representative
 executable cases. [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
 complete one-to-one trace for the vendored active upstream WG17 syntax cases.
 [STC-DRAFT-STATUS.md](STC-DRAFT-STATUS.md) separately tracks executable
@@ -17,9 +17,8 @@ review evidence, not normative ISO claims.
 
 “Conformance” here means conformance to EyeProlog's documented ISO compatibility
 profile and implementation extensions. The default registry covers the exact
-predicate indicators listed in Appendix B of the book across the supported
-ISO/IEC 13211-1:1995, ISO/IEC 13211-2:2000, and ISO/IEC TS 13211-3:2025
-standard families. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the explicit
+predicate indicators listed in Appendix B of the book across the Part 1 strict-core
+target and the normal-mode module/DCG compatibility families. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the explicit
 processor-requirement ledger for the Part 1 strict-core audit. This suite is
 still not an independent certification of every processor requirement, lexical
 edge, option combination, or prescribed error precedence. Cases under `iso/`

@@ -1,2 +1,2 @@
-% From The Art of EyeProlog, Chapter 38 — ISO Part 3 definite clause grammars.
+% From The Art of EyeProlog, Chapter 38 — Part 3-oriented definite clause grammars.
 look_ahead(X), [X] --> [X].

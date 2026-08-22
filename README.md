@@ -221,10 +221,18 @@ newly upgraded cases run directly against the upstream Codex expectation.
 EyeProlog does not yet claim independent certification or closure of every
 normative Part 1 requirement.
 
-## ISO modules and definite clause grammars
+## Module and definite clause grammar compatibility profiles
 
-EyeProlog implements ISO/IEC 13211-2 modules and the grammar rules and
-`phrase/2-3` predicates of ISO/IEC TS 13211-3:2025. For example:
+Normal EyeProlog supports the widely used `module/2`, `use_module/1-2`,
+`meta_predicate/1`, and `Module:Goal` interface reflected in later WG17 module
+amendment work. This is a practical module compatibility profile; EyeProlog
+does **not** currently claim a clause-by-clause implementation or certification
+of the complete ISO/IEC 13211-2:2000 module model.
+
+Definite clause grammar support follows the ISO/IEC TS 13211-3 grammar-rule and
+`phrase/2-3` model and is exercised by the conformance corpus. As with Part 1,
+that implementation evidence is not an independent certification of every
+Part 3 requirement. For example:
 
 ```prolog
 sentence --> [hello], noun.
@@ -254,7 +262,7 @@ EyeProlog also adds 128 public library predicate indicators to its 129-entry ISO
 profile. **88 are implemented entirely as ordinary Prolog clauses** in focused
 modules under `src/lib/`; the remaining control predicates and finite-domain
 `library(clpz)` kernel use backtrackable host support.
-They are ISO/IEC 13211-2 modules loaded explicitly by purpose, such as
+They are ordinary Prolog modules using EyeProlog's documented module compatibility surface, loaded explicitly by purpose, such as
 `library(lists)`, `library(lambda)`, `library(strings)`, `library(aggregate)`, or
 `library(clpz)`.
 Portable text

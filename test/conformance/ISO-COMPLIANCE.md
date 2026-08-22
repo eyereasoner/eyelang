@@ -32,19 +32,37 @@ error-ordering alternative to an individual executable assertion.
 | --- | --- | --- |
 | Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete vendored WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, and writer/read-back regressions. |
 | 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates. |
-| 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Cross-text `multifile/1` and ordering constraints require explicit shall-by-shall audit. |
+| 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Preparation-time `char_conversion/2` now affects later unquoted source text and respects `char_conversion=off`. Cross-text `multifile/1` and ordering constraints still require explicit shall-by-shall audit. |
 | 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access. Public/private and multi-text requirements still need complete mapping. |
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
 | 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. |
 | 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Exceptional-value/error-precedence matrix remains to be exhaustively enumerated. |
 | 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, Corrigendum 3 writer cases. Full option cross-product remains open. |
-| 7.11 — flags | audit | Required Part 1 flags implemented. Normal and strict modes use the ISO `unknown=error` default; strict mode excludes the EyeProlog `occurs_check` extension. |
+| 7.11 — flags | audit | Required Part 1 flags implemented. Normal and strict modes use the ISO `unknown=error` default; strict mode excludes the EyeProlog `occurs_check` extension. With `bounded=false`, `max_integer` and `min_integer` correctly have no current value. |
 | 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax families and focused error cases. Complete prescribed-error ordering remains open. |
 | 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. Mode/error matrix is not yet one-row-per-standard-row. |
 | Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Host floating-point representation choices remain documented implementation-defined behavior. |
 | Corrigendum 1 | covered | Double-quoted atom/operator-priority corrections have dedicated cases. |
 | Corrigendum 2 | covered | Added predicates/functors, catch corrections, bar/operator and uninstantiation corrections have dedicated cases. |
 | Corrigendum 3 | covered | Writer options, `variable_names/1`, canonical list output and negative-power corrections have dedicated cases. |
+
+## Issue #65 conformance corrections
+
+The issue #65 audit against the licensed Part 1 text and Corrigenda closed two
+concrete mismatches without changing the remaining audit rows into blanket
+conformance claims:
+
+- `bounded=false` no longer exposes implementation-specific `unbounded` values
+  for `max_integer` or `min_integer`; the corresponding
+  `current_prolog_flag/2` queries fail as specified by 7.11.1.1;
+- preparation-time `char_conversion/2` now converts later unquoted source text
+  when the `char_conversion` flag is `on`, leaves quoted characters unchanged,
+  and feeds the same mapping into execution-time term input.
+
+The processor-character-set/collation rows in
+[ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.md) remain explicit
+`audit gap`s. They were not papered over by narrowing strict mode without full
+WG17 and read/write/error validation.
 
 ## Strict-core boundary
 
@@ -64,9 +82,11 @@ remain ordinary operator syntax in strict core mode. A conforming `op/3`
 directive may still add an infix `?-` definition; strict mode reads that as an
 ordinary term rather than as a quad.
 
-Part 2 modules and Part 3 grammar rules remain supported and tested in the
+Module and DCG compatibility features remain supported and tested in the
 normal EyeProlog profile. They are tracked separately in ISO-MATRIX.md rather
-than being silently folded into the Part 1 strict-core claim.
+than being silently folded into the Part 1 strict-core claim. The project does
+not currently assert that this evidence closes every requirement of ISO/IEC
+13211-2:2000 or ISO/IEC TS 13211-3.
 
 ## Release gate
 

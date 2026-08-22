@@ -1,4 +1,4 @@
-% Part 2 module exports combined with a Part 3 nonterminal indicator.
+% Module compatibility exports combined with a Part 3 nonterminal indicator.
 :- module(dcg_vocab, [word//1, answer/1]).
 
 word(X) --> [X].

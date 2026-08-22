@@ -36,6 +36,26 @@ export function runIsoStrict(reporter = new TestReporter()) {
     equal(solver.prologFlags.get('unknown')?.value?.name, 'error', 'unknown default');
   });
 
+  reporter.test('unbounded integer profile does not expose max_integer or min_integer values', () => {
+    const program = Program.parse('', { isoStrict: true });
+    const solver = new Solver(program, { isoStrict: true });
+    const answers = (text) => [...solver.solve([parseGoalText(text, { isoStrict: true })], new Env(), 0)].length;
+    equal(answers('current_prolog_flag(bounded,false)'), 1, 'bounded=false');
+    equal(answers('current_prolog_flag(max_integer,_)'), 0, 'max_integer unavailable');
+    equal(answers('current_prolog_flag(min_integer,_)'), 0, 'min_integer unavailable');
+  });
+
+
+  reporter.test('preparation-time char_conversion affects later unquoted source only', () => {
+    const program = Program.parse(
+      ":- char_conversion(x,y).\np(x).\nquoted('x').\n:- set_prolog_flag(char_conversion,off).\nraw(x).\n",
+      { isoStrict: true },
+    );
+    equal(Boolean(program.findGroup('p', 1)?.clauses.some((clause) => clause.head.args[0]?.name === 'y')), true, 'converted p/1');
+    equal(Boolean(program.findGroup('quoted', 1)?.clauses.some((clause) => clause.head.args[0]?.name === 'x')), true, 'quoted atom unchanged');
+    equal(Boolean(program.findGroup('raw', 1)?.clauses.some((clause) => clause.head.args[0]?.name === 'x')), true, 'conversion disabled');
+  });
+
   reporter.test('uses the Part 1 predefined operator table', () => {
     const program = Program.parse('', { isoStrict: true });
     equal(program.operators.has('fx\u0000?-'), true, 'fx ?-');

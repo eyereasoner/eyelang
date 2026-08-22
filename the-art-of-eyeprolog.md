@@ -1943,7 +1943,7 @@ The source layout mirrors the language boundary while keeping the JavaScript
 runtime flat under `src/`. `src/iso.js` remains the stable ISO facade and
 built-in registry; arithmetic evaluation lives in `src/iso-arithmetic.js`, and
 processor control/error classes live in `src/errors.js`. `src/dcg.js`
-implements the shared ISO Part 3 grammar-rule and dynamic-body expansion
+implements the shared Part 3-oriented grammar-rule and dynamic-body expansion
 without depending back on the ISO registry. This keeps the low-level syntax and
 error layers acyclic while preserving the existing `src/iso.js` exports.
 
@@ -1964,8 +1964,8 @@ being split through extra strategy objects or callbacks. Architectural cleanup
 is required to preserve benchmark performance as well as semantics.
 
 Focused files under `src/lib/` contain the portable extensions, with
-`src/lib/lists.pl` supplying common list relations. They are ordinary ISO/IEC
-13211-2 modules, organized like Trealla's `library/` and registered for
+`src/lib/lists.pl` supplying common list relations. They are ordinary Prolog modules using EyeProlog's documented module compatibility
+surface, organized like Trealla's `library/` and registered for
 `library(Name)` by `src/standard-library.js` in Node and the browser. The
 browser entry point `src/playground-worker.js` uses that same program and
 module-loading path in a dedicated worker. `src/ARCHITECTURE.md` records the
@@ -2587,8 +2587,10 @@ correct program without losing its meaning, and organize a decision system
 whose conclusions remain auditable.
 
 EyeProlog supplies the Part 1 control, dynamic-database, operator, and I/O
-facilities together with the Part 2 module forms `module/2`, `use_module/1`,
-`use_module/2`, and `Module:Goal`. Definite-clause grammar notation remains
+facilities together with its normal-profile module forms `module/2`,
+`use_module/1`, `use_module/2`, and `Module:Goal`. These forms are treated as a
+module compatibility surface, not as a claim of complete ISO/IEC 13211-2:2000
+conformance. Definite-clause grammar notation remains
 outside this profile. The examples still prefer explicit domain
 relations, state, and syntax trees where that makes assumptions easier to
 inspect.
@@ -5485,11 +5487,13 @@ The long catalogs are meant to be entered locally, not memorized linearly.
 
 ## 38. Language and ISO profile
 
-The standards baseline is ISO/IEC 13211-1:1995, as corrected by Technical
-Corrigenda 1:2007, 2:2012, and 3:2017, together with the module facilities of
-ISO/IEC 13211-2 and definite clause grammars from ISO/IEC TS 13211-3:2025.
-EyeProlog implements the compatibility profile documented
-here; it does not claim certification as a complete conforming processor.
+The normative strict-core baseline is ISO/IEC 13211-1:1995, as corrected by
+Technical Corrigenda 1:2007, 2:2012, and 3:2017. Normal EyeProlog additionally
+provides a practical module interface aligned with later WG17 module amendment
+work and a definite-clause-grammar profile following ISO/IEC TS 13211-3. Those
+normal-mode profiles are documented and tested compatibility surfaces; they are
+not currently claimed as complete clause-by-clause certifications of Part 2 or
+Part 3.
 
 Prolog source accepted by EyeProlog is UTF-8. `%` starts a line comment and
 `/* ... */` delimits a block comment. Plain atoms begin with a
@@ -5618,10 +5622,11 @@ EyeProlog supports cut, operator declarations, dynamic database updates, grouped
 solutions, exceptions, flags, initialization and inclusion directives, and
 standard stream and term I/O. Normal mode additionally provides lifecycle-aware
 `call_cleanup/2` and `setup_call_cleanup/3`; these cleanup controls are
-EyeProlog extensions and are excluded by `--iso-strict`. ISO Part 2 modules and
-Part 3 definite clause grammars complement this Part 1 core.
+EyeProlog extensions and are excluded by `--iso-strict`. Normal mode also
+adds the documented module compatibility surface and a Part 3-oriented DCG
+profile.
 
-### ISO Part 2 modules
+### Module compatibility profile
 
 A module gives predicate identity one more component: module name, predicate
 name, and arity. The first directive in a module source names the module and
@@ -5657,7 +5662,7 @@ an empty list when only qualified calls are wanted. `Module:Goal` selects a
 module explicitly. Repeated module loads are idempotent, while conflicting
 imports and requests for predicates that a module does not export are errors.
 
-### ISO Part 3 definite clause grammars
+### Part 3-oriented definite clause grammars
 
 A grammar rule `Head --> Body.` is prepared as an ordinary predicate with two
 additional difference-list arguments. Parameterized nonterminals retain their
@@ -5670,7 +5675,7 @@ Nonterminal indicators can be exported and imported through modules:
 word(noun) --> [robot] | [scientist].
 ```
 
-The required grammar constructs are terminal lists, `[]`, sequencing with
+The supported grammar constructs include terminal lists, `[]`, sequencing with
 comma, alternatives with `;` or `|`, if-then-else, embedded goals `{Goal}`,
 `call//1`, `phrase//1`, and `!//0`. Semicontexts provide look-ahead by restoring
 terminals to the remaining sequence:
@@ -5973,7 +5978,7 @@ silently changing a static program.
 | --- | --- |
 | `op(+Priority,+Specifier,+NameOrNames)` | Defines or removes operators in the current program. Priority is `0..1200`; specifiers are `fx`, `fy`, `xf`, `yf`, `xfx`, `xfy`, or `yfx`; names may be one atom or a proper list. Priority zero removes the definition. `,` and `\|` cannot be modified. |
 | `current_op(?Priority,?Specifier,?Name)` | Enumerates active operator definitions and filters supplied arguments. |
-| `char_conversion(+Input,+Output)` | Installs a one-character atom conversion for subsequent term input. Mapping a character to itself removes its custom mapping. |
+| `char_conversion(+Input,+Output)` | Installs a one-character conversion. In prepared Prolog text, later **unquoted** characters are converted when `char_conversion=on`; quoted characters are unchanged. The same mapping initializes execution-time term input. Mapping a character to itself removes its custom mapping. |
 | `current_char_conversion(?Input,?Output)` | Enumerates installed nonidentity conversions. |
 | `current_prolog_flag(?Flag,?Value)` | Enumerates flags or retrieves one named flag. An unknown bound flag raises *domain_error(prolog_flag)*. |
 | `set_prolog_flag(+Flag,+Value)` | Changes a supported mutable flag after validating its allowed atom value. Read-only flags raise a permission error. |
@@ -5984,12 +5989,20 @@ silently changing a static program.
 | `integer_rounding_function` | `toward_zero` | `toward_zero` | no |
 | `char_conversion` | `on` | `on`, `off` | yes |
 | `debug` | `off` | `on`, `off` | yes |
-| `max_integer` | `unbounded` | `unbounded` | no |
-| `min_integer` | `unbounded` | `unbounded` | no |
+| `max_integer` | no current value because `bounded=false` | not applicable | no |
+| `min_integer` | no current value because `bounded=false` | not applicable | no |
 | `max_arity` | `unbounded` | `unbounded` | no |
 | `unknown` | `error` | `error`, `fail`, `warning` | yes |
 | `double_quotes` | `chars` | `chars`, `codes`, `atom` | yes |
 | `occurs_check` | `true` | `true`, `error` | yes |
+
+Because `bounded=false`, `current_prolog_flag(max_integer, _)` and
+`current_prolog_flag(min_integer, _)` fail as required by ISO 7.11.1.1;
+EyeProlog does not expose an `unbounded` sentinel as either flag value.
+Preparation-time `char_conversion/2` mappings affect later unquoted source text
+and also initialize the execution-time conversion mapping; setting the
+`char_conversion` flag to `off` disables conversion for following source text.
+Quoted source characters are not converted.
 
 Both normal EyeProlog and strict ISO core mode use the ISO `unknown=error`
 default. Interactive `set_prolog_flag/2` changes are retained when the REPL
@@ -7599,14 +7612,15 @@ npm run test:playground
 
 ### Supported ISO Prolog implementation
 
-EyeProlog executes a documented and tested ISO Prolog implementation based on
-ISO/IEC 13211-1:1995 and its three technical corrigenda, ISO/IEC 13211-2:2000,
-and ISO/IEC TS 13211-3:2025. The exact supported predicate indicators are
+EyeProlog executes a documented and tested ISO-oriented Prolog profile. Its
+strict-core target is ISO/IEC 13211-1:1995 with Technical Corrigenda 1-3. Normal
+mode additionally provides the documented module compatibility surface and a
+Part 3-oriented definite-clause-grammar implementation. The exact supported predicate indicators are
 listed in Chapter 39. The normal profile includes control and exceptions, term
 operations, arithmetic, grouped solutions, dynamic clauses, operators,
 atomic-term processing, flags, character conversion, streams, character/byte
-and term I/O, initialization, source inclusion, Part 2 modules, Part 3 grammar
-rules, and EyeProlog extensions.
+and term I/O, initialization, source inclusion, module compatibility forms,
+definite-clause grammar rules, and EyeProlog extensions.
 
 For a Part 1 conformance boundary, `--iso-strict` (or API option
 `isoStrict: true`) limits the processor to ISO/IEC 13211-1:1995 plus Technical
@@ -7627,7 +7641,7 @@ remaining qualifications are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
   `ready`;
-- ISO Part 2 modules and ISO/IEC TS 13211-3 definite clause grammars are supported;
+- module and ISO/IEC TS 13211-3-oriented DCG compatibility profiles are supported in normal mode, without a complete Part 2/Part 3 certification claim;
 - variables cannot occupy functor or predicate position;
 - double-quoted text follows `double_quotes` exactly; the default `chars` value
   matches Trealla and Scryer and may be changed to `codes` or `atom`;

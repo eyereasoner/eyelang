@@ -207,7 +207,11 @@ class Parser {
     this.strictIso = options.isoStrict === true;
     this.parserFlagState = options.parserFlagState ?? {
       doubleQuotes: options.doubleQuotes ?? 'chars',
+      charConversion: 'on',
+      charConversions: new Map(),
     };
+    this.parserFlagState.charConversion ??= 'on';
+    this.parserFlagState.charConversions ??= new Map();
     if (!['chars', 'codes', 'atom'].includes(this.parserFlagState.doubleQuotes)) {
       throw new Error(`invalid double_quotes parser flag: ${this.parserFlagState.doubleQuotes}`);
     }
@@ -223,6 +227,26 @@ class Parser {
     this.previousToken = null;
     this.token = this.nextToken();
   }
+  convertCharacter(character) {
+    if (this.parserFlagState.charConversion !== 'on' || !character) return character;
+    return this.parserFlagState.charConversions.get(character) ?? character;
+  }
+  rawPeek(offset = 0) {
+    return this.source[this.pos + offset] ?? '';
+  }
+  rawTake() {
+    const ch = this.rawPeek();
+    if (ch) {
+      this.pos++;
+      if (ch === '\n') this.line++;
+    }
+    return ch;
+  }
+  convertedSlice(start, end) {
+    let out = '';
+    for (const ch of this.source.slice(start, end)) out += this.convertCharacter(ch);
+    return out;
+  }
   terminatingFullStop(index = this.pos) {
     // read/1 tries each possible full stop in turn.  While parsing a later
     // candidate, a preceding dot after a graphic character belongs to that
@@ -231,12 +255,12 @@ class Parser {
     // designated read-term candidate.
     if (this.readTermEnd != null) {
       if (index === this.readTermEnd) return true;
-      if (index < this.readTermEnd && continuesGraphicToken(this.source, index)) {
-        const next = this.source[index + 1] ?? '';
+      if (index < this.readTermEnd && continuesGraphicToken(this.source, index, (ch) => this.convertCharacter(ch))) {
+        const next = this.convertCharacter(this.source[index + 1] ?? '');
         if (next === '%' || /^[\u0009-\u000d\u0020]$/.test(next)) return false;
       }
     }
-    return isTerminatingFullStop(this.source, index);
+    return isTerminatingFullStop(this.source, index, (ch) => this.convertCharacter(ch));
   }
   defineOperator(priority, specifier, name) {
     defineParserOperator(this, priority, specifier, name);
@@ -273,12 +297,30 @@ class Parser {
     for (const name of names) this.defineOperator(priority, specifierTerm.name, name);
     return true;
   }
-  applyParserFlagDirective(directive) {
-    if (directive.type !== 'compound' || directive.name !== 'set_prolog_flag' || directive.arity !== 2) return;
-    const [flag, value] = directive.args;
-    if (flag.type === 'atom' && flag.name === 'double_quotes' &&
-        value.type === 'atom' && ['chars', 'codes', 'atom'].includes(value.name)) {
-      this.parserFlagState.doubleQuotes = value.name;
+  applyParserFlagDirective(directive, line = this.line) {
+    if (directive.type !== 'compound' || directive.arity !== 2) return;
+    if (directive.name === 'set_prolog_flag') {
+      const [flag, value] = directive.args;
+      if (flag.type === 'atom' && flag.name === 'double_quotes' &&
+          value.type === 'atom' && ['chars', 'codes', 'atom'].includes(value.name)) {
+        this.parserFlagState.doubleQuotes = value.name;
+      } else if (flag.type === 'atom' && flag.name === 'char_conversion' &&
+                 value.type === 'atom' && ['on', 'off'].includes(value.name)) {
+        this.parserFlagState.charConversion = value.name;
+      }
+      return;
+    }
+    if (directive.name === 'char_conversion') {
+      const [input, output] = directive.args;
+      const validCharacter = (term) => term.type === 'atom' && Array.from(term.name).length === 1;
+      if (input.type === 'var' || output.type === 'var') {
+        throw new Error(`parse line ${line}: char_conversion/2 arguments must be instantiated characters`);
+      }
+      if (!validCharacter(input) || !validCharacter(output)) {
+        throw new Error(`parse line ${line}: char_conversion/2 requires one-character atoms`);
+      }
+      if (input.name === output.name) this.parserFlagState.charConversions.delete(input.name);
+      else this.parserFlagState.charConversions.set(input.name, output.name);
     }
   }
   applyImportedLibraryOperators(directive) {
@@ -301,46 +343,45 @@ class Parser {
     return null;
   }
   peek(offset = 0) {
-    return this.source[this.pos + offset] ?? '';
+    return this.convertCharacter(this.rawPeek(offset));
   }
   take() {
-    const ch = this.peek();
-    if (ch) {
+    const raw = this.rawPeek();
+    const ch = this.convertCharacter(raw);
+    if (raw) {
       this.pos++;
-      if (ch === '\n') this.line++;
+      if (raw === '\n') this.line++;
     }
     return ch;
   }
   skipWhitespaceAndComments() {
-    const source = this.source;
-    const len = source.length;
     while (true) {
-      while (this.pos < len) {
-        const code = source.charCodeAt(this.pos);
-        if (!isWhitespaceCode(code)) break;
-        if (code === 10) this.line++;
-        this.pos++;
+      while (this.rawPeek()) {
+        const ch = this.peek();
+        if (!isWhitespaceCode(ch.charCodeAt(0))) break;
+        this.take();
       }
-      if (source.charCodeAt(this.pos) === 37) { // % line comment
-        while (this.pos < len && source.charCodeAt(this.pos) !== 10) this.pos++;
+      if (this.peek() === '%') {
+        while (this.rawPeek() && this.peek() !== '\n') this.take();
         continue;
       }
-      if (source[this.pos] === '/' && source[this.pos + 1] === '*') {
+      if (this.peek() === '/' && this.peek(1) === '*') {
         const line = this.line;
-        this.pos += 2;
-        while (this.pos < len && !(source[this.pos] === '*' && source[this.pos + 1] === '/')) {
-          if (source.charCodeAt(this.pos) === 10) this.line++;
-          this.pos++;
-        }
-        if (this.pos >= len) throw new Error(`parse line ${line}: unterminated block comment`);
-        this.pos += 2;
+        this.take();
+        this.take();
+        while (this.rawPeek() && !(this.peek() === '*' && this.peek(1) === '/')) this.take();
+        if (!this.rawPeek()) throw new Error(`parse line ${line}: unterminated block comment`);
+        this.take();
+        this.take();
         continue;
       }
       break;
     }
   }
   readEscape(line, options = {}) {
-    const escaped = this.take();
+    const takeChar = () => options.raw ? this.rawTake() : this.take();
+    const peekChar = () => options.raw ? this.rawPeek() : this.peek();
+    const escaped = takeChar();
     if (!escaped) throw new Error(`parse line ${line}: unterminated escape sequence`);
 
     // ISO 6.4.2 permits a continuation escape only inside quoted tokens: a
@@ -350,9 +391,9 @@ class Parser {
       if (options.allowContinuation !== false) return '';
       throw new Error(`parse line ${line}: bad escape sequence`);
     }
-    if (escaped === '\r' && this.peek() === '\n') {
+    if (escaped === '\r' && peekChar() === '\n') {
       if (options.allowContinuation !== false) {
-        this.take();
+        takeChar();
         return '';
       }
       throw new Error(`parse line ${line}: bad escape sequence`);
@@ -363,8 +404,8 @@ class Parser {
 
     if (escaped === 'x') {
       let digits = '';
-      while (/^[0-9A-Fa-f]$/.test(this.peek())) digits += this.take();
-      if (!digits || this.take() !== '\\') throw new Error(`parse line ${line}: bad hexadecimal escape`);
+      while (/^[0-9A-Fa-f]$/.test(peekChar())) digits += takeChar();
+      if (!digits || takeChar() !== '\\') throw new Error(`parse line ${line}: bad hexadecimal escape`);
       const code = Number.parseInt(digits, 16);
       if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
         throw new Error(`parse line ${line}: character escape out of range`);
@@ -373,8 +414,8 @@ class Parser {
     }
     if (/^[0-7]$/.test(escaped)) {
       let digits = escaped;
-      while (/^[0-7]$/.test(this.peek())) digits += this.take();
-      if (this.take() !== '\\') throw new Error(`parse line ${line}: bad octal escape`);
+      while (/^[0-7]$/.test(peekChar())) digits += takeChar();
+      if (takeChar() !== '\\') throw new Error(`parse line ${line}: bad octal escape`);
       const code = Number.parseInt(digits, 8);
       if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
         throw new Error(`parse line ${line}: character escape out of range`);
@@ -411,7 +452,7 @@ class Parser {
       this.take();
       while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
              !this.terminatingFullStop()) this.take();
-      return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
+      return { type: TOK.ATOM, text: this.convertedSlice(start, this.pos), line };
     }
     if (ch === '!') {
       this.take();
@@ -442,20 +483,29 @@ class Parser {
     }
 
     if (ch === '"' || ch === "'") {
+      // Whether an input character is quoted is determined from the target
+      // source before character conversion (ISO 8.14.1 note 1). A literal
+      // quote therefore protects its contents from Convc; if a conversion
+      // itself produces a quote token, the following raw characters remain
+      // subject to conversion while that resulting token is parsed.
+      const rawOpening = this.rawPeek();
       const quote = this.take();
+      const literalQuote = rawOpening === quote;
+      const peekQuoted = () => literalQuote ? this.rawPeek() : this.peek();
+      const takeQuoted = () => literalQuote ? this.rawTake() : this.take();
       let text = '';
       while (true) {
-        if (!this.peek()) throw new Error(`parse line ${line}: unterminated quoted term`);
-        let value = this.take();
+        if (!peekQuoted()) throw new Error(`parse line ${line}: unterminated quoted term`);
+        let value = takeQuoted();
         if (value === quote) {
-          if (this.peek() === quote) {
-            this.take();
+          if (peekQuoted() === quote) {
+            takeQuoted();
             value = quote;
           } else {
             break;
           }
-        } else if (value === '\\' && this.peek()) {
-          value = this.readEscape(line);
+        } else if (value === '\\' && peekQuoted()) {
+          value = this.readEscape(line, { raw: literalQuote });
         } else if (value !== ' ' && isWhitespaceCode(value.charCodeAt(0))) {
           // ISO 6.4.2.1 allows an ordinary space in a quoted character, but
           // not literal layout characters such as tab or newline. Newlines
@@ -489,17 +539,20 @@ class Parser {
         (this.peek(2) !== "'" || this.peek(3) === "'") &&
         !(this.peek(2) === '\\' && this.peek(3) === '\n');
       if (startsQuotedCharacter) {
+        const rawQuotedCharacter = this.rawPeek() === '0' && this.rawPeek(1) === "'";
         this.take();
         this.take();
-        let value = this.take();
+        const takeCharacter = () => rawQuotedCharacter ? this.rawTake() : this.take();
+        const peekCharacter = () => rawQuotedCharacter ? this.rawPeek() : this.peek();
+        let value = takeCharacter();
         if (value) {
           const firstCode = value.charCodeAt(0);
           if (firstCode >= 0xd800 && firstCode <= 0xdbff) {
-            const secondCode = this.peek().charCodeAt(0);
+            const secondCode = peekCharacter().charCodeAt(0);
             if (secondCode < 0xdc00 || secondCode > 0xdfff) {
               throw new Error(`parse line ${line}: bad character code constant`);
             }
-            value += this.take();
+            value += takeCharacter();
           } else if (firstCode >= 0xdc00 && firstCode <= 0xdfff) {
             throw new Error(`parse line ${line}: bad character code constant`);
           }
@@ -512,10 +565,10 @@ class Parser {
           // apostrophe is doubled just as it is inside a quoted atom. Thus
           // 0''' is one numeric token denoting character code 39, while the
           // undoubled 0'' is not a complete single quoted character.
-          if (this.peek() !== "'") throw new Error(`parse line ${line}: bad character code constant`);
-          this.take();
+          if (peekCharacter() !== "'") throw new Error(`parse line ${line}: bad character code constant`);
+          takeCharacter();
         } else if (value === '\\') {
-          value = this.readEscape(line, { allowContinuation: false });
+          value = this.readEscape(line, { allowContinuation: false, raw: rawQuotedCharacter });
         }
         const code = value.codePointAt(0);
         return { type: TOK.NUMBER, text: String(negative ? -code : code), line };
@@ -550,14 +603,14 @@ class Parser {
       // followed by the name E9 and is not a valid term without an operator.
       if (hasFraction && (this.peek() === 'e' || this.peek() === 'E')) {
         let idx = this.pos + 1;
-        if (this.source[idx] === '+' || this.source[idx] === '-') idx++;
-        if (isDigitCode((this.source[idx] ?? '').charCodeAt(0))) {
+        if (['+', '-'].includes(this.convertCharacter(this.source[idx] ?? ''))) idx++;
+        if (isDigitCode(this.convertCharacter(this.source[idx] ?? '').charCodeAt(0))) {
           this.take();
           if (this.peek() === '+' || this.peek() === '-') this.take();
           while (isDigitCode(this.peek().charCodeAt(0))) this.take();
         }
       }
-      let text = this.source.slice(start, this.pos);
+      let text = this.convertedSlice(start, this.pos);
       if (!hasFraction) text = BigInt(text).toString();
       else text = finiteFloatTokenText(text);
       return { type: TOK.NUMBER, text, line };
@@ -567,7 +620,7 @@ class Parser {
       const start = this.pos;
       this.take();
       while (isNameContinueCode(this.peek().charCodeAt(0))) this.take();
-      const text = this.source.slice(start, this.pos);
+      const text = this.convertedSlice(start, this.pos);
       return { type: TOK.VAR, text, line };
     }
 
@@ -575,7 +628,7 @@ class Parser {
       const start = this.pos;
       this.take();
       while (isNameContinueCode(this.peek().charCodeAt(0))) this.take();
-      return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
+      return { type: TOK.ATOM, text: this.convertedSlice(start, this.pos), line };
     }
 
     if (isGraphicAtomCode(ch.charCodeAt(0))) {
@@ -583,7 +636,7 @@ class Parser {
       this.take();
       while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
              !this.terminatingFullStop()) this.take();
-      return { type: TOK.ATOM, text: this.source.slice(start, this.pos), line };
+      return { type: TOK.ATOM, text: this.convertedSlice(start, this.pos), line };
     }
 
     throw new Error(`parse line ${line}: bad character ${JSON.stringify(ch)}`);
@@ -934,7 +987,7 @@ class Parser {
           throw new Error(`parse line ${line}: bad term`);
         }
         this.expect(TOK.DOT, '.');
-        this.applyParserFlagDirective(directive);
+        this.applyParserFlagDirective(directive, line);
         this.applyImportedLibraryOperators(directive);
         this.advance();
         const clause = { head: compound(':-', [directive]), body: [] };
@@ -1080,12 +1133,16 @@ export function parseClauses(source, options = {}) {
   const ownsParserFlagState = options.parserFlagState == null;
   const initialDoubleQuotes = options.doubleQuotes ?? 'chars';
   const parserOptions = ownsParserFlagState
-    ? { ...options, parserFlagState: { doubleQuotes: initialDoubleQuotes } }
+    ? { ...options, parserFlagState: { doubleQuotes: initialDoubleQuotes, charConversion: 'on', charConversions: new Map() } }
     : options;
   if (options.sourceMetadata === false && options.readTermEnd == null) {
     const clauses = parseClausesFastNoSource(source, null, null, parserOptions);
     if (clauses) return clauses;
-    if (ownsParserFlagState) parserOptions.parserFlagState.doubleQuotes = initialDoubleQuotes;
+    if (ownsParserFlagState) {
+      parserOptions.parserFlagState.doubleQuotes = initialDoubleQuotes;
+      parserOptions.parserFlagState.charConversion = 'on';
+      parserOptions.parserFlagState.charConversions.clear();
+    }
   }
   return new Parser(source, parserOptions).parseProgram();
 }
@@ -1381,11 +1438,19 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     return head && bodyGoal ? { head, body: [bodyGoal] } : null;
   };
 
+  const preparationConversionActive = () =>
+    options.parserFlagState?.charConversion === 'on' &&
+    (options.parserFlagState?.charConversions?.size ?? 0) > 0;
+
   const flush = () => {
     const text = chunk.trim();
     chunk = '';
     if (!text) return true;
-    const simple = parseSimple(text);
+    // Once a preparation-time char_conversion/2 mapping is active, every
+    // subsequent source character must pass through the full tokenizer. The
+    // compact parser deliberately operates on raw source ranges, so using it
+    // here would silently bypass Convc for otherwise simple clauses.
+    const simple = preparationConversionActive() ? null : parseSimple(text);
     if (simple) {
       accept(simple);
       return true;
@@ -1408,7 +1473,7 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     if (contentEnd > contentStart && source.charCodeAt(contentEnd - 1) === 13) contentEnd--;
     [contentStart, contentEnd] = trimRange(source, contentStart, contentEnd);
     if (contentStart < contentEnd && source.charCodeAt(contentStart) !== 37) {
-      if (!chunk && source.charCodeAt(contentEnd - 1) === 46) {
+      if (!chunk && source.charCodeAt(contentEnd - 1) === 46 && !preparationConversionActive()) {
         if (emitFastBinaryRange(source, contentStart, contentEnd)) {
           // The program builder accepted a compact binary clause directly.
         } else {

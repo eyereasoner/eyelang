@@ -21,3 +21,10 @@ The corpus snapshot was retrieved on 2026-08-11.
 `prologue_quad_runner.pl` loads EyeProlog's `library(prologue)` and includes
 the unmodified corpus, mirroring the draft's requirement that a Prologue be
 included before its examples are run.
+
+The upstream Prologue snapshot contains one `max_integer` quad that accepts an
+implementation-specific `Max = unbounded` result. EyeProlog deliberately does
+not patch that vendored fixture: with its ISO `bounded=false` choice, Part 1
+7.11.1.1 requires `current_prolog_flag(max_integer, _)` to fail. The regression
+gate therefore records this single standards-driven divergence explicitly while
+requiring the other 32 quads to pass.
