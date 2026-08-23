@@ -183,6 +183,15 @@ export function runIsoStrict(reporter = new TestReporter()) {
     includes(ignoredNonVariable.stdout, 'x', 'non-variable right side is permitted and ignored');
   });
 
+  reporter.test('reports the complete alias option in open/4 alias collisions', () => {
+    const error = capture(() => run('', {
+      isoStrict: true,
+      goal: 'open(dummy,write,_,[alias(user_input)])',
+    }));
+    equal(error.formal, 'permission_error(open, source_sink)', 'formal error');
+    includes(error.message, 'alias(user_input)', 'alias option culprit');
+  });
+
   reporter.test('follows the ISO 8.14.1.3 read_term/3 error order', () => {
     equal(capture(() => run('', { isoStrict: true, goal: 'read_term(f(a),_,[X])' })).formal,
       'instantiation_error', 'partial/variable option before stream domain');
@@ -374,6 +383,21 @@ export function runIsoStrict(reporter = new TestReporter()) {
       parseGoalText('clause(p,B)', { isoStrict: true }),
     ], new Env(), 0)];
     equal(answers.length, 1, 'answer count');
+  });
+
+  reporter.test('protects conjunction as an ISO static/private control construct at runtime', () => {
+    for (const goal of [
+      "asserta(','(a,b))",
+      "assertz(','(a,b))",
+      "retract(','(a,b))",
+      "retractall(','(a,b))",
+      "abolish('/'(',',2))",
+    ]) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal,
+        'permission_error(modify, static_procedure)', goal);
+    }
+    equal(capture(() => run('', { isoStrict: true, goal: "clause(','(a,b),_)" })).formal,
+      'permission_error(access, private_procedure)', 'clause/2 conjunction access');
   });
 
   reporter.test('covers ISO database predicate errors and empty-procedure lifetime', () => {

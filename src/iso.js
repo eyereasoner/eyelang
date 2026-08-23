@@ -545,7 +545,7 @@ function* clauseBuiltin({ solver, goal, env }) {
   const indicator = compound('/', [atom(head.name), numberTerm(head.arity)]);
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
   // ISO 8.8.1.3 places private-procedure access before Body callability.
-  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head) ||
+  if (isProcessorStaticProcedure(solver, head) ||
       (solver.isoStrict && group && !group.dynamic)) {
     throw new PrologError('permission_error(access, private_procedure)', indicator);
   }
@@ -589,9 +589,19 @@ function isGrammarRuleProcedure(solver, head) {
   return !solver.isoStrict && head.name === '-->' && head.arity === 2;
 }
 
+function isProcessorStaticProcedure(solver, head) {
+  // Conjunction is an ISO control construct (7.5/Table 9) but is executed
+  // directly by the solver rather than through the builtin registry.  Keep it
+  // in the same protected static/private family as the registered Part 1
+  // control constructs for runtime database operations.
+  return Boolean(solver.registry.get(head.name, head.arity)) ||
+    isGrammarRuleProcedure(solver, head) ||
+    (solver.isoStrict && head.name === ',' && head.arity === 2);
+}
+
 function assertModifiable(solver, head, module = 'user') {
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? module);
-  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head) || (group && !group.dynamic)) {
+  if (isProcessorStaticProcedure(solver, head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
 }
@@ -618,7 +628,7 @@ function* retractBuiltin({ solver, goal, env }) {
   const parts = clauseParts(goal.args[0], env);
   requireClauseHead(parts.head);
   const group = solver.program.findGroup(parts.head.name, parts.head.arity, parts.head.module ?? goal.module ?? 'user');
-  if (solver.registry.get(parts.head.name, parts.head.arity) || isGrammarRuleProcedure(solver, parts.head) || (group && !group.dynamic)) {
+  if (isProcessorStaticProcedure(solver, parts.head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(parts.head));
   }
   if (!group) return;
@@ -641,7 +651,7 @@ function* retractAllBuiltin({ solver, goal, env }) {
   const head = deref(goal.args[0], env);
   requireClauseHead(head);
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
-  if (solver.registry.get(head.name, head.arity) || isGrammarRuleProcedure(solver, head) || (group && !group.dynamic)) {
+  if (isProcessorStaticProcedure(solver, head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(head));
   }
   if (group) {
@@ -675,7 +685,7 @@ function* abolishBuiltin({ solver, goal, env }) {
   const target = predicateIndicatorParts(goal.args[0], env);
   const module = goal.module ?? 'user';
   const group = solver.program.findGroup(target.name, target.arity, module);
-  if (solver.registry.get(target.name, target.arity) || isGrammarRuleProcedure(solver, target) || (group && !group.dynamic)) {
+  if (isProcessorStaticProcedure(solver, target) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', target.indicator);
   }
   solver.program.abolishDynamicGroup(target.name, target.arity, module);
@@ -984,7 +994,7 @@ function* openBuiltin({ solver, goal, env }) {
   if (!['read', 'write', 'append'].includes(mode.name)) throw new PrologError('domain_error(io_mode)', mode);
   const options = goal.arity === 3 ? {} : openOptions(optionTerm, env);
   if (options.alias && solver.io.resolve(options.alias)) {
-    throw new PrologError('permission_error(open, source_sink)', atom(options.alias));
+    throw new PrologError('permission_error(open, source_sink)', compound('alias', [atom(options.alias)]));
   }
   let stream;
   try {
