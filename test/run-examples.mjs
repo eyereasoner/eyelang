@@ -87,7 +87,13 @@ export async function runExamples(reporter = new TestReporter()) {
     .sort();
 
   reporter.section('Examples');
-  await runExampleTasks(files, (name, result) => reporter.testResult(name, result));
+  const deepTaxonomyIndex = files.indexOf('deep-taxonomy-100000.pl');
+  if (deepTaxonomyIndex >= 0) {
+    await runExampleTasks(files.slice(0, deepTaxonomyIndex + 1), (name, result) => reporter.testResult(name, result), 2);
+    await runExampleTasks(files.slice(deepTaxonomyIndex + 1), (name, result) => reporter.testResult(name, result), 3);
+  } else {
+    await runExampleTasks(files, (name, result) => reporter.testResult(name, result), 3);
+  }
   reporter.sectionTotal('examples');
 
   reporter.section('Proof examples');
@@ -96,10 +102,10 @@ export async function runExamples(reporter = new TestReporter()) {
 }
 
 
-async function runExampleTasks(tasks, onResult) {
+async function runExampleTasks(tasks, onResult, maxWorkers) {
   if (tasks.length === 0) return;
   const parallelism = os.availableParallelism?.() ?? os.cpus().length;
-  const workerCount = Math.min(tasks.length, Math.max(1, Math.min(3, parallelism - 1)));
+  const workerCount = Math.min(tasks.length, Math.max(1, Math.min(maxWorkers, parallelism - 1)));
   if (workerCount === 1) {
     for (const name of tasks) {
       const startedAt = performance.now();
