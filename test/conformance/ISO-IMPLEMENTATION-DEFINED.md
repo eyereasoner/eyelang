@@ -73,7 +73,7 @@ Status values are:
 | 8.17.3 | Other effects of `halt/0` | Terminates EyeProlog execution and returns host/process status `0`; it produces no Prolog solution. | **defined** — `HaltSignal`, `haltBuiltin()`, CLI/runner handling. |
 | 8.17.4 | Meaning/effects of `halt(Status)` | Integer `Status` is converted to the host process/runner halt code; it produces no Prolog solution. | **defined** — `haltBuiltin()`, `src/execute.js`, `src/cli.js`. |
 | 9.1.4.1 | Floating-point rounding function `rndF` | Floating values and operations use ECMAScript `Number` (IEEE-754 binary64) and the host's specified binary64 arithmetic/conversions. | **defined** — `src/iso-arithmetic.js`, `src/number-value.js`. |
-| 9.1.4.2 | Floating-point result function, including tiny non-zero arithmetic results | EyeProlog chooses `round(x)` rather than the exceptional value `underflow`. ECMAScript binary64 arithmetic therefore preserves a representable subnormal result and rounds a still-smaller result to `0.0`, consistently with float-token and `number_chars/2` input. | **defined** — arithmetic evaluation in `src/iso-arithmetic.js` and parser/number conversion; executable issue-56 regression below. |
+| 9.1.4.2 | Floating-point result function for operations whose result is governed only by `resultF` | EyeProlog chooses `round(x)` rather than the optional exceptional value `underflow`. ECMAScript binary64 arithmetic therefore preserves a representable subnormal result and rounds a still-smaller generic arithmetic result to `0.0`, consistently with float-token and `number_chars/2` input. This implementation-defined choice does not suppress the explicit mandatory underflow conditions stated separately for Part 1 `**/2`, `exp/1`, and Corrigendum 2 `^/2`. | **defined** — arithmetic evaluation in `src/iso-arithmetic.js` and parser/number conversion; strict exceptional-value regressions. |
 | 9.1.4.3 | Approximate-addition function | ECMAScript binary64 addition is used; subtraction is implemented through the corresponding host operation and all finite results remain binary64 values. | **defined** — arithmetic evaluation in `src/iso-arithmetic.js`. |
 | 9.4 | Representation of negative integers for bitwise operations | BigInt's unbounded signed binary semantics are used, equivalent to an infinite two's-complement sign extension for bitwise operations. | **defined** — `src/iso-arithmetic.js` BigInt bitwise operators. |
 | 9.4.1 | Right shift of negative integers and unusual shift counts | `>>` is arithmetic/sign-propagating. A negative count reverses direction according to JavaScript BigInt shift semantics; there is no finite integer bit-size ceiling in the Prolog model. | **defined** — `a >> b` in `src/iso-arithmetic.js`. |
@@ -86,15 +86,20 @@ Status values are:
 ### Issue #56: one underflow policy
 
 Clause 9.1.4.2 permits the processor to choose `round(x)` or the exceptional
-value `underflow` for a tiny non-zero arithmetic result. EyeProlog chooses
-`round(x)`. Because its floating-point profile is ECMAScript IEEE-754 binary64,
-representable subnormal values remain non-zero and smaller results round to
+value `underflow` for a tiny non-zero result when an operation is governed by
+the generic floating result function. EyeProlog chooses `round(x)`. Because its
+floating-point profile is ECMAScript IEEE-754 binary64, representable
+subnormal values remain non-zero and still-smaller generic results round to
 `0.0`. Float-token and `number_chars/2` input use the same finite-double
-rounding policy, so the same mathematical magnitude is no longer accepted as
-`0.0` on input while rejected as an arithmetic result.
+rounding policy.
 
-The regression suite checks both arithmetic and token input, and the existing
-`stc/float_underflow_input` conformance case covers the related input conversion.
+That generic implementation-defined choice is distinct from evaluable functors
+whose own error clauses prescribe underflow. In strict mode, `exp/1`, Part 1
+`**/2`, and Corrigendum 2 `^/2` therefore raise
+`evaluation_error(underflow)` when their mathematical non-zero result falls
+below the representable range and the host would otherwise round it to zero.
+The regression suite pins both sides of this boundary, while
+`stc/float_underflow_input` covers the related input conversion policy.
 
 ## Implementation-specific features required to be documented by 5.4
 

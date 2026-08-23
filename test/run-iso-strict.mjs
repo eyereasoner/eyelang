@@ -300,6 +300,50 @@ export function runIsoStrict(reporter = new TestReporter()) {
     }
   });
 
+  reporter.test('applies integer-to-float conversion before floating evaluable functors', () => {
+    const huge = `1${'0'.repeat(400)}`;
+    for (const functor of ['float', 'sin', 'cos', 'atan', 'asin', 'acos', 'tan', 'exp', 'log', 'sqrt']) {
+      equal(capture(() => run('', { isoStrict: true, goal: `X is ${functor}(${huge})` })).formal,
+        'evaluation_error(float_overflow)', `${functor}/1 integer-to-float overflow`);
+    }
+  });
+
+  reporter.test('reports explicit transcendental and power underflow in strict mode', () => {
+    for (const [goal, label] of [
+      ['X is exp(-1000.0)', 'exp/1 underflow'],
+      ['X is 2.0 ** -1075.0', '**/2 underflow'],
+      ['X is 2.0 ^ -1075.0', 'Corrigendum 2 ^/2 underflow'],
+    ]) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal,
+        'evaluation_error(underflow)', label);
+    }
+
+    equal(run('', { isoStrict: true, goal: 'X is 0.0 ** 2.0' }).stats.completed_goal_lists,
+      1, 'exact zero power remains zero');
+    equal(run('', { isoStrict: true, goal: 'X is 4.9406564584124654e-324 * 0.5' }).stats.completed_goal_lists,
+      1, 'generic resultF retains the selected round-to-zero policy');
+
+    // Keep these stricter exceptional conditions confined to --iso-strict.
+    equal(run('', { goal: 'X is exp(-1000.0)' }).stats.completed_goal_lists, 1, 'normal exp behavior');
+    equal(run('', { goal: 'X is 2.0 ** -1075.0' }).stats.completed_goal_lists, 1, 'normal power behavior');
+  });
+
+  reporter.test('preserves prescribed power errors before integer-to-float conversion', () => {
+    const hugeNegative = `-1${'0'.repeat(400)}`;
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is (-2) ** 2.0' })).formal,
+      'evaluation_error(undefined)', '**/2 negative base requires integer-typed exponent');
+    equal(run('', { isoStrict: true, goal: 'X is (-2.0) ** 2' }).stats.completed_goal_lists,
+      1, '**/2 negative base with integer exponent');
+    equal(run('', { isoStrict: true, goal: 'X is (-2) ^ 2.0' }).stats.completed_goal_lists,
+      1, 'Corrigendum 2 ^/2 accepts integer-valued float exponent');
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is (-2) ^ 0.5' })).formal,
+      'evaluation_error(undefined)', 'Corrigendum 2 ^/2 fractional exponent');
+    equal(capture(() => run('', { isoStrict: true, goal: `X is ${hugeNegative} ** 0.5` })).formal,
+      'evaluation_error(undefined)', 'undefined power precedes base conversion overflow');
+    equal(capture(() => run('', { isoStrict: true, goal: `X is 0.0 ** (${hugeNegative})` })).formal,
+      'evaluation_error(undefined)', 'zero-negative power precedes exponent conversion overflow');
+  });
+
   reporter.test('uses the Part 1 mixed arithmetic comparison operations', () => {
     // 8.7 converts the integer operand to float in mixed comparisons.
     equal(run('', { isoStrict: true, goal: '18014398509481985 =:= 18014398509481984.0' }).stats.completed_goal_lists,
@@ -362,8 +406,15 @@ export function runIsoStrict(reporter = new TestReporter()) {
   });
 
   reporter.test('pins applicable post-Corrigendum STC clarifications', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is 1/0+_' })).formal,
+      'instantiation_error', 'STC 17 direct variable precedes zero divisor on the other branch');
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is _+1/0' })).formal,
+      'instantiation_error', 'STC 17 is independent of operand order');
+
     equal(run('', { isoStrict: true, goal: 'integer(- /**/ 1)' }).stats.completed_goal_lists,
       1, 'layout between minus and integer token');
+    equal(run('', { isoStrict: true, goal: "number_chars(N,['0','1']),N=1" }).stats.completed_goal_lists,
+      1, 'STC 32 number_chars/2 follows the procedural number syntax for leading zero');
 
     const shared = run(
       ':- dynamic(a/1).\na(X) :- b(X).\n',
@@ -387,7 +438,13 @@ export function runIsoStrict(reporter = new TestReporter()) {
 
     Program.parse(':- op(500,xfx,foo).\na foo b.\n', { isoStrict: true });
     const beforeDefinition = capture(() => Program.parse('a foo b.\n:- op(500,xfx,foo).\n', { isoStrict: true }));
-    includes(beforeDefinition.message, 'expected .', 'op/3 directive applies only to following text');
+    includes(beforeDefinition.message, 'expected .', 'STC 41 op/3 directive applies only to following text');
+
+    equal(run('', {
+      isoStrict: true,
+      goal: 'read_term(T,[variables([])])',
+      ioOptions: { input: 'T.' },
+    }).stats.completed_goal_lists, 0, 'STC 48 variables([]) does not match an input variable');
   });
 
   reporter.test('rejects EyeProlog module directives', () => {

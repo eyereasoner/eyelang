@@ -104,9 +104,17 @@ function evaluateOperation(term, args, options = {}) {
     if (options.isoStrict === true && ['truncate', 'round', 'ceiling', 'floor'].includes(name) && args[0].integer) {
       throw new PrologError('type_error(float)', numericTerm(args[0]));
     }
-    const a = Number(args[0].value);
     if (name === 'abs' && args[0].integer) return { integer: true, value: args[0].value < 0n ? -args[0].value : args[0].value };
     if (name === 'sign' && args[0].integer) return { integer: true, value: args[0].value < 0n ? -1n : args[0].value > 0n ? 1n : 0n };
+    const a = Number(args[0].value);
+    // The int-exp -> float templates first apply the processor's I->F
+    // conversion. With unbounded integers that conversion can overflow even
+    // though the integer itself is representable. Do not let a host math
+    // function observe +/-Infinity and turn the required float-overflow into
+    // a different result (for example atan(Huge) = pi/2).
+    if (options.isoStrict === true && args[0].integer && !Number.isFinite(a)) {
+      throw new PrologError('evaluation_error(float_overflow)');
+    }
     if (name === 'truncate' || name === 'round' || name === 'ceiling' || name === 'floor') {
       const fn = name === 'truncate' ? Math.trunc : name === 'round' ? Math.round : name === 'ceiling' ? Math.ceil : Math.floor;
       return { integer: true, value: BigInt(fn(a)) };
@@ -120,6 +128,13 @@ function evaluateOperation(term, args, options = {}) {
     const value = fn(a);
     if (Number.isNaN(value) || (name === 'log' && a === 0)) throw new PrologError('evaluation_error(undefined)');
     if (!Number.isFinite(value)) throw new PrologError('evaluation_error(float_overflow)');
+    // Unlike the implementation-defined resultF choice for ordinary floating
+    // arithmetic, exp/1 has an explicit exceptional condition when its
+    // mathematical non-zero result is too small to represent. Math.exp()
+    // signals that boundary by rounding the positive result to zero.
+    if (options.isoStrict === true && name === 'exp' && value === 0) {
+      throw new PrologError('evaluation_error(underflow)');
+    }
     return { integer: false, value };
   }
   if (arity !== 2) throw new PrologError('type_error(evaluable)', compound('/', [atom(name), numberTerm(arity)]));
@@ -158,6 +173,28 @@ function evaluateOperation(term, args, options = {}) {
     if (name === '<<') return { integer: true, value: integerResource(() => a << b) };
     if (name === '>>') return { integer: true, value: integerResource(() => a >> b) };
   }
+  // Power has prescribed exceptional conditions that depend on the evaluated
+  // operand values/types and therefore precede any I->F conversion needed by
+  // the selected floating template. Checking these first matters with
+  // unbounded integers: conversion overflow must not hide an already-satisfied
+  // undefined-power condition.
+  const aNegative = args[0].integer ? a < 0n : a < 0;
+  const aZero = args[0].integer ? a === 0n : a === 0;
+  const bNegative = args[1].integer ? b < 0n : b < 0;
+  if (options.isoStrict === true && name === '**' && aNegative && !args[1].integer) {
+    // Corrigendum 3 corrects the operand name in 9.3.1.3(c): **/2 requires
+    // an integer-typed exponent for a negative base. A float such as 2.0 is
+    // still not an integer value of the required type here.
+    throw new PrologError('evaluation_error(undefined)');
+  }
+  if (options.isoStrict === true && name === '^' && aNegative && !args[1].integer && !Number.isInteger(b)) {
+    // Corrigendum 2 ^/2 additionally accepts a float with an integer value.
+    throw new PrologError('evaluation_error(undefined)');
+  }
+  if ((name === '**' || name === '^') && aZero && bNegative) {
+    throw new PrologError('evaluation_error(undefined)');
+  }
+
   const x = Number(a), y = Number(b);
   if ((!Number.isFinite(x) || !Number.isFinite(y)) && name !== 'max' && name !== 'min') {
     throw new PrologError('evaluation_error(float_overflow)');
@@ -173,11 +210,6 @@ function evaluateOperation(term, args, options = {}) {
     if (x === 0 && y === 0) throw new PrologError('evaluation_error(undefined)');
     value = Math.atan2(x, y);
   }
-  else if ((name === '**' || name === '^') && x === 0 && y < 0) {
-    // 9.3.1.3(d) and Cor.2 9.3.10.3(d): zero to a negative power is
-    // undefined, not floating-point overflow.
-    throw new PrologError('evaluation_error(undefined)');
-  }
   else if (name === '+') value = x + y;
   else if (name === '-') value = x - y;
   else if (name === '*') value = x * y;
@@ -186,6 +218,14 @@ function evaluateOperation(term, args, options = {}) {
   else throw new PrologError('type_error(evaluable)', compound('/', [atom(name), numberTerm(arity)]));
   if (Number.isNaN(value)) throw new PrologError('evaluation_error(undefined)');
   if (!Number.isFinite(value)) throw new PrologError('evaluation_error(float_overflow)');
+  // Part 1 **/2 and Corrigendum 2 ^/2 prescribe underflow when a
+  // mathematically non-zero floating power is too small. A non-zero finite
+  // base cannot have an exact zero power result, so a host result of +/-0 is
+  // the observable underflow boundary. Zero raised to a positive power remains
+  // the ordinary exact zero case.
+  if (options.isoStrict === true && (name === '**' || name === '^') && value === 0 && x !== 0) {
+    throw new PrologError('evaluation_error(underflow)');
+  }
   return { integer: false, value };
 }
 export function arithmeticValueTerm(value) {

@@ -18,7 +18,7 @@ compliance audit and the remaining work before a full conformance claim.
 | 8.15 logic and control | negation, once, repeat, `call/2` through `call/8`, `false/0` | `logtalk_once`, `corrigenda_call_closure`, `false_builtin`, plus strict Corrigendum 2 resulting-goal `max_arity` error coverage |
 | 8.16 atomic processing | atoms, characters, codes and number conversion with prescribed errors | `atomic_term_processing`, focused forward/reverse cases, parenthesized-number rejection, Logtalk-derived error cases, strict Corrigendum 2 partial/improper-list precedence for atom/number conversions, and prescribed `atom_concat/3` / `sub_atom/5` ordering checks |
 | 8.17 flags and hooks | complete required Part 1 flag set, selected defaults, standard value domains/changeability, halt and character conversion | `exceptions_and_flags`, `remaining_builtins_and_directives`, flag error cases, strict `char_conversion/2` precedence, and the complete strict flag audit in `run-iso-strict.mjs` |
-| Clause 9 evaluable functors | integer, float, rounding, transcendental and bitwise operations | `arithmetic`, `corrigenda_arithmetic`, `corrigenda_atan2_zero`, `corrigenda_integer_negative_power`, strict exclusion of the normal-mode `e` evaluable extension, zero-arity unknown-evaluable checks, prescribed operand/type and negative-power errors, float-only rounding modes, Part 1 mixed integer/float comparison conversion, and resource-error normalization for finite-host exhaustion of unbounded integer operations |
+| Clause 9 evaluable functors | integer, float, rounding, transcendental and bitwise operations | `arithmetic`, `corrigenda_arithmetic`, `corrigenda_atan2_zero`, `corrigenda_integer_negative_power`, strict exclusion of the normal-mode `e` evaluable extension, zero-arity unknown-evaluable checks, prescribed operand/type and power-error precedence, float-only rounding modes, I->F overflow before floating functors, explicit `exp/1`/`**/2`/`^/2` underflow, Part 1 mixed integer/float comparison conversion, and resource-error normalization for finite-host exhaustion of unbounded integer operations |
 | Module compatibility profile (related to ISO/IEC 13211-2 and later WG17 amendment work) | module declarations, exports, imports, qualification, meta-predicate context | `modules/qualified_call`, `modules/selective_library_import`, `dcg_module_nonterminal_indicator` |
 | Part 3-oriented DCG compatibility profile | `-->`, terminal and partial sequences, grammar control constructs, semicontexts, nonterminal indicators, modules, `phrase/2-3`, steadfastness and errors | `dcg_terminals_and_remainder`, `dcg_control_constructs`, `dcg_partial_sequences`, `dcg_phrase_steadfastness`, `dcg_dynamic_nonterminal_indicator`, `logtalk_dcg_phrase_identity`, `logtalk_dcg_semicontexts`, DCG error and precedence cases |
 
@@ -33,7 +33,8 @@ clause-by-clause in [ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.m
 with *The Art of EyeProlog* remaining the implementation reference. In
 particular, the index records the unbounded integer model, `double_quotes=chars`,
 `//` rounding toward zero, the ECMAScript binary64 float policy (including the
-9.1.4.2 choice to round tiny arithmetic results rather than raise underflow),
+9.1.4.2 choice to round generic tiny results while retaining explicit
+functor-specific underflow errors),
 stream/character decisions, and the normal-profile extension boundary.
 
 This is an executable conformance/compatibility matrix, not a certification issued by an
