@@ -8,6 +8,7 @@ import {
   Env,
   compound,
   createStrictIsoRegistry,
+  getEyePrologRegistry,
   parseGoalText,
   parseProgramText,
   run,
@@ -671,6 +672,72 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'evaluation_error(undefined)', 'undefined power precedes base conversion overflow');
     equal(capture(() => run('', { isoStrict: true, goal: `X is 0.0 ** (${hugeNegative})` })).formal,
       'evaluation_error(undefined)', 'zero-negative power precedes exponent conversion overflow');
+  });
+
+  reporter.test('closes the 5.5.6 additional side-effect extension boundary', () => {
+    const normalRegistry = getEyePrologRegistry();
+    const strictRegistry = createStrictIsoRegistry();
+    equal(Boolean(normalRegistry.get('statistics', 0)), true, 'normal statistics/0 side-effect extension');
+    equal(Boolean(strictRegistry.get('statistics', 0)), false, 'strict statistics/0 excluded');
+    equal(Boolean(strictRegistry.get('statistics', 2)), false, 'strict statistics/2 excluded');
+    equal(Boolean(strictRegistry.get('call_cleanup', 2)), false, 'strict cleanup extension excluded');
+    equal(Boolean(strictRegistry.get('setup_call_cleanup', 3)), false, 'strict setup/cleanup extension excluded');
+    equal(capture(() => run('', { isoStrict: true, goal: 'statistics' })).formal,
+      'existence_error(procedure)', 'strict execution cannot invoke statistics/0');
+  });
+
+  reporter.test('closes the 5.5.10 evaluable-functor extension boundary', () => {
+    const strictExtension = capture(() => run('', { isoStrict: true, goal: 'X is e' }));
+    equal(strictExtension.formal, 'type_error(evaluable)', 'normal-only e/0 is not evaluable in strict mode');
+    equal(run('', { goal: 'X is e' }).stats.completed_goal_lists, 1, 'normal e/0 extension remains available');
+
+    for (const goal of [
+      'X is +1',
+      'X is -7 div 3',
+      'X is max(2,3.0)',
+      'X is min(2.0,3)',
+      'X is 3^3',
+      'X is asin(0)',
+      'X is acos(1)',
+      'X is atan2(1,0)',
+      'X is tan(0)',
+      'X is pi',
+      'X is xor(10,12)',
+    ]) equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, `Corrigendum evaluable ${goal}`);
+  });
+
+  reporter.test('pins Corrigendum 2 mixed-type max/min implementation-dependent behavior', () => {
+    for (const goal of [
+      'X is max(2.0,3), X == 3',
+      'X is max(2,3.0), X == 3.0',
+      'X is min(2.0,3), X == 2.0',
+      'X is min(2,3.0), X == 2',
+      'X is max(0,0.0), X == 0',
+      'X is max(0.0,0), X == 0.0',
+    ]) equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, goal);
+
+    // Corrigendum 2 permits several mixed-type choices, including returning
+    // one of the original operands without converting the integer to float.
+    // EyeProlog compares the mathematical values exactly and preserves the
+    // selected operand's original type, so a huge integer does not create a
+    // float-overflow merely because the other operand is a float.
+    const huge = `1${'0'.repeat(400)}`;
+    equal(run('', { isoStrict: true, goal: `X is max(${huge},1.0), X == ${huge}` }).stats.completed_goal_lists,
+      1, 'mixed max/2 does not force integer-to-float conversion');
+    equal(run('', { isoStrict: true, goal: `X is min(${huge},1.0), X == 1.0` }).stats.completed_goal_lists,
+      1, 'mixed min/2 preserves selected float operand');
+  });
+
+  reporter.test('pins implementation-defined Clause 9.4 signed bitwise and shift behavior', () => {
+    for (const goal of [
+      'X is ((-16) >> 2), X == -4',
+      'X is (16 >> -2), X == 64',
+      'X is (16 << -2), X == 4',
+      'X is ((-1) /\\ 5), X == 5',
+      'X is ((-1) \\/ 5), X == -1',
+      'X is xor(-1,5), X == -6',
+      'X is \\ 5, X == -6',
+    ]) equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, goal);
   });
 
   reporter.test('uses the Part 1 mixed arithmetic comparison operations', () => {

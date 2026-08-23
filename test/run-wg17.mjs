@@ -33,13 +33,13 @@ function capturedStages(stdout) {
     .map((match) => ({ output: match[2], variables: match[3] }));
 }
 
-function executeFinite(item) {
+function executeFinite(item, isoStrict = true) {
   try {
     // Match the upstream protocol: the Query cell plus its terminating newline
     // is input to read(G), G (and subsequent read/call stages when present).
     // This is essential for stream-sensitive cases such as #270 and #271.
     const result = run('', {
-      isoStrict: true,
+      isoStrict,
       goal: runnerStage(1, item.readCount ?? 16),
       ioOptions: { input: `${item.input}\n` },
     });
@@ -50,10 +50,10 @@ function executeFinite(item) {
   }
 }
 
-function executeWait(item) {
-  const program = Program.parse('', { isoStrict: true });
+function executeWait(item, isoStrict = true) {
+  const program = Program.parse('', { isoStrict });
   const solver = new Solver(program, {
-    isoStrict: true,
+    isoStrict,
     ioOptions: { input: `${item.input}\n` },
   });
   const stream = solver.io.resolve('user_input');
@@ -63,7 +63,7 @@ function executeWait(item) {
     return null;
   };
   const goal = parseGoalText('read_term(G, [])', {
-    isoStrict: true,
+    isoStrict,
     operatorDefinitions: [...program.operators.values()],
   });
   try {
@@ -310,10 +310,11 @@ export function wg17TestDescription(item) {
   return `#${item.id} ${query} -> ${expected}`;
 }
 
-export function executeWg17Item(item) {
+export function executeWg17Item(item, options = {}) {
+  const isoStrict = options.isoStrict ?? true;
   return usesWaitMatcher(item.expected) || item.outcome?.type === 'waits'
-    ? executeWait(item)
-    : executeFinite(item);
+    ? executeWait(item, isoStrict)
+    : executeFinite(item, isoStrict);
 }
 
 function assertOutcome(item) {

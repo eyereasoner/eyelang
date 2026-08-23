@@ -226,7 +226,9 @@ precedence for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`, and
 the complete Part 1 flag defaults/value domains/changeability rules. The
 ongoing issue #65 audit additionally tightens Prolog-text declaration ordering,
 initialization lifetime, stream/open/close behavior, character/byte stream
-errors, `keysort/2` error cases, and strict arithmetic-extension boundaries.
+errors, `keysort/2` error cases, the now-closed 5.5.6 side-effect and 5.5.10 evaluable-functor strict
+extension boundaries, and the standard's permitted arithmetic variation points: mixed-type Corrigendum 2
+`max/2`/`min/2` and signed Clause 9.4 bitwise/shift behavior.
 Those additions improve the Part 1 surface without turning the remaining audit
 rows into a blanket conformance claim. The post-N289 WG17/STC working draft is
 reviewed separately rather than treated as a fourth Corrigendum. The
@@ -235,6 +237,11 @@ reviewed separately rather than treated as a fourth Corrigendum. The
 proposal that would make the two power-underflow rows depend on the processor's
 9.1.4.2 `resultF` choice. Strict mode retains the published Part 1 +
 Corrigenda 1-3 behavior where the draft has not been standardized.
+
+As an additional 5.5.1 extension-safety gate, every vendored WG17 syntax case
+that succeeds in the strict Part 1 reader is re-run in the normal profile and
+must retain the same observable outcome; normal mode may accept extra extension
+syntax, but it must not reinterpret text already accepted as standard syntax.
 
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).

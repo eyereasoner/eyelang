@@ -1245,21 +1245,34 @@ c4 ?- call((!;1)).
       run: () => {
         const filename = path.join(testRoot, 'fixtures', 'prologue_quad_runner.pl');
         const source = fs.readFileSync(filename, 'utf8');
-        const result = publicApi.runQuads(Program.parseSources([{
+        const program = Program.parseSources([{
           text: source,
           filename,
           baseDir: path.dirname(filename),
-        }]));
-        assertEqual(result.total, 33, 'quad total');
+        }]);
+        assertEqual(program.quads.length, 33, 'vendored quad total');
+        const maxIntegerQuads = program.quads.filter(({ query }) =>
+          termToString(query).includes('current_prolog_flag(max_integer, Max)'));
+        assertEqual(maxIntegerQuads.length, 1, 'max_integer quad count');
+
+        // This regression is about the one deliberate ISO divergence in the
+        // upstream Prologue fixture. Running all 33 records also explores two
+        // intentionally non-terminating STO examples and used to dominate the
+        // regression suite by several seconds, without adding evidence for
+        // max_integer. Keep the full vendored corpus intact, but execute only
+        // the relevant record here.
+        program.quads = maxIntegerQuads;
+        const result = publicApi.runQuads(program);
         // The upstream working-draft quad accepts either integer overflow or
         // Max=unbounded. ISO/IEC 13211-1 7.11.1.1 instead says that when
         // bounded=false, current_prolog_flag(max_integer, N) fails. Preserve
         // the upstream fixture unchanged and make that one deliberate
         // standards-driven divergence explicit in the regression gate.
-        assertEqual(result.passed, 32, 'quad passed');
+        assertEqual(result.total, 1, 'quad total');
+        assertEqual(result.passed, 0, 'quad passed');
         assertEqual(result.failed, 1, 'quad failed');
         assertIncludes(result.stdout, 'current_prolog_flag(max_integer, Max)', 'max_integer divergence');
-        assertIncludes(result.stdout, 'quads: 33 run, 32 passed, 1 failed.', 'quad report');
+        assertIncludes(result.stdout, 'quads: 1 run, 0 passed, 1 failed.', 'quad report');
       },
     },
     {
@@ -3529,6 +3542,21 @@ function documentationSyncCases() {
           false,
           'named-variable spelling rejected',
         );
+      },
+    },
+    {
+      name: 'normal syntax extensions preserve successful WG17 Part 1 outcomes',
+      run: () => {
+        const fixture = readWg17SyntaxFixture();
+        let checked = 0;
+        for (const item of fixture.cases) {
+          const strict = executeWg17Item(item);
+          if (strict.type !== 'success') continue;
+          const normal = executeWg17Item(item, { isoStrict: false });
+          assertEqual(JSON.stringify(normal), JSON.stringify(strict), `WG17 #${item.id} cross-profile outcome`);
+          checked++;
+        }
+        if (checked === 0) throw new Error('WG17 fixture has no successful Part 1 syntax cases');
       },
     },
     {

@@ -7596,6 +7596,12 @@ gaps without turning draft WG17/STC proposals into the licensed baseline.
 upstream syntax cases. Reviewed cases can pin exact strict-reader outcomes, while
 newly upgraded cases execute directly against the upstream Codex expectation.
 
+The syntax audit also cross-checks extension safety: each vendored WG17 case
+accepted by the strict Part 1 reader is executed through the normal profile and
+must preserve the same observable outcome. Additional normal-mode syntax may
+accept texts outside the strict grammar, but it may not reinterpret an accepted
+standard case.
+
 The complete suite must pass before release. The file-based conformance corpus
 contains 802 cases, including 386 focused ISO
 cases derived from the success, failure, mode, and error behavior in
@@ -7663,8 +7669,12 @@ strict boundary. The continuing issue #65 audit also enforces Part 1
 preparation constraints for `dynamic/1`, `multifile/1`, and `discontiguous/1`,
 keeps initialization tied to preparation of a program, tightens stream
 creation/position/EOF behavior and text-vs-binary permission errors, corrects
-Corrigendum 2 `keysort/2` error cases, and keeps the non-standard evaluable atom
-`e` outside strict mode. These are conformance improvements, while the
+Corrigendum 2 `keysort/2` error cases, closes the 5.5.6 Prolog-visible
+side-effect boundary by excluding statistics/cleanup extensions from strict
+mode, closes 5.5.10 by keeping the non-standard evaluable atom `e` outside
+strict mode, and pins the permitted arithmetic variation points for
+mixed-type Corrigendum 2 `max/2`/`min/2` plus signed Clause 9.4 bitwise and
+negative-shift behavior. These are conformance improvements, while the
 remaining qualifications are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
