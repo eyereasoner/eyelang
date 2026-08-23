@@ -415,11 +415,19 @@ function* functorBuiltin({ goal, env }) {
 }
 
 function* argBuiltin({ goal, env }) {
-  const index = requireInteger(goal.args[0], env);
+  const indexTerm = deref(goal.args[0], env);
   const term = deref(goal.args[1], env);
+  // ISO 8.5.2.3 prescribes both instantiation checks before either type
+  // check.  In particular arg(a, X, _) is an instantiation error because
+  // the second argument is still a variable.
+  if (indexTerm.type === VAR) throw new PrologError('instantiation_error');
   if (term.type === VAR) throw new PrologError('instantiation_error');
+  if (indexTerm.type !== NUMBER || !isDecimalInteger(indexTerm.name)) {
+    throw new PrologError('type_error(integer)', indexTerm);
+  }
   if (term.type !== COMPOUND) throw new PrologError('type_error(compound)', term);
-  if (index < 0n) throw new PrologError('domain_error(not_less_than_zero)', deref(goal.args[0], env));
+  const index = BigInt(indexTerm.name);
+  if (index < 0n) throw new PrologError('domain_error(not_less_than_zero)', indexTerm);
   if (index === 0n || index > BigInt(term.arity)) return;
   const next = env.clone();
   if (unify(goal.args[2], term.args[Number(index) - 1], next)) yield next;
@@ -815,8 +823,14 @@ function conversionCharacter(term, env, current = false, solver = null) {
   return value;
 }
 function* charConversionBuiltin({ solver, goal, env }) {
-  const input = conversionCharacter(goal.args[0], env, false, solver);
-  const output = conversionCharacter(goal.args[1], env, false, solver);
+  // ISO 8.14.5.3 checks both arguments for instantiation before testing
+  // either character representation.
+  const inputTerm = deref(goal.args[0], env);
+  const outputTerm = deref(goal.args[1], env);
+  if (inputTerm.type === VAR) throw new PrologError('instantiation_error');
+  if (outputTerm.type === VAR) throw new PrologError('instantiation_error');
+  const input = conversionCharacter(inputTerm, env, false, solver);
+  const output = conversionCharacter(outputTerm, env, false, solver);
   if (input.name === output.name) solver.charConversions.delete(input.name);
   else solver.charConversions.set(input.name, output.name);
   yield env;
@@ -1689,11 +1703,16 @@ function* atomLengthBuiltin({ goal, env }) {
 }
 
 function* atomConcatBuiltin({ goal, env }) {
-  const first = resolvedOrVariable(goal.args[0], env, ATOM);
-  const second = resolvedOrVariable(goal.args[1], env, ATOM);
-  const whole = resolvedOrVariable(goal.args[2], env, ATOM);
+  const first = deref(goal.args[0], env);
+  const second = deref(goal.args[1], env);
+  const whole = deref(goal.args[2], env);
+  // ISO 8.16.2.3 puts the two under-instantiation modes ahead of all atom
+  // type diagnostics.
   if (first.type === VAR && whole.type === VAR) throw new PrologError('instantiation_error');
   if (second.type === VAR && whole.type === VAR) throw new PrologError('instantiation_error');
+  if (first.type !== VAR && first.type !== ATOM) throw new PrologError('type_error(atom)', first);
+  if (second.type !== VAR && second.type !== ATOM) throw new PrologError('type_error(atom)', second);
+  if (whole.type !== VAR && whole.type !== ATOM) throw new PrologError('type_error(atom)', whole);
 
   const candidates = [];
   if (whole.type === ATOM && first.type === VAR && second.type === VAR) {
@@ -1713,23 +1732,33 @@ function* atomConcatBuiltin({ goal, env }) {
   }
 }
 
-function optionalNonNegativeInteger(term, env) {
+function optionalInteger(term, env) {
   const value = deref(term, env);
   if (value.type === VAR) return null;
   if (value.type !== NUMBER || !isDecimalInteger(value.name)) throw new PrologError('type_error(integer)', value);
-  const integer = BigInt(value.name);
-  if (integer < 0n) throw new PrologError('domain_error(not_less_than_zero)', value);
-  return integer;
+  return BigInt(value.name);
 }
 
 function* subAtomBuiltin({ goal, env }) {
   const source = deref(goal.args[0], env);
   if (source.type === VAR) throw new PrologError('instantiation_error');
   if (source.type !== ATOM) throw new PrologError('type_error(atom)', source);
-  const sub = resolvedOrVariable(goal.args[4], env, ATOM);
-  const before = optionalNonNegativeInteger(goal.args[1], env);
-  const length = optionalNonNegativeInteger(goal.args[2], env);
-  const after = optionalNonNegativeInteger(goal.args[3], env);
+  const sub = deref(goal.args[4], env);
+  if (sub.type !== VAR && sub.type !== ATOM) throw new PrologError('type_error(atom)', sub);
+  // ISO 8.16.3.3 prescribes all type checks before the non-negative domain
+  // checks, in Before/Length/After order.
+  const before = optionalInteger(goal.args[1], env);
+  const length = optionalInteger(goal.args[2], env);
+  const after = optionalInteger(goal.args[3], env);
+  if (before != null && before < 0n) {
+    throw new PrologError('domain_error(not_less_than_zero)', deref(goal.args[1], env));
+  }
+  if (length != null && length < 0n) {
+    throw new PrologError('domain_error(not_less_than_zero)', deref(goal.args[2], env));
+  }
+  if (after != null && after < 0n) {
+    throw new PrologError('domain_error(not_less_than_zero)', deref(goal.args[3], env));
+  }
   const chars = characters(source.name);
   for (let start = 0; start <= chars.length; start++) {
     if (before != null && before !== BigInt(start)) continue;
@@ -1770,9 +1799,14 @@ function validCharacterCode(value, solver = null) {
 }
 
 function listToAtomInput(list, env, kind, solver = null) {
+  const whole = deref(list, env);
   const { items, tail } = listElements(list, env);
-  if (tail.type === VAR || items.some((item) => item.type === VAR)) throw new PrologError('instantiation_error');
-  if (tail.type !== ATOM || tail.name !== '[]') throw new PrologError('type_error(list)', list);
+  // Corrigendum 2 distinguishes a partial list from an improper one: only
+  // the former precedes the complete-list type check. Variables in a proper
+  // list prefix are checked after that list-shape diagnostic.
+  if (tail.type === VAR) throw new PrologError('instantiation_error');
+  if (tail.type !== ATOM || tail.name !== '[]') throw new PrologError('type_error(list)', whole);
+  if (items.some((item) => item.type === VAR)) throw new PrologError('instantiation_error');
   if (kind === 'chars') {
     const invalid = items.find((item) => !oneChar(item));
     if (invalid) throw new PrologError('type_error(character)', invalid);
@@ -1968,7 +2002,14 @@ function numberListText(list, env, kind, valueIsBound, solver = null) {
   const whole = deref(list, env);
   const { items, tail } = listElements(list, env);
   const proper = tail.type === ATOM && tail.name === '[]';
+  // Corrigendum 2 orders conversion-mode instantiation errors specially:
+  // a partial list is diagnosed before its fixed prefix, while an improper
+  // non-list is diagnosed before a variable element in that prefix.
+  if (!valueIsBound && tail.type === VAR) throw new PrologError('instantiation_error');
   if (tail.type !== VAR && !proper) throw new PrologError('type_error(list)', whole);
+  if (!valueIsBound && items.some((item) => item.type === VAR)) {
+    throw new PrologError('instantiation_error');
+  }
 
   const invalid = items.find((item) => item.type !== VAR &&
     (kind === 'chars' ? !oneChar(item) : !validCharacterCode(item, solver)));
@@ -1981,7 +2022,6 @@ function numberListText(list, env, kind, valueIsBound, solver = null) {
   }
 
   const hasVariable = tail.type === VAR || items.some((item) => item.type === VAR);
-  if (!valueIsBound && hasVariable) throw new PrologError('instantiation_error');
   if (hasVariable) return null;
   return items.map((item) => kind === 'chars'
     ? item.name

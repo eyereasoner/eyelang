@@ -36,12 +36,12 @@ error-ordering alternative to an individual executable assertion.
 | 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access; focused strict checks now cover `current_predicate/1`, `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, Corrigendum 2 `retractall/1`, and `abolish/1` errors plus empty-procedure lifetime. The remaining clause-conversion shall-by-shall mapping is still open. |
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
 | 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. |
-| 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Exceptional-value/error-precedence matrix remains to be exhaustively enumerated. |
+| 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Strict mode now also pins direct-variable precedence, arithmetic operand type errors, float-only rounding conversions, zero-to-negative-power undefined errors, and the Part 1 mixed integer/float comparison conversion rule. Exceptional-value/error-precedence mapping remains to be exhaustively enumerated. |
 | 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, and Corrigendum 3 writer cases. The audit now also covers write-mode creation/truncation, append creation, repositioned overwrite, flushing, EOF actions, close/current-stream handling, strict stream-position terms, stream-property validation, stream-term requirements, and text-vs-binary permission errors. The full option/mode cross-product is still being mapped. |
 | 7.11 — flags | covered | The complete Part 1 flag set, selected defaults, standard value domains, changeability, `current_prolog_flag/2`, and `set_prolog_flag/2` error behavior have dedicated strict tests. EyeProlog selects `bounded=false` and `integer_rounding_function=toward_zero`; valid alternative values of those fixed flags reach `permission_error(modify,flag,...)`, while `max_integer` and `min_integer` have no current value. Strict mode excludes the EyeProlog `occurs_check` extension. |
-| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax families and focused error cases. Exact ISO 8.14.1-8.14.4 error precedence is covered for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`; the continuing audit has corrected additional 8.11-8.13 stream/character/byte errors, Corrigendum 2 `keysort/2` errors, and arithmetic culprit reporting. A complete one-row-per-prescribed-error ordering map remains open. |
-| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. The audit now includes corrected `keysort/2` variable/non-pair errors, stricter 8.11-8.13 stream and character/byte modes/errors, the 8.14 option/error-order subfamily, and closed 8.17 flags. The remaining mode/error matrix is not yet one-row-per-standard-row. |
-| Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Strict mode excludes the EyeProlog-only evaluable atom `e`, retains Corrigendum 2 arithmetic additions, and reports unknown zero-arity evaluables with the required `F/0` culprit shape. Host floating-point representation choices remain documented implementation-defined behavior; exhaustive exceptional-value precedence remains open. |
+| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax families and focused error cases. Exact ISO 8.14.1-8.14.4 error precedence is covered for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`; the continuing audit has corrected additional 8.11-8.13 stream/character/byte errors, Corrigendum 2 `keysort/2` errors, atomic-conversion list-shape precedence, `arg/3`, `atom_concat/3`, `sub_atom/5`, `char_conversion/2`, and arithmetic culprit/precedence reporting. A complete one-row-per-prescribed-error ordering map remains open. |
+| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. The audit now includes corrected `keysort/2` variable/non-pair errors, stricter 8.11-8.13 stream and character/byte modes/errors, the 8.14 option/error-order subfamily, closed 8.17 flags, and additional prescribed precedence for `arg/3`, `atom_concat/3`, `sub_atom/5`, number/atom list conversions, and `char_conversion/2`. The remaining mode/error matrix is not yet one-row-per-standard-row. |
+| Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Strict mode excludes the EyeProlog-only evaluable atom `e`, retains Corrigendum 2 arithmetic additions, reports unknown zero-arity evaluables with the required `F/0` culprit shape, enforces the Part 1 numeric/integer operand errors and float-only rounding modes, and uses the Part 1 integer-to-float conversion rule for mixed arithmetic comparisons. Normal mode retains EyeProlog's exact mixed-type comparison extension. Host floating-point representation choices remain documented implementation-defined behavior; exhaustive exceptional-value precedence remains open. |
 | Corrigendum 1 | covered | Double-quoted atom/operator-priority corrections have dedicated cases. |
 | Corrigendum 2 | covered | Added predicates/functors, catch corrections, bar/operator and uninstantiation corrections have dedicated cases. |
 | Corrigendum 3 | covered | Writer options, `variable_names/1`, canonical list output and negative-power corrections have dedicated cases. |
@@ -118,6 +118,22 @@ rather than falling through to a procedure-existence error. Reverse
 argument as the culprit of `type_error(list, List)`, as required by the
 Corrigendum 2 replacement error clauses. Dedicated strict-core regressions pin
 both behaviors.
+
+
+The following Part 1 pass tightens more of the still-open prescribed-error and
+arithmetic matrix. `arg/3`, `atom_concat/3`, `sub_atom/5`, `number_chars/2`,
+`number_codes/2`, and `char_conversion/2` now follow the standard ordering when
+multiple error conditions are simultaneously present. Corrigendum 2 partial
+versus improper list distinctions are applied consistently to atomic and
+number conversion. Clause 9 strict evaluation now gives the prescribed
+number/integer operand diagnostics, checks direct-variable instantiation first,
+enforces the float-only input modes of `floor/1`, `truncate/1`, `round/1`, and
+`ceiling/1`, and reports zero raised to a negative power as undefined. Finally,
+strict mixed integer/float arithmetic comparisons perform the Part 1
+integer-to-float conversion (including `float_overflow`); normal EyeProlog keeps
+its exact cross-type comparison as an extension. Dedicated strict regressions
+cover these distinctions without changing the normal-profile arithmetic error
+contract.
 
 ## Strict-core boundary
 

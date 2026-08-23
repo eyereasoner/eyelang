@@ -20,10 +20,57 @@ function evaluate(term, env, options = {}) {
     throw new PrologError('type_error(evaluable)', compound('/', [atom(term.name), numberTerm(0)]));
   }
   if (term.type !== COMPOUND) throw new PrologError('type_error(evaluable)', term);
-  const args = term.args.map((arg) => evaluate(arg, env, options));
-  return evaluateOperation(term, args);
+
+  let args;
+  if (options.isoStrict === true) {
+    // ISO 7.9.2(b) gives a direct variable argument precedence over the other
+    // expression errors of the same compound expression. Check the direct
+    // arguments before selecting an implementation-dependent evaluation order.
+    const operands = term.args.map((arg) => deref(arg, env));
+    if (operands.some((arg) => arg.type === VAR)) throw new PrologError('instantiation_error');
+    args = operands.map((arg) => evaluateOperand(term, arg, env, options));
+  } else {
+    // Preserve the normal EyeProlog profile's established left-to-right
+    // evaluator and diagnostics; the stricter prescribed errors belong to
+    // the explicit ISO profile.
+    args = term.args.map((arg) => evaluate(arg, env, options));
+  }
+  return evaluateOperation(term, args, options);
 }
-function evaluateOperation(term, args) {
+
+function evaluatesAtomDirectly(term, options) {
+  return term.type === ATOM && (term.name === 'pi' || (term.name === 'e' && options.isoStrict !== true));
+}
+
+function directOperandType(term) {
+  const name = term.name;
+  const arity = term.arity;
+  if ((arity === 1 && name === '\\') ||
+      (arity === 2 && ['>>', '<<', '/\\', '\\/', 'xor'].includes(name))) return 'integer';
+
+  if ((arity === 1 && ['+', '-', 'abs', 'sign', 'float', 'truncate', 'round', 'ceiling', 'floor',
+    'float_integer_part', 'float_fractional_part', 'sin', 'cos', 'atan', 'asin', 'acos', 'tan',
+    'exp', 'log', 'sqrt'].includes(name)) ||
+      (arity === 2 && ['+', '-', '*', '/', '//', 'div', 'mod', 'rem', '**', '^', 'max', 'min', 'atan2'].includes(name))) {
+    return 'number';
+  }
+  return null;
+}
+
+function evaluateOperand(parent, operand, env, options) {
+  // The arithmetic-functor error clauses use the offending operand as the
+  // culprit when an atomic operand is not numeric (e.g. +(foo,77),
+  // truncate(foo), and the bitwise families).  A nested compound still goes
+  // through ordinary expression evaluation so an unknown nested F/N retains
+  // type_error(evaluable,F/N).
+  if (operand.type === ATOM && !evaluatesAtomDirectly(operand, options)) {
+    const expected = directOperandType(parent);
+    if (expected) throw new PrologError(`type_error(${expected})`, operand);
+  }
+  return evaluate(operand, env, options);
+}
+
+function evaluateOperation(term, args, options = {}) {
   const name = term.name;
   const arity = term.arity;
   if (arity === 1 && (name === '+' || name === '-')) {
@@ -38,6 +85,12 @@ function evaluateOperation(term, args) {
   if (arity === 1 && ['abs', 'sign', 'float', 'truncate', 'round', 'ceiling', 'floor',
     'float_integer_part', 'float_fractional_part',
     'sin', 'cos', 'atan', 'asin', 'acos', 'tan', 'exp', 'log', 'sqrt'].includes(name)) {
+    // The four float-to-integer rounding functors have only F->I operators
+    // (9.1.1/9.1.6). Corrigendum 1/2 therefore requires type_error(float,...)
+    // when their evaluated argument has integer type.
+    if (options.isoStrict === true && ['truncate', 'round', 'ceiling', 'floor'].includes(name) && args[0].integer) {
+      throw new PrologError('type_error(float)', numericTerm(args[0]));
+    }
     const a = Number(args[0].value);
     if (name === 'abs' && args[0].integer) return { integer: true, value: args[0].value < 0n ? -args[0].value : args[0].value };
     if (name === 'sign' && args[0].integer) return { integer: true, value: args[0].value < 0n ? -1n : args[0].value > 0n ? 1n : 0n };
@@ -105,6 +158,11 @@ function evaluateOperation(term, args) {
     if (x === 0 && y === 0) throw new PrologError('evaluation_error(undefined)');
     value = Math.atan2(x, y);
   }
+  else if ((name === '**' || name === '^') && x === 0 && y < 0) {
+    // 9.3.1.3(d) and Cor.2 9.3.10.3(d): zero to a negative power is
+    // undefined, not floating-point overflow.
+    throw new PrologError('evaluation_error(undefined)');
+  }
   else if (name === '+') value = x + y;
   else if (name === '-') value = x - y;
   else if (name === '*') value = x * y;
@@ -152,6 +210,22 @@ export function compareArithmeticValues(left, right) {
   if (right.integer) return -compareIntegerToFloat(b, a);
   return a < b ? -1 : a > b ? 1 : 0;
 }
+
+function compareStrictIsoArithmeticValues(left, right) {
+  if (left.integer === right.integer) return compareArithmeticValues(left, right);
+
+  // ISO/IEC 13211-1:1995 8.7 specifies mixed arithmetic comparisons by
+  // floatI->F conversion of the integer operand.  That conversion can round
+  // an otherwise exact integer and can itself overflow.  Normal EyeProlog
+  // deliberately keeps its later exact cross-type comparison extension; the
+  // strict profile follows the Part 1 operation table.
+  const leftValue = left.integer ? Number(left.value) : left.value;
+  const rightValue = right.integer ? Number(right.value) : right.value;
+  if (!Number.isFinite(leftValue) || !Number.isFinite(rightValue)) {
+    throw new PrologError('evaluation_error(float_overflow)');
+  }
+  return leftValue < rightValue ? -1 : leftValue > rightValue ? 1 : 0;
+}
 export function* isBuiltin({ solver, goal, env }) {
   const result = arithmeticValueTerm(evaluateArithmetic(goal.args[1], env, { isoStrict: solver?.isoStrict === true }));
   const next = env.clone();
@@ -162,7 +236,9 @@ export function arithmeticComparison(test) {
     const options = { isoStrict: solver?.isoStrict === true };
     const left = evaluateArithmetic(goal.args[0], env, options);
     const right = evaluateArithmetic(goal.args[1], env, options);
-    const cmp = compareArithmeticValues(left, right);
+    const cmp = solver?.isoStrict === true
+      ? compareStrictIsoArithmeticValues(left, right)
+      : compareArithmeticValues(left, right);
     if (test(cmp)) yield env;
   };
 }

@@ -243,6 +243,60 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'type_error(atom)', 'operator type');
   });
 
+  reporter.test('follows remaining Part 1 built-in error precedence', () => {
+    const cases = [
+      ['arg(a,X,_)', 'instantiation_error', 'arg/3 second-argument instantiation before index type'],
+      ['atom_concat(1,X,Y)', 'instantiation_error', 'atom_concat/3 second/whole under-instantiation before first type'],
+      ['atom_concat(X,1,Y)', 'instantiation_error', 'atom_concat/3 first/whole under-instantiation before second type'],
+      ['sub_atom(a,-1,bad,_,_)', 'type_error(integer)', 'sub_atom/5 integer type before non-negative domain'],
+      ['number_chars(N,[1|T])', 'instantiation_error', 'number_chars/2 partial list before element type'],
+      ['number_chars(N,[X,1])', 'instantiation_error', 'number_chars/2 variable element before later element type'],
+      ['number_codes(N,[foo|T])', 'instantiation_error', 'number_codes/2 partial list before element type'],
+      ['number_codes(N,[X,foo])', 'instantiation_error', 'number_codes/2 variable element before later element type'],
+      ['atom_chars(A,[X|foo])', 'type_error(list)', 'atom_chars/2 improper list before prefix variable'],
+      ['atom_codes(A,[X|foo])', 'type_error(list)', 'atom_codes/2 improper list before prefix variable'],
+      ['char_conversion(foo,X)', 'instantiation_error', 'char_conversion/2 output instantiation before input representation'],
+    ];
+    for (const [goal, formal, label] of cases) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
+    }
+  });
+
+  reporter.test('follows Part 1 arithmetic type and exceptional errors', () => {
+    const cases = [
+      ["X is '+'(foo,77)", 'type_error(number)', 'simple arithmetic atomic operand'],
+      ['X is mod(foo,77)', 'type_error(number)', 'integer arithmetic non-number operand'],
+      ['X is mod(7.5,2)', 'type_error(integer)', 'integer arithmetic numeric type'],
+      ['X is truncate(foo)', 'type_error(number)', 'rounding non-number operand'],
+      ['X is sin(foo)', 'type_error(number)', 'transcendental non-number operand'],
+      ['X is foo+Y', 'instantiation_error', 'direct variable before another operand error'],
+      ['X is floor(7)', 'type_error(float)', 'floor integer operand'],
+      ['X is truncate(7)', 'type_error(float)', 'truncate integer operand'],
+      ['X is round(7)', 'type_error(float)', 'round integer operand'],
+      ['X is ceiling(7)', 'type_error(float)', 'ceiling integer operand'],
+      ['X is 0 ** -1', 'evaluation_error(undefined)', 'power zero negative exponent'],
+      ['X is 0.0 ^ -1', 'evaluation_error(undefined)', 'Corrigendum 2 power zero negative exponent'],
+    ];
+    for (const [goal, formal, label] of cases) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
+    }
+  });
+
+  reporter.test('uses the Part 1 mixed arithmetic comparison operations', () => {
+    // 8.7 converts the integer operand to float in mixed comparisons.
+    equal(run('', { isoStrict: true, goal: '18014398509481985 =:= 18014398509481984.0' }).stats.completed_goal_lists,
+      1, 'mixed equality after float conversion');
+    equal(run('', { isoStrict: true, goal: '\\+ (18014398509481985 > 18014398509481984.0)' }).stats.completed_goal_lists,
+      1, 'mixed ordering after float conversion');
+    const huge = `1${'0'.repeat(400)}`;
+    equal(capture(() => run('', { isoStrict: true, goal: `${huge} > 1.0` })).formal,
+      'evaluation_error(float_overflow)', 'mixed integer-to-float overflow');
+
+    // The normal profile retains EyeProlog's exact cross-type extension.
+    equal(run('', { goal: '9007199254740993 > 9007199254740992.0' }).stats.completed_goal_lists,
+      1, 'normal exact mixed ordering extension');
+  });
+
   reporter.test('follows ISO term-construction error types and precedence', () => {
     equal(capture(() => run('', { isoStrict: true, goal: 'functor(_,foo(a),1)' })).formal,
       'type_error(atomic)', 'functor compound name');
