@@ -614,6 +614,29 @@ export function runIsoStrict(reporter = new TestReporter()) {
     }
   });
 
+  reporter.test('tracks post-N289 STC draft items 73-76 without replacing the published baseline', () => {
+    for (const [goal, input, expected, label] of [
+      ['read(X)', '1.0e99999.\n', 'representation_error(max_float)', 'STC #73 read/1 max_float'],
+      ['read_term(X,[])', '-1.0e99999.\n', 'representation_error(min_float)', 'STC #73 read_term/2 min_float'],
+    ]) {
+      equal(capture(() => run('', { isoStrict: true, goal, ioOptions: { input } })).formal, expected, label);
+    }
+
+    for (const [goal, expected, label] of [
+      ["number_chars(N,['1','.','0',e,'9','9','9','9','9'])", 'representation_error(max_float)', 'STC #74 number_chars/2'],
+      ['number_codes(N,[45,49,46,48,101,57,57,57,57,57])', 'representation_error(min_float)', 'STC #74 number_codes/2'],
+    ]) equal(capture(() => run('', { isoStrict: true, goal })).formal, expected, label);
+
+    // STC #75 proposes conditioning the published **/2 and Corrigendum 2 ^/2
+    // underflow rows on the implementation-defined 9.1.4.2 resultF choice.
+    // Until that proposal is standardized, strict mode keeps the published
+    // unconditional error clauses; the draft divergence is documented.
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is 2.0 ** -1075.0' })).formal,
+      'evaluation_error(underflow)', 'published **/2 underflow baseline');
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is 2.0 ^ -1075.0' })).formal,
+      'evaluation_error(underflow)', 'published ^/2 underflow baseline');
+  });
+
   reporter.test('reports explicit transcendental and power underflow in strict mode', () => {
     for (const [goal, label] of [
       ['X is exp(-1000.0)', 'exp/1 underflow'],

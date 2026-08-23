@@ -1,3 +1,3 @@
-% Draft float-reading limit review associated with STC #73 / issue #54.
-% https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#73
+% STC #74: number_chars/2 reports the draft floating representation limit.
+% https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#74
 %% goal: number_chars(_, "-1.0e99999")

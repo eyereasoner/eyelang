@@ -73,7 +73,7 @@ Status values are:
 | 8.17.3 | Other effects of `halt/0` | Terminates EyeProlog execution and returns host/process status `0`; it produces no Prolog solution. | **defined** — `HaltSignal`, `haltBuiltin()`, CLI/runner handling. |
 | 8.17.4 | Meaning/effects of `halt(Status)` | Integer `Status` is converted to the host process/runner halt code; it produces no Prolog solution. | **defined** — `haltBuiltin()`, `src/execute.js`, `src/cli.js`. |
 | 9.1.4.1 | Floating-point rounding function `rndF` | Floating values and operations use ECMAScript `Number` (IEEE-754 binary64) and the host's specified binary64 arithmetic/conversions. | **defined** — `src/iso-arithmetic.js`, `src/number-value.js`. |
-| 9.1.4.2 | Floating-point result function for operations whose result is governed only by `resultF` | EyeProlog chooses `round(x)` rather than the optional exceptional value `underflow`. ECMAScript binary64 arithmetic therefore preserves a representable subnormal result and rounds a still-smaller generic arithmetic result to `0.0`, consistently with float-token and `number_chars/2` input. This implementation-defined choice does not suppress the explicit mandatory underflow conditions stated separately for Part 1 `**/2`, `exp/1`, and Corrigendum 2 `^/2`. | **defined** — arithmetic evaluation in `src/iso-arithmetic.js` and parser/number conversion; strict exceptional-value regressions. |
+| 9.1.4.2 | Floating-point result function for operations whose result is governed only by `resultF` | EyeProlog chooses `round(x)` rather than the optional exceptional value `underflow`. ECMAScript binary64 arithmetic therefore preserves a representable subnormal result and rounds a still-smaller generic arithmetic result to `0.0`, consistently with float-token, `number_chars/2`, and `number_codes/2` input. The published Part 1 `**/2` and Corrigendum 2 `^/2` tables still contain separate unconditional underflow rows, which strict mode retains; post-N289 STC #75 proposes making those two power rows conditional on this `resultF` choice and is tracked separately as draft work. `exp/1` has its own published exceptional condition and is not the subject of STC #75. | **defined** — arithmetic evaluation in `src/iso-arithmetic.js` and parser/number conversion; strict exceptional-value regressions. |
 | 9.1.4.3 | Approximate-addition function | ECMAScript binary64 addition is used; subtraction is implemented through the corresponding host operation and all finite results remain binary64 values. | **defined** — arithmetic evaluation in `src/iso-arithmetic.js`. |
 | 9.4 | Representation of negative integers for bitwise operations | BigInt's unbounded signed binary semantics are used, equivalent to an infinite two's-complement sign extension for bitwise operations. | **defined** — `src/iso-arithmetic.js` BigInt bitwise operators. |
 | 9.4.1 | Right shift of negative integers and unusual shift counts | `>>` is arithmetic/sign-propagating. A negative count reverses direction according to JavaScript BigInt shift semantics; there is no finite integer bit-size ceiling in the Prolog model. | **defined** — `a >> b` in `src/iso-arithmetic.js`. |
@@ -93,13 +93,16 @@ subnormal values remain non-zero and still-smaller generic results round to
 `0.0`. Float-token and `number_chars/2` input use the same finite-double
 rounding policy.
 
-That generic implementation-defined choice is distinct from evaluable functors
-whose own error clauses prescribe underflow. In strict mode, `exp/1`, Part 1
-`**/2`, and Corrigendum 2 `^/2` therefore raise
-`evaluation_error(underflow)` when their mathematical non-zero result falls
-below the representable range and the host would otherwise round it to zero.
-The regression suite pins both sides of this boundary, while
-`stc/float_underflow_input` covers the related input conversion policy.
+That generic implementation-defined choice is distinct from the currently
+published evaluable-functor error clauses. In the licensed Part 1 + Corrigenda
+baseline, `exp/1`, Part 1 `**/2`, and Corrigendum 2 `^/2` have explicit
+underflow conditions, so strict mode raises `evaluation_error(underflow)` when
+those published conditions are met. The 2026-08-23 post-N289 draft adds STC
+#75, proposing that the two *power* underflow rows apply only when the processor
+selects `underflow` in 9.1.4.2. EyeProlog records that proposal but does not
+silently replace the published strict baseline with it. The regression suite
+pins both the published power behavior and the generic round-to-zero choice;
+`stc/float_underflow_input` covers the separate input-conversion policy.
 
 ## Implementation-specific features required to be documented by 5.4
 

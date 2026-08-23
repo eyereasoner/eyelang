@@ -5495,9 +5495,15 @@ The long catalogs are meant to be entered locally, not memorized linearly.
 ## 38. Language and ISO profile
 
 The normative strict-core baseline is ISO/IEC 13211-1:1995, as corrected by
-Technical Corrigenda 1:2007, 2:2012, and 3:2017. Normal EyeProlog additionally
-provides a practical module interface aligned with later WG17 module amendment
-work and a definite-clause-grammar profile following ISO/IEC TS 13211-3. Those
+Technical Corrigenda 1:2007, 2:2012, and 3:2017. The post-N289 WG17/STC
+working draft is used as defect-discovery input, not as an unpublished fourth
+Corrigendum. The 2026-08-23 draft through items #73-#76 is tracked by
+`test/conformance/STC-DRAFT-STATUS.md`; where a proposal changes published
+semantics, such as #75's conditional power-underflow proposal, strict mode keeps
+the licensed baseline until the change is standardized or explicitly adopted as
+a compatibility extension. Normal EyeProlog additionally provides a practical
+module interface aligned with later WG17 module amendment work and a
+definite-clause-grammar profile following ISO/IEC TS 13211-3. Those
 normal-mode profiles are documented and tested compatibility surfaces; they are
 not currently claimed as complete clause-by-clause certifications of Part 2 or
 Part 3.
@@ -7591,7 +7597,7 @@ upstream syntax cases. Reviewed cases can pin exact strict-reader outcomes, whil
 newly upgraded cases execute directly against the upstream Codex expectation.
 
 The complete suite must pass before release. The file-based conformance corpus
-contains 800 cases, including 386 focused ISO
+contains 802 cases, including 386 focused ISO
 cases derived from the success, failure, mode, and error behavior in
 ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 210 normal

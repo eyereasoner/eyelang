@@ -15,7 +15,7 @@ tracks the row-by-row built-in audit, while
 Clause 5 processor obligations. [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
 complete one-to-one trace for the vendored active upstream WG17 syntax cases.
 [STC-DRAFT-STATUS.md](STC-DRAFT-STATUS.md) separately tracks executable
-implementation questions from the post-N289 working draft; those cases are
+implementation questions from the post-N289 working draft (reviewed through the 2026-08-23 items #73-#76); those cases are
 review evidence, not normative ISO claims.
 
 “Conformance” here means conformance to EyeProlog's documented ISO compatibility
@@ -141,8 +141,8 @@ Selected cases are adapted from the ISO and standard-core suites of Logtalk,
 Scryer Prolog, Trealla Prolog, and SWI-Prolog. Their upstream identifiers and licenses
 are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 
-The corpus has 386 cases in `iso/` and 800 file-based conformance cases in
-total. Of those, 9 cases in `stc/` are explicitly labelled working-draft
+The corpus has 386 cases in `iso/` and 802 file-based conformance cases in
+total. Of those, 11 cases in `stc/` are explicitly labelled working-draft
 review evidence rather than normative ISO claims. The separate strict-reader WG17 matrix has 366 executable dispositions.
 The generated `conformance-report.md` is the authoritative source for current
 category totals. Together with regression, documentation-sync, API, example,

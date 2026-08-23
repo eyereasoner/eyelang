@@ -1,6 +1,8 @@
-% Float-reading draft review associated with STC #73 / issue #54. EyeProlog's
-% finite-double profile permits input underflow to round to zero.
-% https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#73
+% Issue #54 input-underflow review. EyeProlog's finite-double profile permits
+% input underflow to round to zero. This is distinct from STC #75, which asks
+% whether the published power-underflow errors should depend on the 9.1.4.2
+% resultF choice.
+% https://github.com/eyereasoner/eyeprolog/issues/54
 %% goal: float_underflow_input
 
 float_underflow_input :-

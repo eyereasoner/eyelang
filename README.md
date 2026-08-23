@@ -228,7 +228,13 @@ ongoing issue #65 audit additionally tightens Prolog-text declaration ordering,
 initialization lifetime, stream/open/close behavior, character/byte stream
 errors, `keysort/2` error cases, and strict arithmetic-extension boundaries.
 Those additions improve the Part 1 surface without turning the remaining audit
-rows into a blanket conformance claim.
+rows into a blanket conformance claim. The post-N289 WG17/STC working draft is
+reviewed separately rather than treated as a fourth Corrigendum. The
+2026-08-23 draft items #73-#76 are now pinned explicitly: float input limits for
+`read*` and `number_*` conversions, invalid-character term input, and the draft
+proposal that would make the two power-underflow rows depend on the processor's
+9.1.4.2 `resultF` choice. Strict mode retains the published Part 1 +
+Corrigenda 1-3 behavior where the draft has not been standardized.
 
 The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).

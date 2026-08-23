@@ -260,8 +260,8 @@ The Corrigendum 2 additions have the same shape.
 | --- | --- | --- | --- |
 | 8.14.1 `read_term/3`, `read_term/2`, `read/1-2` | read a term using the standardized read-option surface | covered | term-I/O corpus, Corrigendum 3 cases, strict success/error suite |
 | 8.14.1 option/argument errors | stream/option instantiation, non-list options, invalid read option | covered | strict 8.14.1 individual-condition assertions |
-| 8.14.1 stream/input errors | invalid/missing/output/binary stream, past-end state, invalid input character, syntax error | covered | strict and constructed-stream assertions |
-| 8.14.1 conditional finite-number/arity representation branches | limits tied to finite selected processor bounds | not applicable where bound is unbounded | EyeProlog selects unbounded integers/`max_arity`; finite binary64 input limits remain documented separately |
+| 8.14.1 stream/input errors | invalid/missing/output/binary stream, past-end state, invalid input character, syntax error | covered | strict and constructed-stream assertions; post-N289 STC #76 is pinned by invalid-character read regressions |
+| 8.14.1 conditional finite-number/arity representation branches | limits tied to finite selected processor bounds | not applicable where bound is unbounded | EyeProlog selects unbounded integers/`max_arity`; the implementation-defined finite binary64 input limits are pinned separately, including post-N289 STC #73 `max_float` / `min_float` coverage |
 | 8.14.1 Corrigendum options | `variables/1`, `variable_names/1`, `singletons/1` list traversal/unification behavior | covered | Corrigendum 3 metadata tests and STC #48 regression |
 | 8.14.2 `write_term/3`, `write_term/2`, `write/1-2`, `writeq/1-2` | write terms under standardized write options | covered | term-I/O/write-back corpus and strict writer suite |
 | 8.14.2 option/argument errors | stream/option instantiation, non-list options, invalid write option | covered | strict 8.14.2 assertions |

@@ -39,7 +39,11 @@ regressions.
 | [#69](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#69) | arithmetic example culprit | **Found a #65 gap.** Strict expression evaluation now applies 7.9.2(c) to an atomic subexpression such as `foo`: it reports `type_error(evaluable,foo/0)` rather than the misleading `type_error(number,foo)` shown by the old 9.1.7 example. |
 | [#70](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#70) | optional `max_procedure_arity` | Reviewed after issue #66 corrected the earlier #71 pointer. EyeProlog has no declared procedure-arity limit smaller than its `max_arity=unbounded` term model, so the implementation-defined optional flag is intentionally absent. |
 | [#72](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#72) | tentative non-ground stream-term instances | Reviewed as a tentative post-2026 proposal. EyeProlog does not make this draft wording normative in `--iso-strict`; the published Part 1 stream-term/domain rules remain the baseline until WG17 settles the proposal. |
-| [issue #54](https://github.com/eyereasoner/eyeprolog/issues/54) | float-reading limits (historically discussed as a later STC item) | Positive/negative literal and `number_chars/2` overflow are kept as explicit draft-facing cases; underflow is tested separately. The current public STC page ends at #72, so this is no longer labelled as a current `stc#73` entry. See the note below. |
+| [#73](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#73) | `read/1-2` and `read_term/2-3` representation limits | The 2026-08-23 post-N289 draft now explicitly proposes `max_float` / `min_float` alongside the existing representation-limit flags. EyeProlog already reports those errors while reading overflowing positive/negative float tokens; strict regression coverage now exercises both `read/1` and `read_term/2`, and the literal STC cases pin parser preparation. |
+| [#74](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#74) | `number_chars/2` and `number_codes/2` representation limits | Positive and negative overflow now have explicit draft-facing cases for both conversion predicates, reporting `representation_error(max_float)` / `representation_error(min_float)` rather than a syntax error. |
+| [#75](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#75) | power underflow versus the 9.1.4.2 `resultF` choice | The draft proposes making the Part 1 `**/2` and Corrigendum 2 `^/2` underflow rows conditional on the implementation-defined `resultF` underflow choice. EyeProlog's published-baseline strict mode intentionally retains the currently published unconditional power-underflow clauses; its separate 9.1.4.2 choice remains `round(x)`. This proposal is tracked, not silently adopted. |
+| [#76](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#76) | `read/1-2` and `read_term/2-3` invalid input entity | Existing file-stream regressions already require `representation_error(character)` for invalid UTF-8 through all four read/read_term arities. The regression is now cross-referenced to the new draft item. |
+| [issue #54](https://github.com/eyereasoner/eyeprolog/issues/54) | float input range and underflow background | The earlier EyeProlog issue remains useful background for finite-double input overflow/underflow. Its overflow cases are now tracked by STC #73/#74; input underflow remains a separate implementation-profile check and must not be conflated with STC #75's power-underflow proposal. |
 
 ## Float-reading note from issue #54
 
@@ -54,13 +58,13 @@ record the behavior discussed in issue #54:
 - overflow produced by arithmetic evaluation remains
   `evaluation_error(float_overflow)`.
 
-These `max_float` / `min_float` names are treated as a **provisional draft
-extension**, not as a claim about the currently published ISO core standard.
+These `max_float` / `min_float` names are treated as a **draft-facing representation-limit extension**, now explicitly reflected by post-N289 STC #73/#74, not as a claim that the currently published ISO core standard already contains those flag names.
 The earlier WG17 float-update material also uses
-`representation_error(float_overflow)` for unsupported infinity input, while a
-separate reading-floats proposal discusses `max_float` for a finite value above
-the implementation's largest finite float. Those cases should remain distinct
-when WG17 settles the wording.
+`representation_error(float_overflow)` for unsupported infinity input, while
+STC #73/#74 use `max_float` / `min_float` for a finite numeric text that lies
+outside the implementation's finite float range. Those cases should remain
+distinct when WG17 settles the wording. STC #75 is independent again: it asks
+how power underflow relates to the implementation-defined `resultF` choice.
 
 Relevant background:
 

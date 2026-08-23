@@ -19,7 +19,10 @@ syntax.
 
 EyeProlog targets the Part 1 core together with Technical Corrigenda 1, 2,
 and 3, and provides documented module and definite-clause-grammar compatibility
-profiles for normal-mode programs. The processor character model is explicitly
+profiles for normal-mode programs. The post-N289 WG17/STC working draft is
+tracked as audit input rather than silently treated as another published
+Corrigendum; the conformance ledger records where draft wording differs from
+the published strict baseline. The processor character model is explicitly
 implementation defined: EyeProlog uses Unicode scalar values as the PCS and as
 collating-sequence integers in both normal and strict profiles. Strict mode
 therefore rejects implementation-specific language extensions without changing

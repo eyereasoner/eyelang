@@ -44,7 +44,7 @@ certification claim.
 | 5.5.7 additional control constructs | covered | `tnot/1` and implementation-specific execution optimizations are absent/disabled in strict mode; standard control constructs remain separately audited |
 | 5.5.8 additional flags | covered | normal `occurs_check` extension is absent from strict mode; the Part 1 flag family is fully audited |
 | 5.5.9 additional built-in predicates and error forms | covered | strict registry excludes normal-profile library/native additions; `ISO-BUILTIN-MODE-ERROR-MATRIX.md` closes the complete 8.2-8.17 family row-by-row; simultaneous-error choices are documented per 7.12 rather than treated as a global table-order mandate |
-| 5.5.10 additional evaluable functors/types | audit | strict mode excludes normal-profile arithmetic extensions such as evaluable `e`; Clause 9 exceptional-value and error-precedence rows remain under audit |
+| 5.5.10 additional evaluable functors/types | audit | strict mode excludes normal-profile arithmetic extensions such as evaluable `e`; the 9.1.4.2 `resultF` choice is documented, and post-N289 STC #75's proposed conditional power-underflow interpretation is kept separate from the published baseline; the remaining Clause 9 exceptional-value/error rows stay under audit |
 | 5.5.11 reserved atoms | not applicable | EyeProlog declares no reserved-atom extension; extension names remain ordinary atoms unless used in a documented syntactic/predicate/directive role |
 
 ## Exit-use rule

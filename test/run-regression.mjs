@@ -845,6 +845,29 @@ c4 ?- call((!;1)).
         }
         assertEqual(readError?.formal, 'representation_error(max_float)', 'read/1 overflow');
 
+        let readTermError = null;
+        try {
+          runEyeProlog('', {
+            goal: 'read_term(X, [])',
+            ioOptions: { input: '-1.0e99999.\n' },
+          });
+        } catch (error) {
+          readTermError = error;
+        }
+        assertEqual(readTermError?.formal, 'representation_error(min_float)', 'read_term/2 overflow (STC #73)');
+
+        const numberCodes = createDefaultRegistry().get('number_codes', 2).handler;
+        let numberCodesError = null;
+        try {
+          numberCodes({
+            goal: compound('number_codes', [variable('N'), listFromItems(Array.from('1.0e99999', (c) => numberTerm(String(c.codePointAt(0))))) ]),
+            env: new Env(),
+          }).next();
+        } catch (error) {
+          numberCodesError = error;
+        }
+        assertEqual(numberCodesError?.formal, 'representation_error(max_float)', 'number_codes positive overflow (STC #74)');
+
         const isHandler = createDefaultRegistry().get('is', 2).handler;
         let hostTermError = null;
         try {
@@ -3323,7 +3346,7 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
-      name: 'read and read_term report invalid UTF-8 as representation_error(character) (issue #64)',
+      name: 'read and read_term report invalid UTF-8 as representation_error(character) (issue #64, STC #76)',
       run: () => {
         const invalidPath = path.join(tmp, `read-invalid-utf8-${++tmpCounter}.bin`);
         fs.writeFileSync(invalidPath, Buffer.from([0xff]));
