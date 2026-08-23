@@ -1,7 +1,7 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  COMPOUND, NUMBER, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
+  ATOM, COMPOUND, NUMBER, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
   flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
   numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
@@ -962,7 +962,9 @@ function defaultPrologFlags(unknown = 'error', strictIso = false) {
     ['debug', { value: compound('off', []), allowed: ['on', 'off'], changeable: true }],
     ['max_integer', { value: null, allowed: [], changeable: false }],
     ['min_integer', { value: null, allowed: [], changeable: false }],
-    ['max_arity', { value: numberTerm(ISO_MAX_ARITY), allowed: [String(ISO_MAX_ARITY)], valueType: NUMBER, changeable: false }],
+    ['max_arity', ISO_MAX_ARITY == null
+      ? { value: compound('unbounded', []), allowed: ['unbounded'], valueType: ATOM, changeable: false }
+      : { value: numberTerm(ISO_MAX_ARITY), allowed: [String(ISO_MAX_ARITY)], valueType: NUMBER, changeable: false }],
     ['unknown', { value: compound(unknown, []), allowed: ['error', 'fail', 'warning'], changeable: true }],
     ['double_quotes', { value: compound('chars', []), allowed: ['chars', 'codes', 'atom'], changeable: true }],
     ['occurs_check', { value: compound('true', []), allowed: ['true', 'error'], changeable: true }],

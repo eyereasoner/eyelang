@@ -404,14 +404,30 @@ function* functorBuiltin({ goal, env }) {
   }
   const arity = BigInt(arityTerm.name);
   if (arity > 0n && name.type !== ATOM) throw new PrologError('type_error(atom)', name);
-  if (arity > BigInt(ISO_MAX_ARITY)) throw new PrologError('representation_error(max_arity)');
+  if (ISO_MAX_ARITY != null && arity > BigInt(ISO_MAX_ARITY)) {
+    throw new PrologError('representation_error(max_arity)');
+  }
   if (arity < 0n) throw new PrologError('domain_error(not_less_than_zero)', arityTerm);
   if (arity === 0n) {
     if (unify(goal.args[0], name, next)) yield next;
     return;
   }
+  // `max_arity = unbounded` means there is no ISO-visible representation
+  // ceiling on compound terms.  The JavaScript host still has finite storage
+  // resources, however.  In particular an Array length is limited to 2^32-1
+  // and allocation can fail before that.  Report host exhaustion as the ISO
+  // resource error family rather than leaking a JavaScript RangeError or
+  // reintroducing an artificial max_arity limit.
+  if (arity > 0xffffffffn) throw new PrologError('resource_error(memory)');
   const id = ++isoFresh;
-  if (unify(goal.args[0], compound(name.name, Array.from({ length: Number(arity) }, (_, i) => variable(`__functor${id}_${i}`))), next)) yield next;
+  let args;
+  try {
+    args = Array.from({ length: Number(arity) }, (_, i) => variable(`__functor${id}_${i}`));
+  } catch (error) {
+    if (error?.name === 'RangeError') throw new PrologError('resource_error(memory)');
+    throw error;
+  }
+  if (unify(goal.args[0], compound(name.name, args), next)) yield next;
 }
 
 function* argBuiltin({ goal, env }) {
@@ -460,7 +476,9 @@ function* univBuiltin({ goal, env }) {
     return;
   }
   const name = requireAtom(items[0], env);
-  if (items.length - 1 > ISO_MAX_ARITY) throw new PrologError('representation_error(max_arity)');
+  if (ISO_MAX_ARITY != null && items.length - 1 > ISO_MAX_ARITY) {
+    throw new PrologError('representation_error(max_arity)');
+  }
   if (unify(goal.args[0], compound(name.name, items.slice(1)), next)) yield next;
 }
 
@@ -591,12 +609,17 @@ function isGrammarRuleProcedure(solver, head) {
 
 function isProcessorStaticProcedure(solver, head) {
   // Conjunction is an ISO control construct (7.5/Table 9) but is executed
-  // directly by the solver rather than through the builtin registry.  Keep it
-  // in the same protected static/private family as the registered Part 1
-  // control constructs for runtime database operations.
+  // directly by the solver rather than through the builtin registry.  The
+  // source syntax functors (:-)/1-2 likewise have processor-defined roles and
+  // STC #56 calls for protecting them from database modification. Keep these
+  // in the same static/private family for strict runtime database operations.
+  const strictSyntaxProcedure = solver.isoStrict && (
+    (head.name === ',' && head.arity === 2) ||
+    (head.name === ':-' && (head.arity === 1 || head.arity === 2))
+  );
   return Boolean(solver.registry.get(head.name, head.arity)) ||
     isGrammarRuleProcedure(solver, head) ||
-    (solver.isoStrict && head.name === ',' && head.arity === 2);
+    strictSyntaxProcedure;
 }
 
 function assertModifiable(solver, head, module = 'user') {
@@ -677,8 +700,14 @@ function predicateIndicatorParts(term, env) {
   if (name.type !== ATOM) throw new PrologError('type_error(atom)', name);
   const integer = BigInt(arity.name);
   if (integer < 0n) throw new PrologError('domain_error(not_less_than_zero)', arity);
-  if (integer > BigInt(ISO_MAX_ARITY)) throw new PrologError('representation_error(max_arity)');
-  return { name: name.name, arity: Number(integer), indicator };
+  if (ISO_MAX_ARITY != null && integer > BigInt(ISO_MAX_ARITY)) {
+    throw new PrologError('representation_error(max_arity)');
+  }
+  // Actual clause arities are ordinary JavaScript array lengths. For a very
+  // large predicate indicator that names no existing procedure, retain the
+  // exact integer in the map key instead of rounding it through Number.
+  const runtimeArity = integer <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(integer) : integer;
+  return { name: name.name, arity: runtimeArity, indicator };
 }
 
 function* abolishBuiltin({ solver, goal, env }) {
@@ -2279,7 +2308,7 @@ function* callClosureBuiltin({ solver, goal, env }) {
   const closure = callable(goal.args[0], env);
   const existing = closure.type === COMPOUND ? closure.args : [];
   const extra = goal.args.slice(1);
-  if (existing.length + extra.length > ISO_MAX_ARITY) {
+  if (ISO_MAX_ARITY != null && existing.length + extra.length > ISO_MAX_ARITY) {
     throw new PrologError('representation_error(max_arity)');
   }
   const invoked = compound(closure.name, [...existing, ...extra]);

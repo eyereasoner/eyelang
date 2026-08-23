@@ -9,7 +9,7 @@ wording.
 
 The purpose of this ledger is practical. Where an STC item can be expressed as
 an executable Prolog observation, EyeProlog keeps a standards-facing case under
-`test/conformance/stc/` (or points to an existing strict/WG17 case) so discussion
+`test/conformance/cases/stc/` (or points to an existing strict/WG17 case) so discussion
 of the draft can expose implementation problems before they become release
 regressions.
 
@@ -17,14 +17,18 @@ regressions.
 
 | STC item | Topic | EyeProlog evidence / finding |
 | --- | --- | --- |
+| [#18](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#18) | `eof_action(error)` | Stream regressions verify the first EOF observation yields the EOF value and a subsequent read with `eof_action(error)` raises `permission_error(input,past_end_of_stream,...)`; `eof_code` and `reset` remain distinct. |
+| [#21](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#21) | unbounded-integer resource exhaustion | The strict suite now prevents host `RangeError` leakage from oversized integer shifts/powers and reports `resource_error(memory)`, consistent with the Part 1 resource-error note and the STC correction proposal. The same principle is used when unbounded `functor/3` construction exhausts a finite host resource. |
+| [#27](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#27)-[#29](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#29) | overlapping character/code/byte stream errors | Existing stream tests plus strict probes preserve argument validation before later stream-state errors where the published error clauses require it; the STC examples with an open alias produce the stated instantiation/type errors. |
 | [#37](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#37) | `clause/2` variable identity | `stc/clause_variable_identity` verifies sharing between head and body is preserved. |
 | [#39](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#39) | negative-number syntax | Covered extensively by the upstream-first WG17 syntax matrix; unary-minus read-back discrepancies found by that matrix were fixed in v1.3.27. |
 | [#40](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#40) | inexact float representation | EyeProlog uses the host IEEE-754 binary64 value and requires written floats to read back to that same value. Input underflow is covered by `stc/float_underflow_input`. |
 | [#42](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#42) | integer-to-float conversion for float functions | `stc/integer_to_float_evaluable` verifies an integer expression is accepted by `sin/1` and produces a float. |
-| [#44](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#44) | `char_code/2` error classification | Existing strict conformance cases require `representation_error(character_code)` for an integer outside the character-code set. |
+| [#44](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#44) | `char_code/2` error classification | Strict coverage distinguishes `type_error(integer,Code)` for a non-integer code from `representation_error(character_code)` for an integer outside the character-code set. |
 | [#49](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#49) | `read_term/3` and EOF | Covered by strict reader/conformance tests and the interactive-read regressions. |
-| [#50](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#50) | mixed integer/float arithmetic comparison | **Found a bug during this audit.** EyeProlog rounded unbounded integers through JavaScript `Number`; `9007199254740993 > 9007199254740992.0` incorrectly failed. `stc/mixed_integer_float_comparison` now requires exact cross-type ordering and `max/2`/`min/2` use the same comparison. |
+| [#50](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#50) | mixed integer/float arithmetic comparison | The STC-facing normal-profile case requires exact cross-type ordering and `max/2`/`min/2` use the same comparison. `--iso-strict` deliberately retains the published Part 1 integer-to-float comparison rule; the draft case is not silently substituted for that normative baseline. |
 | [#55](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#55) | integer rounding function | Existing flag conformance verifies `integer_rounding_function = toward_zero`. |
+| [#56](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#56) | protect `(:-)/1` and `(:-)/2` from database modification | **Found a gap during the #65 audit.** Strict database operations now treat both functors as static/private for `assert*`, `retract*`, `abolish/1`, declarations, and `clause/2`, while ordinary calls still follow the separate procedure-existence behavior described by the STC item. |
 | [#58](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#58) | `set_prolog_flag/2` instantiation error | Existing strict/error coverage requires an instantiation error when a required flag value is a variable. |
 | [#67](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#67) | `bagof/3` answer-order example | `stc/bagof_answer_order` verifies the proposed clarifying example produces `[2,1]`. |
 | [#73](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#73) | float-reading limits discussed from issue #54 | Positive/negative literal and `number_chars/2` overflow are kept as explicit draft cases; underflow is tested separately. See the note below. |

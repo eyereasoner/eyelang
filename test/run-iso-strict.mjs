@@ -8,6 +8,7 @@ import {
   Env,
   createStrictIsoRegistry,
   parseGoalText,
+  parseProgramText,
   run,
 } from '../src/index.js';
 import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
@@ -55,7 +56,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'current_prolog_flag(integer_rounding_function,toward_zero)',
       'current_prolog_flag(char_conversion,on)',
       'current_prolog_flag(debug,off)',
-      'current_prolog_flag(max_arity,65535)',
+      'current_prolog_flag(max_arity,unbounded)',
       'current_prolog_flag(unknown,error)',
       'current_prolog_flag(double_quotes,chars)',
     ]) equal(answers(goalText), 1, goalText);
@@ -71,7 +72,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'permission_error(modify, flag)', 'bounded valid-but-fixed value');
     equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(integer_rounding_function,down)' })).formal,
       'permission_error(modify, flag)', 'rounding valid-but-fixed value');
-    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_arity,65535)' })).formal,
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_arity,unbounded)' })).formal,
       'permission_error(modify, flag)', 'max_arity valid-but-fixed value');
     equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_integer,unbounded)' })).formal,
       'domain_error(flag_value)', 'max_integer has no value when unbounded');
@@ -81,13 +82,21 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'domain_error(prolog_flag)', 'unsupported flag');
   });
 
-  reporter.test('keeps max_arity consistent with term and predicate-indicator limits', () => {
-    equal(capture(() => run('', { isoStrict: true, goal: 'functor(_,foo,65536)' })).formal,
-      'representation_error(max_arity)', 'functor/3 arity boundary');
-    equal(capture(() => run('', { isoStrict: true, goal: 'abolish(foo/65536)' })).formal,
-      'representation_error(max_arity)', 'abolish/1 arity boundary');
-    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(max_arity,unbounded)' })).formal,
-      'domain_error(flag_value)', 'unbounded is not the selected max_arity value');
+  reporter.test('keeps max_arity unbounded for compound terms', () => {
+    const program = Program.parse('', { isoStrict: true });
+    const solver = new Solver(program, { isoStrict: true });
+    const answers = (text) => [...solver.solve([parseGoalText(text, { isoStrict: true })], new Env(), 0)].length;
+    equal(answers('current_prolog_flag(max_arity,unbounded)'), 1, 'unbounded flag value');
+    equal(answers('functor(T,foo,65536),arg(65536,T,z)'), 1, 'functor beyond former 65535 ceiling');
+
+    const source = `wide(${Array.from({ length: 65536 }, () => 'a').join(',')}).`;
+    const clauses = parseProgramText(source, { isoStrict: true, sourceMetadata: true });
+    equal(clauses[0]?.head?.arity, 65536, 'source term beyond former 65535 ceiling');
+
+    // A very large predicate indicator that names no procedure must not be
+    // rounded through JavaScript Number or misreported as max_arity.
+    equal(run('', { isoStrict: true, goal: 'abolish(foo/9007199254740993)' }).stats.completed_goal_lists,
+      1, 'large nonexistent predicate indicator');
   });
 
   reporter.test('preparation-time char_conversion affects later unquoted source only', () => {
@@ -315,11 +324,12 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'type_error(list)', '=../2 fixed non-list');
   });
 
-  reporter.test('enforces Corrigendum 2 call/N max-arity errors', () => {
-    equal(capture(() => run('', {
-      isoStrict: true,
-      goal: 'functor(T,f,65535), call(T,x)',
-    })).formal, 'representation_error(max_arity)', 'call/2 resulting arity');
+  reporter.test('keeps Corrigendum 2 call/N compatible with unbounded max_arity', () => {
+    // Corrigendum 2 prescribes representation_error(max_arity) only when the
+    // resulting closure exceeds a finite max_arity. With the selected
+    // `unbounded` value that conditional branch does not apply.
+    equal(run('', { isoStrict: true, goal: "call(=(x),x)" }).stdout,
+      'call(=(x), x).\n', 'call/2 closure expansion');
   });
 
   reporter.test('reports the complete List culprit for Corrigendum 2 atomic conversions', () => {
@@ -349,6 +359,35 @@ export function runIsoStrict(reporter = new TestReporter()) {
     const program = Program.parse('', { isoStrict: true });
     equal(program.operators.has('fx\u0000?-'), true, 'fx ?-');
     equal(program.operators.has('xfx\u0000?-'), false, 'xfx ?-');
+  });
+
+  reporter.test('pins applicable post-Corrigendum STC clarifications', () => {
+    equal(run('', { isoStrict: true, goal: 'integer(- /**/ 1)' }).stats.completed_goal_lists,
+      1, 'layout between minus and integer token');
+
+    const shared = run(
+      ':- dynamic(a/1).\na(X) :- b(X).\n',
+      { isoStrict: true, goal: 'clause(a(A),b(B)),A==B,A=ok' },
+    );
+    equal(shared.stats.completed_goal_lists, 1, 'clause/2 preserves head/body variable identity');
+
+    equal(capture(() => run('', { isoStrict: true, goal: 'char_code(_,c)' })).formal,
+      'type_error(integer)', 'char_code/2 non-integer code');
+    equal(capture(() => run('', { isoStrict: true, goal: 'set_prolog_flag(unknown,_)' })).formal,
+      'instantiation_error', 'set_prolog_flag/2 variable value');
+    equal(run('', {
+      isoStrict: true,
+      goal: 'read(T),T=end_of_file',
+      ioOptions: { input: '' },
+    }).stats.completed_goal_lists, 1, 'read/1 end_of_file');
+    includes(run('', {
+      isoStrict: true,
+      goal: 'bagof(X,(X=2;X=1),S),S=[2,1],X=ok',
+    }).stdout, '[2, 1]', 'bagof/3 preserves answer order');
+
+    Program.parse(':- op(500,xfx,foo).\na foo b.\n', { isoStrict: true });
+    const beforeDefinition = capture(() => Program.parse('a foo b.\n:- op(500,xfx,foo).\n', { isoStrict: true }));
+    includes(beforeDefinition.message, 'expected .', 'op/3 directive applies only to following text');
   });
 
   reporter.test('rejects EyeProlog module directives', () => {
@@ -398,6 +437,41 @@ export function runIsoStrict(reporter = new TestReporter()) {
     }
     equal(capture(() => run('', { isoStrict: true, goal: "clause(','(a,b),_)" })).formal,
       'permission_error(access, private_procedure)', 'clause/2 conjunction access');
+  });
+
+  reporter.test('protects directive and rule functors from database modification per STC 56', () => {
+    const protectedGoals = [
+      "asserta(((':-'(a,b)):-true))",
+      "asserta(((':-'(b)):-true))",
+      "assertz(((':-'(a,b)):-true))",
+      "retract((':-'(a,b):-true))",
+      "retractall((':-'(a,b):-true))",
+      "abolish('/'(':-',2))",
+      "abolish('/'(':-',1))",
+    ];
+    for (const goal of protectedGoals) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal,
+        'permission_error(modify, static_procedure)', goal);
+    }
+    equal(capture(() => run('', { isoStrict: true, goal: "clause(':-'(a,b),_)" })).formal,
+      'permission_error(access, private_procedure)', 'clause/2 (:-)/2 access');
+    equal(capture(() => run('', { isoStrict: true, goal: "clause(':-'(b),_)" })).formal,
+      'permission_error(access, private_procedure)', 'clause/2 (:-)/1 access');
+    equal(capture(() => run('', { isoStrict: true, goal: "call(':-'(a,b))" })).formal,
+      'existence_error(procedure)', 'STC 56 keeps calls distinct from modification');
+    equal(capture(() => Program.parse(":- dynamic('/'(':-',2)).\n", { isoStrict: true })).formal,
+      'permission_error(modify, static_procedure)', 'preparation-time (:-)/2 declaration protection');
+  });
+
+  reporter.test('reports finite host exhaustion without imposing ISO representation bounds', () => {
+    equal(capture(() => run('', { isoStrict: true, goal: 'functor(T,f,4294967296)' })).formal,
+      'resource_error(memory)', 'unbounded max_arity host array exhaustion');
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is 1 << 4294967296' })).formal,
+      'resource_error(memory)', 'unbounded integer shift host exhaustion');
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is 2 ^ 4294967296' })).formal,
+      'resource_error(memory)', 'unbounded integer power host exhaustion');
+    equal(run('', { isoStrict: true, goal: 'current_prolog_flag(max_arity,unbounded)' }).stats.completed_goal_lists,
+      1, 'resource handling does not reintroduce a finite max_arity');
   });
 
   reporter.test('covers ISO database predicate errors and empty-procedure lifetime', () => {

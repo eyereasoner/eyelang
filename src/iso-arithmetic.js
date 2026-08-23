@@ -5,6 +5,19 @@ import {
 } from './term.js';
 import { PrologError } from './errors.js';
 
+function integerResource(operation) {
+  try {
+    return operation();
+  } catch (error) {
+    // With bounded=false, integer operations have no language-level numeric
+    // representation bound.  A finite host can nevertheless exhaust storage
+    // (V8 reports oversized BigInt powers/shifts as RangeError).  Keep that
+    // implementation resource boundary inside the ISO error model.
+    if (error?.name === 'RangeError') throw new PrologError('resource_error(memory)');
+    throw error;
+  }
+}
+
 function evaluate(term, env, options = {}) {
   term = deref(term, env);
   if (term.type === VAR) throw new PrologError('instantiation_error');
@@ -117,7 +130,7 @@ function evaluateOperation(term, args, options = {}) {
     throw new PrologError('type_error(integer)', numericTerm(invalid));
   }
   if (bothInteger && name === '^') {
-    if (b >= 0n) return { integer: true, value: a ** b };
+    if (b >= 0n) return { integer: true, value: integerResource(() => a ** b) };
     if (a === 0n) throw new PrologError('evaluation_error(undefined)');
     if (a === 1n) return { integer: true, value: 1n };
     if (a === -1n) return { integer: true, value: (-b) % 2n === 0n ? 1n : -1n };
@@ -126,22 +139,24 @@ function evaluateOperation(term, args, options = {}) {
   }
   if (bothInteger && ['+', '-', '*', '//', 'div', 'mod', 'rem', '/\\', '\\/', 'xor', '<<', '>>'].includes(name)) {
     if ((name === '//' || name === 'div' || name === 'mod' || name === 'rem') && b === 0n) throw new PrologError('evaluation_error(zero_divisor)');
-    if (name === '+') return { integer: true, value: a + b };
-    if (name === '-') return { integer: true, value: a - b };
-    if (name === '*') return { integer: true, value: a * b };
-    if (name === '//') return { integer: true, value: a / b };
+    if (name === '+') return { integer: true, value: integerResource(() => a + b) };
+    if (name === '-') return { integer: true, value: integerResource(() => a - b) };
+    if (name === '*') return { integer: true, value: integerResource(() => a * b) };
+    if (name === '//') return { integer: true, value: integerResource(() => a / b) };
     if (name === 'div') {
-      const quotient = a / b;
-      const remainder = a % b;
-      return { integer: true, value: remainder !== 0n && ((a < 0n) !== (b < 0n)) ? quotient - 1n : quotient };
+      return { integer: true, value: integerResource(() => {
+        const quotient = a / b;
+        const remainder = a % b;
+        return remainder !== 0n && ((a < 0n) !== (b < 0n)) ? quotient - 1n : quotient;
+      }) };
     }
-    if (name === 'rem') return { integer: true, value: a % b };
-    if (name === 'mod') return { integer: true, value: ((a % b) + b) % b };
-    if (name === '/\\') return { integer: true, value: a & b };
-    if (name === '\\/') return { integer: true, value: a | b };
-    if (name === 'xor') return { integer: true, value: a ^ b };
-    if (name === '<<') return { integer: true, value: a << b };
-    if (name === '>>') return { integer: true, value: a >> b };
+    if (name === 'rem') return { integer: true, value: integerResource(() => a % b) };
+    if (name === 'mod') return { integer: true, value: integerResource(() => ((a % b) + b) % b) };
+    if (name === '/\\') return { integer: true, value: integerResource(() => a & b) };
+    if (name === '\\/') return { integer: true, value: integerResource(() => a | b) };
+    if (name === 'xor') return { integer: true, value: integerResource(() => a ^ b) };
+    if (name === '<<') return { integer: true, value: integerResource(() => a << b) };
+    if (name === '>>') return { integer: true, value: integerResource(() => a >> b) };
   }
   const x = Number(a), y = Number(b);
   if ((!Number.isFinite(x) || !Number.isFinite(y)) && name !== 'max' && name !== 'min') {

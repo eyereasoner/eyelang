@@ -724,7 +724,9 @@ class Parser {
     }
     while (true) {
       args.push(this.parseTerm(ARG_MIN_PRECEDENCE, false, false, true));
-      if (args.length > ISO_MAX_ARITY) throw new NumberRepresentationError('representation_error(max_arity)');
+      if (ISO_MAX_ARITY != null && args.length > ISO_MAX_ARITY) {
+        throw new NumberRepresentationError('representation_error(max_arity)');
+      }
       if (this.token.type !== TOK.COMMA) break;
       this.advance();
     }

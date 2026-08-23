@@ -31,17 +31,17 @@ error-ordering alternative to an individual executable assertion.
 | Standard area | Status | Current evidence |
 | --- | --- | --- |
 | Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete vendored WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, writer/read-back regressions, and strict ASCII PCS/collation boundary tests. The implementation-defined 6.5/6.6 character-model decisions are now closed; wider shall-by-shall lexical mapping remains open. |
-| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates, plus strict checks for the required `variable < float < integer < atom < compound` type order, PCS-based atom collation, and the finite `max_arity` representation boundary used by term construction. |
+| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates, plus strict checks for the required `variable < float < integer < atom < compound` type order, PCS-based atom collation, and the `max_arity=unbounded` compound-term model. |
 | 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Preparation-time `char_conversion/2` affects later unquoted source text and respects `char_conversion=off`. Strict preparation now enforces declaration-before-clause ordering for `dynamic/1`, `multifile/1`, and `discontiguous/1`, cross-text `multifile/1`, discontiguous clause grouping, empty declared procedures, include textual-replacement behavior, and one-time initialization per prepared program. The remaining shall-by-shall mapping is still open. |
-| 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access; focused strict checks now cover `current_predicate/1`, `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, Corrigendum 2 `retractall/1`, and `abolish/1` errors plus empty-procedure lifetime, including runtime protection of the solver-native conjunction control construct `','/2`. The remaining clause-conversion shall-by-shall mapping is still open. |
+| 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access; focused strict checks now cover `current_predicate/1`, `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, Corrigendum 2 `retractall/1`, and `abolish/1` errors plus empty-procedure lifetime. Runtime protection includes the solver-native conjunction control construct `','/2` and, following STC #56's accepted-direction action item, the source syntax functors `(:-)/1-2` for database modification/private access while leaving their call behavior distinct. The remaining clause-conversion shall-by-shall mapping is still open. |
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
 | 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. |
-| 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Strict mode now also pins direct-variable precedence, arithmetic operand type errors, float-only rounding conversions, zero-to-negative-power undefined errors, and the Part 1 mixed integer/float comparison conversion rule. Exceptional-value/error-precedence mapping remains to be exhaustively enumerated. |
+| 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Strict mode now also pins direct-variable precedence, arithmetic operand type errors, float-only rounding conversions, zero-to-negative-power undefined errors, and the Part 1 mixed integer/float comparison conversion rule. Unbounded integer powers/shifts no longer leak host `RangeError`; finite-host exhaustion is normalized to `resource_error(memory)` in line with the Part 1 resource-error note and STC #21. Exceptional-value/error-precedence mapping remains to be exhaustively enumerated. |
 | 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, and Corrigendum 3 writer cases. The audit now also covers write-mode creation/truncation, append creation, repositioned overwrite, flushing, EOF actions, close/current-stream handling, strict stream-position terms, stream-property validation, stream-term requirements, text-vs-binary permission errors, and the prescribed `alias(A)` culprit for `open/4` alias collisions. The full option/mode cross-product is still being mapped. |
 | 7.11 — flags | covered | The complete Part 1 flag set, selected defaults, standard value domains, changeability, `current_prolog_flag/2`, and `set_prolog_flag/2` error behavior have dedicated strict tests. EyeProlog selects `bounded=false` and `integer_rounding_function=toward_zero`; valid alternative values of those fixed flags reach `permission_error(modify,flag,...)`, while `max_integer` and `min_integer` have no current value. Strict mode excludes the EyeProlog `occurs_check` extension. |
-| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax families and focused error cases. Exact ISO 8.14.1-8.14.4 error precedence is covered for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`; the continuing audit has corrected additional 8.11-8.13 stream/character/byte errors (including the complete `alias(A)` culprit for `open/4` alias collisions), Corrigendum 2 `keysort/2` errors, atomic-conversion list-shape precedence, `arg/3`, `atom_concat/3`, `sub_atom/5`, `char_conversion/2`, runtime control-construct database protection, and arithmetic culprit/precedence reporting. A complete one-row-per-prescribed-error ordering map remains open. |
-| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. The audit now includes corrected `keysort/2` variable/non-pair errors, stricter 8.11-8.13 stream and character/byte modes/errors, the 8.14 option/error-order subfamily, closed 8.17 flags, and additional prescribed precedence for `arg/3`, `atom_concat/3`, `sub_atom/5`, number/atom list conversions, and `char_conversion/2`. The remaining mode/error matrix is not yet one-row-per-standard-row. |
-| Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Strict mode excludes the EyeProlog-only evaluable atom `e`, retains Corrigendum 2 arithmetic additions, reports unknown zero-arity evaluables with the required `F/0` culprit shape, enforces the Part 1 numeric/integer operand errors and float-only rounding modes, and uses the Part 1 integer-to-float conversion rule for mixed arithmetic comparisons. Normal mode retains EyeProlog's exact mixed-type comparison extension. Host floating-point representation choices remain documented implementation-defined behavior; exhaustive exceptional-value precedence remains open. |
+| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax/resource families and focused error cases. Exact ISO 8.14.1-8.14.4 error precedence is covered for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`; the continuing audit has corrected additional 8.11-8.13 stream/character/byte errors (including the complete `alias(A)` culprit for `open/4` alias collisions), Corrigendum 2 `keysort/2` errors, atomic-conversion list-shape precedence, `arg/3`, `atom_concat/3`, `sub_atom/5`, `char_conversion/2`, runtime control-construct/database protection, arithmetic culprit/precedence reporting, and host-resource normalization for unbounded term/integer operations. A complete one-row-per-prescribed-error ordering map remains open. |
+| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. The audit now includes corrected `keysort/2` variable/non-pair errors, stricter 8.11-8.13 stream and character/byte modes/errors, the 8.14 option/error-order subfamily, closed 8.17 flags, additional prescribed precedence for `arg/3`, `atom_concat/3`, `sub_atom/5`, number/atom list conversions, and `char_conversion/2`, plus finite-host resource handling for unbounded `functor/3` construction. The remaining mode/error matrix is not yet one-row-per-standard-row. |
+| Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Strict mode excludes the EyeProlog-only evaluable atom `e`, retains Corrigendum 2 arithmetic additions, reports unknown zero-arity evaluables with the required `F/0` culprit shape, enforces the Part 1 numeric/integer operand errors and float-only rounding modes, and uses the Part 1 integer-to-float conversion rule for mixed arithmetic comparisons. Normal mode retains EyeProlog's exact mixed-type comparison extension. Unbounded BigInt resource exhaustion is translated into the Prolog error model rather than leaking host exceptions. Host floating-point representation choices remain documented implementation-defined behavior; exhaustive exceptional-value precedence remains open. |
 | Corrigendum 1 | covered | Double-quoted atom/operator-priority corrections have dedicated cases. |
 | Corrigendum 2 | covered | Added predicates/functors, catch corrections, bar/operator and uninstantiation corrections have dedicated cases. |
 | Corrigendum 3 | covered | Writer options, `variable_names/1`, canonical list output and negative-power corrections have dedicated cases. |
@@ -70,14 +70,17 @@ The complete WG17 syntax matrix remains green under this narrower strict
 boundary.
 
 
-The subsequent audit also reconciles the processor's arity limit: EyeProlog no
-longer advertises `max_arity=unbounded` while enforcing a hidden host ceiling.
-The implementation-defined Part 1 value is now `65535`, and the same boundary
-is used by parsing and the standard predicates whose error tables prescribe
-`representation_error(max_arity)`. Focused strict tests also lock the corrected
-8.5 term-construction errors, 8.8 clause-access precedence, 8.10 all-solutions
-goal/list precedence, database update errors, and Corrigendum 3 variable
-metadata traversal/write naming.
+The subsequent arity audit originally selected a finite `max_arity=65535`, but
+issue #66 and the post-Corrigendum STC review exposed that as the wrong
+abstraction: Part 1 `max_arity` is the maximum arity of **compound terms**, not
+a procedure-arity limit. EyeProlog now again selects `max_arity=unbounded` and
+removes the artificial 65535 checks from source parsing, `functor/3`, `=../2`,
+predicate indicators, and Corrigendum 2 `call/N` closure expansion. Practical
+host exhaustion remains a resource condition rather than a declared term-arity
+boundary. Focused strict tests also lock the corrected 8.5 term-construction
+errors, 8.8 clause-access precedence, 8.10 all-solutions goal/list precedence,
+database update errors, and Corrigendum 3 variable metadata traversal/write
+naming.
 
 The public WG17 `number_chars/2` comparison used in preparation of Corrigendum
 2 has additionally been checked against the current strict profile. That
@@ -110,14 +113,13 @@ EyeProlog-only evaluable atom `e`, while the Corrigendum arithmetic additions
 remain available. These corrections narrow the remaining `audit` rows but do
 not by themselves close the full shall-by-shall/error-order exit criteria.
 
-The next Corrigendum 2 pass closes two smaller prescribed-error gaps.
-`call/2..8` now raises `representation_error(max_arity)` when appending its
-extra arguments would make the resulting goal exceed the declared `max_arity`,
-rather than falling through to a procedure-existence error. Reverse
-`atom_chars/2` and `atom_codes/2` now report the complete improper `List`
-argument as the culprit of `type_error(list, List)`, as required by the
-Corrigendum 2 replacement error clauses. Dedicated strict-core regressions pin
-both behaviors.
+The next Corrigendum 2 pass closed the prescribed `call/2..8` max-arity
+branch for processors with a finite `max_arity`, and corrected reverse
+`atom_chars/2` / `atom_codes/2` improper-list culprits. After issue #66 restored
+EyeProlog's selected `max_arity=unbounded`, the conditional `call/N`
+`representation_error(max_arity)` branch is intentionally unreachable unless a
+future processor profile selects a finite compound-term limit; closure
+expansion itself remains covered by strict regressions.
 
 
 The following Part 1 pass tightens more of the still-open prescribed-error and
@@ -134,6 +136,30 @@ integer-to-float conversion (including `float_overflow`); normal EyeProlog keeps
 its exact cross-type comparison as an extension. Dedicated strict regressions
 cover these distinctions without changing the normal-profile arithmetic error
 contract.
+
+## Post-Corrigendum STC cross-check
+
+The public WG17 STC draft is tracked as useful defect-discovery material, but it
+is not silently treated as a fourth published Corrigendum. The current audit
+confirms EyeProlog already has the behavior implicated by the substantive STC
+items on negative-number layout/operator syntax, arithmetic instantiation
+precedence, EOF actions/end tokens, character/code/byte output error overlap,
+clause head/body variable identity, sequential `op/3` and `set_prolog_flag/2`
+preparation effects, integer-to-float transcendental evaluation, `char_code/2`
+type precedence, `read_term/3` EOF handling, mixed arithmetic comparison,
+`integer_rounding_function=toward_zero`, `set_prolog_flag/2` variable errors,
+and `bagof/3` answer order. STC #21 is also used to keep finite-host exhaustion
+of unbounded integer operations inside the Prolog resource-error model.
+
+Issue #66 corresponds to the newer STC arity discussion: `max_arity` describes
+compound terms. EyeProlog therefore selects `unbounded` and does not invent a
+finite predicate/procedure ceiling merely to preserve the former 65535 value.
+STC #56, which became a WG17 action item, is implemented narrowly for database
+protection: `(:-)/1-2` are static/private for modification and `clause/2`
+access, while ordinary calls retain their separate existence behavior. Other
+draft/editorial or deliberately controversial proposals (for example deleting
+standalone if-then) remain outside the Part 1 + Corrigenda 1-3 strict baseline
+until standardized or adopted as an explicit compatibility extension.
 
 ## Strict-core boundary
 

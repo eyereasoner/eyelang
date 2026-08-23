@@ -1317,8 +1317,13 @@ function assertPredicateIsDefinable(name, arity, strictIso = false) {
   // be redefined in either profile.  Strict core mode extends the same ISO
   // rule to every Part-1 built-in/control construct; the normal EyeProlog
   // profile keeps its historical source-compatibility behavior.
+  const strictSyntaxProcedure = strictIso && (
+    (name === ',' && arity === 2) ||
+    (name === ':-' && (arity === 1 || arity === 2))
+  );
   if ((name === 'false' && arity === 0) ||
-      (strictIso && (getStrictIsoRegistry().get(name, arity) || (name === ',' && arity === 2)))) {
+      (strictIso && getStrictIsoRegistry().get(name, arity)) ||
+      strictSyntaxProcedure) {
     throw staticProcedureModificationError(name, arity);
   }
 }
