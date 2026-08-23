@@ -209,7 +209,7 @@ The Corrigendum 2 additions have the same shape.
 | 8.11.5 errors: argument shapes | non-atom mode; non-list options; non-variable stream output (Cor.2 uninstantiation) | covered | strict `open/4` assertions |
 | 8.11.5 errors: domains | invalid source/sink, I/O mode, or stream option | covered | strict `open/4` assertions |
 | 8.11.5 source/sink errors | missing read source or source/sink that cannot be opened | covered | strict host-I/O probes for existence/permission conditions |
-| 8.11.5 alias collision | `alias(A)` already names an open stream -> open permission error with complete `alias(A)` culprit | covered | focused issue #65 alias-collision regression |
+| 8.11.5 alias collision | `alias(A)` already names an open stream -> open permission error with complete `alias(A)` culprit | covered | focused alias-collision regression |
 | 8.11.5 `reposition(true)` impossible | permission error when the requested stream cannot be repositioned | covered | stream option corpus and implementation-defined stream capability checks |
 | 8.11.6 `close/2`, `close/1` | close an open non-standard stream and maintain current-stream fallbacks | covered | stream lifecycle corpus |
 | 8.11.6 errors | variable stream/option element; non-list options; invalid stream-or-alias; invalid close option; missing stream | covered | strict close assertions |
@@ -364,7 +364,7 @@ built-in matrix does not have a gap at 8.17.
 | 8.17.4 variable status | instantiation error | covered | strict `halt(X)` |
 | 8.17.4 non-integer status | integer type error | covered | strict `halt(a)` |
 
-## Remaining audit work
+## Closure note
 
 The built-in **8.2-8.17 row audit is complete** at the level tracked by this
 file: prescribed modes, success/failure behavior, individual error conditions,
@@ -372,9 +372,6 @@ and conditional/not-applicable processor branches all have explicit outcomes.
 ISO 7.12 simultaneous-error selection remains an implementation-dependent
 processor choice unless more specific normative text constrains it.
 
-The remaining #65 work is therefore above/below this built-in table. The
-7.1-7.3 term-semantics and 7.9/Clause 9 evaluable-functor rows are now closed in
-their dedicated matrices. What remains is Clause 6 text/rejection mapping,
-Clause 7.4-7.8 plus higher-level 7.10/7.12 processor/control semantics, residual
-Clause 5 dependency rows and the unexplained-deviation exit criterion
-recorded in `ISO-COMPLIANCE.md`.
+The surrounding Clause 5-7 processor requirements are closed in
+`ISO-PROCESSOR-REQUIREMENTS.md` and `ISO-COMPLIANCE.md`; this matrix remains the
+detailed evidence for the 8.2-8.17 built-in layer.

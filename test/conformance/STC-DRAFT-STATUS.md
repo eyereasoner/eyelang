@@ -32,23 +32,22 @@ regressions.
 | [#49](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#49) | `read_term/3` and EOF | Covered by strict reader/conformance tests and the interactive-read regressions. |
 | [#50](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#50) | mixed integer/float arithmetic comparison | The STC-facing normal-profile case requires exact cross-type ordering and `max/2`/`min/2` use the same comparison. `--iso-strict` deliberately retains the published Part 1 integer-to-float comparison rule; the draft case is not silently substituted for that normative baseline. |
 | [#55](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#55) | integer rounding function | Existing flag conformance verifies `integer_rounding_function = toward_zero`. |
-| [#56](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#56) | protect `(:-)/1` and `(:-)/2` from database modification | **Found a gap during the #65 audit.** Strict database operations now treat both functors as static/private for `assert*`, `retract*`, `abolish/1`, declarations, and `clause/2`, while ordinary calls still follow the separate procedure-existence behavior described by the STC item. |
+| [#56](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#56) | protect `(:-)/1` and `(:-)/2` from database modification | **The audit found a gap.** Strict database operations now treat both functors as static/private for `assert*`, `retract*`, `abolish/1`, declarations, and `clause/2`, while ordinary calls still follow the separate procedure-existence behavior described by the STC item. |
 | [#58](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#58) | `set_prolog_flag/2` instantiation error | Existing strict/error coverage requires an instantiation error when a required flag value is a variable. |
 | [#67](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#67) | `bagof/3` answer-order example | `stc/bagof_answer_order` verifies the proposed clarifying example produces `[2,1]`. |
 | [#68](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#68) | division examples | Existing arithmetic coverage evaluates signed integer `/` through the floating operation; no implementation-defined signed-division result is used. |
-| [#69](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#69) | arithmetic example culprit | **Found a #65 gap.** Strict expression evaluation now applies 7.9.2(c) to an atomic subexpression such as `foo`: it reports `type_error(evaluable,foo/0)` rather than the misleading `type_error(number,foo)` shown by the old 9.1.7 example. |
-| [#70](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#70) | optional `max_procedure_arity` | Reviewed after issue #66 corrected the earlier #71 pointer. EyeProlog has no declared procedure-arity limit smaller than its `max_arity=unbounded` term model, so the implementation-defined optional flag is intentionally absent. |
+| [#69](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#69) | arithmetic example culprit | **The audit found a gap.** Strict expression evaluation now applies 7.9.2(c) to an atomic subexpression such as `foo`: it reports `type_error(evaluable,foo/0)` rather than the misleading `type_error(number,foo)` shown by the old 9.1.7 example. |
+| [#70](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#70) | optional `max_procedure_arity` | Reviewed after the STC arity discussion corrected the earlier #71 pointer. EyeProlog has no declared procedure-arity limit smaller than its `max_arity=unbounded` term model, so the implementation-defined optional flag is intentionally absent. |
 | [#72](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#72) | tentative non-ground stream-term instances | Reviewed as a tentative post-2026 proposal. EyeProlog does not make this draft wording normative in `--iso-strict`; the published Part 1 stream-term/domain rules remain the baseline until WG17 settles the proposal. |
 | [#73](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#73) | `read/1-2` and `read_term/2-3` representation limits | The 2026-08-23 post-N289 draft now explicitly proposes `max_float` / `min_float` alongside the existing representation-limit flags. EyeProlog already reports those errors while reading overflowing positive/negative float tokens; strict regression coverage now exercises both `read/1` and `read_term/2`, and the literal STC cases pin parser preparation. |
 | [#74](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#74) | `number_chars/2` and `number_codes/2` representation limits | Positive and negative overflow now have explicit draft-facing cases for both conversion predicates, reporting `representation_error(max_float)` / `representation_error(min_float)` rather than a syntax error. |
 | [#75](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#75) | power underflow versus the 9.1.4.2 `resultF` choice | The draft proposes making the Part 1 `**/2` and Corrigendum 2 `^/2` underflow rows conditional on the implementation-defined `resultF` underflow choice. EyeProlog's published-baseline strict mode intentionally retains the currently published unconditional power-underflow clauses; its separate 9.1.4.2 choice remains `round(x)`. This proposal is tracked, not silently adopted. |
 | [#76](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#76) | `read/1-2` and `read_term/2-3` invalid input entity | Existing file-stream regressions already require `representation_error(character)` for invalid UTF-8 through all four read/read_term arities. The regression is now cross-referenced to the new draft item. |
-| [issue #54](https://github.com/eyereasoner/eyeprolog/issues/54) | float input range and underflow background | The earlier EyeProlog issue remains useful background for finite-double input overflow/underflow. Its overflow cases are now tracked by STC #73/#74; input underflow remains a separate implementation-profile check and must not be conflated with STC #75's power-underflow proposal. |
 
-## Float-reading note from issue #54
+## Float-reading implementation note
 
 EyeProlog currently has a finite-double numeric profile. The draft-facing cases
-record the behavior discussed in issue #54:
+record EyeProlog's finite-double behavior:
 
 - a positive finite numeric token beyond the representable range raises
   `representation_error(max_float)`;
@@ -69,7 +68,6 @@ how power underflow relates to the implementation-defined `resultF` choice.
 Relevant background:
 
 - [WG17 float update](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/core_update_float-2014-07-21)
-- [Issue #54](https://github.com/eyereasoner/eyeprolog/issues/54)
 
 ## Maintenance rule
 

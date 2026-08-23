@@ -212,15 +212,14 @@ unchanged.
 
 This README intentionally stays at the project-overview level. The detailed
 implementation reference is [*The Art of EyeProlog*](the-art-of-eyeprolog.md).
-The current Part 1 audit status and remaining release conditions are recorded in
+The current Part 1 audit status and closure criteria are recorded in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md);
 implementation-defined decisions are indexed in
 [`ISO-IMPLEMENTATION-DEFINED.md`](test/conformance/ISO-IMPLEMENTATION-DEFINED.md). The complete
 vendored WG17 syntax corpus and the strict ISO regression suite run as release
 gates.
 
-EyeProlog does not claim independent ISO certification while the explicit exit
-checklist still contains unresolved normative or unexplained-deviation items.
+The release-facing Part 1 audit ledger has explicit dispositions for its tracked requirements. This implementation evidence is not an independent ISO certification.
 
 ## Module and definite clause grammar compatibility profiles
 
@@ -285,7 +284,7 @@ headroom, so an exhausted finite heap is reported as a catchable
 `library(iso_ext)` is also accepted as a common interop module name.
 EyeProlog exports `call_nth/2`, `time/1`, and the DCG helper `... //0` there.
 The latter describes an arbitrary number of input elements and supports the
-nonterminal hand-off benchmark discussed in issue #49. These common predicates
+nonterminal hand-off benchmark used by the interoperability tests. These common predicates
 may be imported explicitly, while source/CLI/API dependency loading can resolve
 their unqualified forms conservatively. For Trealla-style interactive timing,
 `time/1` is also available directly in the normal EyeProlog runtime; strict ISO

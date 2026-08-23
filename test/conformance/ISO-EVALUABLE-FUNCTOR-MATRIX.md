@@ -85,7 +85,6 @@ unbounded integer model and translate finite-host exhaustion to
 ## Closure note
 
 With this matrix and the strict arithmetic regression, the release-facing
-Clause 7.9 and Clause 9 rows are `covered`. The remaining issue #65 audit is not
-therefore an arithmetic audit: it is concentrated in Clause 6 text/rejection,
-Clause 7.4-7.8 and 7.10/7.12 processor semantics, their Clause 5 dependencies,
-and the remaining processor-level exit criteria.
+Clause 7.9 and Clause 9 rows are `covered`. The surrounding processor and syntax
+requirements are dispositioned in `ISO-PROCESSOR-REQUIREMENTS.md` and
+`ISO-COMPLIANCE.md`.

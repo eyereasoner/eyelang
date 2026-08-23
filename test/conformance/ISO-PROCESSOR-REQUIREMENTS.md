@@ -7,27 +7,26 @@ extension boundary visible as its own auditable row.
 
 The normative baseline is ISO/IEC 13211-1:1995 plus Technical Corrigenda 1-3.
 `covered` means the requirement has an implementation/documentation decision
-and executable evidence. `audit` means the implementation has relevant tests
-but the project has not yet reduced every dependent Clause 6-9 requirement to
-an explicit pass/not-applicable decision. No row here is an independent
+and executable evidence. `not applicable` records a standard variation that does
+not apply to EyeProlog's selected processor profile. No row here is an independent
 certification claim.
 
 ## 5.1 — conforming processor obligations
 
-| Requirement | Status | Current evidence / remaining work |
+| Requirement | Status | Current evidence |
 | --- | --- | --- |
-| 5.1(a) prepare conforming Prolog text | audit | parser/preparation tests, the closed 7.4 directive/source-clause matrix, include/ensure-loaded behavior, preparation-time operators/flags/character conversion, and the complete vendored WG17 syntax matrix; the remaining dependency is the production-by-production Clause 6 map |
-| 5.1(b) execute conforming Prolog goals | audit | the 7.1-7.8 term/preparation/database/control matrices, 7.9/Clause 9 evaluable-functor matrix, and complete 8.2-8.17 built-in row audit are closed; remaining dependency rows are higher-level 7.10 and residual processor-level 7.12 semantics |
-| 5.1(c) reject nonconforming text/read terms | audit | syntax-error corpus, WG17 negative syntax cases, strict extension rejection; exhaustive Clause 6 rejection mapping remains open |
+| 5.1(a) prepare conforming Prolog text | covered | the strict Clause 6 production/rejection gate, complete vendored WG17 syntax matrix, and closed 7.4 preparation/directive matrix cover text recognition and preparation |
+| 5.1(b) execute conforming Prolog goals | covered | 7.1-7.12 semantics, all 8.2-8.17 built-in rows, and Clause 9 evaluable functors have explicit executable dispositions |
+| 5.1(c) reject nonconforming text/read terms | covered | WG17 negative cases plus focused malformed token, list, operator, argument, escape, comment, and extension-syntax cases exercise rejection across the Clause 6 families |
 | 5.1(d) specify permitted variations | covered | `ISO-IMPLEMENTATION-DEFINED.md` records the Part 1 implementation-defined choices and implementation-specific extension families |
 | 5.1(e) offer a strictly conforming mode | covered | CLI `--iso-strict` and API `isoStrict: true`; registry/directive/operator/flag extension filtering plus disabled implementation-specific execution shortcuts |
 
 ## 5.2-5.4 — text, goals, and documentation
 
-| Requirement | Status | Current evidence / remaining work |
+| Requirement | Status | Current evidence |
 | --- | --- | --- |
-| 5.2 conforming and strictly conforming Prolog text boundary | audit | strict parser accepts Part 1 + Corrigenda syntax plus implementation-defined PCS choices and rejects implementation-specific language facilities; 7.4 preparation is closed and the full Clause 6 production/rejection map remains open |
-| 5.3 conforming and strictly conforming Prolog goal boundary | audit | strict registry/control/evaluable filtering plus closed 7.1-7.9 and 8.2-8.17 row matrices; remaining higher-level 7.10 stream and processor-error semantics keep the top-level goal boundary open |
+| 5.2 conforming and strictly conforming Prolog text boundary | covered | strict parsing/preparation accepts the Part 1 + Corrigenda language under the documented PCS choices and rejects implementation-specific language facilities; normal-profile preservation is checked against every strict-accepted WG17 case |
+| 5.3 conforming and strictly conforming Prolog goal boundary | covered | strict registry/control/evaluable filtering plus closed 7.1-7.12, 8.2-8.17, and Clause 9 audits define the goal boundary |
 | 5.4 accompanying documentation for implementation-defined and implementation-specific features | covered | `ISO-IMPLEMENTATION-DEFINED.md`, *The Art of EyeProlog*, strict-boundary documentation, and release-facing conformance ledgers |
 
 ## 5.5 — extension boundaries
@@ -35,7 +34,7 @@ certification claim.
 | Requirement | Status | EyeProlog decision / evidence |
 | --- | --- | --- |
 | 5.5 general extension rule | covered | normal mode may provide documented extensions; strict mode removes their Part 1 interpretation rather than changing implementation-defined choices |
-| 5.5.1 syntax extensions preserve standard token/text meaning | audit | WG17 syntax is a release gate and strict mode removes module/DCG/quad interpretation. Every vendored WG17 case that succeeds in the Part 1 strict reader now has an identical normal-profile observable outcome, directly checking that normal syntax extensions do not reinterpret accepted standard text. A complete one-row preservation map for every Clause 6 production remains open |
+| 5.5.1 syntax extensions preserve standard token/text meaning | covered | WG17 syntax is a release gate and strict mode removes module/DCG/quad interpretation. Every vendored WG17 case that succeeds in the strict reader has the same observable outcome in normal mode; the focused Clause 6 gate separately covers each standard token/term family and malformed counterparts. |
 | 5.5.2 additional predefined operators | covered | strict mode starts from the Part 1 predefined operator table; normal-profile extra operators are documented and filtered |
 | 5.5.3 initial character-conversion mapping | covered | identity initial mapping; user changes are exercised through preparation/execution `char_conversion/2` behavior |
 | 5.5.4 additional term types | covered | the normal JavaScript API's `stringTerm(Text)` is documented as an implementation-specific sixth term type, including disjointness, ordering, clause conversion, lack of source token syntax, expression behavior, and writing; strict program/goal entry rejects that type with `representation_error(term)` |
@@ -47,10 +46,26 @@ certification claim.
 | 5.5.10 additional evaluable functors/types | covered | strict mode rejects the normal-profile evaluable `e` extension while retaining the full Part 1 + Corrigenda arithmetic set. `ISO-EVALUABLE-FUNCTOR-MATRIX.md` now closes the Clause 9 semantic/error audit and pins the 9.1.4.2 `resultF`, mixed-type `max/2`/`min/2`, and signed bitwise/shift choices. Post-N289 STC #75 remains separate from the published baseline |
 | 5.5.11 reserved atoms | not applicable | EyeProlog declares no reserved-atom extension; extension names remain ordinary atoms unless used in a documented syntactic/predicate/directive role |
 
+## Clause 6 syntax-preservation closure
+
+The production audit is kept here rather than in another status file. The strict
+regression gate covers the following families directly, while the complete WG17
+matrix supplies the detailed independent syntax cases.
+
+| Clause family | Disposition | Executable evidence |
+| --- | --- | --- |
+| 6.2 Prolog text/data boundary | covered | complete-term parsing, end-token/boundary rejection, preparation tests |
+| 6.3.1-6.3.3 atomic, variable, functional compound terms | covered | atoms, integers/floats, negative numbers, variables, functional arguments |
+| 6.3.4 operator notation | covered | precedence/associativity/operator-table tests plus invalid `xfx` chaining |
+| 6.3.5-6.3.7 list, curly and double-quoted notation | covered | list tails, curly terms, `double_quotes` behavior and read/write round trips |
+| 6.4.1-6.4.8 tokens | covered | layout/comments, quoted escapes, names, integer bases/character codes, floats, double-quoted tokens, solo/meta tokens, malformed counterparts |
+| 6.5 processor characters | covered | documented Unicode-scalar PCS and lexical classes, invalid-scalar representation errors |
+| 6.6 collating sequence | covered | Unicode scalar value collation, atom-order regressions |
+| 5.5.1 preservation under extensions | covered | every WG17 case accepted in strict mode has the same observable result in normal mode |
+
 ## Exit-use rule
 
-A top-level row stays `audit` until all of the normative clauses it depends on
-have explicit pass, not-applicable, or documented implementation-defined
-outcomes. `ISO-COMPLIANCE.md` records the same dependency closure in its embedded
-release-exit checklist. This prevents a large green regression suite from
-being mistaken for a completed processor-requirement audit.
+All top-level rows now have covered, not-applicable, or documented
+implementation-defined outcomes. `ISO-COMPLIANCE.md` records the same closure in
+its embedded release-exit checklist. The green suite is evidence for those
+dispositions; it is not presented as independent certification.

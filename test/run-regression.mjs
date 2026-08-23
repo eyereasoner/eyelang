@@ -3665,7 +3665,7 @@ function documentationSyncCases() {
       run: () => assertArrayEqual(documentationSourceStyleIssues(), [], 'documentation source style'),
     },
     {
-      name: 'DCG nonterminal indicator prose uses valid ... //0 spacing (issue #49)',
+      name: 'DCG nonterminal indicator prose uses valid ... //0 spacing',
       run: () => {
         for (const filename of ['README.md', 'the-art-of-eyeprolog.md', 'src/standard-library.js', 'src/solver.js']) {
           const text = fs.readFileSync(path.join(packageRoot, filename), 'utf8');
@@ -3674,7 +3674,7 @@ function documentationSyncCases() {
       },
     },
     {
-      name: 'ISO 5.4 decision index inventories implementation-defined choices (issue #56)',
+      name: 'ISO 5.4 decision index inventories implementation-defined choices',
       run: () => {
         const filename = path.join(testRoot, 'conformance', 'ISO-IMPLEMENTATION-DEFINED.md');
         const text = fs.readFileSync(filename, 'utf8');
@@ -3687,7 +3687,7 @@ function documentationSyncCases() {
           '8.17.3', '8.17.4', '9.1.3.1', '9.1.4.1', '9.1.4.2', '9.1.4.3', '9.4',
           '9.4.1', '9.4.2', '9.4.3', '9.4.4', '9.4.5', 'Cor.2 9.4.6',
         ]) assertIncludes(text, `| ${clause} |`, `ISO 5.4 clause ${clause}`);
-        assertIncludes(text, 'Issue #56: one underflow policy', 'issue #56 explanation');
+        assertIncludes(text, 'Floating underflow policy', 'floating underflow policy explanation');
         assertIncludes(text, 'Implementation-specific features required to be documented by 5.4', '5.5 extension inventory');
       },
     },
@@ -3722,17 +3722,33 @@ function documentationSyncCases() {
       },
     },
     {
-      name: 'ISO exit criteria keep remaining audit work explicit',
+      name: 'ISO Clause 6, 7.10, and 7.12 closure is documented',
+      run: () => {
+        const compliance = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-COMPLIANCE.md'), 'utf8');
+        const processor = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-PROCESSOR-REQUIREMENTS.md'), 'utf8');
+        for (const row of [
+          '| Clause 6 — tokens, terms, lists, operators, quoted text | covered |',
+          '| 7.10 — input/output concepts | covered |',
+          '| 7.12 — errors | covered |',
+        ]) assertIncludes(compliance, row, row);
+        assertIncludes(processor, '## Clause 6 syntax-preservation closure', 'Clause 6 closure map');
+        assertIncludes(processor, '| 5.5.1 syntax extensions preserve standard token/text meaning | covered |', '5.5.1 covered');
+      },
+    },
+    {
+      name: 'ISO release-facing exit criteria are explicitly closed',
       run: () => {
         const exit = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-COMPLIANCE.md'), 'utf8');
         for (const item of [
-          '| Clause 6 lexical/syntactic requirements have explicit dispositions | open |',
-          '| Clause 7 semantic requirements have explicit dispositions | open |',
+          '| Clause 5 processor obligations have explicit dispositions | covered |',
+          '| Clause 6 lexical/syntactic requirements have explicit dispositions | covered |',
+          '| Clause 7 semantic requirements have explicit dispositions | covered |',
           '| Clause 8 built-in modes/errors have explicit dispositions | covered |',
           '| Clause 9 evaluable-functor requirements have explicit dispositions | covered |',
           '| Independent external syntax corpus is an offline release gate | covered |',
-          '| No unexplained deviation remains in the release-facing ledger | open |',
+          '| No unexplained deviation remains in the release-facing ledger | covered |',
         ]) assertIncludes(exit, item, item);
+        assertNotIncludes(exit, '| audit |', 'no release-facing audit rows remain');
       },
     },
     {
@@ -3749,7 +3765,17 @@ function documentationSyncCases() {
         assertIncludes(readme, 'implementation reference is [*The Art of EyeProlog*]', 'README book hand-off');
         assertIncludes(readme, 'test/conformance/ISO-COMPLIANCE.md', 'README concise audit link');
         assertEqual(readme.includes('2026-08-23 draft items #73-#76'), false, 'README omits audit-history detail');
-        assertIncludes(profile, 'completed row-level 7.1-7.9 term, preparation/database/control, and arithmetic audits', 'Why EyeProlog audit state');
+        assertIncludes(profile, 'Part 1 processor, syntax, semantic, built-in, and arithmetic', 'Why EyeProlog audit state');
+      },
+    },
+    {
+      name: 'documentation avoids repository issue references',
+      run: () => {
+        for (const file of listMarkdownFiles(packageRoot)) {
+          const text = fs.readFileSync(file, 'utf8');
+          assertEqual(/github\.com\/eyereasoner\/eyeprolog\/issues\//.test(text), false, `${path.relative(packageRoot, file)} repository issue URL`);
+          assertEqual(/\bissue\s+#\d+\b/i.test(text), false, `${path.relative(packageRoot, file)} repository issue number`);
+        }
       },
     },
     {

@@ -7584,9 +7584,7 @@ node test/run-conformance-report.mjs
 ```
 
 `test/conformance/ISO-COMPLIANCE.md` is the processor-requirement ledger for the
-Part 1 conformance audit. It distinguishes implemented/tested families from
-requirements whose normative `shall` clauses, option combinations, or error
-precedence still need one-by-one closure. `test/conformance/ISO-COMPLIANCE.md`
+Part 1 conformance audit. It records explicit dispositions for the tracked processor, syntax, semantic, built-in, and arithmetic requirements. `test/conformance/ISO-COMPLIANCE.md`
 maps language families to representative executable cases.
 `test/conformance/ISO-IMPLEMENTATION-DEFINED.md` is the ISO 5.4 decision
 index: it enumerates the Part 1 implementation-defined decisions and the
@@ -7595,8 +7593,7 @@ proposals into the licensed baseline. `ISO-TERM-SEMANTICS-MATRIX.md` closes the 
 rows, `ISO-PROLOG-TEXT-EXECUTION-MATRIX.md` closes 7.4-7.8 preparation,
 database, conversion, execution, and control, and
 `ISO-EVALUABLE-FUNCTOR-MATRIX.md` closes 7.9/Clause 9 expression and arithmetic
-rows. The exit checklist in `ISO-COMPLIANCE.md` makes the remaining normative and
-unexplained-deviation conditions explicit. `test/conformance/WG17-SYNTAX-STATUS.md` separately traces the vendored active
+rows. The exit checklist in `ISO-COMPLIANCE.md` records the closure criteria and their evidence. `test/conformance/WG17-SYNTAX-STATUS.md` separately traces the vendored active
 upstream syntax cases. Reviewed cases can pin exact strict-reader outcomes, while
 newly upgraded cases execute directly against the upstream Codex expectation.
 
@@ -7660,29 +7657,18 @@ expansion/`phrase/2-3`, quads, EyeProlog libraries, the `occurs_check` flag,
 automatic tabling, `call_cleanup/2`, and `setup_call_cleanup/3` are outside
 that Part 1 strict surface.
 
-This release establishes the strict-mode mechanism required for the ongoing
-conformance audit; it does **not** yet claim that every processor requirement
-has been independently certified. `test/conformance/ISO-COMPLIANCE.md` tracks
-the remaining normative audit work. Public comparison material used during the audit remains review evidence rather than a duplicated vendored corpus. The executable examples are mostly
-EyeProlog-profile programs using host-supplied goals, character lists, explicit
-integrity relations, automatic tabling, and the EyeProlog library. The strict audit also exercises the complete Part 1 flag
-set and the prescribed 8.14 error precedence for `read_term/3`, `write_term/3`,
-`op/3`, and `current_op/3`; these checks distinguish invalid values from
-valid-but-fixed flag values and reject normal-profile write options at the
-strict boundary. The continuing issue #65 audit also enforces Part 1
-preparation constraints for `dynamic/1`, `multifile/1`, and `discontiguous/1`,
-keeps initialization tied to preparation of a program, tightens stream
-creation/position/EOF behavior and text-vs-binary permission errors, corrects
-Corrigendum 2 `keysort/2` error cases, closes the 5.5.6 Prolog-visible
-side-effect boundary by excluding statistics/cleanup extensions from strict
-mode, closes 5.5.10 by keeping the non-standard evaluable atom `e` outside
-strict mode, closes the row-level 7.1-7.3 term-semantics, 7.4-7.8 preparation/database/control, and 7.9/Clause 9
-arithmetic audits, and pins the permitted arithmetic variation points for
-mixed-type Corrigendum 2 `max/2`/`min/2` plus signed Clause 9.4 bitwise and
-negative-shift behavior. The Clause 9 audit also corrected float-only
-`float_integer_part/1` and `float_fractional_part/1` so integer operands are
-rejected by type before a potentially overflowing integer-to-float conversion.
-The 7.4-7.8 closure also pins cross-text directive state, include/ensure-loaded lifetime, initialization order and one-shot execution, logical-update visibility, empty-versus-unknown procedures, term-to-body conversion, and the general Part 1 control/exception constructs. These are conformance improvements, while the remaining qualifications are:
+The strict-core audit has explicit dispositions for the Clause 5 processor
+obligations, Clause 6 syntax and rejection families, Clause 7 term/execution/I/O
+and error semantics, the 8.2-8.17 built-in families, and Clause 9 evaluable
+functors. The complete vendored WG17 syntax matrix is a release gate, and each
+strict-success WG17 observation is also checked through normal mode so syntax
+extensions cannot reinterpret accepted standard text. Implementation-defined
+choices—including the Unicode-scalar processor character set, stream details,
+flag defaults, floating behavior, and signed bitwise/shift semantics—are indexed
+in `test/conformance/ISO-IMPLEMENTATION-DEFINED.md`. The release-facing closure
+ledger is `test/conformance/ISO-COMPLIANCE.md`.
+
+Notable implementation boundaries are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
   `ready`;
@@ -7700,11 +7686,9 @@ The 7.4-7.8 closure also pins cross-text directive state, include/ensure-loaded 
 
 Write terms explicitly, keep variables uppercase or underscore-prefixed, and
 quote atom names that are neither lowercase plain names nor graphic tokens.
-These boundaries distinguish implemented ISO functionality from certification.
-The EyeProlog corpus verifies this documented profile and strict-core boundary.
-A public full-conformance claim is deferred until the explicit
-exit checklist in `test/conformance/ISO-COMPLIANCE.md` has no unresolved normative
-audits or unexplained deviations.
+The conformance ledger and release gates verify this documented strict-core
+boundary. Their closure is implementation evidence, not independent ISO
+certification.
 
 ### Security and resource use
 

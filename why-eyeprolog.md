@@ -26,13 +26,14 @@ the published strict baseline. The processor character model is explicitly
 implementation defined: EyeProlog uses Unicode scalar values as the PCS and as
 collating-sequence integers in both normal and strict profiles. Strict mode
 therefore rejects implementation-specific language extensions without changing
-that processor choice. Its executable conformance matrix and tests
-document the supported behavior, including an executable trace of the vendored
-active WG17 syntax cases, cross-profile preservation of all strict-success WG17 syntax outcomes, closed strict side-effect and evaluable-functor extension boundaries, the completed row-level 7.1-7.9 term, preparation/database/control, and arithmetic audits, offline public conversion/variable-metadata audit fixtures, and explicit choices at standardized variation points such as mixed-type
-`max/2`/`min/2` and signed bitwise/shift operations. The remaining exit criteria
-are recorded explicitly rather than inferred from aggregate test counts. This is
-extensive implementation evidence, not a claim that every Part 1, Part 2, or
-Part 3 normative requirement has already been certified or closed.
+that processor choice. Its executable conformance matrix records explicit
+dispositions for the Part 1 processor, syntax, semantic, built-in, and arithmetic
+requirements, including the complete vendored WG17 syntax cases and cross-profile
+preservation of strict-success syntax outcomes. Implementation-defined choices
+such as mixed-type `max/2`/`min/2` and signed bitwise/shift operations are pinned
+by regression tests. This is extensive implementation evidence, not an independent
+ISO certification; the Part 2 and Part 3 compatibility profiles also remain
+separate from the Part 1 strict-core claim.
 
 ## Why a small implementation?
 

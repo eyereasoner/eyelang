@@ -65,7 +65,7 @@ Status values are:
 | 9.1.3.1 | Integer division rounding function `rndI` | Truncation toward zero, matching the `integer_rounding_function=toward_zero` flag. | **defined** — BigInt division for `//` in `src/iso-arithmetic.js`. |
 | 7.11.2.1 | Whether preparation-time `Convc` affects execution-time `Convc` | Yes: mappings created while Prolog text is prepared are retained and initialize the solver's execution-time conversion map. | **defined** — `src/parser.js`, `src/program.js`, `src/solver.js`. |
 | 7.11.2.2 | Effect when `debug=on` | The flag is accepted and stored; it does not change goal semantics or enable a debugger. | **defined** — `src/solver.js`; no semantic branch depends on `debug`. |
-| 7.11.2.3 | Default `max_arity` | `unbounded`: EyeProlog imposes no fixed semantic ceiling on compound-term arity. Practical host allocation exhaustion is a resource condition. This flag is distinct from any potential implementation-specific procedure-arity limit; EyeProlog currently declares no separate finite procedure limit. | **defined** — `src/iso-limits.js`, `src/solver.js`, `src/parser.js`, `src/iso.js`; issue #66 regression coverage. |
+| 7.11.2.3 | Default `max_arity` | `unbounded`: EyeProlog imposes no fixed semantic ceiling on compound-term arity. Practical host allocation exhaustion is a resource condition. This flag is distinct from any potential implementation-specific procedure-arity limit; EyeProlog currently declares no separate finite procedure limit. | **defined** — `src/iso-limits.js`, `src/solver.js`, `src/parser.js`, `src/iso.js`; strict regression coverage. |
 | 7.11.2.5 | Default `double_quotes` | `chars`. | **defined** — `src/solver.js`, parser flag state. |
 | 7.12.1 | Second argument of `error/2` | The default context term is the atom `eyeprolog`. A few implementation-specific diagnostics may deliberately supply a more specific context term. | **defined** — `formalErrorTerm()` in `src/iso.js`. |
 | 7.12.2(f) | Implementation-defined representation limits | Character and character-code operations are limited to Unicode scalar values; surrogates and values above U+10FFFF are representation errors. Arity/integer values are modeled as unbounded but may hit host/resource limits. Float input overflow uses the implementation-specific `max_float`/`min_float` representation names documented by the STC-oriented tests. | **defined** — parser/ISO numeric and character guards. |
@@ -83,7 +83,7 @@ Status values are:
 | 9.4.5 | Bitwise complement | BigInt complement, i.e. `~N = -N-1`. | **defined** — `~a`. |
 | Cor.2 9.4.6 | `xor/2` with negative operands | BigInt infinite-two's-complement semantics. | **defined** — `a ^ b`. |
 
-### Issue #56: one underflow policy
+### Floating underflow policy
 
 Clause 9.1.4.2 permits the processor to choose `round(x)` or the exceptional
 value `underflow` for a tiny non-zero result when an operation is governed by

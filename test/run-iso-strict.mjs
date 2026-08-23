@@ -2,7 +2,7 @@
 // Release gate for the ISO/IEC 13211-1 strict-core execution profile.
 // This is intentionally separate from the broader `iso/` corpus because that
 // corpus also exercises Part 2 modules and Part 3 grammar rules.
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -182,6 +182,56 @@ export function runIsoStrict(reporter = new TestReporter()) {
     const strict = run('', { isoStrict: true, goal: "char_code('é',233)" });
     equal(normal.stats.completed_goal_lists, 1, 'normal Unicode char_code/2');
     equal(strict.stats.completed_goal_lists, 1, 'strict Unicode char_code/2');
+  });
+
+  reporter.test('closes the Clause 6 syntax production and rejection rows', () => {
+    const accepted = [
+      ['p(a).', '6.3.1 atom'],
+      ['p(123).', '6.3.1 integer'],
+      ['p(1.5).', '6.3.1 float'],
+      ['p(-1).', '6.3.1 negative integer'],
+      ['p(-1.5).', '6.3.1 negative float'],
+      ['p(X,_,_).', '6.3.2 variables'],
+      ['p(f(a,b)).', '6.3.3 functional compound'],
+      ['p((a+b*c)).', '6.3.4 operator notation'],
+      ['p([a,b|T]).', '6.3.5 list notation'],
+      ['p({a}).', '6.3.6 curly term'],
+      ['p("ab").', '6.3.7/6.4.6 double quoted list'],
+      ['% line comment\np(a).', '6.4.1 layout and line comment'],
+      ['/* block comment */ p(a).', '6.4.1 bracketed comment'],
+      ["p('a\\n').", '6.4.2 quoted character escape'],
+      ['p(0b101).', '6.4.4 binary integer'],
+      ['p(0o17).', '6.4.4 octal integer'],
+      ['p(0x1f).', '6.4.4 hexadecimal integer'],
+      ["p(0'a).", '6.4.4 character-code integer'],
+      ['p(1.2e3).', '6.4.5 exponent float'],
+      ['p(!).', '6.4.8 solo token'],
+    ];
+    for (const [source, label] of accepted) {
+      equal(parseProgramText(source, { isoStrict: true }).length, 1, label);
+    }
+
+    const rejected = [
+      ['p(`x`).', '6.4.7 back quoted string has no Part 1 token'],
+      ["p('x).", 'unterminated quoted token'],
+      ['p([a|b,c]).', 'invalid list production'],
+      ['p((1 = 2 = 3)).', 'invalid xfx associativity'],
+      ['p(a).x', 'end character requires a token boundary'],
+      ['p(1.0e).', 'malformed floating point token'],
+      ['p(a b).', 'adjacent alphanumeric tokens need separation/grammar'],
+      ['p(a,,b).', 'invalid argument production'],
+      ['/* unterminated', 'unterminated bracketed comment'],
+      ["p('\\x').", 'invalid hexadecimal escape'],
+    ];
+    for (const [source, label] of rejected) {
+      let threw = false;
+      try {
+        parseProgramText(source, { isoStrict: true });
+      } catch (_) {
+        threw = true;
+      }
+      equal(threw, true, label);
+    }
   });
 
   reporter.test('rejects the normal-profile string term extension at strict API boundaries', () => {
@@ -472,6 +522,92 @@ export function runIsoStrict(reporter = new TestReporter()) {
     ], new Env(), 0)].length, 1, 'set_stream_position/2 successful mode');
   });
 
+  reporter.test('closes the higher-level ISO 7.10 stream model rows', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'eyeprolog-iso-710-'));
+    const atomPath = (value) => `'${String(value).replaceAll("'", "''")}'`;
+    try {
+      const inputPath = join(directory, 'input.txt');
+      writeFileSync(inputPath, 'ab');
+      equal(run('', {
+        isoStrict: true,
+        goal: [
+          `open(${atomPath(inputPath)},read,S,[alias(tmp_in),reposition(true),eof_action(eof_code)])`,
+          '\\+ atom(S)',
+          'stream_property(S,input)',
+          'stream_property(S,alias(tmp_in))',
+          'stream_property(S,reposition(true))',
+          'stream_property(S,eof_action(eof_code))',
+          'set_input(tmp_in)',
+          "get_char('a')",
+          'close(tmp_in)',
+          'current_input(C)',
+          'stream_property(C,alias(user_input))',
+          'catch(set_input(tmp_in),error(existence_error(stream,tmp_in),eyeprolog),true)',
+        ].join(','),
+      }).stats.completed_goal_lists, 1, 'stream-term, alias lifetime, target/current input, and close fallback');
+
+      const truncatePath = join(directory, 'truncate.txt');
+      writeFileSync(truncatePath, 'old');
+      equal(run('', {
+        isoStrict: true,
+        goal: `open(${atomPath(truncatePath)},write,S,[]),close(S)`,
+      }).stats.completed_goal_lists, 1, 'write open/close succeeds');
+      equal(readFileSync(truncatePath, 'utf8'), '', 'write mode empties an existing sink');
+
+      const appendPath = join(directory, 'append.txt');
+      writeFileSync(appendPath, 'ab');
+      equal(run('', {
+        isoStrict: true,
+        goal: `open(${atomPath(appendPath)},append,S,[reposition(true)]),put_char(S,c),set_stream_position(S,1),put_char(S,'Z'),close(S)`,
+      }).stats.completed_goal_lists, 1, 'append and repositioned output succeed');
+      equal(readFileSync(appendPath, 'utf8'), 'aZc', 'append starts at end and repositioned output overwrites');
+
+      const optionsPath = join(directory, 'options.txt');
+      writeFileSync(optionsPath, 'x');
+      equal(run('', {
+        isoStrict: true,
+        goal: [
+          `open(${atomPath(optionsPath)},read,S,[type(binary),type(text),reposition(false),reposition(true),eof_action(error),eof_action(eof_code)])`,
+          'stream_property(S,type(text))',
+          'stream_property(S,reposition(true))',
+          'stream_property(S,eof_action(eof_code))',
+          'close(S)',
+        ].join(','),
+      }).stats.completed_goal_lists, 1, 'rightmost contradictory stream option applies');
+
+      const binaryPath = join(directory, 'roundtrip.bin');
+      equal(run('', {
+        isoStrict: true,
+        goal: [
+          `open(${atomPath(binaryPath)},write,W,[type(binary)])`,
+          'put_byte(W,0)',
+          'put_byte(W,255)',
+          'close(W)',
+          `open(${atomPath(binaryPath)},read,R,[type(binary)])`,
+          'get_byte(R,0)',
+          'get_byte(R,255)',
+          'get_byte(R,-1)',
+          'close(R)',
+        ].join(','),
+      }).stats.completed_goal_lists, 1, 'binary stream round-trip is byte exact');
+      equal([...readFileSync(binaryPath)].join(','), '0,255', 'binary sink contains exactly the output bytes');
+
+      const textPath = join(directory, 'text.txt');
+      equal(run('', {
+        isoStrict: true,
+        goal: `open(${atomPath(textPath)},write,S,[]),put_char(S,a),flush_output(S),close(S)`,
+      }).stats.completed_goal_lists, 1, 'text flush/close succeeds');
+      equal(readFileSync(textPath, 'utf8'), 'a', 'flush/close does not synthesize a final newline');
+
+      equal(run('', {
+        isoStrict: true,
+        goal: 'current_input(I),close(I),current_input(I),current_output(O),close(O),current_output(O)',
+      }).stats.completed_goal_lists, 1, 'standard streams remain open when close/1 is called');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   reporter.test('closes the ISO 8.12-8.14 character, byte, and term-I/O rows', () => {
     const errors = [
       ['get_char(S,C)', 'instantiation_error', 'get_char/2 stream instantiation'],
@@ -609,6 +745,39 @@ export function runIsoStrict(reporter = new TestReporter()) {
     };
     closeWith('[force(true),force(false)]');
     closeWith('[force(false),force(true)]');
+  });
+
+  reporter.test('closes the ISO 7.12 processor error envelope and classification rows', () => {
+    const caught = [
+      "catch(atom_length(X,N),error(instantiation_error,eyeprolog),true)",
+      "catch(atom_length(1,N),error(type_error(atom,1),eyeprolog),true)",
+      "catch(op(1300,xfx,foo),error(domain_error(operator_priority,1300),eyeprolog),true)",
+      "catch(call(no_such_predicate),error(existence_error(procedure,no_such_predicate/0),eyeprolog),true)",
+      "catch(abolish(atom/1),error(permission_error(modify,static_procedure,atom/1),eyeprolog),true)",
+      "catch(char_code(C,1114112),error(representation_error(character_code),eyeprolog),true)",
+      "catch(X is 1/0,error(evaluation_error(zero_divisor),eyeprolog),true)",
+      "catch(X is 1<<4294967296,error(resource_error(memory),eyeprolog),true)",
+    ];
+    for (const goal of caught) {
+      equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, goal);
+    }
+
+    equal(run('', {
+      isoStrict: true,
+      goal: "catch(read_term(T,[]),error(syntax_error(read_term),eyeprolog),true)",
+      ioOptions: { input: "'unterminated." },
+    }).stats.completed_goal_lists, 1, 'syntax error uses error/2 envelope and implementation-defined context');
+
+    const systemSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    systemSolver.io.flush = () => { throw new Error('simulated host I/O failure'); };
+    equal([...systemSolver.solve([
+      parseGoalText('catch(flush_output(user_output),error(system_error,eyeprolog),true)', { isoStrict: true }),
+    ], new Env(), 0)].length, 1, 'system error uses error/2 envelope and implementation-defined context');
+
+    // ISO 7.12 deliberately leaves the choice implementation-dependent when
+    // several error conditions hold simultaneously. Existing overlap tests
+    // above pin EyeProlog's deterministic choices without treating table order
+    // as an additional normative requirement.
   });
 
   reporter.test('follows Part 1 arithmetic type and exceptional errors', () => {
