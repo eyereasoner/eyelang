@@ -664,6 +664,19 @@ export function variantTerms(left, leftEnv, right, rightEnv, pairs = new Map(), 
   return true;
 }
 
+
+function compareCharacterText(left, right) {
+  const a = Array.from(left);
+  const b = Array.from(right);
+  const length = Math.min(a.length, b.length);
+  for (let i = 0; i < length; i++) {
+    const ac = a[i].codePointAt(0);
+    const bc = b[i].codePointAt(0);
+    if (ac !== bc) return ac < bc ? -1 : 1;
+  }
+  return a.length < b.length ? -1 : a.length > b.length ? 1 : 0;
+}
+
 export function compareTerms(left, right, variableRanks = null) {
   // ISO 7.2.1 deliberately leaves the order of distinct variables
   // implementation dependent.  Do not attach a permanent ordinal to a
@@ -703,9 +716,9 @@ function compareTermsWithRanks(left, right, variableRanks) {
     const rightOrder = variableRank(right.name, variableRanks);
     return leftOrder < rightOrder ? -1 : 1;
   }
-  if (left.type === ATOM || left.type === STRING) return left.name < right.name ? -1 : left.name > right.name ? 1 : 0;
+  if (left.type === ATOM || left.type === STRING) return compareCharacterText(left.name, right.name);
   if (left.arity !== right.arity) return left.arity < right.arity ? -1 : 1;
-  if (left.name !== right.name) return left.name < right.name ? -1 : 1;
+  if (left.name !== right.name) return compareCharacterText(left.name, right.name);
   for (let i = 0; i < left.arity; i++) {
     const cmp = compareTermsWithRanks(left.args[i], right.args[i], variableRanks);
     if (cmp) return cmp;

@@ -1,9 +1,10 @@
-// ISO/IEC 13211-1 processor-character-set choices used by --iso-strict.
+// ISO/IEC 13211-1 processor-character-set choices used by EyeProlog.
 //
-// EyeProlog's strict Part 1 profile deliberately chooses a finite PCS so every
-// accepted character has one documented lexical classification and one stable
-// collating-sequence integer. Normal mode keeps the broader Unicode surface as
-// an implementation-specific extension.
+// The PCS is implementation defined (6.5), so --iso-strict must not replace
+// the processor's ordinary character repertoire with a smaller one. EyeProlog
+// uses Unicode scalar values in both normal and strict profiles. Strict mode
+// still rejects implementation-specific language features; it does not alter
+// implementation-defined character-set choices.
 
 export class CharacterRepresentationError extends Error {
   constructor(formal = 'representation_error(character)') {
@@ -13,13 +14,9 @@ export class CharacterRepresentationError extends Error {
   }
 }
 
-// Strict PCS: the 128 ASCII characters U+0000..U+007F. Printable ASCII
-// carries the Part 1 lexical classes; the remaining C0 controls plus DEL are
-// implementation-defined extended layout characters. This lets every ISO
-// octal/hexadecimal character escape in the ASCII range denote a PCS member.
-// The collating-sequence integer is the Unicode/ASCII code point.
 export function isStrictIsoPcsCodePoint(code) {
-  return Number.isInteger(code) && code >= 0 && code <= 0x7f;
+  return Number.isInteger(code) && code >= 0 && code <= 0x10ffff &&
+    !(code >= 0xd800 && code <= 0xdfff);
 }
 
 export function isStrictIsoPcsCharacter(character) {
@@ -27,6 +24,7 @@ export function isStrictIsoPcsCharacter(character) {
   return isStrictIsoPcsCodePoint(character.codePointAt(0));
 }
 
+// EyeProlog chooses the Unicode scalar value as the collating-sequence integer.
 export function strictIsoCollatingInteger(character) {
   return isStrictIsoPcsCharacter(character) ? character.codePointAt(0) : null;
 }

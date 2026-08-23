@@ -1352,9 +1352,10 @@ function* termTextCandidates(stream, solver) {
   let quote = null, lineComment = false, blockComment = false;
   for (let i = stream.position; i < source.length; i++) {
     const ch = source[i], next = source[i + 1];
-    if (solver.isoStrict && !isStrictIsoPcsCodePoint(ch.charCodeAt(0))) {
-      throw new PrologError('representation_error(character)');
-    }
+    // The PCS is shared by normal and strict modes (issue #67). UTF-16
+    // source indexing here must not reject one half of a supplementary scalar.
+    // Character/code predicates validate scalar boundaries where a character
+    // value is actually required.
     // Text streams preserve invalid UTF-8 bytes as an impossible Unicode
     // sentinel.  read/1-2 and read_term/2-3 must surface the same character
     // representation error as get_char/1-2 instead of misclassifying the

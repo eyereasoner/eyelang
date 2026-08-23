@@ -35,10 +35,25 @@ const TOK = {
 };
 
 function isWhitespaceCode(code) {
-  // EyeProlog classifies ASCII C0 controls and DEL as layout characters. In
-  // strict mode these are the implementation-defined extended-layout members
-  // of the ASCII processor character set.
   return (code >= 0 && code <= 32) || code === 127;
+}
+
+function isWhitespaceCharacter(character) {
+  if (!character) return false;
+  const code = character.charCodeAt(0);
+  return isWhitespaceCode(code) || /\p{White_Space}/u.test(character);
+}
+
+function isUnicodeUpperCharacter(character) {
+  return Boolean(character) && /[\p{Lu}\p{Lt}]/u.test(character);
+}
+
+function isUnicodeLetterCharacter(character) {
+  return Boolean(character) && /\p{L}/u.test(character);
+}
+
+function isUnicodeNameContinueCharacter(character) {
+  return Boolean(character) && /[\p{L}\p{M}\p{Nd}]/u.test(character);
 }
 
 function isDigitCode(code) {
@@ -53,13 +68,22 @@ function isNameContinueCode(code) {
   return code === 95 || isAsciiLetterCode(code) || isDigitCode(code);
 }
 
-
-function isVariableStartCode(code) {
-  return code === 95 || (code >= 65 && code <= 90);
+function isNameContinueCharacter(character) {
+  return Boolean(character) && (isNameContinueCode(character.charCodeAt(0)) ||
+    isUnicodeNameContinueCharacter(character));
 }
 
-function isPlainAtomStartCode(code) {
-  return code >= 97 && code <= 122;
+function isVariableStartCharacter(character) {
+  if (!character) return false;
+  const code = character.charCodeAt(0);
+  return code === 95 || (code >= 65 && code <= 90) || isUnicodeUpperCharacter(character);
+}
+
+function isPlainAtomStartCharacter(character) {
+  if (!character) return false;
+  const code = character.charCodeAt(0);
+  return (code >= 97 && code <= 122) ||
+    (isUnicodeLetterCharacter(character) && !isUnicodeUpperCharacter(character));
 }
 
 const graphicAtomChars = '#$&*+-./<=>?@^~\\:';
@@ -161,6 +185,19 @@ function isGraphicAtomCode(code) {
   return graphicAtomChars.includes(String.fromCharCode(code));
 }
 
+function isGraphicAtomCharacter(character) {
+  if (!character) return false;
+  const code = character.charCodeAt(0);
+  if (isGraphicAtomCode(code)) return true;
+  if (code <= 0x7f || isWhitespaceCharacter(character) ||
+      isUnicodeNameContinueCharacter(character)) return false;
+  // Non-ASCII symbols/punctuation are EyeProlog extended graphic characters.
+  // Surrogate code units are kept together by the maximal-token scan, so a
+  // supplementary scalar remains one atom spelling even though source offsets
+  // are UTF-16 based.
+  return true;
+}
+
 function defineParserOperator(state, priority, specifier, name) {
   const strength = operatorStrength(priority);
   if (['xfx', 'xfy', 'yfx'].includes(specifier)) {
@@ -237,11 +274,10 @@ class Parser {
     return this.parserFlagState.charConversions.get(character) ?? character;
   }
   rawPeek(offset = 0) {
-    const ch = this.source[this.pos + offset] ?? '';
-    if (this.strictIso && ch && !isStrictIsoPcsCodePoint(ch.charCodeAt(0))) {
-      throw new CharacterRepresentationError();
-    }
-    return ch;
+    // The processor character set is an implementation-defined processor
+    // choice, shared by normal and strict profiles. Do not narrow it merely
+    // because ISO conformance checking is enabled (issue #67).
+    return this.source[this.pos + offset] ?? '';
   }
   rawTake() {
     const ch = this.rawPeek();
@@ -367,7 +403,7 @@ class Parser {
     while (true) {
       while (this.rawPeek()) {
         const ch = this.peek();
-        if (!isWhitespaceCode(ch.charCodeAt(0))) break;
+        if (!isWhitespaceCharacter(ch)) break;
         this.take();
       }
       if (this.peek() === '%') {
@@ -461,7 +497,7 @@ class Parser {
     if (ch === '.' && !this.terminatingFullStop()) {
       const start = this.pos;
       this.take();
-      while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
+      while (isGraphicAtomCharacter(this.peek()) &&
              !this.terminatingFullStop()) this.take();
       return { type: TOK.ATOM, text: this.convertedSlice(start, this.pos), line };
     }
@@ -627,25 +663,25 @@ class Parser {
       return { type: TOK.NUMBER, text, line };
     }
 
-    if (isVariableStartCode(ch.charCodeAt(0))) {
+    if (isVariableStartCharacter(ch)) {
       const start = this.pos;
       this.take();
-      while (isNameContinueCode(this.peek().charCodeAt(0))) this.take();
+      while (isNameContinueCharacter(this.peek())) this.take();
       const text = this.convertedSlice(start, this.pos);
       return { type: TOK.VAR, text, line };
     }
 
-    if (isPlainAtomStartCode(ch.charCodeAt(0))) {
+    if (isPlainAtomStartCharacter(ch)) {
       const start = this.pos;
       this.take();
-      while (isNameContinueCode(this.peek().charCodeAt(0))) this.take();
+      while (isNameContinueCharacter(this.peek())) this.take();
       return { type: TOK.ATOM, text: this.convertedSlice(start, this.pos), line };
     }
 
-    if (isGraphicAtomCode(ch.charCodeAt(0))) {
+    if (isGraphicAtomCharacter(ch)) {
       const start = this.pos;
       this.take();
-      while (isGraphicAtomCode(this.peek().charCodeAt(0)) &&
+      while (isGraphicAtomCharacter(this.peek()) &&
              !this.terminatingFullStop()) this.take();
       return { type: TOK.ATOM, text: this.convertedSlice(start, this.pos), line };
     }

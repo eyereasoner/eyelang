@@ -99,6 +99,14 @@ export function runIsoStrict(reporter = new TestReporter()) {
       1, 'large nonexistent predicate indicator');
   });
 
+  reporter.test('does not invent max_procedure_arity without a separate procedure ceiling', () => {
+    // STC #70 makes max_procedure_arity implementation defined and needed
+    // only when a processor has a smaller procedure-arity ceiling. EyeProlog
+    // has no such separate declared ceiling, so the optional flag is absent.
+    equal(capture(() => run('', { isoStrict: true, goal: 'current_prolog_flag(max_procedure_arity,_)' })).formal,
+      'domain_error(prolog_flag)', 'STC #70 optional flag absent');
+  });
+
   reporter.test('preparation-time char_conversion affects later unquoted source only', () => {
     const program = Program.parse(
       ":- char_conversion(x,y).\np(x).\nquoted('x').\n:- set_prolog_flag(char_conversion,off).\nraw(x).\n",
@@ -110,17 +118,18 @@ export function runIsoStrict(reporter = new TestReporter()) {
   });
 
 
-  reporter.test('uses a documented 7-bit ASCII processor character set and collation', () => {
+  reporter.test('uses the implementation-defined Unicode scalar PCS and collation', () => {
     const program = Program.parse('', { isoStrict: true });
     const solver = new Solver(program, { isoStrict: true });
     const answers = (text) => [...solver.solve([parseGoalText(text, { isoStrict: true })], new Env(), 0)].length;
     equal(answers("char_code('\\0\\',0)"), 1, 'NUL collating integer');
     equal(answers("char_code('A',65)"), 1, 'A collating integer');
-    equal(answers("char_code('\\177\\',127)"), 1, 'DEL collating integer');
+    equal(answers("char_code('ä',228)"), 1, 'extended Latin character');
+    equal(answers("char_code('😀',128512)"), 1, 'supplementary Unicode scalar');
     equal(answers("'\\0\\' @< 'A'"), 1, 'control before capital');
     equal(answers("'A' @< 'a'"), 1, 'capital before small letter');
+    equal(answers("'\\xe000\\' @< '\\x10000\\'"), 1, 'atom order follows scalar collating integers');
   });
-
 
   reporter.test('follows the Part 1 standard term-type and atom ordering', () => {
     const program = Program.parse('', { isoStrict: true });
@@ -134,30 +143,38 @@ export function runIsoStrict(reporter = new TestReporter()) {
     equal(answers("'A' @< 'B'"), 1, 'atom collation');
   });
 
-  reporter.test('rejects characters outside the strict processor character set', () => {
-    const sourceError = capture(() => Program.parse("p('é').\n", { isoStrict: true }));
-    equal(sourceError.formal, 'representation_error(character)', 'source representation error');
+  reporter.test('does not narrow implementation-defined character choices in strict mode', () => {
+    const program = Program.parse("p('é').\nä.\n", { isoStrict: true });
+    equal(Boolean(program.findGroup('p', 1)), true, 'quoted extended character in source');
+    equal(Boolean(program.findGroup('ä', 0)), true, 'extended small-letter atom in source');
 
-    const readError = capture(() => run('', {
+    const readResult = run('', {
       isoStrict: true,
-      goal: 'read(X)',
+      goal: "read('é')",
       ioOptions: { input: "'é'." },
-    }));
-    equal(readError.formal, 'representation_error(character)', 'read representation error');
+    });
+    equal(readResult.stats.completed_goal_lists, 1, 'extended character through strict text input');
+
+    const written = run('', { isoStrict: true, goal: 'writeq("ä")' });
+    includes(written.stdout, 'ä', 'issue #67 writeq example');
   });
 
-  reporter.test('restricts strict character codes to the processor character set', () => {
-    const charCodeError = capture(() => run('', { isoStrict: true, goal: 'char_code(_,128)' }));
-    equal(charCodeError.formal, 'representation_error(character_code)', 'char_code/2');
-    const atomCodesError = capture(() => run('', { isoStrict: true, goal: 'atom_codes(_, [128])' }));
-    equal(atomCodesError.formal, 'representation_error(character_code)', 'atom_codes/2');
-    const putCodeError = capture(() => run('', { isoStrict: true, goal: 'put_code(128)' }));
-    equal(putCodeError.formal, 'representation_error(character_code)', 'put_code/1');
+  reporter.test('restricts character codes only to the Unicode scalar PCS boundary', () => {
+    equal(run('', { isoStrict: true, goal: 'char_code(_,128)' }).stats.completed_goal_lists, 1,
+      'code 128 is a PCS member');
+    equal(capture(() => run('', { isoStrict: true, goal: 'char_code(_,55296)' })).formal,
+      'representation_error(character_code)', 'surrogate is not a scalar');
+    equal(capture(() => run('', { isoStrict: true, goal: 'atom_codes(_, [1114112])' })).formal,
+      'representation_error(character_code)', 'above Unicode scalar range');
+    equal(capture(() => run('', { isoStrict: true, goal: 'put_code(1114112)' })).formal,
+      'representation_error(character_code)', 'put_code/1 above scalar range');
   });
 
-  reporter.test('keeps broader Unicode character handling as a normal-mode extension', () => {
-    const result = run('', { goal: "char_code('é',233)" });
-    equal(result.stdout, "char_code('é', 233).\n", 'normal Unicode char_code/2');
+  reporter.test('uses the same processor character repertoire in normal and strict profiles', () => {
+    const normal = run('', { goal: "char_code('é',233)" });
+    const strict = run('', { isoStrict: true, goal: "char_code('é',233)" });
+    equal(normal.stats.completed_goal_lists, 1, 'normal Unicode char_code/2');
+    equal(strict.stats.completed_goal_lists, 1, 'strict Unicode char_code/2');
   });
 
   reporter.test('keeps the strict write-option surface to Part 1 plus Corrigendum 3', () => {
@@ -282,11 +299,11 @@ export function runIsoStrict(reporter = new TestReporter()) {
 
   reporter.test('follows Part 1 arithmetic type and exceptional errors', () => {
     const cases = [
-      ["X is '+'(foo,77)", 'type_error(number)', 'simple arithmetic atomic operand'],
-      ['X is mod(foo,77)', 'type_error(number)', 'integer arithmetic non-number operand'],
+      ["X is '+'(foo,77)", 'type_error(evaluable)', 'STC #69 simple arithmetic atom is foo/0'],
+      ['X is mod(foo,77)', 'type_error(evaluable)', 'integer arithmetic atom is non-evaluable'],
       ['X is mod(7.5,2)', 'type_error(integer)', 'integer arithmetic numeric type'],
-      ['X is truncate(foo)', 'type_error(number)', 'rounding non-number operand'],
-      ['X is sin(foo)', 'type_error(number)', 'transcendental non-number operand'],
+      ['X is truncate(foo)', 'type_error(evaluable)', 'rounding atom is non-evaluable'],
+      ['X is sin(foo)', 'type_error(evaluable)', 'transcendental atom is non-evaluable'],
       ['X is foo+Y', 'instantiation_error', 'direct variable before another operand error'],
       ['X is floor(7)', 'type_error(float)', 'floor integer operand'],
       ['X is truncate(7)', 'type_error(float)', 'truncate integer operand'],
@@ -298,6 +315,12 @@ export function runIsoStrict(reporter = new TestReporter()) {
     for (const [goal, formal, label] of cases) {
       equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
     }
+  });
+
+  reporter.test('uses the STC #69 evaluable culprit for atomic arithmetic expressions', () => {
+    const error = capture(() => run('', { isoStrict: true, goal: "X is '+'(foo,77)" }));
+    equal(error.formal, 'type_error(evaluable)', 'formal error');
+    includes(error.message, '/(foo, 0)', 'foo/0 culprit');
   });
 
   reporter.test('applies integer-to-float conversion before floating evaluable functors', () => {

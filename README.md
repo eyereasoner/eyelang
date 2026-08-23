@@ -210,13 +210,13 @@ expansion/`phrase/2-3`; it also removes the EyeProlog `occurs_check` flag,
 Normal mode is unchanged and continues to support modules, DCGs, quads,
 libraries, proofs, cleanup-aware control, and the other documented extensions.
 
-Strict mode also makes the Part 1 processor-character-set choice explicit: its
-PCS is 7-bit ASCII (U+0000..U+007F), C0 controls and DEL are classified as
-extended layout characters, and the collating-sequence integer of each
-character is its ASCII code. Characters or character codes outside that set
-raise representation errors in strict parsing and character operations. Normal
-mode retains Unicode scalar character data as an implementation-specific
-extension.
+The Part 1 processor character set is an implementation-defined processor
+choice, so strict mode does not replace it with a smaller repertoire. EyeProlog
+uses Unicode scalar values as its PCS in both normal and strict profiles, with
+the Unicode scalar value as the collating-sequence integer. ASCII keeps the
+standard lexical classes; extended Unicode letters participate in unquoted name
+syntax and other non-ASCII symbols are treated as extended graphic characters.
+Surrogates and values above U+10FFFF remain representation errors.
 
 Strict term I/O likewise keeps the standardized option boundary: `read_term/2-3`
 and `write_term/2-3` accept the Part 1 plus Corrigendum 3 options, while the

@@ -41,7 +41,12 @@ function evaluate(term, env, options = {}) {
     // arguments before selecting an implementation-dependent evaluation order.
     const operands = term.args.map((arg) => deref(arg, env));
     if (operands.some((arg) => arg.type === VAR)) throw new PrologError('instantiation_error');
-    args = operands.map((arg) => evaluateOperand(term, arg, env, options));
+    // Once the direct-variable precedence is satisfied, each operand is
+    // itself an expression. An atom such as foo therefore fails as the
+    // non-evaluable functor foo/0 (7.9.2(c)); it is not a numeric value that
+    // can subsequently trigger type_error(number,...). STC #69 corrects the
+    // misleading 9.1.7 example accordingly.
+    args = operands.map((arg) => evaluate(arg, env, options));
   } else {
     // Preserve the normal EyeProlog profile's established left-to-right
     // evaluator and diagnostics; the stricter prescribed errors belong to
@@ -49,38 +54,6 @@ function evaluate(term, env, options = {}) {
     args = term.args.map((arg) => evaluate(arg, env, options));
   }
   return evaluateOperation(term, args, options);
-}
-
-function evaluatesAtomDirectly(term, options) {
-  return term.type === ATOM && (term.name === 'pi' || (term.name === 'e' && options.isoStrict !== true));
-}
-
-function directOperandType(term) {
-  const name = term.name;
-  const arity = term.arity;
-  if ((arity === 1 && name === '\\') ||
-      (arity === 2 && ['>>', '<<', '/\\', '\\/', 'xor'].includes(name))) return 'integer';
-
-  if ((arity === 1 && ['+', '-', 'abs', 'sign', 'float', 'truncate', 'round', 'ceiling', 'floor',
-    'float_integer_part', 'float_fractional_part', 'sin', 'cos', 'atan', 'asin', 'acos', 'tan',
-    'exp', 'log', 'sqrt'].includes(name)) ||
-      (arity === 2 && ['+', '-', '*', '/', '//', 'div', 'mod', 'rem', '**', '^', 'max', 'min', 'atan2'].includes(name))) {
-    return 'number';
-  }
-  return null;
-}
-
-function evaluateOperand(parent, operand, env, options) {
-  // The arithmetic-functor error clauses use the offending operand as the
-  // culprit when an atomic operand is not numeric (e.g. +(foo,77),
-  // truncate(foo), and the bitwise families).  A nested compound still goes
-  // through ordinary expression evaluation so an unknown nested F/N retains
-  // type_error(evaluable,F/N).
-  if (operand.type === ATOM && !evaluatesAtomDirectly(operand, options)) {
-    const expected = directOperandType(parent);
-    if (expected) throw new PrologError(`type_error(${expected})`, operand);
-  }
-  return evaluate(operand, env, options);
 }
 
 function evaluateOperation(term, args, options = {}) {

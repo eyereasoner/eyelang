@@ -5119,12 +5119,11 @@ this part makes control, reflection, state, operators, and streams explicit.
 For Part 1 portability work, EyeProlog also provides a strict core mode:
 `--iso-strict` on the CLI or `isoStrict: true` in the JavaScript API restricts
 the language/runtime surface to ISO/IEC 13211-1:1995 plus Technical Corrigenda
-1–3. Its processor character set is the 128-character ASCII set U+0000..U+007F;
-C0 controls and DEL are implementation-defined extended layout characters, and
-collating-sequence integers are the corresponding ASCII codes. Character data
-outside that PCS is rejected with a representation error in strict mode. Normal
-mode keeps EyeProlog's broader Unicode scalar character support as an explicit
-extension. Isolated mode and error cases live in `test/conformance/cases/iso/`.
+1–3. The processor character set is an implementation-defined choice shared by
+normal and strict profiles: EyeProlog uses Unicode scalar values U+0000..U+10FFFF
+excluding surrogates, with the scalar value as the collating-sequence integer.
+Strict mode restricts implementation-specific language facilities, but it does
+not narrow this processor-defined character repertoire. Isolated mode and error cases live in `test/conformance/cases/iso/`.
 The examples here compose those operations into programs worth changing and
 rerunning.
 
@@ -5510,13 +5509,14 @@ lowercase ASCII letter. Variables begin with uppercase or underscore. The bare
 ISO double-quoted-list notation. Integers, decimals, scientific notation,
 binary/octal/hexadecimal integers, and character-code constants are accepted.
 
-For `--iso-strict`, the processor character set is deliberately narrower and
-fully documented: U+0000..U+007F. Printable ASCII uses the Part 1 lexical
-classes; C0 controls and DEL are extended layout characters; character-code and
-collation values are the same ASCII integers 0..127. Non-ASCII input is a
-representation error. In normal mode, unquoted names still deliberately use
-ASCII spelling while Unicode scalar values may appear inside quoted atoms and
-double-quoted lists:
+The processor character set is shared by normal and `--iso-strict` modes because
+Part 1 makes it implementation defined rather than an extension boundary.
+EyeProlog's PCS is the Unicode scalar repertoire. Printable ASCII keeps the Part
+1 lexical classes; Unicode letters extend alphanumeric name syntax, Unicode
+white-space characters are layout, and remaining non-ASCII symbols/punctuation
+are extended graphic characters. Character-code and collation values are the
+corresponding Unicode scalar integers. Quoting remains available for any atom
+spelling that should not depend on an extended lexical class:
 
 ```eyeprolog
 
@@ -6049,8 +6049,8 @@ quoted_atom("ab").           % quoted_atom(ab)
 | `atom_length(+Atom,?Length)` | Counts Unicode code points, not UTF-16 code units. A supplied length must be a nonnegative integer. |
 | `atom_concat(?Prefix,?Suffix,?Whole)` | Concatenates two atoms, removes a supplied prefix or suffix, or enumerates every split when only `Whole` is bound. At least `Whole`, or both parts, must determine the operation. |
 | `sub_atom(+Atom,?Before,?Length,?After,?SubAtom)` | Enumerates substrings and their Unicode-code-point offsets. Supplied counts must be nonnegative integers. |
-| `atom_chars(?Atom,?Chars)`, `atom_codes(?Atom,?Codes)` | Convert between an atom and a proper list of one-character atoms or character codes. Strict mode uses its ASCII PCS/codes `0..127`; normal mode extends codes to Unicode scalar values. At least one side must be instantiated. |
-| `char_code(?Character,?Code)` | Converts one character atom and its collating/code value. Strict mode accepts only the ASCII PCS `0..127`; normal mode accepts Unicode scalar codes and rejects surrogates/out-of-range values. |
+| `atom_chars(?Atom,?Chars)`, `atom_codes(?Atom,?Codes)` | Convert between an atom and a proper list of one-character atoms or character codes. Both profiles use EyeProlog's Unicode scalar PCS/codes; surrogates and values above U+10FFFF are rejected. At least one side must be instantiated. |
+| `char_code(?Character,?Code)` | Converts one character atom and its collating/code value. Both profiles accept Unicode scalar codes and reject surrogates/out-of-range values. |
 | `number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)` | Convert finite numbers to canonical text or parse a proper character/code list using ISO number and negative-number syntax, including radix integers, character-code constants, and leading layout. The input is not parsed as a general term: grouping such as `(0)` is a syntax error. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*. |
 
 Conversions accept partial output lists when the atomic input is known, but
@@ -6091,12 +6091,12 @@ input or output.
 | `at_end_of_stream`, `at_end_of_stream(+Stream)` | Succeeds when the current or selected input position is at or beyond its content. |
 | `get_char(?Character)`, `get_char(+Stream,?Character)` | Reads one text character; end of input is `end_of_file`. |
 | `peek_char(?Character)`, `peek_char(+Stream,?Character)` | Observes the next text character without advancing. |
-| `get_code(?Code)`, `get_code(+Stream,?Code)` | Reads a character code; end of input is `-1`. Strict mode requires the ASCII PCS, while normal mode returns Unicode scalar codes. |
-| `peek_code(?Code)`, `peek_code(+Stream,?Code)` | Observes the next character code without advancing; strict mode requires the ASCII PCS. |
+| `get_code(?Code)`, `get_code(+Stream,?Code)` | Reads a character code; end of input is `-1`. Both profiles return codes from EyeProlog's Unicode scalar PCS. |
+| `peek_code(?Code)`, `peek_code(+Stream,?Code)` | Observes the next Unicode scalar character code without advancing. |
 | `get_byte(?Byte)`, `get_byte(+Stream,?Byte)` | Reads one unit from a binary stream; end of input is `-1`. |
 | `peek_byte(?Byte)`, `peek_byte(+Stream,?Byte)` | Observes the next binary unit without advancing. |
 | `put_char(+Character)`, `put_char(+Stream,+Character)` | Writes one character atom to a text stream. |
-| `put_code(+Code)`, `put_code(+Stream,+Code)` | Writes one character code to a text stream. Strict mode accepts `0..127`; normal mode accepts Unicode scalar codes. |
+| `put_code(+Code)`, `put_code(+Stream,+Code)` | Writes one character code to a text stream. Both profiles accept Unicode scalar codes. |
 | `put_byte(+Byte)`, `put_byte(+Stream,+Byte)` | Writes an integer in `0..255` to a binary stream. |
 | `nl`, `nl(+Stream)` | Writes a newline to a text stream. |
 

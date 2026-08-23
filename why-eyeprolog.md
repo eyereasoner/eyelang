@@ -19,10 +19,11 @@ syntax.
 
 EyeProlog targets the Part 1 core together with Technical Corrigenda 1, 2,
 and 3, and provides documented module and definite-clause-grammar compatibility
-profiles for normal-mode programs. Strict mode makes its processor character
-model explicit: 7-bit ASCII is the PCS, ASCII code points are the collating
-integers, and normal-mode Unicode character data is an extension rather than an
-implicit part of the Part 1 claim. Its executable conformance matrix and tests
+profiles for normal-mode programs. The processor character model is explicitly
+implementation defined: EyeProlog uses Unicode scalar values as the PCS and as
+collating-sequence integers in both normal and strict profiles. Strict mode
+therefore rejects implementation-specific language extensions without changing
+that processor choice. Its executable conformance matrix and tests
 document the supported behavior, including an executable trace of the vendored
 active WG17 syntax cases. This is extensive implementation evidence, not a
 claim that every Part 1, Part 2, or Part 3 normative requirement has already
