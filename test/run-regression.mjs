@@ -2221,22 +2221,16 @@ c4 ?- call((!;1)).
     {
       name: 'REPL term input is on demand in conjunctions and Ctrl-D does not exit the top level',
       run: () => {
-        if (process.platform === 'win32') return;
-        const available = spawnSync('sh', ['-c',
-          'command -v script >/dev/null 2>&1 && script --version 2>/dev/null | grep -qi util-linux']);
-        if (available.status !== 0) return;
-        const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
-        const scriptCommand =
-          `{ printf 'read(X), read(Y).\n'; sleep 0.3; ` +
-          `printf 'foo.\n'; sleep 0.3; printf 'bar.\n'; sleep 0.3; ` +
-          `printf 'read(Z).\n'; sleep 0.3; printf '\\004'; sleep 0.3; ` +
-          `printf 'true.\n'; sleep 0.3; printf 'halt.\n'; } | ` +
-          `script -qefc ${shellQuote(command)} /dev/null`;
-        const result = spawnSync('sh', ['-c', scriptCommand], {
-          cwd: packageRoot,
-          encoding: 'utf8',
-          timeout: 5000,
-        });
+        if (!hasUtilLinuxScript()) return;
+        const result = runScriptedRepl([
+          { waitFor: '?- ', send: 'read(X), read(Y).\n' },
+          { waitFor: '  |: ', send: 'foo.\n' },
+          { waitFor: '|: ', send: 'bar.\n' },
+          { waitFor: 'X = foo, Y = bar.', send: 'read(Z).\n' },
+          { waitFor: '  |: ', send: '\u0004' },
+          { waitFor: 'Z = end_of_file.', send: 'true.\n' },
+          { waitFor: '   true.', send: 'halt.\n' },
+        ]);
         assertEqual(result.error?.code, undefined, 'interactive read timeout');
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'X = foo, Y = bar.', 'conjunction reads');
@@ -2248,23 +2242,18 @@ c4 ?- call((!;1)).
     {
       name: 'REPL character input is on demand and Ctrl-D stays local (issue #55)',
       run: () => {
-        if (process.platform === 'win32') return;
-        const available = spawnSync('sh', ['-c',
-          'command -v script >/dev/null 2>&1 && script --version 2>/dev/null | grep -qi util-linux']);
-        if (available.status !== 0) return;
-        const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
-        const scriptCommand =
-          `{ printf 'peek_char(P), get_char(C), get_code(K).\n'; sleep 0.3; ` +
-          `printf 'ab\n'; sleep 0.3; printf 'get_char(N).\n'; sleep 0.3; ` +
-          `printf 'z\n'; sleep 0.3; printf 'get_char(E).\n'; sleep 0.3; ` +
-          `printf '\\004'; sleep 0.3; printf 'get_char(D).\n'; sleep 0.3; ` +
-          `printf 'q\n'; sleep 0.3; printf 'halt.\n'; } | ` +
-          `script -qefc ${shellQuote(command)} /dev/null`;
-        const result = spawnSync('sh', ['-c', scriptCommand], {
-          cwd: packageRoot,
-          encoding: 'utf8',
-          timeout: 5000,
-        });
+        if (!hasUtilLinuxScript()) return;
+        const result = runScriptedRepl([
+          { waitFor: '?- ', send: 'peek_char(P), get_char(C), get_code(K).\n' },
+          { waitFor: '  |: ', send: 'ab\n' },
+          { waitFor: 'P = a, C = a, K = 98.', send: 'get_char(N).\n' },
+          { waitFor: '  |: ', send: 'z\n' },
+          { waitFor: 'N = z.', send: 'get_char(E).\n' },
+          { waitFor: '  |: ', send: '\u0004' },
+          { waitFor: 'E = end_of_file.', send: 'get_char(D).\n' },
+          { waitFor: '  |: ', send: 'q\n' },
+          { waitFor: 'D = q.', send: 'halt.\n' },
+        ]);
         assertEqual(result.error?.code, undefined, 'interactive character input timeout');
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'P = a, C = a, K = 98.', 'peek/get char and code input');
@@ -6110,6 +6099,99 @@ function between(text, startMarker, endMarker) {
 
 function shellQuote(value) {
   return `'${String(value).replaceAll("'", "'\"'\"'")}'`;
+}
+
+let utilLinuxScriptAvailable = null;
+
+function hasUtilLinuxScript() {
+  if (process.platform === 'win32') return false;
+  if (utilLinuxScriptAvailable == null) {
+    const available = spawnSync('sh', ['-c',
+      'command -v script >/dev/null 2>&1 && script --version 2>/dev/null | grep -qi util-linux']);
+    utilLinuxScriptAvailable = available.status === 0;
+  }
+  return utilLinuxScriptAvailable;
+}
+
+function runScriptedRepl(steps, { timeout = 5000 } = {}) {
+  const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
+  const payload = Buffer.from(JSON.stringify({
+    command,
+    cwd: packageRoot,
+    steps,
+    timeout,
+  })).toString('base64');
+  const helper = String.raw`
+const { spawn } = require('node:child_process');
+const config = JSON.parse(Buffer.from(process.env.EYEPROLOG_REPL_SCRIPT, 'base64').toString('utf8'));
+const child = spawn('script', ['-qefc', config.command, '/dev/null'], {
+  cwd: config.cwd,
+  stdio: ['pipe', 'pipe', 'pipe'],
+});
+let stdout = '';
+let stderr = '';
+let cursor = 0;
+let step = 0;
+let finished = false;
+
+function advance() {
+  while (step < config.steps.length) {
+    const current = config.steps[step];
+    const index = stdout.indexOf(current.waitFor, cursor);
+    if (index === -1) return;
+    cursor = index + current.waitFor.length;
+    child.stdin.write(current.send);
+    step++;
+  }
+}
+
+child.stdout.on('data', (chunk) => {
+  stdout += chunk;
+  advance();
+});
+child.stderr.on('data', (chunk) => {
+  stderr += chunk;
+});
+
+const timer = setTimeout(() => {
+  if (finished) return;
+  finished = true;
+  child.kill('SIGKILL');
+  process.stdout.write(JSON.stringify({ status: null, stdout, stderr, timedOut: true, step }));
+}, config.timeout);
+
+child.on('close', (status, signal) => {
+  if (finished) return;
+  finished = true;
+  clearTimeout(timer);
+  process.stdout.write(JSON.stringify({ status, signal, stdout, stderr, timedOut: false, step }));
+});
+`;
+  const helperResult = spawnSync(process.execPath, ['-e', helper], {
+    cwd: packageRoot,
+    encoding: 'utf8',
+    env: { ...process.env, EYEPROLOG_REPL_SCRIPT: payload },
+    timeout: timeout + 1000,
+  });
+  if (helperResult.error) return helperResult;
+  if (helperResult.status !== 0) return helperResult;
+  let result;
+  try {
+    result = JSON.parse(helperResult.stdout);
+  } catch (error) {
+    return {
+      ...helperResult,
+      error: new Error(`interactive REPL helper returned invalid JSON: ${error.message}`),
+    };
+  }
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: `${result.stderr ?? ''}${helperResult.stderr ?? ''}`,
+    error: result.timedOut
+      ? Object.assign(new Error(`interactive REPL timed out after step ${result.step}`), { code: 'ETIMEDOUT' })
+      : undefined,
+  };
 }
 
 function runCli(args, options = {}) {
