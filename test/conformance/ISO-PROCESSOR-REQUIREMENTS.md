@@ -17,7 +17,7 @@ certification claim.
 | Requirement | Status | Current evidence / remaining work |
 | --- | --- | --- |
 | 5.1(a) prepare conforming Prolog text | audit | parser/preparation tests, directives, include behavior, preparation-time operators/flags/character conversion, and the complete vendored WG17 syntax matrix; the remaining Clause 6/7.4 shall-by-shall map is still open |
-| 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 suites plus the now-complete 8.2-8.17 row-audited built-in family in `ISO-BUILTIN-MODE-ERROR-MATRIX.md`; remaining Clause 7/9 processor-semantic rows are still being enumerated |
+| 5.1(b) execute conforming Prolog goals | audit | the 7.1-7.3 term-semantics matrix, 7.9/Clause 9 evaluable-functor matrix, and complete 8.2-8.17 built-in row audit are closed; remaining dependency rows are 7.4-7.8, higher-level 7.10, and residual processor-level 7.12 semantics |
 | 5.1(c) reject nonconforming text/read terms | audit | syntax-error corpus, WG17 negative syntax cases, strict extension rejection; exhaustive Clause 6 rejection mapping remains open |
 | 5.1(d) specify permitted variations | covered | `ISO-IMPLEMENTATION-DEFINED.md` records the Part 1 implementation-defined choices and implementation-specific extension families |
 | 5.1(e) offer a strictly conforming mode | covered | CLI `--iso-strict` and API `isoStrict: true`; registry/directive/operator/flag extension filtering plus disabled implementation-specific execution shortcuts |
@@ -27,7 +27,7 @@ certification claim.
 | Requirement | Status | Current evidence / remaining work |
 | --- | --- | --- |
 | 5.2 conforming and strictly conforming Prolog text boundary | audit | strict parser accepts Part 1 + Corrigenda syntax plus implementation-defined PCS choices and rejects implementation-specific language facilities; full Clause 6/7.4 dependency audit remains open |
-| 5.3 conforming and strictly conforming Prolog goal boundary | audit | strict registry/control/evaluable filtering and Clause 7-9 regression suites; the built-in 8.2-8.17 mode/error rows are closed, while remaining general goal/control and Clause 9 semantic rows stay open |
+| 5.3 conforming and strictly conforming Prolog goal boundary | audit | strict registry/control/evaluable filtering plus closed 7.1-7.3, 7.9/Clause 9, and 8.2-8.17 row matrices; remaining general execution/control, higher-level stream, and processor-error semantics keep the top-level goal boundary open |
 | 5.4 accompanying documentation for implementation-defined and implementation-specific features | covered | `ISO-IMPLEMENTATION-DEFINED.md`, *The Art of EyeProlog*, strict-boundary documentation, and release-facing conformance ledgers |
 
 ## 5.5 — extension boundaries
@@ -44,12 +44,13 @@ certification claim.
 | 5.5.7 additional control constructs | covered | `tnot/1` and implementation-specific execution optimizations are absent/disabled in strict mode; standard control constructs remain separately audited |
 | 5.5.8 additional flags | covered | normal `occurs_check` extension is absent from strict mode; the Part 1 flag family is fully audited |
 | 5.5.9 additional built-in predicates and error forms | covered | strict registry excludes normal-profile library/native additions; `ISO-BUILTIN-MODE-ERROR-MATRIX.md` closes the complete 8.2-8.17 family row-by-row; simultaneous-error choices are documented per 7.12 rather than treated as a global table-order mandate |
-| 5.5.10 additional evaluable functors/types | covered | strict mode rejects the normal-profile evaluable `e` extension while retaining the full Part 1 + Corrigenda arithmetic set. The 9.1.4.2 `resultF` choice, Corrigendum 2 mixed-type `max/2`/`min/2` choice, and Clause 9.4 signed bitwise/shift choices are documented and pinned by strict tests. Post-N289 STC #75 remains separate from the published baseline; the remaining Clause 9 semantic/error audit is tracked under 5.1(b)/5.3 rather than as an open extension-boundary decision |
+| 5.5.10 additional evaluable functors/types | covered | strict mode rejects the normal-profile evaluable `e` extension while retaining the full Part 1 + Corrigenda arithmetic set. `ISO-EVALUABLE-FUNCTOR-MATRIX.md` now closes the Clause 9 semantic/error audit and pins the 9.1.4.2 `resultF`, mixed-type `max/2`/`min/2`, and signed bitwise/shift choices. Post-N289 STC #75 remains separate from the published baseline |
 | 5.5.11 reserved atoms | not applicable | EyeProlog declares no reserved-atom extension; extension names remain ordinary atoms unless used in a documented syntactic/predicate/directive role |
 
 ## Exit-use rule
 
 A top-level row stays `audit` until all of the normative clauses it depends on
 have explicit pass, not-applicable, or documented implementation-defined
-outcomes. This prevents a large green regression suite from being mistaken for
-a completed processor-requirement audit.
+outcomes. `ISO-EXIT-CRITERIA.md` records the same dependency closure from the
+release-exit perspective. This prevents a large green regression suite from
+being mistaken for a completed processor-requirement audit.

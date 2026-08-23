@@ -372,7 +372,9 @@ and conditional/not-applicable processor branches all have explicit outcomes.
 ISO 7.12 simultaneous-error selection remains an implementation-dependent
 processor choice unless more specific normative text constrains it.
 
-The remaining #65 work is therefore above/below this built-in table: Clause 6
-text/rejection mapping, Clause 7 processor/control semantics, Clause 9
-exceptional-value rows, residual Clause 5 dependency rows, and the external
-conversion/variable-name conformance corpora.
+The remaining #65 work is therefore above/below this built-in table. The
+7.1-7.3 term-semantics and 7.9/Clause 9 evaluable-functor rows are now closed in
+their dedicated matrices. What remains is Clause 6 text/rejection mapping,
+Clause 7.4-7.8 plus higher-level 7.10/7.12 processor/control semantics, residual
+Clause 5 dependency rows, and the external conversion/variable-name exit
+criteria recorded in `ISO-EXIT-CRITERIA.md`.

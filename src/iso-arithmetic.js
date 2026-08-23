@@ -71,10 +71,18 @@ function evaluateOperation(term, args, options = {}) {
   if (arity === 1 && ['abs', 'sign', 'float', 'truncate', 'round', 'ceiling', 'floor',
     'float_integer_part', 'float_fractional_part',
     'sin', 'cos', 'atan', 'asin', 'acos', 'tan', 'exp', 'log', 'sqrt'].includes(name)) {
-    // The four float-to-integer rounding functors have only F->I operators
-    // (9.1.1/9.1.6). Corrigendum 1/2 therefore requires type_error(float,...)
-    // when their evaluated argument has integer type.
-    if (options.isoStrict === true && ['truncate', 'round', 'ceiling', 'floor'].includes(name) && args[0].integer) {
+    // These six conversion/rounding functors have float-only input templates
+    // in 9.1.1/9.1.6. They therefore require type_error(float,...) when their
+    // evaluated argument has integer type, before any I->F conversion.
+    if (options.isoStrict === true && [
+      'truncate', 'round', 'ceiling', 'floor',
+      'float_integer_part', 'float_fractional_part',
+    ].includes(name) && args[0].integer) {
+      // These functors have only F->I or F->F templates.  In particular,
+      // float_integer_part/1 and float_fractional_part/1 must reject an
+      // integer by type before any I->F conversion is attempted; otherwise a
+      // sufficiently large (but valid, unbounded) integer can be misreported
+      // as float_overflow instead of type_error(float,...).
       throw new PrologError('type_error(float)', numericTerm(args[0]));
     }
     if (name === 'abs' && args[0].integer) return { integer: true, value: args[0].value < 0n ? -args[0].value : args[0].value };

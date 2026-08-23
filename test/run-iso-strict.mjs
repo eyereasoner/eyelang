@@ -197,6 +197,31 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'representation_error(term)', 'strict program construction rejects API string terms');
   });
 
+
+  reporter.test('closes the ISO 7.1-7.3 term-semantics rows', () => {
+    for (const goal of [
+      'var(X), \\+ nonvar(X)',
+      'integer(1), float(1.0), atom(a), compound(f(a))',
+      'atomic(1), atomic(1.0), atomic(a), \\+ atomic(f(a))',
+      'term_variables(f(X,Y,X),[X,Y])',
+      'f(X,a)=f(b,Y), X==b, Y==a',
+      '\\+ (f(a)=g(a))',
+      '\\+ (X=f(X))',
+      '\\+ unify_with_occurs_check(X,f(X))',
+      'copy_term(f(X,X),f(Y,Y)), X \\== Y',
+      'f(a) @< f(a,b)',
+      'f(a) @< g(a)',
+    ]) equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, goal);
+
+    const program = Program.parse('', { isoStrict: true });
+    const solver = new Solver(program, { isoStrict: true });
+    const answers = (goal) => [...solver.solve([parseGoalText(goal, { isoStrict: true })], new Env(), 0)].length;
+    equal(answers('X @< 1.0'), 1, 'variable < float');
+    equal(answers('1.0 @< 1'), 1, 'float < integer');
+    equal(answers('1 @< a'), 1, 'integer < atom');
+    equal(answers('a @< f(a)'), 1, 'atom < compound');
+  });
+
   reporter.test('keeps the strict write-option surface to Part 1 plus Corrigendum 3', () => {
     const strictError = capture(() => run('', {
       isoStrict: true,
@@ -738,6 +763,77 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'X is xor(-1,5), X == -6',
       'X is \\ 5, X == -6',
     ]) equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, goal);
+  });
+
+
+  reporter.test('closes the ISO 7.9 and Clause 9 evaluable-functor rows', () => {
+    for (const goal of [
+      'X is 7+35, X==42',
+      'X is 7-35, X== -28',
+      'X is 7*5, X==35',
+      'X is 7/2, X =:= 3.5',
+      'X is 7//(-3), X== -2',
+      'X is 7 div (-3), X== -3',
+      'X is (-7) rem 3, X== -1',
+      'X is (-7) mod 3, X==2',
+      'X is +7, X==7',
+      'X is -7, X== -7',
+      'X is abs(-7), X==7',
+      'X is sign(-7), X== -1',
+      'X is float(7), X =:= 7.0',
+      'X is floor(1.9), X==1',
+      'X is truncate(-1.9), X== -1',
+      'X is round(1.4), X==1',
+      'X is ceiling(1.1), X==2',
+      'X is float_integer_part(1.5), X =:= 1.0',
+      'X is float_fractional_part(-1.5), X =:= -0.5',
+      'X is 2 ** 3, X =:= 8.0',
+      'X is sin(0), X =:= 0.0',
+      'X is cos(0), X =:= 1.0',
+      'X is atan(0), X =:= 0.0',
+      'X is exp(0), X =:= 1.0',
+      'X is log(1), X =:= 0.0',
+      'X is sqrt(4), X =:= 2.0',
+      'X is max(2,3.0), X==3.0',
+      'X is min(2.0,3), X==2.0',
+      'X is 3^3, X==27',
+      'X is asin(0), X =:= 0.0',
+      'X is acos(1), X =:= 0.0',
+      'X is atan2(1,0), X > 1.5',
+      'X is tan(0), X =:= 0.0',
+      'X is pi, X > 3.14',
+      'X is xor(10,12), X==6',
+      'X is (10 /\\ 12), X==8',
+      'X is (10 \\/ 12), X==14',
+      'X is (8 << 2), X==32',
+      'X is (8 >> 2), X==2',
+      'X is \\ 5, X== -6',
+    ]) equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, goal);
+
+    const huge = `1${'0'.repeat(400)}`;
+    for (const functor of ['float_integer_part', 'float_fractional_part']) {
+      equal(capture(() => run('', { isoStrict: true, goal: `X is ${functor}(${huge})` })).formal,
+        'type_error(float)', `${functor}/1 float-only template precedes I->F overflow`);
+    }
+
+    for (const [goal, formal, label] of [
+      ['X is Y+1', 'instantiation_error', 'direct variable expression'],
+      ['X is foo', 'type_error(evaluable)', 'non-evaluable atom'],
+      ['X is 1.5 // 1', 'type_error(integer)', 'integer-only arithmetic'],
+      ['X is floor(1)', 'type_error(float)', 'float-only rounding'],
+      ['X is 1/0', 'evaluation_error(zero_divisor)', 'floating division zero'],
+      ['X is 1 div 0', 'evaluation_error(zero_divisor)', 'integer division zero'],
+      ['X is log(0)', 'evaluation_error(undefined)', 'log domain'],
+      ['X is sqrt(-1)', 'evaluation_error(undefined)', 'sqrt domain'],
+      ['X is asin(2)', 'evaluation_error(undefined)', 'asin domain'],
+      ['X is acos(2)', 'evaluation_error(undefined)', 'acos domain'],
+      ['X is atan2(0,0)', 'evaluation_error(undefined)', 'atan2 zero pair'],
+      ['X is 0 ** -1', 'evaluation_error(undefined)', 'power zero-negative'],
+      ['X is (-2) ** 0.5', 'evaluation_error(undefined)', 'negative-base power'],
+      ['X is exp(1000.0)', 'evaluation_error(float_overflow)', 'transcendental overflow'],
+      ['X is exp(-1000.0)', 'evaluation_error(underflow)', 'transcendental underflow'],
+      ['X is 2.0 ** -1075.0', 'evaluation_error(underflow)', 'published power underflow'],
+    ]) equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
   });
 
   reporter.test('uses the Part 1 mixed arithmetic comparison operations', () => {

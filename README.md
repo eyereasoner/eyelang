@@ -228,7 +228,12 @@ ongoing issue #65 audit additionally tightens Prolog-text declaration ordering,
 initialization lifetime, stream/open/close behavior, character/byte stream
 errors, `keysort/2` error cases, the now-closed 5.5.6 side-effect and 5.5.10 evaluable-functor strict
 extension boundaries, and the standard's permitted arithmetic variation points: mixed-type Corrigendum 2
-`max/2`/`min/2` and signed Clause 9.4 bitwise/shift behavior.
+`max/2`/`min/2` and signed Clause 9.4 bitwise/shift behavior. The row-level
+7.1-7.3 term-semantics audit and 7.9/Clause 9 expression/evaluable-functor
+audit are now closed as well. That arithmetic pass also corrected float-only
+`float_integer_part/1` and `float_fractional_part/1`: an integer operand, even
+a huge valid unbounded integer, now reaches `type_error(float,...)` before any
+integer-to-float overflow.
 Those additions improve the Part 1 surface without turning the remaining audit
 rows into a blanket conformance claim. The post-N289 WG17/STC working draft is
 reviewed separately rather than treated as a fourth Corrigendum. The
@@ -247,6 +252,11 @@ The auditable processor-requirement checklist lives in
 [`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
 The ISO 5.4 implementation-defined/implementation-specific decision index is
 [`test/conformance/ISO-IMPLEMENTATION-DEFINED.md`](test/conformance/ISO-IMPLEMENTATION-DEFINED.md).
+The closed term and arithmetic row audits are
+[`ISO-TERM-SEMANTICS-MATRIX.md`](test/conformance/ISO-TERM-SEMANTICS-MATRIX.md) and
+[`ISO-EVALUABLE-FUNCTOR-MATRIX.md`](test/conformance/ISO-EVALUABLE-FUNCTOR-MATRIX.md);
+[`ISO-EXIT-CRITERIA.md`](test/conformance/ISO-EXIT-CRITERIA.md) states the remaining
+normative and external-corpus exit conditions.
 The separate [WG17 syntax ledger](test/conformance/WG17-SYNTAX-STATUS.md)
 records executable dispositions for the vendored active upstream WG17 syntax
 cases and runs as part of `npm test`. Reviewed cases can pin exact outcomes;

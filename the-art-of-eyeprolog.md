@@ -7589,10 +7589,13 @@ requirements whose normative `shall` clauses, option combinations, or error
 precedence still need one-by-one closure. `test/conformance/ISO-MATRIX.md`
 maps language families to representative executable cases.
 `test/conformance/ISO-IMPLEMENTATION-DEFINED.md` is the ISO 5.4 decision
-index: it enumerates the Part 1 implementation-defined decisions, the
-implementation-specific extension families, and any remaining strict-mode audit
-gaps without turning draft WG17/STC proposals into the licensed baseline.
-`test/conformance/WG17-SYNTAX-STATUS.md` separately traces the vendored active
+index: it enumerates the Part 1 implementation-defined decisions and the
+implementation-specific extension families without turning draft WG17/STC
+proposals into the licensed baseline. `ISO-TERM-SEMANTICS-MATRIX.md` closes the
+7.1-7.3 type/order/unification rows and `ISO-EVALUABLE-FUNCTOR-MATRIX.md` closes
+7.9/Clause 9 expression and arithmetic rows. `ISO-EXIT-CRITERIA.md` makes the
+remaining normative, external-corpus, and unexplained-deviation exit conditions
+explicit. `test/conformance/WG17-SYNTAX-STATUS.md` separately traces the vendored active
 upstream syntax cases. Reviewed cases can pin exact strict-reader outcomes, while
 newly upgraded cases execute directly against the upstream Codex expectation.
 
@@ -7672,10 +7675,13 @@ creation/position/EOF behavior and text-vs-binary permission errors, corrects
 Corrigendum 2 `keysort/2` error cases, closes the 5.5.6 Prolog-visible
 side-effect boundary by excluding statistics/cleanup extensions from strict
 mode, closes 5.5.10 by keeping the non-standard evaluable atom `e` outside
-strict mode, and pins the permitted arithmetic variation points for
+strict mode, closes the row-level 7.1-7.3 term-semantics and 7.9/Clause 9
+arithmetic audits, and pins the permitted arithmetic variation points for
 mixed-type Corrigendum 2 `max/2`/`min/2` plus signed Clause 9.4 bitwise and
-negative-shift behavior. These are conformance improvements, while the
-remaining qualifications are:
+negative-shift behavior. The Clause 9 audit also corrected float-only
+`float_integer_part/1` and `float_fractional_part/1` so integer operands are
+rejected by type before a potentially overflowing integer-to-float conversion.
+These are conformance improvements, while the remaining qualifications are:
 
 - zero-arity compound syntax such as `ready()` is represented by the atom
   `ready`;
@@ -7695,9 +7701,9 @@ Write terms explicitly, keep variables uppercase or underscore-prefixed, and
 quote atom names that are neither lowercase plain names nor graphic tokens.
 These boundaries distinguish implemented ISO functionality from certification.
 The EyeProlog corpus verifies this documented profile and strict-core boundary.
-A public full-conformance claim is deferred until the compliance ledger has no
-unresolved normative audits and external conformity runs have no unexplained
-deviations.
+A public full-conformance claim is deferred until the explicit
+`test/conformance/ISO-EXIT-CRITERIA.md` checklist has no unresolved normative
+audits or unexplained external-corpus deviations.
 
 ### Security and resource use
 

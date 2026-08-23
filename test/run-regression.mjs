@@ -3692,6 +3692,48 @@ function documentationSyncCases() {
       },
     },
     {
+      name: 'ISO term and arithmetic row matrices are closed and linked',
+      run: () => {
+        const compliance = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-COMPLIANCE.md'), 'utf8');
+        const terms = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-TERM-SEMANTICS-MATRIX.md'), 'utf8');
+        const arithmetic = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-EVALUABLE-FUNCTOR-MATRIX.md'), 'utf8');
+        assertIncludes(compliance, '| 7.1-7.3 — term types, term order, unification | covered |', '7.1-7.3 covered');
+        assertIncludes(compliance, '| 7.9 — expression evaluation | covered |', '7.9 covered');
+        assertIncludes(compliance, '| Clause 9 — evaluable functors | covered |', 'Clause 9 covered');
+        assertIncludes(terms, '## 7.3 - unification', 'term unification row matrix');
+        assertIncludes(arithmetic, '## 9.4 - bitwise functors', 'Clause 9.4 row matrix');
+        assertIncludes(arithmetic, '`float_integer_part/1`, `float_fractional_part/1`', 'float-only conversion row');
+      },
+    },
+    {
+      name: 'ISO exit criteria keep remaining audit work explicit',
+      run: () => {
+        const exit = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-EXIT-CRITERIA.md'), 'utf8');
+        for (const item of [
+          '| Clause 6 lexical/syntactic requirements have explicit dispositions | open |',
+          '| Clause 7 semantic requirements have explicit dispositions | open |',
+          '| Clause 8 built-in modes/errors have explicit dispositions | covered |',
+          '| Clause 9 evaluable-functor requirements have explicit dispositions | covered |',
+          '| Independent external syntax corpus is an offline release gate | covered |',
+          '| External conversion/variable-name comparisons used during the audit are reproducible offline | open |',
+          '| No unexplained deviation remains in the release-facing ledger | open |',
+        ]) assertIncludes(exit, item, item);
+      },
+    },
+    {
+      name: 'public ISO documentation links the row matrices and exit checklist',
+      run: () => {
+        const readme = fs.readFileSync(path.join(packageRoot, 'README.md'), 'utf8');
+        const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
+        const profile = fs.readFileSync(path.join(packageRoot, 'why-eyeprolog.md'), 'utf8');
+        for (const name of ['ISO-TERM-SEMANTICS-MATRIX.md', 'ISO-EVALUABLE-FUNCTOR-MATRIX.md', 'ISO-EXIT-CRITERIA.md']) {
+          assertIncludes(readme, name, `README ${name}`);
+          assertIncludes(book, name, `book ${name}`);
+        }
+        assertIncludes(profile, 'completed row-level 7.1-7.3 term-semantics and 7.9/Clause 9 arithmetic audits', 'Why EyeProlog audit state');
+      },
+    },
+    {
       name: 'book is the single implementation reference',
       run: () => assertArrayEqual(bookReferenceDocumentationIssues(), [], 'book reference documentation'),
     },
