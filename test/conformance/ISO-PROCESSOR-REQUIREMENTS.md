@@ -17,7 +17,7 @@ certification claim.
 | Requirement | Status | Current evidence / remaining work |
 | --- | --- | --- |
 | 5.1(a) prepare conforming Prolog text | audit | parser/preparation tests, directives, include behavior, preparation-time operators/flags/character conversion, and the complete vendored WG17 syntax matrix; the remaining Clause 6/7.4 shall-by-shall map is still open |
-| 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 suites plus the row-audited built-in slices in `ISO-BUILTIN-MODE-ERROR-MATRIX.md`; 8.6-8.14 and remaining Clause 7/9 semantic rows are still being enumerated |
+| 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 suites plus the now-complete 8.2-8.17 row-audited built-in family in `ISO-BUILTIN-MODE-ERROR-MATRIX.md`; remaining Clause 7/9 processor-semantic rows are still being enumerated |
 | 5.1(c) reject nonconforming text/read terms | audit | syntax-error corpus, WG17 negative syntax cases, strict extension rejection; exhaustive Clause 6 rejection mapping remains open |
 | 5.1(d) specify permitted variations | covered | `ISO-IMPLEMENTATION-DEFINED.md` records the Part 1 implementation-defined choices and implementation-specific extension families |
 | 5.1(e) offer a strictly conforming mode | covered | CLI `--iso-strict` and API `isoStrict: true`; registry/directive/operator/flag extension filtering plus disabled implementation-specific execution shortcuts |
@@ -27,7 +27,7 @@ certification claim.
 | Requirement | Status | Current evidence / remaining work |
 | --- | --- | --- |
 | 5.2 conforming and strictly conforming Prolog text boundary | audit | strict parser accepts Part 1 + Corrigenda syntax plus implementation-defined PCS choices and rejects implementation-specific language facilities; full Clause 6/7.4 dependency audit remains open |
-| 5.3 conforming and strictly conforming Prolog goal boundary | audit | strict registry/control/evaluable filtering and Clause 7-9 regression suites; remaining prescribed mode/error and goal-semantics rows remain open |
+| 5.3 conforming and strictly conforming Prolog goal boundary | audit | strict registry/control/evaluable filtering and Clause 7-9 regression suites; the built-in 8.2-8.17 mode/error rows are closed, while remaining general goal/control and Clause 9 semantic rows stay open |
 | 5.4 accompanying documentation for implementation-defined and implementation-specific features | covered | `ISO-IMPLEMENTATION-DEFINED.md`, *The Art of EyeProlog*, strict-boundary documentation, and release-facing conformance ledgers |
 
 ## 5.5 — extension boundaries
@@ -43,7 +43,7 @@ certification claim.
 | 5.5.6 additional side effects | audit | host/proof/statistics/library effects are outside the strict registry or documented normal-mode behavior; exhaustive side-effect preservation mapping remains part of the Clause 7.7/7.10 audit |
 | 5.5.7 additional control constructs | covered | `tnot/1` and implementation-specific execution optimizations are absent/disabled in strict mode; standard control constructs remain separately audited |
 | 5.5.8 additional flags | covered | normal `occurs_check` extension is absent from strict mode; the Part 1 flag family is fully audited |
-| 5.5.9 additional built-in predicates and error forms | audit | strict registry excludes normal-profile library/native additions; `ISO-BUILTIN-MODE-ERROR-MATRIX.md` now closes 8.2-8.5 and 8.15-8.17 row-by-row, while 8.6-8.14 remain open |
+| 5.5.9 additional built-in predicates and error forms | covered | strict registry excludes normal-profile library/native additions; `ISO-BUILTIN-MODE-ERROR-MATRIX.md` closes the complete 8.2-8.17 family row-by-row; simultaneous-error choices are documented per 7.12 rather than treated as a global table-order mandate |
 | 5.5.10 additional evaluable functors/types | audit | strict mode excludes normal-profile arithmetic extensions such as evaluable `e`; Clause 9 exceptional-value and error-precedence rows remain under audit |
 | 5.5.11 reserved atoms | not applicable | EyeProlog declares no reserved-atom extension; extension names remain ordinary atoms unless used in a documented syntactic/predicate/directive role |
 

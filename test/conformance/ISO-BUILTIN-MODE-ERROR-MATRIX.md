@@ -4,12 +4,21 @@ This matrix turns the broad built-in audit in `ISO-COMPLIANCE.md` into smaller,
 release-gated units. The normative baseline is ISO/IEC 13211-1:1995 plus
 Technical Corrigenda 1:2007, 2:2012, and 3:2017.
 
-A `covered` row has an executable assertion for the prescribed successful mode,
-failure behavior, or error condition. `not applicable` records a conditional
-standard branch that cannot occur under EyeProlog's documented processor
-choices. The table is intentionally explicit about what has and has not been
-closed: this tranche row-audits 8.2-8.5 and 8.15-8.17; 8.6-8.14 remain under
-the broader audit and will be expanded in later passes.
+A `covered` row has executable evidence for the required successful mode,
+failure behavior, or individual error condition. `not applicable` records a
+conditional standard branch that cannot occur under EyeProlog's documented
+processor choices. ISO 7.12 makes the reported error implementation dependent
+when more than one error condition is simultaneously satisfied. Accordingly,
+this matrix treats overlap tests as stable EyeProlog processor choices unless a
+more specific procedural requirement or Corrigendum constrains the result; it
+does not infer a universal priority merely from the textual order of an error
+table.
+
+The table is intentionally explicit about what has and has not been closed.
+The current audit now covers the complete 8.2-8.17 built-in family at the
+level of prescribed modes, success/failure behavior, individual error
+conditions, and explicit not-applicable processor branches. Higher-level
+Clause 7 and Clause 9 semantics remain tracked separately.
 
 The focused assertions added for this matrix live in `test/run-iso-strict.mjs`;
 existing file-based cases remain additional independent evidence.
@@ -102,6 +111,171 @@ The Corrigendum 2 additions have the same shape.
 | Cor.2 8.5.5 `term_variables/2` | supplied partial/list result | covered | Corrigendum cases |
 | Cor.2 8.5.5 error (a) | second argument neither partial list nor list -> list type error | covered | strict `term_variables(t,[X|foo])` |
 
+## 8.6 — arithmetic evaluation
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.6.1 `is/2` | evaluate the second argument and unify/check the result | covered | strict `X is 1+2, X=3`, arithmetic corpus |
+| 8.6.1 failed result unification | a successfully evaluated value need not unify with the first argument | covered | strict `4 is 1+2` fails |
+| 8.6.1 error (a) | variable expression -> instantiation error | covered | strict `X is Y` |
+| 8.6.1 delegated expression errors | evaluation may report any applicable 7.9.2 error | covered | strict `X is foo` plus Clause 9 arithmetic/error suites |
+
+## 8.7 — arithmetic comparison
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.7.1 `(=:=)/2` | evaluate two expressions and test arithmetic equality | covered | strict `1 =:= 1`, arithmetic comparison corpus |
+| 8.7.1 `(=\=)/2` | evaluate two expressions and test arithmetic inequality | covered | strict `1 =\= 2` |
+| 8.7.1 `(<)/2` | arithmetic less-than | covered | strict `1 < 2` |
+| 8.7.1 `(=<)/2` | arithmetic less-than-or-equal | covered | strict `1 =< 1` |
+| 8.7.1 `(>)/2` | arithmetic greater-than | covered | strict `2 > 1` |
+| 8.7.1 `(>=)/2` | arithmetic greater-than-or-equal | covered | strict `2 >= 2` |
+| 8.7.1 error (a) | first expression variable -> instantiation error | covered | strict variable-first assertions across the comparison family |
+| 8.7.1 error (b) | second expression variable -> instantiation error | covered | strict variable-second assertions across the comparison family |
+| 8.7.1 delegated expression errors | either expression may report an applicable 7.9.2 error | covered | strict `foo =:= 1` plus Clause 9 error suites |
+| 8.7 mixed integer/float operation | selected Part 1 I-to-F comparison operations, including conversion overflow | covered | dedicated strict mixed-comparison tests |
+
+## 8.8 — clause inspection
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.8.1 `clause/2` | enumerate clauses of a public user-defined procedure | covered | dynamic-clause tests and grouped-solutions/clause corpus |
+| 8.8.1 error (a) | variable head -> instantiation error | covered | strict `clause(X,_)` |
+| 8.8.1 error (b) | non-callable head -> callable type error | covered | strict `clause(4,_)` |
+| 8.8.1 error (c) | private procedure -> access/private-procedure permission error | covered | strict static/private tests |
+| 8.8.1 error (d) | fixed non-callable Body -> callable type error | covered | strict dynamic `clause(p(_),4)` coverage |
+| 8.8.1 clause-to-term conversion | source variable goals become `call/1` while preserving sharing with the head | covered | strict `foo(X):-X` -> `clause(foo(C),call(C))`; nested `;/2` and `->/2` regressions |
+| 8.8.2 `current_predicate/1` | enumerate/query user-defined predicate indicators, including empty declared procedures | covered | strict row audit and empty-procedure lifetime tests |
+| 8.8.2 error (a) | fixed non-predicate-indicator -> predicate-indicator type error | covered | strict `current_predicate(4)` |
+
+## 8.9 — database modification
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.9.1 `asserta/1` | convert term to clause and insert before existing clauses | covered | dynamic-database corpus and strict body-conversion tests |
+| 8.9.1 errors (a-b) | variable/non-callable Head -> instantiation/callable type error | covered | strict `asserta(_)`, `asserta(4)` |
+| 8.9.1 error (c) | Body cannot be converted to a goal -> callable type error | covered | strict `asserta((p:-4))` and nested-control conversion tests |
+| 8.9.1 error (d) | static procedure -> modify/static-procedure permission error | covered | strict static-procedure tests |
+| 8.9.2 `assertz/1` | convert term to clause and insert after existing clauses | covered | dynamic-database corpus and strict body-conversion tests |
+| 8.9.2 errors (a-d) | same Head/Body/static families as `asserta/1` | covered | strict `assertz(_)`, `assertz(4)`, `assertz((p:-4))`, static-procedure tests |
+| 8.9.3 `retract/1` | retract matching dynamic clauses re-executably using the logical update view | covered | dynamic-database and logical-update-view suites |
+| 8.9.3 errors (a-b) | variable/non-callable Head -> instantiation/callable type error | covered | strict `retract(_)`, `retract(4)` |
+| Cor.2 8.9.3 error (c) | static procedure -> **modify**/static-procedure permission error | covered | strict `retract(atom(_))` and Corrigendum coverage |
+| 8.9.3 clause-term matching | converted source body retains head/body variable identity when matched by `retract/1` | covered | strict `retract((foo(C):-call(C)))` regression |
+| 8.9.4 `abolish/1` | remove a dynamic procedure | covered | strict lifetime tests |
+| 8.9.4 errors (a-b) | variable indicator or variable Name/Arity component -> instantiation error | covered | strict `abolish(X)`, `abolish(foo/X)` |
+| 8.9.4 error (c) | non-predicate-indicator -> predicate-indicator type error | covered | strict `abolish(foo)` |
+| 8.9.4 error (d) | non-integer Arity -> integer type error | covered | strict `abolish(foo/a)` |
+| 8.9.4 error (e) | non-atom Name -> atom type error | covered | strict `abolish(4/1)` |
+| 8.9.4 error (f) | negative Arity -> non-negative domain error | covered | strict `abolish(foo/(-1))` |
+| 8.9.4 finite-`max_arity` error (g) | Arity exceeds finite `max_arity` | not applicable | selected `max_arity=unbounded` |
+| 8.9.4 error (h) | static procedure -> modify/static-procedure permission error | covered | strict `abolish(atom/1)` |
+| Cor.2 8.9.5 `retractall/1` | remove all matching dynamic heads while retaining the procedure | covered | strict empty-procedure lifetime test and Corrigendum cases |
+| Cor.2 8.9.5 errors (a-c) | variable/non-callable Head or static procedure | covered | strict `retractall(_)`, `retractall(4)`, static-procedure test |
+
+## 8.10 — all solutions
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.10.1 `findall/3` | collect renamed template instances in solution order; empty result succeeds with `[]` | covered | strict `[1,2]` assertion plus all-solutions corpus |
+| 8.10.1 error (a) | variable Goal -> instantiation error | covered | strict `findall(X,Y,L)` |
+| 8.10.1 error (b) | non-callable Goal -> callable type error | covered | strict `findall(X,4,L)` |
+| 8.10.1 error (c) | Instances neither partial list nor list -> list type error | covered | strict `findall(X,true,foo)` |
+| 8.10.2 `bagof/3` | non-empty grouped solution lists, re-executable over free-variable witnesses | covered | grouped-solutions corpus and strict `[1,2]` assertion |
+| 8.10.2 empty solution set | goal fails rather than returning `[]` | covered | strict `bagof(X,fail,L)` |
+| 8.10.2 errors (a-b) | variable/non-callable iterated-goal term -> instantiation/callable type error | covered | strict `bagof(X,Y,L)`, `bagof(X,4,L)` |
+| 8.10.2 error (c) | Instances neither partial list nor list -> list type error | covered | strict `bagof(X,true,foo)` |
+| 8.10.3 `setof/3` | grouped solutions sorted with duplicates removed | covered | strict duplicate/sort assertion plus grouped-solutions corpus |
+| 8.10.3 empty solution set | goal fails rather than returning `[]` | covered | strict `setof(X,fail,L)` |
+| 8.10.3 errors (a-b) | variable/non-callable iterated-goal term -> instantiation/callable type error | covered | strict `setof(X,Y,L)`, `setof(X,4,L)` |
+| 8.10.3 error (c) | Instances neither partial list nor list -> list type error | covered | strict `setof(X,true,foo)` |
+| 8.10.2-3 witness-group order where the standard leaves a choice | implementation dependent | covered | existing grouping tests document EyeProlog's stable selection without turning it into a cross-processor requirement |
+
+
+## 8.11 — stream selection and control
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.11.1 `current_input/1` | unify/query the current input stream-term | covered | strict current-input success assertion |
+| 8.11.1 error | fixed argument is neither variable nor stream-term -> stream domain error | covered | strict `current_input(foo)` |
+| 8.11.2 `current_output/1` | unify/query the current output stream-term | covered | strict current-output success assertion |
+| 8.11.2 error | fixed argument is neither variable nor stream-term -> stream domain error | covered | strict `current_output(foo)` |
+| 8.11.3 `set_input/1` | select an open input stream by stream-term or alias | covered | stream-selection corpus |
+| 8.11.3 errors | variable; invalid stream-or-alias; missing stream; output stream | covered | dedicated strict assertions for all four conditions |
+| 8.11.4 `set_output/1` | select an open output stream by stream-term or alias | covered | stream-selection corpus |
+| 8.11.4 errors | variable; invalid stream-or-alias; missing stream; input stream | covered | dedicated strict assertions for all four conditions |
+| 8.11.5 `open/4`, `open/3` | open a source/sink with standardized mode/options and return a fresh stream | covered | stream corpus plus strict successful/error probes |
+| 8.11.5 errors: instantiation | variable source/mode or variable option element | covered | strict `open/4` assertions |
+| 8.11.5 errors: argument shapes | non-atom mode; non-list options; non-variable stream output (Cor.2 uninstantiation) | covered | strict `open/4` assertions |
+| 8.11.5 errors: domains | invalid source/sink, I/O mode, or stream option | covered | strict `open/4` assertions |
+| 8.11.5 source/sink errors | missing read source or source/sink that cannot be opened | covered | strict host-I/O probes for existence/permission conditions |
+| 8.11.5 alias collision | `alias(A)` already names an open stream -> open permission error with complete `alias(A)` culprit | covered | focused issue #65 alias-collision regression |
+| 8.11.5 `reposition(true)` impossible | permission error when the requested stream cannot be repositioned | covered | stream option corpus and implementation-defined stream capability checks |
+| 8.11.6 `close/2`, `close/1` | close an open non-standard stream and maintain current-stream fallbacks | covered | stream lifecycle corpus |
+| 8.11.6 errors | variable stream/option element; non-list options; invalid stream-or-alias; invalid close option; missing stream | covered | strict close assertions |
+| 8.11.6 `force(true)` | presence of `force(true)` suppresses resource/system close failure regardless of contradictory later `force(false)` | covered | dedicated two-order strict regression |
+| 8.11.7 `flush_output/1`, `flush_output/0` | flush an output stream/current output | covered | strict success assertion and stream corpus |
+| 8.11.7 errors | variable; invalid stream-or-alias; missing stream; input stream | covered | dedicated strict assertions |
+| 8.11.8 `stream_property/2` | enumerate properties of currently open streams; order is implementation dependent | covered | stream-property corpus and strict checks |
+| 8.11.8 stream-term error | fixed non-stream-term -> stream domain error | covered | strict `stream_property(foo,_)` |
+| 8.11.8 property error | fixed non-stream-property -> stream-property domain error | covered | strict invalid-property assertion |
+| 8.11.8 closed valid stream-term | no pair exists for a stream that is no longer open -> fail | covered | dedicated closed-stream regression |
+| 8.11.8 `at_end_of_stream/0-1` | test current/named stream end or past-end state | covered | strict success and EOF corpus |
+| 8.11.8 `at_end_of_stream/1` errors | variable; invalid stream-or-alias; missing stream | covered | dedicated strict assertions |
+| 8.11.9 `set_stream_position/2` | set a repositionable open stream to a valid stream position | covered | dedicated positioned-stream success assertion |
+| 8.11.9 errors | variable stream/position; invalid stream-or-alias/position; missing stream; non-repositionable stream | covered | dedicated strict assertions |
+
+## 8.12 — character input/output
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.12.1 `get_char/1-2` | input next text character or EOF indicator | covered | stream/character corpus and strict probes |
+| 8.12.1 `get_code/1-2` | input next text character code or `-1` at EOF | covered | stream/code corpus and strict probes |
+| 8.12.1 argument errors | variable stream; invalid fixed in-character; non-integer fixed code | covered | dedicated strict assertions |
+| 8.12.1 stream errors | invalid stream-or-alias; missing stream; output stream; binary stream; past-end with `eof_action(error)` | covered | dedicated strict and constructed-stream assertions |
+| 8.12.1 input entity/code representation | non-character input entity or fixed integer not an in-character code | covered | strict entity/code representation regressions; bad-code check is deferred until earlier stream/entity conditions are resolved |
+| 8.12.2 `peek_char/1-2`, `peek_code/1-2` | inspect next character/code without changing stream position | covered | strict probes and stream corpus |
+| 8.12.2 errors | corresponding 8.12.1 argument, stream, EOF, entity and code-representation conditions | covered | dedicated strict assertions including overlap regression |
+| 8.12.3 `put_char/1-2` | output one text character | covered | output corpus |
+| 8.12.3 `put_code/1-2` | output character selected by character code | covered | output corpus |
+| 8.12.3 `nl/0-1` | output implementation-defined new-line character | covered | output corpus |
+| 8.12.3 argument errors | variable character/code or wrong character/integer type | covered | dedicated strict assertions |
+| 8.12.3 stream errors | variable/invalid/missing stream; input stream; binary stream | covered | dedicated strict and constructed-stream assertions |
+| 8.12.3 character-code representation | integer outside processor character-code set | covered | strict `put_code/1` boundary assertion |
+
+## 8.13 — byte input/output
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.13.1 `get_byte/1-2` | input next byte or `-1` at EOF | covered | strict binary-stream success and byte corpus |
+| 8.13.1 errors | variable stream; invalid fixed in-byte; invalid/missing/output stream; text stream; EOF-action conditions | covered | strict assertions and EOF stream corpus |
+| 8.13.2 `peek_byte/1-2` | inspect next byte without changing position | covered | strict binary-stream success and byte corpus |
+| 8.13.2 errors | corresponding fixed-byte, stream, text-stream, and EOF conditions | covered | strict assertions / shared byte-I/O implementation tests |
+| 8.13.3 `put_byte/1-2` | output one byte to a binary stream | covered | strict binary-output success and byte corpus |
+| 8.13.3 errors | variable byte/stream; non-byte value; invalid/missing/input stream; text stream | covered | dedicated strict assertions |
+
+## 8.14 — term input/output, operators, and character conversion
+
+| Clause / predicate | Prescribed row | Status | Executable evidence |
+| --- | --- | --- | --- |
+| 8.14.1 `read_term/3`, `read_term/2`, `read/1-2` | read a term using the standardized read-option surface | covered | term-I/O corpus, Corrigendum 3 cases, strict success/error suite |
+| 8.14.1 option/argument errors | stream/option instantiation, non-list options, invalid read option | covered | strict 8.14.1 individual-condition assertions |
+| 8.14.1 stream/input errors | invalid/missing/output/binary stream, past-end state, invalid input character, syntax error | covered | strict and constructed-stream assertions |
+| 8.14.1 conditional finite-number/arity representation branches | limits tied to finite selected processor bounds | not applicable where bound is unbounded | EyeProlog selects unbounded integers/`max_arity`; finite binary64 input limits remain documented separately |
+| 8.14.1 Corrigendum options | `variables/1`, `variable_names/1`, `singletons/1` list traversal/unification behavior | covered | Corrigendum 3 metadata tests and STC #48 regression |
+| 8.14.2 `write_term/3`, `write_term/2`, `write/1-2`, `writeq/1-2` | write terms under standardized write options | covered | term-I/O/write-back corpus and strict writer suite |
+| 8.14.2 option/argument errors | stream/option instantiation, non-list options, invalid write option | covered | strict 8.14.2 assertions |
+| 8.14.2 stream/output errors | invalid/missing/input/binary stream and character representation conditions | covered | strict and constructed-stream assertions |
+| 8.14.2 contradictory write options | rightmost option applies | covered | writer option corpus |
+| 8.14.3 `op/3` | add/remove operators subject to Part 1 restrictions | covered | operator corpus and preparation-time ordering tests |
+| 8.14.3 errors | priority/specifier/name instantiation/type/domain plus protected-operator permission conditions | covered | strict `op/3` individual-condition suite |
+| 8.14.4 `current_op/3` | enumerate/query current operator definitions | covered | operator corpus and strict success assertion |
+| 8.14.4 errors | invalid priority/specifier/operator filters | covered | strict `current_op/3` individual-condition suite |
+| 8.14.5 `char_conversion/2` | update character-conversion mapping | covered | preparation/runtime conversion tests and strict success assertion |
+| 8.14.5 errors | input/output instantiation and processor-character representation conditions | covered | dedicated strict assertions |
+| 8.14.6 `current_char_conversion/2` | enumerate/query current conversion mapping | covered | strict success assertion and conversion corpus |
+| 8.14.6 errors | fixed input/output is not a character | covered | dedicated strict assertions |
+
 ## 8.15 — logic and control
 
 | Clause / predicate | Prescribed row | Status | Executable evidence |
@@ -190,16 +364,15 @@ built-in matrix does not have a gap at 8.17.
 | 8.17.4 variable status | instantiation error | covered | strict `halt(X)` |
 | 8.17.4 non-integer status | integer type error | covered | strict `halt(a)` |
 
-## Remaining row-audit work
+## Remaining audit work
 
-This file deliberately does not relabel the whole 8.2-8.17 family as complete.
-The next row-by-row passes are:
+The built-in **8.2-8.17 row audit is complete** at the level tracked by this
+file: prescribed modes, success/failure behavior, individual error conditions,
+and conditional/not-applicable processor branches all have explicit outcomes.
+ISO 7.12 simultaneous-error selection remains an implementation-dependent
+processor choice unless more specific normative text constrains it.
 
-- 8.6-8.7 arithmetic predicates and expression-evaluation interactions;
-- 8.8-8.10 database and all-solutions predicates, including all conditional
-  static/private/dynamic branches;
-- 8.11-8.14 streams, character/byte I/O, options, and term I/O, including the
-  remaining option/mode cross-product.
-
-Clause 9 exceptional-value rows and Clause 6/7 processor semantics remain
-tracked separately in `ISO-COMPLIANCE.md` and `ISO-PROCESSOR-REQUIREMENTS.md`.
+The remaining #65 work is therefore above/below this built-in table: Clause 6
+text/rejection mapping, Clause 7 processor/control semantics, Clause 9
+exceptional-value rows, residual Clause 5 dependency rows, and the external
+conversion/variable-name conformance corpora.

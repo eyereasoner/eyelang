@@ -237,7 +237,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
     includes(error.message, 'alias(user_input)', 'alias option culprit');
   });
 
-  reporter.test('follows the ISO 8.14.1.3 read_term/3 error order', () => {
+  reporter.test('covers ISO 8.14.1.3 read_term/3 errors and selected overlaps', () => {
     equal(capture(() => run('', { isoStrict: true, goal: 'read_term(f(a),_,[X])' })).formal,
       'instantiation_error', 'partial/variable option before stream domain');
     equal(capture(() => run('', { isoStrict: true, goal: 'read_term(f(a),_,foo)' })).formal,
@@ -258,7 +258,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
     equal(solver.io.resolve('user_input').position, 0, 'invalid options are rejected before input');
   });
 
-  reporter.test('follows the ISO 8.14.2.3 write_term/3 error order', () => {
+  reporter.test('covers ISO 8.14.2.3 write_term/3 errors and selected overlaps', () => {
     equal(capture(() => run('', { isoStrict: true, goal: 'write_term(f(a),a,[X])' })).formal,
       'instantiation_error', 'partial/variable option before stream domain');
     equal(capture(() => run('', { isoStrict: true, goal: 'write_term(f(a),a,foo)' })).formal,
@@ -271,7 +271,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'domain_error(write_option)', 'invalid option before stream permission');
   });
 
-  reporter.test('follows the ISO 8.14.3.3 op/3 error order', () => {
+  reporter.test('covers ISO 8.14.3.3 op/3 errors and selected overlaps', () => {
     equal(capture(() => run('', { isoStrict: true, goal: 'op(a,X,0)' })).formal,
       'instantiation_error', 'specifier variable before priority type');
     equal(capture(() => run('', { isoStrict: true, goal: 'op(a,xfy,[X])' })).formal,
@@ -297,7 +297,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'type_error(atom)', 'operator type');
   });
 
-  reporter.test('follows remaining Part 1 built-in error precedence', () => {
+  reporter.test('covers remaining Part 1 built-in error conditions and overlap choices', () => {
     const cases = [
       ['arg(a,X,_)', 'instantiation_error', 'arg/3 second-argument instantiation before index type'],
       ['atom_concat(1,X,Y)', 'instantiation_error', 'atom_concat/3 second/whole under-instantiation before first type'],
@@ -317,9 +317,9 @@ export function runIsoStrict(reporter = new TestReporter()) {
   });
 
   reporter.test('orders input-code representation errors after stream diagnostics', () => {
-    // ISO 8.12.1.3/8.12.2.3: Code's integer type is checked early, but an
-    // integer outside the in-character-code domain is the final listed error.
-    // It must therefore not mask output/binary/past-EOF/entity errors.
+    // Keep EyeProlog's selected 8.12 overlap behavior stable: integer type
+    // errors are detected before stream access, while a valid integer outside
+    // the in-character-code domain is diagnosed after stream/entity errors.
     for (const predicate of ['get_code', 'peek_code']) {
       equal(capture(() => run('', { isoStrict: true, goal: `${predicate}(user_output,-2)` })).formal,
         'permission_error(input, stream)', `${predicate}/2 output stream before bad code`);
@@ -352,6 +352,216 @@ export function runIsoStrict(reporter = new TestReporter()) {
 
     equal(capture(() => run('', { isoStrict: true, goal: 'get_code(-2)' })).formal,
       'representation_error(in_character_code)', 'bad code once no earlier stream error applies');
+  });
+
+  reporter.test('closes the ISO 8.11 stream selection/control rows', () => {
+    const errors = [
+      ['current_input(foo)', 'domain_error(stream)', 'current_input/1 stream term'],
+      ['current_output(foo)', 'domain_error(stream)', 'current_output/1 stream term'],
+      ['set_input(X)', 'instantiation_error', 'set_input/1 variable'],
+      ['set_input(f(a))', 'domain_error(stream_or_alias)', 'set_input/1 stream-or-alias domain'],
+      ['set_input(no_such_stream)', 'existence_error(stream)', 'set_input/1 closed/missing stream'],
+      ['set_input(user_output)', 'permission_error(input, stream)', 'set_input/1 output stream'],
+      ['set_output(X)', 'instantiation_error', 'set_output/1 variable'],
+      ['set_output(f(a))', 'domain_error(stream_or_alias)', 'set_output/1 stream-or-alias domain'],
+      ['set_output(no_such_stream)', 'existence_error(stream)', 'set_output/1 closed/missing stream'],
+      ['set_output(user_input)', 'permission_error(output, stream)', 'set_output/1 input stream'],
+      ['open(X,read,S,[])', 'instantiation_error', 'open/4 source instantiation'],
+      ['open(dummy,X,S,[])', 'instantiation_error', 'open/4 mode instantiation'],
+      ['open(dummy,read,S,[X])', 'instantiation_error', 'open/4 option instantiation'],
+      ['open(dummy,1,S,[])', 'type_error(atom)', 'open/4 mode type'],
+      ['open(dummy,read,S,foo)', 'type_error(list)', 'open/4 options list type'],
+      ['open(dummy,read,already_bound,[])', 'uninstantiation_error', 'open/4 stream output mode'],
+      ['open(4,read,S,[])', 'domain_error(source_sink)', 'open/4 source/sink domain'],
+      ['open(dummy,bad,S,[])', 'domain_error(io_mode)', 'open/4 io mode domain'],
+      ['open(dummy,write,S,[bogus])', 'domain_error(stream_option)', 'open/4 stream option domain'],
+      ['close(X,[])', 'instantiation_error', 'close/2 stream instantiation'],
+      ['close(no_such_stream,[X])', 'instantiation_error', 'close/2 option instantiation'],
+      ['close(no_such_stream,foo)', 'type_error(list)', 'close/2 options list type'],
+      ['close(f(a),[])', 'domain_error(stream_or_alias)', 'close/2 stream-or-alias domain'],
+      ['close(no_such_stream,[bogus])', 'domain_error(close_option)', 'close/2 close option domain'],
+      ['close(no_such_stream,[])', 'existence_error(stream)', 'close/2 missing stream'],
+      ['flush_output(X)', 'instantiation_error', 'flush_output/1 variable'],
+      ['flush_output(f(a))', 'domain_error(stream_or_alias)', 'flush_output/1 stream-or-alias domain'],
+      ['flush_output(no_such_stream)', 'existence_error(stream)', 'flush_output/1 missing stream'],
+      ['flush_output(user_input)', 'permission_error(output, stream)', 'flush_output/1 input stream'],
+      ['stream_property(foo,P)', 'domain_error(stream)', 'stream_property/2 stream term domain'],
+      ['stream_property(S,bogus)', 'domain_error(stream_property)', 'stream_property/2 property domain'],
+      ['at_end_of_stream(X)', 'instantiation_error', 'at_end_of_stream/1 variable'],
+      ['at_end_of_stream(f(a))', 'domain_error(stream_or_alias)', 'at_end_of_stream/1 stream-or-alias domain'],
+      ['at_end_of_stream(no_such_stream)', 'existence_error(stream)', 'at_end_of_stream/1 missing stream'],
+      ['set_stream_position(X,0)', 'instantiation_error', 'set_stream_position/2 stream instantiation'],
+      ['set_stream_position(user_input,X)', 'instantiation_error', 'set_stream_position/2 position instantiation'],
+      ['set_stream_position(f(a),0)', 'domain_error(stream_or_alias)', 'set_stream_position/2 stream-or-alias domain'],
+      ['set_stream_position(user_input,foo)', 'domain_error(stream_position)', 'set_stream_position/2 position domain'],
+      ['set_stream_position(no_such_stream,0)', 'existence_error(stream)', 'set_stream_position/2 missing stream'],
+      ['set_stream_position(user_input,0)', 'permission_error(reposition, stream)', 'set_stream_position/2 non-repositionable stream'],
+    ];
+    for (const [goal, formal, label] of errors) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
+    }
+
+    equal(run('', { isoStrict: true, goal: 'current_input(S),stream_property(S,input)' }).stats.completed_goal_lists, 1,
+      'current_input/1 successful mode');
+    equal(run('', { isoStrict: true, goal: 'current_output(S),stream_property(S,output)' }).stats.completed_goal_lists, 1,
+      'current_output/1 successful mode');
+    equal(run('', { isoStrict: true, goal: 'flush_output(user_output)' }).stats.completed_goal_lists, 1,
+      'flush_output/1 successful mode');
+    equal(run('', { isoStrict: true, goal: 'at_end_of_stream(user_input)' }).stats.completed_goal_lists, 1,
+      'at_end_of_stream/1 at empty standard input');
+
+    const openErrorSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    openErrorSolver.io.open = () => { throw Object.assign(new Error('missing'), { code: 'ENOENT' }); };
+    equal(capture(() => [...openErrorSolver.solve([
+      parseGoalText('open(missing,read,S,[])', { isoStrict: true }),
+    ], new Env(), 0)]).formal, 'existence_error(source_sink)', 'open/4 missing read source');
+    openErrorSolver.io.open = () => { throw new Error('denied'); };
+    equal(capture(() => [...openErrorSolver.solve([
+      parseGoalText('open(denied,write,S,[])', { isoStrict: true }),
+    ], new Env(), 0)]).formal, 'permission_error(open, source_sink)', 'open/4 cannot open sink');
+
+    const closedSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    const closed = closedSolver.io.add({
+      id: 2, alias: 'closed_stream', mode: 'read', type: 'text', content: 'a', position: 0, path: '',
+      reposition: true, eofAction: 'error', standard: false, pastEnd: false,
+    });
+    closedSolver.io.discard(closed);
+    equal([...closedSolver.solve([
+      parseGoalText("stream_property('$stream'(2),_)", { isoStrict: true }),
+    ], new Env(), 0)].length, 0, 'closed valid stream-term has no current stream property');
+
+    const positionedSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    positionedSolver.io.add({
+      id: 2, alias: 'positioned', mode: 'read', type: 'text', content: 'ab', position: 0, path: '',
+      reposition: true, eofAction: 'error', standard: false, pastEnd: false,
+    });
+    equal([...positionedSolver.solve([
+      parseGoalText('set_stream_position(positioned,1)', { isoStrict: true }),
+      parseGoalText("get_char(positioned,'b')", { isoStrict: true }),
+    ], new Env(), 0)].length, 1, 'set_stream_position/2 successful mode');
+  });
+
+  reporter.test('closes the ISO 8.12-8.14 character, byte, and term-I/O rows', () => {
+    const errors = [
+      ['get_char(S,C)', 'instantiation_error', 'get_char/2 stream instantiation'],
+      ['get_char(user_input,ab)', 'type_error(in_character)', 'get_char/2 in-character type'],
+      ['get_char(f(a),C)', 'domain_error(stream_or_alias)', 'get_char/2 stream-or-alias domain'],
+      ['get_char(no_such_stream,C)', 'existence_error(stream)', 'get_char/2 missing stream'],
+      ['get_char(user_output,C)', 'permission_error(input, stream)', 'get_char/2 output stream'],
+      ['get_code(S,C)', 'instantiation_error', 'get_code/2 stream instantiation'],
+      ['get_code(user_input,foo)', 'type_error(integer)', 'get_code/2 integer type'],
+      ['get_code(f(a),C)', 'domain_error(stream_or_alias)', 'get_code/2 stream-or-alias domain'],
+      ['get_code(no_such_stream,C)', 'existence_error(stream)', 'get_code/2 missing stream'],
+      ['get_code(user_output,C)', 'permission_error(input, stream)', 'get_code/2 output stream'],
+      ['get_code(-2)', 'representation_error(in_character_code)', 'get_code/1 in-character-code representation'],
+      ['peek_char(S,C)', 'instantiation_error', 'peek_char/2 stream instantiation'],
+      ['peek_char(user_input,ab)', 'type_error(in_character)', 'peek_char/2 in-character type'],
+      ['peek_code(user_input,foo)', 'type_error(integer)', 'peek_code/2 integer type'],
+      ['put_char(S,a)', 'instantiation_error', 'put_char/2 stream instantiation'],
+      ['put_char(X)', 'instantiation_error', 'put_char/1 character instantiation'],
+      ['put_char(ab)', 'type_error(character)', 'put_char/1 character type'],
+      ['put_char(f(a),a)', 'domain_error(stream_or_alias)', 'put_char/2 stream-or-alias domain'],
+      ['put_char(no_such_stream,a)', 'existence_error(stream)', 'put_char/2 missing stream'],
+      ['put_char(user_input,a)', 'permission_error(output, stream)', 'put_char/2 input stream'],
+      ['put_code(S,97)', 'instantiation_error', 'put_code/2 stream instantiation'],
+      ['put_code(X)', 'instantiation_error', 'put_code/1 code instantiation'],
+      ['put_code(foo)', 'type_error(integer)', 'put_code/1 integer type'],
+      ['put_code(f(a),97)', 'domain_error(stream_or_alias)', 'put_code/2 stream-or-alias domain'],
+      ['put_code(no_such_stream,97)', 'existence_error(stream)', 'put_code/2 missing stream'],
+      ['put_code(user_input,97)', 'permission_error(output, stream)', 'put_code/2 input stream'],
+      ['put_code(1114112)', 'representation_error(character_code)', 'put_code/1 character-code representation'],
+      ['nl(S)', 'instantiation_error', 'nl/1 stream instantiation'],
+      ['nl(f(a))', 'domain_error(stream_or_alias)', 'nl/1 stream-or-alias domain'],
+      ['nl(no_such_stream)', 'existence_error(stream)', 'nl/1 missing stream'],
+      ['nl(user_input)', 'permission_error(output, stream)', 'nl/1 input stream'],
+      ['get_byte(S,B)', 'instantiation_error', 'get_byte/2 stream instantiation'],
+      ['get_byte(256)', 'type_error(in_byte)', 'get_byte/1 in-byte type'],
+      ['get_byte(f(a),B)', 'domain_error(stream_or_alias)', 'get_byte/2 stream-or-alias domain'],
+      ['get_byte(no_such_stream,B)', 'existence_error(stream)', 'get_byte/2 missing stream'],
+      ['get_byte(user_output,B)', 'permission_error(input, stream)', 'get_byte/2 output stream'],
+      ['get_byte(B)', 'permission_error(input, text_stream)', 'get_byte/1 text stream'],
+      ['peek_byte(S,B)', 'instantiation_error', 'peek_byte/2 stream instantiation'],
+      ['peek_byte(256)', 'type_error(in_byte)', 'peek_byte/1 in-byte type'],
+      ['put_byte(S,1)', 'instantiation_error', 'put_byte/2 stream instantiation'],
+      ['put_byte(X)', 'instantiation_error', 'put_byte/1 byte instantiation'],
+      ['put_byte(256)', 'type_error(byte)', 'put_byte/1 byte type'],
+      ['put_byte(f(a),1)', 'domain_error(stream_or_alias)', 'put_byte/2 stream-or-alias domain'],
+      ['put_byte(no_such_stream,1)', 'existence_error(stream)', 'put_byte/2 missing stream'],
+      ['put_byte(user_input,1)', 'permission_error(output, stream)', 'put_byte/2 input stream'],
+      ['put_byte(1)', 'permission_error(output, text_stream)', 'put_byte/1 text stream'],
+      ['read_term(S,T,[])', 'instantiation_error', 'read_term/3 stream instantiation'],
+      ['read_term(f(a),T,[])', 'domain_error(stream_or_alias)', 'read_term/3 stream-or-alias domain'],
+      ['read_term(T,foo)', 'type_error(list)', 'read_term/2 options list type'],
+      ['read_term(T,[bogus])', 'domain_error(read_option)', 'read_term/2 read option domain'],
+      ['read_term(no_such_stream,T,[])', 'existence_error(stream)', 'read_term/3 missing stream'],
+      ['read_term(user_output,T,[])', 'permission_error(input, stream)', 'read_term/3 output stream'],
+      ['write_term(S,a,[])', 'instantiation_error', 'write_term/3 stream instantiation'],
+      ['write_term(f(a),a,[])', 'domain_error(stream_or_alias)', 'write_term/3 stream-or-alias domain'],
+      ['write_term(a,foo)', 'type_error(list)', 'write_term/2 options list type'],
+      ['write_term(a,[bogus])', 'domain_error(write_option)', 'write_term/2 write option domain'],
+      ['write_term(no_such_stream,a,[])', 'existence_error(stream)', 'write_term/3 missing stream'],
+      ['write_term(user_input,a,[])', 'permission_error(output, stream)', 'write_term/3 input stream'],
+      ["op(100,xfy,',')", 'permission_error(modify, operator)', 'op/3 protects comma'],
+      ['current_op(a,_,_)', 'domain_error(operator_priority)', 'current_op/3 priority domain'],
+      ['current_op(1,1,_)', 'domain_error(operator_specifier)', 'current_op/3 specifier domain'],
+      ['current_op(1,fx,1)', 'type_error(atom)', 'current_op/3 operator type'],
+      ['char_conversion(X,a)', 'instantiation_error', 'char_conversion/2 input instantiation'],
+      ['char_conversion(a,X)', 'instantiation_error', 'char_conversion/2 output instantiation'],
+      ['char_conversion(ab,a)', 'representation_error(character)', 'char_conversion/2 input representation'],
+      ['char_conversion(a,ab)', 'representation_error(character)', 'char_conversion/2 output representation'],
+      ['current_char_conversion(ab,X)', 'type_error(character)', 'current_char_conversion/2 input type'],
+      ['current_char_conversion(a,ab)', 'type_error(character)', 'current_char_conversion/2 output type'],
+    ];
+    for (const [goal, formal, label] of errors) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
+    }
+
+    const binaryInput = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    binaryInput.io.add({
+      id: 2, alias: 'bin_in', mode: 'read', type: 'binary', content: [65], position: 0, path: '',
+      reposition: false, eofAction: 'error', standard: false, pastEnd: false,
+    });
+    for (const goal of ['get_char(bin_in,C)', 'get_code(bin_in,C)', 'peek_char(bin_in,C)', 'peek_code(bin_in,C)', 'read_term(bin_in,T,[])']) {
+      equal(capture(() => [...binaryInput.solve([parseGoalText(goal, { isoStrict: true })], new Env(), 0)]).formal,
+        'permission_error(input, binary_stream)', `${goal} binary stream`);
+    }
+    equal([...binaryInput.solve([parseGoalText('peek_byte(bin_in,65)', { isoStrict: true })], new Env(), 0)].length, 1,
+      'peek_byte/2 successful binary mode');
+    equal([...binaryInput.solve([parseGoalText('get_byte(bin_in,65)', { isoStrict: true })], new Env(), 0)].length, 1,
+      'get_byte/2 successful binary mode');
+
+    const binaryOutput = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    binaryOutput.io.add({
+      id: 2, alias: 'bin_out', mode: 'write', type: 'binary', content: [], position: 0, path: '',
+      reposition: false, eofAction: 'error', standard: false, pastEnd: false,
+    });
+    for (const goal of ['put_char(bin_out,a)', 'put_code(bin_out,97)', 'nl(bin_out)', 'write_term(bin_out,a,[])']) {
+      equal(capture(() => [...binaryOutput.solve([parseGoalText(goal, { isoStrict: true })], new Env(), 0)]).formal,
+        'permission_error(output, binary_stream)', `${goal} binary stream`);
+    }
+    equal([...binaryOutput.solve([parseGoalText('put_byte(bin_out,65)', { isoStrict: true })], new Env(), 0)].length, 1,
+      'put_byte/2 successful binary mode');
+
+    const pastInput = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    pastInput.io.add({
+      id: 2, alias: 'past_in', mode: 'read', type: 'text', content: '', position: 0, path: '',
+      reposition: false, eofAction: 'error', standard: false, pastEnd: true,
+    });
+    for (const goal of ['get_char(past_in,C)', 'get_code(past_in,C)', 'peek_char(past_in,C)', 'peek_code(past_in,C)', 'read_term(past_in,T,[])']) {
+      equal(capture(() => [...pastInput.solve([parseGoalText(goal, { isoStrict: true })], new Env(), 0)]).formal,
+        'permission_error(input, past_end_of_stream)', `${goal} past EOF`);
+    }
+
+    equal(capture(() => run('', {
+      isoStrict: true,
+      goal: 'read_term(T,[])',
+      ioOptions: { input: "'unterminated." },
+    })).formal, 'syntax_error(read_term)', 'read_term/2 syntax error');
+
+    equal(run('', { isoStrict: true, goal: "char_conversion(a,b),current_char_conversion(a,b)" }).stats.completed_goal_lists, 1,
+      'char_conversion/2 and current_char_conversion/2 successful mode');
+    equal(run('', { isoStrict: true, goal: 'op(100,xf,zz),current_op(100,xf,zz)' }).stats.completed_goal_lists, 1,
+      'op/3 and current_op/3 successful mode');
   });
 
   reporter.test('treats close force(true) as presence-based', () => {
@@ -481,12 +691,12 @@ export function runIsoStrict(reporter = new TestReporter()) {
     }
   });
 
-  reporter.test('follows ISO clause/2 private-procedure error precedence', () => {
+  reporter.test('keeps the selected clause/2 private-procedure overlap behavior', () => {
     equal(capture(() => run('p.\n', { isoStrict: true, goal: 'clause(atom(_),4)' })).formal,
       'permission_error(access, private_procedure)', 'private procedure before body callability');
   });
 
-  reporter.test('validates all-solutions goals before their output lists', () => {
+  reporter.test('keeps the selected all-solutions Goal-before-Instances overlap behavior', () => {
     for (const predicate of ['findall', 'bagof', 'setof']) {
       equal(capture(() => run('', { isoStrict: true, goal: `${predicate}(X,Y,foo)` })).formal,
         'instantiation_error', `${predicate}/3 variable goal`);
@@ -698,6 +908,93 @@ export function runIsoStrict(reporter = new TestReporter()) {
     ]) {
       equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, `${goal} mode`);
     }
+  });
+
+  reporter.test('closes the ISO 8.6-8.10 prescribed mode/error rows', () => {
+    const errors = [
+      ['X is Y', 'instantiation_error', 'is/2 variable expression'],
+      ['X is foo', 'type_error(evaluable)', 'is/2 expression evaluation error'],
+      ['X =:= 1', 'instantiation_error', '=:=/2 left variable'],
+      ['1 =:= X', 'instantiation_error', '=:=/2 right variable'],
+      ['X =\\= 1', 'instantiation_error', '=\\=/2 left variable'],
+      ['1 < X', 'instantiation_error', '</2 right variable'],
+      ['X =< 1', 'instantiation_error', '=</2 left variable'],
+      ['1 > X', 'instantiation_error', '>/2 right variable'],
+      ['X >= 1', 'instantiation_error', '>=/2 left variable'],
+      ['foo =:= 1', 'type_error(evaluable)', 'arithmetic comparison evaluation error'],
+      ['clause(X,_)', 'instantiation_error', 'clause/2 variable head'],
+      ['clause(4,_)', 'type_error(callable)', 'clause/2 head type'],
+      ['current_predicate(4)', 'type_error(predicate_indicator)', 'current_predicate/1 indicator type'],
+      ['asserta(_)', 'instantiation_error', 'asserta/1 variable head'],
+      ['asserta(4)', 'type_error(callable)', 'asserta/1 head type'],
+      ['asserta((p:-4))', 'type_error(callable)', 'asserta/1 body conversion'],
+      ['assertz(_)', 'instantiation_error', 'assertz/1 variable head'],
+      ['assertz(4)', 'type_error(callable)', 'assertz/1 head type'],
+      ['assertz((p:-4))', 'type_error(callable)', 'assertz/1 body conversion'],
+      ['retract(_)', 'instantiation_error', 'retract/1 variable head'],
+      ['retract(4)', 'type_error(callable)', 'retract/1 head type'],
+      ['retractall(_)', 'instantiation_error', 'retractall/1 variable head'],
+      ['retractall(4)', 'type_error(callable)', 'retractall/1 head type'],
+      ['abolish(X)', 'instantiation_error', 'abolish/1 variable indicator'],
+      ['abolish(foo/X)', 'instantiation_error', 'abolish/1 variable arity'],
+      ['abolish(foo)', 'type_error(predicate_indicator)', 'abolish/1 indicator type'],
+      ['abolish(foo/a)', 'type_error(integer)', 'abolish/1 arity type'],
+      ['abolish(4/1)', 'type_error(atom)', 'abolish/1 name type'],
+      ['abolish(foo/(-1))', 'domain_error(not_less_than_zero)', 'abolish/1 negative arity'],
+      ['findall(X,Y,L)', 'instantiation_error', 'findall/3 variable goal'],
+      ['findall(X,4,L)', 'type_error(callable)', 'findall/3 goal type'],
+      ['findall(X,true,foo)', 'type_error(list)', 'findall/3 Instances type'],
+      ['bagof(X,Y,L)', 'instantiation_error', 'bagof/3 variable iterated goal'],
+      ['bagof(X,4,L)', 'type_error(callable)', 'bagof/3 iterated-goal type'],
+      ['bagof(X,true,foo)', 'type_error(list)', 'bagof/3 Instances type'],
+      ['setof(X,Y,L)', 'instantiation_error', 'setof/3 variable iterated goal'],
+      ['setof(X,4,L)', 'type_error(callable)', 'setof/3 iterated-goal type'],
+      ['setof(X,true,foo)', 'type_error(list)', 'setof/3 Instances type'],
+    ];
+    for (const [goal, formal, label] of errors) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
+    }
+
+    for (const goal of [
+      'X is 1+2, X=3',
+      '1 =:= 1',
+      '1 =\\= 2',
+      '1 < 2',
+      '1 =< 1',
+      '2 > 1',
+      '2 >= 2',
+      'findall(X,(X=1;X=2),[1,2])',
+      'bagof(X,(X=1;X=2),[1,2])',
+      'setof(X,(X=2;X=1;X=2),[1,2])',
+    ]) {
+      equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists > 0, true, `${goal} successful mode`);
+    }
+    equal(run('', { isoStrict: true, goal: '4 is 1+2' }).stats.completed_goal_lists, 0, 'is/2 failed unification');
+    equal(run('', { isoStrict: true, goal: 'bagof(X,fail,L)' }).stats.completed_goal_lists, 0, 'bagof/3 empty solution set fails');
+    equal(run('', { isoStrict: true, goal: 'setof(X,fail,L)' }).stats.completed_goal_lists, 0, 'setof/3 empty solution set fails');
+
+    const current = run('p(a).\nq.\n', { isoStrict: true, goal: 'current_predicate(p/1)' });
+    equal(current.stats.completed_goal_lists, 1, 'current_predicate/1 finds a user procedure');
+  });
+
+  reporter.test('preserves 7.6.2 source-body conversion identity for clause/2 and retract/1', () => {
+    const source = [
+      ':- dynamic(foo/1).',
+      'foo(X) :- X.',
+      ':- dynamic(bar/1).',
+      'bar(X) :- (X ; true).',
+      ':- dynamic(baz/1).',
+      'baz(X) :- (X -> true).',
+      '',
+    ].join('\n');
+    equal(run(source, { isoStrict: true, goal: 'clause(foo(C),call(C))' }).stats.completed_goal_lists, 1,
+      'variable body converts to call/1 with head sharing');
+    equal(run(source, { isoStrict: true, goal: 'clause(bar(C),(call(C);true))' }).stats.completed_goal_lists, 1,
+      'disjunction recursively converts a variable branch');
+    equal(run(source, { isoStrict: true, goal: 'clause(baz(C),(call(C)->true))' }).stats.completed_goal_lists, 1,
+      'if-then recursively converts a variable branch');
+    equal(run(source, { isoStrict: true, goal: 'retract((foo(C):-call(C)))' }).stats.completed_goal_lists, 1,
+      'retract/1 sees the converted body with shared variables');
   });
 
   reporter.test('closes the ISO 8.15-8.17 prescribed mode/error rows', () => {

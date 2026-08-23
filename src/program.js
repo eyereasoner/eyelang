@@ -12,7 +12,7 @@ import {
   parseGoalText,
   tryParseClausesFastInto,
 } from './parser.js';
-import { PrologError, getStrictIsoRegistry } from './iso.js';
+import { PrologError, convertClauseBodyTerm, getStrictIsoRegistry } from './iso.js';
 import { currentWorkingDirectory, fs, path } from './platform.js';
 import {
   standardLibrarySources,
@@ -627,6 +627,14 @@ class ProgramBuilder {
       }
 
       if (!isDirectiveClause(clause)) {
+        if (program.strictIso && Array.isArray(clause.body) && clause.body.length > 0) {
+          // ISO 7.6.2 applies when source text is prepared as well as when a
+          // clause term is asserted dynamically. Keep the original variable
+          // objects while wrapping variable goals in call/1 so sharing with
+          // the head (and recursively through ;/2 and ->/2) is preserved for
+          // later clause/2 and retract/1 conversion back to terms.
+          clause.body = clause.body.map((goal) => convertClauseBodyTerm(goal));
+        }
         assertHeadIsDefinable(clause.head, program.strictIso);
         const head = clause.head;
         if (head.type !== ATOM && head.type !== COMPOUND) continue;

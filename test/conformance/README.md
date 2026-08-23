@@ -23,10 +23,10 @@ profile and implementation extensions. The default registry covers the exact
 predicate indicators listed in Appendix B of the book across the Part 1 strict-core
 target and the normal-mode module/DCG compatibility families. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the explicit
 release-facing ledger for the Part 1 strict-core audit. This suite is
-still not an independent certification of every processor requirement, lexical
-edge, or option combination. The 8.2-8.5 and 8.15-8.17 built-in slices are now
-tracked one prescribed mode/error row at a time; 8.6-8.14 and the remaining
-processor semantics stay explicitly open in the dedicated audit files. Cases under `iso/`
+still not an independent certification of every processor requirement or lexical
+edge. The complete 8.2-8.17 built-in family is now tracked one prescribed
+mode/error row at a time; the remaining Clause 6/7/9 and processor semantics
+stay explicitly open in the dedicated audit files. Cases under `iso/`
 identify standards-derived behavior; other directories cover EyeProlog host
 contracts and extensions. EyeProlog-only execution features such as automatic
 tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core

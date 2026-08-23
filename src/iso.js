@@ -393,9 +393,9 @@ function* functorBuiltin({ goal, env }) {
 
   const name = deref(goal.args[1], env);
   const arityTerm = deref(goal.args[2], env);
-  // ISO 8.5.1.3 orders construction-mode diagnostics. A compound Name is an
-  // atomic type error (before an Arity type error); only an atomic non-atom
-  // used for positive arity receives type_error(atom,...).
+  // Keep EyeProlog's deterministic construction-mode diagnostics aligned with
+  // the individual 8.5.1.3 conditions. Under 7.12, a call satisfying several
+  // error conditions at once does not acquire a globally mandated table order.
   if (name.type === VAR) throw new PrologError('instantiation_error');
   if (arityTerm.type === VAR) throw new PrologError('instantiation_error');
   if (name.type === COMPOUND) throw new PrologError('type_error(atomic)', name);
@@ -562,7 +562,9 @@ function* clauseBuiltin({ solver, goal, env }) {
   if (head.type !== ATOM && head.type !== COMPOUND) throw new PrologError('type_error(callable)', head);
   const indicator = compound('/', [atom(head.name), numberTerm(head.arity)]);
   const group = solver.program.findGroup(head.name, head.arity, head.module ?? goal.module ?? 'user');
-  // ISO 8.8.1.3 places private-procedure access before Body callability.
+  // EyeProlog selects private-procedure access before Body callability when both
+  // conditions hold. ISO 7.12 permits an implementation-dependent choice when
+  // more than one error condition is simultaneously satisfied.
   if (isProcessorStaticProcedure(solver, head) ||
       (solver.isoStrict && group && !group.dynamic)) {
     throw new PrologError('permission_error(access, private_procedure)', indicator);
@@ -590,7 +592,7 @@ function requireClauseHead(head) {
   if (head.type !== ATOM && head.type !== COMPOUND) throw new PrologError('type_error(callable)', head);
 }
 
-function convertAssertedBody(term, culprit = term) {
+export function convertClauseBodyTerm(term, culprit = term) {
   if (term.type === VAR) return compound('call', [term]);
   // ISO 7.6.2 converts each argument of conjunction, disjunction, and if-then
   // recursively when a term is converted to a clause body. This matters for
@@ -599,8 +601,8 @@ function convertAssertedBody(term, culprit = term) {
   // being stored and failing only if that branch is later executed.
   if (term.type === COMPOUND && [',', ';', '->'].includes(term.name) && term.arity === 2) {
     return compound(term.name, [
-      convertAssertedBody(term.args[0], culprit),
-      convertAssertedBody(term.args[1], culprit),
+      convertClauseBodyTerm(term.args[0], culprit),
+      convertClauseBodyTerm(term.args[1], culprit),
     ]);
   }
   if (term.type !== ATOM && term.type !== COMPOUND) {
@@ -643,7 +645,7 @@ function assertBuiltin(atStart) {
   return function* ({ solver, goal, env }) {
     const parts = clauseParts(goal.args[0], env);
     requireClauseHead(parts.head);
-    const body = convertAssertedBody(parts.body);
+    const body = convertClauseBodyTerm(parts.body);
     assertModifiable(solver, parts.head, goal.module ?? 'user');
     const copied = freshCopy(compound('$clause', [parts.head, body]), env);
     solver.program.insertDynamicClause({
@@ -782,9 +784,9 @@ function* opBuiltin({ solver, goal, env }) {
   const priorityTerm = deref(goal.args[0], env);
   const specifierTerm = deref(goal.args[1], env);
 
-  // ISO 8.14.3.3 prescribes the ordering below.  In particular, all three
-  // instantiation cases precede type/domain errors, and Operator list-shape
-  // errors precede priority/specifier domain errors.
+  // Keep EyeProlog's selected 8.14.3.3 overlap order deterministic. Each
+  // individual condition remains observable; ISO 7.12 leaves the choice
+  // implementation dependent when several error conditions hold at once.
   if (priorityTerm.type === VAR) throw new PrologError('instantiation_error');
   if (specifierTerm.type === VAR) throw new PrologError('instantiation_error');
   const operator = opListPreflight(goal.args[2], env);
@@ -943,12 +945,11 @@ function optionList(term, env) {
   return items.map((item) => deref(item, env));
 }
 
-// read_term/3 and write_term/3 have prescribed error ordering in ISO 8.14.
-// In particular, a partial option list (or a variable option element) is
-// diagnosed before several stream errors, while the relative order of a
-// non-list Options term and an invalid stream-or-alias differs between the
-// read and write predicates.  Split list-shape inspection from full option
-// validation so those predicates can follow the standard order exactly.
+// Keep read_term/3 and write_term/3 diagnostics deterministic and make every
+// 8.14 error condition independently testable. ISO 7.12 leaves the choice
+// implementation dependent when several error conditions hold simultaneously,
+// so this preflight order is an EyeProlog processor choice rather than a claim
+// that the textual order of an error table is globally mandatory.
 function preflightOptionList(term, env) {
   const value = deref(term, env);
   if (value.type === VAR) throw new PrologError('instantiation_error');
@@ -1017,9 +1018,9 @@ function* openBuiltin({ solver, goal, env }) {
   const streamTarget = deref(goal.args[2], env);
   const optionTerm = goal.arity === 3 ? emptyList() : goal.args[3];
 
-  // ISO 8.11.5.3 + Corrigenda 2/3.  Keep each prescribed condition
-  // observable on its own and apply the published ordering for deterministic
-  // diagnostics when several arguments are erroneous.
+  // ISO 8.11.5.3 + Corrigenda 2/3. Keep each required condition observable
+  // on its own. When several conditions hold, the order below is EyeProlog's
+  // deterministic 7.12 processor choice unless a procedural rule constrains it.
   if (source.type === VAR) throw new PrologError('instantiation_error');
   if (mode.type === VAR) throw new PrologError('instantiation_error');
   const preflight = preflightOptionList(optionTerm, env);
@@ -1183,16 +1184,21 @@ function isStreamPropertyPattern(value) {
 function* streamPropertyBuiltin({ solver, goal, env }) {
   const reference = deref(goal.args[0], env);
   const propertyPattern = deref(goal.args[1], env);
+  let fixedStreamId = null;
   if (reference.type !== VAR) {
-    const id = streamTermReference(goal.args[0], env);
-    if (!solver.io.resolve(id)) throw new PrologError('domain_error(stream)', reference);
+    // 8.11.8.1 enumerates (Stream, Property) pairs for currently open
+    // streams. A ground term with the implementation's stream-term shape is
+    // still a stream-term even when its stream is no longer open; in that
+    // case the enumeration simply has no matching pair. domain_error(stream)
+    // is reserved for a term which is not a stream-term at all.
+    fixedStreamId = streamTermReference(goal.args[0], env);
   }
   if (!isStreamPropertyPattern(propertyPattern)) {
     throw new PrologError('domain_error(stream_property)', propertyPattern);
   }
   const streams = reference.type === VAR
     ? [...solver.io.streams.values()]
-    : [solver.io.resolve(streamTermReference(goal.args[0], env))];
+    : [solver.io.resolve(fixedStreamId)].filter(Boolean);
   for (const stream of streams) {
     for (const property of streamProperties(stream)) {
       const next = env.clone();
@@ -1232,11 +1238,10 @@ function preflightInputUnitTarget(name, target, env, solver) {
       throw new PrologError('type_error(in_character)', value);
     }
   } else if (name.endsWith('code')) {
-    // ISO 8.12.1.3/8.12.2.3 puts the integer type check before stream
-    // diagnostics, but the integer-is-not-an-in-character-code
-    // representation error comes after the stream existence/mode/type/EOF
-    // conditions.  Defer that range/repertoire check until the input entity
-    // itself has been inspected below.
+    // Keep the selected 8.12 overlap behavior stable: integer type validation
+    // is done here, while the in-character-code repertoire check is deferred
+    // until after stream/entity diagnostics. ISO 7.12 permits this processor
+    // choice when those error conditions overlap.
     if (value.type !== VAR && (value.type !== NUMBER || !isDecimalInteger(value.name))) {
       throw new PrologError('type_error(integer)', value);
     }
@@ -1290,10 +1295,9 @@ function inputUnitBuiltin(name) {
     if (!binary && unit != null && solver.isoStrict && !isStrictIsoPcsCharacter(unit)) {
       throw new PrologError('representation_error(character)');
     }
-    // For get_code/peek_code the published error table places an invalid
-    // in-character-code target after stream and input-entity errors.  Doing
-    // this here prevents a fixed bad Code from masking (for example) an
-    // output-stream, binary-stream, past-EOF, or invalid-character error.
+    // EyeProlog deliberately defers this representation check until after
+    // stream and input-entity diagnostics. ISO 7.12 permits that deterministic
+    // choice when several 8.12 error conditions hold simultaneously.
     const targetValue = deref(target, env);
     if (name.endsWith('code') && targetValue.type !== VAR &&
         !validStrictInputCharacterCode(targetValue, solver)) {
@@ -1596,9 +1600,9 @@ function* readTermBuiltin({ solver, goal, env }) {
   const optionTerm = goal.args[goal.arity - 1];
   const streamTerm = goal.arity === 3 ? deref(goal.args[0], env) : null;
 
-  // ISO 8.14.1.3 error order:
-  // a) variable stream; b) partial/options-variable; c) bad stream-or-alias;
-  // d) non-list options; e) invalid read option; then stream existence/mode.
+  // EyeProlog's selected 8.14.1.3 overlap order. Each listed error condition
+  // is covered independently; 7.12 makes simultaneous-error selection
+  // implementation dependent unless another procedural requirement constrains it.
   if (streamTerm?.type === VAR) throw new PrologError('instantiation_error');
   const preflight = preflightOptionList(optionTerm, env);
   if (goal.arity === 3) streamReference(goal.args[0], env);
@@ -1712,9 +1716,9 @@ function* writeTermBuiltin({ solver, goal, env }) {
   const optionTerm = goal.args[goal.arity - 1];
   const streamTerm = goal.arity === 3 ? deref(goal.args[0], env) : null;
 
-  // ISO 8.14.2.3 error order:
-  // a) variable stream; b) partial/options-variable; c) non-list options;
-  // d) bad stream-or-alias; e) invalid write option; then stream errors.
+  // EyeProlog's selected 8.14.2.3 overlap order. Each listed error condition
+  // is covered independently; 7.12 makes simultaneous-error selection
+  // implementation dependent unless another procedural requirement constrains it.
   if (streamTerm?.type === VAR) throw new PrologError('instantiation_error');
   const preflight = preflightOptionList(optionTerm, env);
   const optionItems = requireProperOptionList(preflight);
@@ -2187,7 +2191,9 @@ function flatFindallTemplate(template) {
 
 function* findallBuiltin({ solver, goal, env }) {
   const [template, innerGoal, bag] = goal.args;
-  // ISO 8.10.1.3 diagnoses Goal before Instances when both are erroneous.
+  // EyeProlog validates Goal before Instances when both are erroneous. ISO 7.12
+  // makes simultaneous-error selection implementation dependent; this order is
+  // a documented/tested processor choice, not a blanket table-order rule.
   const invoked = callable(innerGoal, env);
   assertListOrPartial(bag, env);
   const collector = solver.cloneForInnerGoal(10000000);
@@ -2252,7 +2258,9 @@ function sortedUnique(items) {
 
 function allSolutionsBuiltin(asSet) {
   return function* ({ solver, goal, env }) {
-    // ISO 8.10.2.3/8.10.3.3 diagnose the iterated goal before Instances.
+    // EyeProlog validates the iterated goal before Instances. ISO 7.12 makes
+    // simultaneous-error selection implementation dependent; keep this stable as
+    // a processor choice rather than describing it as mandatory table ordering.
     const { iterated, quantified } = bagGoalParts(goal.args[1], env);
     assertListOrPartial(goal.args[2], env);
     const free = freeVariables(iterated, goal.args[0], quantified, env);
