@@ -16,8 +16,8 @@ certification claim.
 
 | Requirement | Status | Current evidence / remaining work |
 | --- | --- | --- |
-| 5.1(a) prepare conforming Prolog text | audit | parser/preparation tests, directives, include behavior, preparation-time operators/flags/character conversion, and the complete vendored WG17 syntax matrix; the remaining Clause 6/7.4 shall-by-shall map is still open |
-| 5.1(b) execute conforming Prolog goals | audit | the 7.1-7.3 term-semantics matrix, 7.9/Clause 9 evaluable-functor matrix, and complete 8.2-8.17 built-in row audit are closed; remaining dependency rows are 7.4-7.8, higher-level 7.10, and residual processor-level 7.12 semantics |
+| 5.1(a) prepare conforming Prolog text | audit | parser/preparation tests, the closed 7.4 directive/source-clause matrix, include/ensure-loaded behavior, preparation-time operators/flags/character conversion, and the complete vendored WG17 syntax matrix; the remaining dependency is the production-by-production Clause 6 map |
+| 5.1(b) execute conforming Prolog goals | audit | the 7.1-7.8 term/preparation/database/control matrices, 7.9/Clause 9 evaluable-functor matrix, and complete 8.2-8.17 built-in row audit are closed; remaining dependency rows are higher-level 7.10 and residual processor-level 7.12 semantics |
 | 5.1(c) reject nonconforming text/read terms | audit | syntax-error corpus, WG17 negative syntax cases, strict extension rejection; exhaustive Clause 6 rejection mapping remains open |
 | 5.1(d) specify permitted variations | covered | `ISO-IMPLEMENTATION-DEFINED.md` records the Part 1 implementation-defined choices and implementation-specific extension families |
 | 5.1(e) offer a strictly conforming mode | covered | CLI `--iso-strict` and API `isoStrict: true`; registry/directive/operator/flag extension filtering plus disabled implementation-specific execution shortcuts |
@@ -26,8 +26,8 @@ certification claim.
 
 | Requirement | Status | Current evidence / remaining work |
 | --- | --- | --- |
-| 5.2 conforming and strictly conforming Prolog text boundary | audit | strict parser accepts Part 1 + Corrigenda syntax plus implementation-defined PCS choices and rejects implementation-specific language facilities; full Clause 6/7.4 dependency audit remains open |
-| 5.3 conforming and strictly conforming Prolog goal boundary | audit | strict registry/control/evaluable filtering plus closed 7.1-7.3, 7.9/Clause 9, and 8.2-8.17 row matrices; remaining general execution/control, higher-level stream, and processor-error semantics keep the top-level goal boundary open |
+| 5.2 conforming and strictly conforming Prolog text boundary | audit | strict parser accepts Part 1 + Corrigenda syntax plus implementation-defined PCS choices and rejects implementation-specific language facilities; 7.4 preparation is closed and the full Clause 6 production/rejection map remains open |
+| 5.3 conforming and strictly conforming Prolog goal boundary | audit | strict registry/control/evaluable filtering plus closed 7.1-7.9 and 8.2-8.17 row matrices; remaining higher-level 7.10 stream and processor-error semantics keep the top-level goal boundary open |
 | 5.4 accompanying documentation for implementation-defined and implementation-specific features | covered | `ISO-IMPLEMENTATION-DEFINED.md`, *The Art of EyeProlog*, strict-boundary documentation, and release-facing conformance ledgers |
 
 ## 5.5 — extension boundaries
@@ -51,6 +51,6 @@ certification claim.
 
 A top-level row stays `audit` until all of the normative clauses it depends on
 have explicit pass, not-applicable, or documented implementation-defined
-outcomes. `ISO-EXIT-CRITERIA.md` records the same dependency closure from the
-release-exit perspective. This prevents a large green regression suite from
+outcomes. `ISO-COMPLIANCE.md` records the same dependency closure in its embedded
+release-exit checklist. This prevents a large green regression suite from
 being mistaken for a completed processor-requirement audit.

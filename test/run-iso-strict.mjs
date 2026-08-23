@@ -2,6 +2,10 @@
 // Release gate for the ISO/IEC 13211-1 strict-core execution profile.
 // This is intentionally separate from the broader `iso/` corpus because that
 // corpus also exercises Part 2 modules and Part 3 grammar rules.
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import {
   Program,
   Solver,
@@ -253,6 +257,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
     });
     includes(ignoredNonVariable.stdout, 'x', 'non-variable right side is permitted and ignored');
   });
+
 
   reporter.test('reports the complete alias option in open/4 alias collisions', () => {
     const error = capture(() => run('', {
@@ -937,6 +942,101 @@ export function runIsoStrict(reporter = new TestReporter()) {
       goal: 'read_term(T,[variables([])])',
       ioOptions: { input: 'T.' },
     }).stats.completed_goal_lists, 0, 'STC 48 variables([]) does not match an input variable');
+  });
+
+  reporter.test('closes ISO 7.4 Prolog-text preparation and directive rows', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'eyeprolog-iso-74-'));
+    try {
+      writeFileSync(join(directory, 'child.pl'), [
+        'child.',
+        ":- op(500,'xfx',trusts).",
+        'child_rule(carol trusts dave).',
+        '',
+      ].join('\n'));
+      writeFileSync(join(directory, 'once.pl'), 'once_loaded.\n');
+      const source = [
+        ':- op(500,xfx,likes).',
+        ':- char_conversion(x,y).',
+        ':- set_prolog_flag(double_quotes,codes).',
+        ':- dynamic(seen/1).',
+        ':- initialization(assertz(seen(1))).',
+        ':- initialization(assertz(seen(2))).',
+        ":- include('child.pl').",
+        ":- ensure_loaded('once.pl').",
+        ":- ensure_loaded('once.pl').",
+        'relation(alice likes bob).',
+        'parent_rule(alice trusts bob).',
+        'converted(x).',
+        'quoted("ab").',
+        '',
+      ].join('\n');
+      const program = Program.parseSources([{ text: source, filename: 'main.pl', baseDir: directory }], {
+        isoStrict: true,
+        sourceMetadata: true,
+      });
+
+      equal(program.findGroup('child', 0)?.clauses.length, 1, 'include/1 textual inclusion');
+      equal(program.findGroup('once_loaded', 0)?.clauses.length, 1, 'ensure_loaded/1 loads once');
+      equal(program.findGroup('relation', 1)?.clauses[0]?.head?.args[0]?.name, 'likes', 'op/3 affects following text');
+      equal(program.findGroup('parent_rule', 1)?.clauses[0]?.head?.args[0]?.name, 'trusts', 'included op/3 affects following parent text');
+      equal(program.findGroup('converted', 1)?.clauses[0]?.head?.args[0]?.name, 'y', 'char_conversion/2 affects following unquoted source');
+      equal(run(program, { isoStrict: true, goal: 'quoted([97,98])' }).stats.completed_goal_lists > 0, true,
+        'set_prolog_flag/2 affects following source and execution');
+
+      const first = run(program, { isoStrict: true, goal: 'findall(X,seen(X),[1,2])' });
+      const second = run(program, { isoStrict: true, goal: 'findall(X,seen(X),[1,2])' });
+      equal(first.stats.completed_goal_lists > 0, true, 'initialization/1 order');
+      equal(second.stats.completed_goal_lists > 0, true, 'initialization/1 executes once per prepared Program');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  reporter.test('closes ISO 7.5-7.7 database, conversion, and execution rows', () => {
+    const source = [
+      ':- dynamic(p/1).',
+      ':- dynamic(empty/0).',
+      'p(1).',
+      'p(2).',
+      'body(X) :- X.',
+      '',
+    ].join('\n');
+
+    equal(run(source, {
+      isoStrict: true,
+      goal: 'findall(X,(p(X),retract(p(X))),Xs),Xs=[1,2],\\+p(_)',
+    }).stats.completed_goal_lists > 0, true, 'logical-update view and source clause order');
+    equal(run(source, { isoStrict: true, goal: '\\+ empty' }).stats.completed_goal_lists > 0, true,
+      'declared empty procedure fails as a defined procedure');
+    equal(capture(() => run(source, { isoStrict: true, goal: 'missing' })).formal,
+      'existence_error(procedure)', 'unknown procedure remains distinct from empty procedure');
+    equal(run('', {
+      isoStrict: true,
+      goal: 'assertz(fresh(a)),current_predicate(fresh/1),clause(fresh(a),true)',
+    }).stats.completed_goal_lists > 0, true, 'asserting a new procedure makes it dynamic/public');
+    equal(run(source, { isoStrict: true, goal: 'body(true)' }).stats.completed_goal_lists > 0, true,
+      'source variable body is converted to call/1');
+  });
+
+  reporter.test('closes ISO 7.8 general control-construct and exception rows', () => {
+    equal(run('', { isoStrict: true, goal: 'true' }).stats.completed_goal_lists, 1, 'true/0');
+    equal(run('', { isoStrict: true, goal: 'fail' }).stats.completed_goal_lists, 0, 'fail/0');
+    equal(run('', { isoStrict: true, goal: 'X=true,call(X)' }).stats.completed_goal_lists > 0, true,
+      'call/1 executes the converted goal');
+    equal(run('', { isoStrict: true, goal: '(fail;true)' }).stats.completed_goal_lists > 0, true,
+      'disjunction backtracks to the second branch');
+    equal(run('', { isoStrict: true, goal: '(true->true;fail)' }).stats.completed_goal_lists > 0, true,
+      'if-then-else commits after a successful condition');
+    equal(capture(() => run('', { isoStrict: true, goal: 'call((write(a),3))' })).formal,
+      'type_error(callable)', 'nested non-callable control term is rejected');
+    equal(run('', {
+      isoStrict: true,
+      goal: 'catch(X,error(instantiation_error,_),true)',
+    }).stats.completed_goal_lists > 0, true, 'Corrigendum 2 catch/3 can catch callability errors from its protected goal');
+    equal(run('', {
+      isoStrict: true,
+      goal: 'catch(throw(ball(X)),ball(Y),X=Y)',
+    }).stats.completed_goal_lists > 0, true, 'throw/1 and catch/3 unify through a renamed thrown term');
   });
 
   reporter.test('rejects EyeProlog module directives', () => {

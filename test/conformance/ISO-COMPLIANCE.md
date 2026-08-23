@@ -1,18 +1,12 @@
 # ISO/IEC 13211-1 compliance ledger
 
-This ledger is the release-facing audit for EyeProlog's ISO/IEC 13211-1 core.
-The normative baseline is ISO/IEC 13211-1:1995 together with Technical
-Corrigenda 1:2007, 2:2012, and 3:2017. It complements
-[ISO-MATRIX.md](ISO-MATRIX.md), which maps standard families to representative
-executable tests, [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md),
-which records the row-by-row built-in audit, and
-[ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md), which decomposes
-Clause 5 processor obligations. [ISO-TERM-SEMANTICS-MATRIX.md](ISO-TERM-SEMANTICS-MATRIX.md)
-and [ISO-EVALUABLE-FUNCTOR-MATRIX.md](ISO-EVALUABLE-FUNCTOR-MATRIX.md) close the
-row-level Clause 7.1-7.3 and 7.9/Clause 9 audits, while
-[ISO-EXIT-CRITERIA.md](ISO-EXIT-CRITERIA.md) makes the remaining release exit
-conditions explicit. The generated [`conformance-report.md`](../../conformance-report.md)
-gives current case totals.
+This ledger is the release-facing audit and high-level coverage map for
+EyeProlog's ISO/IEC 13211-1 core. The normative baseline is ISO/IEC 13211-1:1995
+together with Technical Corrigenda 1:2007, 2:2012, and 3:2017. Detailed
+row-level evidence lives only where it adds information: the built-in, processor,
+term-semantics, Prolog-text/execution, evaluable-functor, implementation-defined,
+WG17-syntax, and STC draft ledgers in this directory. The generated
+[`conformance-report.md`](../../conformance-report.md) gives current case totals.
 
 The ledger deliberately does **not** claim independent certification. A row
 marked `covered` means EyeProlog has implementation and executable tests for
@@ -26,7 +20,7 @@ relevant implementation-dependent overlap choice to an explicit audit outcome.
 | Requirement | Status | EyeProlog evidence / remaining work |
 | --- | --- | --- |
 | 5.1(a) prepare conforming Prolog text | audit | Clause 6 parser/tokenizer coverage, directive coverage, syntax-error corpus, and the [complete vendored WG17 syntax matrix](WG17-SYNTAX-STATUS.md). Wider shall-by-shall text-processing audit remains open. |
-| 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 conformance corpus plus regression/API/example gates. The 7.1-7.3 term-semantics, 7.9/Clause 9 arithmetic, and 8.2-8.17 built-in row audits are now closed; the dependency remains open on 7.4-7.8, higher-level 7.10, and residual processor-level 7.12 semantics. |
+| 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 conformance corpus plus regression/API/example gates. The 7.1-7.8 term/preparation/database/control rows, 7.9/Clause 9 arithmetic, and 8.2-8.17 built-in row audits are now closed; the dependency remains open on higher-level 7.10 and residual processor-level 7.12 semantics. |
 | 5.1(c) reject nonconforming text/read-terms | audit | Dedicated syntax-error cases and strict-core extension rejection. Exhaustive lexical rejection coverage remains open. |
 | 5.1(d) document permitted variations | covered | The clause-by-clause [ISO 5.4 decision index](ISO-IMPLEMENTATION-DEFINED.md) records every explicit implementation-defined decision found in the Part 1 + Corrigenda baseline and separately inventories implementation-specific extension families. Rows marked `audit gap` remain conformance work, but the variation is no longer undocumented. |
 | 5.1(e) offer a strictly conforming mode | covered | `--iso-strict` and API option `isoStrict: true` restrict the processor to the Part 1 + Corrigenda 1-3 core language surface, remove EyeProlog-only registry/flag/operator features, disable automatic tabling/recursion guards, and reject the normal-profile host `stringTerm/1` term type at strict program/goal entry. |
@@ -39,14 +33,14 @@ relevant implementation-dependent overlap choice to an explicit audit outcome.
 | --- | --- | --- |
 | Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete vendored WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, writer/read-back regressions, and Unicode-scalar PCS/collation boundary tests. A cross-profile gate now verifies that every WG17 case accepted by the strict Part 1 reader has the same observable outcome under normal-mode syntax extensions. The implementation-defined 6.5/6.6 character-model decisions are closed; the remaining work is the explicit production-by-production shall map. |
 | 7.1-7.3 — term types, term order, unification | covered | [ISO-TERM-SEMANTICS-MATRIX.md](ISO-TERM-SEMANTICS-MATRIX.md) records the five mutually exclusive strict term types, derived variable/compound/list notions, the complete standard-order classes and implementation-dependent variable-order choice, NSTO MGU/failure behavior, and EyeProlog's permitted consistent occurs-check failure for Part 1's undefined STO ordinary-unification cases. The normal JavaScript API string term is documented as a 5.5.4 extension and rejected at strict program/goal entry. |
-| 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Preparation-time `char_conversion/2` affects later unquoted source text and respects `char_conversion=off`. Strict preparation now enforces declaration-before-clause ordering for `dynamic/1`, `multifile/1`, and `discontiguous/1`, cross-text `multifile/1`, discontiguous clause grouping, empty declared procedures, include textual-replacement behavior, and one-time initialization per prepared program. The remaining shall-by-shall mapping is still open. |
-| 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access; focused strict checks cover the database built-ins and empty-procedure lifetime. Clause-body conversion now applies 7.6.2 both to prepared source clauses and runtime `asserta/1` / `assertz/1`: variables become `call/1`, `,/2`, `;/2`, and `->/2` are converted recursively, and head/body variable identity is preserved so `clause/2` and `retract/1` observe the converted term correctly. Runtime protection includes the solver-native conjunction control construct `','/2` and, following STC #56's accepted-direction action item, `(:-)/1-2` for database modification/private access while leaving their call behavior distinct. The remaining clause-conversion shall-by-shall mapping is still open. |
-| 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
-| 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. The 8.15 built-in slice (`\+/1`, `once/1`, `repeat/0`, Corrigendum 2 `call/2..8`, `false/0`) is now row-audited in [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md); the remaining general control-construct semantics ledger stays open. |
+| 7.4 — Prolog text and directives | covered | [ISO-PROLOG-TEXT-EXECUTION-MATRIX.md](ISO-PROLOG-TEXT-EXECUTION-MATRIX.md) closes the preparation/directive rows: declaration semantics, source clauses, cross-text operators/character conversion/flags, initialization order/lifetime, `include/1`, and one-time `ensure_loaded/1`, with implementation-defined cross-text choices indexed under 5.4. |
+| 7.5-7.6 — database and term/clause conversion | covered | [ISO-PROLOG-TEXT-EXECUTION-MATRIX.md](ISO-PROLOG-TEXT-EXECUTION-MATRIX.md) closes static/dynamic and private/public procedure semantics, clause order, logical-update visibility, empty/unknown lifetime, and term/body/clause conversion. Source and runtime assertion conversion recurse through `,/2`, `;/2`, and `->/2`, preserve variable identity, and protect standardized static/control procedures. |
+| 7.7 — execution and backtracking | covered | [ISO-PROLOG-TEXT-EXECUTION-MATRIX.md](ISO-PROLOG-TEXT-EXECUTION-MATRIX.md) closes ordinary clause selection/backtracking, source/database order, empty-versus-unknown procedures, logical-update visibility, and strict dispatch. EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts remain disabled in the strict profile. |
+| 7.8 — control constructs and exceptions | covered | [ISO-PROLOG-TEXT-EXECUTION-MATRIX.md](ISO-PROLOG-TEXT-EXECUTION-MATRIX.md) closes `true/0`, `fail/0`, `call/1`, cut, conjunction, disjunction, if-then(-else), and `catch/3`/`throw/1`, including Corrigendum 2 catchability of errors arising from the protected goal and Corrigendum 3 term-to-body conversion. The 8.15 built-in additions remain independently row-audited. |
 | 7.9 — expression evaluation | covered | [ISO-EVALUABLE-FUNCTOR-MATRIX.md](ISO-EVALUABLE-FUNCTOR-MATRIX.md) closes recursive evaluation, direct-variable precedence, corrected non-evaluable `F/N` errors (including STC #69), operand template/type rules, mixed arithmetic-comparison conversion, exceptional values, and finite-host resource normalization. The audit also fixes float-only `float_integer_part/1` and `float_fractional_part/1` so even huge valid integers reach `type_error(float,...)` before any I->F overflow. |
 | 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, and Corrigendum 3 writer cases. The complete 8.11-8.14 built-in mode/error family is now row-audited in [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md), including lifecycle/current-stream handling, stream positions, text/binary permissions, EOF actions, `force(true)`, input-code representation timing, term-I/O options, operators, and character conversion. `stream_property/2` now also distinguishes a malformed stream-term (domain error) from a valid stream-term whose stream is no longer open (ordinary failure). The higher-level 7.10 source/sink, buffering, positioning, and implementation-defined stream semantics remain under shall-by-shall audit. |
 | 7.11 — flags | covered | The complete Part 1 flag set, selected defaults, standard value domains, changeability, `current_prolog_flag/2`, and `set_prolog_flag/2` error behavior have dedicated strict tests. EyeProlog selects `bounded=false` and `integer_rounding_function=toward_zero`; valid alternative values of those fixed flags reach `permission_error(modify,flag,...)`, while `max_integer` and `min_integer` have no current value. STC #70 is recorded explicitly: EyeProlog has no separate finite procedure-arity ceiling, so the optional `max_procedure_arity` flag is absent while `max_arity` remains `unbounded`. Strict mode excludes the EyeProlog `occurs_check` extension. |
-| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax/resource families and focused error cases. [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) now gives explicit mode/error-condition outcomes across the complete 8.2-8.17 built-in family, including Corrigendum additions and not-applicable conditional branches. The audit records the 7.12 rule that simultaneous error conditions are implementation dependent: overlap regressions document stable EyeProlog choices rather than inventing a universal table-order requirement. Remaining work is concentrated in non-built-in Clause 7 semantics, Clause 9 exceptional interactions, and processor-level error conditions. |
+| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax/resource families and focused error cases. [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) now gives explicit mode/error-condition outcomes across the complete 8.2-8.17 built-in family, including Corrigendum additions and not-applicable conditional branches. The audit records the 7.12 rule that simultaneous error conditions are implementation dependent: overlap regressions document stable EyeProlog choices rather than inventing a universal table-order requirement. Remaining work is concentrated in higher-level 7.10 stream semantics and residual processor-level error conditions. |
 | 8.2-8.17 — built-in predicates | covered | [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) now records the complete Part 1 + Corrigenda built-in family at one row per prescribed mode, success/failure behavior, individual error condition, and conditional/not-applicable branch. The row audit exposed and fixed source/runtime 7.6.2 body conversion/variable sharing, strict host-string leakage, input-code error timing, `close/2` force handling, and closed-stream `stream_property/2` behavior. Simultaneous-error choices are documented as implementation dependent under 7.12 unless separately constrained. |
 | Clause 9 — evaluable functors | covered | [ISO-EVALUABLE-FUNCTOR-MATRIX.md](ISO-EVALUABLE-FUNCTOR-MATRIX.md) records the published Part 1 + Corrigenda arithmetic templates and exceptional branches across 9.1, 9.3, and 9.4. It pins the unbounded integer model, `rndI`/`rndF`/`resultF` choices, float-only conversion rules, I->F overflow, explicit `exp/1` and power underflow, Corrigendum 2 additions and mixed-type `max/2`/`min/2` implementation-dependent choice, Corrigendum 3 negative-power correction, signed bitwise/shift choices, and resource-error translation. Post-N289 STC #75 remains a separately tracked draft proposal rather than a silent change to the published baseline. |
 | Corrigendum 1 | covered | Double-quoted atom/operator-priority corrections have dedicated cases. |
@@ -91,9 +85,8 @@ database update errors, and Corrigendum 3 variable metadata traversal/write
 naming.
 
 The public WG17 `number_chars/2` comparison used in preparation of Corrigendum
-2 has additionally been checked against the current strict profile. That
-external comparison is useful independent evidence, but it is not yet vendored
-as an offline release gate; the exit criterion below therefore remains open.
+2 has additionally been checked during the audit. It remains supporting review
+evidence rather than a duplicated vendored corpus or release criterion.
 
 A further issue #65 audit closes the Part 1 flag family and tightens the 8.14
 term-I/O/operator error rules. The strict flag registry now distinguishes a
@@ -213,9 +206,9 @@ individual-error outcomes in `ISO-BUILTIN-MODE-ERROR-MATRIX.md`. During this
 pass `stream_property/2` exposed a lifecycle distinction: a syntactically valid
 stream-term for a stream that has been closed denotes no currently open stream
 property pair and therefore fails, whereas a term that is not a stream-term is
-still a `domain_error(stream, ...)`. This leaves the remaining #65 checklist
-focused on Clause 6/7/9 processor semantics and external corpora rather than
-unmapped built-in tables.
+still a `domain_error(stream, ...)`. This leaves the remaining #65 checklist focused on Clause 6 syntax/rejection,
+higher-level 7.10 stream semantics, residual 7.12 processor errors, and final
+unexplained-deviation closure rather than unmapped built-in tables.
 
 ## Post-Corrigendum STC cross-check
 
@@ -271,10 +264,9 @@ directive may still add an infix `?-` definition; strict mode reads that as an
 ordinary term rather than as a quad.
 
 Module and DCG compatibility features remain supported and tested in the
-normal EyeProlog profile. They are tracked separately in ISO-MATRIX.md rather
-than being silently folded into the Part 1 strict-core claim. The project does
-not currently assert that this evidence closes every requirement of ISO/IEC
-13211-2:2000 or ISO/IEC TS 13211-3.
+normal EyeProlog profile, but they are not folded into the Part 1 strict-core
+claim. The project does not currently assert that this evidence closes every
+requirement of ISO/IEC 13211-2:2000 or ISO/IEC TS 13211-3.
 
 ## Release gate
 
@@ -292,13 +284,25 @@ outputs are never auto-accepted.
 
 ## Exit criteria for a full conformance claim
 
-[ISO-EXIT-CRITERIA.md](ISO-EXIT-CRITERIA.md) is now the authoritative checklist
-for moving public wording from “ISO profile” to “conforming ISO/IEC 13211-1
-processor”. It requires closure of every remaining normative `audit` row,
-reproducible offline external comparison evidence, and no unexplained deviation.
+Issue #65 is closed by explicit dispositions, not by a test-count threshold.
+The remaining qualification can be removed only when every open item below is
+closed without an unexplained deviation from the published Part 1 + Corrigenda
+baseline. Public post-N289 STC drafts remain review input until standardized.
 
-The row-level 8.2-8.17 built-in audit, 7.1-7.3 term-semantics audit, and
-7.9/Clause 9 evaluable-functor audit are already closed. The checklist remains
-open because Clause 6, 7.4-7.8, higher-level 7.10/7.12, their Clause 5 dependency
-rows, and part of the external conversion/variable-name evidence are not yet
-fully reduced to explicit dispositions.
+| Criterion | Status | Evidence / remaining work |
+| --- | --- | --- |
+| Clause 5 processor obligations have explicit dispositions | open | `ISO-PROCESSOR-REQUIREMENTS.md` still depends on the remaining Clause 6 preparation/rejection and syntax-preservation work |
+| Clause 6 lexical/syntactic requirements have explicit dispositions | open | the 366-case vendored WG17 syntax gate and cross-profile preservation are green; the remaining work is the production-by-production shall/rejection map |
+| Clause 7 semantic requirements have explicit dispositions | open | 7.1-7.9 and 7.11 are closed; higher-level 7.10 stream semantics and residual processor-level 7.12 requirements remain |
+| Clause 8 built-in modes/errors have explicit dispositions | covered | `ISO-BUILTIN-MODE-ERROR-MATRIX.md` closes 8.2-8.17 row by row |
+| Clause 9 evaluable-functor requirements have explicit dispositions | covered | `ISO-EVALUABLE-FUNCTOR-MATRIX.md` plus the strict arithmetic regression closes the published Part 1 + Corrigenda arithmetic rows |
+| Implementation-defined choices are documented | covered | `ISO-IMPLEMENTATION-DEFINED.md` is the Clause 5.4 decision index and strict tests pin execution-visible choices |
+| Implementation-specific strict/normal boundary is documented and tested | open | the major 5.5 hooks are closed; exhaustive 5.5.1 syntax preservation remains tied to the Clause 6 audit |
+| Published Corrigenda 1-3 are incorporated | covered | dedicated conformance/strict tests and this ledger track all three published Corrigenda |
+| Current post-N289 draft is tracked without silently changing the published baseline | covered | `STC-DRAFT-STATUS.md` tracks reviewed draft items separately from normative requirements |
+| Independent external syntax corpus is an offline release gate | covered | the vendored WG17 syntax matrix has 366 executable dispositions checked against its upstream expectations |
+| Third-party standard-core regression provenance is retained | covered | adapted Logtalk, Scryer, Trealla, and SWI-Prolog cases retain source identifiers and licenses in `THIRD_PARTY.md` |
+| No unexplained deviation remains in the release-facing ledger | open | every remaining `audit` row must end as covered, implementation-defined/specific with documented behavior, not applicable, or a documented defect |
+
+The specialized row matrices are evidence for this ledger, not separate public
+status documents. *The Art of EyeProlog* remains the implementation reference.

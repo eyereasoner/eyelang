@@ -376,5 +376,5 @@ The remaining #65 work is therefore above/below this built-in table. The
 7.1-7.3 term-semantics and 7.9/Clause 9 evaluable-functor rows are now closed in
 their dedicated matrices. What remains is Clause 6 text/rejection mapping,
 Clause 7.4-7.8 plus higher-level 7.10/7.12 processor/control semantics, residual
-Clause 5 dependency rows, and the external conversion/variable-name exit
-criteria recorded in `ISO-EXIT-CRITERIA.md`.
+Clause 5 dependency rows and the unexplained-deviation exit criterion
+recorded in `ISO-COMPLIANCE.md`.

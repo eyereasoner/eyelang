@@ -28,7 +28,7 @@ collating-sequence integers in both normal and strict profiles. Strict mode
 therefore rejects implementation-specific language extensions without changing
 that processor choice. Its executable conformance matrix and tests
 document the supported behavior, including an executable trace of the vendored
-active WG17 syntax cases, cross-profile preservation of all strict-success WG17 syntax outcomes, closed strict side-effect and evaluable-functor extension boundaries, the completed row-level 7.1-7.3 term-semantics and 7.9/Clause 9 arithmetic audits, and explicit choices at standardized variation points such as mixed-type
+active WG17 syntax cases, cross-profile preservation of all strict-success WG17 syntax outcomes, closed strict side-effect and evaluable-functor extension boundaries, the completed row-level 7.1-7.9 term, preparation/database/control, and arithmetic audits, offline public conversion/variable-metadata audit fixtures, and explicit choices at standardized variation points such as mixed-type
 `max/2`/`min/2` and signed bitwise/shift operations. The remaining exit criteria
 are recorded explicitly rather than inferred from aggregate test counts. This is
 extensive implementation evidence, not a claim that every Part 1, Part 2, or

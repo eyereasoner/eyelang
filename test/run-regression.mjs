@@ -3706,31 +3706,50 @@ function documentationSyncCases() {
       },
     },
     {
+      name: 'ISO 7.4-7.8 execution matrix is closed',
+      run: () => {
+        const compliance = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-COMPLIANCE.md'), 'utf8');
+        const matrix = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-PROLOG-TEXT-EXECUTION-MATRIX.md'), 'utf8');
+        for (const row of [
+          '| 7.4 — Prolog text and directives | covered |',
+          '| 7.5-7.6 — database and term/clause conversion | covered |',
+          '| 7.7 — execution and backtracking | covered |',
+          '| 7.8 — control constructs and exceptions | covered |',
+        ]) assertIncludes(compliance, row, row);
+        for (const section of ['## 7.4 - Prolog text and preparation', '## 7.5 - database model', '## 7.6 - conversion between terms and clauses/goals', '## 7.7 - execution and backtracking', '## 7.8 - control constructs and exceptions']) {
+          assertIncludes(matrix, section, section);
+        }
+      },
+    },
+    {
       name: 'ISO exit criteria keep remaining audit work explicit',
       run: () => {
-        const exit = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-EXIT-CRITERIA.md'), 'utf8');
+        const exit = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-COMPLIANCE.md'), 'utf8');
         for (const item of [
           '| Clause 6 lexical/syntactic requirements have explicit dispositions | open |',
           '| Clause 7 semantic requirements have explicit dispositions | open |',
           '| Clause 8 built-in modes/errors have explicit dispositions | covered |',
           '| Clause 9 evaluable-functor requirements have explicit dispositions | covered |',
           '| Independent external syntax corpus is an offline release gate | covered |',
-          '| External conversion/variable-name comparisons used during the audit are reproducible offline | open |',
           '| No unexplained deviation remains in the release-facing ledger | open |',
         ]) assertIncludes(exit, item, item);
       },
     },
     {
-      name: 'public ISO documentation links the row matrices and exit checklist',
+      name: 'public ISO documentation keeps README concise and the book authoritative',
       run: () => {
         const readme = fs.readFileSync(path.join(packageRoot, 'README.md'), 'utf8');
         const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
         const profile = fs.readFileSync(path.join(packageRoot, 'why-eyeprolog.md'), 'utf8');
-        for (const name of ['ISO-TERM-SEMANTICS-MATRIX.md', 'ISO-EVALUABLE-FUNCTOR-MATRIX.md', 'ISO-EXIT-CRITERIA.md']) {
-          assertIncludes(readme, name, `README ${name}`);
-          assertIncludes(book, name, `book ${name}`);
-        }
-        assertIncludes(profile, 'completed row-level 7.1-7.3 term-semantics and 7.9/Clause 9 arithmetic audits', 'Why EyeProlog audit state');
+        for (const name of [
+          'ISO-TERM-SEMANTICS-MATRIX.md',
+          'ISO-PROLOG-TEXT-EXECUTION-MATRIX.md',
+          'ISO-EVALUABLE-FUNCTOR-MATRIX.md',
+        ]) assertIncludes(book, name, `book ${name}`);
+        assertIncludes(readme, 'implementation reference is [*The Art of EyeProlog*]', 'README book hand-off');
+        assertIncludes(readme, 'test/conformance/ISO-COMPLIANCE.md', 'README concise audit link');
+        assertEqual(readme.includes('2026-08-23 draft items #73-#76'), false, 'README omits audit-history detail');
+        assertIncludes(profile, 'completed row-level 7.1-7.9 term, preparation/database/control, and arithmetic audits', 'Why EyeProlog audit state');
       },
     },
     {

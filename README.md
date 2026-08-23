@@ -203,66 +203,24 @@ eyeprolog --iso-strict
 eyeprolog --iso-strict --goal 'p(X)' program.pl
 ```
 
-The equivalent JavaScript option is `isoStrict: true`. Strict mode rejects
-EyeProlog language extensions, Part 2 module directives, and Part 3 grammar-rule
-expansion/`phrase/2-3`; it also removes the EyeProlog `occurs_check` flag,
-`call_cleanup/2`, and `setup_call_cleanup/3`, and disables automatic tabling.
-Normal mode is unchanged and continues to support modules, DCGs, quads,
-libraries, proofs, cleanup-aware control, and the other documented extensions.
+The equivalent JavaScript option is `isoStrict: true`. Strict mode keeps
+EyeProlog's documented implementation-defined Unicode scalar processor
+character set, while excluding normal-profile language extensions such as Part
+2 module compatibility forms, Part 3 DCG expansion, quads, extra libraries,
+automatic tabling, and non-standard flags/control facilities. Normal mode is
+unchanged.
 
-The Part 1 processor character set is an implementation-defined processor
-choice, so strict mode does not replace it with a smaller repertoire. EyeProlog
-uses Unicode scalar values as its PCS in both normal and strict profiles, with
-the Unicode scalar value as the collating-sequence integer. ASCII keeps the
-standard lexical classes; extended Unicode letters participate in unquoted name
-syntax and other non-ASCII symbols are treated as extended graphic characters.
-Surrogates and values above U+10FFFF remain representation errors.
+This README intentionally stays at the project-overview level. The detailed
+implementation reference is [*The Art of EyeProlog*](the-art-of-eyeprolog.md).
+The current Part 1 audit status and remaining release conditions are recorded in
+[`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md);
+implementation-defined decisions are indexed in
+[`ISO-IMPLEMENTATION-DEFINED.md`](test/conformance/ISO-IMPLEMENTATION-DEFINED.md). The complete
+vendored WG17 syntax corpus and the strict ISO regression suite run as release
+gates.
 
-Strict term I/O likewise keeps the standardized option boundary: `read_term/2-3`
-and `write_term/2-3` accept the Part 1 plus Corrigendum 3 options, while the
-normal-profile `write_term(...,[double_quotes(...)])` option remains an
-EyeProlog extension. The strict gate also checks the prescribed ISO error
-precedence for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`, and
-the complete Part 1 flag defaults/value domains/changeability rules. The
-ongoing issue #65 audit additionally tightens Prolog-text declaration ordering,
-initialization lifetime, stream/open/close behavior, character/byte stream
-errors, `keysort/2` error cases, the now-closed 5.5.6 side-effect and 5.5.10 evaluable-functor strict
-extension boundaries, and the standard's permitted arithmetic variation points: mixed-type Corrigendum 2
-`max/2`/`min/2` and signed Clause 9.4 bitwise/shift behavior. The row-level
-7.1-7.3 term-semantics audit and 7.9/Clause 9 expression/evaluable-functor
-audit are now closed as well. That arithmetic pass also corrected float-only
-`float_integer_part/1` and `float_fractional_part/1`: an integer operand, even
-a huge valid unbounded integer, now reaches `type_error(float,...)` before any
-integer-to-float overflow.
-Those additions improve the Part 1 surface without turning the remaining audit
-rows into a blanket conformance claim. The post-N289 WG17/STC working draft is
-reviewed separately rather than treated as a fourth Corrigendum. The
-2026-08-23 draft items #73-#76 are now pinned explicitly: float input limits for
-`read*` and `number_*` conversions, invalid-character term input, and the draft
-proposal that would make the two power-underflow rows depend on the processor's
-9.1.4.2 `resultF` choice. Strict mode retains the published Part 1 +
-Corrigenda 1-3 behavior where the draft has not been standardized.
-
-As an additional 5.5.1 extension-safety gate, every vendored WG17 syntax case
-that succeeds in the strict Part 1 reader is re-run in the normal profile and
-must retain the same observable outcome; normal mode may accept extra extension
-syntax, but it must not reinterpret text already accepted as standard syntax.
-
-The auditable processor-requirement checklist lives in
-[`test/conformance/ISO-COMPLIANCE.md`](test/conformance/ISO-COMPLIANCE.md).
-The ISO 5.4 implementation-defined/implementation-specific decision index is
-[`test/conformance/ISO-IMPLEMENTATION-DEFINED.md`](test/conformance/ISO-IMPLEMENTATION-DEFINED.md).
-The closed term and arithmetic row audits are
-[`ISO-TERM-SEMANTICS-MATRIX.md`](test/conformance/ISO-TERM-SEMANTICS-MATRIX.md) and
-[`ISO-EVALUABLE-FUNCTOR-MATRIX.md`](test/conformance/ISO-EVALUABLE-FUNCTOR-MATRIX.md);
-[`ISO-EXIT-CRITERIA.md`](test/conformance/ISO-EXIT-CRITERIA.md) states the remaining
-normative and external-corpus exit conditions.
-The separate [WG17 syntax ledger](test/conformance/WG17-SYNTAX-STATUS.md)
-records executable dispositions for the vendored active upstream WG17 syntax
-cases and runs as part of `npm test`. Reviewed cases can pin exact outcomes;
-newly upgraded cases run directly against the upstream Codex expectation.
-EyeProlog does not yet claim independent certification or closure of every
-normative Part 1 requirement.
+EyeProlog does not claim independent ISO certification while the explicit exit
+checklist still contains unresolved normative or unexplained-deviation items.
 
 ## Module and definite clause grammar compatibility profiles
 

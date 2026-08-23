@@ -7,16 +7,14 @@ supported ISO Prolog profile, built-ins, extensions, and reasoner behavior.
 
 The suite is intentionally file-based. Exact standard output, errors, warnings,
 and proof output test the behavior of the JavaScript implementation.
-[ISO-MATRIX.md](ISO-MATRIX.md) maps Part 1 normative clause families, all three
-corrigenda, plus EyeProlog's module and DCG compatibility profiles, to representative
-executable cases. [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md)
+[ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the high-level Part 1 audit and coverage map. [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md)
 tracks the row-by-row built-in audit,
 [ISO-TERM-SEMANTICS-MATRIX.md](ISO-TERM-SEMANTICS-MATRIX.md) closes 7.1-7.3,
-[ISO-EVALUABLE-FUNCTOR-MATRIX.md](ISO-EVALUABLE-FUNCTOR-MATRIX.md) closes
-7.9/Clause 9, and [ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md)
+[ISO-PROLOG-TEXT-EXECUTION-MATRIX.md](ISO-PROLOG-TEXT-EXECUTION-MATRIX.md)
+closes 7.4-7.8, [ISO-EVALUABLE-FUNCTOR-MATRIX.md](ISO-EVALUABLE-FUNCTOR-MATRIX.md)
+closes 7.9/Clause 9, and [ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md)
 decomposes the Clause 5 processor obligations.
-[ISO-EXIT-CRITERIA.md](ISO-EXIT-CRITERIA.md) makes the remaining normative and
-external-corpus release-exit conditions explicit. [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
+The exit checklist is embedded in [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md). [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
 complete one-to-one trace for the vendored active upstream WG17 syntax cases.
 [STC-DRAFT-STATUS.md](STC-DRAFT-STATUS.md) separately tracks executable
 implementation questions from the post-N289 working draft (reviewed through the 2026-08-23 items #73-#76); those cases are
@@ -28,11 +26,12 @@ predicate indicators listed in Appendix B of the book across the Part 1 strict-c
 target and the normal-mode module/DCG compatibility families. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the explicit
 release-facing ledger for the Part 1 strict-core audit. This suite is
 still not an independent certification of every processor requirement or lexical
-edge. The complete 8.2-8.17 built-in family, 7.1-7.3 term semantics, and
-7.9/Clause 9 expression/evaluable-functor families are now tracked and closed
-at row level. The remaining Clause 6, 7.4-7.8, higher-level 7.10/7.12,
-processor-dependency, and external-corpus criteria stay explicitly open in the
-dedicated audit files. Cases under `iso/`
+edge. The complete 8.2-8.17 built-in family and Clause 7.1-7.9 term,
+preparation/database/control, and expression/evaluable-functor families are now
+tracked and closed at row level. The remaining Clause 6, higher-level
+7.10/7.12, processor-dependency, and unexplained-deviation criteria stay
+explicitly open in the dedicated audit files. Public comparison material used during the audit remains supporting review
+evidence rather than a duplicated vendored corpus. Cases under `iso/`
 identify standards-derived behavior; other directories cover EyeProlog host
 contracts and extensions. EyeProlog-only execution features such as automatic
 tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core
