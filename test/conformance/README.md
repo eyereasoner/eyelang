@@ -9,7 +9,10 @@ The suite is intentionally file-based. Exact standard output, errors, warnings,
 and proof output test the behavior of the JavaScript implementation.
 [ISO-MATRIX.md](ISO-MATRIX.md) maps Part 1 normative clause families, all three
 corrigenda, plus EyeProlog's module and DCG compatibility profiles, to representative
-executable cases. [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
+executable cases. [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md)
+tracks the row-by-row built-in audit, while
+[ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md) decomposes the
+Clause 5 processor obligations. [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
 complete one-to-one trace for the vendored active upstream WG17 syntax cases.
 [STC-DRAFT-STATUS.md](STC-DRAFT-STATUS.md) separately tracks executable
 implementation questions from the post-N289 working draft; those cases are
@@ -19,12 +22,11 @@ review evidence, not normative ISO claims.
 profile and implementation extensions. The default registry covers the exact
 predicate indicators listed in Appendix B of the book across the Part 1 strict-core
 target and the normal-mode module/DCG compatibility families. [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md) is the explicit
-processor-requirement ledger for the Part 1 strict-core audit. This suite is
+release-facing ledger for the Part 1 strict-core audit. This suite is
 still not an independent certification of every processor requirement, lexical
-edge, or option combination. Selected prescribed-error sequences are now
-checked exactly (including term construction, database/all-solutions predicates,
-and ISO 8.14.1-8.14.4), while the remaining built-in error-order matrix is
-tracked in the compliance ledger. Cases under `iso/`
+edge, or option combination. The 8.2-8.5 and 8.15-8.17 built-in slices are now
+tracked one prescribed mode/error row at a time; 8.6-8.14 and the remaining
+processor semantics stay explicitly open in the dedicated audit files. Cases under `iso/`
 identify standards-derived behavior; other directories cover EyeProlog host
 contracts and extensions. EyeProlog-only execution features such as automatic
 tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core

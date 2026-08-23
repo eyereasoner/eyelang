@@ -6,10 +6,12 @@ import {
   Program,
   Solver,
   Env,
+  compound,
   createStrictIsoRegistry,
   parseGoalText,
   parseProgramText,
   run,
+  stringTerm,
 } from '../src/index.js';
 import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
 
@@ -175,6 +177,23 @@ export function runIsoStrict(reporter = new TestReporter()) {
     const strict = run('', { isoStrict: true, goal: "char_code('é',233)" });
     equal(normal.stats.completed_goal_lists, 1, 'normal Unicode char_code/2');
     equal(strict.stats.completed_goal_lists, 1, 'strict Unicode char_code/2');
+  });
+
+  reporter.test('rejects the normal-profile string term extension at strict API boundaries', () => {
+    const normalSolver = new Solver(Program.parse(''), {});
+    const normalGoal = compound('=', [stringTerm('x'), stringTerm('x')]);
+    equal([...normalSolver.solve([normalGoal], new Env(), 0)].length, 1,
+      'normal API string terms remain usable');
+
+    const strictSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    equal(capture(() => [...strictSolver.solve([normalGoal], new Env(), 0)]).formal,
+      'representation_error(term)', 'strict execution rejects API string terms');
+
+    equal(capture(() => new Program([{
+      head: compound('p', [stringTerm('x')]),
+      body: [],
+    }], { isoStrict: true })).formal,
+      'representation_error(term)', 'strict program construction rejects API string terms');
   });
 
   reporter.test('keeps the strict write-option surface to Part 1 plus Corrigendum 3', () => {
@@ -606,6 +625,157 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'resource_error(memory)', 'unbounded integer power host exhaustion');
     equal(run('', { isoStrict: true, goal: 'current_prolog_flag(max_arity,unbounded)' }).stats.completed_goal_lists,
       1, 'resource handling does not reintroduce a finite max_arity');
+  });
+
+  reporter.test('converts asserted control bodies recursively per ISO 7.6.2', () => {
+    const source = ':- dynamic(p/0).\n:- dynamic(q/0).\n:- dynamic(r/0).\n';
+    const disjunction = run(source, {
+      isoStrict: true,
+      goal: 'assertz((p :- (X;true))), clause(p,B), arg(1,B,L), nonvar(L), functor(L,call,1)',
+    });
+    equal(disjunction.stats.completed_goal_lists, 1, 'variable in asserted disjunction becomes call/1');
+
+    const ifThenElse = run(source, {
+      isoStrict: true,
+      goal: 'assertz((q :- (X->Y;Z))), clause(q,B), arg(1,B,I), arg(1,I,XG), arg(2,I,YG), arg(2,B,ZG), nonvar(XG), nonvar(YG), nonvar(ZG), functor(XG,call,1), functor(YG,call,1), functor(ZG,call,1)',
+    });
+    equal(ifThenElse.stats.completed_goal_lists, 1, 'variables in asserted if-then-else become call/1');
+
+    const disjunctionError = capture(() => run(source, { isoStrict: true, goal: 'assertz((r :- (true;4)))' }));
+    equal(disjunctionError.formal, 'type_error(callable)', 'invalid asserted disjunction rejected during conversion');
+    includes(disjunctionError.message, "';'(true, 4)", 'asserted disjunction error identifies body');
+
+    const conjunctionError = capture(() => run(source, { isoStrict: true, goal: 'asserta((r :- (true,4)))' }));
+    equal(conjunctionError.formal, 'type_error(callable)', 'invalid asserted conjunction rejected during conversion');
+    includes(conjunctionError.message, '(true, 4)', 'asserted conjunction error identifies body');
+  });
+
+  reporter.test('closes the ISO 8.2-8.5 prescribed mode/error rows', () => {
+    const cases = [
+      ['compare(1,3,3.0)', 'type_error(atom)', 'compare/3 order type'],
+      ['compare(>=,3,3.0)', 'domain_error(order)', 'compare/3 order domain'],
+      ['sort([1|T],_)', 'instantiation_error', 'sort/2 partial input'],
+      ['sort(foo,_)', 'type_error(list)', 'sort/2 input list type'],
+      ['sort([],foo)', 'type_error(list)', 'sort/2 output list type'],
+      ['keysort([1-a|T],_)', 'instantiation_error', 'keysort/2 partial input'],
+      ['keysort(foo,_)', 'type_error(list)', 'keysort/2 input list type'],
+      ['keysort([],foo)', 'type_error(list)', 'keysort/2 output list type'],
+      ['keysort([X],_)', 'instantiation_error', 'keysort/2 variable pair'],
+      ['keysort([foo],_)', 'type_error(pair)', 'keysort/2 input pair type'],
+      ['keysort([],[foo])', 'type_error(pair)', 'keysort/2 output pair type'],
+      ['functor(X,Y,3)', 'instantiation_error', 'functor/3 Name instantiation'],
+      ['functor(X,foo,N)', 'instantiation_error', 'functor/3 Arity instantiation'],
+      ['functor(X,foo(a),a)', 'type_error(atomic)', 'functor/3 Name atomic type before Arity type'],
+      ['functor(X,foo,a)', 'type_error(integer)', 'functor/3 Arity integer type'],
+      ['functor(X,1.5,1)', 'type_error(atom)', 'functor/3 positive-arity atom name'],
+      ['functor(X,foo,-1)', 'domain_error(not_less_than_zero)', 'functor/3 non-negative arity'],
+      ['arg(X,foo(a),_)', 'instantiation_error', 'arg/3 index instantiation'],
+      ['arg(1,X,_)', 'instantiation_error', 'arg/3 term instantiation'],
+      ['arg(a,foo(a),_)', 'type_error(integer)', 'arg/3 index type'],
+      ['arg(0,atom,_)', 'type_error(compound)', 'arg/3 term type before index domain'],
+      ['arg(-1,foo(a),_)', 'domain_error(not_less_than_zero)', 'arg/3 index domain'],
+      ['X=..Y', 'instantiation_error', '=../2 both variables'],
+      ['X=..[foo|T]', 'instantiation_error', '=../2 partial list'],
+      ['X=..foo', 'type_error(list)', '=../2 list type'],
+      ['X=..[F,a]', 'instantiation_error', '=../2 head instantiation'],
+      ['X=..[3,a]', 'type_error(atom)', '=../2 compound functor atom type'],
+      ['X=..[foo(a)]', 'type_error(atomic)', '=../2 singleton atomic type'],
+      ['X=..[]', 'domain_error(non_empty_list)', '=../2 non-empty list'],
+      ['term_variables(t,[X|foo])', 'type_error(list)', 'term_variables/2 output list type'],
+    ];
+    for (const [goal, formal, label] of cases) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
+    }
+
+    for (const goal of [
+      'unify_with_occurs_check(X,1)',
+      'subsumes_term(f(X,Y),f(Z,Z))',
+      'compare(<,a,b)',
+      'sort([1,1],[1])',
+      'keysort([2-b,1-a],[1-a,2-b])',
+      'copy_term(f(X,X),f(Y,Y))',
+      'term_variables(A+B+B,[A,B])',
+    ]) {
+      equal(run('', { isoStrict: true, goal }).stats.completed_goal_lists, 1, `${goal} mode`);
+    }
+  });
+
+  reporter.test('closes the ISO 8.15-8.17 prescribed mode/error rows', () => {
+    const cases = [
+      ['\\+(X)', 'instantiation_error', '\+/1 variable goal'],
+      ['\\+(3)', 'type_error(callable)', '\+/1 callable type'],
+      ['once(X)', 'instantiation_error', 'once/1 variable goal'],
+      ['once(3)', 'type_error(callable)', 'once/1 callable type'],
+      ['call(X,a)', 'instantiation_error', 'call/2 variable closure'],
+      ['call(3,a)', 'type_error(callable)', 'call/2 callable closure'],
+      ['call(foo,a,b,c,d,e,f,g,h)', 'existence_error(procedure)', 'selected call/N ceiling at call/8'],
+      ['atom_length(X,4)', 'instantiation_error', 'atom_length/2 atom instantiation'],
+      ['atom_length(1.2,4)', 'type_error(atom)', 'atom_length/2 atom type'],
+      ["atom_length(atom,'4')", 'type_error(integer)', 'atom_length/2 length type'],
+      ['atom_length(atom,-1)', 'domain_error(not_less_than_zero)', 'atom_length/2 length domain'],
+      ['atom_concat(X,small,Y)', 'instantiation_error', 'atom_concat/3 first/whole under-instantiation'],
+      ['atom_concat(small,X,Y)', 'instantiation_error', 'atom_concat/3 second/whole under-instantiation'],
+      ['atom_concat(1,a,b)', 'type_error(atom)', 'atom_concat/3 first type'],
+      ['atom_concat(a,1,b)', 'type_error(atom)', 'atom_concat/3 second type'],
+      ['atom_concat(a,b,1)', 'type_error(atom)', 'atom_concat/3 whole type'],
+      ['sub_atom(X,0,1,0,a)', 'instantiation_error', 'sub_atom/5 source instantiation'],
+      ['sub_atom(1,0,1,0,a)', 'type_error(atom)', 'sub_atom/5 source type'],
+      ['sub_atom(a,0,1,0,1)', 'type_error(atom)', 'sub_atom/5 result atom type'],
+      ['sub_atom(a,x,1,0,_)', 'type_error(integer)', 'sub_atom/5 Before type'],
+      ['sub_atom(a,0,x,0,_)', 'type_error(integer)', 'sub_atom/5 Length type'],
+      ['sub_atom(a,0,1,x,_)', 'type_error(integer)', 'sub_atom/5 After type'],
+      ['sub_atom(a,-1,1,0,_)', 'domain_error(not_less_than_zero)', 'sub_atom/5 Before domain'],
+      ['sub_atom(a,0,-1,0,_)', 'domain_error(not_less_than_zero)', 'sub_atom/5 Length domain'],
+      ['sub_atom(a,0,1,-1,_)', 'domain_error(not_less_than_zero)', 'sub_atom/5 After domain'],
+      ['atom_chars(X,Y)', 'instantiation_error', 'atom_chars/2 under-instantiation'],
+      ['atom_chars(1,[])', 'type_error(atom)', 'atom_chars/2 atom type'],
+      ['atom_chars(X,[a|foo])', 'type_error(list)', 'atom_chars/2 improper list'],
+      ['atom_chars(X,[Y,a])', 'instantiation_error', 'atom_chars/2 variable prefix element'],
+      ['atom_chars(X,[a,1])', 'type_error(character)', 'atom_chars/2 character element type'],
+      ['atom_codes(X,Y)', 'instantiation_error', 'atom_codes/2 under-instantiation'],
+      ['atom_codes(1,[])', 'type_error(atom)', 'atom_codes/2 atom type'],
+      ['atom_codes(X,[97|foo])', 'type_error(list)', 'atom_codes/2 improper list'],
+      ['atom_codes(X,[Y,97])', 'instantiation_error', 'atom_codes/2 variable prefix element'],
+      ['atom_codes(X,[97,foo])', 'type_error(integer)', 'atom_codes/2 code integer type'],
+      ['atom_codes(X,[97,-1])', 'representation_error(character_code)', 'atom_codes/2 code representation'],
+      ['char_code(X,Y)', 'instantiation_error', 'char_code/2 under-instantiation'],
+      ['char_code(ab,foo)', 'type_error(character)', 'char_code/2 character type before code type'],
+      ['char_code(a,foo)', 'type_error(integer)', 'char_code/2 code type'],
+      ['char_code(a,-1)', 'representation_error(character_code)', 'char_code/2 code representation'],
+      ['number_chars(X,Y)', 'instantiation_error', 'number_chars/2 under-instantiation'],
+      ['number_chars(foo,[])', 'type_error(number)', 'number_chars/2 number type'],
+      ['number_chars(X,[a|foo])', 'type_error(list)', 'number_chars/2 improper list'],
+      ['number_chars(X,[Y,a])', 'instantiation_error', 'number_chars/2 variable prefix element'],
+      ['number_chars(X,[a,1])', 'type_error(character)', 'number_chars/2 character element type'],
+      ['number_chars(X,[a])', 'syntax_error(number)', 'number_chars/2 number syntax'],
+      ['number_codes(X,Y)', 'instantiation_error', 'number_codes/2 under-instantiation'],
+      ['number_codes(foo,[])', 'type_error(number)', 'number_codes/2 number type'],
+      ['number_codes(X,[49|foo])', 'type_error(list)', 'number_codes/2 improper list'],
+      ['number_codes(X,[Y,49])', 'instantiation_error', 'number_codes/2 variable prefix element'],
+      ['number_codes(X,[49,foo])', 'type_error(integer)', 'number_codes/2 code integer type'],
+      ['number_codes(X,[49,-1])', 'representation_error(character_code)', 'number_codes/2 code representation'],
+      ['number_codes(X,[97])', 'syntax_error(number)', 'number_codes/2 number syntax'],
+      ['current_prolog_flag(1,_)', 'type_error(atom)', 'current_prolog_flag/2 flag type'],
+      ['current_prolog_flag(no_such_iso_flag,_)', 'domain_error(prolog_flag)', 'current_prolog_flag/2 flag domain'],
+      ['halt(X)', 'instantiation_error', 'halt/1 instantiation'],
+      ['halt(a)', 'type_error(integer)', 'halt/1 integer type'],
+    ];
+    for (const [goal, formal, label] of cases) {
+      equal(capture(() => run('', { isoStrict: true, goal })).formal, formal, label);
+    }
+
+    equal(run('', { isoStrict: true, goal: 'false' }).stats.completed_goal_lists, 0, 'false/0 fails');
+    const onceSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    equal([...onceSolver.solve([parseGoalText('once((X=1;X=2))', { isoStrict: true })], new Env(), 0)].length,
+      1, 'once/1 first solution');
+    const onceCommittedSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    equal([...onceCommittedSolver.solve([parseGoalText('once((X=1;X=2)), X=2', { isoStrict: true })], new Env(), 0)].length,
+      0, 'once/1 commits to its first solution');
+    const callSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    equal([...callSolver.solve([parseGoalText('call(atom_concat,pro,log,prolog)', { isoStrict: true })], new Env(), 0)].length,
+      1, 'call/4 closure expansion');
+    equal(run('', { isoStrict: true, goal: 'atom_concat(A,B,ab)' }).stats.completed_goal_lists, 3, 'atom_concat/3 re-executable splits');
+    equal(run('', { isoStrict: true, goal: 'sub_atom(ab,_,_,_,_)' }).stats.completed_goal_lists, 6, 'sub_atom/5 re-executable slices');
   });
 
   reporter.test('covers ISO database predicate errors and empty-procedure lifetime', () => {

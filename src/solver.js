@@ -1,7 +1,7 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  ATOM, COMPOUND, NUMBER, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
+  ATOM, COMPOUND, NUMBER, STRING, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
   flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
   numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
@@ -43,6 +43,26 @@ function raiseOccursCheckError(left, right, env) {
   const error = new PrologError('representation_error(term)');
   error.contextTerm = emptyList();
   throw error;
+}
+
+
+function rejectStrictIsoStringTerms(terms, env) {
+  const seen = new Set();
+  const visit = (term) => {
+    const resolved = deref(term, env);
+    if (resolved == null || seen.has(resolved)) return;
+    seen.add(resolved);
+    if (resolved.type === STRING) {
+      // `stringTerm()` is a normal-profile host/API term extension.  It has no
+      // Part 1 abstract/token syntax, so strict execution must reject it rather
+      // than silently introducing a sixth term type through the embedding API.
+      throw new PrologError('representation_error(term)');
+    }
+    if (resolved.type === COMPOUND) {
+      for (const arg of resolved.args) visit(arg);
+    }
+  };
+  for (const term of terms) visit(term);
 }
 
 export class Solver {
@@ -301,6 +321,7 @@ export class Solver {
   *solve(goals, env = new Env(), depth = 0) {
     if (!Array.isArray(goals)) goals = [goals];
     env.setOccursCheckHandler(this.occursCheckHandler);
+    if (this.isoStrict) rejectStrictIsoStringTerms(goals, env);
 
     const writeVariableState = this.writeVariableState;
     if (writeVariableState.depth === 0) {

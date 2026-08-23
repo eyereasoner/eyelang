@@ -1,6 +1,6 @@
 // Program representation and clause indexing.
 // Indexes are deliberately conservative: they speed up common scalar arguments but never replace unification as the final check.
-import { ATOM, COMPOUND, VAR, Env, atom, compound, deref, flattenConjunction, isScalar, numberTerm, properListItems, termToString, variable } from './term.js';
+import { ATOM, COMPOUND, STRING, VAR, Env, atom, compound, deref, flattenConjunction, isScalar, numberTerm, properListItems, termToString, variable } from './term.js';
 import { formatTermForWrite } from './write.js';
 import {
   ISO_OPERATOR_DEFINITIONS,
@@ -33,6 +33,21 @@ import {
 const DEFER_PROGRAM_BUILD = Symbol('deferProgramBuild');
 const FAST_PARSE_ABORT = Symbol('fastParseAbort');
 const PROGRAM_BUILD_BATCH_SIZE = 16384;
+
+function termContainsStringExtension(term, seen = new Set()) {
+  if (term == null || typeof term !== 'object' || seen.has(term)) return false;
+  seen.add(term);
+  if (term.type === STRING) return true;
+  if (term.type === COMPOUND) return term.args.some((arg) => termContainsStringExtension(arg, seen));
+  return false;
+}
+
+function clauseContainsStringExtension(clause) {
+  if (clause == null) return false;
+  if (clause.head0Type === STRING || clause.head1Type === STRING) return true;
+  if (termContainsStringExtension(clause.head) || termContainsStringExtension(clause.query)) return true;
+  return Array.isArray(clause.body) && clause.body.some((goal) => termContainsStringExtension(goal));
+}
 export class Program {
   constructor(clauses = [], options = {}) {
     this.clauses = [];
@@ -574,6 +589,12 @@ class ProgramBuilder {
     let lastGroup = this.lastGroup;
 
     for (const clause of clauses) {
+      if (program.strictIso && clauseContainsStringExtension(clause)) {
+        // Programmatic clauses are part of the public embedding surface.  The
+        // normal profile permits its host string term extension, but the Part 1
+        // strict profile must reject that implementation-specific sixth type.
+        throw new PrologError('representation_error(term)');
+      }
       if (clause?.kind === 'quad') {
         const module = clause.module ?? 'user';
         annotateGoalModule(clause.query, module);

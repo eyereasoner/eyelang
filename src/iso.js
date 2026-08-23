@@ -590,12 +590,22 @@ function requireClauseHead(head) {
   if (head.type !== ATOM && head.type !== COMPOUND) throw new PrologError('type_error(callable)', head);
 }
 
-function convertAssertedBody(term) {
+function convertAssertedBody(term, culprit = term) {
   if (term.type === VAR) return compound('call', [term]);
-  if (term.type === COMPOUND && term.name === ',' && term.arity === 2) {
-    return compound(',', [convertAssertedBody(term.args[0]), convertAssertedBody(term.args[1])]);
+  // ISO 7.6.2 converts each argument of conjunction, disjunction, and if-then
+  // recursively when a term is converted to a clause body. This matters for
+  // variables (which become call(Var)) and for invalid nested terms, which
+  // must be rejected while assert[az]/1 performs the conversion rather than
+  // being stored and failing only if that branch is later executed.
+  if (term.type === COMPOUND && [',', ';', '->'].includes(term.name) && term.arity === 2) {
+    return compound(term.name, [
+      convertAssertedBody(term.args[0], culprit),
+      convertAssertedBody(term.args[1], culprit),
+    ]);
   }
-  if (term.type !== ATOM && term.type !== COMPOUND) throw new PrologError('type_error(callable)', term);
+  if (term.type !== ATOM && term.type !== COMPOUND) {
+    throw new PrologError('type_error(callable)', culprit);
+  }
   return term;
 }
 

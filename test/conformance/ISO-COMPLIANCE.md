@@ -4,8 +4,11 @@ This ledger is the release-facing audit for EyeProlog's ISO/IEC 13211-1 core.
 The normative baseline is ISO/IEC 13211-1:1995 together with Technical
 Corrigenda 1:2007, 2:2012, and 3:2017. It complements
 [ISO-MATRIX.md](ISO-MATRIX.md), which maps standard families to representative
-executable tests, and the generated [`conformance-report.md`](../../conformance-report.md),
-which gives current case totals.
+executable tests, [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md),
+which records the row-by-row built-in audit, and
+[ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md), which decomposes
+Clause 5 processor obligations. The generated [`conformance-report.md`](../../conformance-report.md)
+gives current case totals.
 
 The ledger deliberately does **not** claim independent certification. A row
 marked `covered` means EyeProlog has implementation and executable tests for
@@ -22,25 +25,25 @@ error-ordering alternative to an individual executable assertion.
 | 5.1(b) execute conforming Prolog goals | audit | Clause 7-9 conformance corpus plus regression/API/example gates. A normative goal-semantics ledger is still being expanded. |
 | 5.1(c) reject nonconforming text/read-terms | audit | Dedicated syntax-error cases and strict-core extension rejection. Exhaustive lexical rejection coverage remains open. |
 | 5.1(d) document permitted variations | covered | The clause-by-clause [ISO 5.4 decision index](ISO-IMPLEMENTATION-DEFINED.md) records every explicit implementation-defined decision found in the Part 1 + Corrigenda baseline and separately inventories implementation-specific extension families. Rows marked `audit gap` remain conformance work, but the variation is no longer undocumented. |
-| 5.1(e) offer a strictly conforming mode | covered | `--iso-strict` and API option `isoStrict: true` restrict the processor to the Part 1 + Corrigenda 1-3 core language surface, remove EyeProlog-only registry/flag/operator features, and disable automatic tabling/recursion guards. |
+| 5.1(e) offer a strictly conforming mode | covered | `--iso-strict` and API option `isoStrict: true` restrict the processor to the Part 1 + Corrigenda 1-3 core language surface, remove EyeProlog-only registry/flag/operator features, disable automatic tabling/recursion guards, and reject the normal-profile host `stringTerm/1` term type at strict program/goal entry. |
 | 5.4 accompanying documentation | covered | *The Art of EyeProlog* remains the implementation reference; [ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.md) is the closed clause-by-clause 5.4 decision index and points each decision to implementation evidence or an explicit audit gap. |
-| 5.5 extensions preserve standard text | covered | Default mode retains EyeProlog extensions; strict core mode removes their language/runtime interpretation. Regression tests ensure the default profile remains unchanged. |
+| 5.5 extension boundaries | audit | [ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md) now splits 5.5 into its individual extension hooks. Operators, character conversion, the normal-profile host string type, directives, control constructs, flags, and reserved atoms have explicit decisions; exhaustive syntax-preservation, side-effect, built-in, and evaluable-functor dependency mapping remains open. |
 
 ## Normative language families
 
 | Standard area | Status | Current evidence |
 | --- | --- | --- |
 | Clause 6 — tokens, terms, lists, operators, quoted text | audit | Complete vendored WG17 syntax matrix, `lexical_and_curly_terms`, `scryer_lexical_terms`, operator suites, syntax-error cases, quoted-layout/escape error cases, writer/read-back regressions, and Unicode-scalar PCS/collation boundary tests. The implementation-defined 6.5/6.6 character-model decisions are now closed; wider shall-by-shall lexical mapping remains open. |
-| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates, plus strict checks for the required `variable < float < integer < atom < compound` type order, PCS-based atom collation, and the `max_arity=unbounded` compound-term model. |
+| 7.1-7.3 — term types, term order, unification | audit | Standard-order, identity, finite-tree and occurs-check suites, Corrigendum 2 term predicates, plus strict checks for the required `variable < float < integer < atom < compound` type order, PCS-based atom collation, and the `max_arity=unbounded` compound-term model. The normal JavaScript API string term is now explicitly documented as a 5.5.4 extension and rejected at strict program/goal entry so it cannot add a sixth strict-core type. |
 | 7.4 — Prolog text and directives | audit | All Part 1 directive indicators are parsed; include/ensure-loaded/operator/flag/character-conversion behavior has executable coverage. Preparation-time `char_conversion/2` affects later unquoted source text and respects `char_conversion=off`. Strict preparation now enforces declaration-before-clause ordering for `dynamic/1`, `multifile/1`, and `discontiguous/1`, cross-text `multifile/1`, discontiguous clause grouping, empty declared procedures, include textual-replacement behavior, and one-time initialization per prepared program. The remaining shall-by-shall mapping is still open. |
-| 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access; focused strict checks now cover `current_predicate/1`, `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, Corrigendum 2 `retractall/1`, and `abolish/1` errors plus empty-procedure lifetime. Runtime protection includes the solver-native conjunction control construct `','/2` and, following STC #56's accepted-direction action item, the source syntax functors `(:-)/1-2` for database modification/private access while leaving their call behavior distinct. The remaining clause-conversion shall-by-shall mapping is still open. |
+| 7.5-7.6 — database and term/clause conversion | audit | Dynamic database and logical-update-view suites. Strict mode restores Part 1 private-static/public-dynamic `clause/2` access; focused strict checks cover the database built-ins and empty-procedure lifetime. Runtime assertion conversion now applies 7.6.2 recursively through conjunction, disjunction, and if-then: nested variables become `call/1`, and an invalid nested branch is rejected while `asserta/1` or `assertz/1` converts the term instead of being stored for a later execution-time failure. Runtime protection includes the solver-native conjunction control construct `','/2` and, following STC #56's accepted-direction action item, `(:-)/1-2` for database modification/private access while leaving their call behavior distinct. The remaining clause-conversion shall-by-shall mapping is still open. |
 | 7.7 — execution and backtracking | audit | Control/search suites. Strict mode disables EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts so core execution uses ordinary clause selection/backtracking. |
-| 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. |
+| 7.8 — control constructs and exceptions | audit | call, cut, conjunction, disjunction (including failed branches after callee-local cuts), if-then, catch/throw, renamed-copy tests. The 8.15 built-in slice (`\+/1`, `once/1`, `repeat/0`, Corrigendum 2 `call/2..8`, `false/0`) is now row-audited in [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md); the remaining general control-construct semantics ledger stays open. |
 | 7.9 — expression evaluation | audit | Arithmetic/evaluation/error suites, including Corrigenda. Strict mode now pins direct-variable precedence, 7.9.2 non-evaluable `F/N` errors (including STC #69), arithmetic numeric/integer type errors, float-only rounding conversions, the Part 1 mixed integer/float comparison conversion rule, I->F overflow before floating evaluable functors (STC #42), explicit `exp/1`/power underflow, and prescribed negative/zero power errors before later conversion overflow. Unbounded integer powers/shifts no longer leak host `RangeError`; finite-host exhaustion is normalized to `resource_error(memory)` in line with the Part 1 resource-error note and STC #21. The remaining exceptional-value/error-precedence rows are still being exhaustively enumerated. |
 | 7.10 — input/output concepts | audit | Stream, character/byte I/O, read/write options, operator-sensitive write-back, and Corrigendum 3 writer cases. The audit now also covers write-mode creation/truncation, append creation, repositioned overwrite, flushing, EOF actions, close/current-stream handling, strict stream-position terms, stream-property validation, stream-term requirements, text-vs-binary permission errors, and the prescribed `alias(A)` culprit for `open/4` alias collisions. The latest 8.11/8.12 pass also makes `close/2`'s `force(true)` semantics presence-based and defers `get_code/1-2` / `peek_code/1-2` invalid in-character-code representation errors until after the earlier stream existence/mode/type/EOF/entity conditions. The full option/mode cross-product is still being mapped. |
 | 7.11 — flags | covered | The complete Part 1 flag set, selected defaults, standard value domains, changeability, `current_prolog_flag/2`, and `set_prolog_flag/2` error behavior have dedicated strict tests. EyeProlog selects `bounded=false` and `integer_rounding_function=toward_zero`; valid alternative values of those fixed flags reach `permission_error(modify,flag,...)`, while `max_integer` and `min_integer` have no current value. STC #70 is recorded explicitly: EyeProlog has no separate finite procedure-arity ceiling, so the optional `max_procedure_arity` flag is absent while `max_arity` remains `unbounded`. Strict mode excludes the EyeProlog `occurs_check` extension. |
-| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax/resource families and focused error cases. Exact ISO 8.14.1-8.14.4 error precedence is covered for `read_term/3`, `write_term/3`, `op/3`, and `current_op/3`; the continuing audit has corrected additional 8.11-8.13 stream/character/byte errors (including the complete `alias(A)` culprit for `open/4` alias collisions), Corrigendum 2 `keysort/2` errors, atomic-conversion list-shape precedence, `arg/3`, `atom_concat/3`, `sub_atom/5`, `char_conversion/2`, runtime control-construct/database protection, arithmetic culprit/precedence reporting, input-code representation ordering, presence-based close forcing, and host-resource normalization for unbounded term/integer operations. A complete one-row-per-prescribed-error ordering map remains open. |
-| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md; Corrigendum 2 additions (`subsumes_term/2`, `term_variables/2`, `call/2..8`, `false/0`) are in the strict registry. The audit now includes corrected `keysort/2` variable/non-pair errors, stricter 8.11-8.13 stream and character/byte modes/errors, the 8.14 option/error-order subfamily, closed 8.17 flags, additional prescribed precedence for `arg/3`, `atom_concat/3`, `sub_atom/5`, number/atom list conversions, and `char_conversion/2`, plus finite-host resource handling for unbounded `functor/3` construction and the 8.11/8.12 close/input-code overlap cases. The remaining mode/error matrix is not yet one-row-per-standard-row. |
+| 7.12 — errors | audit | ISO `error(Error, Context)` envelope, type/domain/permission/representation/evaluation/syntax/resource families and focused error cases. [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) now gives explicit prescribed mode/error rows for 8.2-8.5 and 8.15-8.17, including Corrigendum additions and selected not-applicable finite-`max_arity` branches. Exact ISO 8.14.1-8.14.4 precedence and the recent 8.11/8.12 overlaps are also covered. The one-row map remains open for 8.6-8.14 and for the remaining Clause 7/9 exceptional-order interactions. |
+| 8.2-8.17 — built-in predicates | audit | Predicate-family coverage is mapped in ISO-MATRIX.md. The new [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) closes 8.2-8.5 and 8.15-8.17 at one row per prescribed mode/error condition (with finite-`max_arity` branches explicitly marked not applicable under EyeProlog's `unbounded` choice). The still-open row audit is therefore narrowed to 8.6-8.14, especially database/all-solutions and the remaining stream/term-I/O option cross-product. |
 | Clause 9 — evaluable functors | audit | Integer/float/rounding/transcendental/bitwise suites and corrigendum cases. Strict mode excludes the EyeProlog-only evaluable atom `e`, retains Corrigendum 2 arithmetic additions, reports unknown zero-arity evaluables with the required `F/0` culprit shape, distinguishes non-evaluable `F/N` errors from numeric/integer operand errors per 7.9.2 and STC #69, and enforces float-only rounding modes, performs I->F conversion before floating functors (including overflow), reports the explicit `exp/1`, `**/2`, and Corrigendum 2 `^/2` underflow conditions, preserves the power-specific undefined conditions ahead of conversion overflow, and uses the Part 1 integer-to-float rule for mixed arithmetic comparisons. Normal mode retains EyeProlog's exact mixed-type comparison and round-to-zero arithmetic behavior as extensions. Unbounded BigInt resource exhaustion is translated into the Prolog error model rather than leaking host exceptions. Host floating-point representation choices remain documented implementation-defined behavior; the remaining exceptional-value rows are still under audit. |
 | Corrigendum 1 | covered | Double-quoted atom/operator-priority corrections have dedicated cases. |
 | Corrigendum 2 | covered | Added predicates/functors, catch corrections, bar/operator and uninstantiation corrections have dedicated cases. |
@@ -162,6 +165,28 @@ describes: a later `force(false)` does not cancel an earlier `force(true)` when
 a Resource Error or System Error occurs during closure. Focused strict tests
 cover both overlap families.
 
+The next row-audit tranche makes the remaining exit criterion concrete rather
+than leaving it as a broad test-count claim.
+[ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) now records
+each prescribed mode/error row for the 8.2-8.5 and 8.15-8.17 slices, and
+[ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md) decomposes the
+Clause 5 obligations into covered, audit, and not-applicable decisions. While
+doing that mapping, the 7.6.2 term-to-clause conversion audit exposed a runtime
+assertion defect: variables and invalid terms nested under `;/2` or `->/2` were
+not being recursively converted. `asserta/1` and `assertz/1` now convert all
+three standardized binary control forms `,/2`, `;/2`, and `->/2` recursively,
+so nested variables become `call/1` and a non-callable nested branch is rejected
+at assertion time with the complete clause-body culprit.
+
+The Clause 5 decomposition also exposed an embedding-only type boundary that
+source-text tests could not see. EyeProlog's normal JavaScript API deliberately
+exports `stringTerm(Text)` as an implementation-specific additional term type.
+Its normal-profile ordering, conversion, evaluation, and writing behavior is
+now documented under 5.5.4, while strict `Program` construction and strict
+`Solver` goal entry reject such terms with `representation_error(term)`. This
+keeps the host extension available in normal mode without allowing it to become
+a sixth term type in the Part 1 strict execution domain.
+
 ## Post-Corrigendum STC cross-check
 
 The public WG17 STC draft is tracked as useful defect-discovery material, but it
@@ -197,7 +222,8 @@ not interpret the following as core-language features:
 - Part 2 module directives (`module/2`, `use_module/1-2`, `meta_predicate/1`);
 - Part 3 grammar-rule expansion and `phrase/2-3`;
 - automatic tabling, cycle guards, and recursive numeric execution shortcuts;
-- EyeProlog well-founded negation via `tnot/1` and its WFS runtime statistics.
+- EyeProlog well-founded negation via `tnot/1` and its WFS runtime statistics;
+- the JavaScript API `stringTerm(Text)` additional term type (normal mode only).
 
 The predefined Part 1 `1200 fx` `?-` operator and `1200 xfx` `-->` operator
 remain ordinary operator syntax in strict core mode. A conforming `op/3`
