@@ -23,6 +23,6 @@ await runStandalone(async (reporter) => {
   runCleanup(reporter);
   runRegression(reporter);
   await runPlayground(reporter);
-  runExamples(reporter);
+  await runExamples(reporter);
   runBookExamples(reporter);
 });

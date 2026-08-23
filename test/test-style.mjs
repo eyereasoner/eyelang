@@ -87,6 +87,21 @@ export class TestReporter {
     }
   }
 
+  testResult(name, { ms = 0, error = null } = {}) {
+    this.total++;
+    const nr = String(this.total).padStart(3, '0');
+
+    if (error == null) {
+      this.ok++;
+      this.stdout.write(`${colors.green}OK${colors.reset} ${nr} ${name} ${colors.dim}(${ms} ms)${colors.reset}\n`);
+      return;
+    }
+
+    this.stderr.write(`${colors.red}FAIL${colors.reset} ${nr} ${name} ${colors.dim}(${ms} ms)${colors.reset}\n`);
+    this.stderr.write(`${error?.stack ?? String(error)}\n`);
+    throw error;
+  }
+
   totalLine() {
     const ms = nowMs() - this.startedAt;
     this.stdout.write(`\n${colors.yellow}== Total${colors.reset}\n`);

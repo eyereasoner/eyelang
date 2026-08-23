@@ -2,8 +2,10 @@
 // Example-output test runner.
 // It compares examples byte-for-byte against golden output so answer and proof changes cannot silently alter results.
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { Program, run } from '../src/index.js';
 import { fileURLToPath } from 'node:url';
 import { TestReporter, isMainModule, runStandalone } from './test-style.mjs';
@@ -79,18 +81,113 @@ export const proofExamples = [
   'partial-evaluator.pl',
 ];
 
-export function runExamples(reporter = new TestReporter()) {
+export async function runExamples(reporter = new TestReporter()) {
   const files = fs.readdirSync(examplesDir)
     .filter((name) => exampleIsRunnable(name))
     .sort();
 
   reporter.section('Examples');
-  for (const name of files) reporter.test(name, () => runExample(name));
+  await runExampleTasks(files, (name, result) => reporter.testResult(name, result));
   reporter.sectionTotal('examples');
 
   reporter.section('Proof examples');
   for (const name of proofExamples) reporter.test(name, () => runProofExample(name));
   reporter.sectionTotal('proof examples');
+}
+
+
+async function runExampleTasks(tasks, onResult) {
+  if (tasks.length === 0) return;
+  const parallelism = os.availableParallelism?.() ?? os.cpus().length;
+  const workerCount = Math.min(tasks.length, Math.max(1, Math.min(3, parallelism - 1)));
+  if (workerCount === 1) {
+    for (const name of tasks) {
+      const startedAt = performance.now();
+      try {
+        runExample(name);
+        onResult(name, { ms: Math.round(performance.now() - startedAt) });
+      } catch (error) {
+        onResult(name, { ms: Math.round(performance.now() - startedAt), error });
+      }
+    }
+    return;
+  }
+
+  const completedResults = new Map();
+  let nextTask = 0;
+  let nextReport = 0;
+  let completed = 0;
+  let settled = false;
+
+  await new Promise((resolve, reject) => {
+    const workers = Array.from({ length: workerCount }, () => new Worker(new URL(import.meta.url), {
+      workerData: { exampleWorker: true },
+    }));
+
+    const stopWorkers = () => Promise.all(workers.map((worker) => worker.terminate()));
+
+    const fail = (error) => {
+      if (settled) return;
+      settled = true;
+      stopWorkers().finally(() => reject(error));
+    };
+
+    const finish = () => {
+      if (settled || completed !== tasks.length || nextReport !== tasks.length) return;
+      settled = true;
+      stopWorkers().then(() => resolve(), reject);
+    };
+
+    const reportReady = () => {
+      try {
+        while (completedResults.has(nextReport)) {
+          const result = completedResults.get(nextReport);
+          completedResults.delete(nextReport);
+          onResult(tasks[nextReport], result);
+          nextReport++;
+        }
+      } catch (error) {
+        fail(error);
+      }
+    };
+
+    const assign = (worker) => {
+      if (nextTask >= tasks.length || settled) return;
+      worker.postMessage({ id: nextTask, name: tasks[nextTask++] });
+    };
+
+    for (const worker of workers) {
+      worker.on('message', ({ id, ms, error }) => {
+        if (settled) return;
+        completedResults.set(id, {
+          ms,
+          error: error == null ? null : Object.assign(new Error(error.message), { stack: error.stack }),
+        });
+        completed++;
+        reportReady();
+        assign(worker);
+        finish();
+      });
+      worker.on('error', fail);
+      assign(worker);
+    }
+  });
+}
+
+function runExampleWorker() {
+  parentPort.on('message', ({ id, name }) => {
+    const startedAt = performance.now();
+    try {
+      runExample(name);
+      parentPort.postMessage({ id, ms: Math.round(performance.now() - startedAt), error: null });
+    } catch (error) {
+      parentPort.postMessage({
+        id,
+        ms: Math.round(performance.now() - startedAt),
+        error: { message: error?.message ?? String(error), stack: error?.stack ?? String(error) },
+      });
+    }
+  });
 }
 
 
@@ -155,6 +252,8 @@ function diffText(expected, actualText) {
   return 'outputs differ';
 }
 
-if (isMainModule(import.meta.url)) {
+if (!isMainThread && workerData?.exampleWorker) {
+  runExampleWorker();
+} else if (isMainModule(import.meta.url)) {
   await runStandalone(runExamples);
 }
