@@ -38,9 +38,10 @@ regressions.
 | [#68](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#68) | division examples | Existing arithmetic coverage evaluates signed integer `/` through the floating operation; no implementation-defined signed-division result is used. |
 | [#69](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#69) | arithmetic example culprit | **Found a #65 gap.** Strict expression evaluation now applies 7.9.2(c) to an atomic subexpression such as `foo`: it reports `type_error(evaluable,foo/0)` rather than the misleading `type_error(number,foo)` shown by the old 9.1.7 example. |
 | [#70](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#70) | optional `max_procedure_arity` | Reviewed after issue #66 corrected the earlier #71 pointer. EyeProlog has no declared procedure-arity limit smaller than its `max_arity=unbounded` term model, so the implementation-defined optional flag is intentionally absent. |
-| [#73](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#73) | float-reading limits discussed from issue #54 | Positive/negative literal and `number_chars/2` overflow are kept as explicit draft cases; underflow is tested separately. See the note below. |
+| [#72](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/stc#72) | tentative non-ground stream-term instances | Reviewed as a tentative post-2026 proposal. EyeProlog does not make this draft wording normative in `--iso-strict`; the published Part 1 stream-term/domain rules remain the baseline until WG17 settles the proposal. |
+| [issue #54](https://github.com/eyereasoner/eyeprolog/issues/54) | float-reading limits (historically discussed as a later STC item) | Positive/negative literal and `number_chars/2` overflow are kept as explicit draft-facing cases; underflow is tested separately. The current public STC page ends at #72, so this is no longer labelled as a current `stc#73` entry. See the note below. |
 
-## Float-reading note for #73
+## Float-reading note from issue #54
 
 EyeProlog currently has a finite-double numeric profile. The draft-facing cases
 record the behavior discussed in issue #54:

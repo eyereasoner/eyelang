@@ -1057,7 +1057,10 @@ function* closeBuiltin({ solver, goal, env }) {
     if (!value || value.type !== ATOM || !['true', 'false'].includes(value.name)) {
       throw new PrologError('domain_error(close_option)', option);
     }
-    forceClose = value.name === 'true'; // rightmost contradictory option applies
+    // 8.11.6.1(a) is presence-based: if there is a force(true) option,
+    // resource/system close errors are ignored.  A later force(false) does
+    // not cancel an earlier force(true).
+    forceClose ||= value.name === 'true';
   }
   const stream = requireStream(solver, goal.args[0], env);
   if (!stream.standard) {
@@ -1219,11 +1222,13 @@ function preflightInputUnitTarget(name, target, env, solver) {
       throw new PrologError('type_error(in_character)', value);
     }
   } else if (name.endsWith('code')) {
+    // ISO 8.12.1.3/8.12.2.3 puts the integer type check before stream
+    // diagnostics, but the integer-is-not-an-in-character-code
+    // representation error comes after the stream existence/mode/type/EOF
+    // conditions.  Defer that range/repertoire check until the input entity
+    // itself has been inspected below.
     if (value.type !== VAR && (value.type !== NUMBER || !isDecimalInteger(value.name))) {
       throw new PrologError('type_error(integer)', value);
-    }
-    if (value.type !== VAR && !validStrictInputCharacterCode(value, solver)) {
-      throw new PrologError('representation_error(in_character_code)');
     }
   } else {
     if (value.type !== VAR) {
@@ -1274,6 +1279,15 @@ function inputUnitBuiltin(name) {
     if (unit == null && !peek) stream.pastEnd = true;
     if (!binary && unit != null && solver.isoStrict && !isStrictIsoPcsCharacter(unit)) {
       throw new PrologError('representation_error(character)');
+    }
+    // For get_code/peek_code the published error table places an invalid
+    // in-character-code target after stream and input-entity errors.  Doing
+    // this here prevents a fixed bad Code from masking (for example) an
+    // output-stream, binary-stream, past-EOF, or invalid-character error.
+    const targetValue = deref(target, env);
+    if (name.endsWith('code') && targetValue.type !== VAR &&
+        !validStrictInputCharacterCode(targetValue, solver)) {
+      throw new PrologError('representation_error(in_character_code)');
     }
     const result = unit == null
       ? (binary ? numberTerm(-1) : name.endsWith('code') ? numberTerm(-1) : atom('end_of_file'))

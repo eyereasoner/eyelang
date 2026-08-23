@@ -297,6 +297,60 @@ export function runIsoStrict(reporter = new TestReporter()) {
     }
   });
 
+  reporter.test('orders input-code representation errors after stream diagnostics', () => {
+    // ISO 8.12.1.3/8.12.2.3: Code's integer type is checked early, but an
+    // integer outside the in-character-code domain is the final listed error.
+    // It must therefore not mask output/binary/past-EOF/entity errors.
+    for (const predicate of ['get_code', 'peek_code']) {
+      equal(capture(() => run('', { isoStrict: true, goal: `${predicate}(user_output,-2)` })).formal,
+        'permission_error(input, stream)', `${predicate}/2 output stream before bad code`);
+    }
+
+    const program = Program.parse('', { isoStrict: true });
+    const binarySolver = new Solver(program, { isoStrict: true });
+    binarySolver.io.add({
+      id: 2, alias: 'bin_in', mode: 'read', type: 'binary', content: [], position: 0, path: '',
+      reposition: false, eofAction: 'error', standard: false, pastEnd: false,
+    });
+    equal(capture(() => [...binarySolver.solve([parseGoalText('get_code(bin_in,-2)', { isoStrict: true })], new Env(), 0)]).formal,
+      'permission_error(input, binary_stream)', 'binary stream before bad code');
+
+    const eofSolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    eofSolver.io.add({
+      id: 2, alias: 'past_in', mode: 'read', type: 'text', content: '', position: 0, path: '',
+      reposition: false, eofAction: 'error', standard: false, pastEnd: true,
+    });
+    equal(capture(() => [...eofSolver.solve([parseGoalText('peek_code(past_in,-2)', { isoStrict: true })], new Env(), 0)]).formal,
+      'permission_error(input, past_end_of_stream)', 'past EOF before bad code');
+
+    const badEntitySolver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+    badEntitySolver.io.add({
+      id: 2, alias: 'bad_utf8', mode: 'read', type: 'text', content: '\udc00', position: 0, path: '',
+      reposition: false, eofAction: 'error', standard: false, pastEnd: false, strictUtf8: true,
+    });
+    equal(capture(() => [...badEntitySolver.solve([parseGoalText('peek_code(bad_utf8,-2)', { isoStrict: true })], new Env(), 0)]).formal,
+      'representation_error(character)', 'invalid input entity before bad code');
+
+    equal(capture(() => run('', { isoStrict: true, goal: 'get_code(-2)' })).formal,
+      'representation_error(in_character_code)', 'bad code once no earlier stream error applies');
+  });
+
+  reporter.test('treats close force(true) as presence-based', () => {
+    const closeWith = (options) => {
+      const solver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
+      solver.io.add({
+        id: 2, alias: 'tmp_out', mode: 'write', type: 'text', content: '', position: 0, path: '',
+        reposition: false, eofAction: 'error', standard: false, pastEnd: false,
+      });
+      solver.io.close = () => { throw new Error('simulated close failure'); };
+      const answers = [...solver.solve([parseGoalText(`close(tmp_out,${options})`, { isoStrict: true })], new Env(), 0)];
+      equal(answers.length, 1, `${options} succeeds under force(true)`);
+      equal(Boolean(solver.io.resolve('tmp_out')), false, `${options} discards stream`);
+    };
+    closeWith('[force(true),force(false)]');
+    closeWith('[force(false),force(true)]');
+  });
+
   reporter.test('follows Part 1 arithmetic type and exceptional errors', () => {
     const cases = [
       ["X is '+'(foo,77)", 'type_error(evaluable)', 'STC #69 simple arithmetic atom is foo/0'],
