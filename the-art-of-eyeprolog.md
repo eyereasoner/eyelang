@@ -6211,18 +6211,18 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **129 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **88 are defined entirely as ordinary
+EyeProlog exposes **135 library predicate indicators** in addition to the 129
+indicators in its isolated ISO profile. **89 are defined entirely as ordinary
 Prolog clauses** in focused modules under `src/lib/`. The remaining public
 relations use small private host adapters where control, constraints, or host
 observability cannot be expressed by ordinary clauses alone; `time/1` is one
 such relation. The resulting normal EyeProlog language surface is therefore
-**258 public predicate indicators**. Most library relations remain module source
+**264 public predicate indicators**. Most library relations remain module source
 clauses over private adapters. `time/1` is additionally registered directly in
 the normal EyeProlog runtime so Trealla-style timing works at the interactive
 top level without an import; it is absent from the strict ISO registry.
 
-The sources are `src/lib/aggregate.pl`, `src/lib/clpz.pl`, `src/lib/comparison.pl`,
+The sources are `src/lib/aggregate.pl`, `src/lib/atts.pl`, `src/lib/clpz.pl`, `src/lib/comparison.pl`,
 `src/lib/dates.pl`, `src/lib/iso_ext.pl`, `src/lib/lambda.pl`,
 `src/lib/lists.pl`, `src/lib/primes.pl`, `src/lib/prologue.pl`,
 `src/lib/random.pl`, `src/lib/strings.pl`, and `src/lib/uuid.pl`. Each declares a same-named module
@@ -6253,6 +6253,7 @@ between solution branches.
 | Module | Exported predicate indicators |
 | --- | --- |
 | `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` |
+| `library(atts)` | `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2` |
 | `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `chain/2`, `element/3`, `zcompare/3`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2` |
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
 | `library(dates)` | `difference/3` |
@@ -6402,17 +6403,32 @@ The catalog above is authoritative for the complete EyeProlog library surface.
 The following notes describe useful parts of that surface without extending the
 cross-engine claims made above.
 
+`library(atts)` is the Prolog-facing attributed-variable layer over the persistent
+annotated-variable machinery in `src/term.js`, with its small host bridge in
+`src/atts.js`. It provides the attribute operations used by Scryer libraries,
+accepts `:- attribute ...` declarations, invokes module-local
+`verify_attributes/3` before an attributed binding is committed, and schedules
+the returned goals immediately after the binding. Attribute maps are copied only
+when changed and therefore backtrack with `Env` branches; the interactive top
+level projects module `attribute_goals//1` hooks as residual goals. The checked
+[`examples/attributed-variables.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/attributed-variables.pl)
+demonstrates binding verification and attribute transfer across aliases.
+
 `library(clpz)` follows the familiar Trealla and Scryer convention for
 constraint logic programming over integers. EyeProlog currently provides finite
 interval and union domains, arithmetic and reified constraints, backtrackable
 labeling with `ff`, `up`, and `down`, global distinctness, linear sums and scalar
 products, chains, elements, value counting, extensional tuple tables,
 lexicographic chains, serialized schedules, global cardinality with costs,
-Hamiltonian circuits, three-way comparison, and domain reflection. Constraints
-are kept in the logical environment, so failed alternatives cannot leak domains
-into later branches. Trealla's larger library also contains facilities such as
-automata, cumulative and two-dimensional scheduling constraints, and
-unbounded-domain propagation that EyeProlog does not currently export.
+Hamiltonian circuits, three-way comparison, and domain reflection. Its existing
+`src/clpz.js` store is now explicitly transitional: the attributed-variable layer
+is intended to support staged reuse of Markus Triska's MIT-licensed
+[Scryer `clpz.pl`](https://github.com/mthom/scryer-prolog/blob/master/src/lib/clpz.pl).
+The remaining blockers are compile-time term/goal expansion and the supporting
+library surface used by that source; the migration state is tracked in
+[`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md). Until parity is reached, the JS
+kernel remains the active implementation so existing CLP(Z) behavior does not
+regress.
 
 Alongside its interop entries `call_nth/2`, `time/1`, and `.../2`,
 `library(iso_ext)` also exports EyeProlog's extension relations `countall/2`,
@@ -7131,7 +7147,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **212 self-contained runnable programs**. Every
+top-level directory contains **213 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program

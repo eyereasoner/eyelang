@@ -3,7 +3,7 @@
 import {
   ATOM, COMPOUND, NUMBER, STRING, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
   flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
-  numberTerm, numberTextFromDouble, termIsGround, termToString, unify, variable, variantTerms,
+  numberTerm, numberTextFromDouble, properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
 import { numberValueKey, sameNumberValue } from './number-value.js';
 import { PrologError, getStrictIsoRegistry } from './iso.js';
@@ -29,6 +29,23 @@ function qualifyTerm(term, module) {
   if (!term || (term.type !== COMPOUND && term.type !== 'atom')) return term;
   term.module = module;
   for (const arg of term.args) qualifyTerm(arg, module);
+  return term;
+}
+
+function renameVariableInTerm(term, fromName, toName) {
+  if (fromName === toName) return term;
+  const stack = [term];
+  const seen = new Set();
+  while (stack.length) {
+    const current = stack.pop();
+    if (current == null || seen.has(current)) continue;
+    seen.add(current);
+    if (current.type === VAR) {
+      if (current.name === fromName) current.name = toName;
+      continue;
+    }
+    if (current.type === COMPOUND) for (const arg of current.args) stack.push(arg);
+  }
   return term;
 }
 
@@ -120,6 +137,8 @@ export class Solver {
         raiseOccursCheckError(left, right, env);
       }
     };
+    this.attributeHookRunner = (module, attributed, other, env) =>
+      this.runAttributeHook(module, attributed, other, env);
     this.charConversions = options.charConversions ?? new Map();
     if (!options.prologFlags) {
       if (['chars', 'codes', 'atom'].includes(program.doubleQuotes)) {
@@ -303,6 +322,54 @@ export class Solver {
     }
   }
 
+  runAttributeHook(module, attributed, other, env) {
+    if (this.program.findGroup('verify_attributes', 3, module) == null) return true;
+    const goalsVariable = variable(`\u0000attributeGoals${nextFreshId()}`);
+    const hook = compound('verify_attributes', [attributed, other, goalsVariable]);
+    qualifyTerm(hook, module);
+    const child = this.cloneForInnerGoal(1);
+    const iterator = child.solve([hook], env.clone(), 0);
+    const result = iterator.next();
+    try { iterator.return?.(); } catch (_) { /* best-effort iterator cleanup */ }
+    this.absorbStatsFrom(child);
+    if (result.done) return false;
+    env.adopt(result.value);
+    env.setOccursCheckHandler(this.occursCheckHandler);
+    env.setAttributeHookRunner(this.attributeHookRunner);
+    const goals = properListItems(goalsVariable, env);
+    if (goals == null) throw new PrologError('type_error(list)', deref(goalsVariable, env));
+    for (const goal of goals) qualifyTerm(goal, module);
+    env.enqueueAttributeGoals(goals);
+    return true;
+  }
+
+  attributeResidualGoals(variableTerm, env) {
+    const root = deref(variableTerm, env);
+    if (root.type !== VAR || !env.hasPrologAttributes(root.name)) return [];
+    const residuals = [];
+    for (const module of env.prologAttributeModules(root.name)) {
+      if (this.program.findGroup('attribute_goals', 3, module) == null) continue;
+      const goalsVariable = variable(`\u0000attributeResidual${nextFreshId()}`);
+      const projection = compound('attribute_goals', [root, goalsVariable, emptyList()]);
+      qualifyTerm(projection, module);
+      const child = this.cloneForInnerGoal(1);
+      const iterator = child.solve([projection], env.clone(), 0);
+      const result = iterator.next();
+      try { iterator.return?.(); } catch (_) { /* best-effort iterator cleanup */ }
+      this.absorbStatsFrom(child);
+      if (result.done) continue;
+      const goals = properListItems(goalsVariable, result.value);
+      if (goals == null) throw new PrologError('type_error(list)', deref(goalsVariable, result.value));
+      const projectedRoot = deref(root, result.value);
+      for (const goal of goals) {
+        const residual = copyResolved(goal, result.value);
+        if (projectedRoot.type === VAR) renameVariableInTerm(residual, projectedRoot.name, root.name);
+        residuals.push(residual);
+      }
+    }
+    return residuals;
+  }
+
   runInitializations() {
     if (this.program._initializationsExecuted) return;
     for (const goal of this.program.initializations ?? []) {
@@ -321,6 +388,7 @@ export class Solver {
   *solve(goals, env = new Env(), depth = 0) {
     if (!Array.isArray(goals)) goals = [goals];
     env.setOccursCheckHandler(this.occursCheckHandler);
+    env.setAttributeHookRunner(this.attributeHookRunner);
     if (this.isoStrict) rejectStrictIsoStringTerms(goals, env);
 
     const writeVariableState = this.writeVariableState;
@@ -386,6 +454,7 @@ export class Solver {
       goals = frame.goals;
       env = frame.env;
       env.setOccursCheckHandler(this.occursCheckHandler);
+      env.setAttributeHookRunner(this.attributeHookRunner);
       depth = frame.depth;
       let active = frame.active;
 
@@ -407,6 +476,9 @@ export class Solver {
           break;
         }
         if (this.solutionsSeen >= this.solutionLimit) break;
+
+        const pendingAttributeGoals = env.takePendingAttributeGoals?.() ?? [];
+        if (pendingAttributeGoals.length > 0) goals = [...pendingAttributeGoals, ...goals];
 
         const readyDelays = env.takeReadyDelays();
         if (readyDelays.length > 0) {
@@ -1971,7 +2043,7 @@ function fastCountBranch(branch, env) {
 
 function fastCountPureGoal(solver, goal, env) {
   if (solver.isoStrict || solver.solutionLimit !== Infinity || solver.maxInferences !== Infinity ||
-      env._clpz != null || env._variableConstraints != null || (env._delays != null && env._delays.size !== 0)) return null;
+      env._clpz != null || env._variableConstraints != null || env._prologAttributes != null || (env._delays != null && env._delays.size !== 0)) return null;
   const budget = { remaining: 8192 };
   const branches = expandPureCountGoal(solver, goal, goal.module ?? 'user', new Set(), budget);
   if (branches == null) return null;
@@ -1981,6 +2053,7 @@ function fastCountPureGoal(solver, goal, env) {
 }
 
 function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
+  if (env._prologAttributes != null) return false;
   // Consecutive scalar-fact lookups are common in data-heavy joins.  Short
   // joins are fastest when their continuation frames are materialized locally;
   // wide joins can explode combinatorially, so they are streamed lazily.
@@ -2164,6 +2237,11 @@ function matchScalarFactLocal(goal, head, env, names, values) {
 }
 
 function matchScalarFact(goal, head, env) {
+  if (env._prologAttributes != null) {
+    const next = env.clone();
+    if (!unify(goal, head, next)) return null;
+    return next;
+  }
   // A scalar ground fact has no variables to freshen and no compound structure
   // to traverse. Match the goal arguments directly and clone only after the
   // candidate has succeeded.

@@ -147,6 +147,26 @@ are removed, and violated constraints make unification fail. The interactive
 top level includes pending `dif/2` goals in residual answers. See
 [`examples/dif-constraints.pl`](examples/dif-constraints.pl).
 
+### Attributed variables and the CLP(Z) migration
+
+`library(atts)` now exposes Scryer-style attributed-variable operations on the
+same persistent `Env` machinery introduced for `dif/2`: `put_atts/2`,
+`get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, and
+`term_attributed_variables/2`. `:- attribute ...` declarations are accepted,
+`verify_attributes/3` is invoked before an attributed binding is committed, and
+the hook's returned goals run after that binding. Attribute state follows
+variable representatives and ordinary Prolog backtracking, and the REPL projects
+module `attribute_goals//1` hooks as residual goals. See
+[`examples/attributed-variables.pl`](examples/attributed-variables.pl).
+
+This is the first migration stage toward reusing Markus Triska's MIT-licensed
+[Scryer `library(clpz)`](https://github.com/mthom/scryer-prolog/blob/master/src/lib/clpz.pl)
+instead of maintaining a separate constraint solver in `src/clpz.js`. The
+current CLP(Z) implementation remains active while compatibility gaps such as
+Scryer's compile-time term/goal expansion and supporting libraries are closed.
+The staged plan and exact compatibility boundary are documented in
+[`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md).
+
 Recursion through negation is explicit. EyeProlog provides `tnot/1` for
 well-founded negation over finite, range-restricted, function-free Datalog
 components. Ordinary `\+/1` remains negation-as-failure and is not silently
@@ -275,13 +295,14 @@ be continued without rebuilding a full clause-resolution frame for every
 suffix.  Open and remainder-producing uses still retain the ordinary DCG
 solutions and backtracking behavior.
 
-EyeProlog also adds 129 public library predicate indicators to its 129-entry ISO
-profile. **88 are implemented entirely as ordinary Prolog clauses** in focused
-modules under `src/lib/`; the remaining control predicates and finite-domain
-`library(clpz)` kernel use backtrackable host support.
+EyeProlog also adds 135 public library predicate indicators to its 129-entry ISO
+profile. **89 are implemented entirely as ordinary Prolog clauses** in focused
+modules under `src/lib/`; the remaining control predicates, attributed-variable
+primitives, and the transitional finite-domain `library(clpz)` kernel use
+backtrackable host support.
 They are ordinary Prolog modules using EyeProlog's documented module compatibility surface, loaded explicitly by purpose, such as
-`library(lists)`, `library(lambda)`, `library(strings)`, `library(aggregate)`, or
-`library(clpz)`.
+`library(lists)`, `library(lambda)`, `library(strings)`, `library(aggregate)`,
+`library(atts)`, or `library(clpz)`.
 Portable text
 predicates use ISO atoms or character lists. The old catch-all
 `library(eyeprolog)` module is no longer needed.

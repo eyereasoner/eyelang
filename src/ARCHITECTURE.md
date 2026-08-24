@@ -15,7 +15,7 @@ higher-level frontends.
    `clpz.js`. `cleanup.js` owns lifecycle-aware disposal of protected builtin
    iterators and registers the normal-profile cleanup controls without making
    `solver.js` depend back on the language registry.
-4. **Language services** — `iso.js`, `iso-arithmetic.js`, `dcg.js`,
+4. **Language services** — `iso.js`, `iso-arithmetic.js`, `dcg.js`, `atts.js`,
    `standard-library.js`, and `src/lib/`.
 5. **Frontends/tools** — `execute.js`, `repl.js`, `cli.js`, `quads.js`,
    `explain.js`, and the playground worker.
@@ -36,7 +36,17 @@ Annotations are persistent across `Env.clone()` and therefore backtrack with the
 substitution. Language services may attach immutable constraint descriptors,
 but the unconstrained unification hot path only performs a null check; descriptor
 validation and reindexing run only in environments that actually contain
-annotations. `dif/2` is the first user of this mechanism.
+annotations. `dif/2` is the first descriptor-based user of this mechanism.
+
+`atts.js` layers Prolog-visible attributed variables over that same persistent
+environment. Per-module attributes follow the current variable representative.
+When an attributed variable is about to be bound, the solver runs that module's
+`verify_attributes/3` against the still-unbound representative; only a successful
+hook permits the binding, and any goals returned in the third argument are queued
+immediately after it. This pre-bind/post-bind split is the compatibility boundary
+needed by Scryer's `library(atts)` and `library(clpz)`. The current CLP(Z)-specific
+`Env._clpz` store remains transitional until the Scryer Prolog implementation can
+replace it without losing test or performance parity; see `src/CLPZ-MIGRATION.md`.
 
 The JavaScript runtime stays flat directly under `src/`; the existing `src/lib/`
 contains Prolog library sources rather than JavaScript runtime modules. The architecture

@@ -4,12 +4,14 @@
 // source-level interop autoloader declared below.
 import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
 import { clpzBuiltins } from './clpz.js';
+import { attsBuiltins } from './atts.js';
 import { registerCleanupBuiltins } from './cleanup.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
 
 const moduleFiles = Object.freeze({
   aggregate: 'aggregate.pl',
+  atts: 'atts.pl',
   clpz: 'clpz.pl',
   comparison: 'comparison.pl',
   dates: 'dates.pl',
@@ -49,6 +51,7 @@ function libraryUrl(filename) {
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([
   'call_nth/2', 'freeze/2', 'dif/2', 'countall/2', 'time/1',
+  'put_atts/2', 'get_atts/2', 'put_attr/3', 'get_attr/3', 'del_attr/2', 'term_attributed_variables/2',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
   'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'nvalue/2', 'sum/3',
@@ -137,7 +140,7 @@ export const eyePrologInteropLibraryIndicators = Object.freeze(
 // Libraries whose *name* is part of the current interop profile.  A program
 // may freely use_module/1 with these common module names; predicates in those
 // modules outside eyePrologInteropLibraryIndicators are still diagnosed when used.
-export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext', 'lambda']);
+export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext', 'lambda', 'atts']);
 
 function* tabledNegationBuiltin({ solver, goal, env }) {
   yield* solver.solveTabledNegation(goal.args[0], env);
@@ -184,6 +187,7 @@ export function createEyePrologRegistry() {
   registry.add('tnot', 1, tabledNegationBuiltin, { deterministic: true });
   registerCleanupBuiltins(registry);
   eyePrologLibraryBuiltins.register(registry);
+  attsBuiltins.register(registry);
   clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;

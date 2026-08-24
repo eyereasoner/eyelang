@@ -130,6 +130,62 @@ function regressionCases() {
       },
     },
     {
+      name: 'library(atts) provides Scryer-style attributed-variable hooks',
+      run: () => {
+        const source = `:- module(attr_probe, [check_get/0, check_alias/0, check_ok/0, check_bad/0, check_conflict/0, check_backtrack/0, check_term_vars/0]).
+:- use_module(library(atts)).
+:- attribute mark/1.
+attach(X, V) :- put_atts(X, mark(V)).
+verify_attributes(Var, Other, Goals) :-
+    ( get_atts(Var, mark(V)) ->
+        ( var(Other) ->
+            ( get_atts(Other, mark(W)) -> V = W ; put_atts(Other, mark(V)) ),
+            Goals = []
+        ; Goals = [same(Other, V)] )
+    ; Goals = [] ).
+same(X, Y) :- X = Y.
+check_get :- attach(X, a), get_atts(X, mark(a)), X = a.
+check_alias :- attach(X, a), X = Y, get_atts(Y, mark(a)), Y = a.
+check_ok :- attach(X, 3), X = 3.
+check_bad :- attach(X, 3), X = 4.
+check_conflict :- attach(X, a), attach(Y, b), X = Y.
+check_backtrack :- (attach(X, a), fail ; true), \\+ get_atts(X, mark(_)).
+check_term_vars :- attach(X, a), term_attributed_variables(pair(X,Y), [X]), var(Y), X = a.
+`;
+        assertIncludes(run(source, { goal: 'attr_probe:check_get' }).stdout, 'attr_probe:check_get.', 'get_atts/2');
+        assertIncludes(run(source, { goal: 'attr_probe:check_alias' }).stdout, 'attr_probe:check_alias.', 'attribute transfer on aliasing');
+        assertIncludes(run(source, { goal: 'attr_probe:check_ok' }).stdout, 'attr_probe:check_ok.', 'post-binding hook goals');
+        assertEqual(run(source, { goal: 'attr_probe:check_bad' }).stdout, '', 'post-binding hook can reject a binding');
+        assertEqual(run(source, { goal: 'attr_probe:check_conflict' }).stdout, '', 'same-module attributes are verified before aliasing');
+        assertIncludes(run(source, { goal: 'attr_probe:check_backtrack' }).stdout, 'attr_probe:check_backtrack.', 'attributes backtrack with Env branches');
+        assertIncludes(run(source, { goal: 'attr_probe:check_term_vars' }).stdout, 'attr_probe:check_term_vars.', 'term_attributed_variables/2');
+
+        const residualFile = path.join(tmp, `atts-residual-${++tmpCounter}.pl`);
+        fs.writeFileSync(residualFile, `:- use_module(library(atts)).
+:- attribute required/1.
+attach(X,V) :- put_atts(X, required(V)).
+verify_attributes(Var, Other, Goals) :-
+    ( get_atts(Var, required(V)) ->
+        ( var(Other) -> put_atts(Other, required(V)), Goals=[] ; Goals=[same(Other,V)] )
+    ; Goals=[] ).
+same(X,X).
+attribute_goals(X) --> { get_atts(X, required(V)) }, [required(X,V)].
+`);
+        const repl = runCli([], { input: `[${sourceAtom(residualFile)}].\nattach(X,a).\nhalt.\n` });
+        assertEqual(repl.status, 0, 'attribute residual REPL status');
+        assertIncludes(repl.stdout, 'required(X, a).', 'attribute_goals//1 residual projection');
+
+        const scryerShape = Program.parse(`:- module(scryer_shape, [op(700, xfx, #=), probe/0]).
+:- op(700, xfx, #=).
+:- use_module(library(atts)).
+:- attribute first/1, second/0.
+probe.
+`);
+        assertEqual(scryerShape.findGroup('probe', 0, 'scryer_shape')?.module, 'scryer_shape',
+          'Scryer-style operator exports and multi-attribute directives load');
+      },
+    },
+    {
       name: 'write_term variable_names/1 errors preserve the instantiated option culprit (issue #69)',
       run: () => {
         const scalar = run('', {
@@ -3626,8 +3682,8 @@ function documentationSyncCases() {
           '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
           'README cover links to the book',
         );
-        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/standard-library.js',
-          'src/lib/aggregate.pl', 'src/lib/comparison.pl', 'src/lib/dates.pl',
+        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/atts.js', 'src/standard-library.js',
+          'src/CLPZ-MIGRATION.md', 'src/lib/aggregate.pl', 'src/lib/atts.pl', 'src/lib/comparison.pl', 'src/lib/dates.pl',
           'src/lib/iso_ext.pl', 'src/lib/lists.pl', 'src/lib/primes.pl', 'src/lib/prologue.pl',
           'src/lib/random.pl', 'src/lib/strings.pl', 'src/lib/uuid.pl',
           'src/playground-worker.js']) {
@@ -4729,7 +4785,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 161, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
+        assertEqual(library.defs.size, 171, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -4746,19 +4802,19 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 42, 'public native EyeProlog builtin count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 48, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 87, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 29, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda', 'common explicit library module profile');
+        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda,atts', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 42, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 48, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 129, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 135, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
@@ -4769,6 +4825,9 @@ answer(ok) :-
         assertEqual(Boolean(library.get('eyeprolog__time', 1)), true, 'private time adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__clpz_labeling', 2)), true, 'private CLP(Z) labeling adapter is registered');
         assertEqual(Boolean(library.get('eyeprolog__clpz_global_cardinality', 3)), true, 'private CLP(Z) cardinality adapter is registered');
+        assertEqual(registry.get('put_atts', 2), null, 'put_atts/2 is absent from the ISO registry');
+        assertEqual(Boolean(library.get('put_atts', 2)), true, 'put_atts/2 is registered for attributed-variable libraries');
+        assertEqual(Boolean(library.get('$put_to_attr_list', 3)), true, 'private attribute-list adapter is registered');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');

@@ -1,6 +1,6 @@
 // Program representation and clause indexing.
 // Indexes are deliberately conservative: they speed up common scalar arguments but never replace unification as the final check.
-import { ATOM, COMPOUND, STRING, VAR, Env, atom, compound, deref, flattenConjunction, isScalar, numberTerm, properListItems, termToString, variable } from './term.js';
+import { ATOM, COMPOUND, NUMBER, STRING, VAR, Env, atom, compound, deref, flattenConjunction, isScalar, numberTerm, properListItems, termToString, variable } from './term.js';
 import { formatTermForWrite } from './write.js';
 import {
   ISO_OPERATOR_DEFINITIONS,
@@ -1195,6 +1195,19 @@ function moduleExportIndicators(term) {
   if (items == null) return null;
   const indicators = [];
   for (const item of items) {
+    // Scryer-style modules may export operators alongside predicate
+    // indicators, for example op(700, xfx, #=) from library(clpz).
+    // Operator visibility while parsing bundled libraries is handled by the
+    // parser's imported-library operator table; module import resolution only
+    // needs procedure indicators here.
+    if (item.type === COMPOUND && item.name === 'op' && item.arity === 3) {
+      const [priority, specifier, names] = item.args;
+      const operatorNames = names.type === ATOM ? [names] : properListItems(names, new Env());
+      if (priority.type !== NUMBER || !/^\d+$/.test(priority.name) || Number(priority.name) > 1200 ||
+          specifier.type !== ATOM || !['fx', 'fy', 'xf', 'yf', 'xfx', 'xfy', 'yfx'].includes(specifier.name) ||
+          operatorNames == null || operatorNames.some((name) => name.type !== ATOM)) return null;
+      continue;
+    }
     if (item.type !== COMPOUND || !['/', '//'].includes(item.name) || item.arity !== 2) return null;
     const indicator = predicateIndicator(item.args[0], item.args[1]);
     if (!indicator) return null;

@@ -372,9 +372,15 @@ class Parser {
     if (directive.type !== COMPOUND || directive.name !== 'use_module' || ![1, 2].includes(directive.arity)) return;
     const designation = directive.args[0];
     if (designation?.type !== COMPOUND || designation.name !== 'library' || designation.arity !== 1 ||
-        designation.args[0]?.type !== ATOM || designation.args[0].name !== 'clpz') return;
-    for (const [priority, specifier, name] of CLPZ_OPERATOR_DEFINITIONS) {
-      this.defineOperator(priority, specifier, name);
+        designation.args[0]?.type !== ATOM) return;
+    if (designation.args[0].name === 'clpz') {
+      for (const [priority, specifier, name] of CLPZ_OPERATOR_DEFINITIONS) {
+        this.defineOperator(priority, specifier, name);
+      }
+    } else if (designation.args[0].name === 'atts') {
+      // Scryer library(atts) exports this declaration operator. EyeProlog
+      // handles the directive directly instead of relying on term expansion.
+      this.defineOperator(1199, 'fx', 'attribute');
     }
   }
   operatorTokenName(token = this.token) {
@@ -1020,13 +1026,22 @@ class Parser {
       }
       if (this.token.type === TOK.IF) {
         this.advance();
-        const directive = this.parseTerm();
+        const attributeSequence = !this.strictIso && this.operatorTokenName() === 'attribute';
+        let directive = this.parseTerm(0, attributeSequence);
+        // Scryer's library(atts) convention permits declarations such as
+        // `:- attribute a/1, b/0.` without parentheses. At program level the
+        // comma would otherwise sit outside the prefix term; fold it back into
+        // the single attribute/1 directive before directive classification.
+        if (attributeSequence && directive.type === COMPOUND && directive.name === ',' && directive.arity === 2 &&
+            directive.args[0].type === COMPOUND && directive.args[0].name === 'attribute' && directive.args[0].arity === 1) {
+          directive = compound('attribute', [compound(',', [directive.args[0].args[0], directive.args[1]])]);
+        }
         const coreDirective = directive.type === 'compound' && (
           (['dynamic', 'multifile', 'discontiguous', 'initialization', 'include', 'ensure_loaded'].includes(directive.name) && directive.arity === 1) ||
           (['char_conversion', 'set_prolog_flag'].includes(directive.name) && directive.arity === 2)
         );
         const extensionDirective = directive.type === 'compound' && (
-          (['use_module', 'meta_predicate'].includes(directive.name) && directive.arity === 1) ||
+          (['use_module', 'meta_predicate', 'attribute'].includes(directive.name) && directive.arity === 1) ||
           (['module', 'use_module'].includes(directive.name) && directive.arity === 2)
         );
         if (this.strictIso && extensionDirective) {
@@ -1044,7 +1059,7 @@ class Parser {
         // Module loading declarations describe the compilation unit rather
         // than an executable source clause, so they do not shift proof clause
         // numbers in the importing file.
-        if (!['module', 'use_module', 'meta_predicate'].includes(directive.name)) clauseNumber++;
+        if (!['module', 'use_module', 'meta_predicate', 'attribute'].includes(directive.name)) clauseNumber++;
         if (this.sourceMetadata) clause.source = { filename: this.filename, line, clause: clauseNumber };
         accept(clause);
         continue;

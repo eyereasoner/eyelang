@@ -102,6 +102,13 @@ export class Env {
     // is copied only when a branch adds, removes, or reindexes a constraint.
     this._variableConstraints = null;
     this._variableAnnotations = null;
+    // Prolog-visible attributed variables. The outer map is indexed by the
+    // current unbound representative name; each representative owns module-
+    // scoped attribute terms keyed by functor/arity. Maps are copy-on-write so
+    // Env.clone() keeps ordinary Prolog backtracking constant-time.
+    this._prologAttributes = null;
+    this._attributeHookRunner = null;
+    this._pendingAttributeGoals = null;
     this._clpz = null;
     this._occursCheckHandler = null;
     this._localVariables = null;
@@ -117,6 +124,9 @@ export class Env {
     clone._delays = this._delays;
     clone._variableConstraints = this._variableConstraints;
     clone._variableAnnotations = this._variableAnnotations;
+    clone._prologAttributes = this._prologAttributes;
+    clone._attributeHookRunner = this._attributeHookRunner;
+    clone._pendingAttributeGoals = this._pendingAttributeGoals;
     clone._clpz = this._clpz;
     clone._occursCheckHandler = this._occursCheckHandler;
     clone._localVariables = this._localVariables;
@@ -124,6 +134,24 @@ export class Env {
   }
   setOccursCheckHandler(handler) {
     this._occursCheckHandler = typeof handler === 'function' ? handler : null;
+    return this;
+  }
+  setAttributeHookRunner(handler) {
+    this._attributeHookRunner = typeof handler === 'function' ? handler : null;
+    return this;
+  }
+  adopt(other) {
+    if (!(other instanceof Env)) throw new TypeError('Env.adopt expects Env');
+    this._state = other._state;
+    this._delays = other._delays;
+    this._variableConstraints = other._variableConstraints;
+    this._variableAnnotations = other._variableAnnotations;
+    this._prologAttributes = other._prologAttributes;
+    this._pendingAttributeGoals = other._pendingAttributeGoals;
+    this._clpz = other._clpz;
+    // Execution callbacks belong to the Solver driving this Env, not to the
+    // logical branch being adopted from an inner attribute-hook call.
+    this._localVariables = other._localVariables;
     return this;
   }
   hasLocalVariables() {
@@ -242,6 +270,150 @@ export class Env {
     }
     if (ready.length > 0) this._delays = remaining;
     return ready;
+  }
+  _attributeRootName(name) {
+    const root = deref(variable(name), this);
+    return root.type === VAR ? root.name : null;
+  }
+  _attributeModulesForRoot(name) {
+    const root = this._attributeRootName(name);
+    return root == null ? null : (this._prologAttributes?.get(root) ?? null);
+  }
+  prologAttributes(name, module = null) {
+    const modules = this._attributeModulesForRoot(name);
+    if (modules == null) return [];
+    if (module != null) return [...(modules.get(module)?.values() ?? [])];
+    const result = [];
+    for (const [owner, attrs] of modules) {
+      for (const attribute of attrs.values()) result.push({ module: owner, attribute });
+    }
+    return result;
+  }
+  prologAttributeModules(name) {
+    const modules = this._attributeModulesForRoot(name);
+    return modules == null ? [] : [...modules.keys()];
+  }
+  getPrologAttribute(name, module, functor, arity) {
+    const modules = this._attributeModulesForRoot(name);
+    return modules?.get(module)?.get(`${functor}/${arity}`) ?? null;
+  }
+  putPrologAttribute(name, module, attribute) {
+    const root = this._attributeRootName(name);
+    if (root == null) return false;
+    const signature = `${attribute.name}/${attribute.arity}`;
+    const outer = new Map(this._prologAttributes ?? []);
+    const modules = new Map(outer.get(root) ?? []);
+    const attrs = new Map(modules.get(module) ?? []);
+    attrs.set(signature, attribute);
+    modules.set(module, attrs);
+    outer.set(root, modules);
+    this._prologAttributes = outer;
+    return true;
+  }
+  deletePrologAttribute(name, module, functor, arity = null) {
+    const root = this._attributeRootName(name);
+    if (root == null) return false;
+    const existingModules = this._prologAttributes?.get(root);
+    const existingAttrs = existingModules?.get(module);
+    if (existingAttrs == null) return false;
+    const attrs = new Map(existingAttrs);
+    let deleted = false;
+    if (arity == null) {
+      for (const key of [...attrs.keys()]) {
+        if (key.startsWith(`${functor}/`)) { attrs.delete(key); deleted = true; }
+      }
+    } else {
+      deleted = attrs.delete(`${functor}/${arity}`);
+    }
+    if (!deleted) return false;
+    const modules = new Map(existingModules);
+    if (attrs.size === 0) modules.delete(module); else modules.set(module, attrs);
+    const outer = new Map(this._prologAttributes);
+    if (modules.size === 0) outer.delete(root); else outer.set(root, modules);
+    this._prologAttributes = outer.size === 0 ? null : outer;
+    return true;
+  }
+  hasPrologAttributes(name) {
+    const modules = this._attributeModulesForRoot(name);
+    if (modules == null) return false;
+    for (const attrs of modules.values()) if (attrs.size !== 0) return true;
+    return false;
+  }
+  attributedVariableNames() {
+    if (this._prologAttributes == null) return [];
+    const names = [];
+    const seen = new Set();
+    for (const name of this._prologAttributes.keys()) {
+      const root = deref(variable(name), this);
+      if (root.type !== VAR || seen.has(root.name)) continue;
+      if (!this.hasPrologAttributes(root.name)) continue;
+      seen.add(root.name);
+      names.push(root.name);
+    }
+    return names;
+  }
+  enqueueAttributeGoals(goals) {
+    if (goals == null || goals.length === 0) return;
+    this._pendingAttributeGoals = [...(this._pendingAttributeGoals ?? []), ...goals];
+  }
+  takePendingAttributeGoals() {
+    if (this._pendingAttributeGoals == null || this._pendingAttributeGoals.length === 0) return [];
+    const goals = this._pendingAttributeGoals;
+    this._pendingAttributeGoals = null;
+    return goals;
+  }
+  _ownerModules(name) {
+    const modules = this._attributeModulesForRoot(name);
+    return modules == null ? [] : [...modules.keys()];
+  }
+  _targetHasOwnerModule(name, module) {
+    return this._attributeModulesForRoot(name)?.has(module) === true;
+  }
+  preparePrologAttributeUnification(variableTerm, otherTerm) {
+    if (this._prologAttributes == null || variableTerm?.type !== VAR) return true;
+    const sourceRoot = deref(variableTerm, this);
+    if (sourceRoot.type !== VAR) return true;
+    const modules = this._ownerModules(sourceRoot.name);
+    if (modules.length === 0) return true;
+    const other = deref(otherTerm, this);
+    if (other.type === VAR) {
+      if (other.name === sourceRoot.name) return true;
+      // Aliasing an attributed variable with a plain variable is just a
+      // representative change. No user-level hook is needed; final aliasing
+      // moves the attributes to the surviving representative.
+      const hooks = modules.filter((module) => this._targetHasOwnerModule(other.name, module));
+      for (const module of hooks) {
+        if (this._attributeHookRunner && !this._attributeHookRunner(module, sourceRoot, other, this)) return false;
+      }
+      return true;
+    }
+    for (const module of modules) {
+      if (this._attributeHookRunner && !this._attributeHookRunner(module, sourceRoot, other, this)) return false;
+    }
+    return true;
+  }
+  finalizePrologAttributeAlias(sourceName, targetName) {
+    if (this._prologAttributes == null || sourceName === targetName) return;
+    const source = this._prologAttributes.get(sourceName);
+    if (source == null) return;
+    const outer = new Map(this._prologAttributes);
+    const target = new Map(outer.get(targetName) ?? []);
+    for (const [module, sourceAttrs] of source) {
+      const attrs = new Map(target.get(module) ?? []);
+      for (const [signature, attribute] of sourceAttrs) {
+        if (!attrs.has(signature)) attrs.set(signature, attribute);
+      }
+      target.set(module, attrs);
+    }
+    outer.delete(sourceName);
+    outer.set(targetName, target);
+    this._prologAttributes = outer;
+  }
+  dropPrologAttributes(name) {
+    if (this._prologAttributes == null) return;
+    const outer = new Map(this._prologAttributes);
+    outer.delete(name);
+    this._prologAttributes = outer.size === 0 ? null : outer;
   }
   addVariableConstraint(constraint) {
     if (constraint == null || typeof constraint.variables !== 'function' ||
@@ -374,6 +546,15 @@ export function unify(left, right, env, options = {}) {
 
     if (a.type === VAR && b.type === VAR && a.name === b.name) continue;
     if (a.type === VAR && b.type === VAR) {
+      if (env?._prologAttributes != null) {
+        if (!env.preparePrologAttributeUnification(a, b)) return false;
+        a = deref(a, env);
+        b = deref(b, env);
+        if (a.type !== VAR || b.type !== VAR || a.name === b.name) {
+          stack.push([a, b]);
+          continue;
+        }
+      }
       // For a compiler-generated DCG state handed directly to another
       // nonterminal, keep the local caller variable as representative. Ordinary
       // aliases retain the established direction and observable conventions.
@@ -381,9 +562,11 @@ export function unify(left, right, env, options = {}) {
         a.name.startsWith('\u0000dcg') && b.name.startsWith('\u0000dcg');
       if (aLocalDcg) {
         markCompactVariableBound(b);
+        env?.finalizePrologAttributeAlias?.(b.name, a.name);
         env.bind(b.name, a);
       } else {
         markCompactVariableBound(a);
+        env?.finalizePrologAttributeAlias?.(a.name, b.name);
         env.bind(a.name, b);
       }
       continue;
@@ -394,7 +577,14 @@ export function unify(left, right, env, options = {}) {
         occursCheckHandler?.(a, b, env);
         return false;
       }
+      if (env?._prologAttributes != null && env.hasPrologAttributes(a.name)) {
+        if (!env.preparePrologAttributeUnification(a, b)) return false;
+        a = deref(a, env);
+        b = deref(b, env);
+        if (a.type !== VAR) { stack.push([a, b]); continue; }
+      }
       markCompactVariableBound(a);
+      env?.dropPrologAttributes?.(a.name);
       env.bind(a.name, b);
       if (aLocal) env.forgetLocalVariable(a.name);
       continue;
@@ -405,7 +595,14 @@ export function unify(left, right, env, options = {}) {
         occursCheckHandler?.(b, a, env);
         return false;
       }
+      if (env?._prologAttributes != null && env.hasPrologAttributes(b.name)) {
+        if (!env.preparePrologAttributeUnification(b, a)) return false;
+        b = deref(b, env);
+        a = deref(a, env);
+        if (b.type !== VAR) { stack.push([a, b]); continue; }
+      }
       markCompactVariableBound(b);
+      env?.dropPrologAttributes?.(b.name);
       env.bind(b.name, a);
       if (bLocal) env.forgetLocalVariable(b.name);
       continue;

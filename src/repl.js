@@ -753,6 +753,24 @@ function formatAnswer(engine, state, variables, env) {
       doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
     }));
   }
+  const projectedAttributeRoots = new Set();
+  for (const variable of variables) {
+    const root = engine.deref(variable, env);
+    if (root.type !== 'var' || projectedAttributeRoots.has(root.name) || !env.hasPrologAttributes?.(root.name)) continue;
+    projectedAttributeRoots.add(root.name);
+    names.set(root.name, variable.name);
+    for (const residual of state.solver.attributeResidualGoals(root, env)) {
+      collectUnboundVariables(engine, residual, env, names, () => `_${letterName(generated++)}`);
+      bindings.push(engine.formatTermForWrite(residual, env, {
+        quoted: true,
+        operators,
+        variableNames: names,
+        operatorAtomsAsArgs: true,
+        dottedGraphicAtoms: true,
+        doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+      }));
+    }
+  }
   return bindings.length === 0 ? 'true' : bindings.join(', ');
 }
 
