@@ -31,6 +31,13 @@ kernel component into the ISO registry or a frontend.  In particular,
 report processor errors without importing `iso.js` and creating an
 `iso.js <-> dcg.js` cycle.
 
+`term.js` also owns the generic annotated-variable storage carried by `Env`.
+Annotations are persistent across `Env.clone()` and therefore backtrack with the
+substitution. Language services may attach immutable constraint descriptors,
+but the unconstrained unification hot path only performs a null check; descriptor
+validation and reindexing run only in environments that actually contain
+annotations. `dif/2` is the first user of this mechanism.
+
 The JavaScript runtime stays flat directly under `src/`; the existing `src/lib/`
 contains Prolog library sources rather than JavaScript runtime modules. The architecture
 test rejects JavaScript import cycles under `src/`. Cleanup lifecycle hooks are

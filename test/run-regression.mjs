@@ -111,6 +111,41 @@ export function runRegression(reporter = new TestReporter(), requestedSection = 
 function regressionCases() {
   return [
     {
+      name: 'dif/2 keeps a delayed disequality across later unification (issue #68)',
+      run: () => {
+        assertEqual(run('', { goal: 'dif(1,Y),Y=1' }).stats.completed_goal_lists, 0,
+          'binding a constrained variable to the forbidden value fails');
+        assertEqual(run('', { goal: 'dif(1,Y),Y=2' }).stats.completed_goal_lists, 1,
+          'binding a constrained variable to a different value succeeds');
+        assertEqual(run('', { goal: 'dif(X,Y),X=Y' }).stats.completed_goal_lists, 0,
+          'aliasing two constrained variables fails');
+        assertEqual(run('', { goal: 'dif(X-Y,1-2),X=Y,Y=1' }).stats.completed_goal_lists, 1,
+          'a specialization that makes the terms non-unifiable discharges the constraint');
+        assertEqual(run('', { goal: 'dif(X-Y,1-2),X=Y,X=2' }).stats.completed_goal_lists, 1,
+          'a second specialization discharges the same structural constraint');
+        assertEqual(run('p(a).', { goal: 'dif(X,a),p(X)' }).stats.completed_goal_lists, 0,
+          'scalar-fact fast matching still validates annotated variables');
+        assertEqual(run('p(b).', { goal: 'dif(X,a),p(X)' }).stats.completed_goal_lists, 1,
+          'scalar-fact fast matching can discharge an annotated disequality');
+      },
+    },
+    {
+      name: 'write_term variable_names/1 errors preserve the instantiated option culprit (issue #69)',
+      run: () => {
+        const scalar = run('', {
+          isoStrict: true,
+          goal: "catch((VN=1,write_term(T,[variable_names(VN)])),error(E,_),writeq(E))",
+        });
+        assertEqual(scalar.stdout, 'domain_error(write_option,variable_names(1))', 'scalar culprit');
+
+        const list = run('', {
+          isoStrict: true,
+          goal: "catch((VN=[[]],write_term(T,[variable_names(VN)])),error(E,_),writeq(E))",
+        });
+        assertEqual(list.stdout, 'domain_error(write_option,variable_names([[]]))', 'list culprit');
+      },
+    },
+    {
       name: 'large source scanning avoids quadratic full-stop lookback',
       run: () => {
         const result = runCli(['examples/path-discovery.pl'], { timeout: 10000 });
@@ -4694,7 +4729,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 160, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
+        assertEqual(library.defs.size, 161, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -4705,11 +4740,13 @@ answer(ok) :-
         assertEqual(Boolean(library.get('tnot', 1)), true, 'tnot/1 is an EyeProlog WFS extension');
         assertEqual(registry.get('time', 1), null, 'time/1 is absent from the ISO registry');
         assertEqual(Boolean(library.get('time', 1)), true, 'time/1 is an EyeProlog timing extension');
+        assertEqual(registry.get('dif', 2), null, 'dif/2 is absent from the strict ISO core registry');
+        assertEqual(Boolean(library.get('dif', 2)), true, 'dif/2 is an EyeProlog attributed-variable constraint extension');
         assertEqual(registry.get('call_cleanup', 2), null, 'call_cleanup/2 is absent from the ISO registry');
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 41, 'public native EyeProlog builtin count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 42, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 87, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 29, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda', 'common explicit library module profile');
@@ -4719,9 +4756,9 @@ answer(ok) :-
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 41, 'native host library count');
-        assertEqual(eyePrologNativeLibraryIndicators.slice(0, 2).join(','), 'call_nth/2,freeze/2', 'control predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 128, 'complete EyeProlog library surface');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 42, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
+        assertEqual(eyePrologLibraryIndicators.length, 129, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');

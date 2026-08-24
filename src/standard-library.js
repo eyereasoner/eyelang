@@ -48,7 +48,7 @@ function libraryUrl(filename) {
 }
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([
-  'call_nth/2', 'freeze/2', 'countall/2', 'time/1',
+  'call_nth/2', 'freeze/2', 'dif/2', 'countall/2', 'time/1',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
   'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'nvalue/2', 'sum/3',

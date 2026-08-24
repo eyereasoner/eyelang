@@ -167,6 +167,7 @@ export const eyePrologLibraryBuiltins = {
     registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__countall', 2, countAllBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__freeze', 2, freezeBuiltin, { eyePrologLibrary: true });
+    registry.add('dif', 2, difBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('time', 1, timeBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__time', 1, timeBuiltin, { eyePrologLibrary: true });
   },
@@ -187,6 +188,43 @@ function* unificationWithOccursCheck({ goal, env }) {
 }
 function* nonUnification({ goal, env }) {
   if (!unify(goal.args[0], goal.args[1], env.clone())) yield env;
+}
+
+function difConstraint(left, right) {
+  return Object.freeze({
+    kind: 'dif',
+    left,
+    right,
+    variables(env) {
+      return new Set([...termVariableNames(left, env), ...termVariableNames(right, env)]);
+    },
+    status(env) {
+      if (identical(left, right, env)) return 'violated';
+      const probe = env.clone();
+      return unify(left, right, probe, { skipVariableConstraints: true }) ? 'pending' : 'entailed';
+    },
+    residualGoal() {
+      return compound('dif', [left, right]);
+    },
+  });
+}
+
+function* difBuiltin({ goal, env }) {
+  const left = goal.args[0];
+  const right = goal.args[1];
+  if (identical(left, right, env)) return;
+
+  // In EyeProlog's finite-tree model, terms that cannot unify are already
+  // provably different and need no residual constraint. Otherwise attach a
+  // disequality constraint to every currently unbound variable it mentions.
+  const probe = env.clone();
+  if (!unify(left, right, probe, { skipVariableConstraints: true })) {
+    yield env;
+    return;
+  }
+  const next = env.clone();
+  next.addVariableConstraint(difConstraint(left, right));
+  yield next;
 }
 
 function termVariableNames(term, env, names = new Set(), seen = new Set()) {
@@ -1646,7 +1684,7 @@ function writeOptionBoolean(value, env, option) {
   value = deref(value, env);
   if (value.type === VAR) throw new PrologError('instantiation_error');
   if (value.type !== ATOM || !['true', 'false'].includes(value.name)) {
-    throw new PrologError('domain_error(write_option)', option);
+    throw new PrologError('domain_error(write_option)', copyResolved(option, env));
   }
   return value.name === 'true';
 }
@@ -1657,19 +1695,20 @@ function writeVariableNames(value, env, option) {
   const items = properListItems(value, env);
   if (items == null) {
     if (isPartialList(value, env)) throw new PrologError('instantiation_error');
-    throw new PrologError('domain_error(write_option)', option);
+    throw new PrologError('domain_error(write_option)', copyResolved(option, env));
   }
   const names = new Map();
   for (const item of items) {
     const pair = deref(item, env);
+    if (pair.type === VAR) throw new PrologError('instantiation_error');
     if (pair.type !== COMPOUND || pair.name !== '=' || pair.arity !== 2) {
-      throw new PrologError('domain_error(write_option)', option);
+      throw new PrologError('domain_error(write_option)', copyResolved(option, env));
     }
     const name = deref(pair.args[0], env);
     const target = deref(pair.args[1], env);
     if (name.type === VAR) throw new PrologError('instantiation_error');
     if (name.type !== ATOM) {
-      throw new PrologError('domain_error(write_option)', option);
+      throw new PrologError('domain_error(write_option)', copyResolved(option, env));
     }
     // Corrigendum 3 permits any term on the right. Only variables can name a
     // variable being written; retain the leftmost applicable entry.
@@ -1682,7 +1721,7 @@ function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = n
   const result = defaultTermWriteOptions(mode);
   for (const option of options) {
     if (option.type !== COMPOUND || option.arity !== 1) {
-      throw new PrologError('domain_error(write_option)', option);
+      throw new PrologError('domain_error(write_option)', copyResolved(option, env));
     }
     if (option.name === 'quoted') result.quoted = writeOptionBoolean(option.args[0], env, option);
     else if (option.name === 'ignore_ops') result.ignoreOps = writeOptionBoolean(option.args[0], env, option);
@@ -1691,7 +1730,7 @@ function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = n
     else if (option.name === 'double_quotes' && !solver?.isoStrict) {
       result.doubleQuotes = writeOptionBoolean(option.args[0], env, option);
     } else {
-      throw new PrologError('domain_error(write_option)', option);
+      throw new PrologError('domain_error(write_option)', copyResolved(option, env));
     }
   }
   return result;

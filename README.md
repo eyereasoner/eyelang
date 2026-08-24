@@ -130,6 +130,23 @@ local/global variable stack. `phrase/2` likewise supplies its fixed `[]`
 remainder directly to the grammar; `phrase/3` retains its delayed final output
 unification for steadfastness.
 
+### Delayed disequality with `dif/2`
+
+The normal EyeProlog runtime provides `dif/2` as a conforming extension;
+`--iso-strict` remains limited to ISO/IEC 13211-1 and does not expose it.
+Unlike `\=/2`, which only tests whether two terms are non-unifiable *now*,
+`dif/2` can succeed with a residual disequality constraint and reject a later
+binding that would make the terms identical. For example,
+`dif(X, Y), X = Y` fails, while `dif(X-Y, 1-2), X = Y, Y = 1` succeeds once
+the structural constraint becomes provably satisfied.
+
+The implementation uses backtracking-safe annotated variables in `Env`. A
+pending constraint is indexed by every currently unbound variable it mentions;
+variable aliasing and later bindings reindex the annotation, entailed constraints
+are removed, and violated constraints make unification fail. The interactive
+top level includes pending `dif/2` goals in residual answers. See
+[`examples/dif-constraints.pl`](examples/dif-constraints.pl).
+
 Recursion through negation is explicit. EyeProlog provides `tnot/1` for
 well-founded negation over finite, range-restricted, function-free Datalog
 components. Ordinary `\+/1` remains negation-as-failure and is not silently
@@ -258,7 +275,7 @@ be continued without rebuilding a full clause-resolution frame for every
 suffix.  Open and remainder-producing uses still retain the ordinary DCG
 solutions and backtracking behavior.
 
-EyeProlog also adds 128 public library predicate indicators to its 129-entry ISO
+EyeProlog also adds 129 public library predicate indicators to its 129-entry ISO
 profile. **88 are implemented entirely as ordinary Prolog clauses** in focused
 modules under `src/lib/`; the remaining control predicates and finite-domain
 `library(clpz)` kernel use backtrackable host support.

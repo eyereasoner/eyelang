@@ -97,6 +97,11 @@ export class Env {
       cache: null,
     };
     this._delays = null;
+    // Backtracking-safe attributed-variable constraints. Constraints are
+    // immutable descriptors shared by cloned environments; the Set/Map index
+    // is copied only when a branch adds, removes, or reindexes a constraint.
+    this._variableConstraints = null;
+    this._variableAnnotations = null;
     this._clpz = null;
     this._occursCheckHandler = null;
     this._localVariables = null;
@@ -110,6 +115,8 @@ export class Env {
     const clone = Object.create(Env.prototype);
     clone._state = this._state;
     clone._delays = this._delays;
+    clone._variableConstraints = this._variableConstraints;
+    clone._variableAnnotations = this._variableAnnotations;
     clone._clpz = this._clpz;
     clone._occursCheckHandler = this._occursCheckHandler;
     clone._localVariables = this._localVariables;
@@ -235,6 +242,54 @@ export class Env {
     }
     if (ready.length > 0) this._delays = remaining;
     return ready;
+  }
+  addVariableConstraint(constraint) {
+    if (constraint == null || typeof constraint.variables !== 'function' ||
+        typeof constraint.status !== 'function') {
+      throw new TypeError('variable constraint requires variables(env) and status(env)');
+    }
+    const constraints = new Set(this._variableConstraints ?? []);
+    constraints.add(constraint);
+    this._variableConstraints = constraints;
+    this._reindexVariableConstraints();
+  }
+  variableConstraints(kind = null) {
+    const constraints = [...(this._variableConstraints ?? [])];
+    return kind == null ? constraints : constraints.filter((constraint) => constraint.kind === kind);
+  }
+  variableAnnotations(name) {
+    const root = deref(variable(name), this);
+    if (root.type !== VAR) return [];
+    return [...(this._variableAnnotations?.get(root.name) ?? [])];
+  }
+  validateVariableConstraints() {
+    if (this._variableConstraints == null || this._variableConstraints.size === 0) return true;
+    const pending = new Set();
+    for (const constraint of this._variableConstraints) {
+      const status = constraint.status(this);
+      if (status === 'violated') return false;
+      if (status !== 'entailed') pending.add(constraint);
+    }
+    this._variableConstraints = pending.size === 0 ? null : pending;
+    this._reindexVariableConstraints();
+    return true;
+  }
+  _reindexVariableConstraints() {
+    if (this._variableConstraints == null || this._variableConstraints.size === 0) {
+      this._variableAnnotations = null;
+      return;
+    }
+    const annotations = new Map();
+    for (const constraint of this._variableConstraints) {
+      for (const name of constraint.variables(this)) {
+        const root = deref(variable(name), this);
+        if (root.type !== VAR) continue;
+        const set = annotations.get(root.name) ?? new Set();
+        set.add(constraint);
+        annotations.set(root.name, set);
+      }
+    }
+    this._variableAnnotations = annotations.size === 0 ? null : annotations;
   }
 }
 
@@ -373,6 +428,7 @@ export function unify(left, right, env, options = {}) {
 
     return false;
   }
+  if (options.skipVariableConstraints !== true && env?._variableConstraints != null && !env.validateVariableConstraints()) return false;
   return true;
 }
 

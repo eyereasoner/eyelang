@@ -1971,7 +1971,7 @@ function fastCountBranch(branch, env) {
 
 function fastCountPureGoal(solver, goal, env) {
   if (solver.isoStrict || solver.solutionLimit !== Infinity || solver.maxInferences !== Infinity ||
-      env._clpz != null || (env._delays != null && env._delays.size !== 0)) return null;
+      env._clpz != null || env._variableConstraints != null || (env._delays != null && env._delays.size !== 0)) return null;
   const budget = { remaining: 8192 };
   const branches = expandPureCountGoal(solver, goal, goal.module ?? 'user', new Set(), budget);
   if (branches == null) return null;
@@ -2015,6 +2015,7 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
     if (state.index === runLength) {
       const next = env.clone();
       for (let i = 0; i < state.names.length; i++) next.bind(state.names[i], state.values[i]);
+      if (next._variableConstraints != null && !next.validateVariableConstraints()) continue;
       frames.push({ kind: 'goals', goals: rest, env: next, depth: state.depth, active });
       if (frames.length > frameLimit) {
         // Do not repeat the old bug of abandoning the optimization and then
@@ -2079,6 +2080,7 @@ function* scalarFactRunSolutions(solver, goals, groups, env, depth, active) {
     if (state.index === goals.length) {
       const next = env.clone();
       for (let i = 0; i < state.names.length; i++) next.bind(state.names[i], state.values[i]);
+      if (next._variableConstraints != null && !next.validateVariableConstraints()) continue;
       yield next;
       continue;
     }
@@ -2183,6 +2185,7 @@ function matchScalarFact(goal, head, env) {
 
   const next = env.clone();
   for (let i = 0; i < names.length; i++) next.bind(names[i], values[i]);
+  if (next._variableConstraints != null && !next.validateVariableConstraints()) return null;
   return next;
 }
 

@@ -740,6 +740,19 @@ function formatAnswer(engine, state, variables, env) {
       doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
     })}`);
   }
+  for (const constraint of env.variableConstraints?.() ?? []) {
+    const residual = constraint.residualGoal?.(env);
+    if (residual == null) continue;
+    collectUnboundVariables(engine, residual, env, names, () => `_${letterName(generated++)}`);
+    bindings.push(engine.formatTermForWrite(residual, env, {
+      quoted: true,
+      operators,
+      variableNames: names,
+      operatorAtomsAsArgs: true,
+      dottedGraphicAtoms: true,
+      doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+    }));
+  }
   return bindings.length === 0 ? 'true' : bindings.join(', ');
 }
 

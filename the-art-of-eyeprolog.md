@@ -6211,13 +6211,13 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **128 library predicate indicators** in addition to the 129
+EyeProlog exposes **129 library predicate indicators** in addition to the 129
 indicators in its isolated ISO profile. **88 are defined entirely as ordinary
 Prolog clauses** in focused modules under `src/lib/`. The remaining public
 relations use small private host adapters where control, constraints, or host
 observability cannot be expressed by ordinary clauses alone; `time/1` is one
 such relation. The resulting normal EyeProlog language surface is therefore
-**257 public predicate indicators**. Most library relations remain module source
+**258 public predicate indicators**. Most library relations remain module source
 clauses over private adapters. `time/1` is additionally registered directly in
 the normal EyeProlog runtime so Trealla-style timing works at the interactive
 top level without an import; it is absent from the strict ISO registry.
@@ -6257,6 +6257,7 @@ between solution branches.
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
 | `library(dates)` | `difference/3` |
 | `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2`, `time/1`, `.../2` |
+| Normal runtime extension | `dif/2` |
 | `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` |
 | `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
 | `library(primes)` | `smallest_divisor_from/3` |
@@ -7130,7 +7131,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **211 self-contained runnable programs**. Every
+top-level directory contains **212 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
