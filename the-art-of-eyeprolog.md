@@ -6424,11 +6424,15 @@ Hamiltonian circuits, three-way comparison, and domain reflection. Its existing
 `src/clpz.js` store is now explicitly transitional: the attributed-variable layer
 is intended to support staged reuse of Markus Triska's MIT-licensed
 [Scryer `clpz.pl`](https://github.com/mthom/scryer-prolog/blob/master/src/lib/clpz.pl).
-The remaining blockers are compile-time term/goal expansion and the supporting
-library surface used by that source; the migration state is tracked in
-[`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md). Until parity is reached, the JS
-kernel remains the active implementation so existing CLP(Z) behavior does not
-regress.
+The generic compile-time expansion blocker is now closed: normal-profile source
+loading runs module-local and `user` `term_expansion/2` and `goal_expansion/2`
+hooks, accepts clause-list expansions, preserves surrounding variable sharing,
+and provides `expand_term/2` for processor DCG lowering. This is sufficient for
+Scryer's generated-predicate and Duo-DCG expansion strategy. The remaining
+blocker is the supporting Scryer library surface used by that source; the
+migration state is tracked in [`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md).
+Until parity is reached, the JS kernel remains the active implementation so
+existing CLP(Z) behavior does not regress.
 
 Alongside its interop entries `call_nth/2`, `time/1`, and `.../2`,
 `library(iso_ext)` also exports EyeProlog's extension relations `countall/2`,

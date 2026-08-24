@@ -21,6 +21,7 @@ import {
   eyePrologInteropLibraryModules,
 } from './standard-library.js';
 import { expandDcgRuleClause } from './dcg.js';
+import { expandClauseGoals, expandSourceClause } from './source-expansion.js';
 import {
   CompactBinaryClause, clauseBodyLength, clauseHasCut, compactHeadArgName, compactHeadArgType, modulePredicateKey,
   indexCompactOne, indexOne, isCompactBinaryClause, makeArgumentIndex, rebuildGroupIndexes, termContainsCut, termHasNoVariables,
@@ -1069,18 +1070,56 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     builder.addClauses(batch);
     batch.length = 0;
   };
-  const accept = (clause) => {
+
+  const processClause = (inputClause) => {
+    let clause = inputClause;
     if (clause?.kind === 'quad') {
       flush();
       clause.module = context.module;
       builder.addClauses([clause]);
       return;
     }
+
+    // User source expansion is a normal-profile compile-time facility. Hooks
+    // execute against the clauses that have already been prepared, matching
+    // Prolog's left-to-right source loading model. Strict ISO Part 1 keeps its
+    // processor-defined preparation semantics unchanged.
+    if (!builder.program.strictIso) {
+      const expansion = expandSourceClause(builder.program, clause, context.module, {
+        module: context.module,
+        filename: options.filename ?? '<input>',
+      });
+      if (expansion.expanded) {
+        for (const generated of expansion.clauses) processPreparedClause(generated);
+        return;
+      }
+    }
+    processPreparedClause(clause);
+  };
+
+  const processPreparedClause = (inputClause) => {
+    let clause = inputClause;
+    const lexicalModule = context.module;
+
     // Grammar-rule expansion belongs to ISO/IEC TS 13211-3 rather than the
     // Part 1 strict-core language.  In strict core mode -->/2 remains the
     // ordinary predefined operator term from Table 7 and is not rewritten.
-    const grammarClause = builder.program.strictIso ? null : expandDcgRuleClause(clause, context.module);
+    const grammarClause = builder.program.strictIso ? null : expandDcgRuleClause(clause, lexicalModule);
     if (grammarClause) clause = grammarClause;
+
+    // A source module qualifier on a clause head selects the procedure owner,
+    // while unqualified calls in the body retain the lexical module of the
+    // source text. This distinction is essential for conventional hooks such
+    // as user:term_expansion/2 defined from library modules.
+    clause = normalizeQualifiedClauseHead(clause, lexicalModule);
+
+    if (!builder.program.strictIso && !isDirectiveClause(clause)) {
+      expandClauseGoals(builder.program, clause, lexicalModule, {
+        module: lexicalModule,
+        filename: options.filename ?? '<input>',
+      });
+    }
+
     const moduleDeclaration = moduleDirective(clause);
     if (moduleDeclaration) {
       flush();
@@ -1121,10 +1160,20 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       clause.module ??= context.module;
       clause.textUnit ??= context.textUnit;
       if (!isDirectiveClause(clause)) {
-        for (const goal of clause.body) annotateGoalModule(goal, clause.module);
+        const bodyModule = clause.lexicalModule ?? lexicalModule;
+        for (const goal of clause.body) annotateGoalModule(goal, bodyModule);
       }
-      batch.push(clause);
-      if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
+      const isExpansionHook = !isDirectiveClause(clause) &&
+        clause.head?.arity === 2 && ['term_expansion', 'goal_expansion'].includes(clause.head?.name);
+      if (isExpansionHook) {
+        // A hook becomes visible to the very next source term, so it cannot
+        // wait in the large streaming build batch.
+        flush();
+        builder.addClauses([clause]);
+      } else {
+        batch.push(clause);
+        if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
+      }
       return;
     }
     flush();
@@ -1152,13 +1201,30 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       batch[batch.length - 1].textUnit = context.textUnit;
       if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
     };
-    const parsed = tryParseClausesFastInto(source, accept, acceptBinary, options);
+    const parsed = tryParseClausesFastInto(source, processClause, acceptBinary, options);
     if (parsed) flush();
     return parsed;
   }
-  parseClausesInto(source, options, accept);
+  parseClausesInto(source, options, processClause);
   flush();
   return true;
+}
+
+function normalizeQualifiedClauseHead(clause, lexicalModule = 'user') {
+  if (clause == null || clause.kind === 'quad' || isDirectiveClause(clause)) return clause;
+  const head = clause.head;
+  if (head?.type !== COMPOUND || head.name !== ':' || head.arity !== 2) return clause;
+  const qualifier = head.args[0];
+  const qualifiedHead = head.args[1];
+  if (qualifier.type === VAR) throw new PrologError('instantiation_error');
+  if (qualifier.type !== ATOM) throw new PrologError('type_error(atom)', qualifier);
+  if (qualifiedHead.type !== ATOM && qualifiedHead.type !== COMPOUND) {
+    throw new PrologError('type_error(callable)', qualifiedHead);
+  }
+  clause.head = qualifiedHead;
+  clause.module = qualifier.name;
+  clause.lexicalModule = lexicalModule;
+  return clause;
 }
 
 function includeDirective(clause) {

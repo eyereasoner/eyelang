@@ -7,8 +7,8 @@ higher-level frontends.
 
 1. **Kernel representation and syntax** — `term.js`, `number-value.js`,
    `syntax-scan.js`, `parser.js`, `write.js`, `errors.js`.
-2. **Program preparation** — `program.js` plus `program-analysis.js` and
-   `program-indexing.js`. Static recursion/Datalog/WFS classification lives in
+2. **Program preparation** — `program.js`, `source-expansion.js`, plus
+   `program-analysis.js` and `program-indexing.js`. Static recursion/Datalog/WFS classification lives in
    `program-analysis.js`; compact clauses and candidate indexes live in
    `program-indexing.js`.
 3. **Execution** — `solver.js`, `cleanup.js`, `io.js`, `datalog.js`, `wfs.js`,
@@ -47,6 +47,16 @@ immediately after it. This pre-bind/post-bind split is the compatibility boundar
 needed by Scryer's `library(atts)` and `library(clpz)`. The current CLP(Z)-specific
 `Env._clpz` store remains transitional until the Scryer Prolog implementation can
 replace it without losing test or performance parity; see `src/CLPZ-MIGRATION.md`.
+
+`source-expansion.js` is the explicit compile-time execution boundary. When an
+already-loaded `term_expansion/2` or `goal_expansion/2` hook exists, program
+preparation invokes it with a fresh bounded `Solver` against the partially built
+program. `solver.js` therefore imports clause-selection primitives directly from
+`program-indexing.js` rather than importing the `program.js` facade. This is the
+one deliberate preparation-to-execution service edge and keeps the JavaScript
+import graph acyclic while avoiding a second meta-interpreter solely for source
+expansion. `expansion-builtins.js` provides the lower-level `expand_term/2` DCG
+service without depending on `Solver`.
 
 The JavaScript runtime stays flat directly under `src/`; the existing `src/lib/`
 contains Prolog library sources rather than JavaScript runtime modules. The architecture

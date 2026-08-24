@@ -159,12 +159,14 @@ variable representatives and ordinary Prolog backtracking, and the REPL projects
 module `attribute_goals//1` hooks as residual goals. See
 [`examples/attributed-variables.pl`](examples/attributed-variables.pl).
 
-This is the first migration stage toward reusing Markus Triska's MIT-licensed
+The second migration stage toward reusing Markus Triska's MIT-licensed
 [Scryer `library(clpz)`](https://github.com/mthom/scryer-prolog/blob/master/src/lib/clpz.pl)
-instead of maintaining a separate constraint solver in `src/clpz.js`. The
-current CLP(Z) implementation remains active while compatibility gaps such as
-Scryer's compile-time term/goal expansion and supporting libraries are closed.
-The staged plan and exact compatibility boundary are documented in
+is now in place as well. Normal-profile loading supports user-defined
+`term_expansion/2` and `goal_expansion/2`, clause-list generation, and
+`expand_term/2` for processor DCG lowering, including the qualified hook shape
+used by Scryer libraries. The current CLP(Z) implementation remains active while
+the remaining Scryer support-library surface is brought across. The staged plan
+and exact compatibility boundary are documented in
 [`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md).
 
 Recursion through negation is explicit. EyeProlog provides `tnot/1` for

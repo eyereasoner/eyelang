@@ -5,6 +5,7 @@
 import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
 import { clpzBuiltins } from './clpz.js';
 import { attsBuiltins } from './atts.js';
+import { expansionBuiltins } from './expansion-builtins.js';
 import { registerCleanupBuiltins } from './cleanup.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
@@ -188,6 +189,7 @@ export function createEyePrologRegistry() {
   registerCleanupBuiltins(registry);
   eyePrologLibraryBuiltins.register(registry);
   attsBuiltins.register(registry);
+  expansionBuiltins.register(registry);
   clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;

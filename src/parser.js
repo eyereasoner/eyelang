@@ -1119,6 +1119,32 @@ class Parser {
         head = items.pop();
         while (items.length > 0) head = compound(',', [items.pop(), head]);
       }
+      // The clause grammar keeps priority-1200 neck/DCG tokens outside the
+      // initial head parse. A user-defined operator at priority 1199 or 1200,
+      // however, can itself be the outermost source term. Scryer's CLP(Z) uses
+      // exactly this shape for its private `++>` Duo-DCG rules. Fold such a
+      // custom low-strength infix operator back into the source term while
+      // leaving the processor-defined :-, -->, and ?- dispatch below intact.
+      const topLevelOperator = this.operatorTokenName();
+      const topLevelInfo = topLevelOperator == null ? null : this.infixOperators.get(topLevelOperator);
+      if (topLevelInfo && topLevelInfo.precedence < 3 &&
+          ![':-', '-->', '?-'].includes(topLevelOperator)) {
+        this.advance();
+        const right = this.parseTerm(
+          topLevelInfo.associativity === 'right' ? topLevelInfo.precedence : topLevelInfo.precedence + 1,
+          true,
+          true,
+          false,
+        );
+        head = compound(topLevelOperator, [head, right]);
+        if (topLevelInfo.associativity === 'none') {
+          const nextOperator = this.operatorTokenName();
+          if (this.infixOperators.get(nextOperator)?.precedence === topLevelInfo.precedence) {
+            throw new Error(`parse line ${this.token.line}: non-associative operator ${topLevelOperator} requires parentheses`);
+          }
+        }
+      }
+
       // Parentheses and other ordinary term syntax may hide the surface ?-
       // token from the program-level dispatch above.  Once the complete head
       // term has been parsed, recognize the same ?-/1 or ?-/2 structure here.

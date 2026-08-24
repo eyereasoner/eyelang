@@ -32,20 +32,40 @@ attributes, post-binding goals, backtracking, `term_attributed_variables/2`, and
 REPL projection through the conventional module `attribute_goals//1` hook.
 `examples/attributed-variables.pl` is the runnable source-level example.
 
+## Stage 2: source expansion substrate
+
+This stage is implemented. Normal-profile source loading now invokes already
+loaded module-local and `user` `term_expansion/2` and `goal_expansion/2` hooks
+left-to-right. A term expansion may yield one clause or a list of clauses, and
+`expand_term/2` exposes the processor's DCG lowering so a hook can generate the
+ordinary clauses used by Scryer's CLP(Z) parser generators. Goal expansion is
+recursive across control constructs and preserves sharing with variables in the
+surrounding clause.
+
+Module-qualified hook clauses such as `user:goal_expansion/2` are also compiled
+with the correct split between procedure ownership and lexical body context. A
+hook defined from a library module therefore lives in `user` while its
+unqualified helper calls still resolve in the defining library. The compiler
+executes hooks with a fresh bounded solver against the partially built program;
+`solver.js` imports clause-selection helpers directly from `program-indexing.js`,
+so this compile-time service remains acyclic. Strict ISO Part 1 mode does not run
+these extension hooks.
+
+The regression corpus covers clause-list generation, variable-sharing goal
+expansion, qualified hook lexical context, and the Scryer pattern where a
+`term_expansion/2` hook calls `expand_term/2` to generate a DCG predicate.
+
 ## What still prevents a drop-in Scryer `clpz.pl`
 
-The upstream solver is not only an attributed-variable client. It also relies on
-compile-time facilities that EyeProlog does not yet provide generically:
+The remaining compatibility work is the supporting Scryer library surface
+(`assoc`, `pairs`, `between`, `dcgs`, `terms`, `error`, `si`, `freeze`,
+`arithmetic`, `debug`, and `format`) at the interfaces expected by that source,
+plus any small builtin gaps exposed while loading those modules. The generated
+predicates and custom Duo DCG `++>` expansion are no longer VM/compiler
+blockers: Scryer's own `term_expansion/2` can now perform that lowering.
 
-- user-defined `term_expansion/2` and `goal_expansion/2` during module loading;
-- the generated predicates at the end of Scryer's `clpz.pl` and its custom Duo
-  DCG `++>` expansion;
-- the supporting Scryer library surface (`assoc`, `pairs`, `between`, `dcgs`,
-  `terms`, `error`, `si`, `freeze`, `arithmetic`, `debug`, and `format`) at the
-  interfaces expected by that source;
-
-These are compatibility gaps, not reasons to add more CLP(Z)-specific code to
-`term.js` or `solver.js`.
+These are reusable library compatibility gaps, not reasons to add more
+CLP(Z)-specific code to `term.js` or `solver.js`.
 
 ## Migration rule
 

@@ -186,6 +186,50 @@ probe.
       },
     },
     {
+      name: 'user source expansion supports Scryer-style generated predicates and DCGs',
+      run: () => {
+        const termSource = `term_expansion(make_generated, [generated(one),generated(two)]).
+make_generated.
+`;
+        const generated = Program.parse(termSource, { sourceMetadata: false });
+        assertEqual(generated.findGroup('generated', 1, 'user')?.clauses.length, 2,
+          'term_expansion/2 may emit a list of clauses');
+        assertEqual(generated.findGroup('make_generated', 0, 'user'), null,
+          'the source marker is replaced by its expansion');
+
+        const dcgSource = `term_expansion(make_dcg, Clause) :-
+    expand_term((generated_nt --> [a]), Clause).
+make_dcg.
+check :- phrase(generated_nt, [a]).
+`;
+        assertIncludes(run(dcgSource, { goal: 'check' }).stdout, 'check.',
+          'expand_term/2 exposes system DCG expansion to a source hook');
+
+        const duoSource = `:- op(1200, xfx, ++>).
+term_expansion((Head ++> Body), (Head :- Body)).
+generated_duo(ok) ++> true.
+`;
+        assertEqual(run(duoSource, { goal: 'generated_duo(ok)' }).stats.completed_goal_lists, 1,
+          'custom Duo-DCG-style operators can be lowered by term_expansion/2');
+
+        const goalSource = `:- module(expansion_probe, [check/0]).
+helper(ok).
+user:goal_expansion(old(X), new(X)) :- helper(ok).
+new(ok).
+check :- old(X), X = ok.
+`;
+        const goalProgram = Program.parse(goalSource, { sourceMetadata: false });
+        const check = goalProgram.findGroup('check', 0, 'expansion_probe')?.clauses[0];
+        assertEqual(check?.body[0]?.name, 'new', 'goal_expansion/2 rewrites a later source goal');
+        assertEqual(check?.body[0]?.args[0]?.name, check?.body[1]?.args[0]?.name,
+          'goal expansion preserves sharing with the surrounding clause');
+        assertEqual(goalProgram.findGroup('goal_expansion', 2, 'user')?.clauses[0]?.body[0]?.module,
+          'expansion_probe', 'qualified hook clauses retain their lexical body module');
+        assertIncludes(run(goalSource, { goal: 'expansion_probe:check' }).stdout, 'expansion_probe:check.',
+          'a user hook defined by a library module executes in its lexical module');
+      },
+    },
+    {
       name: 'write_term variable_names/1 errors preserve the instantiated option culprit (issue #69)',
       run: () => {
         const scalar = run('', {
@@ -4785,7 +4829,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 171, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
+        assertEqual(library.defs.size, 173, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');

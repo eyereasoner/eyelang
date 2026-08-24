@@ -8,7 +8,7 @@ import {
 import { numberValueKey, sameNumberValue } from './number-value.js';
 import { PrologError, getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
-import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program.js';
+import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program-indexing.js';
 import { StreamManager } from './io.js';
 import { clpzStateConsistent } from './clpz.js';
 import { hardHeapLimit, softHeapLimit, usedHeapSize } from './platform.js';
