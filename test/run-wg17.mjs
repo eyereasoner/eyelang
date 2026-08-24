@@ -140,6 +140,38 @@ function stripLayoutOutsideQuotes(text) {
   return output.replace(/\.$/, '').replace(/([eE])\+(?=\d)/g, '$1');
 }
 
+function leadingGraphicOperatorParenSignature(text) {
+  const source = presentationText(text);
+  let index = 0;
+  const operators = [];
+  while (index < source.length) {
+    const match = source.slice(index).match(/^[!#$&*+\-./<=>?@^~\\]+/);
+    if (match == null) return null;
+    operators.push(match[0]);
+    index += match[0].length;
+    const layoutStart = index;
+    while (/\s/.test(source[index] ?? '')) index++;
+    if (index === layoutStart) return null;
+    if (source[index] === '(') return operators;
+  }
+  return null;
+}
+
+function preservesLeadingOperatorParenLayout(expected, actual) {
+  const signature = leadingGraphicOperatorParenSignature(expected);
+  if (signature == null) return true;
+  const source = presentationText(actual);
+  let index = 0;
+  for (const operator of signature) {
+    if (!source.startsWith(operator, index)) return false;
+    index += operator.length;
+    const layoutStart = index;
+    while (/\s/.test(source[index] ?? '')) index++;
+    if (index === layoutStart) return false;
+  }
+  return source[index] === '(';
+}
+
 function normalizeExampleVariables(text) {
   const names = new Map();
   let next = 0;
@@ -248,6 +280,10 @@ function textExpectationMatches(expectedText, actual, item, example = false) {
       left = normalizeExampleVariables(left);
       right = normalizeExampleVariables(right);
     }
+    // Some Codex expectations intentionally carry a mandatory lexical
+    // boundary, notably Cor.3 prefix-operator cases such as `- (1^2)`. Do not
+    // erase that boundary before the semantic/layout-tolerant fallbacks below.
+    if (!preservesLeadingOperatorParenLayout(left, right)) continue;
     if (stripLayoutOutsideQuotes(left) === stripLayoutOutsideQuotes(right)) return true;
     if (termEquivalent(left, right, item)) return true;
     if (example) {

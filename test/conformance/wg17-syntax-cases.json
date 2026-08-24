@@ -522,7 +522,7 @@
       "query": "writeq([:-,-]).",
       "input": "writeq([:-,-]).",
       "readCount": 1,
-      "expected": "[:-,-] &sup3;",
+      "expected": "[:-,-]",
       "outcome": {
         "type": "success",
         "stages": [
@@ -586,7 +586,7 @@
       "query": "writeq([.,.(.,.,.)]).",
       "input": "writeq([.,.(.,.,.)]).",
       "readCount": 1,
-      "expected": "['.','.'('.','.','.')] &sup3;",
+      "expected": "['.','.'('.','.','.')]",
       "outcome": {
         "type": "success",
         "stages": [
@@ -602,7 +602,7 @@
       "query": "writeq((a :- b,c)).",
       "input": "writeq((a :- b,c)).",
       "readCount": 1,
-      "expected": "a:-b,c&sup3;",
+      "expected": "a:-b,c",
       "outcome": {
         "type": "success",
         "stages": [
@@ -618,7 +618,7 @@
       "query": "write_canonical([a]).",
       "input": "write_canonical([a]).",
       "readCount": 1,
-      "expected": "'.'(a,[])&sup3;",
+      "expected": "'.'(a,[])",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1052,7 +1052,7 @@
       "query": "(- (1)) = -(1).",
       "input": "(- (1)) = -(1).",
       "readCount": 1,
-      "expected": "succeeds&deg;",
+      "expected": "succeeds",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1068,7 +1068,7 @@
       "query": "(- -1) = -(-1).",
       "input": "(- -1) = -(-1).",
       "readCount": 1,
-      "expected": "succeeds&deg;",
+      "expected": "succeeds",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1084,7 +1084,7 @@
       "query": "(- 1^2) = ^(-1,2).",
       "input": "(- 1^2) = ^(-1,2).",
       "readCount": 1,
-      "expected": "succeeds&deg;",
+      "expected": "succeeds",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1303,12 +1303,12 @@
       "query": "writeq(-(1)).",
       "input": "writeq(-(1)).",
       "readCount": 1,
-      "expected": "- (1)&sup3;",
+      "expected": "- (1)",
       "outcome": {
         "type": "success",
         "stages": [
           {
-            "output": "-(1)",
+            "output": "- (1)",
             "variables": "[]"
           }
         ]
@@ -1335,12 +1335,12 @@
       "query": "writeq(-(1^2)).",
       "input": "writeq(-(1^2)).",
       "readCount": 1,
-      "expected": "- (1^2)&sup3;",
+      "expected": "- (1^2)",
       "outcome": {
         "type": "success",
         "stages": [
           {
-            "output": "-(1^2)",
+            "output": "- (1^2)",
             "variables": "[]"
           }
         ]
@@ -1351,12 +1351,12 @@
       "query": "writeq(-(a^2)).",
       "input": "writeq(-(a^2)).",
       "readCount": 1,
-      "expected": "- (a^2)&sup3;",
+      "expected": "- (a^2)",
       "outcome": {
         "type": "success",
         "stages": [
           {
-            "output": "-a^2",
+            "output": "- (a^2)",
             "variables": "[]"
           }
         ]
@@ -1367,12 +1367,12 @@
       "query": "writeq(-((a,b))).",
       "input": "writeq(-((a,b))).",
       "readCount": 1,
-      "expected": "- (a,b)&sup3;",
+      "expected": "- (a,b)",
       "outcome": {
         "type": "success",
         "stages": [
           {
-            "output": "-(a,b)",
+            "output": "- (a,b)",
             "variables": "[]"
           }
         ]
@@ -1388,7 +1388,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "-(1*2)",
+            "output": "- (1*2)",
             "variables": "[]"
           }
         ]
@@ -1420,7 +1420,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "-(-)",
+            "output": "- (-)",
             "variables": "[]"
           }
         ]
@@ -1431,7 +1431,7 @@
       "query": "writeq(-[-]).",
       "input": "writeq(-[-]).",
       "readCount": 1,
-      "expected": "-[-] &sup3;",
+      "expected": "-[-]",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1479,7 +1479,7 @@
       "query": "writeq(-{a}).",
       "input": "writeq(-{a}).",
       "readCount": 1,
-      "expected": "-{a}&sup3;",
+      "expected": "-{a}",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1532,7 +1532,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "- -(1)",
+            "output": "- - (1)",
             "variables": "[]"
           }
         ]
@@ -1543,7 +1543,7 @@
       "query": "op(100,yfx,~).\nwriteq(-(1~2~3)).",
       "input": "op(100,yfx,~).\nwriteq(-(1~2~3)).",
       "readCount": 2,
-      "expected": "- (1~2~3)&sup3;",
+      "expected": "- (1~2~3)",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1552,7 +1552,7 @@
             "variables": "[]"
           },
           {
-            "output": "-(1~2~3)",
+            "output": "- (1~2~3)",
             "variables": "[]"
           }
         ]
@@ -1563,7 +1563,7 @@
       "query": " /**/ writeq(- (1~2)).",
       "input": "(catch((op(100,yfx,~)), _, true) -> true ; true).\n  writeq(- (1~2)).",
       "readCount": 2,
-      "expected": "- (1~2)&sup3;",
+      "expected": "- (1~2)",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1572,7 +1572,7 @@
             "variables": "[]"
           },
           {
-            "output": "-(1~2)",
+            "output": "- (1~2)",
             "variables": "[]"
           }
         ]
@@ -1619,7 +1619,7 @@
       "query": "op(9,xf,'$VAR'), writeq(- '$VAR'(0)).",
       "input": "op(9,xf,'$VAR'), writeq(- '$VAR'(0)).",
       "readCount": 1,
-      "expected": "-A &sup3;",
+      "expected": "-A",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1695,7 +1695,7 @@
       "query": "compound(+1).",
       "input": "compound(+1).",
       "readCount": 1,
-      "expected": "succeeds &sup2;",
+      "expected": "succeeds",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1711,7 +1711,7 @@
       "query": "compound(+ 1).",
       "input": "compound(+ 1).",
       "readCount": 1,
-      "expected": "succeeds &sup2;",
+      "expected": "succeeds",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1727,7 +1727,7 @@
       "query": "writeq(+1^2).",
       "input": "writeq(+1^2).",
       "readCount": 1,
-      "expected": "+1^2 &sup2;",
+      "expected": "+1^2",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1754,7 +1754,7 @@
       "query": "writeq([+{a},+[]]).",
       "input": "writeq([+{a},+[]]).",
       "readCount": 1,
-      "expected": "[+{a},+[]] &sup2; &sup3;",
+      "expected": "[+{a},+[]]",
       "outcome": {
         "type": "success",
         "stages": [
@@ -1819,7 +1819,7 @@
       "query": "op(999,xfy,'|').",
       "input": "op(999,xfy,'|').",
       "readCount": 1,
-      "expected": "p._e.(c., o.,'|') &sup2;",
+      "expected": "p._e.(c., o.,'|')",
       "outcome": {
         "type": "error",
         "formal": "permission_error(create, operator)"
@@ -1952,7 +1952,7 @@
       "query": "current_op(200,fy,+).",
       "input": "current_op(200,fy,+).",
       "readCount": 1,
-      "expected": "succeeds &sup2;",
+      "expected": "succeeds",
       "outcome": {
         "type": "success",
         "stages": [
@@ -2984,7 +2984,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "-(a*b)",
+            "output": "- (a*b)",
             "variables": "[]"
           }
         ]
@@ -3000,7 +3000,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "\\(a*b)",
+            "output": "\\ (a*b)",
             "variables": "[]"
           }
         ]
@@ -3173,7 +3173,7 @@
       "query": "writeq('$VAR'(0)).",
       "input": "writeq('$VAR'(0)).",
       "readCount": 1,
-      "expected": "A &sup3;",
+      "expected": "A",
       "outcome": {
         "type": "success",
         "stages": [
@@ -3738,7 +3738,7 @@
       "query": " /**/ writeq(\"a\").",
       "input": "(catch((set_prolog_flag(\n double_quotes,chars)), _, true) -> true ; true).\n  writeq(\"a\").",
       "readCount": 2,
-      "expected": "[a] &sup3;",
+      "expected": "[a]",
       "outcome": {
         "type": "success",
         "stages": [
@@ -3885,7 +3885,7 @@
       "query": " /**/ writeq((a-->b,c|d)).",
       "input": "(catch((op(1105,xfy,'|')), _, true) -> true ; true).\n  writeq((a-->b,c|d)).",
       "readCount": 2,
-      "expected": "a-->b,c|d&sup2; &sup3;",
+      "expected": "a-->b,c|d",
       "outcome": {
         "type": "success",
         "stages": [
@@ -3956,7 +3956,7 @@
       "query": " /**/ writeq([(a|b)]).",
       "input": "(catch((op(1105,xfy,'|')), _, true) -> true ; true).\n  writeq([(a|b)]).",
       "readCount": 2,
-      "expected": "[(a|b)] &sup3;",
+      "expected": "[(a|b)]",
       "outcome": {
         "type": "success",
         "stages": [
@@ -4210,7 +4210,7 @@
       "query": "op(400,fx,f).\nwriteq(f/*.*/(1,2)).",
       "input": "op(400,fx,f).\nwriteq(f/*.*/(1,2)).",
       "readCount": 2,
-      "expected": "f (1,2)&sup3;",
+      "expected": "f (1,2)",
       "outcome": {
         "type": "success",
         "stages": [
@@ -4660,7 +4660,7 @@
       "query": "op(500, xfy, {}).",
       "input": "op(500, xfy, {}).",
       "readCount": 1,
-      "expected": "p._e.(c.,o.,{}) &sup2;",
+      "expected": "p._e.(c.,o.,{})",
       "outcome": {
         "type": "error",
         "formal": "permission_error(create, operator)"
@@ -4958,7 +4958,7 @@
             "variables": "[]"
           },
           {
-            "output": "~(a=b)",
+            "output": "~ (a=b)",
             "variables": "[]"
           }
         ]
@@ -4974,7 +4974,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "\\(a=b)",
+            "output": "\\ (a=b)",
             "variables": "[]"
           }
         ]
@@ -4990,7 +4990,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "+(a=b)",
+            "output": "+ (a=b)",
             "variables": "[]"
           }
         ]
@@ -5076,7 +5076,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "+(1*2)^3",
+            "output": "+ (1*2)^3",
             "variables": "[]"
           }
         ]
@@ -5092,7 +5092,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "-((1*2)^3)",
+            "output": "- ((1*2)^3)",
             "variables": "[]"
           }
         ]

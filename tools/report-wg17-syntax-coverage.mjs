@@ -99,10 +99,14 @@ upstream assertion.
 
 ## Current standing
 
+The percentage below is **traceability coverage**, not a conformance pass rate.
+A represented case still has to pass the executable upstream assertion in
+\`test/run-wg17.mjs\`.
+
 | Measure | Count |
 | --- | ---: |
 | Active upstream cases | ${activeIds.length} |
-| Executable EyeProlog dispositions | ${coveredIds.length} (${percentage}%) |
+| Upstream cases represented in the executable matrix | ${coveredIds.length} (${percentage}%) |
 | Not yet traced one-by-one | ${untracedIds.length} |
 | Deleted upstream identifiers | ${formatRanges(manifest.upstream.deletedIds)} |
 

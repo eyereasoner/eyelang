@@ -86,7 +86,12 @@ function isWordOperatorToken(token) {
 
 function compactPrefixOperator(token, argument) {
   if (isWordOperatorToken(token)) return `${token} ${argument}`;
-  return `${token}${compactBoundaryNeedsSpace(token, argument) ? ' ' : ''}${argument}`;
+  // Without layout, `op(...)` is functional notation rather than prefix-operator
+  // notation. ISO 7.10.5 h requires operator-form output and layout whenever
+  // ambiguity could otherwise arise, so a parenthesized prefix argument must
+  // never be glued directly to the operator token.
+  const needsLayout = argument.startsWith('(') || compactBoundaryNeedsSpace(token, argument);
+  return `${token}${needsLayout ? ' ' : ''}${argument}`;
 }
 
 function compactPostfixOperator(argument, token) {
@@ -186,28 +191,6 @@ function chooseOperator(term, table) {
     return definitions.find((definition) => ['xfx', 'xfy', 'yfx'].includes(definition.specifier)) ?? null;
   }
   return null;
-}
-
-function startsWithUnsignedNumber(term, env, table, options) {
-  const resolved = deref(term, env);
-  if (resolved.type === NUMBER) return !resolved.name.startsWith('-');
-  if (resolved.type !== COMPOUND || isCons(resolved)) return false;
-  if (options.numbervars && resolved.name === '$VAR' && resolved.arity === 1) {
-    const index = deref(resolved.args[0], env);
-    if (index.type === NUMBER && /^\d+$/.test(index.name) &&
-        writeNumberedVariable(Number(index.name)) != null) {
-      return false;
-    }
-  }
-  const definition = chooseOperator(resolved, table);
-  if (definition == null) return false;
-  if (definition.specifier === 'xf' || definition.specifier === 'yf') {
-    return startsWithUnsignedNumber(resolved.args[0], env, table, options);
-  }
-  if (definition.specifier === 'xfx' || definition.specifier === 'xfy' || definition.specifier === 'yfx') {
-    return startsWithUnsignedNumber(resolved.args[0], env, table, options);
-  }
-  return false;
 }
 
 function printableReadVariableNames(term, env, explicit) {
@@ -353,13 +336,30 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
       let text;
       if (specifier === 'fx' || specifier === 'fy') {
         const argumentPriority = specifier === 'fx' ? priority - 1 : priority;
-        // A separated `- 1` is still read as the negative number -1.  When
-        // the source term is the unary -/1 compound, parenthesize a positive
-        // numeric-leading argument so writeq/write_term remain read-back safe
-        // (WG17 #135, #183, #215, #216, and #248).
-        if (resolved.name === '-' && startsWithUnsignedNumber(resolved.args[0], env, table, options)) {
+        // Corrigendum 3 adds mandatory parentheses for prefix - when its
+        // argument is a non-negative number or is written in infix/postfix
+        // operator form (ISO 7.10.5 h 2(iii-iv)).
+        const child = deref(resolved.args[0], env);
+        const childNumbervar = options.numbervars && child.type === COMPOUND &&
+          child.name === '$VAR' && child.arity === 1 && (() => {
+            const index = deref(child.args[0], env);
+            return index.type === NUMBER && /^\d+$/.test(index.name) &&
+              writeNumberedVariable(Number(index.name)) != null;
+          })();
+        const childUsesSpecialNotation = isCons(child) ||
+          (child.type === COMPOUND && child.name === '{}' && child.arity === 1) || childNumbervar;
+        const childDefinition = childUsesSpecialNotation ? null : chooseOperator(child, table);
+        const negativeNeedsParentheses = resolved.name === '-' && (
+          (child.type === NUMBER && !child.name.startsWith('-')) ||
+          ['xf', 'yf', 'xfx', 'xfy', 'yfx'].includes(childDefinition?.specifier)
+        );
+        if (negativeNeedsParentheses) {
+          // ISO 7.10.5 h 2(iii-iv): prefix - requires parentheses around a
+          // non-negative number and around an argument written in infix or
+          // postfix operator form. Keep layout before `(` so the result is
+          // operator notation, not functional notation such as `-(...)`.
           const argument = format(resolved.args[0], env, options, table, 1200);
-          text = options.minimalOperatorSpacing ? `${token}(${argument})` : `${token} (${argument})`;
+          text = `${token} (${argument})`;
         } else {
           const argument = format(resolved.args[0], env, options, table, argumentPriority);
           text = options.minimalOperatorSpacing ? compactPrefixOperator(token, argument) : `${token} ${argument}`;

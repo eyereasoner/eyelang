@@ -16,6 +16,7 @@ const namedEntities = new Map([
   ['amp', '&'], ['lt', '<'], ['gt', '>'], ['quot', '"'], ['apos', "'"],
   ['nbsp', '\u00a0'], ['ndash', '–'], ['mdash', '—'], ['minus', '−'],
   ['hellip', '…'], ['middot', '·'], ['times', '×'], ['laquo', '«'], ['raquo', '»'],
+  ['sup2', '²'], ['sup3', '³'], ['deg', '°'],
 ]);
 
 export function decodeHtmlEntities(text) {
@@ -96,7 +97,7 @@ export function parseWg17SyntaxTable(html) {
     // They are not part of the Prolog source being specified, so normalize
     // them to ordinary spaces before snapshotting/comparing rows.
     const query = htmlCellText(cells[1]).replace(/\u00a0/g, ' ');
-    const expected = htmlCellText(cells[2]).replace(/\u00a0/g, ' ').replace(/[ \t\n]+/g, ' ').trim();
+    const expected = htmlCellText(cells[2]).replace(/\u00a0/g, ' ').replace(/[²³°]/g, '').replace(/[ \t\n]+/g, ' ').trim();
     if (query.length === 0 || expected.length === 0) continue;
     cases.push({ id, query, expected });
     seen.add(id);

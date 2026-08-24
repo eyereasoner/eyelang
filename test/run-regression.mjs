@@ -314,6 +314,19 @@ probe :- empty_assoc(A), copy_term_nat(A, _), bb_b_put(current, ok), bb_get(curr
           goal: "catch((VN=[[]],write_term(T,[variable_names(VN)])),error(E,_),writeq(E))",
         });
         assertEqual(list.stdout, 'domain_error(write_option,variable_names([[]]))', 'list culprit');
+
+        assertEqual(run('', { isoStrict: true, goal: 'writeq(-(1^2))' }).stdout.split('writeq(')[0],
+          '- (1^2)', 'writeq negative power layout');
+        assertEqual(run('', { isoStrict: true, goal: 'writeq(-(a^2))' }).stdout.split('writeq(')[0],
+          '- (a^2)', 'writeq symbolic negative power layout');
+        assertEqual(run('', {
+          isoStrict: true,
+          goal: "write_term(-X^2,[variable_names(['X'=X])])",
+        }).stdout, '- (X^2)', 'write_term variable_names negative power layout');
+        assertEqual(run('', {
+          isoStrict: true,
+          goal: "X=1,write_term(-X^2,[variable_names(['X'=X])])",
+        }).stdout.split('1 = 1')[0], '- (1^2)', 'write_term bound variable negative power layout');
       },
     },
     {
@@ -3704,6 +3717,16 @@ function documentationSyncCases() {
       },
     },
     {
+      name: 'WG17 upgrader removes presentation footnote markers from Codex text',
+      run: () => {
+        const rows = Array.from({ length: 120 }, (_, index) =>
+          `<tr><td>${index + 1}<td>writeq(-(1^2)).<td>- (1^2)&sup3;`).join('\n');
+        const html = `<table><tr><th>#<th>Query<th>Codex${rows}</table>`;
+        const parsed = parseWg17SyntaxTable(html);
+        assertEqual(parsed[0].expected, '- (1^2)', 'normalized Codex expectation');
+      },
+    },
+    {
       name: 'WG17 upstream expectations independently validate reviewed outcomes',
       run: () => {
         assertEqual(matchesUpstreamExpectation('succeeds', { type: 'success', stages: [] }), true, 'succeeds');
@@ -3718,6 +3741,22 @@ function documentationSyncCases() {
           matchesUpstreamExpectation("'a b'", { type: 'success', stages: [{ output: "'a b'", variables: '[]' }] }),
           true,
           'observable output',
+        );
+        const negativePower = { id: 183, input: 'writeq(-(1^2)).' };
+        assertEqual(
+          matchesUpstreamExpectation('- (1^2)', { type: 'success', stages: [{ output: '-(1^2)', variables: '[]' }] }, negativePower),
+          false,
+          'mandatory operator/parenthesis layout is not erased',
+        );
+        assertEqual(
+          matchesUpstreamExpectation('- (a^2)', { type: 'success', stages: [{ output: '-a^2', variables: '[]' }] }, negativePower),
+          false,
+          'mandatory negative-power parentheses are not erased',
+        );
+        assertEqual(
+          matchesUpstreamExpectation('- (1^2)', { type: 'success', stages: [{ output: '- (1 ^ 2)', variables: '[]' }] }, negativePower),
+          true,
+          'non-semantic internal operator spacing remains flexible',
         );
         const repeated = {
           id: 227, input: 'write_canonical(B+B).',
