@@ -132,7 +132,7 @@ function regressionCases() {
     {
       name: 'library(atts) provides Scryer-style attributed-variable hooks',
       run: () => {
-        const source = `:- module(attr_probe, [check_get/0, check_alias/0, check_ok/0, check_bad/0, check_conflict/0, check_backtrack/0, check_term_vars/0]).
+        const source = `:- module(attr_probe, [check_get/0, check_alias/0, check_ok/0, check_bad/0, check_conflict/0, check_backtrack/0, check_term_vars/0, check_residue_new/0, check_residue_unchanged/0, check_residue_modified/0, check_residue_dif/0]).
 :- use_module(library(atts)).
 :- attribute mark/1.
 attach(X, V) :- put_atts(X, mark(V)).
@@ -151,6 +151,10 @@ check_bad :- attach(X, 3), X = 4.
 check_conflict :- attach(X, a), attach(Y, b), X = Y.
 check_backtrack :- (attach(X, a), fail ; true), \\+ get_atts(X, mark(_)).
 check_term_vars :- attach(X, a), term_attributed_variables(pair(X,Y), [X]), var(Y), X = a.
+check_residue_new :- call_residue_vars(attach(X, a), Vs), Vs = [X].
+check_residue_unchanged :- attach(X, a), call_residue_vars(true, Vs), Vs = [], X = a.
+check_residue_modified :- attach(X, a), call_residue_vars(put_atts(X, mark(b)), Vs), Vs = [X], X = b.
+check_residue_dif :- call_residue_vars(dif(X,Y), Vs), Vs = [X,Y].
 `;
         assertIncludes(run(source, { goal: 'attr_probe:check_get' }).stdout, 'attr_probe:check_get.', 'get_atts/2');
         assertIncludes(run(source, { goal: 'attr_probe:check_alias' }).stdout, 'attr_probe:check_alias.', 'attribute transfer on aliasing');
@@ -159,6 +163,20 @@ check_term_vars :- attach(X, a), term_attributed_variables(pair(X,Y), [X]), var(
         assertEqual(run(source, { goal: 'attr_probe:check_conflict' }).stdout, '', 'same-module attributes are verified before aliasing');
         assertIncludes(run(source, { goal: 'attr_probe:check_backtrack' }).stdout, 'attr_probe:check_backtrack.', 'attributes backtrack with Env branches');
         assertIncludes(run(source, { goal: 'attr_probe:check_term_vars' }).stdout, 'attr_probe:check_term_vars.', 'term_attributed_variables/2');
+        assertIncludes(run(source, { goal: 'attr_probe:check_residue_new' }).stdout, 'attr_probe:check_residue_new.', 'call_residue_vars/2 reports newly attributed variables');
+        assertIncludes(run(source, { goal: 'attr_probe:check_residue_unchanged' }).stdout, 'attr_probe:check_residue_unchanged.', 'call_residue_vars/2 ignores unchanged pre-existing attributes');
+        assertIncludes(run(source, { goal: 'attr_probe:check_residue_modified' }).stdout, 'attr_probe:check_residue_modified.', 'call_residue_vars/2 reports modified attributes');
+        assertIncludes(run(source, { goal: 'attr_probe:check_residue_dif' }).stdout, 'attr_probe:check_residue_dif.', 'call_residue_vars/2 includes native dif/2 residual variables');
+        const freezeResidue = `:- use_module(library(atts)).
+:- use_module(library(prologue), [freeze/2]).
+check :- call_residue_vars(freeze(X,true), Vs), Vs = [X].
+`;
+        assertIncludes(run(freezeResidue, { goal: 'check' }).stdout, 'check.', 'call_residue_vars/2 includes delayed freeze/2 variables');
+        const clpzResidue = `:- use_module(library(atts)).
+:- use_module(library(clpz)).
+check :- call_residue_vars(X in 1..3, Vs), Vs = [X].
+`;
+        assertIncludes(run(clpzResidue, { goal: 'check' }).stdout, 'check.', 'call_residue_vars/2 includes CLP(Z) attributed variables');
 
         const residualFile = path.join(tmp, `atts-residual-${++tmpCounter}.pl`);
         fs.writeFileSync(residualFile, `:- use_module(library(atts)).
@@ -2088,6 +2106,53 @@ c4 ?- call((!;1)).
         );
         assertEqual(stopped.stderr, '', 'stopped stderr');
         assertEqual(advanced.stderr, '', 'advanced stderr');
+      },
+    },
+    {
+      name: 'REPL exposes output side effects while search is still running (issue #72)',
+      run: () => {
+        const helper = `
+          import { spawn } from 'node:child_process';
+
+          const child = spawn(${JSON.stringify(process.execPath)}, [${JSON.stringify(bin)}], {
+            cwd: ${JSON.stringify(packageRoot)},
+            stdio: ['pipe', 'pipe', 'pipe'],
+          });
+          child.stdout.setEncoding('utf8');
+          child.stderr.setEncoding('utf8');
+          let stdout = '';
+          let stderr = '';
+          child.stdout.on('data', (text) => { stdout += text; });
+          child.stderr.on('data', (text) => { stderr += text; });
+
+          async function waitFor(predicate, label) {
+            const deadline = Date.now() + 5000;
+            while (!predicate()) {
+              if (Date.now() >= deadline) {
+                child.kill('SIGKILL');
+                throw new Error(label + ' timeout; stdout=' + JSON.stringify(stdout) + '; stderr=' + JSON.stringify(stderr));
+              }
+              await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+          }
+
+          child.stdin.write('use_module(library(iso_ext)).\\n');
+          await waitFor(() => stdout.includes('   true.\\n?- '), 'module import');
+          child.stdin.write('call_nth(repeat,Nth), (Nth mod 2=:=0->writeq(r(Nth)),nl;true),Nth<0.\\n');
+          await waitFor(() => stdout.includes('r(2)\\nr(4)\\n'), 'progress output');
+          if (stdout.includes('false.')) throw new Error('infinite search unexpectedly reached a leaf');
+          child.kill('SIGKILL');
+          await new Promise((resolve) => child.once('exit', resolve));
+          process.stdout.write('progress-visible');
+        `;
+        const result = spawnSync(process.execPath, [
+          '--input-type=module',
+          '--eval',
+          helper,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 10000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `progress helper status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, 'progress-visible', 'newline-terminated progress is visible before a leaf answer');
       },
     },
     {
@@ -4939,7 +5004,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 154, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 155, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -4956,21 +5021,23 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 48, 'public native EyeProlog builtin count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 49, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 87, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 29, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 30, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda,atts', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
+        assertEqual(eyePrologInteropAutoload['call_residue_vars/2'], 'atts', 'call_residue_vars/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 48, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 49, 'native host library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 135, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 136, 'complete EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
+        assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
         assertEqual(registry.get('eyeprolog__freeze', 2), null, 'private freeze adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__freeze', 2)), true, 'private freeze adapter is registered for EyeProlog');

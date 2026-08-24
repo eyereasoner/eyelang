@@ -63,7 +63,7 @@ function libraryUrl(filename) {
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([
   'call_nth/2', 'freeze/2', 'dif/2', 'countall/2', 'time/1',
-  'put_atts/2', 'get_atts/2', 'put_attr/3', 'get_attr/3', 'del_attr/2', 'term_attributed_variables/2',
+  'put_atts/2', 'get_atts/2', 'put_attr/3', 'get_attr/3', 'del_attr/2', 'term_attributed_variables/2', 'call_residue_vars/2',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
   'in/2', 'ins/2', 'all_different/1', 'all_distinct/1', 'nvalue/2', 'sum/3',
@@ -133,6 +133,9 @@ export const eyePrologInteropAutoload = Object.freeze({
   // it from library(iso_ext), matching the explicit Scryer import while still
   // allowing Trealla-style unqualified source to use the same autoload entry.
   'call_nth/2': 'iso_ext',
+  // Scryer exposes call_residue_vars/2 from library(atts); autoload it for
+  // constraint-test source that uses the predicate without an explicit import.
+  'call_residue_vars/2': 'atts',
   // Trealla exposes time/1 as a meta timing predicate and library(iso_ext)
   // supplies ... //0. Autoload both so UWN's DCG hand-off benchmark runs
   // unchanged while their implementations remain outside the ISO core.

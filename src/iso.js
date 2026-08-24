@@ -165,6 +165,7 @@ export const isoBuiltins = {
 export const eyePrologLibraryBuiltins = {
   register(registry) {
     registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
+    registry.add('eyeprolog__call_residue_vars', 2, callResidueVarsBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__countall', 2, countAllBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__freeze', 2, freezeBuiltin, { eyePrologLibrary: true });
     registry.add('dif', 2, difBuiltin, { deterministic: true, eyePrologLibrary: true });
@@ -2491,6 +2492,79 @@ function* callNthBuiltin({ solver, goal, env }) {
       const next = answerEnv.clone();
       if (unify(goal.args[1], numberTerm(nth.toString()), next)) yield next;
       if (requested != null) return;
+    }
+  } finally {
+    solver.absorbStatsFrom(child);
+  }
+}
+
+function residueSnapshot(env) {
+  const attributes = new Map();
+  for (const name of env.attributedVariableNames?.() ?? []) {
+    attributes.set(name, env.prologAttributes(name));
+  }
+  const delays = new Map();
+  for (const name of env.delayedVariableNames?.() ?? []) {
+    delays.set(name, env.delayedGoals(name));
+  }
+  const constraints = new Map();
+  for (const constraint of env.variableConstraints?.() ?? []) {
+    constraints.set(constraint, [...constraint.variables(env)]);
+  }
+  return { attributes, delays, constraints };
+}
+
+function sameAttributeEntries(before, after) {
+  if (before == null || before.length !== after.length) return false;
+  for (let i = 0; i < after.length; i++) {
+    if (before[i].module !== after[i].module || before[i].attribute !== after[i].attribute) return false;
+  }
+  return true;
+}
+
+function sameDelayEntries(before, after) {
+  if (before == null || before.length !== after.length) return false;
+  for (let i = 0; i < after.length; i++) if (before[i] !== after[i]) return false;
+  return true;
+}
+
+function residueVariablesSince(snapshot, env) {
+  const names = [];
+  const seen = new Set();
+  const add = (name) => {
+    const root = deref(variable(name), env);
+    if (root.type !== VAR || seen.has(root.name)) return;
+    seen.add(root.name);
+    names.push(root);
+  };
+
+  for (const name of env.attributedVariableNames?.() ?? []) {
+    const after = env.prologAttributes(name);
+    if (!sameAttributeEntries(snapshot.attributes.get(name), after)) add(name);
+  }
+  for (const name of env.delayedVariableNames?.() ?? []) {
+    const after = env.delayedGoals(name);
+    if (!sameDelayEntries(snapshot.delays.get(name), after)) add(name);
+  }
+  for (const constraint of env.variableConstraints?.() ?? []) {
+    const after = [...constraint.variables(env)];
+    const before = snapshot.constraints.get(constraint);
+    const unchanged = before != null && before.length === after.length && before.every((name, index) => name === after[index]);
+    if (unchanged) continue;
+    for (const name of after) add(name);
+  }
+  return names;
+}
+
+function* callResidueVarsBuiltin({ solver, goal, env }) {
+  const invoked = callable(goal.args[0], env);
+  if (invoked.module == null) invoked.module = goal.module ?? 'user';
+  const snapshot = residueSnapshot(env);
+  const child = solver.cloneForInnerGoal();
+  try {
+    for (const answerEnv of child.solve([invoked], env, 0)) {
+      const next = answerEnv.clone();
+      if (unify(goal.args[1], listFromItems(residueVariablesSince(snapshot, answerEnv)), next)) yield next;
     }
   } finally {
     solver.absorbStatsFrom(child);

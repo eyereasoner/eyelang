@@ -672,18 +672,18 @@ async function solveQuery(engine, state, goal, reader, output) {
 }
 
 function pullSolution(solver, solutions, reader) {
-  const stream = solver.io.resolve('user_output');
-  const originalWrite = stream?.write;
-  let captured = '';
-  if (stream) stream.write = (text) => { captured += String(text); };
+  // Prolog output is an observable side effect of execution, so never hold it
+  // until the search reaches its next leaf. In particular an infinite search
+  // that periodically writes progress must remain observable at the terminal.
+  // Completed queries keep the same byte order because user_output writes are
+  // synchronous and occur before solutions.next() returns its answer.
   const suspended = reader.suspendForComputation();
   try {
-    return { result: solutions.next(), output: captured };
+    return { result: solutions.next(), output: '' };
   } catch (error) {
-    return { error, output: captured };
+    return { error, output: '' };
   } finally {
     reader.resumeAfterComputation(suspended);
-    if (stream) stream.write = originalWrite;
   }
 }
 

@@ -268,6 +268,28 @@ export class Env {
     delays.set(name, [...(delays.get(name) ?? []), { goal, module }]);
     this._delays = delays;
   }
+  delayedVariableNames() {
+    if (this._delays == null || this._delays.size === 0) return [];
+    const names = [];
+    const seen = new Set();
+    for (const name of this._delays.keys()) {
+      const root = deref(variable(name), this);
+      if (root.type !== VAR || seen.has(root.name)) continue;
+      seen.add(root.name);
+      names.push(root.name);
+    }
+    return names;
+  }
+  delayedGoals(name) {
+    const root = deref(variable(name), this);
+    if (root.type !== VAR || this._delays == null) return [];
+    const result = [];
+    for (const [source, goals] of this._delays) {
+      const current = deref(variable(source), this);
+      if (current.type === VAR && current.name === root.name) result.push(...goals);
+    }
+    return result;
+  }
   takeReadyDelays() {
     if (this._delays == null || this._delays.size === 0) return [];
     const ready = [];

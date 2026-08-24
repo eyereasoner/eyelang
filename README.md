@@ -151,7 +151,9 @@ top level includes pending `dif/2` goals in residual answers. See
 
 `library(atts)` exposes Scryer-style attributed-variable operations on the same
 persistent `Env` machinery used by `dif/2`: `put_atts/2`, `get_atts/2`,
-`put_attr/3`, `get_attr/3`, `del_attr/2`, and `term_attributed_variables/2`.
+`put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, and
+`call_residue_vars/2`. The latter reports variables whose residual attributes or
+constraints were created or modified by a goal, including native `dif/2` residues.
 `:- attribute ...` declarations are accepted, `verify_attributes/3` runs before
 an attributed binding is committed, and the hook's returned goals run after
 that binding. Attribute state follows variable representatives and ordinary
@@ -359,7 +361,8 @@ lambda syntax also changes the active operator table.
 Outside `--iso-strict`, an otherwise undefined unqualified call may autoload a
 predicate only when the interop profile has one canonical EyeProlog provider.
 For example, `member/2` autoloads from `library(lists)`, `call_nth/2` from
-`library(iso_ext)`, and `between/3` from EyeProlog's internal
+`library(iso_ext)`, `call_residue_vars/2` from `library(atts)`, and `between/3`
+from EyeProlog's internal
 `library(prologue)` implementation. Use `--no-autoload` to disable this
 convenience. Strict ISO mode never autoloads library predicates.
 

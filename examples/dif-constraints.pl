@@ -11,8 +11,8 @@ allowed_pair(X, Y) :-
     X = left,
     Y = right.
 
-% The structural constraint remains pending after X=Y. Binding both to 1
-% then proves X-Y and 1-2 different, so the constraint is discharged.
+% X=Y already proves X-Y and 1-2 different: X-X cannot unify with 1-2,
+% so the dif/2 constraint is discharged before the final specialization Y=1.
 specialization(X, Y) :-
     dif(X-Y, 1-2),
     X = Y,
