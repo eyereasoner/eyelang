@@ -55,17 +55,35 @@ The regression corpus covers clause-list generation, variable-sharing goal
 expansion, qualified hook lexical context, and the Scryer pattern where a
 `term_expansion/2` hook calls `expand_term/2` to generate a DCG predicate.
 
-## What still prevents a drop-in Scryer `clpz.pl`
+## Stage 3: Scryer support-library surface
 
-The remaining compatibility work is the supporting Scryer library surface
-(`assoc`, `pairs`, `between`, `dcgs`, `terms`, `error`, `si`, `freeze`,
-`arithmetic`, `debug`, and `format`) at the interfaces expected by that source,
-plus any small builtin gaps exposed while loading those modules. The generated
-predicates and custom Duo DCG `++>` expansion are no longer VM/compiler
-blockers: Scryer's own `term_expansion/2` can now perform that lowering.
+This stage is implemented. EyeProlog now registers the library names imported by
+Scryer's current `clpz.pl`: `assoc`, `pairs`, `between`, `dcgs`, `terms`,
+`error`, `si`, `freeze`, `arithmetic`, `debug`, and `format`. The implementations
+are deliberately small compatibility layers where CLP(Z) needs only a subset of
+the upstream module, while observable predicate contracts stay at the Prolog
+library boundary. In particular, `library(freeze)` is implemented with the same
+attributed-variable `verify_attributes/3` protocol introduced in Stage 1.
 
-These are reusable library compatibility gaps, not reasons to add more
-CLP(Z)-specific code to `term.js` or `solver.js`.
+Two remaining Scryer runtime facilities are generic rather than constraint
+specific. `Env` now carries a copy-on-write backtrackable blackboard, exposed to
+Prolog through `bb_get/2` and `bb_b_put/2` compatibility wrappers, and
+`library(terms)` provides `copy_term_nat/2` using EyeProlog's attribute-free
+logical copy semantics. Regression coverage exercises the support modules,
+blackboard rollback, attribute-free copying, and the exact import/attribute
+prelude used by upstream CLP(Z).
+
+## What still prevents replacing `src/clpz.js`
+
+The VM/compiler and named support-library blockers are now closed. The remaining
+work is direct upstream-source integration: vendor a pinned Scryer `clpz.pl`,
+apply only the small compatibility patches exposed by loading the complete file,
+and run it side-by-side against EyeProlog's existing CLP(Z) corpus plus selected
+Scryer regressions. Only after behavioral and performance parity should the
+`eyeprolog__clpz_*` adapters and `Env._clpz` store be removed.
+
+This boundary is intentional: Stage 3 does not claim that the complete upstream
+solver is active merely because its dependency prelude loads.
 
 ## Migration rule
 

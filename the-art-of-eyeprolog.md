@@ -6427,9 +6427,12 @@ is intended to support staged reuse of Markus Triska's MIT-licensed
 The generic compile-time expansion blocker is now closed: normal-profile source
 loading runs module-local and `user` `term_expansion/2` and `goal_expansion/2`
 hooks, accepts clause-list expansions, preserves surrounding variable sharing,
-and provides `expand_term/2` for processor DCG lowering. This is sufficient for
-Scryer's generated-predicate and Duo-DCG expansion strategy. The remaining
-blocker is the supporting Scryer library surface used by that source; the
+and provides `expand_term/2` for processor DCG lowering. EyeProlog now also
+registers the Scryer support modules needed by that source (`assoc`, `pairs`,
+`between`, `dcgs`, `terms`, `error`, `si`, `freeze`, `arithmetic`, `debug`, and
+`format`) and supplies a generic copy-on-write backtrackable blackboard. The
+remaining migration step is to vendor and load a pinned upstream `clpz.pl`, then
+establish behavioral and performance parity before removing the JS kernel. The
 migration state is tracked in [`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md).
 Until parity is reached, the JS kernel remains the active implementation so
 existing CLP(Z) behavior does not regress.

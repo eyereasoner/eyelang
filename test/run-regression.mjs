@@ -230,6 +230,77 @@ check :- old(X), X = ok.
       },
     },
     {
+      name: 'Scryer CLP(Z) support libraries provide the dependency surface',
+      run: () => {
+        const source = `:- module(scryer_support, [snapshot/6, blackboard_rollback/1, copy_drops_attrs/0]).
+:- use_module(library(assoc)).
+:- use_module(library(pairs)).
+:- use_module(library(between)).
+:- use_module(library(dcgs)).
+:- use_module(library(terms)).
+:- use_module(library(error)).
+:- use_module(library(si)).
+:- use_module(library(freeze)).
+:- use_module(library(arithmetic)).
+:- use_module(library(debug)).
+:- use_module(library(format)).
+:- use_module(library(atts)).
+snapshot(Pairs, Keys, Values, Ns, Bits, Wake) :-
+    empty_assoc(A0),
+    put_assoc(2, A0, b, A1),
+    put_assoc(1, A1, a, A2),
+    assoc_to_list(A2, Pairs),
+    pairs_keys_values(Pairs, Keys, Values),
+    numlist(1, 3, Ns),
+    list_si(Ns),
+    arithmetic:popcount(13, Bits),
+    freeze(X, Wake = awake),
+    X = go.
+blackboard_rollback(Value) :-
+    bb_b_put(k, base),
+    ( bb_b_put(k, temporary), fail ; bb_get(k, Value) ).
+copy_drops_attrs :-
+    put_attr(X, probe, value),
+    copy_term_nat(X, Copy),
+    term_attributed_variables(Copy, []).
+`;
+        const snapshot = run(source, { goal: 'scryer_support:snapshot(Pairs,Keys,Values,Ns,Bits,Wake)' });
+        assertIncludes(snapshot.stdout,
+          'scryer_support:snapshot([1 - a, 2 - b], [1, 2], "ab", [1, 2, 3], 3, awake).',
+          'assoc, pairs, between, si, freeze, and arithmetic compatibility');
+        assertIncludes(run(source, { goal: 'scryer_support:blackboard_rollback(V)' }).stdout,
+          'scryer_support:blackboard_rollback(base).',
+          'backtrackable blackboard writes roll back with Env branches');
+        assertIncludes(run(source, { goal: 'scryer_support:copy_drops_attrs' }).stdout,
+          'scryer_support:copy_drops_attrs.',
+          'copy_term_nat/2 omits attributed-variable state');
+        assertEqual(run(source, { goal: 'debug:bb_get(missing,_V)' }).stats.completed_goal_lists, 0,
+          'bb_get/2 is semidet for an absent key');
+        const prelude = `:- module(scryer_clpz_prelude, [probe/0]).
+:- use_module(library(assoc)).
+:- use_module(library(pairs)).
+:- use_module(library(between)).
+:- use_module(library(lists)).
+:- use_module(library(atts)).
+:- use_module(library(iso_ext)).
+:- use_module(library(dcgs)).
+:- use_module(library(terms)).
+:- use_module(library(error), [domain_error/3, type_error/3, can_be/2]).
+:- use_module(library(si)).
+:- use_module(library(freeze)).
+:- use_module(library(arithmetic)).
+:- use_module(library(debug)).
+:- use_module(library(format)).
+:- attribute clpz/1, clpz_aux/1, clpz_relation/1, edges/1, flow/1,
+             parent/1, free/1, queue/2, disabled/0.
+probe :- empty_assoc(A), copy_term_nat(A, _), bb_b_put(current, ok), bb_get(current, ok).
+`;
+        assertIncludes(run(prelude, { goal: 'scryer_clpz_prelude:probe' }).stdout,
+          'scryer_clpz_prelude:probe.',
+          'the dependency and attribute prelude used by upstream clpz.pl loads unchanged');
+      },
+    },
+    {
       name: 'write_term variable_names/1 errors preserve the instantiated option culprit (issue #69)',
       run: () => {
         const scalar = run('', {
@@ -4829,7 +4900,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 173, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
+        assertEqual(library.defs.size, 175, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -4872,6 +4943,8 @@ answer(ok) :-
         assertEqual(registry.get('put_atts', 2), null, 'put_atts/2 is absent from the ISO registry');
         assertEqual(Boolean(library.get('put_atts', 2)), true, 'put_atts/2 is registered for attributed-variable libraries');
         assertEqual(Boolean(library.get('$put_to_attr_list', 3)), true, 'private attribute-list adapter is registered');
+        assertEqual(Boolean(library.get('eyeprolog__bb_get', 2)), true, 'private backtrackable blackboard reader is registered');
+        assertEqual(Boolean(library.get('eyeprolog__bb_b_put', 2)), true, 'private backtrackable blackboard writer is registered');
         assertEqual(library.get('between', 3), null, 'between/3 remains portable Prolog');
         assertEqual(library.get('smallest_divisor_from', 3), null, 'smallest_divisor_from/3 remains portable Prolog');
         assertEqual(library.get('random', 3), null, 'random/3 remains portable Prolog');

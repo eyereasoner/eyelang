@@ -48,6 +48,13 @@ needed by Scryer's `library(atts)` and `library(clpz)`. The current CLP(Z)-speci
 `Env._clpz` store remains transitional until the Scryer Prolog implementation can
 replace it without losing test or performance parity; see `src/CLPZ-MIGRATION.md`.
 
+`Env` also owns the small generic backtrackable blackboard used by Scryer-style
+libraries. Blackboard maps are shared by clones and copied only on write, so
+`bb_b_put/2` follows ordinary Prolog backtracking without any CLP(Z)-specific
+state in the VM. `scryer-compat.js` exposes the private host bridge used by
+`library(debug)`; the rest of the Stage 3 compatibility surface lives as Prolog
+modules under `src/lib/`.
+
 `source-expansion.js` is the explicit compile-time execution boundary. When an
 already-loaded `term_expansion/2` or `goal_expansion/2` hook exists, program
 preparation invokes it with a fresh bounded `Solver` against the partially built

@@ -6,23 +6,35 @@ import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './
 import { clpzBuiltins } from './clpz.js';
 import { attsBuiltins } from './atts.js';
 import { expansionBuiltins } from './expansion-builtins.js';
+import { scryerCompatibilityBuiltins } from './scryer-compat.js';
 import { registerCleanupBuiltins } from './cleanup.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
 
 const moduleFiles = Object.freeze({
   aggregate: 'aggregate.pl',
+  arithmetic: 'arithmetic.pl',
+  assoc: 'assoc.pl',
   atts: 'atts.pl',
+  between: 'between.pl',
   clpz: 'clpz.pl',
   comparison: 'comparison.pl',
   dates: 'dates.pl',
+  dcgs: 'dcgs.pl',
+  debug: 'debug.pl',
+  error: 'error.pl',
+  format: 'format.pl',
+  freeze: 'freeze.pl',
   iso_ext: 'iso_ext.pl',
   lambda: 'lambda.pl',
   lists: 'lists.pl',
+  pairs: 'pairs.pl',
   primes: 'primes.pl',
   prologue: 'prologue.pl',
   random: 'random.pl',
+  si: 'si.pl',
   strings: 'strings.pl',
+  terms: 'terms.pl',
   uuid: 'uuid.pl',
 });
 
@@ -190,6 +202,7 @@ export function createEyePrologRegistry() {
   eyePrologLibraryBuiltins.register(registry);
   attsBuiltins.register(registry);
   expansionBuiltins.register(registry);
+  scryerCompatibilityBuiltins.register(registry);
   clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;
