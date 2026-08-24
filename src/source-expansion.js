@@ -71,7 +71,7 @@ function runHook(program, module, name, input, loadContext = null) {
     const goal = compound(name, [input, output]);
     goal.module = owner;
     const solver = new Solver(program, {
-      solutionLimit: 1,
+      solutionLimit: Infinity,
       maxInferences: MAX_EXPANSION_INFERENCES,
       sourceLoadContext: loadContext,
     });

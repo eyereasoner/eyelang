@@ -576,8 +576,16 @@ class ProgramBuilder {
       targetSet.add(key);
       declaredMap.set(`${textUnit}\u0000${key}`, { ...indicator, key, module, textUnit });
       if (kind === 'dynamic') {
-        const existing = program.groups.get(key);
-        if (existing) existing.dynamic = true;
+        // A dynamic declaration creates the procedure immediately, not only
+        // when ProgramBuilder.finish() runs. Compile-time source-expansion
+        // hooks can therefore call an explicitly declared empty dynamic
+        // predicate while the remainder of the same file is still loading.
+        let existing = program.groups.get(key);
+        if (!existing) {
+          existing = program.makeGroup(indicator.name, indicator.arity, module);
+          program.groups.set(key, existing);
+        }
+        existing.dynamic = true;
       }
     }
     return true;
@@ -1065,6 +1073,7 @@ function sourcePath(options) {
 
 function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules, fast, context) {
   const batch = [];
+  const deferredGoalExpansions = [];
   const flush = () => {
     if (batch.length === 0) return;
     builder.addClauses(batch);
@@ -1114,10 +1123,23 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     clause = normalizeQualifiedClauseHead(clause, lexicalModule);
 
     if (!builder.program.strictIso && !isDirectiveClause(clause)) {
-      expandClauseGoals(builder.program, clause, lexicalModule, {
-        module: lexicalModule,
-        filename: options.filename ?? '<input>',
-      });
+      try {
+        expandClauseGoals(builder.program, clause, lexicalModule, {
+          module: lexicalModule,
+          filename: options.filename ?? '<input>',
+        });
+      } catch (error) {
+        // Scryer-compatible goal-expansion hooks may refer to helper predicates
+        // that occur later in the same source file. Keep loading so those
+        // helpers become visible, then retry this clause at end-of-source.
+        // A still-missing helper (or any other expansion error) is reported on
+        // the final retry rather than being silently ignored.
+        if (!(error instanceof PrologError) || error.formal !== 'existence_error(procedure)') throw error;
+        clause.module ??= lexicalModule;
+        clause.textUnit ??= context.textUnit;
+        deferredGoalExpansions.push({ clause, lexicalModule });
+        return;
+      }
     }
 
     const moduleDeclaration = moduleDirective(clause);
@@ -1207,6 +1229,16 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
   }
   parseClausesInto(source, options, processClause);
   flush();
+  if (!builder.program.strictIso && deferredGoalExpansions.length > 0) {
+    for (const { clause, lexicalModule } of deferredGoalExpansions) {
+      expandClauseGoals(builder.program, clause, lexicalModule, {
+        module: lexicalModule,
+        filename: options.filename ?? '<input>',
+      });
+      for (const goal of clause.body) annotateGoalModule(goal, clause.lexicalModule ?? lexicalModule);
+      builder.addClauses([clause]);
+    }
+  }
   return true;
 }
 

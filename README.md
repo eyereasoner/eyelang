@@ -147,29 +147,31 @@ are removed, and violated constraints make unification fail. The interactive
 top level includes pending `dif/2` goals in residual answers. See
 [`examples/dif-constraints.pl`](examples/dif-constraints.pl).
 
-### Attributed variables and the CLP(Z) migration
+### Attributed variables and CLP(Z)
 
-`library(atts)` now exposes Scryer-style attributed-variable operations on the
-same persistent `Env` machinery introduced for `dif/2`: `put_atts/2`,
-`get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, and
-`term_attributed_variables/2`. `:- attribute ...` declarations are accepted,
-`verify_attributes/3` is invoked before an attributed binding is committed, and
-the hook's returned goals run after that binding. Attribute state follows
-variable representatives and ordinary Prolog backtracking, and the REPL projects
-module `attribute_goals//1` hooks as residual goals. See
-[`examples/attributed-variables.pl`](examples/attributed-variables.pl).
+`library(atts)` exposes Scryer-style attributed-variable operations on the same
+persistent `Env` machinery used by `dif/2`: `put_atts/2`, `get_atts/2`,
+`put_attr/3`, `get_attr/3`, `del_attr/2`, and `term_attributed_variables/2`.
+`:- attribute ...` declarations are accepted, `verify_attributes/3` runs before
+an attributed binding is committed, and the hook's returned goals run after
+that binding. Attribute state follows variable representatives and ordinary
+Prolog backtracking, and the REPL projects module `attribute_goals//1` hooks as
+residual goals. See [`examples/attributed-variables.pl`](examples/attributed-variables.pl).
 
-The next two migration stages toward reusing Markus Triska's MIT-licensed
-[Scryer `library(clpz)`](https://github.com/mthom/scryer-prolog/blob/master/src/lib/clpz.pl)
-are now in place as well. Normal-profile loading supports user-defined
-`term_expansion/2` and `goal_expansion/2`, clause-list generation, and
-`expand_term/2` for processor DCG lowering. EyeProlog also ships the support
-modules used by Scryer's CLP(Z) source (`assoc`, `pairs`, `between`, `dcgs`,
-`terms`, `error`, `si`, `freeze`, `arithmetic`, `debug`, and `format`) together
-with generic backtrackable blackboard primitives. The current CLP(Z) engine
-remains active while the upstream solver itself is integrated and checked for
-behavioral and performance parity. The staged plan and exact compatibility
-boundary are documented in [`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md).
+`library(clpz)` is the MIT-licensed Scryer Prolog implementation of CLP(Z),
+bundled as `src/lib/clpz.pl`. It provides relational integer arithmetic,
+finite-domain constraints, reification, labeling, global constraints such as
+`all_distinct/1`, `global_cardinality/2,3`, `cumulative/1,2`, `circuit/1`,
+`disjoint2/1`, and `automaton/3,8`, plus domain reflection predicates. The
+bundled source is synchronized with Scryer commit
+`e3df91e25f8a09ee942c04e8baef553bba5c6110` (Git blob
+`806445c11e14c8b2515f3de7f309e0ac04d9ad04`).
+
+EyeProlog's runtime supplies the generic facilities used by that Prolog source:
+attributed variables, user `term_expansion/2` and `goal_expansion/2`, DCG
+expansion through `expand_term/2`, module-aware meta-calls, a backtrackable
+blackboard, and the support modules `assoc`, `pairs`, `between`, `dcgs`, `terms`,
+`error`, `si`, `freeze`, `arithmetic`, `debug`, and `format`.
 
 Recursion through negation is explicit. EyeProlog provides `tnot/1` for
 well-founded negation over finite, range-restricted, function-free Datalog

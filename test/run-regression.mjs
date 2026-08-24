@@ -3798,7 +3798,7 @@ function documentationSyncCases() {
           'README cover links to the book',
         );
         for (const filename of ['src/iso.js', 'src/dcg.js', 'src/atts.js', 'src/standard-library.js',
-          'src/CLPZ-MIGRATION.md', 'src/lib/aggregate.pl', 'src/lib/atts.pl', 'src/lib/comparison.pl', 'src/lib/dates.pl',
+          'src/lib/aggregate.pl', 'src/lib/atts.pl', 'src/lib/comparison.pl', 'src/lib/dates.pl',
           'src/lib/iso_ext.pl', 'src/lib/lists.pl', 'src/lib/primes.pl', 'src/lib/prologue.pl',
           'src/lib/random.pl', 'src/lib/strings.pl', 'src/lib/uuid.pl',
           'src/playground-worker.js']) {
@@ -4900,7 +4900,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 175, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and private library adapters');
+        assertEqual(library.defs.size, 154, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -4938,8 +4938,8 @@ answer(ok) :-
         assertEqual(registry.get('eyeprolog__countall', 2), null, 'private countall adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__countall', 2)), true, 'private countall adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__time', 1)), true, 'private time adapter is registered for EyeProlog');
-        assertEqual(Boolean(library.get('eyeprolog__clpz_labeling', 2)), true, 'private CLP(Z) labeling adapter is registered');
-        assertEqual(Boolean(library.get('eyeprolog__clpz_global_cardinality', 3)), true, 'private CLP(Z) cardinality adapter is registered');
+        assertEqual(library.get('eyeprolog__clpz_labeling', 2), null, 'CLP(Z) labeling is implemented in Prolog');
+        assertEqual(library.get('eyeprolog__clpz_global_cardinality', 3), null, 'CLP(Z) cardinality is implemented in Prolog');
         assertEqual(registry.get('put_atts', 2), null, 'put_atts/2 is absent from the ISO registry');
         assertEqual(Boolean(library.get('put_atts', 2)), true, 'put_atts/2 is registered for attributed-variable libraries');
         assertEqual(Boolean(library.get('$put_to_attr_list', 3)), true, 'private attribute-list adapter is registered');
@@ -5079,7 +5079,7 @@ repeated(X) :- X in 1..3, all_distinct([X, X]).
 `);
         assertEqual(program.findGroup('labeling', 2)?.module, 'clpz', 'labeling/2 module');
         assertEqual(run(program, { goals: ['answer(X, Y, B)', 'contradiction', 'pruned(Domain)', 'hall(Domain)', 'repeated(X)'] }).stdout,
-          'answer(1, 4, 1).\nanswer(2, 3, 0).\npruned(1 \\/ 3).\nhall(3).\n', 'CLP(Z) constrained answers');
+          'answer(1, 4, 1).\nanswer(2, 3, 0).\npruned(1 \\/ 3).\nhall(3..3).\n', 'CLP(Z) constrained answers');
       },
     },
     {

@@ -3,7 +3,6 @@
 // Modules are loaded on demand by explicit use_module/1-2 or by the conservative
 // source-level interop autoloader declared below.
 import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
-import { clpzBuiltins } from './clpz.js';
 import { attsBuiltins } from './atts.js';
 import { expansionBuiltins } from './expansion-builtins.js';
 import { scryerCompatibilityBuiltins } from './scryer-compat.js';
@@ -203,7 +202,6 @@ export function createEyePrologRegistry() {
   attsBuiltins.register(registry);
   expansionBuiltins.register(registry);
   scryerCompatibilityBuiltins.register(registry);
-  clpzBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;
 }

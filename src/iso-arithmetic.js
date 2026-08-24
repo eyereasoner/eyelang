@@ -121,6 +121,18 @@ function evaluateOperation(term, args, options = {}) {
   if (arity !== 2) throw new PrologError('type_error(evaluable)', compound('/', [atom(name), numberTerm(arity)]));
   const bothInteger = args[0].integer && args[1].integer;
   const a = args[0].value, b = args[1].value;
+  if (name === 'gcd' && options.isoStrict !== true) {
+    if (!bothInteger) {
+      const invalid = !args[0].integer ? args[0] : args[1];
+      throw new PrologError('type_error(integer)', numericTerm(invalid));
+    }
+    return { integer: true, value: integerResource(() => {
+      let x = a < 0n ? -a : a;
+      let y = b < 0n ? -b : b;
+      while (y !== 0n) [x, y] = [y, x % y];
+      return x;
+    }) };
+  }
   if (['//', 'div', 'mod', 'rem', '/\\', '\\/', 'xor', '<<', '>>'].includes(name) && !bothInteger) {
     const invalid = !args[0].integer ? args[0] : args[1];
     throw new PrologError('type_error(integer)', numericTerm(invalid));

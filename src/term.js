@@ -112,7 +112,6 @@ export class Env {
     // Backtrackable blackboard entries used by Scryer-compatible libraries.
     // Values are logical terms and the map is copy-on-write across Env clones.
     this._backtrackableBlackboard = null;
-    this._clpz = null;
     this._occursCheckHandler = null;
     this._localVariables = null;
   }
@@ -131,7 +130,6 @@ export class Env {
     clone._attributeHookRunner = this._attributeHookRunner;
     clone._pendingAttributeGoals = this._pendingAttributeGoals;
     clone._backtrackableBlackboard = this._backtrackableBlackboard;
-    clone._clpz = this._clpz;
     clone._occursCheckHandler = this._occursCheckHandler;
     clone._localVariables = this._localVariables;
     return clone;
@@ -153,7 +151,6 @@ export class Env {
     this._prologAttributes = other._prologAttributes;
     this._pendingAttributeGoals = other._pendingAttributeGoals;
     this._backtrackableBlackboard = other._backtrackableBlackboard;
-    this._clpz = other._clpz;
     // Execution callbacks belong to the Solver driving this Env, not to the
     // logical branch being adopted from an inner attribute-hook call.
     this._localVariables = other._localVariables;

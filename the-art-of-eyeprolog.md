@@ -6414,28 +6414,24 @@ level projects module `attribute_goals//1` hooks as residual goals. The checked
 [`examples/attributed-variables.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/attributed-variables.pl)
 demonstrates binding verification and attribute transfer across aliases.
 
-`library(clpz)` follows the familiar Trealla and Scryer convention for
-constraint logic programming over integers. EyeProlog currently provides finite
-interval and union domains, arithmetic and reified constraints, backtrackable
-labeling with `ff`, `up`, and `down`, global distinctness, linear sums and scalar
-products, chains, elements, value counting, extensional tuple tables,
-lexicographic chains, serialized schedules, global cardinality with costs,
-Hamiltonian circuits, three-way comparison, and domain reflection. Its existing
-`src/clpz.js` store is now explicitly transitional: the attributed-variable layer
-is intended to support staged reuse of Markus Triska's MIT-licensed
-[Scryer `clpz.pl`](https://github.com/mthom/scryer-prolog/blob/master/src/lib/clpz.pl).
-The generic compile-time expansion blocker is now closed: normal-profile source
-loading runs module-local and `user` `term_expansion/2` and `goal_expansion/2`
-hooks, accepts clause-list expansions, preserves surrounding variable sharing,
-and provides `expand_term/2` for processor DCG lowering. EyeProlog now also
-registers the Scryer support modules needed by that source (`assoc`, `pairs`,
-`between`, `dcgs`, `terms`, `error`, `si`, `freeze`, `arithmetic`, `debug`, and
-`format`) and supplies a generic copy-on-write backtrackable blackboard. The
-remaining migration step is to vendor and load a pinned upstream `clpz.pl`, then
-establish behavioral and performance parity before removing the JS kernel. The
-migration state is tracked in [`src/CLPZ-MIGRATION.md`](src/CLPZ-MIGRATION.md).
-Until parity is reached, the JS kernel remains the active implementation so
-existing CLP(Z) behavior does not regress.
+`library(clpz)` is Markus Triska's MIT-licensed Scryer Prolog implementation of
+constraint logic programming over integers, bundled as `src/lib/clpz.pl`.
+EyeProlog executes the Prolog propagator implementation through the generic
+attributed-variable machinery in `src/term.js` and `src/atts.js`. The library
+provides relational arithmetic and reification, finite and union domains,
+labeling, all-different/all-distinct constraints, sums and scalar products,
+extensional tuple tables, lexicographic chains, serialized and cumulative
+scheduling, global cardinality with costs, Hamiltonian circuits, `disjoint2/1`,
+`automaton/3,8`, value counting, comparison, and domain reflection.
+
+The compiler services used by the library are ordinary EyeProlog facilities:
+module-local and `user` `term_expansion/2` and `goal_expansion/2`, clause-list
+expansion, and `expand_term/2` for processor DCG lowering. The same runtime also
+provides a generic copy-on-write backtrackable blackboard and the supporting
+Prolog modules `assoc`, `pairs`, `between`, `dcgs`, `terms`, `error`, `si`,
+`freeze`, `arithmetic`, `debug`, and `format`. The bundled CLP(Z) source is
+synchronized with Scryer commit `e3df91e25f8a09ee942c04e8baef553bba5c6110`,
+Git blob `806445c11e14c8b2515f3de7f309e0ac04d9ad04`.
 
 Alongside its interop entries `call_nth/2`, `time/1`, and `.../2`,
 `library(iso_ext)` also exports EyeProlog's extension relations `countall/2`,
@@ -7204,9 +7200,9 @@ mode at a time.
 | --- | --- | --- |
 | [CLP(Z) factorial](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-factorial.pl) | Declarative predecessor and product constraints propagate a factorial without mode-sensitive `is/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-factorial.pl) |
 | [CLP(Z) global constraints](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-global-constraints.pl) | Compatibility tables, lexicographic and serialized schedules, global cardinality with costs, circuits, value counting, and integer comparison. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-global-constraints.pl) |
-| [CLP(Z) N-queens](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-n-queens.pl) | Eight-queens using finite domains, delayed diagonal constraints, `all_distinct/1`, and first-fail labeling, plus a small multi-solution enumeration check. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-n-queens.pl) |
+| [CLP(Z) N-queens](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-n-queens.pl) | A checked eight-queens witness using finite domains, delayed diagonal constraints, `all_distinct/1`, and first-fail labeling, plus a four-queens multi-solution search. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-n-queens.pl) |
 | [CLP(Z) resource allocation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-resource-allocation.pl) | Resource assignment using `element/3`, `sum/3`, `scalar_product/4`, reification, labeling options, and domain reflection. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-resource-allocation.pl) |
-| [CLP(Z) Sudoku 9×9](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-sudoku-9x9.pl) | The difficult AI Escargot puzzle modeled with finite domains, 27 all-distinct constraints, and first-fail labeling. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-sudoku-9x9.pl) |
+| [CLP(Z) Sudoku 9×9](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-sudoku-9x9.pl) | The AI Escargot 9×9 model with finite domains, 27 all-distinct constraints, and first-fail labeling; the default golden verifies its known solution while `sudoku9/1` remains the search relation. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-sudoku-9x9.pl) |
 | [Combinatorics Findall Sort](https://github.com/eyereasoner/eyeprolog/blob/main/examples/combinatorics-findall-sort.pl) | Eyelet-inspired combinations example using `findall/3` and ISO `sort/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/combinatorics-findall-sort.pl) |
 | [Floating Point](https://github.com/eyereasoner/eyeprolog/blob/main/examples/floating-point.pl) | Floating-point arithmetic and comparisons. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/floating-point.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/floating-point.pl) |
 | [Atomic conversion](https://github.com/eyereasoner/eyeprolog/blob/main/examples/iso-atomic-conversion.pl) | Atom splitting, character atoms, Unicode codes, and numeric parsing. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/iso-atomic-conversion.pl) |

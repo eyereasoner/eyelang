@@ -535,7 +535,12 @@ function freshCopy(term, env, variables = new Map(), id = ++isoFresh) {
     return variables.get(term.name);
   }
   if (term.type !== COMPOUND) return term;
-  return compound(term.name, term.args.map((arg) => freshCopy(arg, env, variables, id)));
+  const copied = compound(term.name, term.args.map((arg) => freshCopy(arg, env, variables, id)));
+  // Module qualification is execution context, not logical variable state.
+  // Preserve it across copy_term/2 so meta-predicate closures keep the caller
+  // module they received before a library copies and later invokes them.
+  if (term.module != null) copied.module = term.module;
+  return copied;
 }
 function* copyTermBuiltin({ goal, env }) {
   const next = env.clone();
@@ -2369,9 +2374,11 @@ function validateControlCallable(term, culprit, env) {
   }
 }
 function* callBuiltin({ solver, goal, env }) {
+  const invoked = callable(goal.args[0], env);
+  if (invoked.module == null) invoked.module = goal.module ?? 'user';
   const child = solver.cloneForInnerGoal();
   try {
-    yield* child.solve([callable(goal.args[0], env)], env, 0);
+    yield* child.solve([invoked], env, 0);
   } finally {
     solver.absorbStatsFrom(child);
   }
@@ -2384,7 +2391,7 @@ function* callClosureBuiltin({ solver, goal, env }) {
     throw new PrologError('representation_error(max_arity)');
   }
   const invoked = compound(closure.name, [...existing, ...extra]);
-  if (closure.module != null) invoked.module = closure.module;
+  invoked.module = closure.module ?? goal.module ?? 'user';
   const child = solver.cloneForInnerGoal();
   try {
     yield* child.solve([invoked], env, 0);
@@ -2507,11 +2514,15 @@ function* freezeBuiltin({ solver, goal, env }) {
 }
 
 function* phraseBuiltin({ solver, goal, env }) {
-  const grammarBody = deref(goal.args[0], env);
-  if (grammarBody.type === VAR) throw new PrologError('instantiation_error');
-  if (grammarBody.type !== ATOM && grammarBody.type !== COMPOUND) {
-    throw new PrologError('type_error(callable)', grammarBody);
+  const grammarBody0 = deref(goal.args[0], env);
+  if (grammarBody0.type === VAR) throw new PrologError('instantiation_error');
+  if (grammarBody0.type !== ATOM && grammarBody0.type !== COMPOUND) {
+    throw new PrologError('type_error(callable)', grammarBody0);
   }
+  // Resolve nested bindings in dynamically supplied nonterminals. This keeps
+  // variables shared by an enclosing clause visible to the DCG expander while
+  // preserving unbound variables by name.
+  const grammarBody = copyResolved(grammarBody0, env);
   const input = goal.args[1];
   const requestedOutput = goal.arity === 2 ? emptyTerminalSequence() : goal.args[2];
   validateDcgEmbeddedGoals(grammarBody, input, requestedOutput);

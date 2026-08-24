@@ -10,7 +10,6 @@ import { PrologError, getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program-indexing.js';
 import { StreamManager } from './io.js';
-import { clpzStateConsistent } from './clpz.js';
 import { hardHeapLimit, softHeapLimit, usedHeapSize } from './platform.js';
 import { evaluateWfs, relationForGroup, truthOfGroundGoal } from './wfs.js';
 import { ISO_MAX_ARITY } from './iso-limits.js';
@@ -428,6 +427,45 @@ export class Solver {
         });
         continue;
       }
+      if (frame.kind === 'userClause') {
+        if (this.solutionsSeen >= this.solutionLimit) continue;
+        const { clause, goal: clauseGoal, rest: clauseRest, env: clauseEnv, depth: clauseDepth,
+          active: clauseActive, release } = frame;
+        let next;
+        if (clause.body.length === 0 && clause.scalarHead) {
+          next = matchScalarFact(clauseGoal, clause.head, clauseEnv);
+          if (!next) continue;
+          this.stats.unify_calls++;
+          stack.push({
+            kind: 'goals',
+            goals: [...release, ...clauseRest],
+            env: next,
+            depth: clauseDepth + 1,
+            active: clauseActive,
+          });
+          continue;
+        }
+        const id = nextFreshId();
+        const freshVariables = new Map();
+        const freshHead = freshTerm(clause.head, id, freshVariables);
+        const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
+        const localFreshPlan = clauseLocalFreshPlan(clause);
+        const headLocalFresh = freshVariableSet(localFreshPlan.head, freshVariables);
+        attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
+        next = clauseEnv.clone();
+        this.stats.unify_calls++;
+        if (!unify(clauseGoal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) continue;
+        stack.push({
+          kind: 'goals',
+          goals: freshBody.length === 0
+            ? [...release, ...clauseRest]
+            : [...freshBody, ...release, ...clauseRest],
+          env: next,
+          depth: clauseDepth + 1,
+          active: clauseActive,
+        });
+        continue;
+      }
       if (frame.kind === 'completeTableFixpointRound') {
         if (frame.revision !== this.programRevision) continue;
         frame.entry.computing = false;
@@ -491,7 +529,6 @@ export class Solver {
         }
 
         if (goals.length === 0) {
-          if (!clpzStateConsistent(env)) break;
           this.solutionsSeen++;
           this.stats.completed_goal_lists++;
           this.active = active;
@@ -1182,52 +1219,26 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   for (const pass of [candidates.primary, candidates.fallback]) {
     for (let candidateIndex = 0; candidateIndex < clauseCandidateLength(pass); candidateIndex++) {
       const clause = clauseCandidateAt(pass, candidateIndex);
-      if (clause.body.length === 0 && clause.scalarHead) {
-        const next = matchScalarFact(goal, clause.head, env);
-        if (next) {
-          solver.stats.unify_calls++;
-          frames.push({
-            kind: 'goals',
-            goals: [...release, ...rest],
-            env: next,
-            depth: depth + 1,
-            active: nextActive,
-          });
-        }
-        continue;
-      }
       if (headCannotMatch(goal, clause.head, env)) continue;
-      const id = nextFreshId();
-      const freshVariables = new Map();
-      const freshHead = freshTerm(clause.head, id, freshVariables);
-      const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
-      const localFreshPlan = clauseLocalFreshPlan(clause);
-      const headLocalFresh = freshVariableSet(localFreshPlan.head, freshVariables);
-      attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
-      const next = env.clone();
-      solver.stats.unify_calls++;
-      if (!unify(goal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) continue;
-      if (freshBody.length === 0) {
-        frames.push({
-          kind: 'goals',
-          goals: [...release, ...rest],
-          env: next,
-          depth: depth + 1,
-          active: nextActive,
-        });
-      } else {
-        frames.push({
-          kind: 'goals',
-          goals: [...freshBody, ...release, ...rest],
-          env: next,
-          depth: depth + 1,
-          active: nextActive,
-        });
-      }
+      // Do not speculatively unify alternative heads. With attributed variables,
+      // head unification can run verify_attributes/3, queue wakeups, fail, or
+      // throw. Those effects are observable and must occur only if Prolog search
+      // actually reaches this clause (in particular after earlier cuts).
+      frames.push({
+        kind: 'userClause',
+        clause,
+        goal,
+        rest,
+        env,
+        depth,
+        active: nextActive,
+        release,
+      });
     }
   }
   for (let i = frames.length - 1; i >= 0; i--) stack.push(frames[i]);
 }
+
 
 function clauseLocalFreshPlan(clause) {
   if (clause._localFreshPlan != null) return clause._localFreshPlan;
@@ -1273,19 +1284,7 @@ function attachBodyLocalFreshVariables(freshBody, plan, freshVariables) {
     if (knownNonoccurringVariables == null || goal?.type !== COMPOUND) continue;
     if (goal.name === '=' && goal.arity === 2) {
       goal._knownNonoccurringVariables = knownNonoccurringVariables;
-      continue;
     }
-    // Only a compiler-generated DCG state first handed as a complete argument
-    // to another callable receives a longer-lived local marker. Equality-created
-    // sequence variables keep the existing one-unification proof instead.
-    const localFirstUseVariables = new Set();
-    for (const argument of goal.args) {
-      if (argument?.type === VAR && argument.name.startsWith('\u0000dcg') &&
-          knownNonoccurringVariables.has(argument.name)) {
-        localFirstUseVariables.add(argument.name);
-      }
-    }
-    if (localFirstUseVariables.size !== 0) goal._localFirstUseVariables = localFirstUseVariables;
   }
 }
 
@@ -1538,7 +1537,7 @@ function bundledLengthIterator(solver, group, goal, env) {
 
   // Delayed and constrained variables need the ordinary solver's wake-up
   // points. The fast path is deliberately limited to plain finite-tree terms.
-  if (env._clpz != null) return null;
+  if (env._prologAttributes != null) return null;
   const length = deref(goal.args[1], env);
   if (length.type === VAR && env._delays?.has(length.name)) return null;
 
@@ -2043,7 +2042,7 @@ function fastCountBranch(branch, env) {
 
 function fastCountPureGoal(solver, goal, env) {
   if (solver.isoStrict || solver.solutionLimit !== Infinity || solver.maxInferences !== Infinity ||
-      env._clpz != null || env._variableConstraints != null || env._prologAttributes != null || (env._delays != null && env._delays.size !== 0)) return null;
+      env._variableConstraints != null || env._prologAttributes != null || (env._delays != null && env._delays.size !== 0)) return null;
   const budget = { remaining: 8192 };
   const branches = expandPureCountGoal(solver, goal, goal.module ?? 'user', new Set(), budget);
   if (branches == null) return null;
@@ -2681,7 +2680,8 @@ function activeVariantIn(goal, env, active) {
     // Variant calls must have the same predicate indicator. Avoid walking
     // large matrix/list arguments for every unrelated active predicate.
     if (candidate?.type !== goal.type || candidate?.name !== goal.name ||
-        candidate?.arity !== goal.arity) continue;
+        candidate?.arity !== goal.arity ||
+        (candidate?.module ?? 'user') !== (goal.module ?? 'user')) continue;
     goalShape ??= variantShape(goal, env);
     entry.variantShape ??= variantShape(candidate, entry.env);
     if (goalShape !== entry.variantShape) continue;

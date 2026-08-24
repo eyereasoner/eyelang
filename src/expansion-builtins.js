@@ -7,7 +7,7 @@
 // import cycle through the standard-library registry.
 
 import {
-  ATOM, COMPOUND, Env, atom, compound, deref, flattenConjunction, unify,
+  ATOM, COMPOUND, Env, atom, compound, copyResolved, deref, flattenConjunction, unify,
 } from './term.js';
 import { expandDcgRuleClause } from './dcg.js';
 import { PrologError } from './errors.js';
@@ -79,7 +79,10 @@ export function systemExpandTerm(term, module = 'user') {
 function* expandTermBuiltin({ goal, env }) {
   const input = deref(goal.args[0], env);
   if (input.type === 'var') throw new PrologError('instantiation_error');
-  const expanded = systemExpandTerm(input, goal.module ?? 'user');
+  // expand_term/2 operates on the current logical value of the whole term.
+  // Resolve nested variable bindings as well as the outer term so generated
+  // DCG heads/bodies passed through local variables are seen instantiated.
+  const expanded = systemExpandTerm(copyResolved(input, env), goal.module ?? 'user');
   const next = env.clone();
   if (unify(goal.args[1], expanded, next)) yield next;
 }

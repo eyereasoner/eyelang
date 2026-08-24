@@ -11,8 +11,8 @@ higher-level frontends.
    `program-analysis.js` and `program-indexing.js`. Static recursion/Datalog/WFS classification lives in
    `program-analysis.js`; compact clauses and candidate indexes live in
    `program-indexing.js`.
-3. **Execution** — `solver.js`, `cleanup.js`, `io.js`, `datalog.js`, `wfs.js`,
-   `clpz.js`. `cleanup.js` owns lifecycle-aware disposal of protected builtin
+3. **Execution** — `solver.js`, `cleanup.js`, `io.js`, `datalog.js`, `wfs.js`.
+   `cleanup.js` owns lifecycle-aware disposal of protected builtin
    iterators and registers the normal-profile cleanup controls without making
    `solver.js` depend back on the language registry.
 4. **Language services** — `iso.js`, `iso-arithmetic.js`, `dcg.js`, `atts.js`,
@@ -43,16 +43,14 @@ environment. Per-module attributes follow the current variable representative.
 When an attributed variable is about to be bound, the solver runs that module's
 `verify_attributes/3` against the still-unbound representative; only a successful
 hook permits the binding, and any goals returned in the third argument are queued
-immediately after it. This pre-bind/post-bind split is the compatibility boundary
-needed by Scryer's `library(atts)` and `library(clpz)`. The current CLP(Z)-specific
-`Env._clpz` store remains transitional until the Scryer Prolog implementation can
-replace it without losing test or performance parity; see `src/CLPZ-MIGRATION.md`.
+immediately after it. Scryer's Prolog `library(clpz)` uses this pre-bind/post-bind
+protocol directly for its domains and propagators.
 
 `Env` also owns the small generic backtrackable blackboard used by Scryer-style
 libraries. Blackboard maps are shared by clones and copied only on write, so
 `bb_b_put/2` follows ordinary Prolog backtracking without any CLP(Z)-specific
 state in the VM. `scryer-compat.js` exposes the private host bridge used by
-`library(debug)`; the rest of the Stage 3 compatibility surface lives as Prolog
+`library(debug)`; the remaining Scryer compatibility surface lives as Prolog
 modules under `src/lib/`.
 
 `source-expansion.js` is the explicit compile-time execution boundary. When an

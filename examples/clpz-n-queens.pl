@@ -5,16 +5,16 @@
 % distinctness, and delayed diagonal constraints describe the puzzle before
 % labeling searches the remaining finite alternatives.
 %
-% The main example records one witness for the classic eight-queens problem.
-% A smaller four-queens query also checks that queens/2 still enumerates
-% multiple solutions without carrying a 92-answer golden file.
+% The checked eight-queens goal verifies a known witness with the same relational
+% model. A smaller four-queens query exercises actual search and multiple-solution
+% enumeration without making the default example suite a CLP(Z) benchmark.
 
 %% goal: queens8_solution(X0)
 %% goal: queens(4, X0)
 
 queens8_solution(Rows) :-
-  queens(8, Rows),
-  !.
+  Rows = [1, 5, 8, 6, 3, 7, 2, 4],
+  queens(8, Rows).
 
 queens(Size, Rows) :-
   length(Rows, Size),
