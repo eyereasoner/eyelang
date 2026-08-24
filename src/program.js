@@ -34,6 +34,28 @@ import {
 const DEFER_PROGRAM_BUILD = Symbol('deferProgramBuild');
 const FAST_PARSE_ABORT = Symbol('fastParseAbort');
 const PROGRAM_BUILD_BATCH_SIZE = 16384;
+const preparedBundledLibraryCache = new Map();
+
+function preparedBundledLibraryCacheKey(program, options) {
+  const filename = String(options.filename ?? '');
+  if (filename !== standardLibrarySources.get('clpz')?.filename) return null;
+  // A user hook deliberately defined before use_module/1 is allowed to
+  // transform bundled source. Such a program needs its own ordinary expansion.
+  if (program.groups.has(modulePredicateKey('user', 'term_expansion', 2)) ||
+      program.groups.has(modulePredicateKey('user', 'goal_expansion', 2))) return null;
+  return `${filename}\u0000${options.sourceMetadata === false ? 'compact' : 'metadata'}`;
+}
+
+function cachedClauseCopy(clause) {
+  const copy = { ...clause };
+  if (Array.isArray(clause.body)) copy.body = [...clause.body];
+  if (clause.source != null) copy.source = { ...clause.source };
+  delete copy.index;
+  delete copy.groundHead;
+  delete copy.scalarHead;
+  delete copy._localFreshPlan;
+  return copy;
+}
 
 function termContainsStringExtension(term, seen = new Set()) {
   if (term == null || typeof term !== 'object' || seen.has(term)) return false;
@@ -1074,6 +1096,8 @@ function sourcePath(options) {
 function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules, fast, context) {
   const batch = [];
   const deferredGoalExpansions = [];
+  const preparedCacheKey = preparedBundledLibraryCacheKey(builder.program, options);
+  const preparedForCache = preparedCacheKey == null ? null : [];
   const flush = () => {
     if (batch.length === 0) return;
     builder.addClauses(batch);
@@ -1104,6 +1128,87 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       }
     }
     processPreparedClause(clause);
+  };
+
+  const acceptPreparedClause = (clause, lexicalModule, record = true) => {
+    const remember = () => {
+      if (record && preparedForCache != null) {
+        preparedForCache.push({ clause: cachedClauseCopy(clause), lexicalModule });
+      }
+    };
+
+    const moduleDeclaration = moduleDirective(clause);
+    if (moduleDeclaration) {
+      flush();
+      clause.module = moduleDeclaration.name;
+      clause.textUnit = context.textUnit;
+      clause.moduleFilename = options.filename ?? '<input>';
+      remember();
+      builder.addClauses([clause]);
+      context.module = moduleDeclaration.name;
+      loadedModules.add(moduleDeclaration.name);
+      return;
+    }
+    const use = useModuleDirective(clause);
+    if (use) {
+      flush();
+      clause.module = context.module;
+      clause.textUnit = context.textUnit;
+      remember();
+      builder.addClauses([clause]);
+      const libraryName = libraryDesignationName(use.designation);
+      if (libraryName != null) {
+        builder.program.libraryImports.push({
+          targetModule: context.module,
+          library: libraryName,
+          imports: use.imports == null ? null : use.imports.map((indicator) => ({ ...indicator })),
+        });
+      }
+      const loaded = readModuleSource(use.designation, options);
+      if (!loadedModules.has(loaded.name)) {
+        const childContext = { module: loaded.name };
+        if (!loadSourceIntoBuilder(builder, loaded.text, loaded.options, ensured, loadedModules, fast, childContext)) {
+          throw FAST_PARSE_ABORT;
+        }
+      }
+      builder.program.importModule(context.module, loaded.name, use.imports);
+      return;
+    }
+    const include = includeDirective(clause);
+    if (!include) {
+      clause.module ??= context.module;
+      clause.textUnit ??= context.textUnit;
+      if (!isDirectiveClause(clause)) {
+        const bodyModule = clause.lexicalModule ?? lexicalModule;
+        for (const goal of clause.body) annotateGoalModule(goal, bodyModule);
+      }
+      remember();
+      const isExpansionHook = !isDirectiveClause(clause) &&
+        clause.head?.arity === 2 && ['term_expansion', 'goal_expansion'].includes(clause.head?.name);
+      if (isExpansionHook) {
+        // A hook becomes visible to the very next source term, so it cannot
+        // wait in the large streaming build batch.
+        flush();
+        builder.addClauses([clause]);
+      } else {
+        batch.push(clause);
+        if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
+      }
+      return;
+    }
+    flush();
+    remember();
+    if (builder.program.strictIso && include.name === 'ensure_loaded') {
+      builder.lastPredicateByText.set(context.textUnit ?? '<input>', '@directive');
+    }
+    const child = readIncludedSource(include, options, ensured);
+    if (!child) return;
+    const childContext = include.name === 'include'
+      ? context
+      : { module: context.module, textUnit: sourcePath(child.options) ?? context.textUnit };
+    if (!loadSourceIntoBuilder(builder, child.text, child.options, ensured, loadedModules, fast, childContext)) {
+      throw FAST_PARSE_ABORT;
+    }
   };
 
   const processPreparedClause = (inputClause) => {
@@ -1142,75 +1247,17 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       }
     }
 
-    const moduleDeclaration = moduleDirective(clause);
-    if (moduleDeclaration) {
-      flush();
-      clause.module = moduleDeclaration.name;
-      clause.textUnit = context.textUnit;
-      clause.moduleFilename = options.filename ?? '<input>';
-      builder.addClauses([clause]);
-      context.module = moduleDeclaration.name;
-      loadedModules.add(moduleDeclaration.name);
-      return;
-    }
-    const use = useModuleDirective(clause);
-    if (use) {
-      flush();
-      clause.module = context.module;
-      clause.textUnit = context.textUnit;
-      builder.addClauses([clause]);
-      const libraryName = libraryDesignationName(use.designation);
-      if (libraryName != null) {
-        builder.program.libraryImports.push({
-          targetModule: context.module,
-          library: libraryName,
-          imports: use.imports == null ? null : use.imports.map((indicator) => ({ ...indicator })),
-        });
-      }
-      const loaded = readModuleSource(use.designation, options);
-      if (!loadedModules.has(loaded.name)) {
-        const childContext = { module: loaded.name };
-        if (!loadSourceIntoBuilder(builder, loaded.text, loaded.options, ensured, loadedModules, fast, childContext)) {
-          throw FAST_PARSE_ABORT;
-        }
-      }
-      builder.program.importModule(context.module, loaded.name, use.imports);
-      return;
-    }
-    const include = includeDirective(clause);
-    if (!include) {
-      clause.module ??= context.module;
-      clause.textUnit ??= context.textUnit;
-      if (!isDirectiveClause(clause)) {
-        const bodyModule = clause.lexicalModule ?? lexicalModule;
-        for (const goal of clause.body) annotateGoalModule(goal, bodyModule);
-      }
-      const isExpansionHook = !isDirectiveClause(clause) &&
-        clause.head?.arity === 2 && ['term_expansion', 'goal_expansion'].includes(clause.head?.name);
-      if (isExpansionHook) {
-        // A hook becomes visible to the very next source term, so it cannot
-        // wait in the large streaming build batch.
-        flush();
-        builder.addClauses([clause]);
-      } else {
-        batch.push(clause);
-        if (batch.length >= PROGRAM_BUILD_BATCH_SIZE) flush();
-      }
-      return;
+    acceptPreparedClause(clause, lexicalModule);
+  };
+
+  const cachedEntry = preparedCacheKey == null ? null : preparedBundledLibraryCache.get(preparedCacheKey);
+  if (cachedEntry?.source === source) {
+    for (const item of cachedEntry.clauses) {
+      acceptPreparedClause(cachedClauseCopy(item.clause), item.lexicalModule, false);
     }
     flush();
-    if (builder.program.strictIso && include.name === 'ensure_loaded') {
-      builder.lastPredicateByText.set(context.textUnit ?? '<input>', '@directive');
-    }
-    const child = readIncludedSource(include, options, ensured);
-    if (!child) return;
-    const childContext = include.name === 'include'
-      ? context
-      : { module: context.module, textUnit: sourcePath(child.options) ?? context.textUnit };
-    if (!loadSourceIntoBuilder(builder, child.text, child.options, ensured, loadedModules, fast, childContext)) {
-      throw FAST_PARSE_ABORT;
-    }
-  };
+    return true;
+  }
 
   if (fast) {
     const acceptBinary = (headName, head0Type, head0Name, head1Type, head1Name,
@@ -1235,9 +1282,12 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
         module: lexicalModule,
         filename: options.filename ?? '<input>',
       });
-      for (const goal of clause.body) annotateGoalModule(goal, clause.lexicalModule ?? lexicalModule);
-      builder.addClauses([clause]);
+      acceptPreparedClause(clause, lexicalModule);
     }
+    flush();
+  }
+  if (preparedCacheKey != null) {
+    preparedBundledLibraryCache.set(preparedCacheKey, { source, clauses: preparedForCache });
   }
   return true;
 }

@@ -1269,22 +1269,80 @@ function clauseLocalFreshPlan(clause) {
 
 function freshVariableSet(names, freshVariables) {
   if (names.length === 0) return null;
-  const fresh = new Set();
+  const fresh = [];
   for (const name of names) {
     const term = freshVariables.get(name);
-    if (term != null) fresh.add(term.name);
+    if (term != null) fresh.push(term.name);
   }
-  return fresh.size === 0 ? null : fresh;
+  if (fresh.length === 0) return null;
+  // Most clauses introduce only one or two first-use variables. A tiny linear
+  // membership object avoids allocating and populating an OrderedHashSet on
+  // every invocation; use the native Set once linear lookup would lose.
+  return fresh.length <= 4 ? new SmallFreshVariableSet(fresh) : new Set(fresh);
+}
+
+class SmallFreshVariableSet {
+  constructor(values) {
+    this.values = values;
+  }
+
+  has(value) {
+    for (let index = 0; index < this.values.length; index++) {
+      if (this.values[index] === value) return true;
+    }
+    return false;
+  }
+}
+
+function goalUsesFirstUseProof(term) {
+  if (term?.type !== COMPOUND) return false;
+  if ((term.name === '=' && term.arity === 2)
+    || (term.name === 'get_atts' && term.arity === 2)
+    || (term.name === 'get_attr' && term.arity === 3)
+    || (term.name === '$get_attr_list' && term.arity === 2)
+    || (term.name === '$get_from_attr_list' && term.arity === 3)) return true;
+  if ((term.name === ',' || term.name === ';' || term.name === '->') && term.arity === 2) {
+    return goalUsesFirstUseProof(term.args[0]) || goalUsesFirstUseProof(term.args[1]);
+  }
+  if (term.name === '\\+' && term.arity === 1) return goalUsesFirstUseProof(term.args[0]);
+  if (term.name === ':' && term.arity === 2) return goalUsesFirstUseProof(term.args[1]);
+  return false;
 }
 
 function attachBodyLocalFreshVariables(freshBody, plan, freshVariables) {
+  const attach = (term, knownNonoccurringVariables) => {
+    if (term?.type !== COMPOUND) return;
+    if (term.name === '=' && term.arity === 2) {
+      term._knownNonoccurringVariables = knownNonoccurringVariables;
+    } else if ((term.name === 'get_atts' && term.arity === 2)
+      || (term.name === 'get_attr' && term.arity === 3)
+      || (term.name === '$get_attr_list' && term.arity === 2)
+      || (term.name === '$get_from_attr_list' && term.arity === 3)) {
+      term._firstUseVariables = knownNonoccurringVariables;
+    }
+    // Goal expansion commonly wraps a primitive in a conjunction or
+    // if-then-else. Preserve the proof on the executable child; attaching it
+    // only to the outer control term leaves get_atts/2 unable to use it.
+    if ((term.name === ',' || term.name === ';' || term.name === '->') && term.arity === 2) {
+      attach(term.args[0], knownNonoccurringVariables);
+      attach(term.args[1], knownNonoccurringVariables);
+    } else if (term.name === '\\+' && term.arity === 1) {
+      attach(term.args[0], knownNonoccurringVariables);
+    } else if (term.name === ':' && term.arity === 2) {
+      attach(term.args[1], knownNonoccurringVariables);
+    }
+  };
   for (let index = 0; index < freshBody.length; index++) {
     const goal = freshBody[index];
+    if (!goalUsesFirstUseProof(goal)) continue;
     const knownNonoccurringVariables = freshVariableSet(plan[index] ?? [], freshVariables);
     if (knownNonoccurringVariables == null || goal?.type !== COMPOUND) continue;
-    if (goal.name === '=' && goal.arity === 2) {
-      goal._knownNonoccurringVariables = knownNonoccurringVariables;
-    }
+    // Host builtins that only unify an output with already-existing logical
+    // data can use the same first-use proof without treating the variable as a
+    // WAM-style local across the whole call. This is especially important for
+    // get_atts/2: CLP(Z) attributes are large trees that would otherwise be
+    // traversed once per freshly introduced pattern variable.
+    attach(goal, knownNonoccurringVariables);
   }
 }
 
@@ -2376,10 +2434,14 @@ function tryPushGroundScalarRuleFrame(stack, solver, group, goal, rest, env, dep
   // A fully-ground call to a single flat rule can be checked without freshening
   // the rule or allocating an Env for every body literal.  This is especially
   // valuable for data-validation joins such as rb(A,B,C,D,E) in ORB Join2.
-  if (!termIsGround(goal, env) || group.clauses.length !== 1) return false;
+  // Reject ineligible rule shapes before recursively resolving the goal. Most
+  // library predicates have several clauses, and CLP(Z) calls are commonly
+  // large non-ground structures for which that groundness walk is pure cost.
+  if (group.clauses.length !== 1) return false;
   const clause = group.clauses[0];
   if (clause?.compactBinary === true || clause.body.length < 2 || clause.head.type !== COMPOUND) return false;
   if (clause.head.name !== goal.name || clause.head.arity !== goal.arity) return false;
+  if (!termIsGround(goal, env)) return false;
 
   const bindings = new Map();
   const resolvedGoal = copyResolved(goal, env);
@@ -2438,14 +2500,17 @@ function tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, 
   // This is a search-control optimization only. It fires only while each step
   // has exactly one matching clause and a single ground body goal; otherwise the
   // normal clause path below remains authoritative.
-  if (!termIsGround(goal, env)) return false;
   // The chain matcher below only propagates variables bound to flat scalar
   // head arguments (or literal scalars). Keep this optimization on that flat
-  // domain instead of recursively copying an arbitrary ground compound just
-  // to discover later that a rule shape is unsupported. Deep list arguments
-  // such as DCG state therefore fall straight through to normal resolution.
-  const resolvedArgs = goal.args.map((arg) => derefForLocal(arg, env));
-  if (!resolvedArgs.every(isScalarTerm)) return false;
+  // domain. Resolving the top-level arguments first proves groundness when all
+  // of them are scalars and avoids recursively walking arbitrary CLP(Z) terms
+  // only to reject them immediately afterward.
+  const resolvedArgs = new Array(goal.arity);
+  for (let index = 0; index < goal.arity; index++) {
+    const resolved = derefForLocal(goal.args[index], env);
+    if (!isScalarTerm(resolved)) return false;
+    resolvedArgs[index] = resolved;
+  }
 
   const baseEnv = env;
   let currentGroup = group;

@@ -8,7 +8,17 @@ export const STRING = 'string';
 export const NUMBER = 'number';
 export const COMPOUND = 'compound';
 const EMPTY_ARGS = Object.freeze([]);
-const ENV_FLATTEN_DEPTH = 1024;
+// Deep persistent binding chains make the many negative variable lookups in
+// constraint propagation linear in the complete history. Periodically fold
+// the chain into its indexed Map before that lookup cost dominates. Ordinary
+// execution keeps the memory-friendly 512-layer threshold; attributed-variable
+// propagation uses 256 because its repeated negative lookups dominate sooner.
+const ENV_FLATTEN_DEPTH = 512;
+const ATTRIBUTED_ENV_FLATTEN_DEPTH = 256;
+// Runtime terms are structurally immutable: environments hold bindings beside
+// them rather than rewriting their argument arrays. Cache only the syntactic
+// variable names; binding reachability is still checked against each Env.
+const structuralVariableCache = new WeakMap();
 
 export class Term {
   constructor(type, name, args = []) {
@@ -227,7 +237,10 @@ export class Env {
     return undefined;
   }
   bind(name, term) {
-    if (this._state.depth >= ENV_FLATTEN_DEPTH) {
+    const flattenDepth = this._prologAttributes == null
+      ? ENV_FLATTEN_DEPTH
+      : ATTRIBUTED_ENV_FLATTEN_DEPTH;
+    if (this._state.depth >= flattenDepth) {
       const flattened = new Map();
       for (let state = this._state; state != null; state = state.parent) {
         if (state.bindingName != null && !flattened.has(state.bindingName)) {
@@ -531,7 +544,35 @@ export function isConjunction(term) {
   return term?.type === COMPOUND && term.name === ',' && term.arity === 2;
 }
 
-function occurs(variableName, term, env) {
+function structuralVariableNames(term) {
+  if (isScalar(term)) return EMPTY_ARGS;
+  if (term?.type === VAR) return [term.name];
+  if (term?.type !== COMPOUND) return EMPTY_ARGS;
+
+  const cached = structuralVariableCache.get(term);
+  if (cached !== undefined) return cached;
+
+  const names = new Set();
+  const stack = [term];
+  const seenTerms = new Set();
+  while (stack.length) {
+    const current = stack.pop();
+    if (current?.type === VAR) {
+      names.add(current.name);
+      continue;
+    }
+    if (isCompactList(current)) return null;
+    if (current?.type !== COMPOUND || seenTerms.has(current)) continue;
+    seenTerms.add(current);
+    for (let i = 0; i < current.arity; i++) stack.push(current.args[i]);
+  }
+
+  const result = names.size === 0 ? EMPTY_ARGS : [...names];
+  structuralVariableCache.set(term, result);
+  return result;
+}
+
+function occursUncached(variableName, term, env) {
   // Walk bindings and compound arguments iteratively so the occurs check also
   // remains safe for very deep terms. The visited sets make this defensive
   // against cycles introduced through the public Env API.
@@ -556,6 +597,50 @@ function occurs(variableName, term, env) {
     for (let i = 0; i < current.arity; i++) stack.push(current.args[i]);
   }
 
+  return false;
+}
+
+function occurs(variableName, term, env) {
+  if (isScalar(term)) return false;
+  const initial = structuralVariableNames(term);
+  if (initial == null) return occursUncached(variableName, term, env);
+  if (initial.length === 0) return false;
+
+  // Lists, wrappers, and arithmetic expressions commonly contain one logical
+  // variable. Follow that unary binding chain without allocating a work queue
+  // and hash set for every occurs check. Fall back to the general graph walk
+  // as soon as a binding fans out.
+  if (initial.length === 1) {
+    let name = initial[0];
+    const seen = [];
+    while (true) {
+      if (name === variableName) return true;
+      for (let index = 0; index < seen.length; index++) {
+        if (seen[index] === name) return false;
+      }
+      seen.push(name);
+      const binding = env?.get(name);
+      if (binding === undefined) return false;
+      const names = structuralVariableNames(binding);
+      if (names == null || names.length > 1) return occursUncached(variableName, term, env);
+      if (names.length === 0) return false;
+      name = names[0];
+    }
+  }
+
+  const pending = initial.slice();
+  const seenVariables = new Set();
+  for (let index = 0; index < pending.length; index++) {
+    const name = pending[index];
+    if (name === variableName) return true;
+    if (seenVariables.has(name)) continue;
+    seenVariables.add(name);
+    const binding = env?.get(name);
+    if (binding === undefined) continue;
+    const names = structuralVariableNames(binding);
+    if (names == null) return occursUncached(variableName, term, env);
+    for (const child of names) pending.push(child);
+  }
   return false;
 }
 
@@ -686,9 +771,16 @@ export function freshTerm(term, suffix, variables = new Map()) {
     }
     return fresh;
   }
-  const fresh = term.type === COMPOUND && term.arity === 0
-    ? atom(term.name)
-    : new Term(term.type, term.name, term.args.map((arg) => freshTerm(arg, suffix, variables)));
+  let fresh;
+  if (term.type === COMPOUND && term.arity === 0) {
+    fresh = atom(term.name);
+  } else {
+    const args = new Array(term.args.length);
+    for (let index = 0; index < args.length; index++) {
+      args[index] = freshTerm(term.args[index], suffix, variables);
+    }
+    fresh = new Term(term.type, term.name, args);
+  }
   if (term.module != null) fresh.module = term.module;
   return fresh;
 }

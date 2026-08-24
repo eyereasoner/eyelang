@@ -69,7 +69,8 @@ function* getAttsBuiltin({ goal, env }) {
   if (pattern.type === VAR) {
     if (attributes.length === 0) return;
     const next = env.clone();
-    if (unify(goal.args[1], listFromItems(attributes), next)) yield next;
+    if (unify(goal.args[1], listFromItems(attributes), next,
+      { knownNonoccurringVariables: goal._firstUseVariables })) yield next;
     return;
   }
 
@@ -89,7 +90,10 @@ function* getAttsBuiltin({ goal, env }) {
   }
   if (stored == null) return;
   const next = env.clone();
-  if (unify(inner, stored, next, { skipVariableConstraints: true })) yield next;
+  if (unify(inner, stored, next, {
+    skipVariableConstraints: true,
+    knownNonoccurringVariables: goal._firstUseVariables,
+  })) yield next;
 }
 
 function attributeName(term, env) {
@@ -117,7 +121,10 @@ function* getAttrBuiltin({ goal, env }) {
   const stored = env.getPrologAttribute(variableTerm.name, owner, name, 1);
   if (stored == null) return;
   const next = env.clone();
-  if (unify(goal.args[2], stored.args[0], next, { skipVariableConstraints: true })) yield next;
+  if (unify(goal.args[2], stored.args[0], next, {
+    skipVariableConstraints: true,
+    knownNonoccurringVariables: goal._firstUseVariables,
+  })) yield next;
 }
 
 function* delAttrBuiltin({ goal, env }) {
@@ -163,7 +170,8 @@ function* getAttrListBuiltin({ goal, env }) {
   if (entries.length === 0) return;
   const encoded = entries.map(({ module, attribute }) => compound(':', [atom(module), attribute]));
   const next = env.clone();
-  if (unify(goal.args[1], listFromItems(encoded), next)) yield next;
+  if (unify(goal.args[1], listFromItems(encoded), next,
+    { knownNonoccurringVariables: goal._firstUseVariables })) yield next;
 }
 
 function* getFromAttrListBuiltin({ goal, env }) {
@@ -179,7 +187,10 @@ function* getFromAttrListBuiltin({ goal, env }) {
   const stored = env.getPrologAttribute(variableTerm.name, moduleTerm.name, signature.name, signature.arity);
   if (stored == null) return;
   const next = env.clone();
-  if (unify(pattern, stored, next, { skipVariableConstraints: true })) yield next;
+  if (unify(pattern, stored, next, {
+    skipVariableConstraints: true,
+    knownNonoccurringVariables: goal._firstUseVariables,
+  })) yield next;
 }
 
 function* putToAttrListBuiltin({ goal, env }) {
