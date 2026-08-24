@@ -2248,10 +2248,15 @@ all_different([X|Right], Left, Orig) -->
 all_distinct(Ls) :-
         fd_must_be_list(Ls, all_distinct(Ls)-1),
         maplist(fd_variable, Ls),
-        make_propagator(pdistinct(Ls), Prop),
-        new_queue(Q0),
-        phrase((distinct_attach(Ls, Prop, []),trigger_prop(Prop),do_queue), [Q0], _),
-        variables_same_queue(Ls).
+        % A ground list needs validation, but no attributed propagator.
+        (   ground(Ls) ->
+            sort(Ls, Distinct),
+            same_length(Ls, Distinct)
+        ;   make_propagator(pdistinct(Ls), Prop),
+            new_queue(Q0),
+            phrase((distinct_attach(Ls, Prop, []),trigger_prop(Prop),do_queue), [Q0], _),
+            variables_same_queue(Ls)
+        ).
 
 %% nvalue(?N, +Vars).
 %
@@ -6707,10 +6712,21 @@ serialize_upper_bound(I, D_I, J, D_J, MState) -->
 
 element(N, Is, V) :-
         must_be(list, Is),
-        length(Is, L),
-        N in 1..L,
-        element_(Is, 1, N, V),
-        propagator_init_trigger([N|Is], pelement(N,Is,V)).
+        % A constant table is one extensional relation; expanding it into
+        % reified implications and a second propagator is needlessly costly.
+        (   maplist(integer, Is) ->
+            element_relation(Is, 1, Relation),
+            tuples_in([[N,V]], Relation)
+        ;   length(Is, L),
+            N in 1..L,
+            element_(Is, 1, N, V),
+            propagator_init_trigger([N|Is], pelement(N,Is,V))
+        ).
+
+element_relation([], _, []).
+element_relation([V|Vs], N, [[N,V]|Relation]) :-
+        N1 is N + 1,
+        element_relation(Vs, N1, Relation).
 
 element_domain(V, VD) :-
         (   fd_get(V, VD, _) -> true
@@ -6799,8 +6815,15 @@ global_cardinality(Xs, Pairs, Options) :-
         ).
 
 keys_costs(Keys, X, Row, C) :-
-        element(N, Keys, X),
-        element(N, Row, C).
+        % Keys and matrix rows are integers here. Zip them once instead of
+        % connecting two element/3 constraints through an auxiliary index.
+        keys_cost_relation(Keys, Row, Relation),
+        tuples_in([[X,C]], Relation).
+
+keys_cost_relation([Key|Keys], [Cost|Costs], [[Key,Cost]|Relation]) :-
+        keys_cost_relation(Keys, Costs, Relation).
+keys_cost_relation([], _, []).
+keys_cost_relation([_|_], [], []).
 
 gcc_pair(Pair) :-
         (   Pair = Key-Val ->
