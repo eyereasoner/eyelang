@@ -5426,10 +5426,10 @@ still retained where adjacent graphic tokens would otherwise merge, as in
 `write_term/2-3` supports `quoted/1`, `ignore_ops/1`, `numbervars/1`, and
 `variable_names/1`. Normal mode additionally accepts the EyeProlog extension
 `double_quotes(true|false)`: `true` lets eligible character/code lists use the
-current `double_quotes` representation. It also accepts
-`spacing(standard|minimal)`: `standard` places layout around operators, while
-`minimal` emits only the separators required to avoid lexical ambiguity.
-Strict ISO mode rejects both non-standard write options.
+current `double_quotes` representation, while strict ISO mode rejects this
+non-standard write option. The REPL follows the same minimal-separator rule as
+term output, so `X=1*1` is displayed as `X = 1*1`, while a separator is retained
+in `X = a+ -b` because the adjacent graphic tokens would otherwise merge.
 
 Character operations are `get_char`, `peek_char`, `put_char`, `get_code`,
 `peek_code`, and `put_code`; byte streams use the corresponding byte
@@ -6002,7 +6002,7 @@ silently changing a static program.
 | `char_conversion(+Input,+Output)` | Installs a one-character conversion. In prepared Prolog text, later **unquoted** characters are converted when `char_conversion=on`; quoted characters are unchanged. The same mapping initializes execution-time term input. Mapping a character to itself removes its custom mapping. |
 | `current_char_conversion(?Input,?Output)` | Enumerates installed nonidentity conversions. |
 | `current_prolog_flag(?Flag,?Value)` | Enumerates flags or retrieves one named flag. An unknown bound flag raises *domain_error(prolog_flag)*. |
-| `set_prolog_flag(+Flag,+Value)` | Changes a supported mutable flag after validating its value. Read-only flags raise a permission error. |
+| `set_prolog_flag(+Flag,+Value)` | Changes a supported mutable flag after validating its allowed atom value. Read-only flags raise a permission error. |
 
 | Flag | Default in normal EyeProlog | Allowed values | Mutable |
 | --- | --- | --- | --- |
@@ -6016,7 +6016,6 @@ silently changing a static program.
 | `unknown` | `error` | `error`, `fail`, `warning` | yes |
 | `double_quotes` | `chars` | `chars`, `codes`, `atom` | yes |
 | `occurs_check` | `true` | `true`, `error` | yes |
-| `answer_write_options` | `[spacing(standard)]` | A ground proper list of supported normal-mode `write_term/2-3` options | yes |
 
 Because `bounded=false`, `current_prolog_flag(max_integer, _)` and
 `current_prolog_flag(min_integer, _)` fail as required by ISO 7.11.1.1;
@@ -6050,24 +6049,6 @@ codes("ab").                 % codes([97,98])
 :- set_prolog_flag(double_quotes, atom).
 quoted_atom("ab").           % quoted_atom(ab)
 ```
-
-Normal mode also exposes the REPL's term-writing options through the mutable
-`answer_write_options` flag. Its explicit default explains the spaces in an
-answer such as `X = 1 * 1`; selecting minimal spacing is discoverable and
-reusable from Prolog:
-
-```text
-?- current_prolog_flag(answer_write_options, Options).
-   Options = [spacing(standard)].
-?- set_prolog_flag(answer_write_options, [spacing(minimal)]).
-   true.
-?- X = 1*1.
-   X = 1*1.
-```
-
-The setting survives interactive `consult/1` and `use_module/1-2` program
-rebuilds. `answer_write_options` is a normal-mode host flag and is absent in
-strict ISO mode.
 
 ### Atomic-term operations and conversions
 
@@ -6141,7 +6122,7 @@ the beginning. A peek does not mark the stream as past-end.
 | `write(+Term)`, `write(+Stream,+Term)` | Writes readable operator notation without quoting atoms merely because quoting would be required for reparsing. Number variables are enabled. |
 | `writeq(+Term)`, `writeq(+Stream,+Term)` | Like `write`, but quotes atoms when required for unambiguous input syntax. |
 | `write_canonical(+Term)`, `write_canonical(+Stream,+Term)` | Writes quoted canonical functor notation while ignoring operators and without interpreting *$VAR/1*. |
-| `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(standard or minimal)*. |
+| `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)*. |
 
 Term input uses the program's current operator table and the same ISO quoted-character
 syntax as source text, including backslash-terminated octal and hexadecimal
@@ -7786,8 +7767,8 @@ Notable implementation boundaries are:
 - `write_term/2-3` implements the Part 1 plus Corrigendum 3 `quoted/1`,
   `ignore_ops/1`, `numbervars/1`, and `variable_names/1` option surface,
   including option validation and traversal rules; normal mode also offers
-  `double_quotes(true|false)` and `spacing(standard|minimal)` as explicitly
-  non-standard extensions, which strict mode rejects;
+  `double_quotes(true|false)` as an explicitly non-standard extension, which
+  strict mode rejects;
 - unification consistently performs an occurs check, rejecting rational-tree
   bindings accepted as extensions by some systems.
 

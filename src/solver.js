@@ -1,12 +1,12 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  ATOM, COMPOUND, NUMBER, STRING, VAR, Env, atom, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
+  ATOM, COMPOUND, NUMBER, STRING, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
   flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
-  listFromItems, numberTerm, numberTextFromDouble, properListItems, termIsGround, termToString, unify, variable, variantTerms,
+  numberTerm, numberTextFromDouble, properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
 import { numberValueKey, sameNumberValue } from './number-value.js';
-import { PrologError, getStrictIsoRegistry, parseTermWriteOptions } from './iso.js';
+import { PrologError, getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
 import { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program-indexing.js';
 import { StreamManager } from './io.js';
@@ -144,7 +144,15 @@ export class Solver {
         this.prologFlags.get('double_quotes').value = compound(program.doubleQuotes, []);
       }
       for (const [flag, value] of program.prologFlagDirectives ?? []) {
-        this.setPrologFlag(flag, value, new Env());
+        if (flag.type === 'var' || value.type === 'var') throw new PrologError('instantiation_error');
+        if (flag.type !== 'atom') throw new PrologError('type_error(atom)', flag);
+        const definition = this.prologFlags.get(flag.name);
+        if (!definition) throw new PrologError('domain_error(prolog_flag)', flag);
+        if (value.type !== 'atom' || !definition.allowed.includes(value.name)) {
+          throw new PrologError('domain_error(flag_value)', compound('+', [flag, value]));
+        }
+        if (!definition.changeable) throw new PrologError('permission_error(modify, flag)', flag);
+        definition.value = value;
       }
     }
     if (!options.charConversions) {
@@ -196,35 +204,6 @@ export class Solver {
       wfs_fixpoint_rounds: 0,
       wfs_undefined_answers: 0,
     };
-  }
-
-  setPrologFlag(flagTerm, valueTerm, env = new Env()) {
-    const flag = deref(flagTerm, env);
-    const value = deref(valueTerm, env);
-    if (flag.type === VAR || value.type === VAR) throw new PrologError('instantiation_error');
-    if (flag.type !== ATOM) throw new PrologError('type_error(atom)', flag);
-    const definition = this.prologFlags.get(flag.name);
-    if (!definition) throw new PrologError('domain_error(prolog_flag)', flag);
-
-    if (definition.writeOptions === true) {
-      if (!termIsGround(value, env)) throw new PrologError('instantiation_error');
-      try {
-        parseTermWriteOptions(value, env, 'write_term', this);
-      } catch (error) {
-        if (error instanceof PrologError && error.formal === 'instantiation_error') throw error;
-        throw new PrologError('domain_error(flag_value)', compound('+', [flag, copyResolved(value, env)]));
-      }
-      if (!definition.changeable) throw new PrologError('permission_error(modify, flag)', flag);
-      definition.value = copyResolved(value, env);
-      return;
-    }
-
-    const expectedType = definition.valueType ?? ATOM;
-    if (value.type !== expectedType || !definition.allowed.includes(value.name)) {
-      throw new PrologError('domain_error(flag_value)', compound('+', [flag, value]));
-    }
-    if (!definition.changeable) throw new PrologError('permission_error(modify, flag)', flag);
-    definition.value = atom(value.name);
   }
 
   cloneForInnerGoal(solutionLimit = this.solutionLimit, options = {}) {
@@ -1093,12 +1072,6 @@ function defaultPrologFlags(unknown = 'error', strictIso = false) {
     ['unknown', { value: compound(unknown, []), allowed: ['error', 'fail', 'warning'], changeable: true }],
     ['double_quotes', { value: compound('chars', []), allowed: ['chars', 'codes', 'atom'], changeable: true }],
     ['occurs_check', { value: compound('true', []), allowed: ['true', 'error'], changeable: true }],
-    ['answer_write_options', {
-      value: listFromItems([compound('spacing', [compound('standard', [])])]),
-      allowed: [],
-      changeable: true,
-      writeOptions: true,
-    }],
   ]);
   if (strictIso) flags.delete('occurs_check');
   return flags;

@@ -186,7 +186,7 @@ function regressionCases() {
         });
         assertEqual(residuals.status, 0, 'dif/2 residual display status');
         assertEqual(residuals.stdout,
-          '?-    C = z, D = z, dif(A - z, B - z).\n' +
+          '?-    C = z, D = z, dif(A-z, B-z).\n' +
           '?-    A = [[]], B = [], dif([[]], [C]).\n' +
           '?-    X = Y.\n' +
           '?- ',
@@ -1449,7 +1449,7 @@ c4 ?- call((!;1)).
           input: 'read(T).\n!,*.\n.\nread(T).\na\n.\nhalt.\n',
         });
         assertEqual(continuedGraphic.status, 0, 'continued graphic operator REPL status');
-        assertIncludes(continuedGraphic.stdout, 'T = (!, *.).', 'continued graphic operator answer');
+        assertIncludes(continuedGraphic.stdout, 'T = (!,*.).', 'continued graphic operator answer');
         assertIncludes(continuedGraphic.stdout, 'T = a.', 'read after continued graphic operator');
         assertNotIncludes(continuedGraphic.stdout, 'syntax_error', 'continued graphic operator syntax');
         assertEqual(continuedGraphic.stderr, '', 'continued graphic operator REPL stderr');
@@ -2456,10 +2456,10 @@ c4 ?- call((!;1)).
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
-          '?-    T = (a = b).\n' +
-          '?-    U = (a, b).\n' +
-          '?-    V = (a ; b).\n' +
-          '?-    W = a + b.\n' +
+          '?-    T = (a=b).\n' +
+          '?-    U = (a,b).\n' +
+          '?-    V = (a;b).\n' +
+          '?-    W = a+b.\n' +
           '?- ',
           'stdout');
         assertEqual(result.stderr, '', 'stderr');
@@ -2665,9 +2665,9 @@ c4 ?- call((!;1)).
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
-          '?-   |:  X = (_A = a).\n' +
-          '?-   |:  X = (_A = a).\n' +
-          "?-   |:  X = (_A = pair(_A, _B)), Vs = [_A, _B], Names = ['X' = _A, 'Y' = _B], Singletons = ['Y' = _B].\n" +
+          '?-   |:  X = (_A=a).\n' +
+          '?-   |:  X = (_A=a).\n' +
+          "?-   |:  X = (_A=pair(_A, _B)), Vs = [_A, _B], Names = ['X'=_A, 'Y'=_B], Singletons = ['Y'=_B].\n" +
           '?- ',
           'stdout');
         assertEqual(result.stderr, '', 'stderr');
@@ -3882,67 +3882,18 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
-      name: 'answer write options make operator spacing explicit and persistent (issue #76)',
+      name: 'REPL answers use only lexically required operator spacing (issue #76)',
       run: () => {
-        const source = [
-          'emit :-',
-          '  write_term(1*1, [spacing(standard)]), put_char(\'|\'),',
-          '  write_term(1*1, [spacing(minimal)]), put_char(\'|\'),',
-          '  write_term(1*1, [spacing(standard),spacing(minimal)]).',
-          '',
-        ].join('\n');
-        assertEqual(run(source, { goal: 'emit' }).stdout, '1 * 1|1*1|1*1emit.\n',
-          'explicit and rightmost spacing options');
-        assertEqual(run([
-          ':- set_prolog_flag(answer_write_options, [spacing(minimal)]).',
-          'emit :- current_prolog_flag(answer_write_options, [spacing(minimal)]).',
-        ], { goal: 'emit' }).stdout, 'emit.\n', 'source flag directive');
-
         const result = runCli([], {
-          input:
-            'current_prolog_flag(answer_write_options, Os).\n' +
-            'X=1*1.\n' +
-            'set_prolog_flag(answer_write_options,[spacing(minimal)]).\n' +
-            'use_module(library(lists)).\n' +
-            'X=1*1.\n' +
-            'current_prolog_flag(answer_write_options, Os).\n' +
-            'halt.\n',
+          input: 'X=1*1.\nX=a + -b.\nhalt.\n',
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
-          '?-    Os = [spacing(standard)].\n' +
-          '?-    X = 1 * 1.\n' +
-          '?-    true.\n' +
-          '?-    true.\n' +
           '?-    X = 1*1.\n' +
-          '?-    Os = [spacing(minimal)].\n' +
+          '?-    X = a+ -b.\n' +
           '?- ',
-          'discoverable top-level option and persistence across module reload');
+          'minimal operator layout preserves required token separation');
         assertEqual(result.stderr, '', 'stderr');
-
-        let writeOptionError = null;
-        try {
-          run('', { goal: 'write_term(a,[spacing(other)])' });
-        } catch (error) {
-          writeOptionError = error;
-        }
-        assertEqual(writeOptionError?.formal, 'domain_error(write_option)', 'spacing value domain');
-
-        let flagValueError = null;
-        try {
-          run('', { goal: 'set_prolog_flag(answer_write_options,[spacing(other)])' });
-        } catch (error) {
-          flagValueError = error;
-        }
-        assertEqual(flagValueError?.formal, 'domain_error(flag_value)', 'answer option flag domain');
-
-        let nongroundFlagError = null;
-        try {
-          run('', { goal: 'set_prolog_flag(answer_write_options,[spacing(X)])' });
-        } catch (error) {
-          nongroundFlagError = error;
-        }
-        assertEqual(nongroundFlagError?.formal, 'instantiation_error', 'answer options must be ground');
       },
     },
     {
