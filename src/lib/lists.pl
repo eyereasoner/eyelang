@@ -24,10 +24,14 @@
     foldl/4,
     foldl/5,
     foldl/6,
+    transpose/2,
     sum_list/2,
+    list_max/2,
+    list_min/2,
     min_list/2,
     max_list/2,
     list_to_set/2,
+    permutation/2,
     set_nth0/4,
     take/3,
     drop/3,
@@ -165,13 +169,39 @@ foldl(Closure, [A|As], [B|Bs], [C|Cs], Acc0, Acc) :-
     call(Closure, A, B, C, Acc0, Acc1),
     foldl(Closure, As, Bs, Cs, Acc1, Acc).
 
+transpose([], []).
+transpose([[]|Rows], []) :- lists__all_empty(Rows).
+transpose([[X|Xs]|Rows], [[X|Heads]|Columns]) :-
+    maplist(lists__list_first_rest, Rows, Heads, Tails),
+    transpose([Xs|Tails], Columns).
+
+lists__all_empty([]).
+lists__all_empty([[]|Rows]) :- lists__all_empty(Rows).
+
+lists__list_first_rest([X|Xs], X, Xs).
+
 sum_list(List, Sum) :- lists__sum_list(List, 0, Sum).
+
+list_max([X|Xs], Max) :- foldl(lists__list_max, Xs, X, Max).
+lists__list_max(X, Max0, Max) :- Max is max(X, Max0).
+
+list_min([X|Xs], Min) :- foldl(lists__list_min, Xs, X, Min).
+lists__list_min(X, Min0, Min) :- Min is min(X, Min0).
 
 min_list([X|Xs], Min) :- lists__min_list(Xs, X, Min).
 
 max_list([X|Xs], Max) :- lists__max_list(Xs, X, Max).
 
 list_to_set(List, Set) :- lists__list_to_set(List, [], Set).
+
+permutation(Xs, Ys) :-
+    same_length(Xs, Ys),
+    lists__permutation(Xs, Ys).
+
+lists__permutation([], []).
+lists__permutation(List, [First|Perm]) :-
+    select(First, List, Rest),
+    lists__permutation(Rest, Perm).
 
 
 set_nth0(0, [_|Xs], X, [X|Xs]).

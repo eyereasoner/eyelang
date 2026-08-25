@@ -2663,7 +2663,10 @@ function* phraseBuiltin({ solver, goal, env }) {
     : variable(`\u0000phrase:${++isoFresh}`);
   const expanded = expandDcgBody(grammarBody, input, finalOutput, {
     env,
-    module: goal.module ?? grammarBody.module ?? 'user',
+    // A meta-predicate wrapper qualifies its grammar argument at the call
+    // site.  Preserve that qualification instead of replacing it with the
+    // lexical module of the wrapper's phrase/2 call.
+    module: grammarBody.module ?? goal.module ?? 'user',
   });
   const finish = goal.arity === 2 ? null : compound('=', [finalOutput, requestedOutput]);
   // Recursive DCGs are automatically tabled in normal mode. Keep tables in a
@@ -2671,7 +2674,7 @@ function* phraseBuiltin({ solver, goal, env }) {
   // same grammar/input (issue #48) reuses its completed table, while switching
   // to a distinct input (issue #28) drops the previous invocation as one unit
   // instead of retaining or individually evicting every recursive tail.
-  const phraseModule = goal.module ?? grammarBody.module ?? 'user';
+  const phraseModule = grammarBody.module ?? goal.module ?? 'user';
   const tableScopeSignature = solver.innerTableSignature(
     [grammarBody, input, requestedOutput],
     env,

@@ -381,6 +381,12 @@ class Parser {
       // Scryer library(atts) exports this declaration operator. EyeProlog
       // handles the directive directly instead of relying on term expansion.
       this.defineOperator(1199, 'fx', 'attribute');
+    } else if (designation.args[0].name === 'tabling') {
+      this.defineOperator(1150, 'fx', 'table');
+    } else if (designation.args[0].name === 'debug') {
+      this.defineOperator(900, 'fx', '$');
+      this.defineOperator(900, 'fx', '$-');
+      this.defineOperator(950, 'fy', '*');
     }
   }
   operatorTokenName(token = this.token) {
@@ -1041,7 +1047,7 @@ class Parser {
           (['char_conversion', 'set_prolog_flag'].includes(directive.name) && directive.arity === 2)
         );
         const extensionDirective = directive.type === 'compound' && (
-          (['use_module', 'meta_predicate', 'attribute'].includes(directive.name) && directive.arity === 1) ||
+          (['use_module', 'meta_predicate', 'attribute', 'table'].includes(directive.name) && directive.arity === 1) ||
           (['module', 'use_module'].includes(directive.name) && directive.arity === 2)
         );
         if (this.strictIso && extensionDirective) {

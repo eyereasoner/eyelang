@@ -4583,6 +4583,79 @@ check(A, B, C, D, E, F) :-
       },
     },
     {
+      name: 'shared Scryer/Trealla libraries compose through their common source interfaces',
+      run: () => {
+        const source = `:- use_module(library(charsio), [char_type/2]).
+:- use_module(library(clpb), [sat/1, labeling/1]).
+:- use_module(library(gensym), [gensym/2, reset_gensym/1]).
+:- use_module(library(lists), [transpose/2]).
+:- use_module(library(ordsets), [ord_union/3]).
+:- use_module(library(reif), [tfilter/3, (=)/3]).
+:- use_module(library(ugraphs), [vertices_edges_to_ugraph/3, reachable/3]).
+:- use_module(library(when), [when/2]).
+answer(X,Y,U,R,F,W,G,C,T) :-
+  sat(X * ~Y), labeling([X,Y]),
+  ord_union([a,c], [b,c], U),
+  vertices_edges_to_ugraph([a,b,c], [a-b,b-c], Graph), reachable(a, Graph, R),
+  tfilter(=(a), [a,b,a], F),
+  when(nonvar(Ready), W=yes), Ready=now,
+  reset_gensym(shared), gensym(shared, G),
+  char_type(a, upper(C)),
+  transpose([[1,2],[3,4]], T).
+`;
+        const result = run(source, { goal: 'answer(X,Y,U,R,F,W,G,C,T)' });
+        assertEqual(result.stdout,
+          'answer(1, 0, "abc", "abc", "aa", yes, shared1, "A", [[1, 3], [2, 4]]).\n',
+          'composed common-library answer');
+      },
+    },
+    {
+      name: 'library(format), library(time), random, and UUID compatibility adapters retain reusable Prolog APIs',
+      run: () => {
+        const source = `:- use_module(library(format)).
+:- use_module(library(random)).
+:- use_module(library(time)).
+:- use_module(library(uuid)).
+answer(A,B,Text,Bytes,Date) :-
+  set_random(seed(7)),
+  random_integer(10,20,A), random_integer(10,20,B),
+  phrase(format_('~w ~q ~d', [f(a),'two words',3]), Text),
+  uuid_string(Bytes, "61ae692e-eaf6-4199-8dd3-9f01db70a20b"),
+  current_time(T), phrase(format_time("%Y-%m-%d", T), Date).
+`;
+        const result = run(source, { goal: 'answer(A,B,Text,Bytes,Date)' });
+        assertIncludes(result.stdout, 'answer(17, 18, "f(a) \'two words\' 3", [97, 174, 105, 46, 234, 246, 65, 153, 141, 211, 159, 1, 219, 112, 162, 11], "', 'state and conversion output');
+      },
+    },
+    {
+      name: 'library(tabling) accepts the common table directive over automatic tabling',
+      run: () => {
+        const source = `:- use_module(library(tabling)).
+:- table path/2.
+edge(a,b). edge(b,c).
+path(X,Y) :- path(X,Z), edge(Z,Y).
+path(X,Y) :- edge(X,Y).
+`;
+        const result = run(source, { goal: 'path(a,Y)' });
+        assertEqual(result.stdout, 'path(a, b).\npath(a, c).\n', 'tabled closure');
+      },
+    },
+    {
+      name: 'library(pio) reads and writes DCG character streams',
+      run: () => {
+        const file = path.join(tmp, 'pio-common.txt');
+        const source = `:- use_module(library(pio)).
+letters --> [a,b,c].
+all([C|Cs]) --> [C], !, all(Cs).
+all([]) --> [].
+write_file :- phrase_to_file(letters, ${sourceAtom(file)}).
+read_file(Cs) :- phrase_from_file(all(Cs), ${sourceAtom(file)}).
+`;
+        assertEqual(run(source, { goal: 'write_file' }).stdout, 'write_file.\n', 'DCG write');
+        assertEqual(run(source, { goal: 'read_file(Cs)' }).stdout, 'read_file("abc").\n', 'DCG read');
+      },
+    },
+    {
       name: 'library(lambda) supports Scryer-style maplist lambdas',
       run: () => {
         const source = String.raw`:- use_module(library(lambda)).
@@ -5114,7 +5187,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 155, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 161, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -5132,9 +5205,9 @@ answer(ok) :-
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 57, 'public host-supported EyeProlog library count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 135, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 30, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda,atts,freeze', 'common explicit library module profile');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 241, 'portable Prolog library count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 188, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryModules.length, 23, 'common explicit library module profile count');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'between', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
@@ -5144,7 +5217,7 @@ answer(ok) :-
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
         assertEqual(eyePrologNativeLibraryIndicators.length, 57, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 192, 'complete non-ISO EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 298, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');

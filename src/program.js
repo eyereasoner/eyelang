@@ -1412,8 +1412,9 @@ function annotateGoalModule(term, module) {
   if (!term || (term.type !== ATOM && term.type !== COMPOUND)) return term;
   term.module = module;
   const callableArguments = (term.name === ',' || term.name === ';' || term.name === '->') ? term.args
-    : (['call', 'once', '\\+', 'not', 'catch', 'forall', 'findall', 'bagof', 'setof',
-      'countall', 'sumall', 'aggregate_min', 'aggregate_max', 'maplist'].includes(term.name)
+    : (['call', 'once', '\\+', 'not', 'catch', 'call_cleanup', 'setup_call_cleanup',
+      'forall', 'findall', 'bagof', 'setof', 'countall', 'sumall',
+      'aggregate_min', 'aggregate_max', 'maplist', 'phrase'].includes(term.name)
       ? term.args
       : []);
   for (const arg of callableArguments) annotateGoalModule(arg, module);

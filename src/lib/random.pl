@@ -1,6 +1,48 @@
-/** Reproducible pseudo-random values with explicit state. */
+/** Reproducible pseudo-random values.
 
-:- module(random, [random/3]).
+    random/3 is EyeProlog's explicit-state interface.  maybe/0,
+    random_integer/3, and set_random/1 are the common Scryer/Trealla library
+    interface; they use a non-backtrackable seed while retaining the same
+    Park-Miller generator.
+*/
+
+:- module(random, [maybe/0, random/3, random_integer/3, set_random/1]).
+
+:- use_module(library(debug), [bb_global_get/2, bb_put/2]).
+:- use_module(library(error), [instantiation_error/1, type_error/3]).
+
+maybe :-
+    random_integer(0, 2, 0).
+
+random_integer(Lower, Upper, R) :-
+    ( var(Lower) -> instantiation_error(random_integer/3)
+    ; var(Upper) -> instantiation_error(random_integer/3)
+    ; integer(Lower) -> true
+    ; type_error(integer, Lower, random_integer/3)
+    ),
+    ( integer(Upper) -> true
+    ; type_error(integer, Upper, random_integer/3)
+    ),
+    Lower < Upper,
+    random__current_seed(Seed0),
+    random(Seed0, _, Seed),
+    bb_put('$random_seed', Seed),
+    R is Lower + Seed mod (Upper - Lower).
+
+set_random(Seed) :-
+    ( var(Seed) -> instantiation_error(set_random/1)
+    ; Seed = seed(S) ->
+        ( var(S) -> instantiation_error(set_random/1)
+        ; integer(S) ->
+            random__random_normalize_seed(S, Normalized),
+            bb_put('$random_seed', Normalized)
+        ; type_error(integer, S, set_random/1)
+        )
+    ; type_error(random_state, Seed, set_random/1)
+    ).
+
+random__current_seed(Seed) :- bb_global_get('$random_seed', Seed), !.
+random__current_seed(1).
 
 % A Park-Miller generator with explicit state. Threading Seed into the next
 % call makes a sequence reproducible without mutable runtime state. Schrage's

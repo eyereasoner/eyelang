@@ -61,14 +61,14 @@ error__must_be(Type, Term) :-
     ; type_error(Type, Term, must_be/2)
     ).
 
-error__proper_list([]).
+error__proper_list([]) :- !.
 error__proper_list([_|Tail]) :- !, error__proper_list(Tail).
 error__proper_list(Term) :-
     ( var(Term) -> instantiation_error(must_be/2)
     ; type_error(list, Term, must_be/2)
     ).
 
-error__proper_list_of([], _).
+error__proper_list_of([], _) :- !.
 error__proper_list_of([Head|Tail], Type) :- !,
     must_be(Type, Head),
     error__proper_list_of(Tail, Type).

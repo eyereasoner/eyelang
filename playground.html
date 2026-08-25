@@ -600,6 +600,7 @@
           "pi",
           "pointer-analysis",
           "polynomial",
+          "portable-library-overlap",
           "prime-range",
           "proof-contrapositive",
           "quadratic-formula",
@@ -965,7 +966,7 @@
       runButton.disabled = true;
       stopButton.disabled = false;
 
-      const workerUrl = new URL('./src/playground-worker.js?playground=20260811c', location.href);
+      const workerUrl = new URL('./src/playground-worker.js?playground=20260825a', location.href);
       activeWorker = new Worker(workerUrl, { type: 'module' });
       const worker = activeWorker;
       const request = {

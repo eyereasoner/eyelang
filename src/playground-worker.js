@@ -1,7 +1,7 @@
 // Browser worker entry used by playground.html.
 // Keep this module free of Node-only imports: it is fetched directly by the
 // browser and is also exercised by test/run-playground.mjs.
-import { createEyePrologRegistry, run } from './index.js?playground=20260811c';
+import { createEyePrologRegistry, run } from './index.js?playground=20260825a';
 
 const registry = createEyePrologRegistry();
 

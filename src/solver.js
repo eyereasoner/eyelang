@@ -185,6 +185,9 @@ export class Solver {
     // distinct meta-call inputs must not turn completed table variants into
     // process-lifetime roots.
     this.innerTableScopes = options.innerTableScopes ?? new Map();
+    // Non-backtrackable library state (for example gensym/2 and CLP(B) node
+    // identifiers) is shared by nested solvers for the lifetime of this run.
+    this.nonBacktrackableBlackboard = options.nonBacktrackableBlackboard ?? new Map();
     this.stats = {
       completed_goal_lists: 0,
       solve_goals_calls: 0,
@@ -216,6 +219,7 @@ export class Solver {
       charConversions: this.charConversions,
       io: this.io,
       innerTableScopes: this.innerTableScopes,
+      nonBacktrackableBlackboard: this.nonBacktrackableBlackboard,
       inferenceObservation: this.inferenceObservation,
       writeVariableState: this.writeVariableState,
       skipListTailTabling: options.skipListTailTabling ?? this.skipListTailTabling,
