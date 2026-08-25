@@ -141,11 +141,10 @@ export const eyePrologInteropAutoload = Object.freeze({
   // unchanged while their implementations remain outside the ISO core.
   'time/1': 'iso_ext',
   '.../2': 'iso_ext',
-  // Trealla and Scryer expose between/3 without an EyeProlog-style
-  // library(prologue) dependency.  EyeProlog keeps its implementation in the
-  // Prologue module but autoloads it so portable source need not name that
-  // implementation-specific library.
-  'between/3': 'prologue',
+  // Scryer provides library(between), while Trealla exposes the relation as a
+  // system predicate. Keep EyeProlog's canonical portable owner in the
+  // specialized module; library(prologue) re-exports it for compatibility.
+  'between/3': 'between',
 });
 
 export const eyePrologInteropLibraryIndicators = Object.freeze(
@@ -155,7 +154,7 @@ export const eyePrologInteropLibraryIndicators = Object.freeze(
 // Libraries whose *name* is part of the current interop profile.  A program
 // may freely use_module/1 with these common module names; predicates in those
 // modules outside eyePrologInteropLibraryIndicators are still diagnosed when used.
-export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext', 'lambda', 'atts']);
+export const eyePrologInteropLibraryModules = Object.freeze(['lists', 'iso_ext', 'lambda', 'atts', 'freeze']);
 
 function* tabledNegationBuiltin({ solver, goal, env }) {
   yield* solver.solveTabledNegation(goal.args[0], env);

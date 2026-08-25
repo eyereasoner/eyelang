@@ -110,9 +110,14 @@ function checkAlternative(program, quad, alternative, options, context) {
   const actual = executeQuery(program, quad.query, input, maxSolutions, {
     ...options,
     detectLoops: leaves.some((leaf) => leaf.loops),
+    detectWaits: leaves.some((leaf) => leaf.waits),
     inputBoundary: hasInputSpec,
     inputPeek: peek,
   });
+
+  if (leaves.some((leaf) => leaf.waits)) {
+    return { ok: leaves.length === 1 && actual.inputWaitObserved };
+  }
 
   if (requiresSto) {
     // Trealla currently treats the answer part of an `sto`-annotated leaf as
@@ -199,6 +204,7 @@ function describeLeaf(term) {
     false: false,
     truth: false,
     loops: false,
+    waits: false,
     error: null,
     input: null,
     peek: null,
@@ -213,7 +219,8 @@ function describeLeaf(term) {
       else if (item.name === '...' || item.name === 'ad_infinitum') leaf.more = true;
       else if (item.name === 'sto') leaf.sto = true;
       else if (item.name === 'loops') leaf.loops = true;
-      else if (item.name === 'waits' || item.name === 'other_answer_sequence') {
+      else if (item.name === 'waits') leaf.waits = true;
+      else if (item.name === 'other_answer_sequence') {
         leaf.unsupported ??= item;
       } else if (item.name === 'false') leaf.false = true;
       else if (item.name === 'true') leaf.truth = true;
@@ -246,7 +253,8 @@ function describeLeaf(term) {
     if (isErrorDescription(item)) leaf.error = item;
     else leaf.malformed ??= item;
   }
-  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.truth || leaf.false || leaf.loops || leaf.error != null || leaf.output != null;
+  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.truth || leaf.false || leaf.loops || leaf.waits ||
+    leaf.error != null || leaf.output != null;
   if (!leaf.hasExpectation && !leaf.more && !leaf.sto && leaf.unsupported == null) leaf.malformed ??= term;
   if ([leaf.false, leaf.truth, leaf.error != null].filter(Boolean).length > 1) leaf.malformed ??= term;
   return leaf;
@@ -254,6 +262,7 @@ function describeLeaf(term) {
 
 function executeQuery(program, query, input, maxSolutions, options) {
   let pendingOutput = '';
+  let inputWaitObserved = false;
   const boundedInput = options.inputBoundary
     ? `${input}${options.inputPeek ?? ''}${INVALID_UTF8_SENTINEL}`
     : input;
@@ -274,13 +283,24 @@ function executeQuery(program, query, input, maxSolutions, options) {
       write: (text) => { pendingOutput += String(text); },
     },
   });
+  if (options.detectWaits) {
+    const inputStream = solver.io.resolve('user_input');
+    const observeWait = () => {
+      inputWaitObserved = true;
+      return null;
+    };
+    inputStream.interactiveReadTerm = observeWait;
+    inputStream.interactiveReadUnit = observeWait;
+  }
   if (options.inputBoundary) {
     // Quads need a boundary that is neither EOF nor a valid character.  This
     // mirrors Trealla's sentinel technique: inputs/1 says exactly what was
     // consumed, while peeks/1 supplies one additional character that must
     // remain unread.  If the query asks for anything beyond that boundary it
     // sees representation_error(character), not an artificial EOF.
-    solver.io.resolve('user_input').strictUtf8 = true;
+    const inputStream = solver.io.resolve('user_input');
+    inputStream.strictUtf8 = true;
+    inputStream.syntheticInputBoundary = input.length;
   }
   // Undefined predicates are test failures rather than silent negative
   // answers unless the source explicitly selected another unknown policy.
@@ -338,6 +358,7 @@ function executeQuery(program, query, input, maxSolutions, options) {
     inputRemainder,
     complete,
     loopObserved,
+    inputWaitObserved,
     stoObserved: solver.occursCheckObserved,
     nstoObserved: complete && !solver.occursCheckObserved && !loopObserved &&
       !bounded && !resourceInterrupted,

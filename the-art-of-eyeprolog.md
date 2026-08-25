@@ -3568,7 +3568,7 @@ methods.
 Consider a relation for a Pythagorean triple:
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 triple(A, B, C) :-
@@ -3880,7 +3880,7 @@ permutations repeats the same geometric object six times. Ordering the sides
 removes the symmetry:
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 triangle(A, B, C) :-
@@ -3918,7 +3918,7 @@ it from width and height. With a finite generator it can also search for
 factorizations:
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 integer_rectangle(Area, W, H) :-
@@ -4031,7 +4031,7 @@ theorem over an unbounded domain.
 This boundary can be written directly:
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 counterexample_to_odd_square(N) :-
@@ -4470,7 +4470,7 @@ Examples test selected points. A finite generated property tests every point
 in a declared scope:
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 double(N, D) :- (D is N + N).
@@ -4724,7 +4724,7 @@ compare it with the optimized one. The reference may be slow; its purpose is
 clarity.
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 reference_square(N, S) :-
@@ -4865,7 +4865,7 @@ explanation until none can be reasoned about separately.
 in dependency order, then construct a witness or reason.
 
 ```eyeprolog
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 chosen_pair(pair(X, Y), reason(sum_is_ten)) :-
@@ -6222,17 +6222,23 @@ clauses over private adapters. `time/1` is additionally registered directly in
 the normal EyeProlog runtime so Trealla-style timing works at the interactive
 top level without an import; it is absent from the strict ISO registry.
 
-The sources are `src/lib/aggregate.pl`, `src/lib/atts.pl`, `src/lib/clpz.pl`, `src/lib/comparison.pl`,
-`src/lib/dates.pl`, `src/lib/iso_ext.pl`, `src/lib/lambda.pl`,
-`src/lib/lists.pl`, `src/lib/primes.pl`, `src/lib/prologue.pl`,
-`src/lib/random.pl`, `src/lib/strings.pl`, and `src/lib/uuid.pl`. Each declares a same-named module
+The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
+`src/lib/assoc.pl`, `src/lib/atts.pl`, `src/lib/between.pl`,
+`src/lib/clpz.pl`, `src/lib/comparison.pl`, `src/lib/dates.pl`,
+`src/lib/dcgs.pl`, `src/lib/debug.pl`, `src/lib/error.pl`,
+`src/lib/format.pl`, `src/lib/freeze.pl`, `src/lib/iso_ext.pl`,
+`src/lib/lambda.pl`, `src/lib/lists.pl`, `src/lib/pairs.pl`,
+`src/lib/primes.pl`, `src/lib/prologue.pl`, `src/lib/random.pl`,
+`src/lib/si.pl`, `src/lib/strings.pl`, `src/lib/terms.pl`, and
+`src/lib/uuid.pl`. Each declares a same-named module
 with `module/2`; there is no catch-all `library(eyeprolog)`. A program imports
 only the modules it needs, and
 `use_module/2` can select an even smaller indicator list. The Prologue
-module implements p.p.1 through p.p.11 of the
+module exposes p.p.1 through p.p.11 of the
 [working-draft Prologue](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue),
-with the published Prologue, `call_nth/2`, and `length/2` quads retained as
-offline regressions. `src/standard-library.js` registers the module sources and private control and
+as a compatibility facade over the canonical `lists`, `between`, `iso_ext`,
+and `freeze` modules. The published Prologue, `call_nth/2`, and `length/2`
+quads are retained as offline regressions. `src/standard-library.js` registers the module sources and private control and
 constraint adapters for Node and browser resolution. Explicit `use_module/1-2`
 loads remain supported; outside strict ISO mode, the conservative interop
 autoloader may also load a module for one uniquely mapped common predicate.
@@ -6294,7 +6300,9 @@ The current interoperability profile recognizes these library roles:
 | `library(lists)` | Common list module. A conservative subset of its exports is in the shared predicate profile. |
 | `library(iso_ext)` | Common extension-module name. `call_nth/2`, `time/1`, and the `... //0` arbitrary-sequence helper are conservatively autoloaded for cross-engine source. |
 | `library(lambda)` | Scryer-aligned higher-order notation. It is imported explicitly because loading it also installs the `+\` operator. |
-| `library(prologue)` | EyeProlog compatibility module, not a common interop library name. `between/3` is nevertheless autoloaded from it so portable source need not name this EyeProlog-specific provider. |
+| `library(atts)` | Common attributed-variable interface used by constraint libraries. |
+| `library(freeze)` | Common delayed-goal module backed by attributed variables. |
+| `library(prologue)` | EyeProlog compatibility facade, not a common interop library name. Its exports resolve to canonical focused modules instead of duplicate implementations. |
 
 Other modules from the catalog, including `library(clpz)`, `library(strings)`,
 `library(random)`, and `library(uuid)`, remain normal EyeProlog libraries. They
@@ -6323,11 +6331,10 @@ for example `% Time elapsed 0.832s, 65551 Inferences, 0.079 MLips`; `... //0`
 describes an arbitrary number of input elements. Together they let the
 Trealla/Scryer DCG hand-off benchmark run in EyeProlog without source changes
 (assuming the usual list library is already imported in an interactive
-session). The interop exports of `library(lists)` and
-`library(iso_ext)` are kept disjoint, so both modules can be imported together
-without an accidental collision. `library(prologue)` remains a compatibility
-umbrella and overlaps them; use selective imports when legacy code combines it
-with the aligned modules.
+session). The focused modules have one canonical implementation owner per
+predicate. `library(prologue)` re-exports those same owners, so legacy code can
+combine the facade with `library(lists)`, `library(iso_ext)`, and
+`library(freeze)` in either import order without an accidental collision.
 
 `library(lambda)` follows Scryer's higher-order notation, adapted from Ulrich
 Neumerkel's permissively licensed implementation. Its public syntax is:
@@ -6372,7 +6379,7 @@ extension. For example, the canonical build-time providers are:
 | `call_nth/2` | `library(iso_ext)` |
 | `time/1` | `library(iso_ext)` |
 | `.../2` | `library(iso_ext)` |
-| `between/3` | `library(prologue)` |
+| `between/3` | `library(between)` |
 
 Predicates outside that table require an explicit import even when EyeProlog
 provides them. Explicit imports therefore remain the clearest way to state
@@ -6494,7 +6501,7 @@ before calling the corresponding predicate.
 
 ```eyeprolog
 :- use_module(library(dates)).
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(random)).
 :- use_module(library(lists)).
 
@@ -6515,7 +6522,7 @@ expresses them: for example, `R is A + B`, `R is abs(A)`, and
 modulo, powers, sine, cosine, exponential, logarithm, and the ISO rounding
 functions.
 
-The bundled library layer defines `between/3` in `library(prologue)` and
+The bundled library layer defines `between/3` in `library(between)` and
 `smallest_divisor_from/3` in `library(primes)` as ordinary Prolog clauses.
 Choose the smaller or
 larger of two arithmetic values directly with ISO control, for example

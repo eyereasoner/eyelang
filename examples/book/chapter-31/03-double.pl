@@ -1,5 +1,5 @@
 % From The Art of EyeProlog, Chapter 31 — Properties over finite domains.
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 
 double(N, D) :- (D is N + N).

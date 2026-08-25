@@ -1,5 +1,5 @@
 :- use_module(library(aggregate)).
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 
 % Catalan numbers by automatically tabled convolution.
 %

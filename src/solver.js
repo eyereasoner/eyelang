@@ -1428,12 +1428,12 @@ function pushWfsAnswerFrames(stack, model, group, goal, rest, env, depth, active
 
 function bundledBetweenIterator(solver, group, goal, env) {
   if (solver.registry.eyePrologLibrary !== true ||
-      group.module !== 'prologue' || group.name !== 'between' || group.arity !== 3 ||
+      group.module !== 'between' || group.name !== 'between' || group.arity !== 3 ||
       group.bundledLibrary !== true || group.clauses.length !== 1) {
     return null;
   }
 
-  // The portable Prologue definition is intentionally kept as the semantic
+  // The portable library(between) definition is kept as the semantic
   // source of between/3. Its recursive helper, however, carries the output
   // variable through one fresh clause instance per integer. With persistent
   // environments that builds a growing variable-alias chain, so dereferencing
@@ -1475,7 +1475,7 @@ function* bundledBetweenSolutions(solver, goal, env) {
 
 function bundledMemberIterator(solver, group, goal, env) {
   if (solver.registry.eyePrologLibrary !== true ||
-      !['lists', 'prologue'].includes(group.module) || group.name !== 'member' || group.arity !== 2 ||
+      group.module !== 'lists' || group.name !== 'member' || group.arity !== 2 ||
       group.bundledLibrary !== true || group.clauses.length !== 2) {
     return null;
   }
@@ -1588,7 +1588,7 @@ function* bundledEllipsisSolutions(solver, output, input, env) {
 
 function bundledLengthIterator(solver, group, goal, env) {
   if (solver.registry.eyePrologLibrary !== true ||
-      !['lists', 'prologue'].includes(group.module) || group.name !== 'length' || group.arity !== 2 ||
+      group.module !== 'lists' || group.name !== 'length' || group.arity !== 2 ||
       group.bundledLibrary !== true || group.clauses.length !== 2) {
     return null;
   }
@@ -1900,7 +1900,7 @@ function findallLengthFusion(solver, goal, rest, env) {
   if (lengthGoal.type !== COMPOUND || lengthGoal.name !== 'length' || lengthGoal.arity !== 2) return null;
   const lengthGroup = solver.program.findGroup('length', 2, lengthGoal.module ?? 'user');
   if (!lengthGroup || lengthGroup.bundledLibrary !== true ||
-      !['lists', 'prologue'].includes(lengthGroup.module)) return null;
+      lengthGroup.module !== 'lists') return null;
   const lengthList = derefForLocal(lengthGoal.args[0], env);
   const countArg = derefForLocal(lengthGoal.args[1], env);
   if (lengthList.type !== 'var' || lengthList.name !== bag.name || countArg.type !== 'var') return null;

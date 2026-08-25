@@ -9,6 +9,14 @@ Retrieved on 2026-08-11. It is vendored so the regression suite exercises all
 58 quads without depending on network access or availability of the source
 server.
 
+`variable_names_quad.pl` is an unmodified snapshot of the 75 machine-readable
+quads for the ISO read and write option `variable_names/1`:
+
+<https://www.complang.tuwien.ac.at/ulrich/iso-prolog/variable_names_quad.pl>
+
+Retrieved on 2026-08-25. It is vendored so all input, output, waiting, and
+error cases remain release-gated.
+
 `prologue_quad.pl` is an unmodified snapshot of the 33 machine-readable quads
 for the predicates proposed by the Prolog Prologue working draft:
 

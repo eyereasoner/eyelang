@@ -10,7 +10,7 @@ const standardModulePrelude = `:- use_module(library(aggregate)).
 :- use_module(library(iso_ext)).
 :- use_module(library(lists)).
 :- use_module(library(primes)).
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(random)).
 :- use_module(library(strings)).
 :- use_module(library(uuid)).

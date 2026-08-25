@@ -1,5 +1,5 @@
 :- use_module(library(aggregate)).
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 
 % Pell equation x^2 - 2y^2 = 1 by automatically tabled recurrence.
 %

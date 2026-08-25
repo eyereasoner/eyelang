@@ -180,12 +180,18 @@ export class Program {
     for (let i = 0; i < head.arity; i++) indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition);
   }
   findGroup(name, arity, module = 'user') {
-    const direct = this.groups.get(modulePredicateKey(module, name, arity));
-    if (direct) return direct;
-    const importedModule = this.moduleImports.get(module)?.get(`${name}/${arity}`);
-    return importedModule == null
-      ? null
-      : this.groups.get(modulePredicateKey(importedModule, name, arity)) ?? null;
+    const indicator = `${name}/${arity}`;
+    const visited = new Set();
+    let current = module;
+    while (!visited.has(current)) {
+      visited.add(current);
+      const direct = this.groups.get(modulePredicateKey(current, name, arity));
+      if (direct) return direct;
+      const importedModule = this.moduleImports.get(current)?.get(indicator);
+      if (importedModule == null) return null;
+      current = importedModule;
+    }
+    return null;
   }
   defineModule(name, exports, filename = '<input>') {
     const indicators = new Map(exports.map((indicator) => [`${indicator.name}/${indicator.arity}`, indicator]));
@@ -202,10 +208,16 @@ export class Program {
         throw new PrologError('existence_error(procedure)', compound('/', [atom(indicator.name), numberTerm(indicator.arity)]));
       }
       const previous = imports.get(key);
-      if (previous != null && previous !== source) {
+      const resolved = this.findGroup(indicator.name, indicator.arity, source);
+      const canonicalSource = resolved?.module ?? source;
+      const previousResolved = previous == null
+        ? null
+        : this.findGroup(indicator.name, indicator.arity, previous);
+      const canonicalPrevious = previousResolved?.module ?? previous;
+      if (previous != null && canonicalPrevious !== canonicalSource) {
         throw new PrologError('permission_error(import, procedure)', compound('/', [atom(indicator.name), numberTerm(indicator.arity)]));
       }
-      imports.set(key, source);
+      imports.set(key, canonicalSource);
     }
     this.moduleImports.set(target, imports);
   }

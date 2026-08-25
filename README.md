@@ -335,10 +335,11 @@ may be imported explicitly, while source/CLI/API dependency loading can resolve
 their unqualified forms conservatively. For Trealla-style interactive timing,
 `time/1` is also available directly in the normal EyeProlog runtime; strict ISO
 mode does not expose it.
-The aligned `library(lists)` and `library(iso_ext)` exports are kept disjoint so
-they can be imported together without an accidental import conflict. EyeProlog's
-legacy `library(prologue)` remains a compatibility umbrella and should be
-selectively imported when mixed with the aligned modules.
+`library(lists)`, `library(iso_ext)`, and `library(freeze)` follow the focused
+module organization used by Trealla and Scryer. EyeProlog's legacy
+`library(prologue)` is now a compatibility facade over these canonical modules
+and `library(between)`, so it can be imported before or after the focused
+libraries without duplicate-import errors.
 
 `library(lambda)` follows Scryer's higher-order lambda notation, adapted from
 Ulrich Neumerkel's permissively licensed implementation. Importing it installs
@@ -362,8 +363,7 @@ Outside `--iso-strict`, an otherwise undefined unqualified call may autoload a
 predicate only when the interop profile has one canonical EyeProlog provider.
 For example, `member/2` autoloads from `library(lists)`, `call_nth/2` from
 `library(iso_ext)`, `call_residue_vars/2` from `library(atts)`, and `between/3`
-from EyeProlog's internal
-`library(prologue)` implementation. Use `--no-autoload` to disable this
+from `library(between)`. Use `--no-autoload` to disable this
 convenience. Strict ISO mode never autoloads library predicates.
 
 Use `-w` / `--warnings` to diagnose dependencies outside the interop profile,

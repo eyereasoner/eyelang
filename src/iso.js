@@ -1586,23 +1586,39 @@ function readTermFromStream(stream, solver) {
   let requestedInteractiveTerm = false;
   while (true) {
     let sawCandidate = false;
-    for (const candidate of termTextCandidates(stream, solver)) {
-      sawCandidate = true;
-      if (candidate.lexicalError) {
-        stream.position = candidate.end;
+    let lastCandidateEnd = stream.position;
+    try {
+      for (const candidate of termTextCandidates(stream, solver)) {
+        sawCandidate = true;
+        lastCandidateEnd = candidate.end;
+        if (candidate.lexicalError) {
+          stream.position = candidate.end;
+          throw new PrologError('syntax_error(read_term)');
+        }
+        try {
+          const term = parseReadTermText(candidate.text, solver);
+          stream.position = candidate.end;
+          return scopeReadTerm(term);
+        } catch (error) {
+          if (error instanceof NumberRepresentationError || error instanceof CharacterRepresentationError) {
+            throw new PrologError(error.formal);
+          }
+          // A dot inside a graphic operator, such as =.., is only a possible
+          // terminator. Keep scanning until a complete term parses.
+        }
+      }
+    } catch (error) {
+      // A synthetic input boundary uses an invalid-character sentinel after
+      // the required peek character. If a complete candidate already ended
+      // at that boundary but did not parse, the term itself is malformed;
+      // consume it and report syntax_error rather than blaming the sentinel.
+      if (sawCandidate && Number.isInteger(stream.syntheticInputBoundary) &&
+          lastCandidateEnd === stream.syntheticInputBoundary && error?.name === 'PrologError' &&
+          error.formal === 'representation_error(character)') {
+        stream.position = lastCandidateEnd;
         throw new PrologError('syntax_error(read_term)');
       }
-      try {
-        const term = parseReadTermText(candidate.text, solver);
-        stream.position = candidate.end;
-        return scopeReadTerm(term);
-      } catch (error) {
-        if (error instanceof NumberRepresentationError || error instanceof CharacterRepresentationError) {
-          throw new PrologError(error.formal);
-        }
-        // A dot inside a graphic operator, such as =.., is only a possible
-        // terminator. Keep scanning until a complete term parses.
-      }
+      throw error;
     }
 
     // The interactive top level may attach a synchronous reader to the

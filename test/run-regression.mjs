@@ -1566,6 +1566,18 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'CLI passes the complete authoritative variable_names quad corpus (issue #69)',
+      run: () => {
+        const filename = path.join(testRoot, 'fixtures', 'variable_names_quad.pl');
+        const source = fs.readFileSync(filename, 'utf8');
+        assertEqual(Program.parse(source).quads.length, 74, 'vendored query-record total');
+        const result = runCli(['-q', filename], { cwd: tmp });
+        assertEqual(result.status, 0, 'quad exit status');
+        assertEqual(result.stdout, 'quads: 75 run, 75 passed, 0 failed.\n', 'quad report');
+        assertEqual(result.stderr, '', 'quad stderr');
+      },
+    },
+    {
       name: 'REPL advances anonymous Prologue length checks through I = 28',
       run: () => {
         const result = runCli([], {
@@ -1822,6 +1834,15 @@ c4 ?- call((!;1)).
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, '?-    true.\n?-    X = Y.\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL displays uncaught user exceptions as throw terms (issue #75)',
+      run: () => {
+        const result = runCli([], { input: 'throw(stopped).\nhalt.\n' });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    throw(stopped).\n?- ', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -2827,6 +2848,22 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
           '?-    true.\n' +
           '?-    X = [], Y = [1, 2, 3, 4]\n;  ... .\n?- ',
           'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL combines canonical libraries with the Prologue facade',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'use_module(library(freeze)).\n' +
+            'use_module(library(lists)).\n' +
+            'use_module(library(iso_ext)).\n' +
+            'use_module(library(prologue)).\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '?-    true.\n?-    true.\n?-    true.\n?-    true.\n?- ', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
@@ -4566,7 +4603,7 @@ answer(ok) :-
         const program = Program.parse('answer(X) :- member(X, [a]), between(1, 1, _).\n');
         assertEqual(program.autoloadedPredicates.length, 2, 'autoloaded predicate count');
         assertEqual(program.autoloadedPredicates.map((entry) => `${entry.indicator}:${entry.library}`).sort().join(','),
-          'between/3:prologue,member/2:lists', 'autoload mapping');
+          'between/3:between,member/2:lists', 'autoload mapping');
         assertEqual(program.interopPortabilityWarnings.length, 0, 'autoloaded portable calls are warning-free');
       },
     },
@@ -5050,9 +5087,9 @@ answer(ok) :-
         assertEqual(registeredNativeEyePrologLibraryNames().length, 49, 'public native EyeProlog builtin count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 87, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 30, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda,atts', 'common explicit library module profile');
+        assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda,atts,freeze', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
-        assertEqual(eyePrologInteropAutoload['between/3'], 'prologue', 'between/3 canonical internal autoload');
+        assertEqual(eyePrologInteropAutoload['between/3'], 'between', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['call_residue_vars/2'], 'atts', 'call_residue_vars/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
@@ -5114,12 +5151,40 @@ answer(ok) :-
       },
     },
     {
+      name: 'Prologue facade re-exports canonical library predicates without conflicts',
+      run: () => {
+        const sources = [
+          ':- use_module(library(freeze)).\n:- use_module(library(lists)).\n:- use_module(library(iso_ext)).\n:- use_module(library(prologue)).',
+          ':- use_module(library(prologue)).\n:- use_module(library(freeze)).\n:- use_module(library(lists)).\n:- use_module(library(iso_ext)).',
+        ];
+        for (const source of sources) {
+          const program = Program.parse(source);
+          assertEqual(program.findGroup('freeze', 2)?.module, 'freeze', 'freeze/2 canonical owner');
+          assertEqual(program.findGroup('member', 2)?.module, 'lists', 'member/2 canonical owner');
+          assertEqual(program.findGroup('call_nth', 2)?.module, 'iso_ext', 'call_nth/2 canonical owner');
+          assertEqual(program.findGroup('between', 3)?.module, 'between', 'between/3 canonical owner');
+        }
+
+        const conflicting = new Program();
+        conflicting.defineModule('first', [{ name: 'shared', arity: 1 }]);
+        conflicting.defineModule('second', [{ name: 'shared', arity: 1 }]);
+        conflicting.importModule('user', 'first');
+        let conflict = null;
+        try {
+          conflicting.importModule('user', 'second');
+        } catch (error) {
+          conflict = error;
+        }
+        assertEqual(conflict?.formal, 'permission_error(import, procedure)', 'distinct implementations still conflict');
+      },
+    },
+    {
       name: 'aligned bundled libraries have no overlapping full-module exports',
       run: () => {
         const owners = new Map();
         for (const [moduleName, entry] of standardLibrarySources) {
-          // library(prologue) is the documented legacy compatibility umbrella;
-          // aligned libraries must remain pairwise collision-free so full
+          // library(prologue) is a facade whose nominal exports are re-exports;
+          // canonical libraries must remain pairwise collision-free so full
           // use_module/1 imports can be combined safely.
           if (moduleName === 'prologue') continue;
           const parsed = Program.parse(entry.source);
@@ -6541,7 +6606,7 @@ child.on('close', (status, signal) => {
 
 function runCli(args, options = {}) {
   return spawnSync(process.execPath, [bin, ...args], {
-    cwd: packageRoot,
+    cwd: options.cwd ?? packageRoot,
     encoding: 'utf8',
     env: options.env ? { ...process.env, ...options.env } : process.env,
     input: options.input ?? undefined,

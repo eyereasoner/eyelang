@@ -111,16 +111,23 @@ same_length([_|Xs], [_|Ys]) :- same_length(Xs, Ys).
 
 nth0(N, List, Elem) :- nth0(N, List, Elem, _).
 
-nth0(0, [Elem|Rest], Elem, Rest).
-nth0(N, [X|Xs], Elem, [X|Rest]) :-
+nth0(N, List, Elem, Rest) :-
+    lists__integer_or_variable(N),
+    ( var(N) -> lists__nth0(N, List, Elem, Rest)
+    ; lists__not_less_than_zero(N),
+      lists__nth0(N, List, Elem, Rest)
+    ).
+
+lists__nth0(0, [Elem|Rest], Elem, Rest).
+lists__nth0(N, [X|Xs], Elem, [X|Rest]) :-
     var(N),
-    nth0(N0, Xs, Elem, Rest),
+    lists__nth0(N0, Xs, Elem, Rest),
     N is N0 + 1.
-nth0(N, [X|Xs], Elem, [X|Rest]) :-
+lists__nth0(N, [X|Xs], Elem, [X|Rest]) :-
     nonvar(N),
     N > 0,
     N0 is N - 1,
-    nth0(N0, Xs, Elem, Rest).
+    lists__nth0(N0, Xs, Elem, Rest).
 
 nth1(N, List, Elem) :- nth1(N, List, Elem, _).
 
@@ -207,6 +214,9 @@ lists__integer(X) :- integer(X), !.
 lists__integer(X) :- var(X), !, 0 is X.
 % arg/3 performs the ISO integer type check before inspecting its term.
 lists__integer(X) :- arg(X, type_check, _).
+
+lists__integer_or_variable(X) :- var(X), !.
+lists__integer_or_variable(X) :- lists__integer(X).
 
 lists__not_less_than_zero(X) :- X >= 0, !.
 % atom_length/2 reports domain_error(not_less_than_zero) for a negative value.

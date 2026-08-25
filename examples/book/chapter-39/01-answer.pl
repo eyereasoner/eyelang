@@ -1,6 +1,6 @@
 % From The Art of EyeProlog, Chapter 39 — The EyeProlog library.
 :- use_module(library(dates)).
-:- use_module(library(prologue), [between/3]).
+:- use_module(library(between), [between/3]).
 :- use_module(library(random)).
 :- use_module(library(lists)).
 

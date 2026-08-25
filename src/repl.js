@@ -803,7 +803,7 @@ function letterName(index) {
 }
 
 function formatError(engine, state, error) {
-  if (error?.name === 'PrologError') {
+  if (error?.name === 'PrologError' || (error?.name === 'ThrownTerm' && error.term != null)) {
     const env = new engine.Env();
     const variableNames = new Map();
     let generated = 0;
@@ -811,7 +811,9 @@ function formatError(engine, state, error) {
     // Reuse the same conversion as catch/3 so uncaught errors at the top
     // level cannot lose the implementation-defined context or misplace a
     // culprit as the second argument of error/2.
-    const term = formalErrorTerm(error);
+    const term = error.name === 'ThrownTerm'
+      ? engine.compound('throw', [error.term])
+      : formalErrorTerm(error);
     collectUnboundVariables(engine, term, env, variableNames, () => `_${letterName(generated++)}`);
     return `${engine.formatTermForWrite(term, env, {
       quoted: true,
