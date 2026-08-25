@@ -1827,7 +1827,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'REPL omits exhausted choicepoints without probing future branches (issue #74)',
+      name: 'predicates discard exhausted choicepoints before the REPL observes them (issue #74)',
       run: () => {
         const result = runCli([], {
           input:
@@ -1851,6 +1851,31 @@ c4 ?- call((!;1)).
           '?- ',
           'stdout');
         assertEqual(result.stderr, '', 'stderr');
+
+        const finalAnswerHasNoFrames = (source, text, answerCount, module = null) => {
+          const solver = new Solver(Program.parse(source), { registry: getEyePrologRegistry() });
+          const goal = parseGoalText(text);
+          if (module != null) goal.module = module;
+          const solutions = solver.solve([goal], new Env(), 0);
+          for (let answer = 1; answer <= answerCount; answer++) {
+            assertEqual(solutions.next().done, false, `${text} answer ${answer}`);
+            if (answer < answerCount) {
+              assertEqual(solver.solveStacks.some((stack) => stack.length !== 0), true,
+                `${text} retains its genuine earlier choicepoint`);
+            }
+          }
+          assertEqual(solver.solveStacks.every((stack) => stack.length === 0), true,
+            `${text} removes its exhausted predicate frames`);
+          assertEqual(solver.hasPendingAlternatives(), false,
+            `${text} has no reported alternatives`);
+          solutions.return();
+        };
+
+        finalAnswerHasNoFrames('', 'X=1;X=2', 2);
+        finalAnswerHasNoFrames('', 'setof(X,true,Xs)', 1);
+        finalAnswerHasNoFrames('', 'findall(t,false,Xs)', 1);
+        finalAnswerHasNoFrames(':- use_module(library(lists)).', 'member(a,"ba")', 1, 'lists');
+        finalAnswerHasNoFrames(':- use_module(library(lists)).', 'append("a",Xs,Xs0)', 1, 'lists');
 
         const grouped = new Solver(Program.parse(''));
         const groupedSolutions = grouped.solve([

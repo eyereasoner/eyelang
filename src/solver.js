@@ -421,7 +421,11 @@ export class Solver {
         if (this.solutionsSeen >= this.solutionLimit) continue;
         const result = frame.iterator.next();
         if (result.done) continue;
-        stack.push(frame);
+        // Predicate iterators that can identify their final answer report it
+        // before yielding. Do not recreate a choicepoint that the predicate has
+        // already exhausted; consumers must not need to hide such a frame later.
+        if (iteratorMayHavePendingAlternatives(frame.iterator)) stack.push(frame);
+        else frame.iterator.return?.();
         stack.push({
           kind: 'goals',
           goals: frame.goals,
@@ -620,15 +624,7 @@ export class Solver {
             else this.stats.deterministic_builtin_failures++;
           }
           if (firstResult.done) break;
-          if (!deterministic) {
-            stack.push({
-              kind: 'resumeBuiltin',
-              iterator,
-              goals: rest,
-              depth: depth + 1,
-              active,
-            });
-          }
+          if (!deterministic) pushResumeBuiltinFrame(stack, iterator, rest, depth + 1, active);
           goals = rest;
           env = firstResult.value;
           depth++;
@@ -660,13 +656,7 @@ export class Solver {
           const iterator = datalogAnswerSolutions(this, relation, goal, env);
           const firstResult = iterator.next();
           if (firstResult.done) break;
-          stack.push({
-            kind: 'resumeBuiltin',
-            iterator,
-            goals: rest,
-            depth: depth + 1,
-            active,
-          });
+          pushResumeBuiltinFrame(stack, iterator, rest, depth + 1, active);
           goals = rest;
           env = firstResult.value;
           depth++;
@@ -683,13 +673,7 @@ export class Solver {
         if (betweenIterator != null) {
           const firstResult = betweenIterator.next();
           if (firstResult.done) break;
-          stack.push({
-            kind: 'resumeBuiltin',
-            iterator: betweenIterator,
-            goals: rest,
-            depth: depth + 1,
-            active,
-          });
+          pushResumeBuiltinFrame(stack, betweenIterator, rest, depth + 1, active);
           goals = rest;
           env = firstResult.value;
           depth++;
@@ -700,13 +684,7 @@ export class Solver {
         if (memberIterator != null) {
           const firstResult = memberIterator.next();
           if (firstResult.done) break;
-          stack.push({
-            kind: 'resumeBuiltin',
-            iterator: memberIterator,
-            goals: rest,
-            depth: depth + 1,
-            active,
-          });
+          pushResumeBuiltinFrame(stack, memberIterator, rest, depth + 1, active);
           goals = rest;
           env = firstResult.value;
           depth++;
@@ -717,13 +695,7 @@ export class Solver {
         if (lengthIterator != null) {
           const firstResult = lengthIterator.next();
           if (firstResult.done) break;
-          stack.push({
-            kind: 'resumeBuiltin',
-            iterator: lengthIterator,
-            goals: rest,
-            depth: depth + 1,
-            active,
-          });
+          pushResumeBuiltinFrame(stack, lengthIterator, rest, depth + 1, active);
           goals = rest;
           env = firstResult.value;
           depth++;
@@ -734,13 +706,7 @@ export class Solver {
         if (ellipsisPlan != null) {
           const firstResult = ellipsisPlan.iterator.next();
           if (firstResult.done) break;
-          stack.push({
-            kind: 'resumeBuiltin',
-            iterator: ellipsisPlan.iterator,
-            goals: ellipsisPlan.rest,
-            depth: depth + 1,
-            active,
-          });
+          pushResumeBuiltinFrame(stack, ellipsisPlan.iterator, ellipsisPlan.rest, depth + 1, active);
           goals = ellipsisPlan.rest;
           env = firstResult.value;
           depth++;
@@ -826,21 +792,12 @@ export class Solver {
   }
 
   hasPendingAlternatives(excludedStacks = null) {
-    // When solve() is suspended at an answer, active solve stacks contain
-    // unexplored work or an iterator frame that can prove it just yielded its
-    // final answer. The demand-driven REPL uses this without speculatively
-    // pulling the next answer. Control builtins can exclude their caller's
-    // pre-existing stacks when inspecting a nested branch.
-    return this.solveStacks.some((stack) => !excludedStacks?.has(stack) && stack.some((frame) => {
-      if (frame.kind === 'resumeBuiltin' &&
-          typeof frame.iterator?.hasPendingAlternatives === 'function') {
-        return frame.iterator.hasPendingAlternatives();
-      }
-      if (frame.kind === 'userClause' && headCannotMatch(frame.goal, frame.clause.head, frame.env)) {
-        return false;
-      }
-      return true;
-    }));
+    // Choicepoints are represented by actual pending frames. Predicate
+    // iterators discard an exhausted resume frame before yielding their final
+    // answer, so observers never need to reinterpret or conceal stack entries.
+    // Control builtins can exclude their caller's pre-existing stacks when
+    // inspecting a nested branch.
+    return this.solveStacks.some((stack) => !excludedStacks?.has(stack) && stack.length !== 0);
   }
 
   fastCountGoal(goal, env) {
@@ -2870,6 +2827,21 @@ function builtinIsReadyOrAuthoritative(def, solver, goal, env) {
   if (typeof def.ready !== 'function') return true;
   if (def.ready(goal, env)) return true;
   return !def.fallbackWhenNotReady;
+}
+
+function iteratorMayHavePendingAlternatives(iterator) {
+  const predicate = iterator?.hasPendingAlternatives;
+  return typeof predicate !== 'function' || predicate.call(iterator) !== false;
+}
+
+function pushResumeBuiltinFrame(stack, iterator, goals, depth, active) {
+  if (!iteratorMayHavePendingAlternatives(iterator)) {
+    // Finish the suspended generator now so its finally blocks release child
+    // solvers, aggregate statistics, and perform predicate-local cleanup.
+    iterator.return?.();
+    return;
+  }
+  stack.push({ kind: 'resumeBuiltin', iterator, goals, depth, active });
 }
 
 function selectReadyDeterministicBuiltin(goals, env, registry) {

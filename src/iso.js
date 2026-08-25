@@ -2598,7 +2598,7 @@ function callResidueVarsBuiltin({ solver, goal, env }) {
   const child = solver.cloneForInnerGoal();
   let pending = true;
   // The wrapper iterator is resumable even for a deterministic Goal. Expose
-  // the child's actual search state so the top level does not print a phantom
+  // the child's actual search state so the solver does not install a phantom
   // choicepoint after the final answer.
   const iterator = (function* residueSolutions() {
     try {

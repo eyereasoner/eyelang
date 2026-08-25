@@ -5,7 +5,7 @@
 // therefore need two pieces of host support:
 //   * discarded resumeBuiltin iterators must be closed when search is pruned;
 //   * a cleanup iterator can report that its protected goal has no alternatives,
-//     so the REPL does not need speculative look-ahead to suppress a choicepoint.
+//     so the solver does not retain an exhausted resume frame.
 import { PrologError } from './errors.js';
 import { deref } from './term.js';
 
@@ -58,10 +58,6 @@ export function installCleanupLifecycle(Solver) {
         if (thrown == null && closeError != null) throw closeError;
       }
     }
-  };
-
-  prototype.hasPendingAlternatives = function cleanupAwarePendingAlternatives() {
-    return this.solveStacks.some((stack) => stack.some(frameHasPendingAlternative));
   };
 }
 
@@ -166,13 +162,6 @@ function closeFrames(frames, suppressErrors) {
     }
   }
   if (!suppressErrors && firstError != null) throw firstError;
-}
-
-function frameHasPendingAlternative(frame) {
-  if (frame?.kind !== 'resumeBuiltin') return true;
-  const predicate = frame.iterator?.hasPendingAlternatives;
-  if (typeof predicate !== 'function') return true;
-  return predicate.call(frame.iterator);
 }
 
 function callableTerm(term, env) {
