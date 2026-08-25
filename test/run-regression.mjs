@@ -3882,6 +3882,70 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'answer write options make operator spacing explicit and persistent (issue #76)',
+      run: () => {
+        const source = [
+          'emit :-',
+          '  write_term(1*1, [spacing(standard)]), put_char(\'|\'),',
+          '  write_term(1*1, [spacing(minimal)]), put_char(\'|\'),',
+          '  write_term(1*1, [spacing(standard),spacing(minimal)]).',
+          '',
+        ].join('\n');
+        assertEqual(run(source, { goal: 'emit' }).stdout, '1 * 1|1*1|1*1emit.\n',
+          'explicit and rightmost spacing options');
+        assertEqual(run([
+          ':- set_prolog_flag(answer_write_options, [spacing(minimal)]).',
+          'emit :- current_prolog_flag(answer_write_options, [spacing(minimal)]).',
+        ], { goal: 'emit' }).stdout, 'emit.\n', 'source flag directive');
+
+        const result = runCli([], {
+          input:
+            'current_prolog_flag(answer_write_options, Os).\n' +
+            'X=1*1.\n' +
+            'set_prolog_flag(answer_write_options,[spacing(minimal)]).\n' +
+            'use_module(library(lists)).\n' +
+            'X=1*1.\n' +
+            'current_prolog_flag(answer_write_options, Os).\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    Os = [spacing(standard)].\n' +
+          '?-    X = 1 * 1.\n' +
+          '?-    true.\n' +
+          '?-    true.\n' +
+          '?-    X = 1*1.\n' +
+          '?-    Os = [spacing(minimal)].\n' +
+          '?- ',
+          'discoverable top-level option and persistence across module reload');
+        assertEqual(result.stderr, '', 'stderr');
+
+        let writeOptionError = null;
+        try {
+          run('', { goal: 'write_term(a,[spacing(other)])' });
+        } catch (error) {
+          writeOptionError = error;
+        }
+        assertEqual(writeOptionError?.formal, 'domain_error(write_option)', 'spacing value domain');
+
+        let flagValueError = null;
+        try {
+          run('', { goal: 'set_prolog_flag(answer_write_options,[spacing(other)])' });
+        } catch (error) {
+          flagValueError = error;
+        }
+        assertEqual(flagValueError?.formal, 'domain_error(flag_value)', 'answer option flag domain');
+
+        let nongroundFlagError = null;
+        try {
+          run('', { goal: 'set_prolog_flag(answer_write_options,[spacing(X)])' });
+        } catch (error) {
+          nongroundFlagError = error;
+        }
+        assertEqual(nongroundFlagError?.formal, 'instantiation_error', 'answer options must be ground');
+      },
+    },
+    {
       name: 'write predicates and write_term options select distinct formats',
       run: () => {
         const source = [

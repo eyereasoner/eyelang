@@ -804,18 +804,7 @@ function* currentPrologFlagBuiltin({ solver, goal, env }) {
 }
 
 function* setPrologFlagBuiltin({ solver, goal, env }) {
-  const flag = deref(goal.args[0], env);
-  const value = deref(goal.args[1], env);
-  if (flag.type === VAR || value.type === VAR) throw new PrologError('instantiation_error');
-  if (flag.type !== ATOM) throw new PrologError('type_error(atom)', flag);
-  const definition = solver.prologFlags.get(flag.name);
-  if (!definition) throw new PrologError('domain_error(prolog_flag)', flag);
-  const expectedType = definition.valueType ?? ATOM;
-  if (value.type !== expectedType || !definition.allowed.includes(value.name)) {
-    throw new PrologError('domain_error(flag_value)', compound('+', [flag, value]));
-  }
-  if (!definition.changeable) throw new PrologError('permission_error(modify, flag)', flag);
-  definition.value = atom(value.name);
+  solver.setPrologFlag(goal.args[0], goal.args[1], env);
   yield env;
 }
 
@@ -1720,6 +1709,15 @@ function writeOptionBoolean(value, env, option) {
   return value.name === 'true';
 }
 
+function writeOptionSpacing(value, env, option) {
+  value = deref(value, env);
+  if (value.type === VAR) throw new PrologError('instantiation_error');
+  if (value.type !== ATOM || !['standard', 'minimal'].includes(value.name)) {
+    throw new PrologError('domain_error(write_option)', copyResolved(option, env));
+  }
+  return value.name;
+}
+
 function writeVariableNames(value, env, option) {
   value = deref(value, env);
   if (value.type === VAR) throw new PrologError('instantiation_error');
@@ -1748,8 +1746,10 @@ function writeVariableNames(value, env, option) {
   return names;
 }
 
-function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = null) {
-  const result = defaultTermWriteOptions(mode);
+function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = null, initial = null) {
+  const result = initial == null
+    ? defaultTermWriteOptions(mode)
+    : { ...initial, variableNames: new Map(initial.variableNames ?? []) };
   for (const option of options) {
     if (option.type !== COMPOUND || option.arity !== 1) {
       throw new PrologError('domain_error(write_option)', copyResolved(option, env));
@@ -1760,11 +1760,19 @@ function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = n
     else if (option.name === 'variable_names') result.variableNames = writeVariableNames(option.args[0], env, option);
     else if (option.name === 'double_quotes' && !solver?.isoStrict) {
       result.doubleQuotes = writeOptionBoolean(option.args[0], env, option);
+    } else if (option.name === 'spacing' && !solver?.isoStrict) {
+      result.minimalOperatorSpacing = writeOptionSpacing(option.args[0], env, option) === 'minimal';
     } else {
       throw new PrologError('domain_error(write_option)', copyResolved(option, env));
     }
   }
   return result;
+}
+
+export function parseTermWriteOptions(optionTerm, env, mode = 'write_term', solver = null, initial = null) {
+  const preflight = preflightOptionList(optionTerm, env);
+  const items = requireProperOptionList(preflight);
+  return termWriteOptionsFromItems(items, env, mode, solver, initial);
 }
 
 

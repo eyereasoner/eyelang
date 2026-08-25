@@ -41,6 +41,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
   reporter.test('exposes only ISO core Prolog flags', () => {
     const solver = new Solver(Program.parse('', { isoStrict: true }), { isoStrict: true });
     equal(solver.prologFlags.has('occurs_check'), false, 'occurs_check');
+    equal(solver.prologFlags.has('answer_write_options'), false, 'answer_write_options');
     equal(solver.prologFlags.get('unknown')?.value?.name, 'error', 'unknown default');
   });
 
@@ -283,8 +284,16 @@ export function runIsoStrict(reporter = new TestReporter()) {
     }));
     equal(strictError.formal, 'domain_error(write_option)', 'strict extension rejection');
 
+    const strictSpacingError = capture(() => run('', {
+      isoStrict: true,
+      goal: 'write_term(1*1,[spacing(minimal)])',
+    }));
+    equal(strictSpacingError.formal, 'domain_error(write_option)', 'strict spacing extension rejection');
+
     const normal = run('', { goal: 'write_term("ab",[double_quotes(true)])' });
     includes(normal.stdout, '"ab"', 'normal-profile extension remains available');
+    includes(run('', { goal: 'write_term(1*1,[spacing(standard)])' }).stdout,
+      '1 * 1', 'normal-profile spacing extension remains available');
   });
 
   reporter.test('follows Corrigendum 3 variable metadata traversal and write naming', () => {

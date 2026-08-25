@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import { readSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
-import { formalErrorTerm } from './iso.js';
+import { formalErrorTerm, parseTermWriteOptions } from './iso.js';
 import {
   characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
 } from './syntax-scan.js';
@@ -303,20 +303,18 @@ function makeState(engine, sources, output, options = {}, previousState = null, 
   const flagOverrides = new Map(previousState?.flagOverrides ?? []);
   for (const [name, value] of flagOverrides) {
     const definition = solver.prologFlags.get(name);
-    if (definition?.changeable && definition.allowed.includes(value)) {
-      definition.value = engine.atom(value);
-    }
+    if (definition?.changeable) definition.value = value;
   }
   return { program: solver.program, solver, strictIso, flagOverrides };
 }
 
 function snapshotFlagValues(solver) {
-  return new Map([...solver.prologFlags].map(([name, definition]) => [name, definition.value?.name]));
+  return new Map([...solver.prologFlags].map(([name, definition]) => [name, definition.value]));
 }
 
 function rememberFlagOverrides(state, before) {
   for (const [name, definition] of state.solver.prologFlags) {
-    const value = definition.value?.name;
+    const value = definition.value;
     if (before.get(name) !== value) state.flagOverrides.set(name, value);
   }
 }
@@ -720,6 +718,7 @@ function formatAnswer(engine, state, variables, env) {
   const valueMaxPriority = equality == null
     ? 699
     : equality.specifier === 'xfy' ? equality.priority : equality.priority - 1;
+  const writeOptions = answerTermWriteOptions(state, env);
   let generated = 0;
 
   // Meta-predicate wrappers can make a query variable alias an internal fresh
@@ -734,7 +733,7 @@ function formatAnswer(engine, state, variables, env) {
     if (value.type === 'var' &&
         (value.name === variable.name || !queryVariableNames.has(value.name))) continue;
     bindings.push(`${variable.name} = ${engine.formatTermForWrite(value, env, {
-      quoted: true,
+      ...writeOptions,
       operators,
       variableNames: names,
       maxPriority: valueMaxPriority,
@@ -743,7 +742,6 @@ function formatAnswer(engine, state, variables, env) {
       // quotes, just as writeq/1 already prints them.
       operatorAtomsAsArgs: true,
       dottedGraphicAtoms: true,
-      doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
     })}`);
   }
   for (const constraint of env.variableConstraints?.() ?? []) {
@@ -751,12 +749,11 @@ function formatAnswer(engine, state, variables, env) {
     if (residual == null) continue;
     collectUnboundVariables(engine, residual, env, names, () => `_${letterName(generated++)}`);
     bindings.push(engine.formatTermForWrite(residual, env, {
-      quoted: true,
+      ...writeOptions,
       operators,
       variableNames: names,
       operatorAtomsAsArgs: true,
       dottedGraphicAtoms: true,
-      doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
     }));
   }
   const projectedAttributeRoots = new Set();
@@ -768,16 +765,35 @@ function formatAnswer(engine, state, variables, env) {
     for (const residual of state.solver.attributeResidualGoals(root, env)) {
       collectUnboundVariables(engine, residual, env, names, () => `_${letterName(generated++)}`);
       bindings.push(engine.formatTermForWrite(residual, env, {
-        quoted: true,
+        ...writeOptions,
         operators,
         variableNames: names,
         operatorAtomsAsArgs: true,
         dottedGraphicAtoms: true,
-        doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
       }));
     }
   }
   return bindings.length === 0 ? 'true' : bindings.join(', ');
+}
+
+function answerTermWriteOptions(state, env) {
+  const doubleQuotes = state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars';
+  const initial = {
+    quoted: true,
+    ignoreOps: false,
+    numbervars: true,
+    variableNames: new Map(),
+    compact: false,
+    minimalOperatorSpacing: false,
+    operatorAtomsAsArgs: true,
+    doubleQuotes,
+  };
+  const optionTerm = state.solver.prologFlags.get('answer_write_options')?.value;
+  if (optionTerm == null) return initial;
+  const options = parseTermWriteOptions(optionTerm, env, 'write_term', state.solver, initial);
+  if (options.doubleQuotes === true) options.doubleQuotes = doubleQuotes;
+  else if (options.doubleQuotes === false) options.doubleQuotes = null;
+  return options;
 }
 
 function collectUnboundVariables(engine, term, env, names, nextName) {

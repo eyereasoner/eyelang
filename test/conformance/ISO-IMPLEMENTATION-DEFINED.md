@@ -120,11 +120,11 @@ families; `--iso-strict` is intended to remove their Part 1 interpretation.
 | 5.5.5 Directives | `module/2`, `use_module/1-2`, `meta_predicate/1` and normal-profile library behavior | Rejected as implementation-specific Part 1 directives. |
 | 5.5.6 Side effects | Normal mode adds `statistics/0-2`, cleanup/library state, and optional proof/statistics host instrumentation. | The strict registry excludes Prolog-visible statistics/cleanup/library adapters; ordinary Part 1 I/O/database/flag/operator side effects remain. Host proof/statistics collection observes execution through the embedding API rather than adding a strict Prolog goal effect. **covered** — strict registry/execution regression. |
 | 5.5.7 Control constructs | `tnot/1` and normal-profile execution optimizations | `tnot/1` is absent; automatic tabling/recursion guards are disabled. |
-| 5.5.8 Flags | `occurs_check` | Absent in strict mode. |
+| 5.5.8 Flags | `occurs_check`; `answer_write_options`, whose normal-mode default is `[spacing(standard)]` and whose value controls REPL answer rendering | Both extension flags are absent in strict mode. |
 | 5.5.9 Built-in predicates | EyeProlog libraries, CLP(Z), statistics, Part 3 `phrase/2-3`, and interop autoloaded predicates | Strict registry contains only the Part 1 + Corrigenda core registry. |
 | 5.5.10 Evaluable functors | Normal mode additionally accepts the EyeProlog evaluable atom `e`; the remaining arithmetic functors accepted by strict mode are the Part 1 + Corrigenda set. | Strict mode rejects `e/0` as non-evaluable and retains the Corrigendum arithmetic additions. **covered** — strict extension-boundary regression plus `src/iso-arithmetic.js`. |
 | 5.5.11 Reserved atoms | None | None. |
-| Cor.3 5.5.12 Options | Extra library/host options may exist outside core option lists | Normal mode additionally accepts the EyeProlog `write_term/2-3` option `double_quotes(true|false)`. Strict core excludes that extension and accepts only the Part 1 plus Corrigendum 3 write-option surface; unknown extension options raise `domain_error(write_option,...)`. |
+| Cor.3 5.5.12 Options | Extra library/host options may exist outside core option lists | Normal mode additionally accepts the EyeProlog `write_term/2-3` options `double_quotes(true|false)` and `spacing(standard|minimal)`. Strict core excludes those extensions and accepts only the Part 1 plus Corrigendum 3 write-option surface; unknown extension options raise `domain_error(write_option,...)`. |
 
 Normal mode provides documented module and DCG compatibility profiles whose
 features overlap standardized Part 2 and Part 3 facilities. They are extensions
