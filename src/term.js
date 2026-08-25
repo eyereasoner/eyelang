@@ -650,6 +650,7 @@ export function unify(left, right, env, options = {}) {
   // unification: a variable cannot be bound to a term containing itself.
   // Bindings are written into the supplied Env.
   const occursCheckHandler = options.occursCheck === 'fail' ? null : env?._occursCheckHandler;
+  const runAttributeHooks = options.skipAttributeHooks !== true;
   // Callers may provide a proof that selected variables cannot occur in the
   // term they are about to receive.  Source-level first-use analysis and a few
   // construction fast paths share this internal proof; ordinary unification
@@ -663,7 +664,7 @@ export function unify(left, right, env, options = {}) {
 
     if (a.type === VAR && b.type === VAR && a.name === b.name) continue;
     if (a.type === VAR && b.type === VAR) {
-      if (env?._prologAttributes != null) {
+      if (runAttributeHooks && env?._prologAttributes != null) {
         if (!env.preparePrologAttributeUnification(a, b)) return false;
         a = deref(a, env);
         b = deref(b, env);
@@ -694,7 +695,7 @@ export function unify(left, right, env, options = {}) {
         occursCheckHandler?.(a, b, env);
         return false;
       }
-      if (env?._prologAttributes != null && env.hasPrologAttributes(a.name)) {
+      if (runAttributeHooks && env?._prologAttributes != null && env.hasPrologAttributes(a.name)) {
         if (!env.preparePrologAttributeUnification(a, b)) return false;
         a = deref(a, env);
         b = deref(b, env);
@@ -712,7 +713,7 @@ export function unify(left, right, env, options = {}) {
         occursCheckHandler?.(b, a, env);
         return false;
       }
-      if (env?._prologAttributes != null && env.hasPrologAttributes(b.name)) {
+      if (runAttributeHooks && env?._prologAttributes != null && env.hasPrologAttributes(b.name)) {
         if (!env.preparePrologAttributeUnification(b, a)) return false;
         b = deref(b, env);
         a = deref(a, env);

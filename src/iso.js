@@ -202,7 +202,12 @@ function difConstraint(left, right) {
     status(env) {
       if (identical(left, right, env)) return 'violated';
       const probe = env.clone();
-      return unify(left, right, probe, { skipVariableConstraints: true }) ? 'pending' : 'entailed';
+      // Test structural unifiability without waking freeze/2 or other
+      // attributed-variable hooks in this disposable environment.
+      return unify(left, right, probe, {
+        skipVariableConstraints: true,
+        skipAttributeHooks: true,
+      }) ? 'pending' : 'entailed';
     },
     residualGoal() {
       return compound('dif', [left, right]);
@@ -218,8 +223,12 @@ function* difBuiltin({ goal, env }) {
   // In EyeProlog's finite-tree model, terms that cannot unify are already
   // provably different and need no residual constraint. Otherwise attach a
   // disequality constraint to every currently unbound variable it mentions.
+  // This probe must not wake goals attached to those variables.
   const probe = env.clone();
-  if (!unify(left, right, probe, { skipVariableConstraints: true })) {
+  if (!unify(left, right, probe, {
+    skipVariableConstraints: true,
+    skipAttributeHooks: true,
+  })) {
     yield env;
     return;
   }

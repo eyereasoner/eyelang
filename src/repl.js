@@ -722,6 +722,12 @@ function formatAnswer(engine, state, variables, env) {
     : equality.specifier === 'xfy' ? equality.priority : equality.priority - 1;
   let generated = 0;
 
+  // Meta-predicate wrappers can make a query variable alias an internal fresh
+  // variable. Keep residual constraints tied to the query's visible name.
+  for (const variable of variables) {
+    const root = engine.deref(variable, env);
+    if (root.type === 'var' && !names.has(root.name)) names.set(root.name, variable.name);
+  }
   for (const variable of variables) collectUnboundVariables(engine, variable, env, names, () => `_${letterName(generated++)}`);
   for (const variable of variables) {
     const value = engine.deref(variable, env);

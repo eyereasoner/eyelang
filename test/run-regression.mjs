@@ -127,6 +127,17 @@ function regressionCases() {
           'scalar-fact fast matching still validates annotated variables');
         assertEqual(run('p(b).', { goal: 'dif(X,a),p(X)' }).stats.completed_goal_lists, 1,
           'scalar-fact fast matching can discharge an annotated disequality');
+
+        const freezeProgram = Program.parse(':- use_module(library(freeze), [freeze/2]).');
+        const freezeSolver = new Solver(freezeProgram);
+        const freezeDifGoal = parseGoalText('freeze(X,a),dif(X,c)');
+        const freezeDifAnswer = freezeSolver.solve([freezeDifGoal], new Env(), 0).next();
+        assertEqual(freezeDifAnswer.done, false, 'freeze/2 and dif/2 answer');
+        const freezeResiduals = freezeSolver.attributeResidualGoals(
+          freezeDifGoal.args[0].args[0], freezeDifAnswer.value,
+        );
+        assertEqual(freezeResiduals.length, 1,
+          'freeze/2 residual projection terminates alongside dif/2 (issue #73)');
       },
     },
     {
@@ -190,6 +201,7 @@ check :- call_residue_vars(X in 1..3, Vs), Vs = [X].
 
         const residualFile = path.join(tmp, `atts-residual-${++tmpCounter}.pl`);
         fs.writeFileSync(residualFile, `:- use_module(library(atts)).
+:- use_module(library(freeze), [freeze/2]).
 :- attribute required/1.
 attach(X,V) :- put_atts(X, required(V)).
 verify_attributes(Var, Other, Goals) :-
@@ -199,9 +211,13 @@ verify_attributes(Var, Other, Goals) :-
 same(X,X).
 attribute_goals(X) --> { get_atts(X, required(V)) }, [required(X,V)].
 `);
-        const repl = runCli([], { input: `[${sourceAtom(residualFile)}].\nattach(X,a).\nhalt.\n` });
+        const repl = runCli([], {
+          input: `[${sourceAtom(residualFile)}].\nattach(X,a).\nfreeze(Y,a),dif(Y,c).\nhalt.\n`,
+        });
         assertEqual(repl.status, 0, 'attribute residual REPL status');
         assertIncludes(repl.stdout, 'required(X, a).', 'attribute_goals//1 residual projection');
+        assertIncludes(repl.stdout, 'dif(Y, c), freeze:freeze(Y, a).',
+          'freeze/2 and dif/2 residuals share the query variable (issue #73)');
 
         const scryerShape = Program.parse(`:- module(scryer_shape, [op(700, xfx, #=), probe/0]).
 :- op(700, xfx, #=).
