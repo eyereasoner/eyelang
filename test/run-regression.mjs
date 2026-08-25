@@ -3987,7 +3987,15 @@ function documentationSyncCases() {
     },
     {
       name: 'book EyeProlog library matches runtime registry',
-      run: () => assertArrayEqual(bookEyePrologLibraryNames(), registeredEyePrologLibraryNames(), 'EyeProlog library predicates'),
+      run: () => {
+        assertArrayEqual(bookEyePrologLibraryNames(), registeredEyePrologLibraryNames(), 'EyeProlog library predicates');
+        assertArrayEqual(bookLibraryModuleIssues(), [], 'library module export catalog');
+        const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
+        assertIncludes(book, `**${eyePrologLibraryIndicators.length} distinct non-ISO library and normal-extension predicate`, 'library predicate count');
+        assertIncludes(book, `**${eyePrologPortableLibraryIndicators.length} are defined entirely as ordinary Prolog clauses**`, 'portable library count');
+        assertIncludes(book, `**${eyePrologNativeLibraryIndicators.length} use host support**`, 'host-supported library count');
+        assertIncludes(book, `**${createDefaultRegistry().defs.size + eyePrologLibraryIndicators.length} distinct predicate indicators**`, 'combined catalog count');
+      },
     },
     {
       name: 'README cover links to the book and the book documents runtime boundaries',
@@ -3999,11 +4007,10 @@ function documentationSyncCases() {
           '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
           'README cover links to the book',
         );
-        for (const filename of ['src/iso.js', 'src/dcg.js', 'src/atts.js', 'src/standard-library.js',
-          'src/lib/aggregate.pl', 'src/lib/atts.pl', 'src/lib/comparison.pl', 'src/lib/dates.pl',
-          'src/lib/iso_ext.pl', 'src/lib/lists.pl', 'src/lib/primes.pl', 'src/lib/prologue.pl',
-          'src/lib/random.pl', 'src/lib/strings.pl', 'src/lib/uuid.pl',
-          'src/playground-worker.js']) {
+        const documentedSources = ['src/iso.js', 'src/dcg.js', 'src/atts.js', 'src/standard-library.js',
+          ...[...standardLibrarySources.values()].map((entry) => entry.filename),
+          'src/playground-worker.js'];
+        for (const filename of documentedSources) {
           assertEqual(fs.existsSync(path.join(packageRoot, filename)), true, `${filename} exists`);
           assertIncludes(book, filename, `book documents ${filename}`);
         }
@@ -4161,6 +4168,11 @@ function documentationSyncCases() {
         ]) assertIncludes(book, name, `book ${name}`);
         assertIncludes(readme, 'implementation reference is [*The Art of EyeProlog*]', 'README book hand-off');
         assertIncludes(readme, 'test/conformance/ISO-COMPLIANCE.md', 'README concise audit link');
+        assertEqual(readme.split('\n').length <= 100, true, 'README remains a compact entry point');
+        for (const heading of ['## Tabling', '## Cleanup-aware control', '## Strict ISO',
+          '## Module and definite clause grammar', '## Trealla and Scryer interoperability']) {
+          assertNotIncludes(readme, heading, `README delegates ${heading} to the book`);
+        }
         assertEqual(readme.includes('2026-08-23 draft items #73-#76'), false, 'README omits audit-history detail');
         assertIncludes(profile, 'Part 1 processor, syntax, semantic, built-in, and arithmetic', 'Why EyeProlog audit state');
       },
@@ -5119,8 +5131,8 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 49, 'public native EyeProlog builtin count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 87, 'portable Prolog library count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 57, 'public host-supported EyeProlog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 135, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 30, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.join(','), 'lists,iso_ext,lambda,atts,freeze', 'common explicit library module profile');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
@@ -5130,9 +5142,9 @@ answer(ok) :-
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 49, 'native host library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 57, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 136, 'complete EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 192, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');
@@ -6292,7 +6304,45 @@ function bookBuiltinNames() {
 
 function bookEyePrologLibraryNames() {
   const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
-  return documentedBuiltinNames(between(book, '<!-- eyeprolog-library-catalog:start -->', '<!-- eyeprolog-library-catalog:end -->'), 2);
+  const iso = new Set(registeredBuiltinNames());
+  return documentedBuiltinNames(
+    between(book, '<!-- eyeprolog-library-catalog:start -->', '<!-- eyeprolog-library-catalog:end -->'),
+    2,
+  ).filter((indicator) => !iso.has(indicator));
+}
+
+function bookLibraryModuleIssues() {
+  const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
+  const section = between(book, '<!-- eyeprolog-library-catalog:start -->', '<!-- eyeprolog-library-catalog:end -->');
+  const documented = new Map();
+  for (const line of section.split('\n')) {
+    const match = line.match(/^\|\s*`library\(([^)`]+)\)`\s*\|/);
+    if (match == null) continue;
+    documented.set(match[1], documentedBuiltinNames(line, 2));
+  }
+
+  const issues = [];
+  for (const [moduleName, entry] of standardLibrarySources) {
+    const parsed = Program.parse(entry.source);
+    const definition = parsed.modules.get(moduleName);
+    if (definition == null) {
+      issues.push(`missing module declaration for ${moduleName}`);
+      continue;
+    }
+    const actual = [...definition.exports.keys()].sort();
+    const expected = documented.get(moduleName);
+    if (expected == null) {
+      issues.push(`book catalog omits library(${moduleName})`);
+      continue;
+    }
+    if (JSON.stringify(expected) !== JSON.stringify(actual)) {
+      issues.push(`library(${moduleName}) exports: expected ${actual.join(', ')}, documented ${expected.join(', ')}`);
+    }
+  }
+  for (const moduleName of documented.keys()) {
+    if (!standardLibrarySources.has(moduleName)) issues.push(`book catalogs unknown library(${moduleName})`);
+  }
+  return issues.sort();
 }
 
 function bookBuiltinSummary() {

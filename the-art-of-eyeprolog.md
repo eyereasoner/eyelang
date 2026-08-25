@@ -6211,16 +6211,18 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **135 library predicate indicators** in addition to the 129
-indicators in its isolated ISO profile. **89 are defined entirely as ordinary
-Prolog clauses** in focused modules under `src/lib/`. The remaining public
-relations use small private host adapters where control, constraints, or host
-observability cannot be expressed by ordinary clauses alone; `time/1` is one
-such relation. The resulting normal EyeProlog language surface is therefore
-**264 public predicate indicators**. Most library relations remain module source
-clauses over private adapters. `time/1` is additionally registered directly in
-the normal EyeProlog runtime so Trealla-style timing works at the interactive
-top level without an import; it is absent from the strict ISO registry.
+EyeProlog exposes **192 distinct non-ISO library and normal-extension predicate
+indicators** in addition to the 129 indicators in its isolated ISO profile.
+**135 are defined entirely as ordinary Prolog clauses** in focused modules under
+`src/lib/`; **57 use host support** for control, attributed variables,
+constraints, or observability. The ISO and library catalogs therefore cover
+**321 distinct predicate indicators**. Normal-mode controls and observability
+relations that do not belong to a library, such as `call_cleanup/2`,
+`setup_call_cleanup/3`, `statistics/0,2`, and `tnot/1`, are documented in their
+own sections rather than counted as library predicates. `time/1` is additionally
+registered directly in the normal runtime so Trealla-style timing works at the
+interactive top level without an import; it is absent from the strict ISO
+registry.
 
 The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
 `src/lib/assoc.pl`, `src/lib/atts.pl`, `src/lib/between.pl`,
@@ -6256,22 +6258,33 @@ between solution branches.
 
 <!-- eyeprolog-library-catalog:start -->
 
-| Module | Exported predicate indicators |
-| --- | --- |
-| `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` |
-| `library(atts)` | `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, `call_residue_vars/2` |
-| `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `chain/2`, `element/3`, `zcompare/3`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2` |
-| `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` |
-| `library(dates)` | `difference/3` |
-| `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2`, `time/1`, `.../2` |
-| Normal runtime extension | `dif/2` |
-| `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` |
-| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` |
-| `library(primes)` | `smallest_divisor_from/3` |
-| `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` |
-| `library(random)` | `random/3` |
-| `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` |
-| `library(uuid)` | `uuid/3` |
+| Module | Exported predicate indicators | Primary role |
+| --- | --- | --- |
+| `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` | Aggregation |
+| `library(arithmetic)` | `lsb/2`, `msb/2`, `popcount/2` | CLP(Z) arithmetic support |
+| `library(assoc)` | `empty_assoc/1`, `assoc_to_list/2`, `get_assoc/3`, `put_assoc/4` | Association lists used by CLP(Z) |
+| `library(atts)` | `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, `call_residue_vars/2` | Attributed variables |
+| `library(between)` | `between/3`, `gen_int/1`, `gen_nat/1`, `numlist/2`, `numlist/3`, `repeat/1` | Integer generation |
+| `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `cumulative/1`, `cumulative/2`, `disjoint2/1`, `element/3`, `automaton/3`, `automaton/8`, `zcompare/3`, `chain/2`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2`, `clpz_t/2`, `#=/3`, `#</3` | Constraint logic programming over integers; the final three indicators support reified compatibility libraries |
+| `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` | Generic comparison |
+| `library(dates)` | `difference/3` | ISO duration differences |
+| `library(dcgs)` | `phrase/2`, `phrase/3`, `seq/3`, `seqq/3` | DCG compatibility; `seq/3` and `seqq/3` are declared as `seq //1` and `seqq //1` |
+| `library(debug)` | `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_b_put/2` | Scryer compatibility and backtrackable-blackboard support |
+| `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `call_with_error_context/2` | Error checking and construction |
+| `library(format)` | `format/2` | Formatted output used by bundled libraries |
+| `library(freeze)` | `freeze/2` | Delayed goals |
+| `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2`, `time/1`, `.../2` | Common ISO extensions |
+| Normal runtime extension | `dif/2` | Delayed disequality; available without a library import |
+| `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` | Higher-order lambda notation |
+| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` | List relations |
+| `library(pairs)` | `pairs_keys_values/3`, `pairs_keys/2`, `pairs_values/2`, `group_pairs_by_key/2`, `map_list_to_pairs/3` | Key-value pair support |
+| `library(primes)` | `smallest_divisor_from/3` | Prime factor support |
+| `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` | Legacy facade over canonical focused modules |
+| `library(random)` | `random/3` | Pure state-threaded random generation |
+| `library(si)` | `atom_si/1`, `integer_si/1`, `atomic_si/1`, `list_si/1`, `character_si/1`, `term_si/1`, `chars_si/1`, `dif_si/2`, `not_si/1`, `when_si/2` | Sufficient-instantiation checks used by CLP(Z) |
+| `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` | Text relations |
+| `library(terms)` | `numbervars/3`, `copy_term_nat/2` | Term operations used by bundled libraries |
+| `library(uuid)` | `uuid/3` | Pure state-threaded UUID generation |
 
 <!-- eyeprolog-library-catalog:end -->
 
