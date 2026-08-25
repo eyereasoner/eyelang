@@ -111,18 +111,88 @@ export function runRegression(reporter = new TestReporter(), requestedSection = 
 function regressionCases() {
   return [
     {
-      name: 'dif/2 keeps a delayed disequality across later unification (issue #68)',
+      name: 'dif/2 passes the WG17 finite-tree comparison cases (issue #68)',
       run: () => {
-        assertEqual(run('', { goal: 'dif(1,Y),Y=1' }).stats.completed_goal_lists, 0,
-          'binding a constrained variable to the forbidden value fails');
-        assertEqual(run('', { goal: 'dif(1,Y),Y=2' }).stats.completed_goal_lists, 1,
-          'binding a constrained variable to a different value succeeds');
-        assertEqual(run('', { goal: 'dif(X,Y),X=Y' }).stats.completed_goal_lists, 0,
-          'aliasing two constrained variables fails');
-        assertEqual(run('', { goal: 'dif(X-Y,1-2),X=Y,Y=1' }).stats.completed_goal_lists, 1,
-          'a specialization that makes the terms non-unifiable discharges the constraint');
-        assertEqual(run('', { goal: 'dif(X-Y,1-2),X=Y,X=2' }).stats.completed_goal_lists, 1,
-          'a second specialization discharges the same structural constraint');
+        // Comparison cases from
+        // https://www.complang.tuwien.ac.at/ulrich/iso-prolog/dif
+        const comparisonCases = [
+          ['1', true, 'dif(1,2)'],
+          ['2', false, 'dif(1,Y),Y=1'],
+          ['3', true, 'dif(1,Y),Y=2'],
+          ['4', false, 'dif(X,-Y),X= -Y'],
+          ['5', false, 'dif(X,Y),X=Y'],
+          ['6', false, 'dif(X,Y),X=Y,X=1'],
+          ['7', false, 'dif(-X,-Y),X=Y'],
+          ['8', false, 'dif(-X,-Y),X=Y,X=1'],
+          ['9', true, 'dif(-X,X)'],
+          ['10', true, 'dif(-X,Y),X=Y'],
+          ['11', true, 'X=Y,dif(X-Y,1-2)'],
+          ['12', true, 'dif(X-Y,1-2),X=Y'],
+          ['13', true, 'X=Y,Y=1,dif(X-Y,1-2)'],
+          ['14', true, 'dif(X-Y,1-2),X=Y,Y=1'],
+          ['15', true, 'dif(X-Y,1-2),X=Y,X=2'],
+          ['16', true, 'dif(A-C,B-D),C-D=z-z,A-B=1-2'],
+          ['17', true, 'A-B=1-2,C-D=z-z,dif(A-C,B-D)'],
+          ['18', true, 'dif(A,[C|B]),A=[[]|_],A=[B]'],
+          ['19', true, 'dif([E],[/]),E=1'],
+          ['20', true, 'dif([a],B),B=[_|_],B=[b]'],
+          ['21', true, 'dif([],A),A=[_]'],
+          ['22', true, 'A=[_],dif([],A)'],
+          // Cases 23-26 are implementation-defined in the comparison. These
+          // assertions record EyeProlog's term-copying and collector
+          // choices so changes remain deliberate.
+          ['23', true, 'dif(X,a),copy_term(X,a)'],
+          ['24', true, 'findall(X,dif(X,a),[a])'],
+          ['25', true, 'setof(t,dif(X,a),_),X=a'],
+          ['26', true, 'setof(t,(dif(X,a);dif(X,b)),_),X=a'],
+        ];
+        for (const [id, succeeds, query] of comparisonCases) {
+          const result = run(`check :- ${query}.`, { goal: 'check' });
+          assertEqual(result.stdout, succeeds ? 'check.\n' : '', `WG17 dif/2 case ${id}`);
+        }
+
+        // EyeProlog is a finite-tree processor. The comparison's rational-tree
+        // probes must terminate as failures instead of constructing cycles.
+        const rationalTreeCases = [
+          ['t1', '\\+ \\+ -X=X'],
+          ['t2', '-X=X,-Y=Y,X\\=Y'],
+          ['t3', '-X=X,dif(X,1)'],
+          ['t4', '-X=X,-Y=Y,dif(X,Y)'],
+          ['t5', 'dif(X,Y),-X=X,-Y=Y'],
+          ['t6', 'A=[[]|A],dif(A,B),B=[[]|A]'],
+          ['t7', 'dif(-X,X),-Y=Y,X=Y'],
+          ['t8', '-X=X,dif(X,Y),X=Y'],
+        ];
+        for (const [id, query] of rationalTreeCases) {
+          assertEqual(run(`check :- ${query}.`, { goal: 'check' }).stdout, '',
+            `WG17 dif/2 ${id} terminates under finite-tree unification`);
+        }
+
+        for (const [id, query, succeeds] of [
+          ['o1', '-X=X', false],
+          ['o2', 'dif(-X,X)', true],
+          ['o3', 'dif(-X,Y),X=Y', true],
+        ]) {
+          assertEqual(run(`check :- ${query}.`, { goal: 'check' }).stdout,
+            succeeds ? 'check.\n' : '', `WG17 dif/2 occurs-check case ${id}`);
+        }
+
+        const residuals = runCli([], {
+          input:
+            'dif(A-C,B-D),C-D=z-z.\n' +
+            'dif(A,[C|B]),A=[[]|_],A=[B].\n' +
+            'dif(X-Y,1-2),X=Y.\n' +
+            'halt.\n',
+        });
+        assertEqual(residuals.status, 0, 'dif/2 residual display status');
+        assertEqual(residuals.stdout,
+          '?-    C = z, D = z, dif(A - z, B - z).\n' +
+          '?-    A = [[]], B = [], dif([[]], [C]).\n' +
+          '?-    X = Y.\n' +
+          '?- ',
+          'dif/2 residual constraints are retained and discharged');
+        assertEqual(residuals.stderr, '', 'dif/2 residual display stderr');
+
         assertEqual(run('p(a).', { goal: 'dif(X,a),p(X)' }).stats.completed_goal_lists, 0,
           'scalar-fact fast matching still validates annotated variables');
         assertEqual(run('p(b).', { goal: 'dif(X,a),p(X)' }).stats.completed_goal_lists, 1,
