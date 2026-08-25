@@ -2556,19 +2556,32 @@ function residueVariablesSince(snapshot, env) {
   return names;
 }
 
-function* callResidueVarsBuiltin({ solver, goal, env }) {
+function callResidueVarsBuiltin({ solver, goal, env }) {
   const invoked = callable(goal.args[0], env);
   if (invoked.module == null) invoked.module = goal.module ?? 'user';
   const snapshot = residueSnapshot(env);
   const child = solver.cloneForInnerGoal();
-  try {
-    for (const answerEnv of child.solve([invoked], env, 0)) {
-      const next = answerEnv.clone();
-      if (unify(goal.args[1], listFromItems(residueVariablesSince(snapshot, answerEnv)), next)) yield next;
+  let pending = true;
+  // The wrapper iterator is resumable even for a deterministic Goal. Expose
+  // the child's actual search state so the top level does not print a phantom
+  // choicepoint after the final answer.
+  const iterator = (function* residueSolutions() {
+    try {
+      for (const answerEnv of child.solve([invoked], env, 0)) {
+        pending = child.hasPendingAlternatives();
+        const next = answerEnv.clone();
+        if (unify(goal.args[1], listFromItems(residueVariablesSince(snapshot, answerEnv)), next)) {
+          yield next;
+          if (!pending) return;
+        }
+      }
+      pending = false;
+    } finally {
+      solver.absorbStatsFrom(child);
     }
-  } finally {
-    solver.absorbStatsFrom(child);
-  }
+  })();
+  iterator.hasPendingAlternatives = () => pending;
+  return iterator;
 }
 
 function* freezeBuiltin({ solver, goal, env }) {

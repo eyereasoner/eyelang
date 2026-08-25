@@ -178,6 +178,16 @@ check :- call_residue_vars(X in 1..3, Vs), Vs = [X].
 `;
         assertIncludes(run(clpzResidue, { goal: 'check' }).stdout, 'check.', 'call_residue_vars/2 includes CLP(Z) attributed variables');
 
+        const deterministicProgram = Program.parse(':- use_module(library(atts)).');
+        const deterministicSolver = new Solver(deterministicProgram);
+        const deterministicGoal = parseGoalText('call_residue_vars(true, Xs)');
+        const deterministicSolutions = deterministicSolver.solve([deterministicGoal], new Env(), 0);
+        const deterministicAnswer = deterministicSolutions.next();
+        assertEqual(deterministicAnswer.done, false, 'call_residue_vars/2 deterministic answer');
+        assertEqual(deterministicSolver.hasPendingAlternatives(), false,
+          'call_residue_vars/2 deterministic success has no leftover choicepoint');
+        deterministicSolutions.return();
+
         const residualFile = path.join(tmp, `atts-residual-${++tmpCounter}.pl`);
         fs.writeFileSync(residualFile, `:- use_module(library(atts)).
 :- attribute required/1.
