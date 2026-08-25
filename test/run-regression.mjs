@@ -1827,6 +1827,41 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'REPL omits exhausted choicepoints without probing future branches (issue #74)',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'X=1;X=2.\n;\n' +
+            'setof(X,true,Xs).\n' +
+            'findall(t,false,Xs).\n' +
+            'use_module(library(lists)).\n' +
+            'member(a,"ba").\n' +
+            'append("a",Xs,Xs0).\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    X = 1\n' +
+          ';  X = 2.\n' +
+          '?-    Xs = [_A].\n' +
+          '?-    Xs = [].\n' +
+          '?-    true.\n' +
+          '?-    true.\n' +
+          '?-    Xs0 = [a | Xs].\n' +
+          '?- ',
+          'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+
+        const grouped = new Solver(Program.parse(''));
+        const groupedSolutions = grouped.solve([
+          parseGoalText('setof(X,(Y=1,X=a;Y=2,X=b),Xs)'),
+        ], new Env(), 0);
+        assertEqual(groupedSolutions.next().done, false, 'first grouped setof/3 answer');
+        assertEqual(grouped.hasPendingAlternatives(), true, 'genuine grouped setof/3 choicepoint');
+        groupedSolutions.return();
+      },
+    },
+    {
       name: 'REPL hides aliases to fresh throw variables while preserving query aliases',
       run: () => {
         const result = runCli([], {

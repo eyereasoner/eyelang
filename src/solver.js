@@ -607,14 +607,16 @@ export class Solver {
         const def = callable ? this.registry.get(goal.name, goal.arity) : null;
         this.active = active;
         if (def && builtinIsReadyOrAuthoritative(def, this, goal, env)) {
+          const deterministic = def.deterministic ||
+            def.deterministicWhen?.({ solver: this, goal, env }) === true;
           const iterator = def.handler({ solver: this, goal, env });
           const firstResult = iterator.next();
-          if (def.deterministic) {
+          if (deterministic) {
             if (!firstResult.done) this.stats.deterministic_builtin_successes++;
             else this.stats.deterministic_builtin_failures++;
           }
           if (firstResult.done) break;
-          if (!def.deterministic) {
+          if (!deterministic) {
             stack.push({
               kind: 'resumeBuiltin',
               iterator,
@@ -819,11 +821,22 @@ export class Solver {
     }
   }
 
-  hasPendingAlternatives() {
-    // When solve() is suspended at an answer, active solve stacks contain only
-    // unexplored work. The demand-driven REPL uses this without speculatively
-    // pulling the next answer.
-    return this.solveStacks.some((stack) => stack.length !== 0);
+  hasPendingAlternatives(excludedStacks = null) {
+    // When solve() is suspended at an answer, active solve stacks contain
+    // unexplored work or an iterator frame that can prove it just yielded its
+    // final answer. The demand-driven REPL uses this without speculatively
+    // pulling the next answer. Control builtins can exclude their caller's
+    // pre-existing stacks when inspecting a nested branch.
+    return this.solveStacks.some((stack) => !excludedStacks?.has(stack) && stack.some((frame) => {
+      if (frame.kind === 'resumeBuiltin' &&
+          typeof frame.iterator?.hasPendingAlternatives === 'function') {
+        return frame.iterator.hasPendingAlternatives();
+      }
+      if (frame.kind === 'userClause' && headCannotMatch(frame.goal, frame.clause.head, frame.env)) {
+        return false;
+      }
+      return true;
+    }));
   }
 
   fastCountGoal(goal, env) {
@@ -1440,7 +1453,10 @@ function bundledBetweenIterator(solver, group, goal, env) {
   // the generated value in the caller repeatedly revisits all earlier frames.
   // Enumerate the canonical bundled relation directly while leaving user
   // definitions and non-EyeProlog registries on the ordinary Prolog path.
-  return bundledBetweenSolutions(solver, goal, env);
+  const state = { pending: true };
+  const iterator = bundledBetweenSolutions(solver, goal, env, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
 }
 
 function requireBetweenInteger(term, env) {
@@ -1452,7 +1468,7 @@ function requireBetweenInteger(term, env) {
   return BigInt(value.name);
 }
 
-function* bundledBetweenSolutions(solver, goal, env) {
+function* bundledBetweenSolutions(solver, goal, env, state) {
   const lower = requireBetweenInteger(goal.args[0], env);
   const upper = requireBetweenInteger(goal.args[1], env);
   const requested = deref(goal.args[2], env);
@@ -1462,15 +1478,23 @@ function* bundledBetweenSolutions(solver, goal, env) {
       throw new PrologError('type_error(integer)', requested);
     }
     const value = BigInt(requested.name);
-    if (value >= lower && value <= upper) yield env;
+    if (value >= lower && value <= upper) {
+      state.pending = false;
+      yield env;
+    }
+    state.pending = false;
     return;
   }
 
   for (let value = lower; value <= upper; value++) {
     const next = env.clone();
     solver.stats.unify_calls++;
-    if (unify(goal.args[2], numberTerm(value), next)) yield next;
+    if (unify(goal.args[2], numberTerm(value), next)) {
+      state.pending = value < upper;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 function bundledMemberIterator(solver, group, goal, env) {
@@ -1487,17 +1511,33 @@ function bundledMemberIterator(solver, group, goal, env) {
   let cursor = deref(goal.args[1], env);
   while (isCons(cursor)) cursor = deref(cursor.args[1], env);
   if (!isEmptyList(cursor)) return null;
-  return bundledMemberSolutions(solver, goal, env);
+  const state = { pending: true };
+  const iterator = bundledMemberSolutions(solver, goal, env, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
 }
 
-function* bundledMemberSolutions(solver, goal, env) {
+function* bundledMemberSolutions(solver, goal, env, state) {
   let cursor = deref(goal.args[1], env);
   while (isCons(cursor)) {
+    const item = cursor.args[0];
+    cursor = deref(cursor.args[1], env);
     const next = env.clone();
     solver.stats.unify_calls++;
-    if (unify(goal.args[0], cursor.args[0], next)) yield next;
+    if (unify(goal.args[0], item, next)) {
+      state.pending = bundledMemberMayMatch(goal.args[0], cursor, env);
+      yield next;
+    }
+  }
+  state.pending = false;
+}
+
+function bundledMemberMayMatch(target, cursor, env) {
+  while (isCons(cursor)) {
+    if (!goalHeadTermsCannotMatch(target, cursor.args[0], env)) return true;
     cursor = deref(cursor.args[1], env);
   }
+  return false;
 }
 
 function bundledEllipsisPlan(solver, group, goal, rest, env) {
@@ -2849,11 +2889,22 @@ function headCannotMatch(goal, head, env) {
   if (goal.type !== COMPOUND || head.type !== COMPOUND) return false;
   if (goal.name !== head.name || goal.arity !== head.arity) return true;
   for (let i = 0; i < goal.arity; i++) {
-    const a = goal.args[i];
-    const b = head.args[i];
-    // Keep this only as a cheap scalar rejection. unify() remains authoritative.
-    const da = derefForLocal(a, env);
-    if (isScalarTerm(da) && isScalarTerm(b) && !sameScalarTerm(da, b)) return true;
+    if (goalHeadTermsCannotMatch(goal.args[i], head.args[i], env)) return true;
+  }
+  return false;
+}
+
+function goalHeadTermsCannotMatch(goalTerm, headTerm, env) {
+  const pending = [[goalTerm, headTerm]];
+  while (pending.length > 0) {
+    const [goalItem, headItem] = pending.pop();
+    const actual = derefForLocal(goalItem, env);
+    if (actual.type === VAR || headItem.type === VAR) continue;
+    if (actual.type !== headItem.type || actual.name !== headItem.name || actual.arity !== headItem.arity) return true;
+    if (actual.type !== COMPOUND) continue;
+    for (let index = 0; index < actual.arity; index++) {
+      pending.push([actual.args[index], headItem.args[index]]);
+    }
   }
   return false;
 }

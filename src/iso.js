@@ -65,9 +65,9 @@ export const isoBuiltins = {
     registry.add('=..', 2, univBuiltin, { deterministic: true });
     registry.add('copy_term', 2, copyTermBuiltin, { deterministic: true });
     registry.add('term_variables', 2, termVariablesBuiltin, { deterministic: true });
-    registry.add('findall', 3, findallBuiltin);
-    registry.add('bagof', 3, bagofBuiltin);
-    registry.add('setof', 3, setofBuiltin);
+    registry.add('findall', 3, findallBuiltin, { deterministic: true });
+    registry.add('bagof', 3, bagofBuiltin, { deterministicWhen: allSolutionsHasAtMostOneGroup });
+    registry.add('setof', 3, setofBuiltin, { deterministicWhen: allSolutionsHasAtMostOneGroup });
     registry.add('clause', 2, clauseBuiltin, {
       shouldUse: ({ solver }) => solver.program.findGroup('clause', 2) == null,
     });
@@ -2367,6 +2367,16 @@ function allSolutionsBuiltin(asSet) {
 const bagofBuiltin = allSolutionsBuiltin(false);
 const setofBuiltin = allSolutionsBuiltin(true);
 
+function allSolutionsHasAtMostOneGroup({ goal, env }) {
+  try {
+    const { iterated, quantified } = bagGoalParts(goal.args[1], env);
+    return freeVariables(iterated, goal.args[0], quantified, env).length === 0;
+  } catch (_) {
+    // Leave error selection and reporting to the builtin itself.
+    return false;
+  }
+}
+
 function callable(term, env) {
   term = deref(term, env);
   if (term.type === VAR) throw new PrologError('instantiation_error');
@@ -2823,35 +2833,57 @@ function* negationBuiltin({ solver, goal, env }) {
   for (const _ of solver.cloneForInnerGoal(1).solve([invoked], env.clone(), 0)) return;
   yield env;
 }
-function* solveControlBranch(solver, goal, env) {
+function* solveControlBranch(solver, goal, env, observePending = null) {
+  const existingStacks = new Set(solver.solveStacks);
   for (const answer of solver.solve([callable(goal, env)], env, 0)) {
     // A branch answer is internal to its enclosing control construct. The
     // surrounding solve will count the completed control goal after the
     // builtin yields it. Leaving both counts in place makes a bounded search
     // such as once/1 or negation stop before it can observe the branch answer.
     if (solver.solutionsSeen > 0) solver.solutionsSeen--;
+    observePending?.(solver.hasPendingAlternatives(existingStacks));
     yield answer;
   }
 }
-function* disjunctionBuiltin({ solver, goal, env }) {
+function disjunctionBuiltin(context) {
+  const state = { pending: true };
+  const iterator = disjunctionSolutions(context, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
+}
+function* disjunctionSolutions({ solver, goal, env }, state) {
   const left = deref(goal.args[0], env);
   if (left.type === COMPOUND && left.name === '->' && left.arity === 2) {
     for (const conditionEnv of solver.cloneForInnerGoal(1).solve([callable(left.args[0], env)], env.clone(), 0)) {
-      yield* solveControlBranch(solver, left.args[1], conditionEnv);
+      yield* solveControlBranch(solver, left.args[1], conditionEnv,
+        (pending) => { state.pending = pending; });
+      state.pending = false;
       return;
     }
-    yield* solveControlBranch(solver, goal.args[1], env.clone());
+    yield* solveControlBranch(solver, goal.args[1], env.clone(),
+      (pending) => { state.pending = pending; });
+    state.pending = false;
     return;
   }
   const marker = solver.active[solver.active.length - 1] ?? null;
   const markerCutEpoch = marker?.cutEpoch ?? 0;
   const solverCutEpoch = solver.cutEpoch;
-  yield* solveControlBranch(solver, goal.args[0], env.clone());
+  yield* solveControlBranch(solver, goal.args[0], env.clone(), (pending) => {
+    const cutThisScope = marker == null
+      ? solver.cutEpoch !== solverCutEpoch
+      : (marker.cutEpoch ?? 0) !== markerCutEpoch;
+    state.pending = pending || !cutThisScope;
+  });
   const cutThisScope = marker == null
     ? solver.cutEpoch !== solverCutEpoch
     : (marker.cutEpoch ?? 0) !== markerCutEpoch;
-  if (cutThisScope) return;
-  yield* solveControlBranch(solver, goal.args[1], env.clone());
+  if (cutThisScope) {
+    state.pending = false;
+    return;
+  }
+  yield* solveControlBranch(solver, goal.args[1], env.clone(),
+    (pending) => { state.pending = pending; });
+  state.pending = false;
 }
 function* ifThenBuiltin({ solver, goal, env }) {
   for (const conditionEnv of solver.cloneForInnerGoal(1).solve([callable(goal.args[0], env)], env.clone(), 0)) {
@@ -2875,6 +2907,7 @@ export class BuiltinRegistry {
       arity,
       handler,
       deterministic: options.deterministic ?? false,
+      deterministicWhen: options.deterministicWhen ?? null,
       ready: options.ready ?? null,
       fallbackWhenNotReady: options.fallbackWhenNotReady ?? false,
       shouldUse: options.shouldUse ?? null,
