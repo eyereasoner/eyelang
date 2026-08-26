@@ -211,6 +211,55 @@ function regressionCases() {
       },
     },
     {
+      name: 'dif/2 removes symmetric and logically weaker residual constraints (issue #79)',
+      run: () => {
+        const residuals = runCli([], {
+          input:
+            'dif(X,Y),dif(Y,X).\n' +
+            'dif(X,Y),dif(X-Y,Z-Z).\n' +
+            'dif(X-Y,Z-Z),dif(X,Y).\n' +
+            'dif(X,a),dif(X,b).\n' +
+            'dif(X,a),dif(Y,a),X=Y.\n' +
+            'halt.\n',
+        });
+        assertEqual(residuals.status, 0, 'dif/2 normalization display status');
+        assertEqual(residuals.stdout,
+          '?-    dif(X, Y).\n' +
+          '?-    dif(X, Y).\n' +
+          '?-    dif(X, Y).\n' +
+          '?-    dif(X, a), dif(X, b).\n' +
+          '?-    X = Y, dif(Y, a).\n' +
+          '?- ',
+          'dif/2 residuals are minimal independent of insertion order');
+        assertEqual(residuals.stderr, '', 'dif/2 normalization display stderr');
+
+        const pendingDifCount = (text) => {
+          const solver = new Solver(Program.parse(''), { registry: getEyePrologRegistry() });
+          const solutions = solver.solve([parseGoalText(text)], new Env(), 0);
+          const answer = solutions.next();
+          assertEqual(answer.done, false, `${text} succeeds`);
+          const count = answer.value.variableConstraints('dif').length;
+          solutions.return();
+          return count;
+        };
+        assertEqual(pendingDifCount('dif(X,Y),dif(Y,X)'), 1,
+          'symmetric disequalities share one descriptor');
+        assertEqual(pendingDifCount('dif(X-Y,Z-Z),dif(X,Y)'), 1,
+          'stronger later disequality replaces the weaker descriptor');
+        assertEqual(pendingDifCount('dif(X,a),dif(X,b)'), 2,
+          'independent disequalities are both retained');
+        assertEqual(pendingDifCount('dif(X,a),dif(Y,a),X=Y'), 1,
+          'later aliasing coalesces newly equivalent disequalities');
+        for (const prefix of [
+          'dif(X,Y),dif(X-Y,Z-Z)',
+          'dif(X-Y,Z-Z),dif(X,Y)',
+        ]) {
+          assertEqual(run('', { goal: `${prefix},X=Y` }).stats.completed_goal_lists, 0,
+            `${prefix} retains the stronger disequality semantics`);
+        }
+      },
+    },
+    {
       name: 'library(atts) provides Scryer-style attributed-variable hooks',
       run: () => {
         const source = `:- module(attr_probe, [check_get/0, check_alias/0, check_ok/0, check_bad/0, check_conflict/0, check_backtrack/0, check_term_vars/0, check_residue_new/0, check_residue_unchanged/0, check_residue_modified/0, check_residue_dif/0]).

@@ -6284,6 +6284,12 @@ otherwise it delays the goal until `Term` becomes nonvariable. Suspensions are
 kept in the logical environment, so bindings and backtracking remain isolated
 between solution branches.
 
+`dif(?Left,?Right)` posts a delayed finite-tree disequality when its arguments
+can still unify. Its residual store is normalized by logical implication:
+symmetric or equivalent constraints share one residual, and a stronger
+constraint removes weaker ones regardless of insertion order. Independent
+disequalities remain separate.
+
 <!-- eyeprolog-library-catalog:start -->
 
 | Module | Exported predicate indicators | Primary role |

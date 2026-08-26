@@ -211,6 +211,19 @@ function difConstraint(left, right) {
         skipAttributeHooks: true,
       }) ? 'pending' : 'entailed';
     },
+    subsumes(other, env) {
+      if (other?.kind !== 'dif') return false;
+      // dif(A,B) implies dif(C,D) exactly when C=D entails A=B. Apply the
+      // most general finite-tree unifier for the other's forbidden equality;
+      // if this equality makes our terms identical, every instance forbidden
+      // by the other constraint is already forbidden by this one.
+      const probe = env.clone();
+      if (!unify(other.left, other.right, probe, {
+        skipVariableConstraints: true,
+        skipAttributeHooks: true,
+      })) return true;
+      return identical(left, right, probe);
+    },
     residualGoal() {
       return compound('dif', [left, right]);
     },

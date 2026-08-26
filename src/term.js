@@ -465,9 +465,24 @@ export class Env {
         typeof constraint.status !== 'function') {
       throw new TypeError('variable constraint requires variables(env) and status(env)');
     }
-    const constraints = new Set(this._variableConstraints ?? []);
-    constraints.add(constraint);
-    this._variableConstraints = constraints;
+    this._setNormalizedVariableConstraints([...(this._variableConstraints ?? []), constraint]);
+  }
+  _setNormalizedVariableConstraints(constraints) {
+    // Descriptors may define logical subsumption. Keep the strongest pending
+    // constraints so equivalent, symmetric, or weaker residual goals do not
+    // accumulate, while unrelated descriptor kinds remain untouched.
+    const normalized = [];
+    candidateLoop:
+    for (const candidate of constraints) {
+      for (const existing of normalized) {
+        if (existing === candidate || existing.subsumes?.(candidate, this) === true) continue candidateLoop;
+      }
+      for (let index = normalized.length - 1; index >= 0; index--) {
+        if (candidate.subsumes?.(normalized[index], this) === true) normalized.splice(index, 1);
+      }
+      normalized.push(candidate);
+    }
+    this._variableConstraints = normalized.length === 0 ? null : new Set(normalized);
     this._reindexVariableConstraints();
   }
   variableConstraints(kind = null) {
@@ -487,8 +502,7 @@ export class Env {
       if (status === 'violated') return false;
       if (status !== 'entailed') pending.add(constraint);
     }
-    this._variableConstraints = pending.size === 0 ? null : pending;
-    this._reindexVariableConstraints();
+    this._setNormalizedVariableConstraints(pending);
     return true;
   }
   _reindexVariableConstraints() {

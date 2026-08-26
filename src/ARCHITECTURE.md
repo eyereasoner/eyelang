@@ -36,7 +36,9 @@ Annotations are persistent across `Env.clone()` and therefore backtrack with the
 substitution. Language services may attach immutable constraint descriptors,
 but the unconstrained unification hot path only performs a null check; descriptor
 validation and reindexing run only in environments that actually contain
-annotations. `dif/2` is the first descriptor-based user of this mechanism.
+annotations. Descriptors can optionally define logical subsumption so the
+store retains only its strongest pending constraints. `dif/2` is the first
+descriptor-based user of this mechanism.
 
 `atts.js` layers Prolog-visible attributed variables over that same persistent
 environment. Per-module attributes follow the current variable representative.
