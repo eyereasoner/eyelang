@@ -207,9 +207,9 @@ function* termCharsBuiltin({ solver, goal, env }) {
 
 export const scryerCompatibilityBuiltins = {
   register(registry) {
-    registry.add('eyeprolog__bb_get', 2, bbGetBuiltin, { eyePrologLibrary: true });
+    registry.add('eyeprolog__bb_get', 2, bbGetBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__bb_b_put', 2, bbPutBuiltin, { deterministic: true, eyePrologLibrary: true });
-    registry.add('eyeprolog__bb_global_get', 2, bbGlobalGetBuiltin, { eyePrologLibrary: true });
+    registry.add('eyeprolog__bb_global_get', 2, bbGlobalGetBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__bb_global_put', 2, bbGlobalPutBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__char_type', 2, charTypeBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__current_time', 1, currentTimeBuiltin, { deterministic: true, eyePrologLibrary: true });

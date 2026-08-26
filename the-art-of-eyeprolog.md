@@ -2017,7 +2017,12 @@ answer(X) :- host_status(service, X).
 ```
 
 Only mark a built-in deterministic when it can produce at most one environment
-for a call. A mode-sensitive extension can additionally provide `ready`,
+for a call. An unmarked resumable handler is treated as an effect-free relation:
+the solver may buffer one answer to determine its exact pending state. A
+stateful or meta-control handler must instead return an iterator with a
+`hasPendingAlternatives()` method, updated before each yield, so the solver can
+remain demand-driven without advancing it speculatively. A mode-sensitive
+extension can additionally provide `ready`,
 `fallbackWhenNotReady`, and `shouldUse` metadata. This metadata affects
 dispatch and safe early filtering, so it belongs to the extension's contract.
 
@@ -5136,8 +5141,12 @@ at a named boundary.
 ## 34. Control, exceptions, and grouped solutions
 
 The control predicates accept goals as arguments. `call/1` invokes a callable
-term, `once/1` keeps its first solution, and `!/0` commits within the clause
-that contains it. If-then-else commits to the first successful condition:
+term, and `call/2-8` appends arguments to a callable closure. The expanded goal
+runs in the current search continuation, so a direct goal and its meta-called
+form expose the same remaining alternatives; the meta-call still establishes
+its own cut boundary. `once/1` keeps its first solution, and `!/0` commits
+within the clause that contains it. If-then-else commits to the first successful
+condition:
 
 <figure>
   <img src="book-assets/iso-control-board.svg" alt="A goal passes through choice and exception recovery before finite solutions enter findall, bagof, and setof collectors.">
@@ -6831,11 +6840,15 @@ When another answer exists in an interactive terminal, press `;`, Space, or
 enumeration, `a` enumerates all remaining answers, and `f` advances to the
 next five-answer boundary (5, 10, 15, ... displayed leaf answers), regardless
 of how many answers were stepped through individually beforehand. `h` displays
-the answer-control help. Enumeration is demand-driven: after an answer is
-found, the top level does not pull a successor merely to discover whether the
-current answer is the last one. Search for a later answer, including any side
-effects reached on that path, starts only after an answer-control command asks
-to continue. Stopping enumeration closes any active `call_cleanup/2` or
+the answer-control help. Enumeration of goal continuations is demand-driven:
+after an answer is found, the top level does not execute a later program branch
+or side effect merely to discover whether the current answer is the last one.
+The solver's uniform choicepoint protocol uses explicit clause and control
+frames, permits a one-answer buffer only for effect-free host relations, and
+requires stateful or meta-control iterators to report their pending state
+directly. Search that can perform an effect starts only after an answer-control
+command asks to continue. Stopping enumeration closes any active
+`call_cleanup/2` or
 `setup_call_cleanup/3` protection exactly once; detecting that a choicepoint
 remains does not execute that next branch. If an unresolved alternative
 ultimately has no solution, asking for it may therefore finish with `false.`. In scripted non-TTY input, a new
@@ -7995,8 +8008,11 @@ decidable by structural equality.
 **Clause.** A fact or rule terminated by a period.
 
 **Choicepoint.** A remaining search alternative that may produce another
-answer if the caller asks the solver to continue. EyeProlog's top level reports
-choicepoint availability without speculatively executing the next alternative.
+answer if the caller asks the solver to continue. Every resumable engine
+iterator follows the same pending-alternative protocol. Ordinary effect-free
+host relations may buffer one answer to prove exhaustion; stateful and
+meta-control iterators report their state without executing an unrequested
+effect or program branch.
 
 **Cleanup.** A protected finalization goal installed by normal-mode
 `call_cleanup/2` or `setup_call_cleanup/3`. It runs exactly once when the

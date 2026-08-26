@@ -614,7 +614,21 @@ export class Solver {
 
         const def = callable ? this.registry.get(goal.name, goal.arity) : null;
         this.active = active;
-        if (def && builtinIsReadyOrAuthoritative(def, this, goal, env)) {
+        const builtinReady = def && builtinIsReadyOrAuthoritative(def, this, goal, env);
+        if (builtinReady && typeof def.expandGoal === 'function') {
+          // Meta-calls execute in this continuation instead of hiding their
+          // search behind a host-generator frame. Their real clause, control,
+          // and builtin frames therefore determine whether another answer is
+          // pending exactly as they do for a direct call. A fresh active marker
+          // keeps cut opaque at the call/N boundary.
+          const expanded = def.expandGoal({ solver: this, goal, env });
+          const invocation = { goal, env };
+          active = [...active, invocation];
+          goals = [expanded, { kind: 'releaseActive' }, ...rest];
+          depth++;
+          continue;
+        }
+        if (builtinReady) {
           const deterministic = def.deterministic ||
             def.deterministicWhen?.({ solver: this, goal, env }) === true;
           const iterator = def.handler({ solver: this, goal, env });
@@ -1414,10 +1428,7 @@ function bundledBetweenIterator(solver, group, goal, env) {
   // the generated value in the caller repeatedly revisits all earlier frames.
   // Enumerate the canonical bundled relation directly while leaving user
   // definitions and non-EyeProlog registries on the ordinary Prolog path.
-  const state = { pending: true };
-  const iterator = bundledBetweenSolutions(solver, goal, env, state);
-  iterator.hasPendingAlternatives = () => state.pending;
-  return iterator;
+  return bundledBetweenSolutions(solver, goal, env);
 }
 
 function requireBetweenInteger(term, env) {
@@ -1429,7 +1440,7 @@ function requireBetweenInteger(term, env) {
   return BigInt(value.name);
 }
 
-function* bundledBetweenSolutions(solver, goal, env, state) {
+function* bundledBetweenSolutions(solver, goal, env) {
   const lower = requireBetweenInteger(goal.args[0], env);
   const upper = requireBetweenInteger(goal.args[1], env);
   const requested = deref(goal.args[2], env);
@@ -1439,23 +1450,15 @@ function* bundledBetweenSolutions(solver, goal, env, state) {
       throw new PrologError('type_error(integer)', requested);
     }
     const value = BigInt(requested.name);
-    if (value >= lower && value <= upper) {
-      state.pending = false;
-      yield env;
-    }
-    state.pending = false;
+    if (value >= lower && value <= upper) yield env;
     return;
   }
 
   for (let value = lower; value <= upper; value++) {
     const next = env.clone();
     solver.stats.unify_calls++;
-    if (unify(goal.args[2], numberTerm(value), next)) {
-      state.pending = value < upper;
-      yield next;
-    }
+    if (unify(goal.args[2], numberTerm(value), next)) yield next;
   }
-  state.pending = false;
 }
 
 function bundledMemberIterator(solver, group, goal, env) {
@@ -1472,50 +1475,18 @@ function bundledMemberIterator(solver, group, goal, env) {
   let cursor = deref(goal.args[1], env);
   while (isCons(cursor)) cursor = deref(cursor.args[1], env);
   if (!isEmptyList(cursor)) return null;
-  const state = { pending: true };
-  const iterator = bundledMemberSolutions(solver, goal, env, state);
-  iterator.hasPendingAlternatives = () => state.pending;
-  return iterator;
+  return bundledMemberSolutions(solver, goal, env);
 }
 
-function* bundledMemberSolutions(solver, goal, env, state) {
+function* bundledMemberSolutions(solver, goal, env) {
   let cursor = deref(goal.args[1], env);
   while (isCons(cursor)) {
     const item = cursor.args[0];
     cursor = deref(cursor.args[1], env);
     const next = env.clone();
     solver.stats.unify_calls++;
-    if (unify(goal.args[0], item, next)) {
-      state.pending = bundledMemberMayMatch(goal.args[0], cursor, env);
-      yield next;
-    }
+    if (unify(goal.args[0], item, next)) yield next;
   }
-  state.pending = false;
-}
-
-function bundledMemberMayMatch(target, cursor, env) {
-  while (isCons(cursor)) {
-    if (!termsCannotUnify(target, cursor.args[0], env)) return true;
-    cursor = deref(cursor.args[1], env);
-  }
-  return false;
-}
-
-function termsCannotUnify(left, right, env) {
-  const pending = [[left, right]];
-  while (pending.length > 0) {
-    const [leftItem, rightItem] = pending.pop();
-    const actualLeft = derefForLocal(leftItem, env);
-    const actualRight = derefForLocal(rightItem, env);
-    if (actualLeft.type === VAR || actualRight.type === VAR) continue;
-    if (actualLeft.type !== actualRight.type || actualLeft.name !== actualRight.name ||
-        actualLeft.arity !== actualRight.arity) return true;
-    if (actualLeft.type !== COMPOUND) continue;
-    for (let index = 0; index < actualLeft.arity; index++) {
-      pending.push([actualLeft.args[index], actualRight.args[index]]);
-    }
-  }
-  return false;
 }
 
 function bundledEllipsisPlan(solver, group, goal, rest, env) {
@@ -1630,13 +1601,7 @@ function bundledLengthIterator(solver, group, goal, env) {
       if (length.type === VAR && cursor.name === length.name) return null;
     }
   }
-  const iterator = bundledLengthSolutions(solver, goal, env);
-  // A supplied length selects at most one list, and a closed supplied list has
-  // exactly one length. Only an open list paired with an output variable can
-  // produce another answer after the first one.
-  const hasOpenTail = cursor.type === VAR;
-  iterator.hasPendingAlternatives = () => length.type === VAR && hasOpenTail;
-  return iterator;
+  return bundledLengthSolutions(solver, goal, env);
 }
 
 function* bundledLengthSolutions(solver, goal, env) {
@@ -2210,13 +2175,7 @@ function pushStreamingScalarFactRun(stack, solver, runGoals, groups, rest, env, 
   const iterator = scalarFactRunSolutions(solver, runGoals, groups, env, depth, active);
   const first = iterator.next();
   if (first.done) return;
-  stack.push({
-    kind: 'resumeBuiltin',
-    iterator,
-    goals: rest,
-    depth: depth + runGoals.length,
-    active,
-  });
+  pushResumeBuiltinFrame(stack, iterator, rest, depth + runGoals.length, active);
   stack.push({
     kind: 'goals',
     goals: rest,
@@ -2854,10 +2813,64 @@ function builtinIsReadyOrAuthoritative(def, solver, goal, env) {
 
 function iteratorMayHavePendingAlternatives(iterator) {
   const predicate = iterator?.hasPendingAlternatives;
-  return typeof predicate !== 'function' || predicate.call(iterator) !== false;
+  return typeof predicate === 'function' && predicate.call(iterator) !== false;
+}
+
+function lookaheadChoiceIterator(iterator) {
+  let buffered = null;
+  let bufferedReady = false;
+  let closed = false;
+
+  const fill = () => {
+    if (closed || bufferedReady) return;
+    buffered = iterator.next();
+    bufferedReady = true;
+    if (buffered.done) closed = true;
+  };
+
+  return {
+    next() {
+      fill();
+      if (buffered?.done !== false) return buffered ?? { done: true, value: undefined };
+      const result = buffered;
+      buffered = null;
+      bufferedReady = false;
+      // Ordinary relational iterators are advanced by one answer so their
+      // exhausted state is known before this answer reaches the caller.
+      fill();
+      return result;
+    },
+    return(value) {
+      if (!closed) iterator.return?.();
+      closed = true;
+      buffered = { done: true, value };
+      bufferedReady = true;
+      return buffered;
+    },
+    throw(error) {
+      closed = true;
+      if (typeof iterator.throw === 'function') return iterator.throw(error);
+      throw error;
+    },
+    prepareClose(reason) {
+      iterator.prepareClose?.(reason);
+    },
+    hasPendingAlternatives() {
+      fill();
+      return buffered?.done === false;
+    },
+    [Symbol.iterator]() { return this; },
+  };
+}
+
+function choicepointAwareIterator(iterator) {
+  return typeof iterator?.hasPendingAlternatives === 'function'
+    ? iterator
+    : lookaheadChoiceIterator(iterator);
 }
 
 function pushResumeBuiltinFrame(stack, iterator, goals, depth, active) {
+  iterator = choicepointAwareIterator(iterator);
   if (!iteratorMayHavePendingAlternatives(iterator)) {
     // Finish the suspended generator now so its finally blocks release child
     // solvers, aggregate statistics, and perform predicate-local cleanup.

@@ -137,8 +137,10 @@ export const isoBuiltins = {
     registry.add('number_chars', 2, numberCharsBuiltin, { deterministic: true });
     registry.add('number_codes', 2, numberCodesBuiltin, { deterministic: true });
 
-    registry.add('call', 1, callBuiltin);
-    for (let arity = 2; arity <= 8; arity++) registry.add('call', arity, callClosureBuiltin);
+    registry.add('call', 1, callBuiltin, { expandGoal: expandCallGoal });
+    for (let arity = 2; arity <= 8; arity++) {
+      registry.add('call', arity, callClosureBuiltin, { expandGoal: expandCallClosureGoal });
+    }
     registry.add('catch', 3, catchBuiltin);
     registry.add('throw', 1, throwBuiltin, { deterministic: true });
     registry.add('\\+', 1, negationBuiltin, { deterministic: true });
@@ -166,7 +168,7 @@ export const eyePrologLibraryBuiltins = {
   register(registry) {
     registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__call_residue_vars', 2, callResidueVarsBuiltin, { eyePrologLibrary: true });
-    registry.add('eyeprolog__countall', 2, countAllBuiltin, { eyePrologLibrary: true });
+    registry.add('eyeprolog__countall', 2, countAllBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__freeze', 2, freezeBuiltin, { eyePrologLibrary: true });
     registry.add('dif', 2, difBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('time', 1, timeBuiltin, { eyePrologLibrary: true });
@@ -712,27 +714,43 @@ function assertBuiltin(atStart) {
   };
 }
 
-function* retractBuiltin({ solver, goal, env }) {
+function retractBuiltin(context) {
+  const state = { pending: true };
+  const iterator = retractSolutions(context, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
+}
+
+function* retractSolutions({ solver, goal, env }, state) {
   const parts = clauseParts(goal.args[0], env);
   requireClauseHead(parts.head);
   const group = solver.program.findGroup(parts.head.name, parts.head.arity, parts.head.module ?? goal.module ?? 'user');
   if (isProcessorStaticProcedure(solver, parts.head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(modify, static_procedure)', procedureIndicator(parts.head));
   }
-  if (!group) return;
+  if (!group) {
+    state.pending = false;
+    return;
+  }
   // ISO logical update view: this call keeps the clauses that were visible
   // when it began. A later retract/1 may erase one of those clauses from the
   // live procedure, but must not invalidate this call's pending alternatives.
-  const candidates = [...group.clauses];
-  for (const clause of candidates) {
+  const matches = [];
+  for (const clause of [...group.clauses]) {
     const copied = freshCopy(compound('$clause', [clause.head, clauseBodyTerm(clause.body)]), new Env());
     const next = env.clone();
     if (!unify(parts.head, copied.args[0], next)) continue;
     if (parts.rule && !unify(parts.body, copied.args[1], next)) continue;
     if (!parts.rule && !(copied.args[1].type === ATOM && copied.args[1].name === 'true')) continue;
+    matches.push({ clause, next });
+  }
+  for (let index = 0; index < matches.length; index++) {
+    const { clause, next } = matches[index];
     solver.program.removeDynamicClause(group, clause);
+    state.pending = index + 1 < matches.length;
     yield next;
   }
+  state.pending = false;
 }
 
 function* retractAllBuiltin({ solver, goal, env }) {
@@ -2413,6 +2431,11 @@ function callable(term, env) {
   validateControlCallable(term, term, env);
   return term;
 }
+
+function withPendingState(iterator, state) {
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
+}
 function validateControlCallable(term, culprit, env) {
   // Only control constructs need their nested goals validated at meta-call
   // entry. Walk them iteratively and dereference each nested goal lazily so
@@ -2438,9 +2461,14 @@ function validateControlCallable(term, culprit, env) {
     }
   }
 }
-function* callBuiltin({ solver, goal, env }) {
+function expandCallGoal({ goal, env }) {
   const invoked = callable(goal.args[0], env);
   if (invoked.module == null) invoked.module = goal.module ?? 'user';
+  return invoked;
+}
+function* callBuiltin(context) {
+  const { solver, env } = context;
+  const invoked = expandCallGoal(context);
   const child = solver.cloneForInnerGoal();
   try {
     yield* child.solve([invoked], env, 0);
@@ -2448,7 +2476,7 @@ function* callBuiltin({ solver, goal, env }) {
     solver.absorbStatsFrom(child);
   }
 }
-function* callClosureBuiltin({ solver, goal, env }) {
+function expandCallClosureGoal({ goal, env }) {
   const closure = callable(goal.args[0], env);
   const existing = closure.type === COMPOUND ? closure.args : [];
   const extra = goal.args.slice(1);
@@ -2457,6 +2485,11 @@ function* callClosureBuiltin({ solver, goal, env }) {
   }
   const invoked = compound(closure.name, [...existing, ...extra]);
   invoked.module = closure.module ?? goal.module ?? 'user';
+  return invoked;
+}
+function* callClosureBuiltin(context) {
+  const { solver, env } = context;
+  const invoked = expandCallClosureGoal(context);
   const child = solver.cloneForInnerGoal();
   try {
     yield* child.solve([invoked], env, 0);
@@ -2509,7 +2542,12 @@ function writeElapsedTime(solver, startedAt, inferences) {
   );
 }
 
-function* timeBuiltin({ solver, goal, env }) {
+function timeBuiltin(context) {
+  const state = { pending: true };
+  return withPendingState(timeSolutions(context, state), state);
+}
+
+function* timeSolutions({ solver, goal, env }, state) {
   const invoked = callable(goal.args[0], env);
   const child = solver.cloneForInnerGoal();
   let startedAt = monotonicMilliseconds();
@@ -2519,12 +2557,15 @@ function* timeBuiltin({ solver, goal, env }) {
     for (const answerEnv of child.solve([invoked], env, 0)) {
       writeElapsedTime(solver, startedAt, child.inferenceObservation.value - startedInferences);
       yieldedAny = true;
+      state.pending = child.hasPendingAlternatives();
       yield answerEnv;
+      if (!state.pending) return;
       // A resumed time/1 measures only the work required to reach the next
       // answer, so nondeterministic calls get one timing line per solution.
       startedAt = monotonicMilliseconds();
       startedInferences = child.inferenceObservation.value;
     }
+    state.pending = false;
     // A call that fails without producing an answer still reports the work.
     if (!yieldedAny) writeElapsedTime(solver, startedAt, child.inferenceObservation.value - startedInferences);
   } finally {
@@ -2532,10 +2573,18 @@ function* timeBuiltin({ solver, goal, env }) {
   }
 }
 
-function* callNthBuiltin({ solver, goal, env }) {
+function callNthBuiltin(context) {
+  const state = { pending: true };
+  return withPendingState(callNthSolutions(context, state), state);
+}
+
+function* callNthSolutions({ solver, goal, env }, state) {
   const requestedTerm = deref(goal.args[1], env);
   // Zero is the one Nth value that fails before Goal is inspected.
-  if (requestedTerm.type === NUMBER && isDecimalInteger(requestedTerm.name) && BigInt(requestedTerm.name) === 0n) return;
+  if (requestedTerm.type === NUMBER && isDecimalInteger(requestedTerm.name) && BigInt(requestedTerm.name) === 0n) {
+    state.pending = false;
+    return;
+  }
 
   const invoked = callable(goal.args[0], env);
   let requested = null;
@@ -2554,9 +2603,13 @@ function* callNthBuiltin({ solver, goal, env }) {
       nth++;
       if (requested != null && nth < requested) continue;
       const next = answerEnv.clone();
-      if (unify(goal.args[1], numberTerm(nth.toString()), next)) yield next;
-      if (requested != null) return;
+      if (unify(goal.args[1], numberTerm(nth.toString()), next)) {
+        state.pending = requested == null && child.hasPendingAlternatives();
+        yield next;
+        if (requested != null || !state.pending) return;
+      }
     }
+    state.pending = false;
   } finally {
     solver.absorbStatsFrom(child);
   }
@@ -2648,12 +2701,22 @@ function callResidueVarsBuiltin({ solver, goal, env }) {
   return iterator;
 }
 
-function* freezeBuiltin({ solver, goal, env }) {
+function freezeBuiltin(context) {
+  const state = { pending: true };
+  return withPendingState(freezeSolutions(context, state), state);
+}
+
+function* freezeSolutions({ solver, goal, env }, state) {
   const watched = deref(goal.args[0], env);
   if (watched.type !== VAR) {
     const child = solver.cloneForInnerGoal();
     try {
-      yield* child.solve([callable(goal.args[1], env)], env, 0);
+      for (const answerEnv of child.solve([callable(goal.args[1], env)], env, 0)) {
+        state.pending = child.hasPendingAlternatives();
+        yield answerEnv;
+        if (!state.pending) return;
+      }
+      state.pending = false;
     } finally {
       solver.absorbStatsFrom(child);
     }
@@ -2661,10 +2724,16 @@ function* freezeBuiltin({ solver, goal, env }) {
   }
   const next = env.clone();
   next.delay(watched.name, goal.args[1], goal.module ?? 'user');
+  state.pending = false;
   yield next;
 }
 
-function* phraseBuiltin({ solver, goal, env }) {
+function phraseBuiltin(context) {
+  const state = { pending: true };
+  return withPendingState(phraseSolutions(context, state), state);
+}
+
+function* phraseSolutions({ solver, goal, env }, state) {
   const grammarBody0 = deref(goal.args[0], env);
   if (grammarBody0.type === VAR) throw new PrologError('instantiation_error');
   if (grammarBody0.type !== ATOM && grammarBody0.type !== COMPOUND) {
@@ -2721,7 +2790,12 @@ function* phraseBuiltin({ solver, goal, env }) {
     skipListTailTabling: !repeatedInvocation,
   });
   try {
-    yield* child.solve(finish == null ? [expanded] : [expanded, finish], env, 0);
+    for (const answerEnv of child.solve(finish == null ? [expanded] : [expanded, finish], env, 0)) {
+      state.pending = child.hasPendingAlternatives();
+      yield answerEnv;
+      if (!state.pending) return;
+    }
+    state.pending = false;
   } finally {
     solver.absorbStatsFrom(child);
     solver.trimInnerTableScope('phrase');
@@ -2781,7 +2855,12 @@ function prologErrorBall(error) {
   if (hasDefaultGroundErrorShape(error) || termIsGround(term)) return term;
   return freshCopy(term, new Env());
 }
-function* catchBuiltin({ solver, goal, env }) {
+function catchBuiltin(context) {
+  const state = { pending: true };
+  return withPendingState(catchSolutions(context, state), state);
+}
+
+function* catchSolutions({ solver, goal, env }, state) {
   let child = null;
   try {
     // Corrigendum 2 removed catch/3's own callability errors so that errors
@@ -2798,12 +2877,19 @@ function* catchBuiltin({ solver, goal, env }) {
       if (result.done) solver.stats.deterministic_builtin_failures++;
       else {
         solver.stats.deterministic_builtin_successes++;
+        state.pending = false;
         yield result.value;
       }
+      state.pending = false;
       return;
     }
     child = solver.cloneForInnerGoal();
-    yield* child.solve([invoked], env.clone(), 0);
+    for (const answerEnv of child.solve([invoked], env.clone(), 0)) {
+      state.pending = child.hasPendingAlternatives();
+      yield answerEnv;
+      if (!state.pending) return;
+    }
+    state.pending = false;
   } catch (error) {
     const ball = error instanceof ThrownTerm
       ? error.term
@@ -2814,12 +2900,18 @@ function* catchBuiltin({ solver, goal, env }) {
     const recovered = env.clone();
     if (!unify(goal.args[1], ball, recovered)) throw error;
     const recovery = callable(goal.args[2], recovered);
-    if (recovery.type === ATOM && (recovery.name === 'false' || recovery.name === 'fail')) return;
+    if (recovery.type === ATOM && (recovery.name === 'false' || recovery.name === 'fail')) {
+      state.pending = false;
+      return;
+    }
     if (recovery.type === ATOM && recovery.name === 'true') {
+      state.pending = false;
       yield recovered;
       return;
     }
-    yield* solver.solve([recovery], recovered, 0);
+    yield* solveControlBranch(solver, recovery, recovered,
+      (pending) => { state.pending = pending; });
+    state.pending = false;
   } finally {
     if (child != null) solver.absorbStatsFrom(child);
   }
@@ -2917,11 +3009,19 @@ function* disjunctionSolutions({ solver, goal, env }, state) {
     (pending) => { state.pending = pending; });
   state.pending = false;
 }
-function* ifThenBuiltin({ solver, goal, env }) {
+function ifThenBuiltin(context) {
+  const state = { pending: true };
+  return withPendingState(ifThenSolutions(context, state), state);
+}
+
+function* ifThenSolutions({ solver, goal, env }, state) {
   for (const conditionEnv of solver.cloneForInnerGoal(1).solve([callable(goal.args[0], env)], env.clone(), 0)) {
-    yield* solveControlBranch(solver, goal.args[1], conditionEnv);
+    yield* solveControlBranch(solver, goal.args[1], conditionEnv,
+      (pending) => { state.pending = pending; });
+    state.pending = false;
     return;
   }
+  state.pending = false;
 }
 
 export { arithmeticValueTerm, evaluateArithmetic, compareArithmeticValues } from './iso-arithmetic.js';
@@ -2940,6 +3040,7 @@ export class BuiltinRegistry {
       handler,
       deterministic: options.deterministic ?? false,
       deterministicWhen: options.deterministicWhen ?? null,
+      expandGoal: options.expandGoal ?? null,
       ready: options.ready ?? null,
       fallbackWhenNotReady: options.fallbackWhenNotReady ?? false,
       shouldUse: options.shouldUse ?? null,

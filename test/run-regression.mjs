@@ -1999,11 +1999,13 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'predicates discard exhausted choicepoints before the REPL observes them (issue #74)',
+      name: 'direct and meta-called predicates discard exhausted choicepoints (issue #74 comment 5427164365)',
       run: () => {
         const result = runCli([], {
           input:
             'X=1;X=2.\n;\n' +
+            'call(X=1).\n' +
+            'call(=(X),1).\n' +
             'setof(X,true,Xs).\n' +
             'findall(t,false,Xs).\n' +
             'use_module(library(lists)).\n' +
@@ -2015,6 +2017,8 @@ c4 ?- call((!;1)).
         assertEqual(result.stdout,
           '?-    X = 1\n' +
           ';  X = 2.\n' +
+          '?-    X = 1.\n' +
+          '?-    X = 1.\n' +
           '?-    Xs = [_A].\n' +
           '?-    Xs = [].\n' +
           '?-    true.\n' +
@@ -2044,6 +2048,16 @@ c4 ?- call((!;1)).
         };
 
         finalAnswerHasNoFrames('', 'X=1;X=2', 2);
+        finalAnswerHasNoFrames('', 'call(X=1)', 1);
+        finalAnswerHasNoFrames('', 'call(=(X),1)', 1);
+        finalAnswerHasNoFrames('', 'atom_concat(a,X,ab)', 1);
+        finalAnswerHasNoFrames('', 'sub_atom(ab,0,2,0,S)', 1);
+        finalAnswerHasNoFrames('', 'current_prolog_flag(double_quotes,_Value)', 1);
+        finalAnswerHasNoFrames('', "current_op(700,xfx,'=')", 1);
+        finalAnswerHasNoFrames(':- dynamic(p/1).\np(a).', 'clause(p(X),true)', 1);
+        finalAnswerHasNoFrames(':- dynamic(p/1).\np(a).', 'retract(p(X))', 1);
+        finalAnswerHasNoFrames('', 'catch(true,_,fail)', 1);
+        finalAnswerHasNoFrames('', 'phrase([],[])', 1);
         finalAnswerHasNoFrames('', 'setof(X,true,Xs)', 1);
         finalAnswerHasNoFrames('', 'findall(t,false,Xs)', 1);
         finalAnswerHasNoFrames(':- use_module(library(lists)).', 'member(a,"ba")', 1, 'lists');
@@ -2056,6 +2070,38 @@ c4 ?- call((!;1)).
         assertEqual(groupedSolutions.next().done, false, 'first grouped setof/3 answer');
         assertEqual(grouped.hasPendingAlternatives(), true, 'genuine grouped setof/3 choicepoint');
         groupedSolutions.return();
+
+        const called = new Solver(Program.parse(''), { registry: getEyePrologRegistry() });
+        const calledSolutions = called.solve([parseGoalText('call((X=1;X=2))')], new Env(), 0);
+        assertEqual(calledSolutions.next().done, false, 'called disjunction first answer');
+        assertEqual(called.hasPendingAlternatives(), true, 'called disjunction retains its real alternative');
+        assertEqual(calledSolutions.next().done, false, 'called disjunction second answer');
+        assertEqual(called.hasPendingAlternatives(), false, 'called disjunction removes its exhausted alternative');
+        calledSolutions.return();
+
+        const customRegistry = new BuiltinRegistry();
+        customRegistry.add('single', 1, function* ({ goal, env }) {
+          const next = env.clone();
+          if (unify(goal.args[0], atom('only'), next)) yield next;
+        });
+        const custom = new Solver(Program.parse(''), { registry: customRegistry });
+        const customSolutions = custom.solve([parseGoalText('single(X)')], new Env(), 0);
+        assertEqual(customSolutions.next().done, false, 'custom relational iterator answer');
+        assertEqual(custom.hasPendingAlternatives(), false,
+          'unannotated relational iterator uses the universal lookahead protocol');
+        customSolutions.return();
+
+        const dynamicProgram = Program.parse(':- dynamic(p/1).\np(a).\np(b).\n');
+        const dynamicSolver = new Solver(dynamicProgram, { registry: getEyePrologRegistry() });
+        const dynamicSolutions = dynamicSolver.solve([parseGoalText('catch(retract(p(X)),_,fail)')], new Env(), 0);
+        assertEqual(dynamicSolutions.next().done, false, 'stateful protected iterator first answer');
+        assertEqual(dynamicProgram.findGroup('p', 1).clauses.length, 1,
+          'lookahead does not perform the next retraction');
+        assertEqual(dynamicSolver.hasPendingAlternatives(), true,
+          'stateful protected iterator retains its real second retraction');
+        dynamicSolutions.return();
+        assertEqual(dynamicProgram.findGroup('p', 1).clauses.length, 1,
+          'closing stateful iterator leaves the unrequested clause intact');
       },
     },
     {
@@ -5373,21 +5419,13 @@ answer(ok) :-
           import { Program, Solver, Env, deref, variable, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
           import { usedHeapSize } from ${JSON.stringify(platformUrl)};
           const program = Program.parse(${JSON.stringify(programText)}, { sourceMetadata: false });
-          // Exercise EyeProlog's recovery window at a stable threshold instead
-          // of relying on V8's version-dependent old-generation promotion.
-          const solver = new Solver(program, {
-            registry: getEyePrologRegistry(),
-            maxMemoryBytes: usedHeapSize() + 20 * 1024 * 1024,
-          });
-          const execute = (text) => {
-            const goal = parseGoalText(text, { operatorDefinitions: [...program.operators.values()] });
-            return [...solver.solve([goal], new Env(), 0)];
-          };
+          const registry = getEyePrologRegistry();
           const reported = parseGoalText(${JSON.stringify(reportedGoal)}, {
             operatorDefinitions: [...program.operators.values()],
           });
+          const reportedSolver = new Solver(program, { registry, maxMemoryBytes: Infinity });
           let reportedAnswers = 0;
-          for (const answer of solver.solve([reported], new Env(), 0)) {
+          for (const answer of reportedSolver.solve([reported], new Env(), 0)) {
             reportedAnswers++;
             if (reportedAnswers !== 14) continue;
             if (deref(variable('I'), answer).name !== '13' || deref(variable('N'), answer).name !== '8192') {
@@ -5396,6 +5434,18 @@ answer(ok) :-
             break;
           }
           if (reportedAnswers !== 14) throw new Error('reported query produced too few answers');
+
+          // Exercise EyeProlog's recovery window at a stable threshold relative
+          // to the heap after the preliminary reproduction. Keeping that probe
+          // unlimited prevents host GC timing from exhausting the test early.
+          const solver = new Solver(program, {
+            registry,
+            maxMemoryBytes: usedHeapSize() + 8 * 1024 * 1024,
+          });
+          const execute = (text) => {
+            const goal = parseGoalText(text, { operatorDefinitions: [...program.operators.values()] });
+            return [...solver.solve([goal], new Env(), 0)];
+          };
           let caught = null;
           try { execute('length(L,32768),l(L)'); } catch (error) { caught = error; }
           if (caught?.formal !== 'resource_error(memory)') throw caught ?? new Error('no resource error');
