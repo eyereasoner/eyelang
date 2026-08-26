@@ -283,8 +283,16 @@ export function runIsoStrict(reporter = new TestReporter()) {
     }));
     equal(strictError.formal, 'domain_error(write_option)', 'strict extension rejection');
 
+    const strictSpacingError = capture(() => run('', {
+      isoStrict: true,
+      goal: 'write_term(1+1,[spacing(minimal)])',
+    }));
+    equal(strictSpacingError.formal, 'domain_error(write_option)', 'strict spacing extension rejection');
+
     const normal = run('', { goal: 'write_term("ab",[double_quotes(true)])' });
     includes(normal.stdout, '"ab"', 'normal-profile extension remains available');
+    includes(run('', { goal: 'write_term(1+1,[spacing(standard)])' }).stdout,
+      '1 + 1', 'normal-profile spacing extension remains available');
   });
 
   reporter.test('follows Corrigendum 3 variable metadata traversal and write naming', () => {

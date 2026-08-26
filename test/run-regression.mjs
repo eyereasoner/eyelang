@@ -1033,6 +1033,108 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'read/2 and number_chars/2 agree on bounded numeric syntax (issue #29)',
+      run: () => {
+        const registry = createDefaultRegistry();
+        const numberChars = registry.get('number_chars', 2).handler;
+        const read = registry.get('read', 2).handler;
+        const solver = new Solver(Program.parse(''), { registry, ioOptions: { input: '' } });
+        const stream = solver.io.resolve(0);
+        const streamTerm = compound('$stream', [numberTerm('0')]);
+        const alphabet = ['0', '1', '2', '7', '8', '9', 'a', 'f', 'x', 'e', 'E', '+', '-', '.', "'", '\\', ' '];
+        let checked = 0;
+        let accepted = 0;
+
+        const visit = (prefix, remaining) => {
+          if (remaining === 0) {
+            checked++;
+            const converted = variable('Converted');
+            const conversionGoal = compound('number_chars', [
+              converted,
+              listFromItems(Array.from(prefix, atom)),
+            ]);
+            let conversion;
+            try {
+              conversion = numberChars({ goal: conversionGoal, env: new Env() }).next();
+            } catch (_) {
+              return;
+            }
+            if (conversion.done) return;
+            accepted++;
+            const expected = copyResolved(converted, conversion.value);
+
+            stream.content = `${prefix}. `;
+            stream.position = 0;
+            stream.pastEnd = false;
+            const readValue = variable('ReadValue');
+            const readGoal = compound('read', [streamTerm, readValue]);
+            const answer = read({ solver, goal: readGoal, env: new Env() }).next();
+            if (answer.done) throw new Error(`read/2 rejected number_chars/2 spelling ${JSON.stringify(prefix)}`);
+            const actual = copyResolved(readValue, answer.value);
+            assertEqual(actual.type, 'number', `read/2 type for ${JSON.stringify(prefix)}`);
+            assertEqual(actual.name, expected.name, `read/2 value for ${JSON.stringify(prefix)}`);
+            return;
+          }
+          for (const character of alphabet) visit(prefix + character, remaining - 1);
+        };
+
+        for (let length = 1; length <= 4; length++) visit('', length);
+        assertEqual(checked, 88740, 'bounded numeric spellings checked');
+        if (accepted < 1000) throw new Error(`unexpectedly small accepted numeric corpus: ${accepted}`);
+      },
+    },
+    {
+      name: 'number_chars/2 to read/2 cross-check stays bounded under a small heap (issue #29)',
+      run: () => {
+        const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const script = `
+          import {
+            Program, Solver, Env, atom, compound, variable, listFromItems,
+            numberTerm, copyResolved, createDefaultRegistry,
+          } from ${JSON.stringify(engineUrl)};
+          const registry = createDefaultRegistry();
+          const numberChars = registry.get('number_chars', 2).handler;
+          const read = registry.get('read', 2).handler;
+          const solver = new Solver(Program.parse(''), { registry, ioOptions: { input: '' } });
+          const stream = solver.io.resolve(0);
+          const streamTerm = compound('$stream', [numberTerm('0')]);
+          for (let i = 0; i < 250000; i++) {
+            const text = String(i);
+            const converted = variable('Converted');
+            const conversionGoal = compound('number_chars', [
+              converted,
+              listFromItems(Array.from(text, atom)),
+            ]);
+            const conversion = numberChars({ goal: conversionGoal, env: new Env() }).next();
+            if (conversion.done) throw new Error('number_chars/2 failed at ' + i);
+            const expected = copyResolved(converted, conversion.value);
+
+            stream.content = text + '. ';
+            stream.position = 0;
+            stream.pastEnd = false;
+            const readValue = variable('ReadValue');
+            const readGoal = compound('read', [streamTerm, readValue]);
+            const answer = read({ solver, goal: readGoal, env: new Env() }).next();
+            if (answer.done) throw new Error('read/2 failed at ' + i);
+            const actual = copyResolved(readValue, answer.value);
+            if (actual.type !== 'number' || actual.name !== expected.name) {
+              throw new Error('number mismatch at ' + i + ': ' + actual.name + ' != ' + expected.name);
+            }
+          }
+          process.stdout.write('250000');
+        `;
+        const result = spawnSync(process.execPath, [
+          '--max-old-space-size=32',
+          '--input-type=module',
+          '--eval',
+          script,
+        ], { cwd: packageRoot, encoding: 'utf8', timeout: 30000 });
+        if (result.error) throw result.error;
+        assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
+        assertEqual(result.stdout, '250000', 'number_chars/read cross-check count');
+      },
+    },
+    {
       name: 'number_chars and number_codes keep exponent floats syntactically readable (issue #50)',
       run: () => {
         const source = `
@@ -1954,6 +2056,50 @@ c4 ?- call((!;1)).
         assertEqual(groupedSolutions.next().done, false, 'first grouped setof/3 answer');
         assertEqual(grouped.hasPendingAlternatives(), true, 'genuine grouped setof/3 choicepoint');
         groupedSolutions.return();
+      },
+    },
+    {
+      name: 'bound member tails do not invent predicate choicepoints (issue #74 follow-up)',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'use_module(library(lists)).\n' +
+            'L=[i],append(L,_,[i|L]).\n' +
+            'L=[_],append(L,_,[i|L]).\n' +
+            'L=[i],append(L,_,[i|L]),member(a,[a|L]).\n' +
+            'L=[_],append(L,_,[i|L]),member(a,[a|L]).\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    true.\n' +
+          '?-    L = "i".\n' +
+          '?-    L = "i".\n' +
+          '?-    L = "i".\n' +
+          '?-    L = "i".\n' +
+          '?- ',
+          'ground and formerly variable list elements have identical determinism');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'length/2 reports fixed and closed-list answers as deterministic (issue #78)',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'use_module(library(lists)).\n' +
+            'length(K,0).\n' +
+            'length([],N).\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    true.\n' +
+          '?-    K = [].\n' +
+          '?-    N = 0.\n' +
+          '?- ',
+          'no exhausted native length iterator remains');
+        assertEqual(result.stderr, '', 'stderr');
       },
     },
     {
@@ -3884,6 +4030,15 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
     {
       name: 'REPL answers use only lexically required operator spacing (issue #76)',
       run: () => {
+        const source = [
+          'emit :-',
+          '  write_term(1+1, [spacing(minimal)]), put_char(\'|\'),',
+          '  write_term(1+1, [spacing(standard)]).',
+          '',
+        ].join('\n');
+        assertEqual(run(source, { goal: 'emit' }).stdout, '1+1|1 + 1emit.\n',
+          'documented spacing values select write_term layout');
+
         const result = runCli([], {
           input: 'X=1*1.\nX=a + -b.\nhalt.\n',
         });
@@ -3894,6 +4049,24 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
           '?- ',
           'minimal operator layout preserves required token separation');
         assertEqual(result.stderr, '', 'stderr');
+
+        let variableError = null;
+        try {
+          run('', { goal: 'write_term(1+1,[spacing(X)])' });
+        } catch (error) {
+          variableError = error;
+        }
+        assertEqual(variableError?.formal, 'instantiation_error', 'variable spacing value');
+
+        for (const value of ['true', 'false', '1', '0']) {
+          let domainError = null;
+          try {
+            run('', { goal: `write_term(1+1,[spacing(${value})])` });
+          } catch (error) {
+            domainError = error;
+          }
+          assertEqual(domainError?.formal, 'domain_error(write_option)', `spacing(${value}) domain`);
+        }
       },
     },
     {
@@ -5189,6 +5362,7 @@ answer(ok) :-
       name: 'discarded recursive allocations recover after resource_error(memory)',
       run: () => {
         const engineUrl = new URL('../src/index.js', import.meta.url).href;
+        const platformUrl = new URL('../src/platform.js', import.meta.url).href;
         const programText = `
           :- use_module(library(prologue)).
           l([]).
@@ -5197,8 +5371,14 @@ answer(ok) :-
         const reportedGoal = 'length(_,I),N is 2^I,\\+ \\+ (length(L,N),l(L)),L=[_|_]';
         const script = `
           import { Program, Solver, Env, deref, variable, parseGoalText, getEyePrologRegistry } from ${JSON.stringify(engineUrl)};
+          import { usedHeapSize } from ${JSON.stringify(platformUrl)};
           const program = Program.parse(${JSON.stringify(programText)}, { sourceMetadata: false });
-          const solver = new Solver(program, { registry: getEyePrologRegistry() });
+          // Exercise EyeProlog's recovery window at a stable threshold instead
+          // of relying on V8's version-dependent old-generation promotion.
+          const solver = new Solver(program, {
+            registry: getEyePrologRegistry(),
+            maxMemoryBytes: usedHeapSize() + 20 * 1024 * 1024,
+          });
           const execute = (text) => {
             const goal = parseGoalText(text, { operatorDefinitions: [...program.operators.values()] });
             return [...solver.solve([goal], new Env(), 0)];

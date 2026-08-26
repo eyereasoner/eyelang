@@ -97,8 +97,8 @@ required permission error. `read_term/3`, `write_term/3`, `op/3`, and
 EyeProlog's chosen simultaneous-error behavior stable. Section 7.12 makes that
 choice implementation dependent when several error conditions hold at once. Strict `write_term/2-3` accepts only
 the Part 1 plus Corrigendum 3 option surface; the normal-profile
-`double_quotes/1` write option remains an explicitly documented EyeProlog
-extension.
+`double_quotes/1` and `spacing/1` write options remain explicitly documented
+implementation-specific EyeProlog extensions.
 
 
 The preparation, stream, conversion, sorting, and arithmetic audit expands the coverage into Prolog-text,

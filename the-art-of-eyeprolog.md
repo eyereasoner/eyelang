@@ -5187,8 +5187,10 @@ pruned, top-level answer enumeration is abandoned, or an exception unwinds the
 search. `setup_call_cleanup/3` runs Setup once and installs Cleanup only after
 Setup succeeds. On cut or ordinary pruning Cleanup sees the current Goal
 bindings; on exception unwind the Goal bindings have been removed and Cleanup
-sees the Setup environment. Cleanup failure is ignored, and an exception already
-being propagated takes precedence over a cleanup exception. Nested cleanups run
+sees the Setup environment. When a deterministic protected goal runs Cleanup
+before yielding, substitutions produced by a successful Cleanup are included in
+that answer. Cleanup failure is ignored, and an exception already being
+propagated takes precedence over a cleanup exception. Nested cleanups run
 inside-out. These two controls are EyeProlog extensions and are absent from
 `--iso-strict`.
 
@@ -5427,9 +5429,15 @@ still retained where adjacent graphic tokens would otherwise merge, as in
 `variable_names/1`. Normal mode additionally accepts the EyeProlog extension
 `double_quotes(true|false)`: `true` lets eligible character/code lists use the
 current `double_quotes` representation, while strict ISO mode rejects this
-non-standard write option. The REPL follows the same minimal-separator rule as
-term output, so `X=1*1` is displayed as `X = 1*1`, while a separator is retained
-in `X = a+ -b` because the adjacent graphic tokens would otherwise merge.
+implementation-specific write option. Normal mode also accepts the
+implementation-specific `spacing(minimal|standard)` option: `minimal` emits
+only separators required to avoid lexical ambiguity, while `standard` adds
+conventional layout around operators. For example,
+`write_term(1+1,[spacing(minimal)])` emits `1+1` and
+`write_term(1+1,[spacing(standard)])` emits `1 + 1`. The REPL always follows
+the minimal-separator rule, so `X=1*1` is displayed as `X = 1*1`, while a
+separator is retained in `X = a+ -b` because the adjacent graphic tokens would
+otherwise merge. Strict ISO mode rejects both extension options.
 
 Character operations are `get_char`, `peek_char`, `put_char`, `get_code`,
 `peek_code`, and `put_code`; byte streams use the corresponding byte
@@ -6122,7 +6130,7 @@ the beginning. A peek does not mark the stream as past-end.
 | `write(+Term)`, `write(+Stream,+Term)` | Writes readable operator notation without quoting atoms merely because quoting would be required for reparsing. Number variables are enabled. |
 | `writeq(+Term)`, `writeq(+Stream,+Term)` | Like `write`, but quotes atoms when required for unambiguous input syntax. |
 | `write_canonical(+Term)`, `write_canonical(+Stream,+Term)` | Writes quoted canonical functor notation while ignoring operators and without interpreting *$VAR/1*. |
-| `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)*. |
+| `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(minimal or standard)*. |
 
 Term input uses the program's current operator table and the same ISO quoted-character
 syntax as source text, including backslash-terminated octal and hexadecimal
@@ -6131,6 +6139,12 @@ escapes such as `'\7\'` and `'\x7\'`. This applies equally to `read/1-2` and
 when the `char_conversion` flag is `on`. `variable_names/1` and `singletons/1` omit anonymous variables. Output
 predicates do not append a period or newline; call `write/1`, then `write('.')`
 and `nl/0` when emitting a complete source term manually.
+
+A standalone numeric term read by `read/1-2` or `read_term/2-3` uses the same
+bounded numeric scanner and canonical value conversion as `number_chars/2`.
+Consequently every numeric character sequence accepted by `number_chars/2` has
+the same value when read as a full-stop-terminated term, without requiring EOF
+after that term.
 
 ### Arithmetic expressions
 
@@ -6209,7 +6223,7 @@ so side effects occur in Prolog execution order.
 
 ### Normal-mode cleanup controls
 
-`call_cleanup/2` and `setup_call_cleanup/3` are normal EyeProlog runtime extensions rather than members of the isolated ISO builtin registry. They protect a goal across deterministic completion, exhaustion, cut, top-level abandonment, and exception unwinding, running Cleanup exactly once. `setup_call_cleanup/3` runs Setup once and installs Cleanup only after Setup succeeds. Nested cleanups run inside-out, and strict ISO mode does not provide either predicate.
+`call_cleanup/2` and `setup_call_cleanup/3` are normal EyeProlog runtime extensions rather than members of the isolated ISO builtin registry. They protect a goal across deterministic completion, exhaustion, cut, top-level abandonment, and exception unwinding, running Cleanup exactly once. `setup_call_cleanup/3` runs Setup once and installs Cleanup only after Setup succeeds. A successful Cleanup run before a deterministic answer contributes its substitutions to that answer. Nested cleanups run inside-out, and strict ISO mode does not provide either predicate.
 
 ### The EyeProlog library
 
@@ -6363,7 +6377,9 @@ conservative cross-engine subset.
 `length(Xs, N)` enumerates `Xs = [], N = 0`, then one-element lists with
 `N = 1`, and so on. Open-ended generation uses the normal memory guard with
 recovery headroom so finite-heap exhaustion remains a catchable
-`resource_error(memory)`.
+`resource_error(memory)`. A supplied nonnegative length selects at most one
+answer, and a supplied closed list has exactly one length; these modes do not
+retain an exhausted choicepoint.
 
 `library(iso_ext)` is a common interop module name, but only part of its
 EyeProlog API belongs to the shared profile. `call_nth/2`, `time/1`, and
@@ -7767,8 +7783,8 @@ Notable implementation boundaries are:
 - `write_term/2-3` implements the Part 1 plus Corrigendum 3 `quoted/1`,
   `ignore_ops/1`, `numbervars/1`, and `variable_names/1` option surface,
   including option validation and traversal rules; normal mode also offers
-  `double_quotes(true|false)` as an explicitly non-standard extension, which
-  strict mode rejects;
+  `double_quotes(true|false)` and `spacing(minimal|standard)` as explicitly
+  implementation-specific extensions, which strict mode rejects;
 - unification consistently performs an occurs check, rejecting rational-tree
   bindings accepted as extensions by some systems.
 

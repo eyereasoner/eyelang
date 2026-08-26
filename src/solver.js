@@ -1495,8 +1495,25 @@ function* bundledMemberSolutions(solver, goal, env, state) {
 
 function bundledMemberMayMatch(target, cursor, env) {
   while (isCons(cursor)) {
-    if (!goalHeadTermsCannotMatch(target, cursor.args[0], env)) return true;
+    if (!termsCannotUnify(target, cursor.args[0], env)) return true;
     cursor = deref(cursor.args[1], env);
+  }
+  return false;
+}
+
+function termsCannotUnify(left, right, env) {
+  const pending = [[left, right]];
+  while (pending.length > 0) {
+    const [leftItem, rightItem] = pending.pop();
+    const actualLeft = derefForLocal(leftItem, env);
+    const actualRight = derefForLocal(rightItem, env);
+    if (actualLeft.type === VAR || actualRight.type === VAR) continue;
+    if (actualLeft.type !== actualRight.type || actualLeft.name !== actualRight.name ||
+        actualLeft.arity !== actualRight.arity) return true;
+    if (actualLeft.type !== COMPOUND) continue;
+    for (let index = 0; index < actualLeft.arity; index++) {
+      pending.push([actualLeft.args[index], actualRight.args[index]]);
+    }
   }
   return false;
 }
@@ -1613,7 +1630,13 @@ function bundledLengthIterator(solver, group, goal, env) {
       if (length.type === VAR && cursor.name === length.name) return null;
     }
   }
-  return bundledLengthSolutions(solver, goal, env);
+  const iterator = bundledLengthSolutions(solver, goal, env);
+  // A supplied length selects at most one list, and a closed supplied list has
+  // exactly one length. Only an open list paired with an output variable can
+  // produce another answer after the first one.
+  const hasOpenTail = cursor.type === VAR;
+  iterator.hasPendingAlternatives = () => length.type === VAR && hasOpenTail;
+  return iterator;
 }
 
 function* bundledLengthSolutions(solver, goal, env) {

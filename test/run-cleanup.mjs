@@ -89,6 +89,18 @@ export function runCleanup(reporter) {
     assertEqual(result.stderr, '', 'stderr');
   });
 
+  reporter.test('setup_call_cleanup/3 exposes deterministic Cleanup substitutions (issue #77)', () => {
+    const result = runRepl(
+      'setup_call_cleanup(true,A=1,throw(called(A))).\n' +
+      'setup_call_cleanup(true,A=1,B=1).\n' +
+      'halt.\n',
+    );
+    assertEqual(result.status, 0, 'exit status');
+    assertIncludes(result.stdout, 'throw(called(1)).', 'Cleanup sees Goal substitutions');
+    assertIncludes(result.stdout, 'A = 1, B = 1.', 'answer includes Cleanup substitutions');
+    assertEqual(result.stderr, '', 'stderr');
+  });
+
   reporter.test('setup_call_cleanup/3 does not install cleanup when Setup fails', () => {
     const result = runRepl('setup_call_cleanup(fail,true,write(should_not_run)).\nhalt.\n');
     assertEqual(result.status, 0, 'status');

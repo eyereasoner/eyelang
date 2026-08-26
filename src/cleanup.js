@@ -237,10 +237,11 @@ function cleanupProtectedIterator(solver, protectedGoal, cleanup, initialEnv) {
   let unwindToSetupBindings = false;
 
   const performCleanup = () => {
-    if (cleaned) return;
+    if (cleaned) return cleanupEnv;
     // Mark first so a throwing Cleanup is still considered executed exactly once.
     cleaned = true;
-    runCleanupOnce(solver, cleanup, cleanupEnv);
+    cleanupEnv = runCleanupOnce(solver, cleanup, cleanupEnv);
+    return cleanupEnv;
   };
 
   const iterator = (function* protectedWithCleanup() {
@@ -266,7 +267,7 @@ function cleanupProtectedIterator(solver, protectedGoal, cleanup, initialEnv) {
           performCleanup();
         }
 
-        yield result.value;
+        yield pending ? result.value : cleanupEnv;
         if (!pending) return;
       }
     } catch (error) {
@@ -321,8 +322,9 @@ function runCleanupOnce(solver, cleanup, env) {
       solver.absorbStatsFrom(child);
     }
   }
-  // Cleanup is semidet only as a control operation: failure is ignored, and
-  // bindings made solely by Cleanup are intentionally not added to an answer
-  // already produced by Goal.
-  return !result.done;
+  // Cleanup failure is ignored. When Cleanup runs before a deterministic
+  // protected answer is yielded, however, its substitutions are part of that
+  // answer; callers that prune a pending answer have already observed it and
+  // therefore cannot receive later Cleanup substitutions.
+  return result.done ? env : result.value;
 }

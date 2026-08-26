@@ -1555,6 +1555,24 @@ function scopeReadTerm(term) {
 
 function parseReadTermText(text, solver) {
   const converted = convertedTermText(text, solver);
+  // A standalone number needs no general term parser or operator tables.
+  // Reuse the same bounded numeric scanner as number_chars/2 so stream reads
+  // and number conversion agree on every accepted numeric token. The stream
+  // scanner has already established that the final full stop is a candidate
+  // terminator; trim only ISO layout immediately before that terminator.
+  const numericText = converted.slice(0, -1).replace(/[\u0009-\u000d\u0020]+$/, '');
+  let numericTerm;
+  try {
+    numericTerm = parseIsoNumber(numericText);
+  } catch (error) {
+    // parseIsoNumber/1 exposes Prolog errors to number_chars/2. The stream
+    // reader's candidate loop instead recognizes parser representation errors
+    // and must not reinterpret overflow as a later syntax error.
+    if (error instanceof PrologError) throw new NumberRepresentationError(error.formal);
+    throw error;
+  }
+  if (numericTerm != null) return numericTerm;
+
   const operatorState = createParserOperatorState(solver.program.operators.values(), false);
   return parseTermText(converted, {
     operatorState,
@@ -1720,6 +1738,15 @@ function writeOptionBoolean(value, env, option) {
   return value.name === 'true';
 }
 
+function writeOptionSpacing(value, env, option) {
+  value = deref(value, env);
+  if (value.type === VAR) throw new PrologError('instantiation_error');
+  if (value.type !== ATOM || !['minimal', 'standard'].includes(value.name)) {
+    throw new PrologError('domain_error(write_option)', copyResolved(option, env));
+  }
+  return value.name;
+}
+
 function writeVariableNames(value, env, option) {
   value = deref(value, env);
   if (value.type === VAR) throw new PrologError('instantiation_error');
@@ -1760,6 +1787,8 @@ function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = n
     else if (option.name === 'variable_names') result.variableNames = writeVariableNames(option.args[0], env, option);
     else if (option.name === 'double_quotes' && !solver?.isoStrict) {
       result.doubleQuotes = writeOptionBoolean(option.args[0], env, option);
+    } else if (option.name === 'spacing' && !solver?.isoStrict) {
+      result.minimalOperatorSpacing = writeOptionSpacing(option.args[0], env, option) === 'minimal';
     } else {
       throw new PrologError('domain_error(write_option)', copyResolved(option, env));
     }
