@@ -1756,15 +1756,6 @@ function writeOptionBoolean(value, env, option) {
   return value.name === 'true';
 }
 
-function writeOptionSpacing(value, env, option) {
-  value = deref(value, env);
-  if (value.type === VAR) throw new PrologError('instantiation_error');
-  if (value.type !== ATOM || !['minimal', 'standard'].includes(value.name)) {
-    throw new PrologError('domain_error(write_option)', copyResolved(option, env));
-  }
-  return value.name;
-}
-
 function writeVariableNames(value, env, option) {
   value = deref(value, env);
   if (value.type === VAR) throw new PrologError('instantiation_error');
@@ -1806,7 +1797,7 @@ function termWriteOptionsFromItems(options, env, mode = 'write_term', solver = n
     else if (option.name === 'double_quotes' && !solver?.isoStrict) {
       result.doubleQuotes = writeOptionBoolean(option.args[0], env, option);
     } else if (option.name === 'spacing' && !solver?.isoStrict) {
-      result.minimalOperatorSpacing = writeOptionSpacing(option.args[0], env, option) === 'minimal';
+      result.minimalOperatorSpacing = !writeOptionBoolean(option.args[0], env, option);
     } else {
       throw new PrologError('domain_error(write_option)', copyResolved(option, env));
     }

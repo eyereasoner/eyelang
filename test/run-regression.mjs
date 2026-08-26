@@ -4078,8 +4078,8 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       run: () => {
         const source = [
           'emit :-',
-          '  write_term(1+1, [spacing(minimal)]), put_char(\'|\'),',
-          '  write_term(1+1, [spacing(standard)]).',
+          '  write_term(1+1, [spacing(false)]), put_char(\'|\'),',
+          '  write_term(1+1, [spacing(true)]).',
           '',
         ].join('\n');
         assertEqual(run(source, { goal: 'emit' }).stdout, '1+1|1 + 1emit.\n',
@@ -4104,7 +4104,7 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
         }
         assertEqual(variableError?.formal, 'instantiation_error', 'variable spacing value');
 
-        for (const value of ['true', 'false', '1', '0']) {
+        for (const value of ['minimal', 'standard', '1', '0']) {
           let domainError = null;
           try {
             run('', { goal: `write_term(1+1,[spacing(${value})])` });

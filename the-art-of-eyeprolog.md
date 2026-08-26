@@ -5439,11 +5439,11 @@ still retained where adjacent graphic tokens would otherwise merge, as in
 `double_quotes(true|false)`: `true` lets eligible character/code lists use the
 current `double_quotes` representation, while strict ISO mode rejects this
 implementation-specific write option. Normal mode also accepts the
-implementation-specific `spacing(minimal|standard)` option: `minimal` emits
-only separators required to avoid lexical ambiguity, while `standard` adds
+implementation-specific boolean `spacing(true|false)` option: `false` emits
+only separators required to avoid lexical ambiguity, while `true` adds
 conventional layout around operators. For example,
-`write_term(1+1,[spacing(minimal)])` emits `1+1` and
-`write_term(1+1,[spacing(standard)])` emits `1 + 1`. The REPL always follows
+`write_term(1+1,[spacing(false)])` emits `1+1` and
+`write_term(1+1,[spacing(true)])` emits `1 + 1`. The REPL always follows
 the minimal-separator rule, so `X=1*1` is displayed as `X = 1*1`, while a
 separator is retained in `X = a+ -b` because the adjacent graphic tokens would
 otherwise merge. Strict ISO mode rejects both extension options.
@@ -6139,7 +6139,7 @@ the beginning. A peek does not mark the stream as past-end.
 | `write(+Term)`, `write(+Stream,+Term)` | Writes readable operator notation without quoting atoms merely because quoting would be required for reparsing. Number variables are enabled. |
 | `writeq(+Term)`, `writeq(+Stream,+Term)` | Like `write`, but quotes atoms when required for unambiguous input syntax. |
 | `write_canonical(+Term)`, `write_canonical(+Stream,+Term)` | Writes quoted canonical functor notation while ignoring operators and without interpreting *$VAR/1*. |
-| `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(minimal or standard)*. |
+| `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(true or false)*. |
 
 Term input uses the program's current operator table and the same ISO quoted-character
 syntax as source text, including backslash-terminated octal and hexadecimal
@@ -7796,7 +7796,7 @@ Notable implementation boundaries are:
 - `write_term/2-3` implements the Part 1 plus Corrigendum 3 `quoted/1`,
   `ignore_ops/1`, `numbervars/1`, and `variable_names/1` option surface,
   including option validation and traversal rules; normal mode also offers
-  `double_quotes(true|false)` and `spacing(minimal|standard)` as explicitly
+  `double_quotes(true|false)` and `spacing(true|false)` as explicitly
   implementation-specific extensions, which strict mode rejects;
 - unification consistently performs an occurs check, rejecting rational-tree
   bindings accepted as extensions by some systems.

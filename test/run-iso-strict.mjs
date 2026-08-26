@@ -285,13 +285,13 @@ export function runIsoStrict(reporter = new TestReporter()) {
 
     const strictSpacingError = capture(() => run('', {
       isoStrict: true,
-      goal: 'write_term(1+1,[spacing(minimal)])',
+      goal: 'write_term(1+1,[spacing(false)])',
     }));
     equal(strictSpacingError.formal, 'domain_error(write_option)', 'strict spacing extension rejection');
 
     const normal = run('', { goal: 'write_term("ab",[double_quotes(true)])' });
     includes(normal.stdout, '"ab"', 'normal-profile extension remains available');
-    includes(run('', { goal: 'write_term(1+1,[spacing(standard)])' }).stdout,
+    includes(run('', { goal: 'write_term(1+1,[spacing(true)])' }).stdout,
       '1 + 1', 'normal-profile spacing extension remains available');
   });
 
