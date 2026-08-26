@@ -87,13 +87,7 @@ export async function runExamples(reporter = new TestReporter()) {
     .sort();
 
   reporter.section('Examples');
-  const deepTaxonomyIndex = files.indexOf('deep-taxonomy-100000.pl');
-  if (deepTaxonomyIndex >= 0) {
-    await runExampleTasks(files.slice(0, deepTaxonomyIndex + 1), (name, result) => reporter.testResult(name, result), 2);
-    await runExampleTasks(files.slice(deepTaxonomyIndex + 1), (name, result) => reporter.testResult(name, result), 3);
-  } else {
-    await runExampleTasks(files, (name, result) => reporter.testResult(name, result), 3);
-  }
+  await runExampleTasks(files, (name, result) => reporter.testResult(name, result), 3);
   reporter.sectionTotal('examples');
 
   reporter.section('Proof examples');

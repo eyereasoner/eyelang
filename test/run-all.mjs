@@ -21,7 +21,7 @@ await runStandalone(async (reporter) => {
   runOpenRuleBenchChecks(reporter);
   runArchitecture(reporter);
   runCleanup(reporter);
-  runRegression(reporter);
+  await runRegression(reporter);
   await runPlayground(reporter);
   await runExamples(reporter);
   runBookExamples(reporter);

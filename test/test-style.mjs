@@ -41,12 +41,12 @@ export class TestReporter {
     this.sectionCount++;
   }
 
-  sectionTotal(label = null) {
+  sectionTotal(label = null, elapsedMs = null) {
     if (this.currentSection == null) return;
 
     const ok = this.ok - this.currentSection.okAtStart;
     const total = this.total - this.currentSection.totalAtStart;
-    const ms = nowMs() - this.currentSection.startedAt;
+    const ms = elapsedMs ?? nowMs() - this.currentSection.startedAt;
     const suite = label ?? defaultSectionLabel(this.currentSection.name);
     this.stdout.write(`${colors.green}OK${colors.reset} ${ok}/${total} ${suite} tests passed ${colors.dim}(${ms} ms)${colors.reset}\n`);
   }
