@@ -7045,7 +7045,23 @@ is its synonym). Variables named in the query keep their identity inside answer
 descriptions; variables introduced only by a description are fresh. For example,
 a query `throw(g(X))` is described by `throw(g(_X))`, while
 `throw(g(X)), unexpected` verifies that ISO `throw/1` did not retain the query
-variable in the renamed exception term. `...` and `ad_infinitum` accept further answers. Multiple
+variable in the renamed exception term. `...` and `ad_infinitum` accept further answers. The `maybe` annotation describes
+a successful answer that still has at least one pending residual constraint. It
+does not stand for an arbitrary answer and it does not weaken substitution
+matching: `X = a, maybe` still requires the `X = a` substitution. Conversely, a
+successful answer description without `maybe` requires that no residual
+constraint remain. For example, a pending `dif/2` constraint can be checked as:
+
+```eyeprolog
+?- dif(X,Y), X = a.
+   true, unexpected.
+   X = a, unexpected.
+   X = a, maybe.
+   maybe, unexpected.
+```
+
+EyeProlog treats native variable constraints, attributed-variable residue, and
+delayed goals as pending residue for this purpose. Multiple
 indented descriptions after one query are independent checks: each re-runs the
 query, each is counted in the `quads:` summary, and a failing description does
 not suppress later descriptions for that query. `inputs/1` supplies and checks

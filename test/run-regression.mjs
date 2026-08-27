@@ -2006,6 +2006,25 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'runQuads maybe requires pending constraints without weakening substitutions (issue #80)',
+      run: () => {
+        const result = publicApi.runQuads(`37
+?- dif(X,Y), X = a.
+   true, unexpected.
+   X = a, unexpected.
+   X = a, maybe.
+   maybe, unexpected.
+
+?- X = a.
+   X = a, maybe, unexpected.
+`);
+        assertEqual(result.total, 5, 'quad total');
+        assertEqual(result.passed, 5, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 5 run, 5 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: 'runQuads rejects malformed answer substitutions',
       run: () => {
         const source = `?- X = f(Y), Y = 1.\n   X = f(Y), Y = 1.\n`;
@@ -3234,22 +3253,18 @@ c4 ?- call((!;1)).
     {
       name: 'REPL releases terminal signals while a query computes',
       run: () => {
-        if (process.platform === 'win32') return;
-        const available = spawnSync('sh', ['-c',
-          'command -v script >/dev/null 2>&1 && script --version 2>/dev/null | grep -qi util-linux']);
-        if (available.status !== 0) return;
-        const command = `${shellQuote(process.execPath)} ${shellQuote(bin)}`;
-        const scriptCommand =
-          `{ printf 'repeat, fail.\n'; sleep 0.2; printf '\\003'; } | ` +
-          `script -qefc ${shellQuote(command)} /dev/null`;
-        const result = spawnSync('sh', ['-c', scriptCommand], {
-          cwd: packageRoot,
-          encoding: 'utf8',
-          timeout: 3000,
-        });
+        if (!hasUtilLinuxScript()) return;
+        // Synchronize on output produced from inside the solver instead of a
+        // fixed sleep: on a loaded host Ctrl-C could otherwise arrive before
+        // the query starts, leaving repeat/fail to run until the test timeout.
+        const result = runScriptedRepl([
+          { waitFor: '?- ', send: 'put_code(82), put_code(69), put_code(65), put_code(68), put_code(89), repeat, fail.\n' },
+          { waitFor: 'READY', send: '\u0003' },
+        ]);
         assertEqual(result.error?.code, undefined, 'terminal interrupt timeout');
         assertEqual(result.status, 130, 'SIGINT exit status');
-        assertIncludes(result.stdout, '?- repeat, fail.', 'terminal query echo');
+        assertIncludes(result.stdout, '?- put_code(82), put_code(69), put_code(65), put_code(68), put_code(89), repeat, fail.', 'terminal query echo');
+        assertIncludes(result.stdout, 'READY', 'query entered computation');
       },
     },
     {
