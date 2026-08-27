@@ -6283,7 +6283,11 @@ private helpers and same-named predicates in different modules separate.
 `freeze(?Term,:Goal)` runs `Goal` immediately when `Term` is already nonvariable;
 otherwise it delays the goal until `Term` becomes nonvariable. Suspensions are
 kept in the logical environment, so bindings and backtracking remain isolated
-between solution branches.
+between solution branches. When a suspension wakes, its goal is meta-invoked
+with its own cut scope: a `!` inside the delayed goal may commit choices made by
+that invocation, but it cannot prune alternatives that were created before the
+`freeze/2` call. Thus `call(((Y=1;Y=2),freeze(X,!),X=c));Y=3` retains the three
+answers `Y=1`, `Y=2`, and `Y=3`.
 
 `dif(?Left,?Right)` posts a delayed finite-tree disequality when its arguments
 can still unify. Its residual store is normalized by logical implication:

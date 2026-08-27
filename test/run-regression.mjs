@@ -1991,6 +1991,22 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'Prologue freeze keeps awakened cuts inside the delayed call (issue #81)',
+      run: () => {
+        const result = publicApi.runQuads(`:- use_module(library(prologue)).
+38
+?- call( ( (Y=1;Y=2), freeze(X,!), X = c ) ); Y = 3.
+   Y = 1, X = c
+;  Y = 2, X = c
+;  Y = 3.
+`);
+        assertEqual(result.total, 1, 'quad total');
+        assertEqual(result.passed, 1, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 1 run, 1 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: 'runQuads covers the remaining finite Prologue examples and arities',
       run: () => {
         const filename = path.join(testRoot, 'fixtures', 'prologue_extended_quad_runner.pl');

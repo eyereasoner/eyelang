@@ -524,14 +524,21 @@ export class Solver {
         if (this.solutionsSeen >= this.solutionLimit) break;
 
         const pendingAttributeGoals = env.takePendingAttributeGoals?.() ?? [];
-        if (pendingAttributeGoals.length > 0) goals = [...pendingAttributeGoals, ...goals];
+        if (pendingAttributeGoals.length > 0) {
+          // Goals produced by verify_attributes/3 are invoked by the attribute
+          // mechanism, not textually spliced into the caller.  Give every
+          // awakened goal the same opaque cut boundary as call/1 so a delayed
+          // cut cannot prune choices that were made before the suspension.
+          const awakened = pendingAttributeGoals.map((pending) => compound('call', [pending]));
+          goals = [...awakened, ...goals];
+        }
 
         const readyDelays = env.takeReadyDelays();
         if (readyDelays.length > 0) {
           const awakened = readyDelays.map(({ goal, module }) => {
             const delayed = copyResolved(goal, env);
             qualifyTerm(delayed, module);
-            return delayed;
+            return compound('call', [delayed]);
           });
           goals = [...awakened, ...goals];
         }
