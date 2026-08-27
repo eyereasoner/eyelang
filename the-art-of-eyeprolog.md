@@ -7045,8 +7045,12 @@ accepted as a negative answer.
 Answer descriptions support ordered answers separated by `;`, acceptable
 alternatives separated by `|`, `true`, `false`, standard error descriptions,
 and the `unexpected` annotation for an answer that must not occur (`inattendue`
-is its synonym). Variables named in the query keep their identity inside answer
-descriptions; variables introduced only by a description are fresh. For example,
+is its synonym). In an ordered answer sequence, `unexpected` is a negative
+assertion about the answer at that position: once the next observed answer does
+not match the annotated leaf, that description succeeds and does not require the
+query to have no further answers. Variables named in the query keep their
+identity inside answer descriptions; variables introduced only by a description
+are fresh. For example,
 a query `throw(g(X))` is described by `throw(g(_X))`, while
 `throw(g(X)), unexpected` verifies that ISO `throw/1` did not retain the query
 variable in the renamed exception term. `...` and `ad_infinitum` accept further answers. The `maybe` annotation describes

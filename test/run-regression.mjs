@@ -952,6 +952,64 @@ why(
       },
     },
     {
+      name: 'runQuads treats unexpected as a negative assertion on the next leaf (issue #83)',
+      run: () => {
+        const source = `:- use_module(library(prologue)).
+` +
+          `40
+` +
+          `?- member(X,"abc").
+` +
+          `   X = a
+` +
+          `;  X = b
+` +
+          `;  X = c.
+` +
+          `   X = a
+` +
+          `;  X = c, unexpected.
+
+` +
+          `41
+` +
+          `?- member(X, Xs).
+` +
+          `   Xs = [X|_A]
+` +
+          `;  ... .
+` +
+          `   Xs = [X|_A]
+` +
+          `;  Xs = [_A,X|_B]
+` +
+          `;  Xs = [_A,_B,X|_C]
+` +
+          `;  ... .
+` +
+          `   Xs = [X|_A]
+` +
+          `;  Xs = [], unexpected.
+`;
+        const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'unexpected-quad.pl' }]));
+        assertEqual(result.total, 5, 'quad total');
+        assertEqual(result.passed, 5, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 5 run, 5 passed, 0 failed.\n', 'quad report');
+
+        const forbidden = publicApi.runQuads(`:- use_module(library(prologue)).
+` +
+          `?- member(X,[a,c]).
+` +
+          `   X = a
+` +
+          `;  X = c, unexpected.
+`);
+        assertEqual(forbidden.total, 1, 'forbidden next answer total');
+        assertEqual(forbidden.failed, 1, 'matching unexpected next answer fails');
+      },
+    },
+    {
       name: 'runQuads distinguishes query variables from renamed throw variables',
       run: () => {
         const source = `?- throw(g(X)).\n` +

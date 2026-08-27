@@ -152,17 +152,25 @@ function checkAlternative(program, quad, alternative, options, context) {
     // portably outlaw the implementation's chosen STO outcome. This is the
     // case behind issue #60's `false, unexpected` example.
     const stoPermitsUnexpected = context.declaresSto && actual.stoObserved && leaf.unexpected && !leaf.sto;
-    if (!stoPermitsUnexpected && (leaf.unexpected ? matches : !matches)) {
+    if (leaf.unexpected) {
+      // `unexpected` is a negative assertion about the leaf at this answer
+      // position.  Once the observed answer differs, the assertion is proved;
+      // it does not consume that answer or require the query to end afterward.
+      // Likewise, an STO-declared query may accept an implementation-dependent
+      // answer at this point without imposing any later answer-sequence check.
+      if (stoPermitsUnexpected) return { ok: true };
+      if (matches) return { ok: false };
+      if (actual.undecided && leafNeedsMoreSearch(leaf, actual, position)) {
+        return undecidedResult(actual, alternative);
+      }
+      return { ok: true };
+    }
+    if (!matches) {
       if (actual.undecided && leafNeedsMoreSearch(leaf, actual, position)) {
         return undecidedResult(actual, alternative);
       }
       return { ok: false };
     }
-    // An unexpected error description is a negative assertion about that
-    // particular error pattern.  A different exception may be present and is
-    // checked by other descriptions; do not make the final 'no error' test
-    // turn a successful negative match back into a failure.
-    if (leaf.unexpected && leaf.error != null) return { ok: true };
     if (leaf.more) return { ok: true };
     if (!leaf.unexpected && (leaf.false || leaf.loops || leaf.error != null)) {
       if (actual.undecided) return undecidedResult(actual, alternative);
