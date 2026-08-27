@@ -2006,6 +2006,25 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'runQuads maybe requires pending constraints without weakening substitutions (issue #80)',
+      run: () => {
+        const result = publicApi.runQuads(`37
+?- dif(X,Y), X = a.
+   true, unexpected.
+   X = a, unexpected.
+   X = a, maybe.
+   maybe, unexpected.
+
+?- X = a.
+   X = a, maybe, unexpected.
+`);
+        assertEqual(result.total, 5, 'quad total');
+        assertEqual(result.passed, 5, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 5 run, 5 passed, 0 failed.\n', 'quad report');
+      },
+    },
+    {
       name: 'runQuads rejects malformed answer substitutions',
       run: () => {
         const source = `?- X = f(Y), Y = 1.\n   X = f(Y), Y = 1.\n`;
