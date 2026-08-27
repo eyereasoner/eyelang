@@ -340,8 +340,8 @@ function regressionCases() {
         });
         assertEqual(residuals.status, 0, 'dif/2 residual display status');
         assertEqual(residuals.stdout,
-          '?-    C = z, D = z, dif(A-z, B-z).\n' +
-          '?-    A = [[]], B = [], dif([[]], [C]).\n' +
+          '?-    C = z, D = z, dif(A, B).\n' +
+          '?-    A = [[]], B = [], dif([], C).\n' +
           '?-    X = Y.\n' +
           '?- ',
           'dif/2 residual constraints are retained and discharged');
@@ -374,6 +374,12 @@ function regressionCases() {
             'dif(X-Y,Z-Z),dif(X,Y).\n' +
             'dif(X,a),dif(X,b).\n' +
             'dif(X,a),dif(Y,a),X=Y.\n' +
+            'dif(-X,-Y).\n' +
+            'dif(X,Y),X+Y= -XA+ -YA.\n' +
+            'dif(f(X,a),f(Y,a)).\n' +
+            'dif(f(X,X),f(Y,Y)).\n' +
+            'dif(f(X,Y),f(Y,X)).\n' +
+            'dif(f(X,A),f(Y,B)).\n' +
             'halt.\n',
         });
         assertEqual(residuals.status, 0, 'dif/2 normalization display status');
@@ -383,8 +389,14 @@ function regressionCases() {
           '?-    dif(X, Y).\n' +
           '?-    dif(X, a), dif(X, b).\n' +
           '?-    X = Y, dif(Y, a).\n' +
+          '?-    dif(X, Y).\n' +
+          '?-    X = -XA, Y = -YA, dif(XA, YA).\n' +
+          '?-    dif(X, Y).\n' +
+          '?-    dif(X, Y).\n' +
+          '?-    dif(X, Y).\n' +
+          '?-    dif(f(X, A), f(Y, B)).\n' +
           '?- ',
-          'dif/2 residuals are minimal independent of insertion order');
+          'dif/2 residuals are minimal without auxiliary terms');
         assertEqual(residuals.stderr, '', 'dif/2 normalization display stderr');
 
         const pendingDifCount = (text) => {

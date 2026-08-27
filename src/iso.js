@@ -224,10 +224,38 @@ function difConstraint(left, right) {
       })) return true;
       return identical(left, right, probe);
     },
-    residualGoal() {
-      return compound('dif', [left, right]);
+    residualGoal(env) {
+      const [projectedLeft, projectedRight] = projectDifSubterms(left, right, env);
+      return compound('dif', [projectedLeft, projectedRight]);
     },
   });
+}
+
+function projectDifSubterms(left, right, env) {
+  left = deref(left, env);
+  right = deref(right, env);
+  while (left.type === COMPOUND && right.type === COMPOUND &&
+      left.name === right.name && left.arity === right.arity) {
+    let projectedIndex = -1;
+    for (let index = 0; index < left.arity; index++) {
+      if (identical(left.args[index], right.args[index], env)) continue;
+      const probe = env.clone();
+      if (unify(left.args[index], right.args[index], probe, {
+        skipVariableConstraints: true,
+        skipAttributeHooks: true,
+      }) && identical(left, right, probe)) {
+        projectedIndex = index;
+        break;
+      }
+    }
+    // If no single aligned subterm equality entails equality of the complete
+    // compounds, their disequality is a genuine disjunction. Keep it whole
+    // instead of inventing auxiliary terms or separate stronger constraints.
+    if (projectedIndex === -1) return [left, right];
+    left = deref(left.args[projectedIndex], env);
+    right = deref(right.args[projectedIndex], env);
+  }
+  return [left, right];
 }
 
 function* difBuiltin({ goal, env }) {
