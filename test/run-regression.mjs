@@ -400,6 +400,20 @@ function regressionCases() {
           'dif/2 residuals are minimal without auxiliary terms');
         assertEqual(residuals.stderr, '', 'dif/2 normalization display stderr');
 
+        const perfection = runCli([], {
+          input:
+            'dif(f(X,A),f(Y,B)), ( true ; A = B ).\n' +
+            ';\n' +
+            'halt.\n',
+        });
+        assertEqual(perfection.status, 0, 'dif/2 branch-local projection status');
+        assertEqual(perfection.stdout,
+          '?-    dif(f(X, A), f(Y, B))\n' +
+          ';  A = B, dif(X, Y).\n' +
+          '?- ',
+          'dif/2 residual projection is re-evaluated after branch-local bindings');
+        assertEqual(perfection.stderr, '', 'dif/2 branch-local projection stderr');
+
         const pendingDifCount = (text) => {
           const solver = new Solver(Program.parse(''), { registry: getEyePrologRegistry() });
           const solutions = solver.solve([parseGoalText(text)], new Env(), 0);

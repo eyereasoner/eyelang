@@ -238,12 +238,13 @@ npm run generate
 
 ## Chapter 39: Built-in predicates by programming role
 
-- [01-answer.pl](chapter-39/01-answer.pl) — The EyeProlog library
-- [02-answer-2.pl](chapter-39/02-answer-2.pl)
-- [03-answer-3.pl](chapter-39/03-answer-3.pl)
-- [04-cost.pl](chapter-39/04-cost.pl)
-- [05-message.pl](chapter-39/05-message.pl)
-- [06-task.pl](chapter-39/06-task.pl)
+- [01-program.pl](chapter-39/01-program.pl) — The EyeProlog library
+- [02-answer.pl](chapter-39/02-answer.pl)
+- [03-answer-2.pl](chapter-39/03-answer-2.pl)
+- [04-answer-3.pl](chapter-39/04-answer-3.pl)
+- [05-cost.pl](chapter-39/05-cost.pl)
+- [06-message.pl](chapter-39/06-message.pl)
+- [07-task.pl](chapter-39/07-task.pl)
 
 ## Chapter 40: Running EyeProlog: command line and corpus
 

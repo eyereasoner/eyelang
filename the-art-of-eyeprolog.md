@@ -6293,7 +6293,15 @@ answers `Y=1`, `Y=2`, and `Y=3`.
 can still unify. Its residual store is normalized by logical implication:
 symmetric or equivalent constraints share one residual, and a stronger
 constraint removes weaker ones regardless of insertion order. Independent
-disequalities remain separate.
+disequalities remain separate. Residual projection is re-evaluated in each
+solution environment, so a compound disequality is kept intact until later
+bindings make one aligned subterm pair sufficient. For example:
+
+```eyeprolog
+?- dif(f(X,A),f(Y,B)), ( true ; A = B ).
+   dif(f(X, A), f(Y, B))
+;  A = B, dif(X, Y).
+```
 
 <!-- eyeprolog-library-catalog:start -->
 
