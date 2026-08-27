@@ -6286,8 +6286,11 @@ kept in the logical environment, so bindings and backtracking remain isolated
 between solution branches. When a suspension wakes, its goal is meta-invoked
 with its own cut scope: a `!` inside the delayed goal may commit choices made by
 that invocation, but it cannot prune alternatives that were created before the
-`freeze/2` call. Thus `call(((Y=1;Y=2),freeze(X,!),X=c));Y=3` retains the three
-answers `Y=1`, `Y=2`, and `Y=3`.
+`freeze/2` call. Multiple suspensions on the same variable also remain distinct
+meta-invocations rather than being collapsed into one conjunction, so a cut in
+one frozen goal cannot prune alternatives produced by another frozen goal. Thus
+`call(((Y=1;Y=2),freeze(X,!),X=c));Y=3` retains the three answers `Y=1`, `Y=2`,
+and `Y=3`.
 
 `dif(?Left,?Right)` posts a delayed finite-tree disequality when its arguments
 can still unify. Its residual store is normalized by logical implication:

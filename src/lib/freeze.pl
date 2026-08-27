@@ -10,19 +10,29 @@ verify_attributes(Var, Other, Goals) :-
     get_atts(Var, frozen(FrozenA)), !,
     ( var(Other) ->
         ( get_atts(Other, frozen(FrozenB)) ->
-            put_atts(Other, frozen((FrozenB,FrozenA)))
+            append_frozen(FrozenB, FrozenA, Frozen),
+            put_atts(Other, frozen(Frozen))
         ; put_atts(Other, frozen(FrozenA))
         ),
         Goals = []
-    ; Goals = [FrozenA]
+    ; Goals = FrozenA
     ).
 verify_attributes(_, _, []).
 
 freeze(X, Goal) :-
-    put_atts(Fresh, frozen(Goal)),
+    put_atts(Fresh, frozen([Goal])),
     Fresh = X.
 
 attribute_goals(Var) -->
     { get_atts(Var, frozen(Goals)),
       put_atts(Var, -frozen(_)) },
-    [freeze:freeze(Var, Goals)].
+    frozen_attribute_goals(Goals, Var).
+
+frozen_attribute_goals([], _) --> [].
+frozen_attribute_goals([Goal|Goals], Var) -->
+    [freeze:freeze(Var, Goal)],
+    frozen_attribute_goals(Goals, Var).
+
+append_frozen([], Tail, Tail).
+append_frozen([Goal|Goals], Tail, [Goal|Merged]) :-
+    append_frozen(Goals, Tail, Merged).

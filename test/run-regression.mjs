@@ -2079,6 +2079,38 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'Prologue freeze keeps multiple delayed goals in separate cut scopes (issue #84)',
+      run: () => {
+        const result = publicApi.runQuads(`:- use_module(library(prologue)).
+39
+?- freeze(X,(Y=1;Y=2)), freeze(X,!), X = c ; X=end.
+   X = c, Y = 1
+;  X = end, unexpected.
+   X = c, Y = 1
+;  X = c, Y = 2
+;  X = end.
+`);
+        assertEqual(result.total, 2, 'quad total');
+        assertEqual(result.passed, 2, 'quad passed');
+        assertEqual(result.failed, 0, 'quad failed');
+        assertEqual(result.stdout, 'quads: 2 run, 2 passed, 0 failed.\n', 'quad report');
+
+        const residuals = runCli([], {
+          input:
+            'use_module(library(freeze)).\n' +
+            'freeze(X,(Y=1;Y=2)), freeze(X,!).\n' +
+            'halt.\n',
+        });
+        assertEqual(residuals.status, 0, 'freeze residual display status');
+        assertEqual(residuals.stdout,
+          '?-    true.\n' +
+          '?-    freeze:freeze(X, (Y=1;Y=2)), freeze:freeze(X, !).\n' +
+          '?- ',
+          'multiple freeze/2 residuals stay separate');
+        assertEqual(residuals.stderr, '', 'freeze residual display stderr');
+      },
+    },
+    {
       name: 'runQuads covers the remaining finite Prologue examples and arities',
       run: () => {
         const filename = path.join(testRoot, 'fixtures', 'prologue_extended_quad_runner.pl');
