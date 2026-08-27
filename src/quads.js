@@ -1,6 +1,8 @@
 // Embedded quad tests: a query followed by one or more answer descriptions.
 // The syntax follows the portable "queries using answer descriptions" format
 // used by Trealla and the ISO Prolog working examples linked from issue #1.
+// A `maybe` annotation denotes a successful answer with residual constraints;
+// it does not relax the ordinary answer-substitution comparison.
 import {
   ATOM, COMPOUND, VAR, Env, atom, compound, copyResolved, deref,
   flattenConjunction, listFromItems, properListItems, termIsGround,
@@ -203,6 +205,7 @@ function describeLeaf(term) {
     sto: false,
     false: false,
     truth: false,
+    maybe: false,
     loops: false,
     waits: false,
     error: null,
@@ -218,6 +221,7 @@ function describeLeaf(term) {
       if (item.name === 'unexpected' || item.name === 'inattendue') leaf.unexpected = true;
       else if (item.name === '...' || item.name === 'ad_infinitum') leaf.more = true;
       else if (item.name === 'sto') leaf.sto = true;
+      else if (item.name === 'maybe') leaf.maybe = true;
       else if (item.name === 'loops') leaf.loops = true;
       else if (item.name === 'waits') leaf.waits = true;
       else if (item.name === 'other_answer_sequence') {
@@ -253,10 +257,11 @@ function describeLeaf(term) {
     if (isErrorDescription(item)) leaf.error = item;
     else leaf.malformed ??= item;
   }
-  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.truth || leaf.false || leaf.loops || leaf.waits ||
+  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.truth || leaf.false || leaf.maybe || leaf.loops || leaf.waits ||
     leaf.error != null || leaf.output != null;
   if (!leaf.hasExpectation && !leaf.more && !leaf.sto && leaf.unsupported == null) leaf.malformed ??= term;
   if ([leaf.false, leaf.truth, leaf.error != null].filter(Boolean).length > 1) leaf.malformed ??= term;
+  if (leaf.maybe && (leaf.false || leaf.loops || leaf.waits || leaf.error != null)) leaf.malformed ??= term;
   return leaf;
 }
 
@@ -386,7 +391,24 @@ function matchLeaf(program, query, leaf, actual, position) {
   }
   const solution = actual.solutions[position];
   if (!solution || !outputMatches(program, leaf.output, solution.output)) return false;
+  // Portable answer descriptions distinguish plain success from success with
+  // residual constraints. `maybe` requires at least one pending residue, while
+  // its absence requires an unconstrained answer. In either case the stated
+  // substitutions remain exact and are checked below.
+  if (leaf.maybe !== hasPendingConstraints(solution.env)) return false;
   return substitutionMatches(query, leaf.bindings, solution.env);
+}
+
+function hasPendingConstraints(env) {
+  for (const constraint of env.variableConstraints?.() ?? []) {
+    if (constraint.status?.(env) === 'pending') return true;
+  }
+  // Prolog attributed variables and delayed goals are the other residual-state
+  // mechanisms exposed by call_residue_vars/2. Treat either as pending residue
+  // even when a library does not provide a printable projection goal.
+  if ((env.attributedVariableNames?.() ?? []).length > 0) return true;
+  if ((env.delayedVariableNames?.() ?? []).length > 0) return true;
+  return false;
 }
 
 function descriptionDeclaresSto(description) {
