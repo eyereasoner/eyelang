@@ -2017,11 +2017,12 @@ answer(X) :- host_status(service, X).
 ```
 
 Only mark a built-in deterministic when it can produce at most one environment
-for a call. An unmarked resumable handler is treated as an effect-free relation:
-the solver may buffer one answer to determine its exact pending state. A
-stateful or meta-control handler must instead return an iterator with a
-`hasPendingAlternatives()` method, updated before each yield, so the solver can
-remain demand-driven without advancing it speculatively. A mode-sensitive
+for a call. An unmarked suspended iterator is conservatively an untried
+continuation: the solver never resumes it merely to discover whether a later
+answer will succeed. An iterator that knows its remaining search positions may
+provide `hasPendingAlternatives()`, updated before each yield, to remove its
+resume frame exactly when no position remains. This method reports pending
+search, not the existence of a future successful answer. A mode-sensitive
 extension can additionally provide `ready`,
 `fallbackWhenNotReady`, and `shouldUse` metadata. This metadata affects
 dispatch and safe early filtering, so it belongs to the extension's contract.
@@ -8015,10 +8016,10 @@ decidable by structural equality.
 
 **Choicepoint.** A remaining search alternative that may produce another
 answer if the caller asks the solver to continue. Every resumable engine
-iterator follows the same pending-alternative protocol. Ordinary effect-free
-host relations may buffer one answer to prove exhaustion; stateful and
-meta-control iterators report their state without executing an unrequested
-effect or program branch.
+iterator follows the same pending-alternative protocol. A suspended iterator
+is conservatively a choicepoint unless it reports that no search position
+remains; the engine never executes an unrequested effect or program branch to
+look for a later successful answer.
 
 **Cleanup.** A protected finalization goal installed by normal-mode
 `call_cleanup/2` or `setup_call_cleanup/3`. It runs exactly once when the

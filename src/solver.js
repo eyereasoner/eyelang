@@ -1371,7 +1371,14 @@ function groupNeedsActiveFrame(group) {
   return group.cutReachable !== false || (group.recursive && !group.linearNumeric);
 }
 
-function* datalogAnswerSolutions(solver, relation, goal, env) {
+function datalogAnswerSolutions(solver, relation, goal, env) {
+  const state = { pending: false };
+  const iterator = datalogAnswerGenerator(solver, relation, goal, env, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
+}
+
+function* datalogAnswerGenerator(solver, relation, goal, env, state) {
   if (!relation) return;
   const candidates = datalogCandidateIndexes(
     relation,
@@ -1380,20 +1387,26 @@ function* datalogAnswerSolutions(solver, relation, goal, env) {
     derefForLocal,
     memoAnswerScalarKey,
   );
-  const visit = function* (rowIndex) {
+  const indexes = candidates == null
+    ? { length: relation.rows.length, at: (index) => index }
+    : { length: candidates.length, at: (index) => candidates[index] };
+  for (let position = 0; position < indexes.length; position++) {
+    const rowIndex = indexes.at(position);
     const row = relation.rows[rowIndex];
     const next = env.clone();
+    let matches = true;
     for (let i = 0; i < goal.arity; i++) {
       solver.stats.unify_calls++;
-      if (!unify(goal.args[i], row[i], next)) return;
+      if (!unify(goal.args[i], row[i], next)) {
+        matches = false;
+        break;
+      }
     }
+    if (!matches) continue;
+    state.pending = position + 1 < indexes.length;
     yield next;
-  };
-  if (candidates == null) {
-    for (let rowIndex = 0; rowIndex < relation.rows.length; rowIndex++) yield* visit(rowIndex);
-    return;
   }
-  for (const rowIndex of candidates) yield* visit(rowIndex);
+  state.pending = false;
 }
 
 function pushWfsAnswerFrames(stack, model, group, goal, rest, env, depth, active, solver) {
@@ -1428,7 +1441,10 @@ function bundledBetweenIterator(solver, group, goal, env) {
   // the generated value in the caller repeatedly revisits all earlier frames.
   // Enumerate the canonical bundled relation directly while leaving user
   // definitions and non-EyeProlog registries on the ordinary Prolog path.
-  return bundledBetweenSolutions(solver, goal, env);
+  const state = { pending: false };
+  const iterator = bundledBetweenSolutions(solver, goal, env, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
 }
 
 function requireBetweenInteger(term, env) {
@@ -1440,7 +1456,7 @@ function requireBetweenInteger(term, env) {
   return BigInt(value.name);
 }
 
-function* bundledBetweenSolutions(solver, goal, env) {
+function* bundledBetweenSolutions(solver, goal, env, state) {
   const lower = requireBetweenInteger(goal.args[0], env);
   const upper = requireBetweenInteger(goal.args[1], env);
   const requested = deref(goal.args[2], env);
@@ -1457,8 +1473,12 @@ function* bundledBetweenSolutions(solver, goal, env) {
   for (let value = lower; value <= upper; value++) {
     const next = env.clone();
     solver.stats.unify_calls++;
-    if (unify(goal.args[2], numberTerm(value), next)) yield next;
+    if (unify(goal.args[2], numberTerm(value), next)) {
+      state.pending = value < upper;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 function bundledMemberIterator(solver, group, goal, env) {
@@ -1468,25 +1488,48 @@ function bundledMemberIterator(solver, group, goal, env) {
     return null;
   }
 
-  // Keep the relational/open-list cases in ordinary Prolog.  When the second
-  // argument is already a finite list, however, the canonical two-clause
-  // member/2 definition is exactly a left-to-right scan and can avoid clause
-  // freshening and recursive solver frames for every element.
-  let cursor = deref(goal.args[1], env);
-  while (isCons(cursor)) cursor = deref(cursor.args[1], env);
-  if (!isEmptyList(cursor)) return null;
-  return bundledMemberSolutions(solver, goal, env);
+  // Attributed and delayed list variables retain the ordinary clause path so
+  // their hooks and wake-up boundaries remain source-defined. Plain proper,
+  // partial, and improper lists can all follow the canonical two-clause
+  // relation lazily without first traversing the spine.
+  if (env._prologAttributes != null || env._delays != null) return null;
+  const state = { pending: false };
+  const iterator = bundledMemberSolutions(solver, goal, env, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
 }
 
-function* bundledMemberSolutions(solver, goal, env) {
+function* bundledMemberSolutions(solver, goal, env, state) {
   let cursor = deref(goal.args[1], env);
   while (isCons(cursor)) {
     const item = cursor.args[0];
     cursor = deref(cursor.args[1], env);
     const next = env.clone();
     solver.stats.unify_calls++;
-    if (unify(goal.args[0], item, next)) yield next;
+    if (unify(goal.args[0], item, next)) {
+      // The tail itself is the pending search state. Do not inspect it for a
+      // future successful unification: an untried list position remains a
+      // choicepoint even when resuming it will eventually fail.
+      state.pending = isCons(cursor) || cursor.type === VAR;
+      yield next;
+    }
   }
+  if (cursor.type === VAR) {
+    const openTail = cursor;
+    const id = nextFreshId();
+    let candidate = cons(goal.args[0], variable(`__member${id}_tail`));
+    for (let before = 0n; ; before++) {
+      const next = env.clone();
+      solver.stats.unify_calls++;
+      if (unify(openTail, candidate, next)) {
+        state.pending = true;
+        yield next;
+      }
+      candidate = cons(variable(`__member${id}_head_${before}`), candidate);
+      generatedLengthAllocationCheckpoint(solver, before + 1n);
+    }
+  }
+  state.pending = false;
 }
 
 function bundledEllipsisPlan(solver, group, goal, rest, env) {
@@ -1520,7 +1563,7 @@ function bundledEllipsisPlan(solver, group, goal, rest, env) {
         if (output.type === VAR && continuationInput.type === VAR && output.name === continuationInput.name &&
             output.name.startsWith('\u0000dcg')) {
           return {
-            iterator: bundledEllipsisSolutions(solver, continuation.args[1], input, env),
+            iterator: bundledEllipsisIterator(solver, continuation.args[1], input, env),
             rest: rest.slice(1),
           };
         }
@@ -1528,7 +1571,14 @@ function bundledEllipsisPlan(solver, group, goal, rest, env) {
     }
   }
 
-  return { iterator: bundledEllipsisSolutions(solver, goal.args[1], input, env), rest };
+  return { iterator: bundledEllipsisIterator(solver, goal.args[1], input, env), rest };
+}
+
+function bundledEllipsisIterator(solver, output, input, env) {
+  const state = { pending: false };
+  const iterator = bundledEllipsisSolutions(solver, output, input, env, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
 }
 
 function isBinaryIdentityGroup(group) {
@@ -1548,7 +1598,7 @@ function isBinaryIdentityGroup(group) {
     (a.name === right.name && b.name === left.name);
 }
 
-function* bundledEllipsisSolutions(solver, output, input, env) {
+function* bundledEllipsisSolutions(solver, output, input, env, state) {
   let cursor = input;
   const requestedOutput = deref(output, env);
 
@@ -1568,7 +1618,10 @@ function* bundledEllipsisSolutions(solver, output, input, env) {
   while (true) {
     const next = env.clone();
     solver.stats.unify_calls++;
-    if (unify(output, cursor, next)) yield next;
+    if (unify(output, cursor, next)) {
+      state.pending = isCons(cursor);
+      yield next;
+    }
     if (isEmptyList(cursor)) return;
     if (!isCons(cursor)) return;
     cursor = deref(cursor.args[1], env);
@@ -1601,7 +1654,14 @@ function bundledLengthIterator(solver, group, goal, env) {
       if (length.type === VAR && cursor.name === length.name) return null;
     }
   }
-  return bundledLengthSolutions(solver, goal, env);
+  const state = {
+    // length(OpenList, Length) has an unbounded succession of longer lists.
+    // All other accepted fast-path modes are semidet.
+    pending: length.type === VAR && cursor.type === VAR,
+  };
+  const iterator = bundledLengthSolutions(solver, goal, env);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
 }
 
 function* bundledLengthSolutions(solver, goal, env) {
@@ -2185,7 +2245,14 @@ function pushStreamingScalarFactRun(stack, solver, runGoals, groups, rest, env, 
   });
 }
 
-function* scalarFactRunSolutions(solver, goals, groups, env, depth, active) {
+function scalarFactRunSolutions(solver, goals, groups, env, depth, active) {
+  const state = { pending: false };
+  const iterator = scalarFactRunGenerator(solver, goals, groups, env, depth, active, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
+}
+
+function* scalarFactRunGenerator(solver, goals, groups, env, depth, active, pendingState) {
   const localStack = [{ index: 0, names: [], values: [] }];
   while (localStack.length) {
     const state = localStack.pop();
@@ -2194,6 +2261,7 @@ function* scalarFactRunSolutions(solver, goals, groups, env, depth, active) {
       const next = env.clone();
       for (let i = 0; i < state.names.length; i++) next.bind(state.names[i], state.values[i]);
       if (next._variableConstraints != null && !next.validateVariableConstraints()) continue;
+      pendingState.pending = localStack.length !== 0;
       yield next;
       continue;
     }
@@ -2218,6 +2286,7 @@ function* scalarFactRunSolutions(solver, goals, groups, env, depth, active) {
     for (let i = nextStates.length - 1; i >= 0; i--) localStack.push(nextStates[i]);
     if (solver.solutionsSeen >= solver.solutionLimit) return;
   }
+  pendingState.pending = false;
 }
 
 
@@ -2813,64 +2882,13 @@ function builtinIsReadyOrAuthoritative(def, solver, goal, env) {
 
 function iteratorMayHavePendingAlternatives(iterator) {
   const predicate = iterator?.hasPendingAlternatives;
-  return typeof predicate === 'function' && predicate.call(iterator) !== false;
-}
-
-function lookaheadChoiceIterator(iterator) {
-  let buffered = null;
-  let bufferedReady = false;
-  let closed = false;
-
-  const fill = () => {
-    if (closed || bufferedReady) return;
-    buffered = iterator.next();
-    bufferedReady = true;
-    if (buffered.done) closed = true;
-  };
-
-  return {
-    next() {
-      fill();
-      if (buffered?.done !== false) return buffered ?? { done: true, value: undefined };
-      const result = buffered;
-      buffered = null;
-      bufferedReady = false;
-      // Ordinary relational iterators are advanced by one answer so their
-      // exhausted state is known before this answer reaches the caller.
-      fill();
-      return result;
-    },
-    return(value) {
-      if (!closed) iterator.return?.();
-      closed = true;
-      buffered = { done: true, value };
-      bufferedReady = true;
-      return buffered;
-    },
-    throw(error) {
-      closed = true;
-      if (typeof iterator.throw === 'function') return iterator.throw(error);
-      throw error;
-    },
-    prepareClose(reason) {
-      iterator.prepareClose?.(reason);
-    },
-    hasPendingAlternatives() {
-      fill();
-      return buffered?.done === false;
-    },
-    [Symbol.iterator]() { return this; },
-  };
-}
-
-function choicepointAwareIterator(iterator) {
-  return typeof iterator?.hasPendingAlternatives === 'function'
-    ? iterator
-    : lookaheadChoiceIterator(iterator);
+  // An unannotated suspended iterator is itself an untried continuation.
+  // Advancing it here would speculatively execute Prolog search (and possibly
+  // effects) merely to discover whether a later answer succeeds.
+  return typeof predicate !== 'function' || predicate.call(iterator) !== false;
 }
 
 function pushResumeBuiltinFrame(stack, iterator, goals, depth, active) {
-  iterator = choicepointAwareIterator(iterator);
   if (!iteratorMayHavePendingAlternatives(iterator)) {
     // Finish the suspended generator now so its finally blocks release child
     // solvers, aggregate statistics, and perform predicate-local cleanup.

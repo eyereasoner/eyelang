@@ -103,7 +103,14 @@ function validCharType(term) {
     (term.type === COMPOUND && ['lower', 'upper'].includes(term.name) && term.arity === 1);
 }
 
-function* charTypeBuiltin({ goal, env }) {
+function charTypeBuiltin(context) {
+  const state = { pending: false };
+  const iterator = charTypeSolutions(context, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
+}
+
+function* charTypeSolutions({ goal, env }, state) {
   const char = deref(goal.args[0], env);
   const type = deref(goal.args[1], env);
   if (char.type === VAR && type.type === VAR) throw new PrologError('instantiation_error');
@@ -112,20 +119,23 @@ function* charTypeBuiltin({ goal, env }) {
   }
   if (type.type !== VAR && !validCharType(type)) throw new PrologError('domain_error(char_type)', type);
 
-  const chars = char.type === VAR
-    ? (function* unicodeScalars() {
-        for (let code = 0; code <= 0x10ffff; code++) {
-          if (code >= 0xd800 && code <= 0xdfff) continue;
-          yield String.fromCodePoint(code);
-        }
-      })()
-    : [char.name];
-  for (const ch of chars) {
-    for (const candidate of charTypeCandidates(ch)) {
+  const firstCode = char.type === VAR ? 0 : char.name.codePointAt(0);
+  const lastCode = char.type === VAR ? 0x10ffff : firstCode;
+  for (let code = firstCode; code <= lastCode; code++) {
+    if (code >= 0xd800 && code <= 0xdfff) continue;
+    const ch = String.fromCodePoint(code);
+    const candidates = charTypeCandidates(ch).filter((candidate) =>
+      type.type === VAR || (candidate.type === type.type && candidate.name === type.name));
+    for (let index = 0; index < candidates.length; index++) {
+      const candidate = candidates[index];
       const next = env.clone();
-      if (unify(goal.args[0], atom(ch), next) && unify(goal.args[1], candidate, next)) yield next;
+      if (unify(goal.args[0], atom(ch), next) && unify(goal.args[1], candidate, next)) {
+        state.pending = index + 1 < candidates.length || code < lastCode;
+        yield next;
+      }
     }
   }
+  state.pending = false;
 }
 
 const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

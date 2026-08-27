@@ -627,16 +627,30 @@ function validPredicateIndicator(term) {
       (term.args[1].type === NUMBER && isDecimalInteger(term.args[1].name) && BigInt(term.args[1].name) >= 0n));
 }
 
-function* currentPredicateBuiltin({ solver, goal, env }) {
+function currentPredicateBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(currentPredicateSolutions(context, state), state);
+}
+
+function* currentPredicateSolutions({ solver, goal, env }, state) {
   const indicator = copyResolved(goal.args[0], env);
   if (indicator.type !== VAR && !validPredicateIndicator(indicator)) {
     throw new PrologError('type_error(predicate_indicator)', indicator);
   }
-  for (const group of solver.program.groups.values()) {
+  const groups = [...solver.program.groups.values()].filter((group) =>
+    indicator.type === VAR ||
+    (indicator.args[0].type === VAR || indicator.args[0].name === group.name) &&
+    (indicator.args[1].type === VAR || BigInt(indicator.args[1].name) === BigInt(group.arity)));
+  for (let index = 0; index < groups.length; index++) {
+    const group = groups[index];
     const next = env.clone();
     const candidate = compound('/', [atom(group.name), numberTerm(group.arity)]);
-    if (unify(goal.args[0], candidate, next)) yield next;
+    if (unify(goal.args[0], candidate, next)) {
+      state.pending = index + 1 < groups.length;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 function callableOrVariable(term, env) {
@@ -652,7 +666,12 @@ function clauseBodyTerm(body) {
   return result;
 }
 
-function* clauseBuiltin({ solver, goal, env }) {
+function clauseBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(clauseSolutions(context, state), state);
+}
+
+function* clauseSolutions({ solver, goal, env }, state) {
   const head = deref(goal.args[0], env);
   if (head.type === VAR) throw new PrologError('instantiation_error');
   if (head.type !== ATOM && head.type !== COMPOUND) throw new PrologError('type_error(callable)', head);
@@ -667,12 +686,17 @@ function* clauseBuiltin({ solver, goal, env }) {
   }
   callableOrVariable(goal.args[1], env);
   if (!group) return;
-  for (const clause of group.clauses) {
+  for (let index = 0; index < group.clauses.length; index++) {
+    const clause = group.clauses[index];
     const pair = compound('$clause', [clause.head, clauseBodyTerm(clause.body)]);
     const copied = freshCopy(pair, new Env());
     const next = env.clone();
-    if (unify(goal.args[0], copied.args[0], next) && unify(goal.args[1], copied.args[1], next)) yield next;
+    if (unify(goal.args[0], copied.args[0], next) && unify(goal.args[1], copied.args[1], next)) {
+      state.pending = index + 1 < group.clauses.length;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 function clauseParts(term, env) {
@@ -845,21 +869,32 @@ function* abolishBuiltin({ solver, goal, env }) {
   yield env;
 }
 
-function* currentPrologFlagBuiltin({ solver, goal, env }) {
+function currentPrologFlagBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(currentPrologFlagSolutions(context, state), state);
+}
+
+function* currentPrologFlagSolutions({ solver, goal, env }, state) {
   const flag = deref(goal.args[0], env);
   if (flag.type !== VAR && flag.type !== ATOM) throw new PrologError('type_error(atom)', flag);
   if (flag.type === ATOM && !solver.prologFlags.has(flag.name)) {
     throw new PrologError('domain_error(prolog_flag)', flag);
   }
-  for (const [name, definition] of solver.prologFlags) {
+  const definitions = [...solver.prologFlags]
+    .filter(([name, definition]) => definition.value != null && (flag.type === VAR || flag.name === name));
+  for (let index = 0; index < definitions.length; index++) {
+    const [name, definition] = definitions[index];
     // ISO 7.11.1.1: when bounded=false, max_integer and min_integer have no
     // current value and current_prolog_flag/2 must therefore not enumerate
     // them. The definitions remain registered so attempts to change these
     // non-changeable flags still receive the normal flag error handling.
-    if (definition.value == null) continue;
     const next = env.clone();
-    if (unify(goal.args[0], atom(name), next) && unify(goal.args[1], definition.value, next)) yield next;
+    if (unify(goal.args[0], atom(name), next) && unify(goal.args[1], definition.value, next)) {
+      state.pending = index + 1 < definitions.length;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 function* setPrologFlagBuiltin({ solver, goal, env }) {
@@ -946,7 +981,12 @@ function* opBuiltin({ solver, goal, env }) {
   yield env;
 }
 
-function* currentOpBuiltin({ solver, goal, env }) {
+function currentOpBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(currentOpSolutions(context, state), state);
+}
+
+function* currentOpSolutions({ solver, goal, env }, state) {
   const priority = deref(goal.args[0], env);
   const specifier = deref(goal.args[1], env);
   const name = deref(goal.args[2], env);
@@ -962,12 +1002,21 @@ function* currentOpBuiltin({ solver, goal, env }) {
     throw new PrologError('domain_error(operator_specifier)', specifier);
   }
   if (name.type !== VAR && name.type !== ATOM) throw new PrologError('type_error(atom)', name);
-  for (const definition of solver.program.operators.values()) {
+  const definitions = [...solver.program.operators.values()].filter((definition) =>
+    (priority.type === VAR || BigInt(priority.name) === BigInt(definition.priority)) &&
+    (specifier.type === VAR || specifier.name === definition.specifier) &&
+    (name.type === VAR || name.name === definition.name));
+  for (let index = 0; index < definitions.length; index++) {
+    const definition = definitions[index];
     const next = env.clone();
     if (unify(goal.args[0], numberTerm(definition.priority), next) &&
         unify(goal.args[1], atom(definition.specifier), next) &&
-        unify(goal.args[2], atom(definition.name), next)) yield next;
+        unify(goal.args[2], atom(definition.name), next)) {
+      state.pending = index + 1 < definitions.length;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 function conversionCharacter(term, env, current = false, solver = null) {
@@ -998,13 +1047,25 @@ function* charConversionBuiltin({ solver, goal, env }) {
   else solver.charConversions.set(input.name, output.name);
   yield env;
 }
-function* currentCharConversionBuiltin({ solver, goal, env }) {
+function currentCharConversionBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(currentCharConversionSolutions(context, state), state);
+}
+
+function* currentCharConversionSolutions({ solver, goal, env }, state) {
   const input = conversionCharacter(goal.args[0], env, true, solver);
   const output = conversionCharacter(goal.args[1], env, true, solver);
-  for (const [from, to] of [...solver.charConversions]) {
+  const conversions = [...solver.charConversions].filter(([from, to]) =>
+    (input.type === VAR || input.name === from) && (output.type === VAR || output.name === to));
+  for (let index = 0; index < conversions.length; index++) {
+    const [from, to] = conversions[index];
     const next = env.clone();
-    if (unify(input, atom(from), next) && unify(output, atom(to), next)) yield next;
+    if (unify(input, atom(from), next) && unify(output, atom(to), next)) {
+      state.pending = index + 1 < conversions.length;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 function* haltBuiltin({ goal, env }) {
   const code = goal.arity === 0 ? 0n : requireInteger(goal.args[0], env);
@@ -1293,7 +1354,12 @@ function isStreamPropertyPattern(value) {
   ].includes(value.name);
 }
 
-function* streamPropertyBuiltin({ solver, goal, env }) {
+function streamPropertyBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(streamPropertySolutions(context, state), state);
+}
+
+function* streamPropertySolutions({ solver, goal, env }, state) {
   const reference = deref(goal.args[0], env);
   const propertyPattern = deref(goal.args[1], env);
   let fixedStreamId = null;
@@ -1311,12 +1377,24 @@ function* streamPropertyBuiltin({ solver, goal, env }) {
   const streams = reference.type === VAR
     ? [...solver.io.streams.values()]
     : [solver.io.resolve(fixedStreamId)].filter(Boolean);
+  const candidates = [];
   for (const stream of streams) {
     for (const property of streamProperties(stream)) {
-      const next = env.clone();
-      if (unify(goal.args[0], streamHandle(stream.id), next) && unify(goal.args[1], property, next)) yield next;
+      if (propertyPattern.type === VAR ||
+          (property.type === propertyPattern.type && property.name === propertyPattern.name)) {
+        candidates.push([stream, property]);
+      }
     }
   }
+  for (let index = 0; index < candidates.length; index++) {
+    const [stream, property] = candidates[index];
+    const next = env.clone();
+    if (unify(goal.args[0], streamHandle(stream.id), next) && unify(goal.args[1], property, next)) {
+      state.pending = index + 1 < candidates.length;
+      yield next;
+    }
+  }
+  state.pending = false;
 }
 
 function inputStreamFor(solver, goal, env) {
@@ -1919,7 +1997,12 @@ function* atomLengthBuiltin({ goal, env }) {
   if (unify(goal.args[1], numberTerm(characters(value.name).length), next)) yield next;
 }
 
-function* atomConcatBuiltin({ goal, env }) {
+function atomConcatBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(atomConcatSolutions(context, state), state);
+}
+
+function* atomConcatSolutions({ goal, env }, state) {
   const first = deref(goal.args[0], env);
   const second = deref(goal.args[1], env);
   const whole = deref(goal.args[2], env);
@@ -1942,11 +2025,16 @@ function* atomConcatBuiltin({ goal, env }) {
   } else if (second.type === ATOM && whole.type === ATOM && whole.name.endsWith(second.name)) {
     candidates.push([whole.name.slice(0, whole.name.length - second.name.length), second.name, whole.name]);
   }
-  for (const [a, b, c] of candidates) {
+  for (let index = 0; index < candidates.length; index++) {
+    const [a, b, c] = candidates[index];
     const next = env.clone();
     if (unify(goal.args[0], atom(a), next) && unify(goal.args[1], atom(b), next) &&
-        unify(goal.args[2], atom(c), next)) yield next;
+        unify(goal.args[2], atom(c), next)) {
+      state.pending = index + 1 < candidates.length;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 function optionalInteger(term, env) {
@@ -1956,7 +2044,12 @@ function optionalInteger(term, env) {
   return BigInt(value.name);
 }
 
-function* subAtomBuiltin({ goal, env }) {
+function subAtomBuiltin(context) {
+  const state = { pending: false };
+  return withPendingState(subAtomSolutions(context, state), state);
+}
+
+function* subAtomSolutions({ goal, env }, state) {
   const source = deref(goal.args[0], env);
   if (source.type === VAR) throw new PrologError('instantiation_error');
   if (source.type !== ATOM) throw new PrologError('type_error(atom)', source);
@@ -1977,11 +2070,34 @@ function* subAtomBuiltin({ goal, env }) {
     throw new PrologError('domain_error(not_less_than_zero)', deref(goal.args[3], env));
   }
   const chars = characters(source.name);
-  for (let start = 0; start <= chars.length; start++) {
-    if (before != null && before !== BigInt(start)) continue;
-    for (let size = 0; size <= chars.length - start; size++) {
+  let starts;
+  if (before != null) {
+    starts = before <= BigInt(chars.length) ? [Number(before)] : [];
+  } else if (length != null && after != null) {
+    const onlyStart = BigInt(chars.length) - length - after;
+    starts = onlyStart >= 0n ? [Number(onlyStart)] : [];
+  } else {
+    const maximumStart = length != null
+      ? BigInt(chars.length) - length
+      : after != null ? BigInt(chars.length) - after : BigInt(chars.length);
+    starts = maximumStart < 0n
+      ? []
+      : Array.from({ length: Number(maximumStart) + 1 }, (_, index) => index);
+  }
+  for (let startIndex = 0; startIndex < starts.length; startIndex++) {
+    const start = starts[startIndex];
+    let sizes;
+    if (length != null) {
+      sizes = length <= BigInt(chars.length - start) ? [Number(length)] : [];
+    } else if (after != null) {
+      const onlySize = BigInt(chars.length - start) - after;
+      sizes = onlySize >= 0n ? [Number(onlySize)] : [];
+    } else {
+      sizes = Array.from({ length: chars.length - start + 1 }, (_, index) => index);
+    }
+    for (let sizeIndex = 0; sizeIndex < sizes.length; sizeIndex++) {
+      const size = sizes[sizeIndex];
       const remaining = chars.length - start - size;
-      if (length != null && length !== BigInt(size)) continue;
       if (after != null && after !== BigInt(remaining)) continue;
       const text = chars.slice(start, start + size).join('');
       if (sub.type === ATOM && sub.name !== text) continue;
@@ -1989,9 +2105,13 @@ function* subAtomBuiltin({ goal, env }) {
       if (unify(goal.args[1], numberTerm(start), next) &&
           unify(goal.args[2], numberTerm(size), next) &&
           unify(goal.args[3], numberTerm(remaining), next) &&
-          unify(goal.args[4], atom(text), next)) yield next;
+          unify(goal.args[4], atom(text), next)) {
+        state.pending = sizeIndex + 1 < sizes.length || startIndex + 1 < starts.length;
+        yield next;
+      }
     }
   }
+  state.pending = false;
 }
 
 function listElements(term, env) {
@@ -2406,42 +2526,52 @@ function sortedUnique(items) {
 }
 
 function allSolutionsBuiltin(asSet) {
-  return function* ({ solver, goal, env }) {
-    // EyeProlog validates the iterated goal before Instances. ISO 7.12 makes
-    // simultaneous-error selection implementation dependent; keep this stable as
-    // a processor choice rather than describing it as mandatory table ordering.
-    const { iterated, quantified } = bagGoalParts(goal.args[1], env);
-    assertListOrPartial(goal.args[2], env);
-    const free = freeVariables(iterated, goal.args[0], quantified, env);
-    const collector = solver.cloneForInnerGoal(10000000);
-    const groups = [];
-    for (const answerEnv of collector.solve([iterated], env.clone(), 0)) {
-      const copied = freshCopy(compound('$bag', [
-        compound('$witness', free),
-        goal.args[0],
-      ]), answerEnv);
-      let group = groups.find((candidate) => sameWitness(candidate.witness, copied.args[0]));
-      if (!group) {
-        group = { witness: copied.args[0], templates: [] };
-        groups.push(group);
-        group.templates.push(copied.args[1]);
-      } else {
-        const alignment = new Env();
-        unify(copied.args[0], group.witness, alignment);
-        group.templates.push(copyResolved(copied.args[1], alignment));
-      }
-    }
-    solver.absorbStatsFrom(collector);
-    for (const group of groups) {
-      const next = env.clone();
-      let matches = true;
-      for (let i = 0; i < free.length; i++) {
-        if (!unify(free[i], group.witness.args[i], next)) { matches = false; break; }
-      }
-      const templates = asSet ? sortedUnique(group.templates) : group.templates;
-      if (matches && unify(goal.args[2], listFromItems(templates), next)) yield next;
-    }
+  return function allSolutions(context) {
+    const state = { pending: false };
+    return withPendingState(allSolutionsGroups(context, asSet, state), state);
   };
+}
+
+function* allSolutionsGroups({ solver, goal, env }, asSet, state) {
+  // EyeProlog validates the iterated goal before Instances. ISO 7.12 makes
+  // simultaneous-error selection implementation dependent; keep this stable as
+  // a processor choice rather than describing it as mandatory table ordering.
+  const { iterated, quantified } = bagGoalParts(goal.args[1], env);
+  assertListOrPartial(goal.args[2], env);
+  const free = freeVariables(iterated, goal.args[0], quantified, env);
+  const collector = solver.cloneForInnerGoal(10000000);
+  const groups = [];
+  for (const answerEnv of collector.solve([iterated], env.clone(), 0)) {
+    const copied = freshCopy(compound('$bag', [
+      compound('$witness', free),
+      goal.args[0],
+    ]), answerEnv);
+    let group = groups.find((candidate) => sameWitness(candidate.witness, copied.args[0]));
+    if (!group) {
+      group = { witness: copied.args[0], templates: [] };
+      groups.push(group);
+      group.templates.push(copied.args[1]);
+    } else {
+      const alignment = new Env();
+      unify(copied.args[0], group.witness, alignment);
+      group.templates.push(copyResolved(copied.args[1], alignment));
+    }
+  }
+  solver.absorbStatsFrom(collector);
+  for (let index = 0; index < groups.length; index++) {
+    const group = groups[index];
+    const next = env.clone();
+    let matches = true;
+    for (let i = 0; i < free.length; i++) {
+      if (!unify(free[i], group.witness.args[i], next)) { matches = false; break; }
+    }
+    const templates = asSet ? sortedUnique(group.templates) : group.templates;
+    if (matches && unify(goal.args[2], listFromItems(templates), next)) {
+      state.pending = index + 1 < groups.length;
+      yield next;
+    }
+  }
+  state.pending = false;
 }
 const bagofBuiltin = allSolutionsBuiltin(false);
 const setofBuiltin = allSolutionsBuiltin(true);
@@ -2964,8 +3094,12 @@ function* onceBuiltin({ solver, goal, env }) {
   }
   solver.absorbStatsFrom(child);
 }
-function* repeatBuiltin({ env }) {
-  while (true) yield env;
+function repeatBuiltin({ env }) {
+  const iterator = (function* repeatSolutions() {
+    while (true) yield env;
+  })();
+  iterator.hasPendingAlternatives = () => true;
+  return iterator;
 }
 function* negationBuiltin({ solver, goal, env }) {
   const invoked = callable(goal.args[0], env);

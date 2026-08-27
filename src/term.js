@@ -65,7 +65,7 @@ export class CompactListTerm {
     }
     return this._args;
   }
-  mayContainVariable(name) {
+  mayContainVariable(name, env = null) {
     if (String(name).startsWith(this._variablePrefix)) {
       const indexText = String(name).slice(this._variablePrefix.length);
       if (/^\d+$/.test(indexText)) {
@@ -73,9 +73,12 @@ export class CompactListTerm {
         if (index >= this._offset && index < this._offset + this._compactLength) return true;
       }
     }
-    // If no generated head in this suffix has ever participated in a binding,
-    // an unrelated variable cannot occur below it. This remains conservative
-    // across backtracking because the high-water mark is never rolled back.
+    // An Env keeps the exact backtrackable set of cells whose current values
+    // may reach an external variable. Without one, retain the shared
+    // high-water mark as a conservative public-API fallback.
+    if (env?.compactListMayReachExternalVariable != null) {
+      return env.compactListMayReachExternalVariable(this._compactState, this._offset);
+    }
     return this._compactState.maxPossiblyBoundIndex >= this._offset;
   }
 }
@@ -124,6 +127,11 @@ export class Env {
     this._backtrackableBlackboard = null;
     this._occursCheckHandler = null;
     this._localVariables = null;
+    // Origins carried by variables that temporarily represent compact-list
+    // cells. Indexed by logical variable name because callers may reconstruct
+    // an equivalent Term object while environments retain name identity.
+    this._compactVariableOrigins = null;
+    this._compactVariableRisks = null;
   }
   clone() {
     // Most speculative environments are either rejected without a binding or
@@ -142,6 +150,8 @@ export class Env {
     clone._backtrackableBlackboard = this._backtrackableBlackboard;
     clone._occursCheckHandler = this._occursCheckHandler;
     clone._localVariables = this._localVariables;
+    clone._compactVariableOrigins = this._compactVariableOrigins;
+    clone._compactVariableRisks = this._compactVariableRisks;
     return clone;
   }
   setOccursCheckHandler(handler) {
@@ -164,7 +174,79 @@ export class Env {
     // Execution callbacks belong to the Solver driving this Env, not to the
     // logical branch being adopted from an inner attribute-hook call.
     this._localVariables = other._localVariables;
+    this._compactVariableOrigins = other._compactVariableOrigins;
+    this._compactVariableRisks = other._compactVariableRisks;
     return this;
+  }
+  compactVariableOrigins(name) {
+    return this._compactVariableOrigins?.get(name) ?? null;
+  }
+  transferCompactVariableOrigins(sourceName, targetName, origins) {
+    const next = new Map(this._compactVariableOrigins ?? []);
+    if (sourceName !== targetName) next.delete(sourceName);
+    next.set(targetName, origins);
+    this._compactVariableOrigins = next.size === 0 ? null : next;
+  }
+  removeCompactVariableOrigins(name) {
+    if (this._compactVariableOrigins?.has(name) !== true) return;
+    const next = new Map(this._compactVariableOrigins);
+    next.delete(name);
+    this._compactVariableOrigins = next.size === 0 ? null : next;
+  }
+  addCompactVariableRisks(origins) {
+    if (origins.length === 0) return;
+    const next = new Map(this._compactVariableRisks ?? []);
+    for (const { state, index } of origins) {
+      const current = next.get(state) ?? null;
+      let top = current?.top ?? null;
+      const removed = current?.removed ?? null;
+      while (top != null && removed?.has(top)) top = top.parent;
+      // Immediate variable-to-variable handoffs carry the same origin. Avoid
+      // stacking duplicate risk entries along that common alias chain.
+      if (top?.index === index) continue;
+      next.set(state, { top: { index, parent: top }, removed });
+    }
+    this._compactVariableRisks = next;
+  }
+  removeCompactVariableRisks(origins) {
+    if (origins.length === 0 || this._compactVariableRisks == null) return;
+    const next = new Map(this._compactVariableRisks);
+    for (const { state, index } of origins) {
+      const current = next.get(state);
+      if (current == null) continue;
+      let top = current.top;
+      let removed = current.removed;
+      while (top != null && removed?.has(top)) top = top.parent;
+      if (top?.index === index) {
+        top = top.parent;
+        while (top != null && removed?.has(top)) top = top.parent;
+      } else {
+        // Out-of-order handoffs are uncommon, but remain exact: tombstone
+        // every active entry for this origin without rewriting the persistent
+        // stack shared by sibling environments.
+        let scan = top;
+        let changed = false;
+        while (scan != null) {
+          if (scan.index === index && removed?.has(scan) !== true) {
+            if (!changed) removed = new Set(removed ?? []);
+            removed.add(scan);
+            changed = true;
+          }
+          scan = scan.parent;
+        }
+      }
+      if (top == null) next.delete(state);
+      else next.set(state, { top, removed });
+    }
+    this._compactVariableRisks = next.size === 0 ? null : next;
+  }
+  compactListMayReachExternalVariable(state, offset) {
+    const current = this._compactVariableRisks?.get(state);
+    if (current == null) return false;
+    for (let entry = current.top; entry != null; entry = entry.parent) {
+      if (current.removed?.has(entry) !== true && entry.index >= offset) return true;
+    }
+    return false;
   }
   getBacktrackableBlackboard(key) {
     return this._backtrackableBlackboard?.get(key);
@@ -605,7 +687,7 @@ function occursUncached(variableName, term, env) {
       if (binding !== undefined) stack.push(binding);
       continue;
     }
-    if (isCompactList(current) && !current.mayContainVariable(variableName)) continue;
+    if (isCompactList(current) && !current.mayContainVariable(variableName, env)) continue;
     if (current?.type !== COMPOUND || seenTerms.has(current)) continue;
     seenTerms.add(current);
     for (let i = 0; i < current.arity; i++) stack.push(current.args[i]);
@@ -693,11 +775,11 @@ export function unify(left, right, env, options = {}) {
       const aLocalDcg = env?.isLocalVariable(a.name) === true &&
         a.name.startsWith('\u0000dcg') && b.name.startsWith('\u0000dcg');
       if (aLocalDcg) {
-        markCompactVariableBound(b);
+        transferCompactVariableOrigins(b, a, env);
         env?.finalizePrologAttributeAlias?.(b.name, a.name);
         env.bind(b.name, a);
       } else {
-        markCompactVariableBound(a);
+        transferCompactVariableOrigins(a, b, env);
         env?.finalizePrologAttributeAlias?.(a.name, b.name);
         env.bind(a.name, b);
       }
@@ -715,7 +797,7 @@ export function unify(left, right, env, options = {}) {
         b = deref(b, env);
         if (a.type !== VAR) { stack.push([a, b]); continue; }
       }
-      markCompactVariableBound(a);
+      markCompactVariableBound(a, b, env);
       env?.dropPrologAttributes?.(a.name);
       env.bind(a.name, b);
       if (aLocal) env.forgetLocalVariable(a.name);
@@ -733,7 +815,7 @@ export function unify(left, right, env, options = {}) {
         a = deref(a, env);
         if (b.type !== VAR) { stack.push([a, b]); continue; }
       }
-      markCompactVariableBound(b);
+      markCompactVariableBound(b, a, env);
       env?.dropPrologAttributes?.(b.name);
       env.bind(b.name, a);
       if (bLocal) env.forgetLocalVariable(b.name);
@@ -761,10 +843,50 @@ export function unify(left, right, env, options = {}) {
   return true;
 }
 
-function markCompactVariableBound(term) {
-  if (term?._compactState == null || term._compactIndex == null) return;
-  if (term._compactIndex > term._compactState.maxPossiblyBoundIndex) {
-    term._compactState.maxPossiblyBoundIndex = term._compactIndex;
+function compactVariableOrigins(term, env) {
+  const remembered = term?.type === VAR ? env?.compactVariableOrigins(term.name) : null;
+  const origins = remembered == null ? [] : [...remembered];
+  if (term?._compactState != null && term._compactIndex != null &&
+      !origins.some(({ state, index }) => state === term._compactState && index === term._compactIndex)) {
+    origins.push({ state: term._compactState, index: term._compactIndex });
+  }
+  return origins;
+}
+
+function transferCompactVariableOrigins(source, target, env) {
+  const sourceOrigins = compactVariableOrigins(source, env);
+  if (sourceOrigins.length === 0 || target?.type !== VAR) return;
+  const targetOrigins = compactVariableOrigins(target, env);
+  for (const origin of sourceOrigins) {
+    if (!targetOrigins.some(({ state, index }) => state === origin.state && index === origin.index)) {
+      targetOrigins.push(origin);
+    }
+  }
+  env?.addCompactVariableRisks(sourceOrigins);
+  env?.transferCompactVariableOrigins(source.name, target.name, targetOrigins);
+}
+
+function markCompactVariableBound(term, value, env) {
+  const origins = compactVariableOrigins(term, env);
+  if (origins.length === 0) return;
+  // A compact cell commonly passes through a fresh clause variable before it
+  // receives its actual value. Carry the provenance along that alias. Only a
+  // non-scalar value can make an unrelated logical variable reachable from
+  // the compact list, so ground atoms and numbers need not poison the whole
+  // suffix for subsequent finite-tree occurs checks.
+  if (value?.type === VAR) {
+    transferCompactVariableOrigins(term, value, env);
+    return;
+  }
+  if (isScalar(value)) {
+    env?.removeCompactVariableRisks(origins);
+    env?.removeCompactVariableOrigins(term.name);
+    return;
+  }
+  env?.addCompactVariableRisks(origins);
+  env?.removeCompactVariableOrigins(term.name);
+  for (const { state, index } of origins) {
+    if (index > state.maxPossiblyBoundIndex) state.maxPossiblyBoundIndex = index;
   }
 }
 

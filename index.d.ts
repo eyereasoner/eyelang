@@ -182,7 +182,12 @@ export interface BuiltinDefinition {
   eyePrologLibrary: boolean;
 }
 
-export type BuiltinHandler = (context: { solver: Solver; goal: EyePrologTerm; env: Env }) => Iterable<Env>;
+export interface BuiltinIterator extends IterableIterator<Env> {
+  hasPendingAlternatives?: () => boolean;
+}
+
+export type BuiltinHandler =
+  (context: { solver: Solver; goal: EyePrologTerm; env: Env }) => BuiltinIterator;
 
 export class BuiltinRegistry {
   constructor();

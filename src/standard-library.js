@@ -274,7 +274,14 @@ function* statisticsBuiltin({ solver, env }) {
   yield env;
 }
 
-function* statisticsValueBuiltin({ solver, goal, env }) {
+function statisticsValueBuiltin(context) {
+  const state = { pending: false };
+  const iterator = statisticsValueSolutions(context, state);
+  iterator.hasPendingAlternatives = () => state.pending;
+  return iterator;
+}
+
+function* statisticsValueSolutions({ solver, goal, env }, state) {
   const snapshot = runtimeStatistics(solver);
   const key = deref(goal.args[0], env);
   const entries = key.type === VAR
@@ -288,10 +295,15 @@ function* statisticsValueBuiltin({ solver, goal, env }) {
     throw new PrologError('domain_error(statistics_key)', key);
   }
 
-  for (const [name, value] of entries) {
+  for (let index = 0; index < entries.length; index++) {
+    const [name, value] = entries[index];
     const next = env.clone();
-    if (unify(goal.args[0], atom(name), next) && unify(goal.args[1], numberTerm(value), next)) yield next;
+    if (unify(goal.args[0], atom(name), next) && unify(goal.args[1], numberTerm(value), next)) {
+      state.pending = index + 1 < entries.length;
+      yield next;
+    }
   }
+  state.pending = false;
 }
 
 export function createEyePrologRegistry() {

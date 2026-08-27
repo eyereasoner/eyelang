@@ -29,6 +29,7 @@ import {
   eyePrologInteropLibraryIndicators,
   eyePrologInteropLibraryModules,
   atom,
+  compactVariableList,
   compound,
   listFromItems,
   numberTerm,
@@ -2302,16 +2303,32 @@ c4 ?- call((!;1)).
         const custom = new Solver(Program.parse(''), { registry: customRegistry });
         const customSolutions = custom.solve([parseGoalText('single(X)')], new Env(), 0);
         assertEqual(customSolutions.next().done, false, 'custom relational iterator answer');
-        assertEqual(custom.hasPendingAlternatives(), false,
-          'unannotated relational iterator uses the universal lookahead protocol');
+        assertEqual(custom.hasPendingAlternatives(), true,
+          'an unannotated suspended iterator remains an untried continuation');
         customSolutions.return();
+
+        const annotatedRegistry = new BuiltinRegistry();
+        annotatedRegistry.add('single', 1, ({ goal, env }) => {
+          const iterator = (function* singleSolution() {
+            const next = env.clone();
+            if (unify(goal.args[0], atom('only'), next)) yield next;
+          })();
+          iterator.hasPendingAlternatives = () => false;
+          return iterator;
+        });
+        const annotated = new Solver(Program.parse(''), { registry: annotatedRegistry });
+        const annotatedSolutions = annotated.solve([parseGoalText('single(X)')], new Env(), 0);
+        assertEqual(annotatedSolutions.next().done, false, 'annotated relational iterator answer');
+        assertEqual(annotated.hasPendingAlternatives(), false,
+          'an iterator may report exact exhaustion without being resumed');
+        annotatedSolutions.return();
 
         const dynamicProgram = Program.parse(':- dynamic(p/1).\np(a).\np(b).\n');
         const dynamicSolver = new Solver(dynamicProgram, { registry: getEyePrologRegistry() });
         const dynamicSolutions = dynamicSolver.solve([parseGoalText('catch(retract(p(X)),_,fail)')], new Env(), 0);
         assertEqual(dynamicSolutions.next().done, false, 'stateful protected iterator first answer');
         assertEqual(dynamicProgram.findGroup('p', 1).clauses.length, 1,
-          'lookahead does not perform the next retraction');
+          'pending-state inspection does not perform the next retraction');
         assertEqual(dynamicSolver.hasPendingAlternatives(), true,
           'stateful protected iterator retains its real second retraction');
         dynamicSolutions.return();
@@ -2320,27 +2337,91 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'bound member tails do not invent predicate choicepoints (issue #74 follow-up)',
+      name: 'member/2 retains untried positions without scanning them (issue #74 comment 5435449600)',
       run: () => {
         const result = runCli([], {
           input:
             'use_module(library(lists)).\n' +
-            'L=[i],append(L,_,[i|L]).\n' +
-            'L=[_],append(L,_,[i|L]).\n' +
-            'L=[i],append(L,_,[i|L]),member(a,[a|L]).\n' +
-            'L=[_],append(L,_,[i|L]),member(a,[a|L]).\n' +
+            'L=[i],append(L,_,[i|L]),' +
+              '(Det=preparing;setup_call_cleanup(true,member(a,[a|L]),Det=yes)).\n' +
+            ';\n' +
+            'setup_call_cleanup(true,member(a,[a]),Det=yes).\n' +
             'halt.\n',
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
           '?-    true.\n' +
-          '?-    L = "i".\n' +
-          '?-    L = "i".\n' +
-          '?-    L = "i".\n' +
-          '?-    L = "i".\n' +
+          '?-    L = "i", Det = preparing\n' +
+          ';  L = "i".\n' +
+          '?-    Det = yes.\n' +
           '?- ',
-          'ground and formerly variable list elements have identical determinism');
+          'cleanup observes the real list-position choicepoint');
         assertEqual(result.stderr, '', 'stderr');
+
+        let speculativeTailRead = false;
+        const unreadTail = {
+          type: 'compound',
+          name: '.',
+          get arity() { return 2; },
+          get args() {
+            speculativeTailRead = true;
+            throw new Error('member/2 inspected an untried tail position');
+          },
+        };
+        const memberGoal = compound('member', [atom('a'), compound('.', [atom('a'), unreadTail])]);
+        memberGoal.module = 'lists';
+        const solver = new Solver(Program.parse(':- use_module(library(lists)).'), {
+          registry: getEyePrologRegistry(),
+        });
+        const solutions = solver.solve([memberGoal], new Env(), 0);
+        assertEqual(solutions.next().done, false, 'member/2 first answer');
+        assertEqual(speculativeTailRead, false, 'first answer does not inspect the tail');
+        assertEqual(solver.hasPendingAlternatives(), true, 'unread tail is a genuine alternative');
+        solutions.return();
+        assertEqual(speculativeTailRead, false, 'discarding the choicepoint does not inspect it');
+
+        const compactAppendTail = compactVariableList(100000n, '__appendTail');
+        const appendGoal = compound('append', [
+          variable('Prefix'),
+          compound('.', [atom('a'), variable('Suffix')]),
+          compound('.', [atom('a'), compactAppendTail]),
+        ]);
+        appendGoal.module = 'lists';
+        const appendSolver = new Solver(Program.parse(':- use_module(library(lists)).'), {
+          registry: getEyePrologRegistry(),
+        });
+        const appendSolutions = appendSolver.solve([appendGoal], new Env(), 0);
+        assertEqual(appendSolutions.next().done, false, 'append/3 first answer');
+        assertEqual(compactAppendTail._args, null, 'append/3 first answer does not expand the tail');
+        assertEqual(appendSolver.hasPendingAlternatives(), true, 'append/3 retains its recursive alternative');
+        appendSolutions.return();
+        assertEqual(compactAppendTail._args, null, 'discarding append/3 alternatives does not expand the tail');
+
+        const compact = compactVariableList(100000n, '__scalarCompact');
+        const firstCell = compact.args[0];
+        const env = new Env();
+        assertEqual(unify(firstCell, variable('ClauseHead'), env), true,
+          'compact cell aliases a clause-head variable');
+        assertEqual(unify(variable('ClauseHead'), atom('i'), env), true,
+          'the clause-head variable receives its scalar value');
+
+        // Recreate the unexpanded view over the same conservative provenance,
+        // as a recursive compact-list tail would provide.
+        compact._args = null;
+        assertEqual(unify(variable('Unrelated'), compact, env), true,
+          'an unrelated variable unifies with the compact list');
+        assertEqual(compact._args, null,
+          'the occurs check proves nonoccurrence without expanding scalar-bound cells');
+
+        const nonGroundCompact = compactVariableList(2n, '__nonGroundCompact');
+        const nonGroundCell = nonGroundCompact.args[0];
+        const cyclicEnv = new Env();
+        assertEqual(unify(nonGroundCell, variable('Intermediate'), cyclicEnv), true,
+          'a second compact cell aliases a clause-head variable');
+        assertEqual(unify(variable('Intermediate'), compound('f', [variable('Cycle')]), cyclicEnv), true,
+          'the aliased cell receives a non-ground value');
+        assertEqual(unify(variable('Cycle'), nonGroundCompact, cyclicEnv), false,
+          'non-ground compact bindings still receive the complete finite-tree occurs check');
       },
     },
     {
