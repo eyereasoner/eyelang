@@ -2,6 +2,7 @@
 
 Wide-audience companion explanations for selected runnable examples.
 
+- [Introduction to EyeProlog](introduction-to-eyeprolog.md) — a short slide deck introducing facts, rules, answers, proofs, ISO conformance, JavaScript embedding, and RDF roundtrips.
 - [Cross-organization data sharing](cross-organization-data-sharing.md) — ODRL/DPV sharing decisions with permit, deny, review, safeguards, and obligations.
 - [Explainable EV-depot configuration](explainable-ev-depot-configuration.md) — reversible configuration rules that select a charger, explain blockers, and derive required changes.
 - [ODRL policy reasoning](odrl-policy-reasoning.md) — permissions, prohibitions, duties, conflicts, and defaults.

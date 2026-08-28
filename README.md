@@ -65,6 +65,7 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
 - [Playground](https://eyereasoner.github.io/eyeprolog/playground) — run EyeProlog in a browser
 - [Examples](examples) — runnable programs and checked output
 - [Example decks](examples/deck/README.md) — explainable RDF/Prolog scenarios with reproducible roundtrips
+- [Introduction to EyeProlog](examples/deck/introduction-to-eyeprolog.md) — short presentation deck for first-time audiences
 - [Symbiotic Knowledge Graphs](examples/deck/symbiotic-knowledge-graphs.md) — RDF ↔ Prolog heatwave-response demo for human/AI/KG co-evolution
 - [rdf-prolog-roundtrip](https://github.com/eyereasoner/rdf-prolog-roundtrip) — standalone RDF 1.2 ↔ ISO Prolog bridge used by the RDF examples
 - [ISO conformance audit](test/conformance/ISO-COMPLIANCE.md) — supported Part 1 profile
