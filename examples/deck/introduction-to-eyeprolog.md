@@ -202,8 +202,8 @@ EyeProlog is a good fit when a project needs:
 
 ## Where to go next
 
-- Read [`README.md`](../../README.md) for setup and links.
-- Read [`why-eyeprolog.md`](../../why-eyeprolog.md) for the design motivation.
-- Open [`playground.html`](../../playground.html) to run examples in a browser.
-- Explore [`examples/`](../) for runnable programs.
-- Read [`the-art-of-eyeprolog.md`](../../the-art-of-eyeprolog.md) for the full reference.
+- Read [project README](https://github.com/eyereasoner/eyeprolog#readme) for setup and links.
+- Read [Why EyeProlog?](https://eyereasoner.github.io/eyeprolog/why-eyeprolog) for the design motivation.
+- Open [EyeProlog playground](https://eyereasoner.github.io/eyeprolog/playground) to run examples in a browser.
+- Explore [runnable examples](https://github.com/eyereasoner/eyeprolog/tree/main/examples) for runnable programs.
+- Read [The Art of EyeProlog](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog) for the full reference.
