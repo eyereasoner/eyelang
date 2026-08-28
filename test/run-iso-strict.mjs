@@ -1214,6 +1214,21 @@ export function runIsoStrict(reporter = new TestReporter()) {
       isoStrict: true,
       goal: 'catch(throw(ball(X)),ball(Y),X=Y)',
     }).stats.completed_goal_lists > 0, true, 'throw/1 and catch/3 unify through a renamed thrown term');
+
+    const answerCount = (text) => {
+      const program = Program.parse('', { isoStrict: true });
+      const solver = new Solver(program, { isoStrict: true });
+      return [...solver.solve([parseGoalText(text, {
+        isoStrict: true,
+        operatorDefinitions: [...program.operators.values()],
+      })], new Env(), 0)].length;
+    };
+    equal(answerCount('call((Z=!, (X=1;X=2), Z)) ; T=end'), 3,
+      'call/1 converts an initially unbound variable goal before it can become a cut (issue #86)');
+    equal(answerCount('call((Z=!, (X=1;X=2), Z, X=2))'), 1,
+      'call(Var) cut remains opaque to choices made earlier in the converted body');
+    equal(answerCount('Z=!, (call(((X=1;X=2),Z)) ; T=end)'), 2,
+      'a variable already bound before call/1 conversion is dereferenced as a direct cut');
   });
 
   reporter.test('rejects EyeProlog module directives', () => {

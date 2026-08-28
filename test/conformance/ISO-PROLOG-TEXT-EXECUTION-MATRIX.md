@@ -55,8 +55,12 @@ The complete 8.8-8.9 database built-in modes/errors remain covered by
 | 7.6.3 clause-to-term observation | covered | `clause/2` returns fresh renamed clause observations with the required sharing between head and body. |
 | 7.6.4 update conversion | covered | `asserta/1`, `assertz/1`, `retract/1`, and prepared source clauses use the same strict body-conversion rules and reject malformed bodies before database mutation. |
 
-Corrigendum 3's explicit `call/1` term-to-body wording is covered by the source
-and asserted-body conversion regressions.
+Corrigendum 3's explicit `call/1` term-to-body wording is covered by the source,
+asserted-body, and meta-call conversion regressions. In particular, `call/1`
+converts an initially unbound variable goal to `call(Var)` before execution; if
+an earlier goal later binds that variable to `!`, the resulting `call(!)` keeps
+its own opaque cut boundary instead of becoming a textual cut in the enclosing
+converted body.
 
 ## 7.7 - execution and backtracking
 
@@ -74,8 +78,8 @@ and asserted-body conversion regressions.
 | --- | --- | --- |
 | 7.8.1 `true/0` | covered | succeeds once |
 | 7.8.2 `fail/0` | covered | fails |
-| 7.8.3 `call/1` | covered | executes the converted goal; variables can become callable after earlier bindings; Corrigendum 3 term-to-body conversion is used |
-| 7.8.4 cut | covered | cut commits within its defined invocation scope; callee-local cuts do not incorrectly prune caller alternatives |
+| 7.8.3 `call/1` | covered | executes the converted goal; variables that are unbound at meta-call entry become `call(Var)` before execution, so a later binding to `!` remains an opaque `call(!)`; variables already bound at entry are dereferenced during conversion |
+| 7.8.4 cut | covered | cut commits within its defined invocation scope; callee-local cuts and cuts reached through a converted variable goal do not incorrectly prune alternatives outside that invocation |
 | 7.8.5 conjunction | covered | left-to-right execution and backtracking; nested malformed converted goals retain the whole control-term culprit |
 | 7.8.6 disjunction | covered | left branch is tried before the right and failure backtracks into the right branch |
 | 7.8.7 if-then | covered | successful condition commits to the selected condition solution before the then branch |

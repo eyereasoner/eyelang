@@ -1117,6 +1117,31 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'call/1 converts variable goals before execution so later cuts stay opaque (issue #86)',
+      run: () => {
+        const quad = publicApi.runQuads(`?- call((Z = !,(X=1;X=2), Z)) ; T=end.\n` +
+          `   Z = !, X = 1\n` +
+          `;  Z = !, X = 2\n` +
+          `;  T = end.\n`);
+        assertEqual(quad.total, 1, 'issue #86 quad total');
+        assertEqual(quad.passed, 1, 'issue #86 exact answer sequence');
+        assertEqual(quad.failed, 0, 'issue #86 quad failures');
+
+        const program = Program.parse('');
+        const answerCount = (text) => {
+          const solver = new Solver(program, { registry: getEyePrologRegistry() });
+          return [...solver.solve([parseGoalText(text)], new Env(), 0)].length;
+        };
+
+        assertEqual(answerCount('call((Z=!, (X=1;X=2), Z)) ; T=end'), 3,
+          'issue #86 outer answer count');
+        assertEqual(answerCount('call((Z=!, (X=1;X=2), Z, X=2))'), 1,
+          'later call(!) does not prune the X=2 alternative');
+        assertEqual(answerCount('Z=!, (call(((X=1;X=2),Z)) ; T=end)'), 2,
+          'pre-bound cut stays direct inside the meta-call');
+      },
+    },
+    {
       name: 'negation observes disjunction through direct and call/1 execution',
       run: () => {
         const reported = publicApi.runQuads(String.raw`?- \+ (true ; true).

@@ -2623,10 +2623,53 @@ function validateControlCallable(term, culprit, env) {
     }
   }
 }
+function convertMetaCallBodyTerm(term, env, module) {
+  // ISO term-to-body conversion is applied when call/1 begins, before any
+  // goal in the converted body is executed. An unbound variable occurring as
+  // a body goal therefore becomes call(Var) at that point. If an earlier goal
+  // later binds Var to !, the resulting call(!) has its own opaque cut scope
+  // instead of turning into a textual cut in the enclosing meta-call.
+  //
+  // Build the converted control tree iteratively so a deeply nested sequence
+  // of conjunctions/disjunctions cannot consume the JavaScript call stack.
+  const convertNode = (input, inheritedModule) => {
+    const resolved = deref(input, env);
+    const effectiveModule = resolved.module ?? inheritedModule;
+    if (resolved.type === VAR) {
+      const wrapped = compound('call', [resolved]);
+      wrapped.module = effectiveModule;
+      return { term: wrapped, source: null, module: effectiveModule };
+    }
+    if (resolved.type !== ATOM && resolved.type !== COMPOUND) {
+      throw new PrologError('type_error(callable)', term);
+    }
+    if (resolved.type === COMPOUND && [',', ';', '->'].includes(resolved.name) && resolved.arity === 2) {
+      const converted = compound(resolved.name, [...resolved.args]);
+      converted.module = effectiveModule;
+      return { term: converted, source: resolved, module: effectiveModule };
+    }
+    return { term: resolved, source: null, module: effectiveModule };
+  };
+
+  const root = convertNode(term, module);
+  const pending = root.source == null ? [] : [root];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    for (let index = 0; index < 2; index++) {
+      const child = convertNode(current.source.args[index], current.module);
+      current.term.args[index] = child.term;
+      if (child.source != null) pending.push(child);
+    }
+  }
+  return root.term;
+}
+
 function expandCallGoal({ goal, env }) {
   const invoked = callable(goal.args[0], env);
-  if (invoked.module == null) invoked.module = goal.module ?? 'user';
-  return invoked;
+  const module = invoked.module ?? goal.module ?? 'user';
+  const converted = convertMetaCallBodyTerm(invoked, env, module);
+  if (converted.module == null) converted.module = module;
+  return converted;
 }
 function* callBuiltin(context) {
   const { solver, env } = context;
