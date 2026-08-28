@@ -86,13 +86,24 @@ export function clauseHasCut(clause) {
 }
 
 export function termContainsCut(term) {
-  if (term.type === ATOM) return term.name === '!';
-  return term.type === COMPOUND && term.args.some(termContainsCut);
+  const pending = [term];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (current?.type === ATOM && current.name === '!') return true;
+    if (current?.type !== COMPOUND) continue;
+    for (let index = current.args.length - 1; index >= 0; index--) pending.push(current.args[index]);
+  }
+  return false;
 }
 
 export function termHasNoVariables(term) {
-  if (!term || term.type === 'var') return false;
-  return !term.args?.some((arg) => !termHasNoVariables(arg));
+  const pending = [term];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (!current || current.type === 'var') return false;
+    for (let index = current.args?.length - 1 ?? -1; index >= 0; index--) pending.push(current.args[index]);
+  }
+  return true;
 }
 
 // These defaults mirror SWI-Prolog's JITI admission policy: small predicates
@@ -110,7 +121,51 @@ export function makeArgumentIndex() {
     numberBuckets: new Map(),
     fallback: [],
     sawScalar: false,
+    // Dynamic predicates often store fully-ground structured keys such as
+    // seen(answer(...)). Keep an exact structural hash alongside the scalar
+    // indexes so repeated membership checks do not scan every prior clause.
+    groundBuckets: new Map(),
+    groundFallback: [],
+    sawGround: false,
   };
+}
+
+function groundTermIndexKey(term, env = null) {
+  // Use a compact structural hash instead of materializing the complete term
+  // spelling as a Map key. Dynamic bookkeeping predicates frequently store
+  // long ground lists; a fixed-size hash avoids retaining another full copy of
+  // every list merely for indexing. Hash collisions are harmless because the
+  // selected clauses are still matched normally by the solver.
+  let hash = 0x811c9dc5;
+  const mixCode = (code) => { hash = Math.imul(hash ^ code, 0x01000193) >>> 0; };
+  const mixString = (text) => {
+    for (let index = 0; index < text.length; index++) mixCode(text.charCodeAt(index));
+    mixCode(0xff);
+  };
+  const stack = [term];
+  while (stack.length > 0) {
+    const raw = stack.pop();
+    const current = env == null ? raw : deref(raw, env);
+    if (current?.type === VAR) return null;
+    if (current?.type === COMPOUND) {
+      mixCode(1);
+      mixString(current.name);
+      mixCode(current.arity);
+      for (let index = current.args.length - 1; index >= 0; index--) stack.push(current.args[index]);
+      continue;
+    }
+    if (current?.type === 'number') {
+      mixCode(2);
+      mixString(numberValueKey(current.name));
+    } else if (current?.type === 'string') {
+      mixCode(3);
+      mixString(String(current.name));
+    } else {
+      mixCode(4);
+      mixString(String(current?.name ?? ''));
+    }
+  }
+  return hash;
 }
 
 function scalarBuckets(index, term) {
@@ -168,7 +223,7 @@ export function indexCompactOne(index, type, name, clause, clauses = null, claus
   }
 }
 
-export function indexOne(index, arg, clause, clauses = null, clausePosition = -1) {
+export function indexOne(index, arg, clause, clauses = null, clausePosition = -1, indexGround = false) {
   if (isScalar(arg)) {
     if (!index.sawScalar) {
       index.sawScalar = true;
@@ -177,6 +232,18 @@ export function indexOne(index, arg, clause, clauses = null, clausePosition = -1
     addArgumentBucket(index, arg, clause);
   } else if (index.sawScalar) {
     index.fallback.push(clause);
+  }
+
+  if (!indexGround) return;
+  const groundKey = groundTermIndexKey(arg);
+  if (groundKey != null) {
+    if (!index.sawGround) {
+      index.sawGround = true;
+      if (clauses && clausePosition > 0) index.groundFallback = clauses.slice(0, clausePosition);
+    }
+    addClauseBucket(index.groundBuckets, groundKey, clause);
+  } else if (index.sawGround) {
+    index.groundFallback.push(clause);
   }
 }
 
@@ -204,7 +271,9 @@ export function rebuildGroupIndexes(group) {
     clause.scalarHead = clause.head.type === COMPOUND && clause.head.args.every(isScalar);
     if (clauseHasCut(clause)) group.hasCut = true;
     if (clause.body.length !== 0 || !clause.scalarHead) group.scalarFactsOnly = false;
-    for (let i = 0; i < group.arity; i++) indexOne(group.argIndexes[i], clause.head.args[i], clause, group.clauses, clausePosition);
+    for (let i = 0; i < group.arity; i++) {
+      indexOne(group.argIndexes[i], clause.head.args[i], clause, group.clauses, clausePosition, group.dynamic === true);
+    }
   }
 }
 
@@ -301,15 +370,36 @@ export function selectClauseCandidates(group, goal, env) {
   }
   const positions = [];
   const values = [];
+  let bestGround = null;
+  let bestGroundLength = group.clauses.length;
   for (let i = 0; i < goal.arity; i++) {
     const arg = deref(goal.args[i], env);
-    if (!isScalar(arg)) continue;
-    positions.push(i);
-    values.push(arg);
+    if (isScalar(arg)) {
+      positions.push(i);
+      values.push(arg);
+      continue;
+    }
+    const index = group.argIndexes[i];
+    if (!index?.sawGround) continue;
+    const key = groundTermIndexKey(arg, env);
+    if (key == null) continue;
+    const primary = index.groundBuckets.get(key) ?? null;
+    const fallback = index.groundFallback;
+    const length = clauseCollectionLength(primary) + fallback.length;
+    if (length < bestGroundLength) {
+      bestGround = fallback.length === 0 ? (primary ?? [])
+        : clauseCollectionLength(primary) === 0 ? fallback
+          : mergeClausesInSourceOrder(primary, fallback);
+      bestGroundLength = length;
+    }
   }
-  if (positions.length === 0) return { primary: group.clauses, fallback: [] };
-
-  return selectClauseCandidatesForValues(group, positions, values);
+  const scalarParts = positions.length === 0 ? null : selectClauseCandidatesForValues(group, positions, values);
+  const scalarLength = scalarParts == null
+    ? group.clauses.length
+    : clauseCollectionLength(scalarParts.primary) + scalarParts.fallback.length;
+  if (bestGround != null && bestGroundLength < scalarLength) return { primary: bestGround, fallback: [] };
+  if (scalarParts != null) return scalarParts;
+  return { primary: group.clauses, fallback: [] };
 }
 
 // The scalar-fact join already has dereferenced local values. Keeping this

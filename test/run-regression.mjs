@@ -4043,6 +4043,23 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'traditional depth-first mode keeps deep non-tail continuations bounded',
+      run: () => {
+        const source = `
+countdown(0, 0) :- !.
+countdown(N, Result) :-
+    Next is N-1,
+    countdown(Next, Partial),
+    Result is Partial+1.
+answer(Result) :- countdown(2048, Result), Result = 2048.
+`;
+        const result = run(source, { goal: 'answer(Result)', autoTabling: false });
+        assertEqual(result.stdout, 'answer(2048).\n', 'deep non-tail answer');
+        assertEqual(result.stats.max_goal_count <= 70, true,
+          'caller continuations stay opaque instead of growing one goal per recursive layer');
+      },
+    },
+    {
       name: '--portable rejects implementation-specific library dependencies',
       run: () => {
         const input = ':- use_module(library(prologue), [between/3]).\n%% goal: answer\nanswer :- between(1, 1, _).\n';
@@ -6126,7 +6143,9 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 161, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 163, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(registry.get('eyeprolog__random_value', 1), null, 'native random helper is absent from the ISO registry');
+        assertEqual(Boolean(library.get('eyeprolog__random_value', 1)), true, 'native random helper is an internal EyeProlog library adapter');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -6143,9 +6162,9 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 57, 'public host-supported EyeProlog library count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 58, 'public host-supported EyeProlog library count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 241, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 188, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 189, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.length, 23, 'common explicit library module profile count');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'between', 'between/3 canonical internal autoload');
@@ -6154,9 +6173,10 @@ answer(ok) :-
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 57, 'host-supported library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 58, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
-        assertEqual(eyePrologLibraryIndicators.length, 298, 'complete non-ISO EyeProlog library surface');
+        assertEqual(eyePrologNativeLibraryIndicators.includes('random/1'), true, 'stateful random/1 is classified as host-supported');
+        assertEqual(eyePrologLibraryIndicators.length, 299, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');

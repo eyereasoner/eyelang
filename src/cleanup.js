@@ -46,7 +46,7 @@ export function installCleanupLifecycle(Solver) {
       if (!completed) {
         let closeError = null;
         try {
-          closeOwnedSearchStacks(this, state, owner, thrown != null);
+          if (state.active) closeOwnedSearchStacks(this, state, owner, thrown != null);
         } catch (error) {
           closeError = error;
         }
@@ -71,6 +71,7 @@ function ensureLifecycleState(solver) {
   const state = {
     owner: null,
     stackOwners: new WeakMap(),
+    active: false,
   };
   Object.defineProperty(solver, cleanupLifecycleState, { value: state });
 
@@ -81,7 +82,7 @@ function ensureLifecycleState(solver) {
   solveStacks.push = function cleanupAwarePush(...stacks) {
     for (const stack of stacks) {
       state.stackOwners.set(stack, state.owner);
-      patchSearchStack(stack);
+      if (state.active) patchSearchStack(stack);
     }
     return originalPush.apply(this, stacks);
   };
@@ -92,8 +93,10 @@ function ensureLifecycleState(solver) {
     // unwinding an exception, a cleanup exception must not replace it. Normal
     // consumer pruning closes frames earlier in cleanupAwareSolve(), where
     // cleanup errors are allowed to propagate.
-    for (let index = removed.length - 1; index >= 0; index--) {
-      closeSearchStack(removed[index], true);
+    if (state.active) {
+      for (let index = removed.length - 1; index >= 0; index--) {
+        closeSearchStack(removed[index], true);
+      }
     }
     return removed;
   };
@@ -109,6 +112,17 @@ function withOwner(state, owner, operation) {
   } finally {
     state.owner = previous;
   }
+}
+
+function activateCleanupLifecycle(solver) {
+  const state = ensureLifecycleState(solver);
+  if (state.active) return state;
+  state.active = true;
+  for (const stack of solver.solveStacks) {
+    if (!state.stackOwners.has(stack)) state.stackOwners.set(stack, state.owner);
+    patchSearchStack(stack);
+  }
+  return state;
 }
 
 function patchSearchStack(stack) {
@@ -189,11 +203,13 @@ function firstSetupSolution(solver, setup, env) {
 }
 
 function callCleanupBuiltin({ solver, goal, env }) {
+  activateCleanupLifecycle(solver);
   const cleanup = callableTerm(goal.args[1], env);
   return cleanupProtectedIterator(solver, goal.args[0], cleanup, env);
 }
 
 function setupCallCleanupBuiltin({ solver, goal, env }) {
+  activateCleanupLifecycle(solver);
   let protectedIterator = null;
   let pending = true;
   const iterator = (function* setupThenProtected() {

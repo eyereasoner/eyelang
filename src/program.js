@@ -85,6 +85,9 @@ export class Program {
     this.multifilePredicates = new Set();
     this.discontiguousPredicates = new Set();
     this.strictIso = options.isoStrict === true;
+    // Normal mode automatically tables recursive user predicates unless an
+    // embedder explicitly requests traditional depth-first Prolog control.
+    this.autoTabling = options.autoTabling !== false;
     this.operators = new Map();
     const predefinedOperatorSets = this.strictIso
       ? [ISO_OPERATOR_DEFINITIONS]
@@ -177,7 +180,9 @@ export class Program {
     group.clauses.push(clause);
     if (clauseHasCut(clause)) group.hasCut = true;
     const clausePosition = group.clauses.length - 1;
-    for (let i = 0; i < head.arity; i++) indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition);
+    for (let i = 0; i < head.arity; i++) {
+      indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition, group.dynamic === true);
+    }
   }
   findGroup(name, arity, module = 'user') {
     const indicator = `${name}/${arity}`;
@@ -255,9 +260,24 @@ export class Program {
     clause.groundHead = termHasNoVariables(clause.head);
     clause.scalarHead = clause.head.type === COMPOUND && clause.head.args.every(isScalar);
     this.clauses.push(clause);
-    if (atStart) group.clauses.unshift(clause);
-    else group.clauses.push(clause);
-    rebuildGroupIndexes(group);
+    if (atStart) {
+      group.clauses.unshift(clause);
+      rebuildGroupIndexes(group);
+    } else {
+      const clausePosition = group.clauses.length;
+      group.clauses.push(clause);
+      // assertz/1 is by far the common dynamic-update path. Appending a clause
+      // does not invalidate the existing argument buckets, so extend them in
+      // place instead of rebuilding the whole predicate after every insert.
+      // This changes repeated ground bookkeeping from quadratic to linear.
+      group.demandIndexes.clear();
+      group.rejectedDemandIndexes.clear();
+      if (clause.body.length !== 0 || !clause.scalarHead) group.scalarFactsOnly = false;
+      if (clauseHasCut(clause)) group.hasCut = true;
+      for (let i = 0; i < clause.head.arity; i++) {
+        indexOne(group.argIndexes[i], clause.head.args[i], clause, group.clauses, clausePosition, true);
+      }
+    }
     this.noteMutation(clause.body.length > 0);
   }
   removeDynamicClause(group, clause) {
@@ -378,7 +398,7 @@ export class Program {
       );
       group.listTailRecursive = directRecursiveComponent && !group.cutRecursive &&
         hasStrictListTailRecursion(group);
-      group.tabled = plannedRecursive &&
+      group.tabled = this.autoTabling && plannedRecursive &&
         !componentHasNegativeEdge(start, deps, negativeEdges) &&
         !group.cutRecursive &&
         !linearNumeric;
@@ -698,7 +718,7 @@ class ProgramBuilder {
         if (clauseHasCut(clause)) group.hasCut = true;
         if (clause.body.length !== 0 || !clause.scalarHead) group.scalarFactsOnly = false;
         for (let i = 0; i < head.arity; i++) {
-          indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition);
+          indexOne(group.argIndexes[i], head.args[i], clause, group.clauses, clausePosition, group.dynamic === true);
         }
         continue;
       }
@@ -780,11 +800,13 @@ class ProgramBuilder {
 }
 
 function buildProgramFromSources(sources, options) {
-  // The source-metadata-free path is common for CLI and conformance runs.  It
-  // attempts the compact line parser directly into a fresh builder.  Should a
-  // source require the full parser (for example because it defines custom
-  // operators), the partial builder is simply discarded and the source set is
-  // rebuilt once with the general streaming parser.
+  // The source-metadata-free path is common for CLI and conformance runs. For
+  // a homogeneous source set, first try the compact parser directly into a
+  // fresh builder. Source sets that contain module-loading directives use a
+  // hybrid path instead: directive-heavy sources take the general parser while
+  // independent fast-compatible sources can still keep their compact clauses.
+  // This matters for launchers that load a small support program followed by a
+  // very large ordinary fact/rule file.
   const hasModuleDirectives = sources.some((source) => {
     const text = typeof source === 'string' ? source : source?.text ?? source?.source ?? '';
     return /:-\s*(?:module|use_module)\s*\(/.test(text);
@@ -793,10 +815,45 @@ function buildProgramFromSources(sources, options) {
     const builder = new ProgramBuilder(options);
     if (loadSourcesIntoBuilder(builder, sources, options, true)) return builder.finish();
   }
+  if (options.sourceMetadata === false && hasModuleDirectives) {
+    const builder = new ProgramBuilder(options);
+    if (loadSourcesIntoBuilder(builder, sources, options, 'hybrid')) return builder.finish();
+  }
 
   const builder = new ProgramBuilder(options);
   loadSourcesIntoBuilder(builder, sources, options, false);
   return builder.finish();
+}
+
+function cloneOperatorState(state) {
+  return {
+    infixOperators: new Map(state.infixOperators),
+    prefixOperators: new Map(state.prefixOperators),
+    postfixOperators: new Map(state.postfixOperators),
+  };
+}
+
+function cloneParserFlagState(state) {
+  return {
+    doubleQuotes: state.doubleQuotes,
+    charConversion: state.charConversion,
+    charConversions: new Map(state.charConversions),
+  };
+}
+
+function hybridFastSource(source, options) {
+  // Module/include directives recurse into additional source texts and can
+  // change lexical context. Keep those sources on the general loader. Ordinary
+  // user files may still contain op/3, dynamic/1, discontiguous/1, etc.; the
+  // compact parser handles those term-by-term and updates the shared state.
+  if (/:-(?:\s|\/\*[\s\S]*?\*\/)*(?:module|use_module|include|ensure_loaded)\s*\(/.test(source)) return false;
+  const probeOptions = {
+    ...options,
+    operatorState: cloneOperatorState(options.operatorState),
+    parserFlagState: cloneParserFlagState(options.parserFlagState),
+    onWarning: null,
+  };
+  return tryParseClausesFastInto(source, () => {}, () => {}, probeOptions);
 }
 
 // Program.parse() can see host-supplied goals through autoloadGoals while it
@@ -863,7 +920,8 @@ function loadSourcesIntoBuilder(builder, sources, options, fast) {
         module: 'user',
         textUnit: sourcePath(item.options) ?? `<input:${sourceIndex}>`,
       };
-      if (!loadSourceIntoBuilder(builder, text, item.options, ensured, loadedModules, fast, context)) return false;
+      const sourceFast = fast === 'hybrid' ? hybridFastSource(text, item.options) : fast;
+      if (!loadSourceIntoBuilder(builder, text, item.options, ensured, loadedModules, sourceFast, context)) return false;
     }
     const autoloadGoals = parseInteropGoalInputs(options.autoloadGoals, {
       ...options,

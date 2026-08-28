@@ -13,7 +13,7 @@ const EMPTY_ARGS = Object.freeze([]);
 // the chain into its indexed Map before that lookup cost dominates. Ordinary
 // execution keeps the memory-friendly 512-layer threshold; attributed-variable
 // propagation uses 256 because its repeated negative lookups dominate sooner.
-const ENV_FLATTEN_DEPTH = 512;
+const ENV_FLATTEN_DEPTH = 256;
 const ATTRIBUTED_ENV_FLATTEN_DEPTH = 256;
 // Runtime terms are structurally immutable: environments hold bindings beside
 // them rather than rewriting their argument arrays. Cache only the syntactic
@@ -105,6 +105,7 @@ export class Env {
       bindingValue: undefined,
       parent: null,
       depth: 0,
+      segmentCount: 0,
       cacheName: null,
       cacheValue: undefined,
       cache: null,
@@ -318,29 +319,55 @@ export class Env {
     }
     return undefined;
   }
+  compactForDeepContinuation(segmentLimit = 16) {
+    if ((this._state.segmentCount ?? 0) < segmentLimit) return false;
+    const flattened = new Map();
+    for (let state = this._state; state != null; state = state.parent) {
+      if (state.bindingName != null && !flattened.has(state.bindingName)) {
+        flattened.set(state.bindingName, state.bindingValue);
+      }
+      if (state.bindings) {
+        for (const [key, value] of state.bindings) {
+          if (!flattened.has(key)) flattened.set(key, value);
+        }
+      }
+    }
+    this._state = {
+      bindings: flattened,
+      bindingName: null,
+      bindingValue: undefined,
+      parent: null,
+      depth: 0,
+      segmentCount: 0,
+      cacheName: null,
+      cacheValue: undefined,
+      cache: null,
+    };
+    return true;
+  }
   bind(name, term) {
     const flattenDepth = this._prologAttributes == null
       ? ENV_FLATTEN_DEPTH
       : ATTRIBUTED_ENV_FLATTEN_DEPTH;
     if (this._state.depth >= flattenDepth) {
-      const flattened = new Map();
-      for (let state = this._state; state != null; state = state.parent) {
-        if (state.bindingName != null && !flattened.has(state.bindingName)) {
-          flattened.set(state.bindingName, state.bindingValue);
+      // Compact only the newest single-binding segment. Older compacted
+      // segments remain linked as parents, so deep deterministic recursion
+      // never recopies its complete binding history at every threshold.
+      const segment = new Map([[name, term]]);
+      let state = this._state;
+      while (state != null && state.bindings == null) {
+        if (state.bindingName != null && !segment.has(state.bindingName)) {
+          segment.set(state.bindingName, state.bindingValue);
         }
-        if (state.bindings) {
-          for (const [key, value] of state.bindings) {
-            if (!flattened.has(key)) flattened.set(key, value);
-          }
-        }
+        state = state.parent;
       }
-      flattened.set(name, term);
       this._state = {
-        bindings: flattened,
+        bindings: segment,
         bindingName: null,
         bindingValue: undefined,
-        parent: null,
+        parent: state,
         depth: 0,
+        segmentCount: (state?.segmentCount ?? 0) + 1,
         cacheName: null,
         cacheValue: undefined,
         cache: null,
@@ -353,6 +380,7 @@ export class Env {
       bindingValue: term,
       parent: this._state,
       depth: this._state.depth + 1,
+      segmentCount: this._state.segmentCount ?? 0,
       cacheName: null,
       cacheValue: undefined,
       cache: null,
@@ -923,12 +951,40 @@ export function freshTerm(term, suffix, variables = new Map()) {
 }
 
 export function copyResolved(term, env) {
+  const makeCopy = (resolved) => {
+    if (resolved.type === VAR) return variable(resolved.name);
+    const copied = resolved.type === COMPOUND && resolved.arity === 0
+      ? atom(resolved.name)
+      : new Term(resolved.type, resolved.name, new Array(resolved.args.length));
+    if (resolved.module != null) copied.module = resolved.module;
+    return copied;
+  };
+
   const resolved = deref(term, env);
-  if (resolved.type === VAR) return variable(resolved.name);
-  const copied = resolved.type === COMPOUND && resolved.arity === 0
-    ? atom(resolved.name)
-    : new Term(resolved.type, resolved.name, resolved.args.map((arg) => copyResolved(arg, env)));
-  if (resolved.module != null) copied.module = resolved.module;
+  const copied = makeCopy(resolved);
+  if (resolved.type === VAR || resolved.args.length === 0) return copied;
+
+  // Deep lists and machine-state terms can contain thousands of nested cells.
+  // Copy them iteratively so readback never consumes the JavaScript call stack.
+  // Keep a source-to-copy map as well, both to preserve shared subterms and to
+  // terminate on rational trees when occurs_check is disabled.
+  const copies = new Map([[resolved, copied]]);
+  const pending = [{ source: resolved, target: copied }];
+  while (pending.length > 0) {
+    const { source, target } = pending.pop();
+    for (let index = 0; index < source.args.length; index++) {
+      const childSource = deref(source.args[index], env);
+      let childCopy = copies.get(childSource);
+      if (childCopy == null) {
+        childCopy = makeCopy(childSource);
+        if (childSource.type !== VAR && childSource.args.length > 0) {
+          copies.set(childSource, childCopy);
+          pending.push({ source: childSource, target: childCopy });
+        }
+      }
+      target.args[index] = childCopy;
+    }
+  }
   return copied;
 }
 

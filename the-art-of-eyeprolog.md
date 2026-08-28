@@ -6237,12 +6237,12 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **298 distinct non-ISO library and normal-extension predicate
+EyeProlog exposes **299 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
 **241 are defined entirely as ordinary Prolog clauses** in focused modules under
-`src/lib/`; **57 use host support** for control, attributed variables,
+`src/lib/`; **58 use host support** for control, attributed variables,
 constraints, or observability. The ISO and library catalogs therefore cover
-**427 distinct predicate indicators**. Normal-mode controls and observability
+**428 distinct predicate indicators**. Normal-mode controls and observability
 relations that do not belong to a library, such as `call_cleanup/2`,
 `setup_call_cleanup/3`, `statistics/0,2`, and `tnot/1`, are documented in their
 own sections rather than counted as library predicates. `time/1` is additionally
@@ -6337,7 +6337,7 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(pio)` | `phrase_from_file/2`, `phrase_from_file/3`, `phrase_to_file/2`, `phrase_to_file/3`, `phrase_to_stream/2` | Eager portable DCG file and stream I/O |
 | `library(primes)` | `smallest_divisor_from/3` | Prime factor support |
 | `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` | Legacy facade over canonical focused modules |
-| `library(random)` | `maybe/0`, `random/3`, `random_integer/3`, `set_random/1` | Common mutable-seed interface plus EyeProlog's pure state-threaded generator |
+| `library(random)` | `maybe/0`, `random/1`, `random/3`, `random_integer/3`, `set_random/1` | Common mutable-seed interface plus EyeProlog's pure state-threaded generator |
 | `library(reif)` | `,/3`, `;/3`, `=/3`, `cond_t/3`, `dif/3`, `if_/3`, `memberd_t/3`, `tfilter/3`, `tmember/2`, `tmember_t/3`, `tpartition/4` | Reified conditions and list filtering; reused upstream source |
 | `library(si)` | `atom_si/1`, `integer_si/1`, `atomic_si/1`, `list_si/1`, `character_si/1`, `term_si/1`, `chars_si/1`, `dif_si/2`, `not_si/1`, `when_si/2` | Sufficient-instantiation checks used by CLP(Z) |
 | `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` | Text relations |
@@ -6558,6 +6558,12 @@ is a compatible declaration rather than a second tabling engine.
 `format_time//2` supports the documented year, month, day, time, month-name,
 weekday-name, and day-of-year specifiers.
 
+`random/1` keeps the common mutable-seed interface but uses a private native
+state step for hot-loop performance; its public sequence remains the same
+Park-Miller sequence used by the portable explicit-state `random/3`. The helper
+is internal to the normal EyeProlog registry and is not part of the ISO or
+public library predicate catalogs.
+
 `uuidv4/1`, `uuidv4_string/1`, and `uuid_string/2` provide the common UUID byte
 list and character-list interface. `uuid(+Seed0,-UUID,-Seed)` remains an
 EyeProlog extension that creates a version 4 UUID atom using pure `random/3`.
@@ -6605,6 +6611,7 @@ before calling the corresponding predicate.
 | Predicates and principal modes | Behavior |
 | --- | --- |
 | `lt(+A,+B)`, `le(+A,+B)`, `gt(+A,+B)`, `ge(+A,+B)` | Compare integers exactly, finite numeric text numerically, `PnYnMnD` duration text component-wise, and other lexical values by string order. These differ from ISO arithmetic comparison and standard term order. |
+| `random(-Value)` | Stateful Park-Miller step using the library seed set by `set_random/1`; implemented through a private native fast path while retaining the same sequence and numeric conversion as `random/3`. |
 | `random(+Seed0,-Value,-Seed)` | Portable Park-Miller generator with explicit state. `Value` is in `[0,1)`; pass the returned integer `Seed` to the next call. The same initial integer seed always reproduces the same sequence. |
 | `difference(+End,+Start,-Duration)` | Portable Prolog. Computes a nonnegative calendar difference between ISO date atoms/character lists and returns atom `'PnYnMnD'`. Invalid dates or an end before the start fail. |
 

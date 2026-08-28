@@ -64,6 +64,12 @@ export class StreamManager {
     this.add({ id: 1, alias: 'user_output', mode: 'append', type: 'text',
       content: '', position: 0, path: '', reposition: false,
       eofAction: 'reset', standard: true, write: this.output, pastEnd: false });
+    // user_error is a conventional de-facto standard stream used by the
+    // portable Scryer/Trealla libraries. Keep it on a negative internal handle
+    // so the first user-opened ISO stream retains its historical id 2.
+    this.add({ id: -1, alias: 'user_error', mode: 'append', type: 'text',
+      content: '', position: 0, path: '', reposition: false,
+      eofAction: 'reset', standard: true, write: options.errorWrite ?? this.output, pastEnd: false });
     this.currentInput = 0;
     this.currentOutput = 1;
   }

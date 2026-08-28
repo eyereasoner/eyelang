@@ -581,19 +581,85 @@ function isPartialList(list, env) {
   return cursor.type === VAR;
 }
 
-function freshCopy(term, env, variables = new Map(), id = ++isoFresh) {
-  term = deref(term, env);
-  if (term.type === VAR) {
-    if (!variables.has(term.name)) variables.set(term.name, variable(`__copy${id}_${variables.size}`));
-    return variables.get(term.name);
+const freshCopyGroundCache = new WeakMap();
+
+function structurallyVariableFree(term) {
+  if (term?.type === VAR) return false;
+  if (term?.type !== COMPOUND) return true;
+  const known = freshCopyGroundCache.get(term);
+  if (known !== undefined) return known;
+
+  const pending = [{ term, visited: false }];
+  while (pending.length > 0) {
+    const frame = pending.pop();
+    const current = frame.term;
+    if (current?.type !== COMPOUND || freshCopyGroundCache.has(current)) continue;
+    if (!frame.visited) {
+      pending.push({ term: current, visited: true });
+      for (let index = current.args.length - 1; index >= 0; index--) {
+        const child = current.args[index];
+        if (child?.type === COMPOUND && !freshCopyGroundCache.has(child)) {
+          pending.push({ term: child, visited: false });
+        }
+      }
+      continue;
+    }
+    let ground = true;
+    for (const child of current.args) {
+      if (child?.type === VAR || (child?.type === COMPOUND && freshCopyGroundCache.get(child) !== true)) {
+        ground = false;
+        break;
+      }
+    }
+    freshCopyGroundCache.set(current, ground);
   }
-  if (term.type !== COMPOUND) return term;
-  const copied = compound(term.name, term.args.map((arg) => freshCopy(arg, env, variables, id)));
-  // Module qualification is execution context, not logical variable state.
-  // Preserve it across copy_term/2 so meta-predicate closures keep the caller
-  // module they received before a library copies and later invokes them.
-  if (term.module != null) copied.module = term.module;
-  return copied;
+  return freshCopyGroundCache.get(term) === true;
+}
+
+function freshCopy(term, env, variables = new Map(), id = ++isoFresh) {
+  const copyNode = (source) => {
+    if (source.type === VAR) {
+      if (!variables.has(source.name)) variables.set(source.name, variable(`__copy${id}_${variables.size}`));
+      return variables.get(source.name);
+    }
+    if (source.type !== COMPOUND) return source;
+    // Ground terms are immutable in EyeProlog. Sharing them is observably
+    // equivalent to copying and avoids rebuilding large lists for assertz/1,
+    // copy_term/2, bagof/findall storage, and exception terms.
+    if (structurallyVariableFree(source)) return source;
+    const copied = compound(source.name, new Array(source.args.length));
+    // Module qualification is execution context, not logical variable state.
+    // Preserve it across copy_term/2 so meta-predicate closures keep the caller
+    // module they received before a library copies and later invokes them.
+    if (source.module != null) copied.module = source.module;
+    return copied;
+  };
+
+  const source = deref(term, env);
+  const root = copyNode(source);
+  if (source.type !== COMPOUND || source.args.length === 0) return root;
+
+  // copy_term/2 is routinely used on long lists and large machine states.
+  // Traverse iteratively so term depth is independent of the host call stack.
+  // The map also preserves rational-tree cycles when occurs_check is disabled.
+  const copies = new Map([[source, root]]);
+  const pending = [{ source, target: root }];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    for (let index = 0; index < current.source.args.length; index++) {
+      const childSource = deref(current.source.args[index], env);
+      let child = childSource.type === COMPOUND ? copies.get(childSource) : null;
+      if (child == null) {
+        child = copyNode(childSource);
+        if (childSource.type === COMPOUND && child !== childSource) {
+          copies.set(childSource, child);
+          if (childSource.args.length > 0) pending.push({ source: childSource, target: child });
+        }
+      }
+      current.target.args[index] = child;
+    }
+  }
+  return root;
 }
 function* copyTermBuiltin({ goal, env }) {
   const next = env.clone();
@@ -609,13 +675,15 @@ function* termVariablesBuiltin({ goal, env }) {
   }
   const found = [];
   const seen = new Set();
-  const visit = (term) => {
-    term = deref(term, env);
+  const pending = [goal.args[0]];
+  while (pending.length > 0) {
+    const term = deref(pending.pop(), env);
     if (term.type === VAR) {
       if (!seen.has(term.name)) { seen.add(term.name); found.push(term); }
-    } else for (const arg of term.args) visit(arg);
-  };
-  visit(goal.args[0]);
+      continue;
+    }
+    for (let index = term.args.length - 1; index >= 0; index--) pending.push(term.args[index]);
+  }
   const next = env.clone();
   if (unify(goal.args[1], listFromItems(found), next)) yield next;
 }

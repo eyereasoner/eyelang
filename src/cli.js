@@ -30,6 +30,7 @@ export async function main(argv) {
     isoStrict: false,
     portable: false,
     autoload: true,
+    autoTabling: true,
     version: false,
     warnings: false,
     goals: [],
@@ -57,6 +58,8 @@ export async function main(argv) {
       options.portable = true;
     } else if (!endOptions && arg === '--no-autoload') {
       options.autoload = false;
+    } else if (!endOptions && arg === '--no-auto-table') {
+      options.autoTabling = false;
     } else if (!endOptions && (arg === '--version' || arg === '-v')) {
       options.version = true;
     } else if (!endOptions && (arg === '--warnings' || arg === '-w')) {
@@ -153,6 +156,7 @@ export async function main(argv) {
     sourceMetadata: options.proof || options.isoStrict,
     isoStrict: options.isoStrict,
     autoload: options.autoload,
+    autoTabling: options.autoTabling,
     autoloadGoals: options.goals,
     onWarning: printSourceWarning,
   });
@@ -205,7 +209,10 @@ async function runDefault(engine, program, options) {
   const solver = new engine.Solver(program, {
     registry,
     isoStrict: options.isoStrict,
-    ioOptions: { write: (text) => process.stdout.write(String(text)) },
+    ioOptions: {
+      write: (text) => process.stdout.write(String(text)),
+      errorWrite: (text) => process.stderr.write(String(text)),
+    },
   });
   program = solver.program;
   const goals = engine.normalizeGoals(options.goals, solver);
@@ -252,6 +259,7 @@ Options:
                         reject EyeProlog language extensions and disable automatic tabling.
   --portable            Enforce the EyeProlog/Trealla/Scryer interop profile.
   --no-autoload         Disable conservative interop predicate autoloading.
+  --no-auto-table       Use traditional depth-first control instead of automatic recursive tabling.
   -v, --version         Show the package version and exit.
   -w, --warnings        Print non-fatal portability warnings to stderr.
   -g, --goal goal       Solve goal and print its ground answers; may be repeated.

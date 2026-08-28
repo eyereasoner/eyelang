@@ -4,7 +4,7 @@
 // backtrackable blackboard lives in Env so ordinary Prolog choice points undo
 // writes automatically.
 
-import { ATOM, COMPOUND, NUMBER, STRING, VAR, atom, compound, deref, listFromItems, unify } from './term.js';
+import { ATOM, COMPOUND, NUMBER, STRING, VAR, atom, compound, deref, listFromItems, numberTerm, numberTextFromDouble, unify } from './term.js';
 import { PrologError } from './errors.js';
 import { formatTermForWrite } from './write.js';
 
@@ -44,6 +44,27 @@ function* bbGlobalPutBuiltin({ solver, goal, env }) {
   const key = blackboardKey(goal.args[0], env);
   solver.nonBacktrackableBlackboard.set(key, deref(goal.args[1], env));
   yield env;
+}
+
+
+
+function* randomValueBuiltin({ solver, goal, env }) {
+  const key = 'a:$random_seed';
+  const stored = solver.nonBacktrackableBlackboard.get(key);
+  let seed = stored == null ? 1 : Number(deref(stored, env).name);
+  if (!Number.isSafeInteger(seed)) seed = 1;
+  seed %= 2147483647;
+  if (seed < 0) seed += 2147483647;
+  if (seed === 0) seed = 1;
+  const high = Math.floor(seed / 44488);
+  const low = seed % 44488;
+  let nextSeed = 48271 * low - 3399 * high;
+  if (nextSeed <= 0) nextSeed += 2147483647;
+  const value = (nextSeed - 1) / 2147483646;
+  const next = env.clone();
+  if (!unify(goal.args[0], numberTerm(numberTextFromDouble(value)), next)) return;
+  solver.nonBacktrackableBlackboard.set(key, numberTerm(nextSeed));
+  yield next;
 }
 
 const charTypeNames = new Set([
@@ -215,15 +236,34 @@ function* termCharsBuiltin({ solver, goal, env }) {
   if (unify(goal.args[2], chars(text), next)) yield next;
 }
 
+
+function* portrayClauseBuiltin({ solver, goal, env }) {
+  const text = formatTermForWrite(goal.args[0], env, {
+    quoted: true,
+    numbervars: true,
+    compact: true,
+    minimalOperatorSpacing: true,
+    operatorAtomsAsArgs: true,
+    generateVariableNames: true,
+    variableNameState: solver.writeVariableState,
+    operators: solver.program.operators.values(),
+  });
+  const stream = solver.io.resolve(solver.io.currentOutput);
+  solver.io.writeUnit(stream, `${text}.\n`);
+  yield env;
+}
+
 export const scryerCompatibilityBuiltins = {
   register(registry) {
     registry.add('eyeprolog__bb_get', 2, bbGetBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__bb_b_put', 2, bbPutBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__bb_global_get', 2, bbGlobalGetBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__bb_global_put', 2, bbGlobalPutBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('eyeprolog__random_value', 1, randomValueBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__char_type', 2, charTypeBuiltin, { eyePrologLibrary: true });
     registry.add('eyeprolog__current_time', 1, currentTimeBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__abolish_all_tables', 0, abolishAllTablesBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('eyeprolog__term_chars', 3, termCharsBuiltin, { deterministic: true, eyePrologLibrary: true });
+    registry.add('portray_clause', 1, portrayClauseBuiltin, { deterministic: true, eyePrologLibrary: true });
   },
 };

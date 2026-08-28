@@ -84,6 +84,7 @@ export const eyePrologNativeLibraryIndicators = Object.freeze([
   'disjoint2/1', 'automaton/3', 'automaton/8', 'chain/2', 'element/3', 'zcompare/3',
   'fd_var/1', 'fd_inf/2', 'fd_sup/2', 'fd_size/2', 'fd_dom/2',
   'clpz_t/2', '#=/3', '#</3',
+  'random/1',
 ]);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
   'sumall/3', 'aggregate_min/5', 'aggregate_max/5',
@@ -232,7 +233,7 @@ const eyePrologSharedLibraryIndicators = [
   'ord_subtract/3', 'ord_symdiff/3', 'ord_union/2', 'ord_union/3', 'ord_union/4',
   'phrase_from_file/2', 'phrase_from_file/3', 'phrase_to_file/2',
   'phrase_to_file/3', 'phrase_to_stream/2',
-  'maybe/0', 'random_integer/3', 'set_random/1',
+  'maybe/0', 'random/1', 'random_integer/3', 'set_random/1',
   ',/3', ';/3', '=/3', 'cond_t/3', 'dif/3', 'if_/3', 'memberd_t/3',
   'tfilter/3', 'tmember/2', 'tmember_t/3', 'tpartition/4',
   'start_tabling/2', 'abolish_all_tables/0', 'current_time/1', 'format_time/4',

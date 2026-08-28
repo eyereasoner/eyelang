@@ -17,6 +17,7 @@ import { evaluatePositiveDatalog, relationForDatalogGroup, datalogCandidateIndex
 
 let freshCounter = 0;
 const DEFAULT_INNER_TABLE_SCOPE_LIMIT = 1024;
+const GOAL_CONTINUATION_THRESHOLD = 64;
 // Conservative live-storage estimate for one generated length/2 list cell
 // (cons object, argument vector, fresh variable, and its generated name).
 const GENERATED_LENGTH_CELL_RESERVE_BYTES = 256;
@@ -438,8 +439,22 @@ export class Solver {
       if (frame.kind === 'userClause') {
         if (this.solutionsSeen >= this.solutionLimit) continue;
         const { clause, goal: clauseGoal, rest: clauseRest, env: clauseEnv, depth: clauseDepth,
-          active: clauseActive, release } = frame;
+          active: clauseActive, release, tailReleaseBeforeLast, directCutReleaseIndex } = frame;
         let next;
+        if (clause.body.length === 0 && clause.groundHead) {
+          const matched = sameResolvedGroundTerm(clauseGoal, clause.head, clauseEnv);
+          if (matched === true) {
+            stack.push({
+              kind: 'goals',
+              goals: [...release, ...clauseRest],
+              env: clauseEnv,
+              depth: clauseDepth + 1,
+              active: clauseActive,
+            });
+            continue;
+          }
+          if (matched === false) continue;
+        }
         if (clause.body.length === 0 && clause.scalarHead) {
           next = matchScalarFact(clauseGoal, clause.head, clauseEnv);
           if (!next) continue;
@@ -463,11 +478,33 @@ export class Solver {
         next = clauseEnv.clone();
         this.stats.unify_calls++;
         if (!unify(clauseGoal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) continue;
+        let nextGoals;
+        if (freshBody.length === 0) {
+          nextGoals = [...release, ...clauseRest];
+        } else if (directCutReleaseIndex >= 0) {
+          const afterCut = directCutReleaseIndex + 1;
+          nextGoals = [...freshBody.slice(0, afterCut), ...release, ...freshBody.slice(afterCut), ...clauseRest];
+        } else if (tailReleaseBeforeLast) {
+          const tail = freshBody[freshBody.length - 1];
+          next.compactForDeepContinuation?.();
+          nextGoals = [...freshBody.slice(0, -1), ...release, tail, ...clauseRest];
+        } else if (clauseRest.length >= GOAL_CONTINUATION_THRESHOLD ||
+            clauseRest.some((goal) => goal?.kind === 'continueGoals')) {
+          // Keep a large caller continuation as one opaque frame instead of
+          // copying its complete pending goal list into every nested clause.
+          // Small goal lists remain flat because that representation is faster
+          // for ordinary shallow search.
+          next.compactForDeepContinuation?.();
+          nextGoals = [
+            ...freshBody,
+            { kind: 'continueGoals', goals: clauseRest, depth: clauseDepth, releaseActive: release.length !== 0 },
+          ];
+        } else {
+          nextGoals = [...freshBody, ...release, ...clauseRest];
+        }
         stack.push({
           kind: 'goals',
-          goals: freshBody.length === 0
-            ? [...release, ...clauseRest]
-            : [...freshBody, ...release, ...clauseRest],
+          goals: nextGoals,
           env: next,
           depth: clauseDepth + 1,
           active: clauseActive,
@@ -552,6 +589,12 @@ export class Solver {
         }
 
         const first = goals[0];
+        if (first?.kind === 'continueGoals') {
+          if (first.releaseActive) active = active.slice(0, -1);
+          depth = first.depth;
+          goals = first.goals;
+          continue;
+        }
         if (first?.kind === 'releaseActive') {
           active = active.slice(0, -1);
           goals = goals.slice(1);
@@ -987,7 +1030,7 @@ export class Solver {
   }
 
   *solveUserGoalUncached(group, goal, rest, env, depth) {
-    if (group.recursive && !group.cutRecursive && !group.linearNumeric && this.activeVariant(goal, env)) {
+    if (this.program.autoTabling !== false && group.recursive && !group.cutRecursive && !group.linearNumeric && this.activeVariant(goal, env)) {
       this.recursionCycleDetected = true;
       return;
     }
@@ -1194,7 +1237,7 @@ function pushMemoAnswerFrames(stack, entry, goal, rest, env, depth, active, solv
 }
 
 function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth, active) {
-  if (group.recursive && !group.cutRecursive && !group.linearNumeric && activeVariantIn(goal, env, active)) {
+  if (solver.program.autoTabling !== false && group.recursive && !group.cutRecursive && !group.linearNumeric && activeVariantIn(goal, env, active)) {
     solver.recursionCycleDetected = true;
     return;
   }
@@ -1208,9 +1251,6 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   // recursive user predicates. Cut-free, non-recursive library helpers need
   // neither. Copying their full active stack at every recursive step made
   // otherwise linear relations such as length/2 retain O(depth^2) references.
-  const guarded = groupNeedsActiveFrame(group);
-  const release = guarded ? [{ kind: 'releaseActive' }] : [];
-  const nextActive = guarded ? [...active, invocation] : active;
   for (const pass of [candidates.primary, candidates.fallback]) {
     for (let candidateIndex = 0; candidateIndex < clauseCandidateLength(pass); candidateIndex++) {
       const clause = clauseCandidateAt(pass, candidateIndex);
@@ -1226,10 +1266,25 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
         rest,
         env,
         depth,
-        active: nextActive,
-        release,
       });
     }
+  }
+  // Traditional depth-first mode disables recursive-cycle guards. A cut
+  // boundary is then needed only if an actually reachable clause contains a
+  // cut. Scalar indexes often narrow a mixed predicate to one cut-free
+  // recursive clause; do not copy the whole active path at every such layer.
+  const guarded = solver.program.autoTabling === false
+    ? frames.some((frame) => clauseHasCutForTailRelease(frame.clause))
+    : groupNeedsActiveFrame(group);
+  const release = guarded ? [{ kind: 'releaseActive' }] : [];
+  const nextActive = guarded ? [...active, invocation] : active;
+  for (const frame of frames) {
+    frame.active = nextActive;
+    frame.release = release;
+    frame.tailReleaseBeforeLast = solver.program.autoTabling === false && guarded &&
+      clauseCanReleaseActiveBeforeTailCall(group, frame.clause);
+    frame.directCutReleaseIndex = solver.program.autoTabling === false && guarded
+      ? clauseDirectCutReleaseIndex(frame.clause) : -1;
   }
   for (let i = frames.length - 1; i >= 0; i--) stack.push(frames[i]);
 }
@@ -1361,6 +1416,51 @@ function prepareLocalVariablesForGoal(goal, env) {
     }
   }
   env.markLocalVariables(goal?._localFirstUseVariables ?? null);
+}
+
+function clauseDirectCutReleaseIndex(clause) {
+  if (clause?.compactBinary === true) return -1;
+  let lastDirectCut = -1;
+  for (let index = 0; index < clause.body.length; index++) {
+    const goal = clause.body[index];
+    if (goal?.type === ATOM && goal.name === '!') {
+      lastDirectCut = index;
+      continue;
+    }
+    if (termContainsCutForRelease(goal)) return -1;
+  }
+  return lastDirectCut;
+}
+
+function termContainsCutForRelease(term) {
+  if (term?.type === ATOM) return term.name === '!';
+  if (term?.type !== COMPOUND) return false;
+  const pending = [...term.args];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (current?.type === ATOM && current.name === '!') return true;
+    if (current?.type === COMPOUND) for (const arg of current.args) pending.push(arg);
+  }
+  return false;
+}
+
+function clauseCanReleaseActiveBeforeTailCall(group, clause) {
+  if (clauseHasCutForTailRelease(clause)) return false;
+  if (group.clauses[group.clauses.length - 1] !== clause || clause.body.length === 0) return false;
+  const tail = clause.body[clause.body.length - 1];
+  return tail?.type === COMPOUND && tail.name === group.name && tail.arity === group.arity &&
+    (tail.module ?? group.module) === group.module;
+}
+
+function clauseHasCutForTailRelease(clause) {
+  if (clause?.compactBinary === true) return false;
+  const pending = [...clause.body];
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (current?.type === ATOM && current.name === '!') return true;
+    if (current?.type === COMPOUND) for (const arg of current.args) pending.push(arg);
+  }
+  return false;
 }
 
 function groupNeedsActiveFrame(group) {
@@ -2174,7 +2274,7 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
   const groups = [];
   while (runLength < goals.length) {
     const goal = goals[runLength];
-    if (!goal || goal.kind === 'releaseActive' || goal.kind === 'memoStore') break;
+    if (!goal || goal.kind === 'releaseActive' || goal.kind === 'memoStore' || goal.kind === 'continueGoals') break;
     if (goal.type !== COMPOUND) break;
     const def = solver.registry.get(goal.name, goal.arity);
     if (def) break;
@@ -2214,7 +2314,7 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
     }
 
     const goal = runGoals[state.index];
-    if (activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
+    if (solver.program.autoTabling !== false && activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
       solver.recursionCycleDetected = true;
       continue;
     }
@@ -2274,7 +2374,7 @@ function* scalarFactRunGenerator(solver, goals, groups, env, depth, active, pend
     }
 
     const goal = goals[state.index];
-    if (activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
+    if (solver.program.autoTabling !== false && activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
       solver.recursionCycleDetected = true;
       continue;
     }
@@ -2433,19 +2533,72 @@ function compactIndexBucket(index, type, name) {
 }
 
 function tryPushCompactBinaryChainFrames(stack, solver, group, goal, rest, env, depth, active) {
-  if (active.length !== 0 || goal.type !== COMPOUND || goal.arity !== 2) return false;
-  // This fast path only accepts scalar arguments. Dereference those arguments
-  // directly instead of deep-copying the whole goal before discovering that a
-  // list/compound argument is ineligible. Besides avoiding wasted work, this
-  // keeps deep DCG state lists away from recursive copyResolved().
+  if (goal.type !== COMPOUND || goal.arity !== 2) return false;
+  // This fast path follows deterministic compact binary chains selected by a
+  // scalar second argument. In addition to a scalar first argument, accept an
+  // unbound first variable when every recursive rule carries that variable
+  // through unchanged. The latter is the common taxonomy form p(X,nN) :-
+  // p(X,nN-1): it can be walked iteratively and X is bound only by the base
+  // fact, avoiding thousands of recursive Env/active-frame allocations.
   const first = derefForLocal(goal.args[0], env);
   const second = derefForLocal(goal.args[1], env);
-  let secondType = second?.type;
-  let secondName = second?.name;
-  if (!isScalarTerm(first) || !['atom', 'string', 'number'].includes(secondType)) return false;
+  const firstScalar = isScalarTerm(first);
+  const firstVariable = first?.type === 'var';
+  if ((!firstScalar && !firstVariable) || !['atom', 'string', 'number'].includes(second?.type)) return false;
+  // Preserve the established cached scalar-chain semantics inside an active
+  // invocation. The variable-carry chain below does not use cross-call caches
+  // and is safe in an active meta-call because it still checks its own cycles.
+  if (firstScalar && active.length !== 0) return false;
 
   const index = group.argIndexes[1];
   if (!index?.sawScalar || index.fallback.length !== 0) return false;
+
+  if (firstVariable) {
+    const seen = scalarSetContainer();
+    let secondType = second.type;
+    let secondName = second.name;
+    let currentDepth = depth;
+    while (true) {
+      if (solver.solutionsSeen >= solver.solutionLimit) return true;
+      solver.stats.max_depth = Math.max(solver.stats.max_depth, currentDepth);
+      const seenSet = seen[secondType];
+      if (!seenSet) return true;
+      if (seenSet.has(secondName)) {
+        solver.recursionCycleDetected = true;
+        return true;
+      }
+      seenSet.add(secondName);
+
+      const candidates = compactIndexBucket(index, secondType, secondName);
+      if (clauseCandidateLength(candidates) !== 1) return false;
+      const clause = clauseCandidateAt(candidates, 0);
+      if (clause?.compactBinary !== true || clause.headName !== group.name) return false;
+      if (clause.head1Type !== secondType || clause.head1Name !== secondName) return true;
+
+      if (clause.bodyName == null) {
+        const next = env.clone();
+        // A variable base fact leaves the carried query variable unconstrained;
+        // a scalar base fact binds it exactly as ordinary clause unification.
+        if (clause.head0Type !== 'var') {
+          if (!unify(goal.args[0], clause.head.args[0], next)) return true;
+          if (next._variableConstraints != null && !next.validateVariableConstraints()) return true;
+        }
+        stack.push({ kind: 'goals', goals: rest, env: next, depth: depth + 1, active });
+        return true;
+      }
+
+      if (clause.bodyName !== group.name || clause.head0Type !== 'var' ||
+          clause.body0Type !== 'var' || clause.body0Name !== clause.head0Name ||
+          !['atom', 'string', 'number'].includes(clause.body1Type)) return false;
+
+      secondType = clause.body1Type;
+      secondName = clause.body1Name;
+      currentDepth++;
+    }
+  }
+
+  let secondType = second.type;
+  let secondName = second.name;
   const cache = compactChainCacheFor(solver, group, first);
   const seen = scalarSetContainer();
   let currentDepth = depth;
@@ -2590,7 +2743,7 @@ function tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, 
       solver.recursionCycleDetected = true;
       return true;
     }
-    if (activeVariantIn(currentGoal, currentEnv, active)) {
+    if (solver.program.autoTabling !== false && activeVariantIn(currentGoal, currentEnv, active)) {
       solver.recursionCycleDetected = true;
       return true;
     }
@@ -2741,11 +2894,30 @@ function sameScalarTerm(left, right) {
 }
 
 function sameGroundTerm(left, right) {
-  if (left?.type !== right?.type) return false;
-  if (left?.type === 'number' ? !sameNumberValue(left.name, right.name) : left?.name !== right?.name) return false;
-  const arity = left.args?.length ?? 0;
-  if (arity !== (right.args?.length ?? 0)) return false;
-  for (let i = 0; i < arity; i++) if (!sameGroundTerm(left.args[i], right.args[i])) return false;
+  const pending = [[left, right]];
+  while (pending.length > 0) {
+    const [a, b] = pending.pop();
+    if (a?.type !== b?.type) return false;
+    if (a?.type === 'number' ? !sameNumberValue(a.name, b.name) : a?.name !== b?.name) return false;
+    const arity = a?.args?.length ?? 0;
+    if (arity !== (b?.args?.length ?? 0)) return false;
+    for (let index = 0; index < arity; index++) pending.push([a.args[index], b.args[index]]);
+  }
+  return true;
+}
+
+function sameResolvedGroundTerm(left, right, env) {
+  const pending = [[left, right]];
+  while (pending.length > 0) {
+    let [a, b] = pending.pop();
+    a = derefForLocal(a, env);
+    if (a?.type === 'var') return null;
+    if (a?.type !== b?.type) return false;
+    if (a?.type === 'number' ? !sameNumberValue(a.name, b.name) : a?.name !== b?.name) return false;
+    const arity = a?.args?.length ?? 0;
+    if (arity !== (b?.args?.length ?? 0)) return false;
+    for (let index = 0; index < arity; index++) pending.push([a.args[index], b.args[index]]);
+  }
   return true;
 }
 
@@ -2908,7 +3080,7 @@ function pushResumeBuiltinFrame(stack, iterator, goals, depth, active) {
 function selectReadyDeterministicBuiltin(goals, env, registry) {
   for (let i = 0; i < goals.length; i++) {
     const goal = goals[i];
-    if (goal?.kind === 'releaseActive' || goal?.kind === 'memoStore') return 0;
+    if (goal?.kind === 'releaseActive' || goal?.kind === 'memoStore' || goal?.kind === 'continueGoals') return 0;
     // A first-use proof is derived from source goal order. Do not move a later
     // deterministic builtin across that equality: doing so could touch one of
     // its proven-fresh variables before the checked binding executes.

@@ -27,6 +27,8 @@ export interface EyePrologRunOptions {
   isoStrict?: boolean;
   /** Autoload uniquely mapped predicates from the conservative interop profile. Defaults to true outside strict ISO mode. */
   autoload?: boolean;
+  /** Automatically table recursive user predicates in normal mode. Defaults to true; set false for traditional depth-first control. */
+  autoTabling?: boolean;
   /** Initial ISO interpretation of double-quoted list notation. Defaults to chars. */
   doubleQuotes?: 'chars' | 'codes' | 'atom';
   ioOptions?: {

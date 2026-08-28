@@ -28,8 +28,7 @@ call_nth(Goal, Nth) :- eyeprolog__call_nth(Goal, Nth).
 countall(Goal, Count) :- eyeprolog__countall(Goal, Count).
 
 forall(Condition, Action) :-
-    findall(Action, Condition, Actions),
-    iso_ext__call_all(Actions).
+    \+ (Condition, \+ Action).
 
 succ(X, S) :-
     var(X), !,
