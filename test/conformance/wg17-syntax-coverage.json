@@ -1,14 +1,14 @@
 {
   "source": "https://www.complang.tuwien.ac.at/ulrich/iso-prolog/conformity_testing",
-  "checkedOn": "2026-08-16",
+  "checkedOn": "2026-08-28",
   "upstream": {
     "firstId": 1,
-    "lastId": 368,
+    "lastId": 374,
     "deletedIds": [
       20,
       273
     ],
-    "activeCases": 366
+    "activeCases": 372
   },
   "evidence": [
     {

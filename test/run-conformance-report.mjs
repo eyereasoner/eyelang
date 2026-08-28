@@ -69,6 +69,8 @@ export function buildConformanceReport({ wg17Suite = runWg17 } = {}) {
 }
 
 export function formatConformanceReport(report = buildConformanceReport()) {
+  const wg17 = report.executable.find((gate) => gate.name === 'WG17 syntax');
+  const wg17Total = wg17?.total ?? 0;
   const lines = [
     '# EyeProlog conformance report',
     '',
@@ -89,7 +91,7 @@ export function formatConformanceReport(report = buildConformanceReport()) {
 
   lines.push(
     '',
-    'The WG17 syntax row executes the vendored 366-case conformity-testing matrix',
+    `The WG17 syntax row executes the vendored ${wg17Total}-case conformity-testing matrix`,
     'against EyeProlog\'s strict ISO reader/writer. A behavior fix such as operator-token',
     'spelling therefore changes this report even when no corpus file is added or removed.',
     '',

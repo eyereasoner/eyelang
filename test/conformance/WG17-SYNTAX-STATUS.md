@@ -1,16 +1,16 @@
 # WG17 syntax traceability status
 
 Source: [Conformity Testing I: Syntax](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/conformity_testing)  
-Upstream inventory checked: 2026-08-16
+Upstream inventory checked: 2026-08-28
 
 This ledger counts an upstream case when its WG17 identifier, query, and
 expected ISO disposition are stored in the offline executable matrix. Every
 case is executed against the upstream Codex expectation. Reviewed exact
 EyeProlog outcomes are additional regression locks and can never override the
-upstream assertion. Writer expectations also preserve ISO-significant token
-spelling: in particular, a bare bar used as an operator is not treated as
-equivalent to a quoted atom, and a bare semicolon name token is not silently
-accepted in quoted form.
+upstream assertion. Concrete writer expectations are matched lexically: layout,
+parentheses, and quoting are significant. Only Codex expectations explicitly
+marked e.g. use controlled flexibility for representation choices such as
+generated variable names or equivalent numeric spellings.
 
 ## Current standing
 
@@ -20,25 +20,25 @@ A represented case still has to pass the executable upstream assertion in
 
 | Measure | Count |
 | --- | ---: |
-| Active upstream cases | 366 |
-| Upstream cases represented in the executable matrix | 366 (100.0%) |
+| Active upstream cases | 372 |
+| Upstream cases represented in the executable matrix | 372 (100.0%) |
 | Not yet traced one-by-one | 0 |
 | Deleted upstream identifiers | #20, #273 |
 
 The matrix runs in strict ISO stream-reader mode as part of `npm test`. The
 3 upstream `waits` cases are checked through EyeProlog's interactive input
-hook. All 366 executable cases are independently checked against the
-upstream Codex expectation. 366 cases additionally retain exact reviewed
+hook. All 372 executable cases are independently checked against the
+upstream Codex expectation. 372 cases additionally retain exact reviewed
 outcomes for stronger regression checking; 0 cases currently rely on the upstream assertion alone.
 
 ## Traceable evidence
 
 | Executable evidence | Referenced IDs | WG17 cases |
 | --- | ---: | --- |
-| [complete offline executable matrix](../run-wg17.mjs) | 366 | #1–#19, #21–#272, #274–#368 |
+| [complete offline executable matrix](../run-wg17.mjs) | 372 | #1–#19, #21–#272, #274–#374 |
 
-The evidence groups overlap. Their union is **366** active cases:
-#1–#19, #21–#272, #274–#368.
+The evidence groups overlap. Their union is **372** active cases:
+#1–#19, #21–#272, #274–#374.
 
 ## Untraced upstream identifiers
 

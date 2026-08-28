@@ -4726,6 +4726,54 @@ function documentationSyncCases() {
           false,
           'quoted semicolon is not accepted when the ISO name token is bare',
         );
+        const quotedPostfixWriter = {
+          id: 208,
+          query: "op(100,xf,'f ').\nwriteq(0 'f ').",
+          input: "op(100,xf,'f ').\nwriteq(0 'f ').",
+        };
+        assertEqual(
+          matchesUpstreamExpectation(
+            "0 'f '",
+            { type: 'success', stages: [{ output: "0'f '", variables: '[]' }] },
+            quotedPostfixWriter,
+          ),
+          false,
+          'mandatory layout before quoted postfix operator is not erased',
+        );
+        const dottedPostfixWriter = {
+          id: 169,
+          query: 'writeq(.(.)).',
+          input: "op(0,xfy,.),op(9,yf,.).\nwriteq(.(.)).",
+        };
+        assertEqual(
+          matchesUpstreamExpectation(
+            "('.')'.'",
+            { type: 'success', stages: [{ output: "'.' '.'", variables: '[]' }] },
+            dottedPostfixWriter,
+          ),
+          false,
+          'mandatory writer parentheses are not replaced by layout',
+        );
+        const wordPostfixWriter = { id: 150, query: 'writeq(yf(fy(1))).', input: 'writeq(yf(fy(1))).' };
+        assertEqual(
+          matchesUpstreamExpectation(
+            '(fy 1)yf',
+            { type: 'success', stages: [{ output: '(fy 1) yf', variables: '[]' }] },
+            wordPostfixWriter,
+          ),
+          false,
+          'concrete writer layout is matched exactly',
+        );
+        const canonicalWriter = { id: 163, query: 'write_canonical(1 p p p 2).', input: 'write_canonical(1 p p p 2).' };
+        assertEqual(
+          matchesUpstreamExpectation(
+            'p(1,p(p(2)))',
+            { type: 'success', stages: [{ output: 'p(1, p(p(2)))', variables: '[]' }] },
+            canonicalWriter,
+          ),
+          false,
+          'concrete canonical writer layout is matched exactly',
+        );
         const repeated = {
           id: 227, input: 'write_canonical(B+B).',
           outcome: { type: 'success', stages: [{ output: '+(_A,_A)', variables: "['B' = B]" }] },
@@ -5030,11 +5078,11 @@ function documentationSyncCases() {
         assertEqual(report.total.positive + report.total.errors + report.total.warnings + report.total.proofs, report.total.total, 'conformance total');
         assertEqual(report.rows.some((row) => row.category === 'legacy-numbered'), false, 'legacy-numbered category');
         const wg17 = report.executable.find((gate) => gate.name === 'WG17 syntax');
-        assertEqual(wg17?.total, 366, 'WG17 executable total');
-        assertEqual(wg17?.passed, 366, 'WG17 executable passed');
+        assertEqual(wg17?.total, 372, 'WG17 executable total');
+        assertEqual(wg17?.passed, 372, 'WG17 executable passed');
         assertArrayEqual(wg17?.failures ?? [], [], 'WG17 executable failures');
         const text = formatConformanceReport(report);
-        assertIncludes(text, '| WG17 syntax | 366 | 366 | pass |', 'report');
+        assertIncludes(text, '| WG17 syntax | 372 | 372 | pass |', 'report');
         assertIncludes(text, '| variables |', 'report');
         assertIncludes(text, '| Proofs |', 'report');
         assertIncludes(text, '| **Total** |', 'report');

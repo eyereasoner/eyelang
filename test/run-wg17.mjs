@@ -306,11 +306,25 @@ function abbreviatedErrorMatches(expected, actual) {
   return patterns.some(([pattern, prefix]) => pattern.test(expected) && formal.startsWith(prefix));
 }
 
+function isWriterCase(item) {
+  return /\bwrite(?:q|_canonical|_term)?\s*\(/.test(item?.query ?? '');
+}
+
 function textExpectationMatches(expectedText, actual, item, example = false) {
   const candidates = observableCandidates(actual);
   if (candidates.length === 0) return false;
   let expected = presentationText(expectedText);
   if (example) expected = expected.replace(/^e\.g\.\s*/i, '');
+
+  // A concrete WG17 writer expectation describes output syntax, not merely
+  // the term denoted by that output. Layout, quoting and parentheses are
+  // therefore significant. Only expectations explicitly marked `e.g.` use
+  // the controlled semantic/layout fallbacks below.
+  const hasBindings = actual.type === 'success' &&
+    actual.stages.some(({ variables }) => bindingAnswer(variables).length > 0);
+  if (!example && isWriterCase(item) && !hasBindings) {
+    return candidates.some((candidate) => presentationText(candidate) === expected);
+  }
 
   for (const candidate of candidates) {
     let left = expected;

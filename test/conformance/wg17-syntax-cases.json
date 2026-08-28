@@ -2486,7 +2486,7 @@
             "variables": "[]"
           },
           {
-            "output": "0''",
+            "output": "0 ''",
             "variables": "[]"
           }
         ]
@@ -2506,7 +2506,7 @@
             "variables": "[]"
           },
           {
-            "output": "0''",
+            "output": "0 ''",
             "variables": "[]"
           }
         ]
@@ -2653,7 +2653,7 @@
             "variables": "[]"
           },
           {
-            "output": "0'f '",
+            "output": "0 'f '",
             "variables": "[]"
           }
         ]
@@ -3313,7 +3313,7 @@
             "variables": "[]"
           },
           {
-            "output": "(fy 1) yf",
+            "output": "(fy 1)yf",
             "variables": "[]"
           }
         ]
@@ -3333,7 +3333,7 @@
             "variables": "[]"
           },
           {
-            "output": "(fy (fy 1) yf) yf",
+            "output": "(fy (fy 1)yf)yf",
             "variables": "[]"
           }
         ]
@@ -3393,7 +3393,7 @@
             "variables": "[]"
           },
           {
-            "output": "(fy 1) yfx 2",
+            "output": "(fy 1)yfx 2",
             "variables": "[]"
           }
         ]
@@ -3453,7 +3453,7 @@
             "variables": "[]"
           },
           {
-            "output": "(1 xfy 2) yf",
+            "output": "(1 xfy 2)yf",
             "variables": "[]"
           }
         ]
@@ -3587,7 +3587,7 @@
       "query": "op(9,fy,p),op(9,xfy,p).\nwrite_canonical(1 p p p 2).",
       "input": "op(9,fy,p),op(9,xfy,p).\nwrite_canonical(1 p p p 2).",
       "readCount": 2,
-      "expected": "p(1, p(p(2)))",
+      "expected": "p(1,p(p(2)))",
       "outcome": {
         "type": "success",
         "stages": [
@@ -3607,7 +3607,7 @@
       "query": "op(7,fy,p),op(9,yfx,p).\nwrite_canonical(1 p p p 2).",
       "input": "op(7,fy,p),op(9,yfx,p).\nwrite_canonical(1 p p p 2).",
       "readCount": 2,
-      "expected": "p(1, p(p(2)))",
+      "expected": "p(1,p(p(2)))",
       "outcome": {
         "type": "success",
         "stages": [
@@ -3695,7 +3695,7 @@
             "variables": "[]"
           },
           {
-            "output": "'.' '.'",
+            "output": "('.')'.'",
             "variables": "[]"
           }
         ]
@@ -5564,6 +5564,97 @@
             "variables": "[]"
           }
         ]
+      }
+    },
+    {
+      "id": 369,
+      "query": "writeq(?-).",
+      "input": "writeq(?-).",
+      "readCount": 1,
+      "expected": "?-",
+      "outcome": {
+        "type": "success",
+        "stages": [
+          {
+            "output": "?-",
+            "variables": "[]"
+          }
+        ]
+      }
+    },
+    {
+      "id": 370,
+      "query": "writeq(./*).",
+      "input": "writeq(./*).",
+      "readCount": 1,
+      "expected": "./*",
+      "outcome": {
+        "type": "success",
+        "stages": [
+          {
+            "output": "./*",
+            "variables": "[]"
+          }
+        ]
+      }
+    },
+    {
+      "id": 371,
+      "query": "writeq({*}).",
+      "input": "writeq({*}).",
+      "readCount": 1,
+      "expected": "{*}",
+      "outcome": {
+        "type": "success",
+        "stages": [
+          {
+            "output": "{*}",
+            "variables": "[]"
+          }
+        ]
+      }
+    },
+    {
+      "id": 372,
+      "query": "writeq(.*).",
+      "input": "writeq(.*).",
+      "readCount": 1,
+      "expected": ".*",
+      "outcome": {
+        "type": "success",
+        "stages": [
+          {
+            "output": ".*",
+            "variables": "[]"
+          }
+        ]
+      }
+    },
+    {
+      "id": 373,
+      "query": "writeq(...*).",
+      "input": "writeq(...*).",
+      "readCount": 1,
+      "expected": "...*",
+      "outcome": {
+        "type": "success",
+        "stages": [
+          {
+            "output": "...*",
+            "variables": "[]"
+          }
+        ]
+      }
+    },
+    {
+      "id": 374,
+      "query": "Finis ().",
+      "input": "Finis ().",
+      "readCount": 1,
+      "expected": "syntax err.",
+      "outcome": {
+        "type": "error",
+        "formal": "syntax_error(read_term)"
       }
     }
   ],

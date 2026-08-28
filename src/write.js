@@ -99,17 +99,30 @@ function compactPrefixOperator(token, argument) {
   return `${token}${needsLayout ? ' ' : ''}${argument}`;
 }
 
+function quotedOperatorAfterNumericNeedsSpace(left, token) {
+  if (!token.startsWith("'") || !/^[0-9]+$/.test(left)) return false;
+  const value = Number(left);
+  // `0'X` starts character-code notation and bases 2..36 start based-number
+  // notation. Base 1 and values above 36 do not, so they need no layout
+  // before a quoted operator (WG17 #208, #355).
+  return value === 0 || (value >= 2 && value <= 36);
+}
+
 function compactPostfixOperator(argument, token) {
-  if (isWordOperatorToken(token)) return `${argument} ${token}`;
-  return `${argument}${compactBoundaryNeedsSpace(argument, token) ? ' ' : ''}${token}`;
+  const needsLayout = compactBoundaryNeedsSpace(argument, token) ||
+    quotedOperatorAfterNumericNeedsSpace(argument, token);
+  return `${argument}${needsLayout ? ' ' : ''}${token}`;
 }
 
 function compactInfixOperator(left, token, right) {
   // Solo punctuation operators already delimit themselves.
   if (token === ',' || token === ';') return `${left}${token}${right}`;
-  if (isWordOperatorToken(token)) return `${left} ${token} ${right}`;
-  const before = compactBoundaryNeedsSpace(left, token) ? ' ' : '';
-  const after = compactBoundaryNeedsSpace(token, right) ? ' ' : '';
+  const before = (compactBoundaryNeedsSpace(left, token) ||
+    quotedOperatorAfterNumericNeedsSpace(left, token)) ? ' ' : '';
+  let after = compactBoundaryNeedsSpace(token, right) ? ' ' : '';
+  // A word operator immediately followed by `(` would look like functional
+  // notation for that atom rather than operator notation.
+  if (isWordOperatorToken(token) && right.startsWith('(')) after = ' ';
   return `${left}${before}${token}${after}${right}`;
 }
 
@@ -384,7 +397,17 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
             ['fx', 'fy', 'xfx', 'xfy', 'yfx'].includes(childDefinition.specifier)) {
           argumentPriority = priority - 1;
         }
-        const argument = format(resolved.args[0], env, options, table, argumentPriority);
+        const child = deref(resolved.args[0], env);
+        let argument = format(resolved.args[0], env, options, table, argumentPriority);
+        // If both the operand atom and postfix operator require quoted names,
+        // plain adjacency would form quoted-atom escape syntax and layout would
+        // not match the ISO writer form. Parenthesize the operator atom instead
+        // (WG17 #169). Do not apply this to ordinary word postfix operators.
+        if (options.minimalOperatorSpacing && child.type === ATOM && table.has(child.name) &&
+            writeAtom(child.name).startsWith("'") && token.startsWith("'") &&
+            compactBoundaryNeedsSpace(argument, token)) {
+          argument = `(${argument})`;
+        }
         text = options.minimalOperatorSpacing ? compactPostfixOperator(argument, token) : `${argument} ${token}`;
       } else {
         let leftPriority = specifier === 'yfx' ? priority : priority - 1;
