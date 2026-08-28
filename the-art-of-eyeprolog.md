@@ -6286,9 +6286,11 @@ kept in the logical environment, so bindings and backtracking remain isolated
 between solution branches. When a suspension wakes, its goal is meta-invoked
 with its own cut scope: a `!` inside the delayed goal may commit choices made by
 that invocation, but it cannot prune alternatives that were created before the
-`freeze/2` call. Multiple suspensions on the same variable also remain distinct
-meta-invocations rather than being collapsed into one conjunction, so a cut in
-one frozen goal cannot prune alternatives produced by another frozen goal. Thus
+`freeze/2` call. Multiple suspensions on the same variable are stored internally
+as a binary join tree, making each merge constant-time instead of repeatedly
+appending an ever-growing list. Wakeup and residual projection traverse that tree
+left-to-right and emit the original suspensions separately. This keeps a `call/1`-style cut boundary for every delayed goal without
+collapsing the user-visible residuals into one conjunction. Thus
 `call(((Y=1;Y=2),freeze(X,!),X=c));Y=3` retains the three answers `Y=1`, `Y=2`,
 and `Y=3`.
 
@@ -7288,7 +7290,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **215 self-contained runnable programs**. Every
+top-level directory contains **220 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -7617,6 +7619,8 @@ The [Symbiotic Knowledge Graphs](https://github.com/eyereasoner/eyeprolog/blob/m
 
 | Program | Roundtrip idea | Checked answer |
 | --- | --- | --- |
+| [Cross-organization data sharing](https://github.com/eyereasoner/eyeprolog/blob/main/examples/cross-organization-data-sharing.pl) | Combine ODRL/DPV policy, recipient properties, safeguards, jurisdiction, and retention into permit, deny, or review decisions with obligations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/cross-organization-data-sharing.pl) · [deck](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deck/cross-organization-data-sharing.md) |
+| [Explainable EV-depot configuration](https://github.com/eyereasoner/eyeprolog/blob/main/examples/explainable-ev-depot-configuration.pl) | Select a compatible charger while deriving blockers and reversible required changes from the same relational rules. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/explainable-ev-depot-configuration.pl) · [deck](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deck/explainable-ev-depot-configuration.md) |
 | [DPV–ODRL purpose mapping](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dpv-odrl-purpose-mapping.pl) | Verify six correspondences between a DPV process and an ODRL policy. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dpv-odrl-purpose-mapping.pl) |
 | [ODRL–DPV–FPV trust flow](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-fpv-trust-flow.pl) | Combine policy rules and trust scores into permit, review, and deny decisions. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-fpv-trust-flow.pl) |
 | [ODRL–DPV healthcare risk ranking](https://github.com/eyereasoner/eyeprolog/blob/main/examples/odrl-dpv-healthcare-risk-ranked.pl) | Detect and rank healthcare-policy risks with clauses and mitigations. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/odrl-dpv-healthcare-risk-ranked.pl) |
@@ -7632,6 +7636,9 @@ The [Symbiotic Knowledge Graphs](https://github.com/eyereasoner/eyeprolog/blob/m
 | [RDF 1.2 TriG named graph](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-named-graph.pl) | Derive ancestor relationships inside the source named graph. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-named-graph.pl) |
 | [RDF 1.2 TriG triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-trig-triple-term.pl) | Project a triple term while retaining its named-graph context. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-trig-triple-term.pl) |
 | [RDF 1.2 triple term](https://github.com/eyereasoner/eyeprolog/blob/main/examples/rdf12-triple-term.pl) | Project a triple term into an ordinary asserted relationship. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/rdf12-triple-term.pl) |
+| [Operational incident response](https://github.com/eyereasoner/eyeprolog/blob/main/examples/operational-incident-response.pl) | Correlate symptoms and telemetry through a service dependency graph to derive root cause, transitive impact, evidence, and a guarded failover action. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/operational-incident-response.pl) · [deck](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deck/operational-incident-response.md) |
+| [SBOM vulnerability response](https://github.com/eyereasoner/eyeprolog/blob/main/examples/sbom-vulnerability-response.pl) | Traverse transitive dependencies, apply severity and waiver policy, expose the exact vulnerable path, and derive an upgrade action. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/sbom-vulnerability-response.pl) · [deck](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deck/sbom-vulnerability-response.md) |
+| [Scientific evidence graph](https://github.com/eyereasoner/eyeprolog/blob/main/examples/scientific-evidence-graph.pl) | Use RDF 1.2 triple terms plus study metadata to distinguish supported claims, lower-quality counterevidence, and genuinely contested conclusions. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/scientific-evidence-graph.pl) · [deck](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deck/scientific-evidence-graph.md) |
 | [Symbiotic Knowledge Graphs](https://github.com/eyereasoner/eyeprolog/blob/main/examples/symbiotic-knowledge-graph.pl) | Roundtrip a city heatwave KG through RDF 1.2 triple-term proposals, human review, explicit Prolog governance, and materialized decisions. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/symbiotic-knowledge-graph.pl) · [deck](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deck/symbiotic-knowledge-graphs.md) |
 
 #### Science, engineering, and numerical models

@@ -93,6 +93,8 @@ The [Symbiotic Knowledge Graphs example](examples/deck/symbiotic-knowledge-graph
 
 This is a concrete model of human/AI/KG symbiosis: the graph constrains the agent, the agent proposes additions to the graph, people resolve governed uncertainty, and the accepted result improves the next decision while staying interoperable RDF.
 
+The companion example suite applies the same boundary to other forms of inspectable decision support: [cross-organization data sharing](examples/deck/cross-organization-data-sharing.md), [EV-depot configuration](examples/deck/explainable-ev-depot-configuration.md), [operational incident response](examples/deck/operational-incident-response.md), [SBOM vulnerability response](examples/deck/sbom-vulnerability-response.md), and [scientific evidence assessment](examples/deck/scientific-evidence-graph.md). Each keeps source RDF, portable rules, checked Prolog answers, and materialized RDF results as separate artifacts, so the decision can be reproduced and challenged at the appropriate layer.
+
 This combination is compelling when interoperability, reproducibility,
 long-term maintenance, or independent verification matter. It also opens RDF
 data to relational programming, constraints, recursion, collections, and

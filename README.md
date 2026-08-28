@@ -64,8 +64,9 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
 - [Why EyeProlog?](https://eyereasoner.github.io/eyeprolog/why-eyeprolog) — project scope and design
 - [Playground](https://eyereasoner.github.io/eyeprolog/playground) — run EyeProlog in a browser
 - [Examples](examples) — runnable programs and checked output
+- [Example decks](examples/deck/README.md) — explainable RDF/Prolog scenarios with reproducible roundtrips
 - [Symbiotic Knowledge Graphs](examples/deck/symbiotic-knowledge-graphs.md) — RDF ↔ Prolog heatwave-response demo for human/AI/KG co-evolution
-- [rdf-prolog-roundtrip](https://github.com/eyereasoner/rdf-prolog-roundtrip) — standalone RDF 1.2 ↔ ISO Prolog bridge used by the symbiotic example
+- [rdf-prolog-roundtrip](https://github.com/eyereasoner/rdf-prolog-roundtrip) — standalone RDF 1.2 ↔ ISO Prolog bridge used by the RDF examples
 - [ISO conformance audit](test/conformance/ISO-COMPLIANCE.md) — supported Part 1 profile
 - [Conformance report](conformance-report.md) — generated public corpus summary
 - [OpenRuleBench](openrulebench/README.md) — portable benchmark profile
@@ -75,6 +76,8 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
 EyeProlog can sit behind an RDF knowledge graph without inventing a private graph representation. [`rdf-prolog-roundtrip`](https://github.com/eyereasoner/rdf-prolog-roundtrip) converts RDF 1.2 datasets to ordinary `rdf(Subject, Predicate, Object, Graph)` facts, EyeProlog applies portable rules, and ground `rdf/4` results can be converted back to RDF.
 
 The checked [Symbiotic Knowledge Graphs example](examples/symbiotic-knowledge-graph.pl) uses named graphs and RDF 1.2 triple terms to distinguish trusted knowledge, AI-proposed statements, and human review. Its [wide-audience companion](examples/deck/symbiotic-knowledge-graphs.md) explains why this is a useful present-day software model for human/AI/KG co-evolution: RDF supplies shared semantic memory, Prolog supplies explicit deliberation, AI supplies new hypotheses, and people remain participants in meaning and judgment.
+
+The same RDF → Prolog → RDF boundary is exercised by five additional checked scenarios: [cross-organization data sharing](examples/deck/cross-organization-data-sharing.md), [explainable EV-depot configuration](examples/deck/explainable-ev-depot-configuration.md), [operational incident response](examples/deck/operational-incident-response.md), [software supply-chain vulnerability response](examples/deck/sbom-vulnerability-response.md), and a [scientific evidence graph](examples/deck/scientific-evidence-graph.md). Together they cover policy decisions, reversible configuration reasoning, dependency-graph diagnosis, transitive SBOM exposure, and evidence aggregation with explicit disagreement.
 
 ## Development
 

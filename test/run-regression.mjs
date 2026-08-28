@@ -2111,6 +2111,23 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'freeze suspension merging stays linear while preserving wake order',
+      run: () => {
+        const count = 64;
+        const freezes = Array.from({ length: count }, () => 'freeze(X,true)').join(', ');
+        const result = runEyeProlog(
+          `:- use_module(library(freeze)).\nbench(X) :- ${freezes}, X = done.\n`,
+          { goal: 'bench(X)', solutionLimit: 1 },
+        );
+        assertEqual(result.stdout, 'bench(done).\n', 'many frozen goals wake successfully');
+        if (result.stats.unify_calls > 400) {
+          throw new Error(
+            `freeze/2 attribute merging used ${result.stats.unify_calls} unifications; expected linear growth`,
+          );
+        }
+      },
+    },
+    {
       name: 'runQuads covers the remaining finite Prologue examples and arities',
       run: () => {
         const filename = path.join(testRoot, 'fixtures', 'prologue_extended_quad_runner.pl');

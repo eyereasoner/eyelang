@@ -34,6 +34,18 @@ export async function runPlayground(reporter = new TestReporter()) {
     assertNotIncludes(html, 'URL.createObjectURL(new Blob([workerCode]', 'inline blob worker');
   });
 
+  await reporter.testAsync('example picker includes every runnable top-level example', async () => {
+    const html = fs.readFileSync(path.join(packageRoot, 'playground.html'), 'utf8');
+    const match = html.match(/const EXAMPLES = \[(.*?)\n\s*\];/s);
+    if (!match) throw new Error('playground EXAMPLES array not found');
+    const listed = [...match[1].matchAll(/"([^"]+)"/g)].map((entry) => entry[1]).sort();
+    const expected = fs.readdirSync(path.join(packageRoot, 'examples'))
+      .filter((name) => name.endsWith('.pl'))
+      .map((name) => name.slice(0, -3))
+      .sort();
+    assertEqual(JSON.stringify(listed), JSON.stringify(expected), 'playground example picker');
+  });
+
   await reporter.testAsync('worker loads append/3 from the EyeProlog library', async () => {
     const result = executePlaygroundRequest({
       source: ':- use_module(library(lists)).\nanswer(X) :- append([a], [b], X).\n',
