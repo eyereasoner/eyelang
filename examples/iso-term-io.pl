@@ -16,7 +16,7 @@ write_fixture :-
   write_canonical(Stream, event(sensor_7, online)),
   put_char(Stream, '.'),
   nl(Stream),
-  write(Stream, rule(X, X, Y)),
+  write(Stream, rule(X, X, _Y)),
   put_char(Stream, '.'),
   nl(Stream),
   close(Stream).

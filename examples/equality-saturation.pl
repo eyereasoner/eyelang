@@ -30,8 +30,8 @@ rewrite(add(X, 0), X).
 rewrite(add(0, X), X).
 rewrite(mul(X, 1), X).
 rewrite(mul(1, X), X).
-rewrite(mul(X, 0), 0).
-rewrite(mul(0, X), 0).
+rewrite(mul(_X, 0), 0).
+rewrite(mul(0, _X), 0).
 
 % Constant folding and one distributivity rule make the search space less toyish.
 rewrite(add(A, B), C) :- number(A), number(B), (C is A + B).

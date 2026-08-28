@@ -77,7 +77,7 @@ contribution_tenths(World, Formula, Weight) :-
 
 world_score_tenths(World, Score) :-
   candidate_world(World, _, _),
-  sumall(Weight, contribution_tenths(World, Formula, Weight), Score).
+  sumall(Weight, contribution_tenths(World, _Formula, Weight), Score).
 
 map_world(World, Score) :-
   aggregate_max(Candidate_score, Candidate_world,

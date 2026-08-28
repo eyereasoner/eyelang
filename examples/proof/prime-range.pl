@@ -23,7 +23,7 @@ why(
     bindings([binding("Count", 10)]),
     uses([
       proof(
-        goal(countall(prime(P), 10)),
+        goal(countall(prime(_P), 10)),
         by(library(countall, 2))
       )
     ])

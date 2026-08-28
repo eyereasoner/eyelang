@@ -26,7 +26,7 @@ world(w3, "cautious factor over the physics model").
 
 % Derivation rules: each rule below contributes one logical step toward the displayed results.
 stop_distance(Scenario, w0, Distance) :-
-  scenario(Scenario, V, Mu, Avail),
+  scenario(Scenario, V, Mu, _Avail),
   (Reaction is V * 1.0),
   (V2 is V ** 2.0),
   (M2 is Mu * 2.0),
@@ -35,14 +35,14 @@ stop_distance(Scenario, w0, Distance) :-
   (Distance is Reaction + Braking).
 
 stop_distance(Scenario, w1, Distance) :-
-  scenario(Scenario, V, Mu, Avail),
+  scenario(Scenario, V, Mu, _Avail),
   (V2 is V ** 2.0),
   (M2 is Mu * 2.0),
   (Denom is M2 * 10.0),
   (Distance is V2 / Denom).
 
 stop_distance(Scenario, w2, Distance) :-
-  scenario(Scenario, V, Mu, Avail),
+  scenario(Scenario, V, _Mu, _Avail),
   (V2 is V ** 2.0),
   (Distance is V2 / 14.0).
 
@@ -51,12 +51,12 @@ stop_distance(Scenario, w3, Distance) :-
   (Distance is W0distance * 1.5).
 
 safe_in_world(Scenario, World) :-
-  scenario(Scenario, V, Mu, Avail),
+  scenario(Scenario, _V, _Mu, Avail),
   stop_distance(Scenario, World, Distance),
   (Distance =< Avail).
 
 risky_in_world(Scenario, World) :-
-  scenario(Scenario, V, Mu, Avail),
+  scenario(Scenario, _V, _Mu, Avail),
   stop_distance(Scenario, World, Distance),
   (Distance > Avail).
 

@@ -43,7 +43,7 @@ prime_result(range_2_30, Primes) :-
   findall(P, prime(P), Primes).
 
 prime_result(count_2_30, Count) :-
-  countall(prime(P), Count).
+  countall(prime(_P), Count).
 
 prime_result(totient_271, Phi) :-
   totient(271, Phi).

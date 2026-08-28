@@ -54,11 +54,11 @@ rejects_in_world(Candidate, w0) :-
   (Ppv < 0.90).
 
 confirms_in_world(Candidate, w1) :-
-  candidate(Candidate, Occurrence, Sensitivity, Specificity),
+  candidate(Candidate, _Occurrence, Sensitivity, _Specificity),
   (Sensitivity >= 0.95).
 
 rejects_in_world(Candidate, w1) :-
-  candidate(Candidate, Occurrence, Sensitivity, Specificity),
+  candidate(Candidate, _Occurrence, Sensitivity, _Specificity),
   (Sensitivity < 0.95).
 
 confirms_in_world(Candidate, w2) :-
@@ -68,15 +68,15 @@ confirms_in_world(Candidate, w2) :-
   (Specificity >= 0.97).
 
 rejects_in_world(Candidate, w2) :-
-  candidate(Candidate, Occurrence, Sensitivity, Specificity),
+  candidate(Candidate, Occurrence, _Sensitivity, _Specificity),
   (Occurrence < 0.05).
 
 rejects_in_world(Candidate, w2) :-
-  candidate(Candidate, Occurrence, Sensitivity, Specificity),
+  candidate(Candidate, _Occurrence, Sensitivity, _Specificity),
   (Sensitivity < 0.90).
 
 rejects_in_world(Candidate, w2) :-
-  candidate(Candidate, Occurrence, Sensitivity, Specificity),
+  candidate(Candidate, _Occurrence, _Sensitivity, Specificity),
   (Specificity < 0.97).
 
 confirms_in_world(Candidate, w3) :-

@@ -23,7 +23,7 @@ extension_example(repeated_variable_variant, true) :-
   variant(tree(X, X), tree(Y, Y)).
 
 extension_example(different_variable_shape, true) :-
-  \+ variant(tree(X, X), tree(_, Y)).
+  \+ variant(tree(X, X), tree(_, _Y)).
 
 extension_example(color_count, Count) :-
   countall(color(_), Count).

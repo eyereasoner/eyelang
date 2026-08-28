@@ -68,7 +68,7 @@ chosen_from(I, Chosen) :-
   (Take >= Skip),
   chosen_from(Compatible, Chosen).
 chosen_from(I, Chosen) :-
-  best_from(I, Best),
+  best_from(I, _Best),
   (Next is I + 1),
   best_from(Next, Skip),
   next_compatible(I, Compatible),

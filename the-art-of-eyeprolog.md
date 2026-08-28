@@ -7290,7 +7290,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **220 self-contained runnable programs**. Every
+top-level directory contains **224 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
@@ -7338,6 +7338,10 @@ mode at a time.
 
 | Program | Standard facility | Checked answer |
 | --- | --- | --- |
+| [CLP(B) Boolean circuit](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpb-boolean-circuit.pl) | A NOT/AND/OR XOR circuit is enumerated with `labeling/1`, then `taut/2` verifies equivalence to the XOR (`#`) specification. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpb-boolean-circuit.pl) |
+| [CLP(B) cardinality](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpb-cardinality.pl) | A two-of-four review quorum combines `card/2`, implication, exclusive-or, labeling, and model counting. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpb-cardinality.pl) |
+| [CLP(B) feature model](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpb-feature-model.pl) | Deployment-feature dependencies are expressed as Boolean constraints, enumerated with `labeling/1`, and counted directly with `sat_count/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpb-feature-model.pl) |
+| [CLP(B) weighted planning](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpb-weighted-planning.pl) | A bounded release plan uses implications and cardinality constraints, then `weighted_maximum/3` selects the highest-value admissible feature set. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpb-weighted-planning.pl) |
 | [CLP(Z) factorial](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-factorial.pl) | Declarative predecessor and product constraints propagate a factorial without mode-sensitive `is/2`. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-factorial.pl) |
 | [CLP(Z) global constraints](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-global-constraints.pl) | Compatibility tables, lexicographic and serialized schedules, global cardinality with costs, circuits, value counting, and integer comparison. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-global-constraints.pl) |
 | [CLP(Z) N-queens](https://github.com/eyereasoner/eyeprolog/blob/main/examples/clpz-n-queens.pl) | A checked eight-queens witness using finite domains, delayed diagonal constraints, `all_distinct/1`, and first-fail labeling, plus a four-queens multi-solution search. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/clpz-n-queens.pl) |

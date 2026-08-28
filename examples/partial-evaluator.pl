@@ -47,18 +47,18 @@ pe(Env, mul(Left, Right), const(Product)) :-
 pe(Env, add(Left, Right), add(Left_residual, Right_residual)) :-
   pe(Env, Left, Left_residual),
   pe(Env, Right, Right_residual),
-  \+ ((Left_residual = const(A)), (Right_residual = const(B))).
+  \+ ((Left_residual = const(_A)), (Right_residual = const(_B))).
 pe(Env, mul(Left, Right), mul(Left_residual, Right_residual)) :-
   pe(Env, Left, Left_residual),
   pe(Env, Right, Right_residual),
-  \+ ((Left_residual = const(A)), (Right_residual = const(B))).
+  \+ ((Left_residual = const(_A)), (Right_residual = const(_B))).
 
 % Static conditionals choose a branch; dynamic conditionals keep both residual
 % branches after specializing their contents.
-pe(Env, if(Cond, Then, Else), Residual) :-
+pe(Env, if(Cond, Then, _Else), Residual) :-
   pe(Env, Cond, bool(true)),
   pe(Env, Then, Residual).
-pe(Env, if(Cond, Then, Else), Residual) :-
+pe(Env, if(Cond, _Then, Else), Residual) :-
   pe(Env, Cond, bool(false)),
   pe(Env, Else, Residual).
 pe(Env, if(Cond, Then, Else), if(Cond_residual, Then_residual, Else_residual)) :-

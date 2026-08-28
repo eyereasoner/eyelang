@@ -63,7 +63,7 @@ why(
                     ])
                   ),
                   proof(
-                    goal('\\+'((=(const(10), const(A)), =(var(y), const(B))))),
+                    goal('\\+'((=(const(10), const(_A)), =(var(y), const(_B))))),
                     by(builtin('\\+', 1))
                   )
                 ])
@@ -104,7 +104,7 @@ why(
                 ])
               ),
               proof(
-                goal('\\+'((=(mul(const(10), var(y)), const(A)), =(const(13), const(B))))),
+                goal('\\+'((=(mul(const(10), var(y)), const(_A)), =(const(13), const(_B))))),
                 by(builtin('\\+', 1))
               )
             ])
@@ -135,7 +135,7 @@ why(
           proof(
             goal(pe([bind(x, const(10))], if(bool(true), add(var(x), const(1)), mul(var(y), const(999))), const(11))),
             by(rule("partial-evaluator.pl", clause(16))),
-            bindings([binding("Env", [bind(x, const(10))]), binding("Cond", bool(true)), binding("Then", add(var(x), const(1))), binding("Else", mul(var(y), const(999))), binding("Residual", const(11))]),
+            bindings([binding("Env", [bind(x, const(10))]), binding("Cond", bool(true)), binding("Then", add(var(x), const(1))), binding("_Else", mul(var(y), const(999))), binding("Residual", const(11))]),
             uses([
               proof(
                 goal(pe([bind(x, const(10))], bool(true), bool(true))),
@@ -297,7 +297,7 @@ why(
                     bindings([binding("__anon4", [bind(x, const(10))]), binding("N", 2)])
                   ),
                   proof(
-                    goal('\\+'((=(var(y), const(A)), =(const(2), const(B))))),
+                    goal('\\+'((=(var(y), const(_A)), =(const(2), const(_B))))),
                     by(builtin('\\+', 1))
                   )
                 ])
@@ -375,7 +375,7 @@ why(
                     ])
                   ),
                   proof(
-                    goal('\\+'((=(const(10), const(A)), =(var(y), const(B))))),
+                    goal('\\+'((=(const(10), const(_A)), =(var(y), const(_B))))),
                     by(builtin('\\+', 1))
                   )
                 ])
@@ -416,7 +416,7 @@ why(
                 ])
               ),
               proof(
-                goal('\\+'((=(mul(const(10), var(y)), const(A)), =(const(13), const(B))))),
+                goal('\\+'((=(mul(const(10), var(y)), const(_A)), =(const(13), const(_B))))),
                 by(builtin('\\+', 1))
               )
             ])

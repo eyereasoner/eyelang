@@ -23,7 +23,7 @@ report(rebuilt, Term) :-
   (Term =.. [alert, sensor_7, high]).
 
 report(variable_count, Count) :-
-  term_variables(rule(X, pair(X, Y), Z), Variables),
+  term_variables(rule(X, pair(X, _Y), _Z), Variables),
   Variables = [_, _, _],
   Count = 3.
 

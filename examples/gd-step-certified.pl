@@ -120,14 +120,14 @@ f_lower(K, 0.0) :-
 
 f_lower(K, Fl) :-
   target(A),
-  x_bounds(K, L, U),
+  x_bounds(K, _L, U),
   (U < A),
   end_squares(K, Sl, Su),
   min2(Sl, Su, Fl).
 
 f_lower(K, Fl) :-
   target(A),
-  x_bounds(K, L, U),
+  x_bounds(K, L, _U),
   (A < L),
   end_squares(K, Sl, Su),
   min2(Sl, Su, Fl).
