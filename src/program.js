@@ -1390,7 +1390,7 @@ function readModuleSource(designation, options) {
     return {
       name,
       text: registered.source,
-      options: { ...options, filename: registered.filename, baseDir: 'src/lib' },
+      options: { ...options, filename: registered.filename, baseDir: 'src/lib', onWarning: null },
     };
   }
   if (designation.type !== ATOM) throw new PrologError('type_error(source_sink)', designation);

@@ -45,7 +45,7 @@ import {
   variantTerms,
   parseProgramText,
 } from '../src/index.js';
-import { ISO_OPERATOR_DEFINITIONS, parseGoalText, parseNumberTokenText } from '../src/parser.js';
+import { ISO_OPERATOR_DEFINITIONS, parseGoalText, parseNumberTokenText, tryParseClausesFastInto } from '../src/parser.js';
 import { PrologError, formalErrorTerm } from '../src/iso.js';
 import { compareTerms } from '../src/term.js';
 import { formatTermForWrite } from '../src/write.js';
@@ -4063,6 +4063,38 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'CLI reports singleton source variables without a corpus-wide warning scan',
+      run: () => {
+        const input = 'p(X, Once, _Ignored, _) :- q(X).\nq(a).\n';
+        const result = runCli(['-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout, '', 'stdout');
+        assertEqual(result.stderr, 'Warning: singleton: Once, near <stdin>:1\n', 'stderr');
+      },
+    },
+    {
+      name: 'singleton warnings preserve the compact binary parser path',
+      run: () => {
+        const clauses = [];
+        const binary = [];
+        const warnings = [];
+        const parsed = tryParseClausesFastInto(
+          'p(X,Y) :- q(X,a).\n',
+          (clause) => clauses.push(clause),
+          (...args) => binary.push(args),
+          { filename: 'fast.pl', onWarning: (warning) => warnings.push(warning) },
+        );
+        assertEqual(parsed, true, 'fast parse result');
+        assertEqual(clauses.length, 0, 'materialized clause count');
+        assertEqual(binary.length, 1, 'direct binary clause count');
+        assertEqual(warnings.length, 1, 'warning count');
+        assertEqual(warnings[0].kind, 'singleton', 'warning kind');
+        assertEqual(warnings[0].name, 'Y', 'warning variable');
+        assertEqual(warnings[0].filename, 'fast.pl', 'warning filename');
+        assertEqual(warnings[0].line, 1, 'warning line');
+      },
+    },
+    {
       name: '--warnings flags explicit library(prologue) dependencies',
       run: () => {
         const input = ':- use_module(library(prologue), [between/3]).\n%% goal: answer\nanswer :- between(1, 1, _).\n';
@@ -4648,64 +4680,8 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
 
 
 
-function topLevelRunnableExampleFiles() {
-  const examplesDir = path.join(packageRoot, 'examples');
-  return fs.readdirSync(examplesDir)
-    .filter((name) => name.endsWith('.pl'))
-    .sort()
-    .map((name) => path.join(examplesDir, name));
-}
-
-function visitTermVariables(term, counts, seen = new Set()) {
-  if (term == null) return;
-  if (term.type === 'var') {
-    // The parser preserves identity for repeated source variables. Count every
-    // occurrence so only variables that occur once syntactically are flagged.
-    counts.set(term.name, (counts.get(term.name) ?? 0) + 1);
-    return;
-  }
-  if (seen.has(term)) return;
-  seen.add(term);
-  if (term.type === 'compound') {
-    for (const arg of term.args) visitTermVariables(arg, counts, seen);
-  }
-}
-
-function singletonVariableWarningsForClause(clause) {
-  const counts = new Map();
-  visitTermVariables(clause.head, counts);
-  for (const goal of clause.body ?? []) visitTermVariables(goal, counts);
-  return [...counts]
-    .filter(([name, count]) => count === 1 && !String(name).startsWith('_'))
-    .map(([name]) => name);
-}
-
-function singletonVariableWarningsForRunnableExamples() {
-  const warnings = [];
-  for (const filename of topLevelRunnableExampleFiles()) {
-    const text = fs.readFileSync(filename, 'utf8');
-    const program = Program.parseSources([{ text, filename }], { sourceMetadata: true });
-    for (const clause of program.clauses) {
-      if (path.resolve(clause.source?.filename ?? '') !== path.resolve(filename)) continue;
-      for (const name of singletonVariableWarningsForClause(clause)) {
-        warnings.push(`singleton: ${name}, near ${path.relative(packageRoot, filename)}:${clause.source?.line ?? '?'}`);
-      }
-    }
-  }
-  return warnings;
-}
-
 function documentationSyncCases() {
   return [
-    {
-      name: 'runnable examples are free of singleton-variable warnings',
-      run: () => {
-        const warnings = singletonVariableWarningsForRunnableExamples();
-        if (warnings.length !== 0) {
-          throw new Error(`example singleton-variable warnings\n${warnings.join('\n')}`);
-        }
-      },
-    },
     {
       name: 'WG17 syntax status matches its executable-coverage manifest',
       run: () => {

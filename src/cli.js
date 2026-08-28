@@ -154,6 +154,7 @@ export async function main(argv) {
     isoStrict: options.isoStrict,
     autoload: options.autoload,
     autoloadGoals: options.goals,
+    onWarning: printSourceWarning,
   });
 
   const portabilityFailures = program.interopPortabilityWarnings ?? [];
@@ -269,6 +270,13 @@ function readStdin() {
     process.stdin.on('end', () => resolve(data));
     process.stdin.on('error', reject);
   });
+}
+
+
+function printSourceWarning(warning) {
+  if (warning.kind !== 'singleton') return;
+  process.stderr.write(`Warning: singleton: ${warning.name}, near ${warning.filename}:${warning.line}
+`);
 }
 
 function printWarnings(program) {

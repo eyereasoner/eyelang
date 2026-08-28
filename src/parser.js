@@ -246,6 +246,8 @@ class Parser {
     this.anonymous = 0;
     this.variables = new Map();
     this.sourceMetadata = options.sourceMetadata !== false;
+    this.onWarning = typeof options.onWarning === 'function' ? options.onWarning : null;
+    this.currentSourceTermLine = 1;
     this.strictIso = options.isoStrict === true;
     this.parserFlagState = options.parserFlagState ?? {
       doubleQuotes: options.doubleQuotes ?? 'chars',
@@ -1010,9 +1012,14 @@ class Parser {
   parseProgram(emit = null) {
     const clauses = emit ? null : [];
     let clauseNumber = 0;
-    const accept = emit ?? ((clause) => clauses.push(clause));
+    const rawAccept = emit ?? ((clause) => clauses.push(clause));
+    const accept = (item) => {
+      reportClauseSingletonWarnings(item, this.onWarning, this.filename, this.currentSourceTermLine);
+      rawAccept(item);
+    };
     while (this.token.type !== TOK.EOF) {
       const line = this.token.line;
+      this.currentSourceTermLine = line;
       // Prefix operator notation needs one program-level distinction so
       // a comma in `?- A, B.` remains inside the query rather than outside the
       // prefix term. Ordinary functional notation is parsed as a term and then
@@ -1226,6 +1233,29 @@ function listAtomNames(term) {
 }
 
 
+function collectClauseVariableOccurrences(term, counts) {
+  if (term == null) return;
+  if (term.type === 'var') {
+    counts.set(term.name, (counts.get(term.name) ?? 0) + 1);
+    return;
+  }
+  if (term.type === COMPOUND) {
+    for (const arg of term.args) collectClauseVariableOccurrences(arg, counts);
+  }
+}
+
+function reportClauseSingletonWarnings(clause, onWarning, filename, line) {
+  if (typeof onWarning !== 'function' || clause?.kind === 'quad') return;
+  const counts = new Map();
+  collectClauseVariableOccurrences(clause.head, counts);
+  for (const goal of clause.body ?? []) collectClauseVariableOccurrences(goal, counts);
+  for (const [name, count] of counts) {
+    if (count !== 1 || String(name).startsWith('_')) continue;
+    onWarning({ kind: 'singleton', name, filename: filename ?? '<input>', line });
+  }
+}
+
+
 export function parseClauses(source, options = {}) {
   const ownsParserFlagState = options.parserFlagState == null;
   const initialDoubleQuotes = options.doubleQuotes ?? 'chars';
@@ -1282,6 +1312,7 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
   const accept = emit ?? ((clause) => clauses.push(clause));
   let anonymous = 0;
   let chunk = '';
+  let chunkStartLine = 1;
 
   const cached = (cache, key, create) => {
     const existing = cache.get(key);
@@ -1466,12 +1497,42 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     return -1;
   };
 
-  const emitFastBinaryRange = (text, start, end) => {
+  const reportFastBinarySingletonWarnings = (head, body, line) => {
+    if (typeof options.onWarning !== 'function') return;
+    const variables = [];
+    const add = (type, name) => {
+      if (type !== 'var' || String(name).startsWith('_')) return;
+      variables.push(name);
+    };
+    add(head.arg0Type, head.arg0Name);
+    add(head.arg1Type, head.arg1Name);
+    if (body != null) {
+      add(body.arg0Type, body.arg0Name);
+      add(body.arg1Type, body.arg1Name);
+    }
+    for (let i = 0; i < variables.length; i++) {
+      let count = 0;
+      for (let j = 0; j < variables.length; j++) {
+        if (variables[i] === variables[j]) count++;
+      }
+      if (count === 1) {
+        options.onWarning({
+          kind: 'singleton',
+          name: variables[i],
+          filename: options.filename ?? '<input>',
+          line,
+        });
+      }
+    }
+  };
+
+  const emitFastBinaryRange = (text, start, end, line) => {
     if (!emitBinary || start >= end || text.charCodeAt(end - 1) !== 46) return false;
     const termEnd = end - 1;
     const rule = findRuleInRange(text, start, termEnd);
     if (rule < 0) {
       if (!parseBinaryRawRange(text, start, termEnd, rawHead)) return false;
+      reportFastBinarySingletonWarnings(rawHead, null, line);
       emitBinary(rawHead.name,
         rawHead.arg0Type, rawHead.arg0Name, rawHead.arg1Type, rawHead.arg1Name,
         null, null, null, null, null);
@@ -1480,6 +1541,7 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     if (findRuleInRange(text, rule + 2, termEnd) >= 0 ||
         !parseBinaryRawRange(text, start, rule, rawHead) ||
         !parseBinaryRawRange(text, rule + 2, termEnd, rawBody)) return false;
+    reportFastBinarySingletonWarnings(rawHead, rawBody, line);
     emitBinary(rawHead.name,
       rawHead.arg0Type, rawHead.arg0Name, rawHead.arg1Type, rawHead.arg1Name,
       rawBody.name, rawBody.arg0Type, rawBody.arg0Name, rawBody.arg1Type, rawBody.arg1Name);
@@ -1541,6 +1603,7 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
 
   const flush = () => {
     const text = chunk.trim();
+    const sourceLine = chunkStartLine;
     chunk = '';
     if (!text) return true;
     // Once a preparation-time char_conversion/2 mapping is active, every
@@ -1549,11 +1612,15 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     // here would silently bypass Convc for otherwise simple clauses.
     const simple = preparationConversionActive() ? null : parseSimple(text);
     if (simple) {
+      reportClauseSingletonWarnings(simple, options.onWarning, options.filename ?? '<input>', sourceLine);
       accept(simple);
       return true;
     }
     try {
-      const parsed = new Parser(text, { ...options, sourceMetadata: false }).parseProgram();
+      const nestedWarning = typeof options.onWarning === 'function'
+        ? (warning) => options.onWarning({ ...warning, line: warning.line + sourceLine - 1 })
+        : null;
+      const parsed = new Parser(text, { ...options, sourceMetadata: false, onWarning: nestedWarning }).parseProgram();
       for (const clause of parsed) accept(clause);
       return true;
     } catch (_) {
@@ -1562,6 +1629,7 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
   };
 
   let lineStart = 0;
+  let lineNumber = 1;
   while (lineStart <= source.length) {
     let lineEnd = source.indexOf('\n', lineStart);
     if (lineEnd < 0) lineEnd = source.length;
@@ -1571,17 +1639,21 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     [contentStart, contentEnd] = trimRange(source, contentStart, contentEnd);
     if (contentStart < contentEnd && source.charCodeAt(contentStart) !== 37) {
       if (!chunk && source.charCodeAt(contentEnd - 1) === 46 && !preparationConversionActive()) {
-        if (emitFastBinaryRange(source, contentStart, contentEnd)) {
+        if (emitFastBinaryRange(source, contentStart, contentEnd, lineNumber)) {
           // The program builder accepted a compact binary clause directly.
         } else {
           const simple = parseFastRange(source, contentStart, contentEnd);
-          if (simple) accept(simple);
-          else {
+          if (simple) {
+            reportClauseSingletonWarnings(simple, options.onWarning, options.filename ?? '<input>', lineNumber);
+            accept(simple);
+          } else {
+            chunkStartLine = lineNumber;
             chunk = source.slice(lineStart, lineEnd) + '\n';
             if (!flush()) return null;
           }
         }
       } else {
+        if (!chunk) chunkStartLine = lineNumber;
         chunk += source.slice(lineStart, lineEnd) + '\n';
         if (source.charCodeAt(contentEnd - 1) === 46) {
           if (!flush()) return null;
@@ -1590,6 +1662,7 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     }
     if (lineEnd === source.length) break;
     lineStart = lineEnd + 1;
+    lineNumber++;
   }
   if (chunk.trim() && !flush()) return null;
   return clauses ?? true;

@@ -214,6 +214,11 @@ function runProgramExample(programFile, filename, options) {
   const expectedExit = text.match(/^%\s*expect-exit:\s*(\d+)\s*$/m);
   const program = Program.parseSources([{ text, filename }], {
     sourceMetadata: options.proof,
+    onWarning: (warning) => {
+      if (warning.kind === 'singleton') {
+        process.stderr.write(`Warning: singleton: ${warning.name}, near ${warning.filename}:${warning.line}\n`);
+      }
+    },
   });
   try {
     const result = run(program, { ...options, goals: goalsInProgramOrder(program, text) });
