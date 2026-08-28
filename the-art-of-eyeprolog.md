@@ -7784,14 +7784,14 @@ their declared goals are executed. The eight-case
 playground contract suite imports the production worker, sends real reasoning
 requests through its message protocol, and crawls the served module graph for
 missing assets, bad MIME types, and static Node-only imports. The generated
-`conformance-report.md` is the authoritative source for current conformance
-category totals.
+`conformance-report.md` is the authoritative source for the current executable
+WG17 syntax result and file-based conformance category totals.
 
 ### Generated and checked repository material
 
 Repository artifacts have distinct roles:
 
-- `conformance-report.md` is generated from the file-based conformance corpus;
+- `conformance-report.md` executes the vendored WG17 syntax gate and also inventories the file-based conformance corpus;
 - `examples/book/` is extracted from executable code blocks in this book and
   should be rebuilt with `npm run generate` rather than edited directly;
 - `examples/output/` and `examples/proof/` contain reviewed exact-output

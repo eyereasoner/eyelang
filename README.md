@@ -68,7 +68,7 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
 - [Symbiotic Knowledge Graphs](examples/deck/symbiotic-knowledge-graphs.md) — RDF ↔ Prolog heatwave-response demo for human/AI/KG co-evolution
 - [rdf-prolog-roundtrip](https://github.com/eyereasoner/rdf-prolog-roundtrip) — standalone RDF 1.2 ↔ ISO Prolog bridge used by the RDF examples
 - [ISO conformance audit](test/conformance/ISO-COMPLIANCE.md) — supported Part 1 profile
-- [Conformance report](conformance-report.md) — generated public corpus summary
+- [Conformance report](conformance-report.md) — generated executable conformance status and corpus summary
 - [OpenRuleBench](openrulebench/README.md) — portable benchmark profile
 
 ## RDF, Prolog, and symbiotic knowledge graphs

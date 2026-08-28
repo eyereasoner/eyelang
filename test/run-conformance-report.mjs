@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-// Static conformance corpus report.
-// This complements the executable runner with a category summary that makes
-// coverage growth visible without running every case.
+// Executable conformance status plus static corpus inventory.
+// The WG17 row is run when this report is generated, so a syntax-conformance
+// regression changes the public report even when the fixture inventory itself
+// has not changed.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runWg17 } from './run-wg17.mjs';
 import { listPrologFiles } from './test-support.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
@@ -18,9 +20,9 @@ const KINDS = [
   { kind: 'proofs', expectedKind: 'expected-proofs', expectedExt: '.pl', column: 'proofs' },
 ];
 
-export function buildConformanceReport() {
+export function buildConformanceReport({ wg17Suite = runWg17 } = {}) {
   const categories = new Map();
-  const issues = [];
+  const corpusIssues = [];
 
   for (const { kind, expectedKind, expectedExt, column } of KINDS) {
     const base = path.join(conformanceRoot, kind);
@@ -33,10 +35,10 @@ export function buildConformanceReport() {
 
       const stem = file.slice(0, -3);
       const expected = path.join(conformanceRoot, expectedKind, `${stem}${expectedExt}`);
-      if (!fs.existsSync(expected)) issues.push(`missing ${expectedKind}/${stem}${expectedExt}`);
+      if (!fs.existsSync(expected)) corpusIssues.push(`missing ${expectedKind}/${stem}${expectedExt}`);
       if (kind === 'warnings') {
         const expectedStderr = path.join(conformanceRoot, expectedKind, `${stem}.txt`);
-        if (!fs.existsSync(expectedStderr)) issues.push(`missing ${expectedKind}/${stem}.txt`);
+        if (!fs.existsSync(expectedStderr)) corpusIssues.push(`missing ${expectedKind}/${stem}.txt`);
       }
     }
   }
@@ -52,30 +54,95 @@ export function buildConformanceReport() {
     total: acc.total + row.total,
   }), { positive: 0, errors: 0, warnings: 0, proofs: 0, total: 0 });
 
-  return { rows, total, issues: issues.sort() };
+  const executable = [executeGate('WG17 syntax', wg17Suite)];
+  const executionIssues = executable.flatMap((gate) => gate.failures.map((failure) =>
+    `${gate.name}: ${failure.name}: ${failure.message}`));
+
+  return {
+    rows,
+    total,
+    executable,
+    corpusIssues: corpusIssues.sort(),
+    executionIssues,
+    issues: [...corpusIssues.sort(), ...executionIssues],
+  };
 }
 
 export function formatConformanceReport(report = buildConformanceReport()) {
   const lines = [
     '# EyeProlog conformance report',
     '',
-    'This report summarizes the file-based conformance corpus under `test/conformance/`.',
+    'This report combines an executable external conformance gate with the file-based',
+    'conformance corpus under `test/conformance/`. The executable result is measured',
+    'when this report is generated; it is not inferred from fixture counts.',
+    '',
+    '## Executable conformance status',
+    '',
+    '| Gate | Passed | Total | Status |',
+    '|---|---:|---:|---|',
+  ];
+
+  for (const gate of report.executable) {
+    const status = gate.passed === gate.total ? 'pass' : 'fail';
+    lines.push(`| ${gate.name} | ${gate.passed} | ${gate.total} | ${status} |`);
+  }
+
+  lines.push(
+    '',
+    'The WG17 syntax row executes the vendored 366-case conformity-testing matrix',
+    'against EyeProlog\'s strict ISO reader/writer. A behavior fix such as operator-token',
+    'spelling therefore changes this report even when no corpus file is added or removed.',
+    '',
+    '## File-based corpus inventory',
     '',
     '| Category | Positive | Errors | Warnings | Proofs | Total |',
     '|---|---:|---:|---:|---:|---:|',
-  ];
+  );
 
   for (const row of report.rows) {
     lines.push(`| ${row.category} | ${row.positive} | ${row.errors} | ${row.warnings} | ${row.proofs} | ${row.total} |`);
   }
   lines.push(`| **Total** | **${report.total.positive}** | **${report.total.errors}** | **${report.total.warnings}** | **${report.total.proofs}** | **${report.total.total}** |`);
 
-  if (report.issues.length > 0) {
+  if (report.corpusIssues.length > 0) {
     lines.push('', '## Corpus issues', '');
-    for (const issue of report.issues) lines.push(`- ${issue}`);
+    for (const issue of report.corpusIssues) lines.push(`- ${issue}`);
+  }
+  if (report.executionIssues.length > 0) {
+    lines.push('', '## Executable conformance failures', '');
+    for (const issue of report.executionIssues) lines.push(`- ${issue}`);
   }
 
   return `${lines.join('\n')}\n`;
+}
+
+function executeGate(name, runSuite) {
+  const failures = [];
+  const reporter = {
+    passed: 0,
+    total: 0,
+    section() {},
+    sectionTotal() {},
+    test(testName, run) {
+      this.total++;
+      try {
+        run();
+        this.passed++;
+      } catch (error) {
+        failures.push({
+          name: testName,
+          message: String(error?.message ?? error).split('\n', 1)[0],
+        });
+      }
+    },
+  };
+
+  try {
+    runSuite(reporter);
+  } catch (error) {
+    failures.push({ name: 'suite setup', message: String(error?.message ?? error).split('\n', 1)[0] });
+  }
+  return { name, passed: reporter.passed, total: reporter.total, failures };
 }
 
 function categoryOf(file) {

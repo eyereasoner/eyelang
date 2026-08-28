@@ -109,7 +109,7 @@ terminating newline, so stream-sensitive cases such as #270 and #271 exercise
 the characters left after `read/1`. Normal `npm test` remains offline and uses
 only the committed upstream snapshot.
 
-Summarize conformance coverage by category:
+Regenerate the public conformance report, including the executable WG17 syntax status and the file-based category inventory:
 
 ```sh
 node test/run-conformance-report.mjs
@@ -146,8 +146,8 @@ are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 The corpus has 386 cases in `iso/` and 802 file-based conformance cases in
 total. Of those, 11 cases in `stc/` are explicitly labelled working-draft
 review evidence rather than normative ISO claims. The separate strict-reader WG17 matrix has 366 executable dispositions.
-The generated `conformance-report.md` is the authoritative source for current
-category totals. Together with regression, documentation-sync, API, example,
+The generated `conformance-report.md` is the authoritative source for the current
+executable WG17 syntax result and file-based category totals. Together with regression, documentation-sync, API, example,
 and book-example checks, `npm test` is the release gate.
 
 ## Updating expected output

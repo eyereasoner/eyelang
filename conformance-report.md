@@ -1,6 +1,20 @@
 # EyeProlog conformance report
 
-This report summarizes the file-based conformance corpus under `test/conformance/`.
+This report combines an executable external conformance gate with the file-based
+conformance corpus under `test/conformance/`. The executable result is measured
+when this report is generated; it is not inferred from fixture counts.
+
+## Executable conformance status
+
+| Gate | Passed | Total | Status |
+|---|---:|---:|---|
+| WG17 syntax | 366 | 366 | pass |
+
+The WG17 syntax row executes the vendored 366-case conformity-testing matrix
+against EyeProlog's strict ISO reader/writer. A behavior fix such as operator-token
+spelling therefore changes this report even when no corpus file is added or removed.
+
+## File-based corpus inventory
 
 | Category | Positive | Errors | Warnings | Proofs | Total |
 |---|---:|---:|---:|---:|---:|

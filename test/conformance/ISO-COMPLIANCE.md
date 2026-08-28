@@ -6,7 +6,7 @@ together with Technical Corrigenda 1:2007, 2:2012, and 3:2017. Detailed
 row-level evidence lives only where it adds information: the built-in, processor,
 term-semantics, Prolog-text/execution, evaluable-functor, implementation-defined,
 WG17-syntax, and STC draft ledgers in this directory. The generated
-[`conformance-report.md`](../../conformance-report.md) gives current case totals.
+[`conformance-report.md`](../../conformance-report.md) gives the current executable WG17 syntax result together with file-based case totals.
 
 The ledger deliberately does **not** claim independent certification. A row
 marked `covered` means EyeProlog has implementation and executable tests for

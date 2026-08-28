@@ -5029,10 +5029,27 @@ function documentationSyncCases() {
         assertEqual(report.total.total >= 475, true, 'conformance case count');
         assertEqual(report.total.positive + report.total.errors + report.total.warnings + report.total.proofs, report.total.total, 'conformance total');
         assertEqual(report.rows.some((row) => row.category === 'legacy-numbered'), false, 'legacy-numbered category');
+        const wg17 = report.executable.find((gate) => gate.name === 'WG17 syntax');
+        assertEqual(wg17?.total, 366, 'WG17 executable total');
+        assertEqual(wg17?.passed, 366, 'WG17 executable passed');
+        assertArrayEqual(wg17?.failures ?? [], [], 'WG17 executable failures');
         const text = formatConformanceReport(report);
+        assertIncludes(text, '| WG17 syntax | 366 | 366 | pass |', 'report');
         assertIncludes(text, '| variables |', 'report');
         assertIncludes(text, '| Proofs |', 'report');
         assertIncludes(text, '| **Total** |', 'report');
+
+        const failing = buildConformanceReport({
+          wg17Suite: (reporter) => {
+            reporter.section('WG17 syntax');
+            reporter.test('synthetic syntax failure', () => { throw new Error('synthetic mismatch'); });
+            reporter.sectionTotal('WG17 syntax');
+          },
+        });
+        assertEqual(failing.executable[0].passed, 0, 'failing WG17 executable passed');
+        assertEqual(failing.executable[0].total, 1, 'failing WG17 executable total');
+        assertEqual(failing.executionIssues.length, 1, 'failing WG17 report issue count');
+        assertIncludes(formatConformanceReport(failing), '| WG17 syntax | 0 | 1 | fail |', 'failing report');
       },
     },
 
