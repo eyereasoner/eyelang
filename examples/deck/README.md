@@ -2,7 +2,7 @@
 
 Wide-audience companion explanations for selected runnable examples.
 
-- [Introduction to EyeProlog](https://eyereasoner.github.io/eyeprolog/examples/deck/introduction-to-eyeprolog) — a short slide deck introducing facts, rules, answers, proofs, ISO conformance, JavaScript embedding, and RDF roundtrips.
+- [Introduction to EyeProlog](https://eyereasoner.github.io/eyeprolog/examples/deck/introduction-to-eyeprolog) — a guided slide deck introducing facts, rules, answers, proofs, CLP(Z), CLP(B), ISO conformance, JavaScript embedding, RDF roundtrips, and a categorized path through the example corpus.
 - [Cross-organization data sharing](https://eyereasoner.github.io/eyeprolog/examples/deck/cross-organization-data-sharing) — ODRL/DPV sharing decisions with permit, deny, review, safeguards, and obligations.
 - [Explainable EV-depot configuration](https://eyereasoner.github.io/eyeprolog/examples/deck/explainable-ev-depot-configuration) — reversible configuration rules that select a charger, explain blockers, and derive required changes.
 - [ODRL policy reasoning](https://eyereasoner.github.io/eyeprolog/examples/deck/odrl-policy-reasoning) — permissions, prohibitions, duties, conflicts, and defaults.

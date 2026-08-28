@@ -4647,8 +4647,65 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
 }
 
 
+
+function topLevelRunnableExampleFiles() {
+  const examplesDir = path.join(packageRoot, 'examples');
+  return fs.readdirSync(examplesDir)
+    .filter((name) => name.endsWith('.pl'))
+    .sort()
+    .map((name) => path.join(examplesDir, name));
+}
+
+function visitTermVariables(term, counts, seen = new Set()) {
+  if (term == null) return;
+  if (term.type === 'var') {
+    // The parser preserves identity for repeated source variables. Count every
+    // occurrence so only variables that occur once syntactically are flagged.
+    counts.set(term.name, (counts.get(term.name) ?? 0) + 1);
+    return;
+  }
+  if (seen.has(term)) return;
+  seen.add(term);
+  if (term.type === 'compound') {
+    for (const arg of term.args) visitTermVariables(arg, counts, seen);
+  }
+}
+
+function singletonVariableWarningsForClause(clause) {
+  const counts = new Map();
+  visitTermVariables(clause.head, counts);
+  for (const goal of clause.body ?? []) visitTermVariables(goal, counts);
+  return [...counts]
+    .filter(([name, count]) => count === 1 && !String(name).startsWith('_'))
+    .map(([name]) => name);
+}
+
+function singletonVariableWarningsForRunnableExamples() {
+  const warnings = [];
+  for (const filename of topLevelRunnableExampleFiles()) {
+    const text = fs.readFileSync(filename, 'utf8');
+    const program = Program.parseSources([{ text, filename }], { sourceMetadata: true });
+    for (const clause of program.clauses) {
+      if (path.resolve(clause.source?.filename ?? '') !== path.resolve(filename)) continue;
+      for (const name of singletonVariableWarningsForClause(clause)) {
+        warnings.push(`singleton: ${name}, near ${path.relative(packageRoot, filename)}:${clause.source?.line ?? '?'}`);
+      }
+    }
+  }
+  return warnings;
+}
+
 function documentationSyncCases() {
   return [
+    {
+      name: 'runnable examples are free of singleton-variable warnings',
+      run: () => {
+        const warnings = singletonVariableWarningsForRunnableExamples();
+        if (warnings.length !== 0) {
+          throw new Error(`example singleton-variable warnings\n${warnings.join('\n')}`);
+        }
+      },
+    },
     {
       name: 'WG17 syntax status matches its executable-coverage manifest',
       run: () => {
