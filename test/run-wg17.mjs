@@ -252,6 +252,48 @@ function termEquivalent(expected, actual, item) {
   }
 }
 
+function soloTokenQuoteSignature(text) {
+  const signature = [];
+  let quote = null;
+  const source = presentationText(text);
+  for (let index = 0; index < source.length; index++) {
+    const ch = source[index];
+    if (quote != null) {
+      if (ch === '\\') {
+        index++;
+        continue;
+      }
+      if (ch === quote) {
+        if (source[index + 1] === quote) {
+          index++;
+          continue;
+        }
+        quote = null;
+        continue;
+      }
+      if (ch === '|' || ch === ';' || ch === ',') signature.push(`${ch}:quoted`);
+      continue;
+    }
+    if (ch === "'") {
+      quote = ch;
+      continue;
+    }
+    if (ch === '|' || ch === ';' || ch === ',') signature.push(`${ch}:bare`);
+  }
+  return signature;
+}
+
+function preservesWriterSoloTokenSpelling(expected, actual, item) {
+  // For writer conformity cases, semantic term equivalence is deliberately
+  // not enough: ISO distinguishes the bare bar operator token from atom '|',
+  // and semicolon is itself a valid unquoted name token. This prevents the
+  // fallback parser comparison from accepting regressions such as `a'|'b` or
+  // canonical `';'(a,b)` when the WG17 expected spelling is `a|b` / `;(a,b)`.
+  if (!/\bwrite(?:q|_canonical|_term)?\s*\(/.test(item?.query ?? '')) return true;
+  return JSON.stringify(soloTokenQuoteSignature(expected)) ===
+    JSON.stringify(soloTokenQuoteSignature(actual));
+}
+
 function abbreviatedErrorMatches(expected, actual) {
   if (actual.type !== 'error') return false;
   const formal = actual.formal ?? '';
@@ -284,6 +326,7 @@ function textExpectationMatches(expectedText, actual, item, example = false) {
     // boundary, notably Cor.3 prefix-operator cases such as `- (1^2)`. Do not
     // erase that boundary before the semantic/layout-tolerant fallbacks below.
     if (!preservesLeadingOperatorParenLayout(left, right)) continue;
+    if (!preservesWriterSoloTokenSpelling(left, right, item)) continue;
     if (stripLayoutOutsideQuotes(left) === stripLayoutOutsideQuotes(right)) return true;
     if (termEquivalent(left, right, item)) return true;
     if (example) {

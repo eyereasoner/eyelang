@@ -4698,6 +4698,34 @@ function documentationSyncCases() {
           true,
           'non-semantic internal operator spacing remains flexible',
         );
+        const barWriter = {
+          id: 181,
+          query: "writeq((a-->b,c|d)).",
+          input: "op(1105,xfy,'|').\nwriteq((a-->b,c|d)).",
+        };
+        assertEqual(
+          matchesUpstreamExpectation(
+            'a-->b,c|d',
+            { type: 'success', stages: [{ output: "a-->b,c'|'d", variables: '[]' }] },
+            barWriter,
+          ),
+          false,
+          'quoted bar is not accepted in operator-form writer output',
+        );
+        const semicolonWriter = {
+          id: 331,
+          query: 'write_canonical(;(a,b)).',
+          input: 'write_canonical(;(a,b)).',
+        };
+        assertEqual(
+          matchesUpstreamExpectation(
+            ';(a,b)',
+            { type: 'success', stages: [{ output: "';'(a,b)", variables: '[]' }] },
+            semicolonWriter,
+          ),
+          false,
+          'quoted semicolon is not accepted when the ISO name token is bare',
+        );
         const repeated = {
           id: 227, input: 'write_canonical(B+B).',
           outcome: { type: 'success', stages: [{ output: '+(_A,_A)', variables: "['B' = B]" }] },

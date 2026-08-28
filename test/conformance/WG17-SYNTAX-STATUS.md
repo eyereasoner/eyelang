@@ -7,7 +7,10 @@ This ledger counts an upstream case when its WG17 identifier, query, and
 expected ISO disposition are stored in the offline executable matrix. Every
 case is executed against the upstream Codex expectation. Reviewed exact
 EyeProlog outcomes are additional regression locks and can never override the
-upstream assertion.
+upstream assertion. Writer expectations also preserve ISO-significant token
+spelling: in particular, a bare bar used as an operator is not treated as
+equivalent to a quoted atom, and a bare semicolon name token is not silently
+accepted in quoted form.
 
 ## Current standing
 

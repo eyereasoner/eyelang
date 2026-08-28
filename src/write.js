@@ -28,6 +28,11 @@ function quotedControlEscape(ch) {
 function atomNeedsQuotes(name) {
   if (!name) return true;
   if (name === '[]' || name === '{}') return false;
+  // `;` is a solo-character name token in ISO 6.4.2/6.5.3, so unlike most
+  // solo characters it is a valid atom without quotes. Keep `|` distinct:
+  // Corrigendum 2 makes the bar token equivalent to atom '|' only while it
+  // is being used as an operator; as an ordinary atom/functor it is quoted.
+  if (name === ';') return false;
   // A lone full stop is the end token, not a graphic atom.  Longer
   // graphic tokens may contain dots and are valid unquoted writeq/1 output
   // (WG17 #371-373: ./*, .*, ...*).  Only a token beginning with /* would
@@ -164,6 +169,10 @@ function writeNumberedVariable(index) {
 }
 
 function operatorName(name) {
+  // Corrigendum 2 adds a dedicated bar token to operator syntax. The atom
+  // itself still needs quoting in functional notation, but operator-form
+  // output must use the unquoted `|` token (WG17 #181/#290).
+  if (name === '|') return '|';
   if (name === '.' || name.startsWith('/*')) return quoteAtom(name);
   if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return name;
   if (/^[!#$&*+\-./<=>?@^~\\;:]+$/.test(name)) return name;
@@ -274,6 +283,10 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
   if (resolved.type === STRING) return writeString(resolved.name);
   if (resolved.type === ATOM) {
     if (!options.quoted) return resolved.name;
+    // Corrigendum 2's bare bar token exists only in operator syntax. It is
+    // not an atom token, so an ordinary atom `|` must remain quoted even when
+    // `|` is currently declared as an operator (for example as f('|')).
+    if (resolved.name === '|') return quoteAtom(resolved.name);
     // Top-level bindings are already delimited by their answer punctuation.
     // Keep valid dotted graphic tokens readable there without weakening the
     // ISO writeq/1 policy tested by WG17 #308.
