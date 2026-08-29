@@ -281,7 +281,7 @@ Options:
   --iso-strict          Use ISO/IEC 13211-1 core + Corrigenda 1-3 only;
                         reject EyeProlog language extensions.
   --portable            Enforce the EyeProlog/Trealla/Scryer interop profile.
-  --no-autoload         Disable conservative interop predicate autoloading.
+  --no-autoload         Disable bundled library predicate autoloading.
   -v, --version         Show the package version and exit.
   -w, --warnings        Print non-fatal portability warnings to stderr.
   -g, --goal goal       Solve goal and print its ground answers; may be repeated.

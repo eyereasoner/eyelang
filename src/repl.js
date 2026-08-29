@@ -4,6 +4,7 @@ import { readSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { formalErrorTerm } from './iso.js';
+import { autoloadProgramGoals } from './program.js';
 import {
   characterCodeConstantEnd, continuesGraphicToken, isTerminatingFullStop, quotedEscapeEnd,
 } from './syntax-scan.js';
@@ -65,6 +66,19 @@ export async function runRepl(engine, options = {}) {
           runWithTerminalSignals(reader, () => state.solver.runInitializations());
           output.write(' true.\n');
           continue;
+        }
+
+        // Queries entered after the initial Program was prepared need the same
+        // bundled-library autoload resolution as file and -g execution.  This
+        // is intentionally after parsing: predicate autoloading cannot provide
+        // syntax operators retroactively (libraries such as clpz must still be
+        // imported explicitly before their operators are used).
+        if (!state.strictIso && options.autoload !== false) {
+          autoloadProgramGoals(state.program, [goal], {
+            autoload: true,
+            doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+          });
+          runWithTerminalSignals(reader, () => state.solver.runInitializations());
         }
 
         const flagsBefore = snapshotFlagValues(state.solver);
@@ -284,7 +298,11 @@ function runWithTerminalSignals(reader, operation) {
 
 function makeState(engine, sources, output, options = {}, previousState = null, reader = null) {
   const strictIso = options.isoStrict === true;
-  const program = engine.Program.parseSources(sources, { strictIso, sourceMetadata: strictIso });
+  const program = engine.Program.parseSources(sources, {
+    isoStrict: strictIso,
+    sourceMetadata: strictIso,
+    autoload: !strictIso && options.autoload !== false,
+  });
   const solver = new engine.Solver(program, {
     registry: strictIso ? engine.getStrictIsoRegistry() : engine.getEyePrologRegistry(),
     isoStrict: strictIso,
@@ -756,12 +774,29 @@ function formatAnswer(engine, state, variables, env) {
     collectUnboundVariables(engine, residual, env, names, () => `_${letterName(generated++)}`);
     bindings.push(engine.formatTermForWrite(residual, env, answerWriteOptions));
   }
+  // Residual attributes are part of the answer even when the attributed
+  // variable was created inside a called predicate and is not itself a query
+  // variable (issue #87).  First retain visible query names for attributed
+  // roots, then project every remaining live attributed root with a generated
+  // top-level variable name.  This also makes call_residue_vars/2 useful at the
+  // top level: variables returned through its list share the same name with the
+  // projected constraint instead of appearing unconstrained.
   const projectedAttributeRoots = new Set();
+  const attributeRoots = [];
   for (const variable of variables) {
     const root = engine.deref(variable, env);
-    if (root.type !== 'var' || projectedAttributeRoots.has(root.name) || !env.hasPrologAttributes?.(root.name)) continue;
-    projectedAttributeRoots.add(root.name);
+    if (root.type !== 'var' || !env.hasPrologAttributes?.(root.name)) continue;
     names.set(root.name, variable.name);
+    attributeRoots.push(root);
+  }
+  for (const name of env.attributedVariableNames?.() ?? []) {
+    const root = engine.deref(engine.variable(name), env);
+    if (root.type === 'var') attributeRoots.push(root);
+  }
+  for (const root of attributeRoots) {
+    if (projectedAttributeRoots.has(root.name) || !env.hasPrologAttributes?.(root.name)) continue;
+    projectedAttributeRoots.add(root.name);
+    if (!names.has(root.name)) names.set(root.name, `_${letterName(generated++)}`);
     for (const residual of state.solver.attributeResidualGoals(root, env)) {
       collectUnboundVariables(engine, residual, env, names, () => `_${letterName(generated++)}`);
       bindings.push(engine.formatTermForWrite(residual, env, answerWriteOptions));

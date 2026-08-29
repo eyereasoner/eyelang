@@ -289,6 +289,9 @@ export const eyePrologLibraryIndicators: readonly string[];
 export const eyePrologNativeLibraryIndicators: readonly string[];
 export const eyePrologPortableLibraryIndicators: readonly string[];
 export const eyePrologInteropAutoload: Readonly<Record<string, string>>;
+export const eyePrologLibraryAutoload: Readonly<Record<string, string>>;
+export const eyePrologAmbiguousLibraryAutoload: Readonly<Record<string, readonly string[]>>;
+export const eyePrologLibraryAutoloadModules: readonly string[];
 export const eyePrologInteropLibraryIndicators: readonly string[];
 export const eyePrologInteropLibraryModules: readonly string[];
 export class PrologError extends Error {
@@ -374,6 +377,9 @@ declare const eyeprolog: {
   eyePrologNativeLibraryIndicators: typeof eyePrologNativeLibraryIndicators;
   eyePrologPortableLibraryIndicators: typeof eyePrologPortableLibraryIndicators;
   eyePrologInteropAutoload: typeof eyePrologInteropAutoload;
+  eyePrologLibraryAutoload: typeof eyePrologLibraryAutoload;
+  eyePrologAmbiguousLibraryAutoload: typeof eyePrologAmbiguousLibraryAutoload;
+  eyePrologLibraryAutoloadModules: typeof eyePrologLibraryAutoloadModules;
   eyePrologInteropLibraryIndicators: typeof eyePrologInteropLibraryIndicators;
   eyePrologInteropLibraryModules: typeof eyePrologInteropLibraryModules;
   run: typeof run;

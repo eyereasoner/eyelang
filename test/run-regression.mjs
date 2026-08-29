@@ -26,6 +26,9 @@ import {
   eyePrologNativeLibraryIndicators,
   eyePrologPortableLibraryIndicators,
   eyePrologInteropAutoload,
+  eyePrologLibraryAutoload,
+  eyePrologAmbiguousLibraryAutoload,
+  eyePrologLibraryAutoloadModules,
   eyePrologInteropLibraryIndicators,
   eyePrologInteropLibraryModules,
   atom,
@@ -518,6 +521,24 @@ attribute_goals(X) --> { get_atts(X, required(V)) }, [required(X,V)].
         assertIncludes(repl.stdout, 'required(X, a).', 'attribute_goals//1 residual projection');
         assertIncludes(repl.stdout, 'dif(Y, c), freeze:freeze(Y, a).',
           'freeze/2 and dif/2 residuals share the query variable (issue #73)');
+
+        const hiddenResidualFile = path.join(tmp, `atts-hidden-residual-${++tmpCounter}.pl`);
+        fs.writeFileSync(hiddenResidualFile, 'ffalse :- freeze(_, false).\n');
+        const hiddenResidual = runCli([], {
+          input:
+            `[${sourceAtom(hiddenResidualFile)}].\n` +
+            'ffalse.\n' +
+            'call_residue_vars(ffalse, Vs).\n' +
+            'freeze(V,false).\n' +
+            'halt.\n',
+        });
+        assertEqual(hiddenResidual.status, 0, 'hidden attribute residual REPL status');
+        assertIncludes(hiddenResidual.stdout, 'freeze:freeze(_A, false).',
+          'top level projects hidden attributed variables (issue #87)');
+        assertIncludes(hiddenResidual.stdout, 'Vs = [_A], freeze:freeze(_A, false).',
+          'call_residue_vars/2 shares its returned variable with the projected residue (issue #87)');
+        assertIncludes(hiddenResidual.stdout, 'freeze:freeze(V, false).',
+          'direct top-level freeze/2 keeps the visible query variable name');
 
         const scryerShape = Program.parse(`:- module(scryer_shape, [op(700, xfx, #=), probe/0]).
 :- op(700, xfx, #=).
@@ -2850,7 +2871,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'REPL applies conservative autoloading to interactive time/1 and consulted ... //0',
+      name: 'REPL applies bundled-library autoloading to interactive time/1 and consulted ... //0',
       run: () => {
         const filename = path.join(tmp, `issue49-handoff-${tmpCounter++}.pl`);
         fs.writeFileSync(filename, 'a --> ..., epsilon.\nepsilon --> [].\n');
@@ -3632,14 +3653,14 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
-      name: 'REPL use_module imports Part 2 library predicates',
+      name: 'REPL autoload and explicit use_module coexist for Part 2 library predicates',
       run: () => {
         const result = runCli([], {
           input: 'append(X, Y, [1, 2, 3, 4]).\nuse_module(library(lists)).\nappend(X, Y, [1, 2, 3, 4]).\n\nhalt.\n',
         });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout,
-          '?-    error(existence_error(procedure, append / 3), eyeprolog).\n' +
+          '?-    X = [], Y = [1, 2, 3, 4].\n' +
           '?-    true.\n' +
           '?-    X = [], Y = [1, 2, 3, 4]\n;  ... .\n?- ',
           'stdout');
@@ -3947,6 +3968,50 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: 'interactive top level autoloads unresolved bundled predicates',
+      run: () => {
+        const result = runCli([], {
+          input: 'append(X,Y,[1,2]).\n;\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'X = [], Y = [1, 2]', 'first append/3 answer');
+        assertIncludes(result.stdout, 'X = [1], Y = [2].', 'second append/3 answer');
+        assertNotIncludes(result.stdout, 'existence_error(procedure, append / 3)', 'autoload failure');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'all bundled library exports participate in generic autoloading',
+      run: () => {
+        const input = [
+          '%% goal: pair_answer(K,V)',
+          '%% goal: string_answer(X)',
+          '%% goal: prime_answer(X)',
+          'pair_answer(K,V) :- pairs_keys_values([a-1,b-2], K, V).',
+          'string_answer(X) :- uppercase("hello", X).',
+          'prime_answer(X) :- smallest_divisor_from(91, 2, X).',
+          '',
+        ].join('\n');
+        const result = runCli(['-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          'pair_answer("ab", [1, 2]).\nstring_answer(\'HELLO\').\nprime_answer(7).\n', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'generic autoload index is generated from every bundled library module',
+      run: () => {
+        assertEqual(eyePrologLibraryAutoload['member/2'], 'lists', 'facade duplicate resolves to defining lists module');
+        assertEqual(eyePrologLibraryAutoload['pairs_keys_values/3'], 'pairs', 'pairs export is autoloadable');
+        assertEqual(eyePrologLibraryAutoload['uppercase/2'], 'strings', 'strings export is autoloadable');
+        assertEqual(eyePrologLibraryAutoload['smallest_divisor_from/3'], 'primes', 'primes export is autoloadable');
+        assertEqual(Object.keys(eyePrologAmbiguousLibraryAutoload).length, 0, 'current bundled surface has no unresolved export ambiguities');
+        assertEqual(eyePrologLibraryAutoloadModules.length, standardLibrarySources.size, 'every registered bundled module is indexed');
+        assertEqual([...standardLibrarySources.keys()].sort().join(','), [...eyePrologLibraryAutoloadModules].sort().join(','), 'autoload module index matches bundled sources');
+      },
+    },
+    {
       name: 'between/3 generated values avoid recursive environment chains (issue #52)',
       run: () => {
         const goalText = 'between(1, 1024, X), X < 0';
@@ -3994,7 +4059,7 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
-      name: 'strict ISO mode disables interop autoloading',
+      name: 'strict ISO mode disables bundled-library autoloading',
       run: () => {
         const input = '%% goal: answer(X)\nanswer(X) :- member(X, [a,b]).\n';
         const result = runCli(['--iso-strict', '-'], { input });
@@ -4004,7 +4069,7 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
-      name: 'CLI top-level goals participate in interop autoloading',
+      name: 'CLI top-level goals participate in bundled-library autoloading',
       run: () => {
         const result = runCli(['-g', 'member(X,[a,b])', '-'], { input: '' });
         assertEqual(result.status, 0, 'exit status');
@@ -4707,6 +4772,18 @@ answer(Result) :- countdown(2048, Result), Result = 2048.
 
 function documentationSyncCases() {
   return [
+    {
+      name: 'generated bundled-library autoload index matches src/lib module exports',
+      run: () => {
+        const result = spawnSync(process.execPath, [path.join(packageRoot, 'tools', 'generate-library-autoload-index.mjs'), '--check'], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'library-autoload-index.js is up to date', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
     {
       name: 'WG17 syntax status matches its executable-coverage manifest',
       run: () => {
@@ -5678,7 +5755,7 @@ answer(ok) :-
       },
     },
     {
-      name: 'autoload metadata records canonical interop imports',
+      name: 'autoload metadata records canonical bundled-library imports',
       run: () => {
         const program = Program.parse('answer(X) :- member(X, [a]), between(1, 1, _).\n');
         assertEqual(program.autoloadedPredicates.length, 2, 'autoloaded predicate count');
@@ -5688,7 +5765,7 @@ answer(ok) :-
       },
     },
     {
-      name: 'JavaScript run top-level goals participate in interop autoloading',
+      name: 'JavaScript run top-level goals participate in bundled-library autoloading',
       run: () => {
         const result = runEyeProlog('', { goal: 'member(X,[a,b])' });
         assertEqual(result.stdout, 'member(a, "ab").\nmember(b, "ab").\n', 'stdout');
@@ -6192,7 +6269,10 @@ answer(ok) :-
         assertEqual(eyePrologInteropAutoload['call_residue_vars/2'], 'atts', 'call_residue_vars/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
-        assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'EyeProlog-only set_nth0/4 is not autoloadable');
+        assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'set_nth0/4 is outside the conservative interop subset');
+        assertEqual(eyePrologLibraryAutoload['set_nth0/4'], 'lists', 'complete library autoload includes EyeProlog-only exports');
+        assertEqual(eyePrologLibraryAutoload['pairs_keys_values/3'], 'pairs', 'complete library autoload includes library(pairs)');
+        assertEqual(eyePrologLibraryAutoloadModules.length, 35, 'all bundled src/lib modules are indexed for autoload');
         assertEqual(eyePrologNativeLibraryIndicators.length, 58, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
         assertEqual(eyePrologNativeLibraryIndicators.includes('random/1'), true, 'stateful random/1 is classified as host-supported');

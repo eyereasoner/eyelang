@@ -1860,10 +1860,11 @@ additional logical answer.
 `analyzeNegation`. It returns `stdout`, the solver's numeric `stats`, and a
 nullable `haltCode`; it does not write to the process streams.
 
-When `run` receives an already parsed `Program`, canonical interop imports
+When `run` receives an already parsed `Program`, bundled-library imports
 needed only by its host-supplied goals are added to that Program before solving,
-just as they are while source text is parsed. Pass `autoload: false` when the
-Program must retain only explicitly imported predicates.
+just as they are while source text is parsed. The autoload index covers every
+exported predicate in the bundled `src/lib/` modules. Pass `autoload: false`
+when the Program must retain only explicitly imported predicates.
 
 For applications that inspect or prepare a theory before running it, use
 `Program` directly:
@@ -6303,8 +6304,9 @@ as a compatibility facade over the canonical `lists`, `between`, `iso_ext`,
 and `freeze` modules. The published Prologue, `call_nth/2`, and `length/2`
 quads are retained as offline regressions. `src/standard-library.js` registers the module sources and private control and
 constraint adapters for Node and browser resolution. Explicit `use_module/1-2`
-loads remain supported; outside strict ISO mode, the conservative interop
-autoloader may also load a module for one uniquely mapped common predicate.
+loads remain supported; outside strict ISO mode, the bundled-library autoloader
+may also load the canonical owner of any exported `src/lib/` predicate. The
+autoload index is generated from the libraries' `module/2` declarations.
 The core registry remains available through `createDefaultRegistry()` and
 `getDefaultRegistry()` for low-level embedding. The stricter Part 1 +
 Corrigenda registry is exposed as `createStrictIsoRegistry()` and
@@ -6382,7 +6384,7 @@ bindings make one aligned subterm pair sufficient. For example:
 
 <!-- eyeprolog-library-catalog:end -->
 
-#### Interoperability profile and conservative autoloading
+#### Interoperability profile and bundled-library autoloading
 
 EyeProlog keeps four related concepts separate:
 
@@ -6391,7 +6393,7 @@ EyeProlog keeps four related concepts separate:
 | **ISO core** | The documented ISO predicate profile built into the processor. No EyeProlog library import is involved. |
 | **EyeProlog library surface** | Every module and exported predicate listed in the catalog above. Programs normally access these with `use_module/1-2`. |
 | **Interoperability profile** | A deliberately smaller set of library names and predicate interfaces that EyeProlog intends to keep source-compatible with Trealla and Scryer where practical. |
-| **Autoload map** | An even smaller convenience table that gives selected unqualified predicates one canonical EyeProlog provider. |
+| **Autoload index** | A generated index of every predicate exported by the bundled `src/lib/` modules, with one canonical provider per unambiguous predicate. |
 
 These layers answer different questions. A predicate may be implemented entirely
 as ordinary Prolog and still be outside the cross-processor interoperability
@@ -6452,9 +6454,9 @@ EyeProlog API belongs to the shared profile. `call_nth/2`, `time/1`, and
 prints elapsed time, EyeProlog inference count, and MLips in Trealla-style form,
 for example `% Time elapsed 0.832s, 65551 Inferences, 0.079 MLips`; `... //0`
 describes an arbitrary number of input elements. Together they let the
-Trealla/Scryer DCG hand-off benchmark run in EyeProlog without source changes
-(assuming the usual list library is already imported in an interactive
-session). The focused modules have one canonical implementation owner per
+Trealla/Scryer DCG hand-off benchmark run in EyeProlog without source changes;
+the interactive top level uses the same bundled-predicate autoloader as file and
+CLI/API goal execution. The focused modules have one canonical implementation owner per
 predicate. `library(prologue)` re-exports those same owners, so legacy code can
 combine the facade with `library(lists)`, `library(iso_ext)`, and
 `library(freeze)` in either import order without an accidental collision.
@@ -6488,25 +6490,41 @@ too few parameters raises `existence_error(lambda_parameter, ...)`. EyeProlog
 uses its ISO `copy_term/2` implementation for the fresh-copy step and does not
 require a separate `copy_term_nat/2` predicate.
 
-Autoloading is a convenience layered on top of the interoperability profile; it
-is not a general search through all EyeProlog libraries. When a source program
-or an explicit CLI/API goal is built, an otherwise undefined **unqualified**
-predicate may be autoloaded only when the interop table assigns it one canonical
-provider. The interactive top level keeps ordinary library imports explicit;
-`time/1` is available there because it is also a normal EyeProlog runtime
-extension. For example, the canonical build-time providers are:
+Autoloading is a convenience layered on top of the module system and is
+independent of the smaller interoperability profile. At build time EyeProlog
+uses a generated index derived from every bundled `src/lib/*.pl` `module/2`
+export list. An otherwise unresolved predicate in source, initialization code, an explicit
+CLI/API goal, or an interactive top-level query therefore autoloads its canonical
+bundled provider.
+For example:
 
 | Predicate | Canonical autoload provider |
 | --- | --- |
 | `member/2` | `library(lists)` |
-| `call_nth/2` | `library(iso_ext)` |
-| `time/1` | `library(iso_ext)` |
-| `.../2` | `library(iso_ext)` |
+| `pairs_keys_values/3` | `library(pairs)` |
+| `uppercase/2` | `library(strings)` |
+| `smallest_divisor_from/3` | `library(primes)` |
 | `between/3` | `library(between)` |
 
-Predicates outside that table require an explicit import even when EyeProlog
-provides them. Explicit imports therefore remain the clearest way to state
-library dependencies:
+The resolution order is deliberately conservative with respect to Prolog
+semantics: a predicate already defined by the program wins; ISO/standard
+built-ins are not replaced by an autoloaded library; an explicit module import
+wins over autoloading; only then is the bundled autoload index consulted.
+Facade modules such as `library(prologue)` may re-export predicates from focused
+modules; the generated index chooses the unique module that actually defines
+the predicate. If more than one bundled module genuinely defines the same
+export, EyeProlog reports an import ambiguity and requires explicit
+`use_module/1-2` rather than guessing. The interactive top level applies this
+same resolution after a query has been parsed. Autoloading therefore supplies
+predicates, not retroactive syntax: a library that introduces operators (for
+example `library(clpz)` and `ins`) must still be explicitly imported before a
+query or source term uses those operators.
+
+The index is generated by `npm run generate:autoload` into
+`src/library-autoload-index.js`, and the documentation regression suite checks
+that it is synchronized with the current `src/lib/` sources. Explicit imports
+remain the clearest way to state dependencies when portability or module intent
+should be visible in the source:
 
 ```text
 :- use_module(library(lists)).
@@ -6515,7 +6533,8 @@ library dependencies:
 
 Use `--no-autoload`, or the JavaScript option `autoload: false`, when every
 library dependency should be explicit. `--iso-strict` always disables EyeProlog
-library autoloading.
+library autoloading, so strict ISO execution never gains procedures from this
+implementation convenience.
 
 `-w` / `--warnings` reports explicit dependencies on non-profile libraries and
 calls to non-profile predicates from otherwise common modules. `--portable`
@@ -6927,9 +6946,17 @@ terminal signal handling: `Ctrl-C`
 therefore terminates the current EyeProlog process immediately, and on POSIX
 terminals `Ctrl-Z` suspends it in the usual shell-managed way. This remains a
 host top-level convention rather than an ISO/IEC 13211-1 language feature. A
-period-terminated query with no solutions prints `false.`; a solution without
-visible variable bindings prints `true.`. Answer substitutions are rendered as
-valid Prolog syntax under the current operator table: when a bound value would
+period-terminated query with no solutions prints `false.`. A solution without
+visible variable bindings prints `true.` only when it also has no pending
+residual goals. Residual constraints are part of the displayed answer even when
+the attributed variable was created inside a called predicate and is not a
+visible query variable; the top level assigns such variables generated names
+like `_A`. For example, if `ffalse :- freeze(_, false).`, the query `ffalse.`
+displays `freeze:freeze(_A, false).`, and
+`call_residue_vars(ffalse, Vs).` displays
+`Vs = [_A], freeze:freeze(_A, false).` rather than implying that the returned
+variable is unconstrained. Answer substitutions are rendered as valid Prolog
+syntax under the current operator table: when a bound value would
 not be a valid right operand of the displayed `=/2`, EyeProlog adds parentheses,
 for example `T = (a = b).` rather than the invalid `T = a = b.`. When an answer
 ends in a graphic token, the top level inserts layout before its terminating
@@ -6994,9 +7021,9 @@ make the observed question explicit.
 | `-h`, `--help` | Show usage |
 | `-p`, `--proof` | Print `why/2` explanations |
 | `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
-| `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions (including `table` and `:+`) and disable interop autoloading |
+| `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions (including `table` and `:+`) and disable bundled-library autoloading |
 | `--portable` | Enforce the conservative EyeProlog/Trealla/Scryer interoperability profile |
-| `--no-autoload` | Disable conservative interop predicate autoloading |
+| `--no-autoload` | Disable bundled-library predicate autoloading |
 | `-s`, `--stats` | Print final solver and memory statistics to stderr after execution |
 | `-v`, `--version` | Print the package version |
 | `-w`, `--warnings` | Print non-fatal portability warnings |
@@ -7011,8 +7038,8 @@ retains the Part 1 prefix `(?-)/1` operator and treats `-->/2` as ordinary Part
 `phrase/2-3`. Part 2 module directives and EyeProlog libraries are rejected,
 the implementation-specific `occurs_check` flag is absent, and the normal-profile
 `table` declaration is unavailable. Normal mode continues to support Parts
-2–3 and EyeProlog extensions, plus conservative interop autoloading for the
-profile documented above.
+2–3 and EyeProlog extensions, plus generated autoloading across the bundled
+`src/lib/` library exports documented above.
 
 Inputs may be local files, HTTP(S) URLs, or one `-` for stdin. The bare command
 `eyeprolog` starts the normal REPL; `eyeprolog --iso-strict` starts the strict

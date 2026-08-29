@@ -1,7 +1,7 @@
 // Prolog library modules shipped with EyeProlog and loaded through its documented module compatibility surface.
 // The sources are registered here so library(Name) works in Node and browsers.
-// Modules are loaded on demand by explicit use_module/1-2 or by the conservative
-// source-level interop autoloader declared below.
+// Modules are loaded on demand by explicit use_module/1-2 or by the generic
+// source-level autoloader generated from every bundled module/2 export list.
 import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
 import { attsBuiltins } from './atts.js';
 import { expansionBuiltins } from './expansion-builtins.js';
@@ -9,6 +9,9 @@ import { scryerCompatibilityBuiltins } from './scryer-compat.js';
 import { registerCleanupBuiltins } from './cleanup.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
+import { eyePrologAmbiguousLibraryAutoload, eyePrologLibraryAutoload, eyePrologLibraryAutoloadModules } from './library-autoload-index.js';
+
+export { eyePrologAmbiguousLibraryAutoload, eyePrologLibraryAutoload, eyePrologLibraryAutoloadModules };
 
 const moduleFiles = Object.freeze({
   aggregate: 'aggregate.pl',
@@ -152,10 +155,12 @@ export const eyePrologLibraryIndicators = Object.freeze([
 ]);
 
 
-// Conservative cross-implementation profile.  These predicate indicators are
-// intentionally limited to interfaces that EyeProlog wants to keep source-
-// compatible with the Trealla/Scryer ecosystem.  The value is the canonical
-// EyeProlog library used when an otherwise undefined call is autoloaded.
+// Conservative cross-implementation profile metadata. These predicate indicators
+// are intentionally limited to interfaces that EyeProlog wants to keep source-
+// compatible with the Trealla/Scryer ecosystem. The complete runtime autoload
+// index is generated separately from every bundled module/2 export; this smaller
+// map is retained as the canonical interoperability subset used by diagnostics
+// and public metadata.
 //
 // This is deliberately separate from eyePrologPortableLibraryIndicators:
 // "portable" there means implemented in Prolog rather than as a host builtin;

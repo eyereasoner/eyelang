@@ -21,6 +21,9 @@ export {
   eyePrologNativeLibraryIndicators,
   eyePrologPortableLibraryIndicators,
   eyePrologInteropAutoload,
+  eyePrologLibraryAutoload,
+  eyePrologAmbiguousLibraryAutoload,
+  eyePrologLibraryAutoloadModules,
   eyePrologInteropLibraryIndicators,
   eyePrologInteropLibraryModules,
 } from './standard-library.js';

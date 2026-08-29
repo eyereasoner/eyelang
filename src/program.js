@@ -12,11 +12,12 @@ import {
   parseGoalText,
   tryParseClausesFastInto,
 } from './parser.js';
-import { PrologError, convertClauseBodyTerm, getStrictIsoRegistry } from './iso.js';
+import { PrologError, convertClauseBodyTerm, getDefaultRegistry, getStrictIsoRegistry } from './iso.js';
 import { currentWorkingDirectory, fs, path } from './platform.js';
 import {
   standardLibrarySources,
-  eyePrologInteropAutoload,
+  eyePrologAmbiguousLibraryAutoload,
+  eyePrologLibraryAutoload,
   eyePrologInteropLibraryIndicators,
   eyePrologInteropLibraryModules,
 } from './standard-library.js';
@@ -255,7 +256,10 @@ export class Program {
       }
     }
     this.initializations = [];
-    this._initializationsExecuted = false;
+    // Track how many initialization/1 directives have run so a REPL can
+    // autoload a library after startup and execute only that library's newly
+    // appended initializations without repeating earlier side effects.
+    this._initializationsExecutedCount = 0;
     this.quads = [];
     this.prologFlagDirectives = [];
     this.charConversionDirectives = [];
@@ -1045,7 +1049,7 @@ export function autoloadProgramGoals(program, inputs, options = {}) {
     const builder = new ProgramBuilder({ ...options, isoStrict: false }, program);
     const loadedModules = new Set([...program.modules.keys()].filter((name) => name !== 'user'));
     const autoloadCount = program.autoloadedPredicates.length;
-    autoloadInteropDependencies(builder, {
+    autoloadLibraryDependencies(builder, {
       ...options,
       isoStrict: false,
       operatorState,
@@ -1094,7 +1098,7 @@ function loadSourcesIntoBuilder(builder, sources, options, fast) {
       parserFlagState,
     }, builder.program);
     if (options.isoStrict !== true && options.autoload !== false) {
-      autoloadInteropDependencies(builder, {
+      autoloadLibraryDependencies(builder, {
         ...options,
         operatorState,
         parserFlagState,
@@ -1164,14 +1168,32 @@ function extraGoalDependencies(goals) {
   return dependencies;
 }
 
-function interopAutoloadRequests(program, extraGoals = []) {
+function procedureResolvedBeforeAutoload(program, dependency, targetModule) {
+  if (program.findGroup(dependency.name, dependency.arity, targetModule)) return true;
+  return program.moduleImports.get(targetModule)?.has(dependency.key) === true;
+}
+
+function autoloadLibraryFor(dependency) {
+  // ISO built-ins always take precedence over optional library autoloading.
+  if (getDefaultRegistry().get(dependency.name, dependency.arity) != null) return null;
+  const ambiguous = eyePrologAmbiguousLibraryAutoload[dependency.key];
+  if (ambiguous != null) {
+    throw new PrologError(
+      'permission_error(import, procedure)',
+      compound('/', [atom(dependency.name), numberTerm(dependency.arity)]),
+    );
+  }
+  return eyePrologLibraryAutoload[dependency.key] ?? null;
+}
+
+function libraryAutoloadRequests(program, extraGoals = []) {
   const requests = new Map();
   for (const group of program.groups.values()) {
     if (bundledLibraryModule(program, group.module)) continue;
     for (const dependency of groupDependencies(group)) {
       const targetModule = dependency.module ?? group.module;
-      if (program.findGroup(dependency.name, dependency.arity, targetModule)) continue;
-      const library = eyePrologInteropAutoload[dependency.key];
+      if (procedureResolvedBeforeAutoload(program, dependency, targetModule)) continue;
+      const library = autoloadLibraryFor(dependency);
       if (library == null) continue;
       const requestKey = `${targetModule}\u0000${dependency.key}`;
       requests.set(requestKey, {
@@ -1186,8 +1208,8 @@ function interopAutoloadRequests(program, extraGoals = []) {
   for (const goal of program.initializations) {
     for (const dependency of collectGoalDependencies(goal, false, true)) {
       const targetModule = dependency.module ?? 'user';
-      if (program.findGroup(dependency.name, dependency.arity, targetModule)) continue;
-      const library = eyePrologInteropAutoload[dependency.key];
+      if (procedureResolvedBeforeAutoload(program, dependency, targetModule)) continue;
+      const library = autoloadLibraryFor(dependency);
       if (library == null) continue;
       const requestKey = `${targetModule}\u0000${dependency.key}`;
       requests.set(requestKey, {
@@ -1201,8 +1223,8 @@ function interopAutoloadRequests(program, extraGoals = []) {
   }
   for (const dependency of extraGoalDependencies(extraGoals)) {
     const targetModule = dependency.module ?? 'user';
-    if (program.findGroup(dependency.name, dependency.arity, targetModule)) continue;
-    const library = eyePrologInteropAutoload[dependency.key];
+    if (procedureResolvedBeforeAutoload(program, dependency, targetModule)) continue;
+    const library = autoloadLibraryFor(dependency);
     if (library == null) continue;
     const requestKey = `${targetModule}\u0000${dependency.key}`;
     requests.set(requestKey, {
@@ -1216,14 +1238,14 @@ function interopAutoloadRequests(program, extraGoals = []) {
   return [...requests.values()];
 }
 
-function autoloadInteropDependencies(builder, options, ensured, loadedModules, extraGoals = []) {
+function autoloadLibraryDependencies(builder, options, ensured, loadedModules, extraGoals = []) {
   const program = builder.program;
   while (true) {
-    const requests = interopAutoloadRequests(program, extraGoals);
+    const requests = libraryAutoloadRequests(program, extraGoals);
     if (requests.length === 0) return;
     let changed = false;
     for (const request of requests) {
-      if (program.findGroup(request.name, request.arity, request.targetModule)) continue;
+      if (procedureResolvedBeforeAutoload(program, request, request.targetModule)) continue;
       if (!loadedModules.has(request.library)) {
         const designation = compound('library', [atom(request.library)]);
         const loaded = readModuleSource(designation, options);
