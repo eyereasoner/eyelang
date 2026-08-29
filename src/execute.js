@@ -82,8 +82,6 @@ export function executeForwardRules(program, solver, {
   predeclareForwardTerms(program, solver, group);
   setSingletonFact(program, 'closure', [numberTerm(0)]);
   setSingletonFact(program, 'limit', [numberTerm(-1)]);
-  setSingletonFact(program, 'count', [atom('fm'), numberTerm(0)], true);
-  setSingletonFact(program, 'count', [atom('mf'), numberTerm(0)], true);
 
   const seenAnswers = new Set();
   let rounds = 0;
@@ -186,11 +184,6 @@ export function executeForwardRules(program, solver, {
       continue;
     }
     break;
-  }
-
-  for (const name of ['fm', 'mf']) {
-    const count = keyedCount(program, name);
-    if (count !== 0) onDiagnostic(`*** ${name}=${count}\n`);
   }
 
   return { haltCode, rounds, derived };
@@ -370,12 +363,4 @@ function singletonInteger(program, name, fallback) {
   return fallback;
 }
 
-function keyedCount(program, key) {
-  const group = program.findGroup('count', 2, 'user');
-  if (group == null) return 0;
-  for (let i = group.clauses.length - 1; i >= 0; i--) {
-    const args = group.clauses[i].head?.args;
-    if (args?.[0]?.type === ATOM && args[0].name === key && args[1]?.type === NUMBER) return Number(args[1].name);
-  }
-  return 0;
-}
+

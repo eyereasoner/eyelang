@@ -143,8 +143,9 @@ This avoids a heuristic silently changing answer multiplicity, termination, or
 resource behavior for an otherwise ordinary recursive predicate.
 
 Forward chaining is explicit too. Normal mode recognizes `Conclusion :+ Premise`
-and executes those rules with a native fixed-point driver, including Eyelet's
-`true :+ Goal` query and `false :+ Goal` fuse conventions. Strict ISO mode
+and executes those rules with a native fixed-point driver. The bundled
+`library(eyelet)` exports the `:+` operator, `stable/1`, and `becomes/2`, including
+Eyelet's `true :+ Goal` query and `false :+ Goal` fuse conventions. Strict ISO mode
 removes the operator. Because resource exhaustion is not logical failure, normal
 execution has no hidden depth cutoff; an explicitly requested depth limit raises
 `resource_error(depth_limit)`.

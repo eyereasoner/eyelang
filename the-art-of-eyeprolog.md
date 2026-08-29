@@ -1681,16 +1681,16 @@ is a forward rule. When a loaded program contains such rules and no explicit
 top-level goal overrides them, the engine runs a native closure driver rather
 than a Prolog meta-interpreter. It repeatedly solves premises against the
 current program, asserts novel conjuncts from successful conclusions, and
-continues until no new conclusion is added. This is the execution path used by
-the Eyelet adapter.
+continues until no new conclusion is added. This is the execution path used when
+Eyelet sources are run directly by EyeProlog.
 
 Two conclusions have control meaning. `true :+ Goal` is a query and prints each
 distinct successful instance of `Goal`. `false :+ Goal` is an integrity fuse:
 on success EyeProlog prints `fuse(Goal)` and returns halt status 2. Variables
 that occur only in an ordinary derived conclusion are existential and become
 `sk_0`, `sk_1`, and so on; a derived conclusion that is itself a `:+` rule keeps
-its variables universal. Eyelet's `stable/1` and `becomes/2` remain library-level
-compatibility helpers, while closure selection and assertion are native.
+its variables universal. The bundled `library(eyelet)` exports the `:+` operator together with
+`stable/1` and `becomes/2`, while closure selection and assertion are native.
 
 The JavaScript convenience `run()` function selects this forward mode when no
 explicit `goal` or `goals` option is supplied. Advanced embedders can inspect a
@@ -6278,12 +6278,12 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **299 distinct non-ISO library and normal-extension predicate
+EyeProlog exposes **301 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
-**241 are defined entirely as ordinary Prolog clauses** in focused modules under
+**243 are defined entirely as ordinary Prolog clauses** in focused modules under
 `src/lib/`; **58 use host support** for control, attributed variables,
 constraints, or observability. The ISO and library catalogs therefore cover
-**428 distinct predicate indicators**. Normal-mode controls and observability
+**430 distinct predicate indicators**. Normal-mode controls and observability
 relations that do not belong to a library, such as `call_cleanup/2`,
 `setup_call_cleanup/3`, `statistics/0,2`, and `tnot/1`, are documented in their
 own sections rather than counted as library predicates. `time/1` is additionally
@@ -6296,7 +6296,7 @@ The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
 `src/lib/charsio.pl`, `src/lib/clpb.pl`, `src/lib/clpz.pl`,
 `src/lib/comparison.pl`, `src/lib/dates.pl`, `src/lib/dcgs.pl`,
 `src/lib/debug.pl`, `src/lib/dif.pl`, `src/lib/error.pl`,
-`src/lib/format.pl`, `src/lib/freeze.pl`, `src/lib/gensym.pl`,
+`src/lib/eyelet.pl`, `src/lib/format.pl`, `src/lib/freeze.pl`, `src/lib/gensym.pl`,
 `src/lib/iso_ext.pl`, `src/lib/lambda.pl`, `src/lib/lists.pl`,
 `src/lib/ordsets.pl`, `src/lib/pairs.pl`, `src/lib/pio.pl`,
 `src/lib/primes.pl`, `src/lib/prologue.pl`, `src/lib/random.pl`,
@@ -6368,6 +6368,7 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(debug)` | `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2`, `bb_global_get/2` | Declarative debug operators and constraint-library blackboards |
 | `library(dif)` | `dif/2` | Common module facade over native delayed disequality |
 | `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `call_with_error_context/2` | Error checking and construction |
+| `library(eyelet)` | `stable/1`, `becomes/2` | Eyelet forward-reasoning state helpers; the `:+` operator is exported by the module and executed natively by EyeProlog |
 | `library(format)` | `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2` | Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals |
 | `library(freeze)` | `freeze/2` | Delayed goals |
 | `library(gensym)` | `gensym/2`, `reset_gensym/1` | Process-local generated atoms |

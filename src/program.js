@@ -1131,6 +1131,14 @@ function bundledLibraryModule(program, module) {
 function groupDependencies(group) {
   const dependencies = [];
   for (const clause of group.clauses) {
+    // Native forward rules store their executable premise in the :+/2 head
+    // rather than in the ordinary clause body.  Treat that premise as a goal
+    // dependency so bundled predicates such as stable/1 and becomes/2 can be
+    // autoloaded exactly like calls in ordinary rules.  Derived :+ rules may
+    // themselves occur in a conclusion, so recurse through that shape too.
+    if (group.name === ':+') {
+      dependencies.push(...forwardRuleDependencies(clause.head));
+    }
     if (isCompactBinaryClause(clause)) {
       if (clause.bodyName != null) {
         dependencies.push({
@@ -1145,6 +1153,103 @@ function groupDependencies(group) {
     for (const goal of clause.body) {
       dependencies.push(...collectGoalDependencies(goal, false, true));
     }
+  }
+  return dependencies;
+}
+
+function forwardRuleDependencies(term, out = []) {
+  if (term?.type !== COMPOUND) return out;
+  if (term.name === ':+' && term.arity === 2) {
+    out.push(...collectGoalDependencies(term.args[1], false, true));
+    forwardRuleDependencies(term.args[0], out);
+    return out;
+  }
+  if (term.name === ',' && term.arity === 2) {
+    forwardRuleDependencies(term.args[0], out);
+    forwardRuleDependencies(term.args[1], out);
+  }
+  return out;
+}
+
+// Autoloading needs a slightly richer dependency walk than recursion analysis.
+// Meta-predicates such as forall/2 and setof/3 are themselves callable
+// procedures while also containing executable goals.  The recursion graph
+// intentionally looks through those wrappers; the autoloader must see both the
+// wrapper and any statically visible nested calls so a bundled library can be
+// loaded before execution reaches it.
+function collectAutoloadGoalDependencies(goal, out = []) {
+  if (goal?.type === ATOM) {
+    out.push({ key: `${goal.name}/0`, name: goal.name, arity: 0, module: goal.module });
+    return out;
+  }
+  if (goal?.type !== COMPOUND) return out;
+  if (goal.name === ',' && goal.arity === 2) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+    collectAutoloadGoalDependencies(goal.args[1], out);
+    return out;
+  }
+  if ((goal.name === ';' || goal.name === '->') && goal.arity === 2) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+    collectAutoloadGoalDependencies(goal.args[1], out);
+    return out;
+  }
+  if ((goal.name === '\\+' || goal.name === 'not' || goal.name === 'tnot' || goal.name === 'once') && goal.arity === 1) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+    return out;
+  }
+
+  out.push({ key: `${goal.name}/${goal.arity}`, name: goal.name, arity: goal.arity, module: goal.module });
+
+  if (goal.name === 'forall' && goal.arity === 2) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+    collectAutoloadGoalDependencies(goal.args[1], out);
+  } else if ((goal.name === 'findall' || goal.name === 'bagof' || goal.name === 'setof' || goal.name === 'sumall') && goal.arity === 3) {
+    collectAutoloadGoalDependencies(goal.args[1], out);
+  } else if (goal.name === 'countall' && goal.arity === 2) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+  } else if ((goal.name === 'aggregate_min' || goal.name === 'aggregate_max') && goal.arity === 5) {
+    collectAutoloadGoalDependencies(goal.args[2], out);
+  } else if (goal.name === 'catch' && goal.arity === 3) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+    collectAutoloadGoalDependencies(goal.args[2], out);
+  } else if ((goal.name === 'call_cleanup' || goal.name === 'setup_call_cleanup') && (goal.arity === 2 || goal.arity === 3)) {
+    for (const arg of goal.args) collectAutoloadGoalDependencies(arg, out);
+  } else if (goal.name === 'call' && goal.arity === 1) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+  }
+  return out;
+}
+
+function forwardRuleAutoloadDependencies(term, out = []) {
+  if (term?.type !== COMPOUND) return out;
+  if (term.name === ':+' && term.arity === 2) {
+    collectAutoloadGoalDependencies(term.args[1], out);
+    forwardRuleAutoloadDependencies(term.args[0], out);
+    return out;
+  }
+  if (term.name === ',' && term.arity === 2) {
+    forwardRuleAutoloadDependencies(term.args[0], out);
+    forwardRuleAutoloadDependencies(term.args[1], out);
+  }
+  return out;
+}
+
+function groupAutoloadDependencies(group) {
+  const dependencies = [];
+  for (const clause of group.clauses) {
+    if (group.name === ':+') dependencies.push(...forwardRuleAutoloadDependencies(clause.head));
+    if (isCompactBinaryClause(clause)) {
+      if (clause.bodyName != null) {
+        dependencies.push({
+          key: `${clause.bodyName}/2`,
+          name: clause.bodyName,
+          arity: 2,
+          module: clause.module ?? group.module,
+        });
+      }
+      continue;
+    }
+    for (const goal of clause.body) collectAutoloadGoalDependencies(goal, dependencies);
   }
   return dependencies;
 }
@@ -1164,7 +1269,7 @@ function parseInteropGoalInputs(inputs, options, program) {
 
 function extraGoalDependencies(goals) {
   const dependencies = [];
-  for (const goal of goals) dependencies.push(...collectGoalDependencies(goal, false, true));
+  for (const goal of goals) collectAutoloadGoalDependencies(goal, dependencies);
   return dependencies;
 }
 
@@ -1190,7 +1295,7 @@ function libraryAutoloadRequests(program, extraGoals = []) {
   const requests = new Map();
   for (const group of program.groups.values()) {
     if (bundledLibraryModule(program, group.module)) continue;
-    for (const dependency of groupDependencies(group)) {
+    for (const dependency of groupAutoloadDependencies(group)) {
       const targetModule = dependency.module ?? group.module;
       if (procedureResolvedBeforeAutoload(program, dependency, targetModule)) continue;
       const library = autoloadLibraryFor(dependency);
@@ -1206,7 +1311,7 @@ function libraryAutoloadRequests(program, extraGoals = []) {
     }
   }
   for (const goal of program.initializations) {
-    for (const dependency of collectGoalDependencies(goal, false, true)) {
+    for (const dependency of collectAutoloadGoalDependencies(goal)) {
       const targetModule = dependency.module ?? 'user';
       if (procedureResolvedBeforeAutoload(program, dependency, targetModule)) continue;
       const library = autoloadLibraryFor(dependency);
