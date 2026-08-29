@@ -4785,6 +4785,33 @@ function documentationSyncCases() {
       },
     },
     {
+      name: 'reference docs match explicit tabling and current runtime extensions',
+      run: () => {
+        const readme = fs.readFileSync(path.join(packageRoot, 'README.md'), 'utf8');
+        const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
+        const profile = fs.readFileSync(path.join(packageRoot, 'why-eyeprolog.md'), 'utf8');
+        const combined = `${readme}
+${book}
+${profile}`;
+        for (const stale of [
+          'Automatic tabling',
+          'Automatic hybrid reasoning',
+          'eligible positive recursive groups are tabled automatically',
+          '--no-auto-table',
+          'conservative interop autoloading',
+        ]) assertNotIncludes(combined, stale, `stale documentation phrase ${stale}`);
+        assertIncludes(book, 'including recursive calls, use depth-first resolution unless the source', 'ordinary recursion is depth-first');
+        assertIncludes(book, 'explicitly declares `:- table p/n.`', 'tabling is explicit');
+        assertIncludes(book, 'The autoload index covers every', 'generic bundled-library autoload');
+        assertIncludes(book, 'interactive top-level query therefore autoloads its canonical', 'REPL autoload');
+        assertIncludes(book, 'Autoloading therefore supplies', 'autoload syntax boundary');
+        assertIncludes(book, 'Residual constraints are part of the displayed answer even when', 'top-level hidden residuals');
+        assertIncludes(book, 'EyeProlog normal mode also accepts `:+`', 'native forward-rule extension');
+        assertIncludes(profile, 'an unresolved unqualified predicate may autoload its unique provider', 'Why EyeProlog autoload policy');
+        assertIncludes(readme, 'Bundled `src/lib/` predicates autoload in files, CLI/API goals, and the REPL', 'README autoload summary');
+      },
+    },
+    {
       name: 'WG17 syntax status matches its executable-coverage manifest',
       run: () => {
         const filename = path.join(testRoot, 'conformance', 'WG17-SYNTAX-STATUS.md');

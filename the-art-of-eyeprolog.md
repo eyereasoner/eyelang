@@ -30,7 +30,7 @@ program with EyeProlog means learning to move comfortably between these views.
 
 EyeProlog implements a broad ISO Prolog profile with facts, clauses, terms, lists,
 control, arithmetic, dynamic predicates, operators, streams, and standard
-built-ins. Automatic
+built-ins. Explicit
 tabling, explicit integrity checks, and proof output are implementation
 capabilities around that standards-based foundation. EyeProlog does not attempt to
 claim formal certification of every ISO processor edge case.
@@ -175,7 +175,8 @@ Approach each example through the same six moves:
 This rhythm deliberately joins declarative reading, operational reading, and
 program construction. Readers new to logic programming can follow Parts I–III
 in order. Experienced Prolog programmers can begin with Chapters 3, 13, and
-17 to see where EyeProlog's hybrid execution and proof-oriented design differ.
+17 to see how EyeProlog combines ordinary depth-first Prolog with explicit
+tabling, native forward rules, and inspectable proofs.
 Chapter 41 gives further routes through the material.
 
 ### When a run surprises you
@@ -5685,10 +5686,11 @@ so `edge/2` and `edge/3` are different predicates.
 
 Execution is goal-directed rather than complete bottom-up saturation. Goals in
 a body normally run from left to right; the solver may select a ready
-deterministic built-in early as a pure filter. Ordinary user-defined calls use
-depth-first resolution, while eligible positive recursive groups are tabled
-automatically. `\+/1` is stratified negation as failure, not classical
-negation.
+deterministic built-in early as a pure filter. Ordinary user-defined calls,
+including recursive calls, use depth-first resolution unless the source
+explicitly declares `:- table p/n.`. `\+/1` is negation as failure, not
+classical negation; the separate `tnot/1` extension provides well-founded
+semantics for eligible finite Datalog components.
 
 EyeProlog supports cut, operator declarations, dynamic database updates, grouped
 solutions, exceptions, flags, initialization and inclusion directives, and
@@ -5840,21 +5842,27 @@ time. Source facts are not echoed as new conclusions, and duplicate answers
 are suppressed. Answers are not asserted back into the running program.
 Supported output syntax is designed to be readable as Prolog input accepted by EyeProlog.
 
-#### Automatic hybrid reasoning
+#### Explicit tabling and recursion planning
 
-The program loader detects predicate-dependency cycles, including dependencies
-inside conjunction, `\+/1`, `once/1`, and aggregate goals.
-Positive recursive components—including directly queried recursive
-relations—are tabled to an answer fixed point before answers are replayed.
-Components with a negative dependency retain guarded ordinary resolution,
-because positive least-fixed-point tabling does not define unstratified
-negation. Nonrecursive groups use indexed, depth-first resolution.
+The program loader analyzes predicate dependencies and recursion so the solver
+can choose semantics-preserving indexes and fast paths. That analysis does
+**not** decide whether a predicate is tabled. Ordinary predicates—including
+recursive ones—use indexed, depth-first Prolog resolution unless their source
+explicitly declares `:- table p/n.`.
 
-For calls with ground structural input, tabled answers can be reused within a
-solver run. The engine infers common structurally decreasing inputs from
-recursive heads. Fully open calls and calls whose inferred structural input is
-not ground may remain under ordinary resolution rather than forcing a possibly
-infinite relation into a table. This changes control, not declarative meaning.
+An explicitly tabled positive recursive predicate is coordinated through an
+answer table: recurring calls consume answers already found, new answers are
+recorded, and evaluation continues toward a fixed point. For eligible large,
+finite, function-free Datalog components, EyeProlog may represent that declared
+table as one shared most-general relation or an indexed least model. For other
+declared tables the engine may infer structurally bound input positions to
+improve table reuse. These are implementation choices inside an explicit table
+declaration; they never opt an undeclared predicate into tabling.
+
+Ordinary `\+/1` remains ISO-style negation as failure. The separate `tnot/1`
+extension explicitly requests well-founded evaluation for eligible finite,
+range-restricted Datalog dependencies. Strict ISO mode exposes neither `table`
+nor `tnot/1`.
 
 #### Query execution
 
@@ -5872,8 +5880,8 @@ answers. The host:
 7. prints each answer and, only when requested, its `why/2` explanation.
 
 Goal selection affects host execution rather than the program's logical meaning.
-One goal's answers are not asserted for later goals, although internal
-tables may be reused during the solver run. For stable output, queries for
+One goal's answers are not asserted for later goals, although explicitly
+declared tables may be reused during the solver run. For stable output, queries for
 known predicates are grouped by the source order in which their predicate
 groups first appear; goals within one group retain their supplied order.
 Queries for predicates with no group follow the known groups.
@@ -7475,7 +7483,7 @@ recursion as one technique.
 | [Deep taxonomy: 10](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deep-taxonomy-10.pl) | A small generated hierarchy is readable by hand and establishes the benchmark shape. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/deep-taxonomy-10.pl) |
 | [Deep Taxonomy 100](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deep-taxonomy-100.pl) | A 100-step taxonomy chain that exercises deep recursive closure and side-label derivation. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/deep-taxonomy-100.pl) |
 | [Deep taxonomy: 1,000](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deep-taxonomy-1000.pl) | The same logical theory tests indexing and recursive closure at a realistic depth. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/deep-taxonomy-1000.pl) |
-| [Deep Taxonomy 10000](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deep-taxonomy-10000.pl) | A 10,000-step taxonomy chain used as a large-depth tabling and closure stress test. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/deep-taxonomy-10000.pl) |
+| [Deep Taxonomy 10000](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deep-taxonomy-10000.pl) | A 10,000-step taxonomy chain used as a large-depth ordinary-recursion and closure stress test. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/deep-taxonomy-10000.pl) |
 | [Deep taxonomy: 100,000](https://github.com/eyereasoner/eyeprolog/blob/main/examples/deep-taxonomy-100000.pl) | A stress case separates semantic simplicity from implementation scale. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/deep-taxonomy-100000.pl) |
 | [Family cousins](https://github.com/eyereasoner/eyeprolog/blob/main/examples/family-cousins.pl) | Several relational joins derive kinship beyond a simple transitive closure. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/family-cousins.pl) |
 | [Graph reachability](https://github.com/eyereasoner/eyeprolog/blob/main/examples/graph-reachability.pl) | A visited list bounds cyclic traversal and makes explicit negative test cases finite. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/graph-reachability.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/graph-reachability.pl) |

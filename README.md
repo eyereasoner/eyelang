@@ -31,8 +31,6 @@ Run EyeProlog without installing it globally:
 
 ```sh
 npx --yes eyeprolog
-?- use_module(library(lists)).
-   true.
 ?- member(X, [prolog, logic]).
    X = prolog
 ;  X = logic.
@@ -63,7 +61,9 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
 Normal mode executes top-level `Conclusion :+ Premise` rules natively when no explicit
 `-g/--goal` is supplied. `true :+ Goal` prints answers and `false :+ Goal` emits a
 `fuse/1`; JavaScript `run()` follows the same rule. Strict ISO mode disables this
-extension. See [*The Art of EyeProlog*](the-art-of-eyeprolog.md) for the full semantics.
+extension. Bundled `src/lib/` predicates autoload in files, CLI/API goals, and the REPL;
+use `--no-autoload` to require explicit imports, and explicitly import libraries that introduce
+operators before using their syntax. See [*The Art of EyeProlog*](the-art-of-eyeprolog.md) for the full semantics.
 
 ## Links
 

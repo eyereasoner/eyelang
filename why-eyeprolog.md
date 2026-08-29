@@ -149,6 +149,14 @@ removes the operator. Because resource exhaustion is not logical failure, normal
 execution has no hidden depth cutoff; an explicitly requested depth limit raises
 `resource_error(depth_limit)`.
 
+Library convenience is explicit at the profile boundary too. Outside strict ISO
+mode, an unresolved unqualified predicate may autoload its unique provider from
+the bundled `src/lib/` modules after program definitions, standard built-ins,
+and explicit imports have had precedence. `--no-autoload` disables this
+convenience, and strict ISO mode disables it unconditionally. Autoloading happens
+after parsing, so libraries that introduce operators still require an explicit
+`use_module/1-2` before that syntax is read.
+
 Definite clause grammars follow the ISO Part 3 difference-list model. Internal
 fast paths make deep finite sequence processing economical while preserving
 relational modes. The checked
