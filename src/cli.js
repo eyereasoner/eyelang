@@ -30,7 +30,6 @@ export async function main(argv) {
     isoStrict: false,
     portable: false,
     autoload: true,
-    autoTabling: true,
     version: false,
     warnings: false,
     goals: [],
@@ -58,8 +57,6 @@ export async function main(argv) {
       options.portable = true;
     } else if (!endOptions && arg === '--no-autoload') {
       options.autoload = false;
-    } else if (!endOptions && arg === '--no-auto-table') {
-      options.autoTabling = false;
     } else if (!endOptions && (arg === '--version' || arg === '-v')) {
       options.version = true;
     } else if (!endOptions && (arg === '--warnings' || arg === '-w')) {
@@ -156,7 +153,6 @@ export async function main(argv) {
     sourceMetadata: options.proof || options.isoStrict,
     isoStrict: options.isoStrict,
     autoload: options.autoload,
-    autoTabling: options.autoTabling,
     autoloadGoals: options.goals,
     onWarning: printSourceWarning,
   });
@@ -168,7 +164,13 @@ export async function main(argv) {
     return;
   }
 
-  if (!options.quads || options.goals.length > 0) await runDefault(engine, program, options);
+  if (!options.quads || options.goals.length > 0) {
+    if (options.goals.length === 0 && !options.isoStrict && engine.hasForwardRules(program)) {
+      await runForwardDefault(engine, program, options);
+    } else {
+      await runDefault(engine, program, options);
+    }
+  }
   if (options.quads) {
     const result = engine.runQuads(program, { initialize: options.goals.length === 0 });
     process.stdout.write(result.stdout);
@@ -202,6 +204,27 @@ async function loadEngine() {
 async function loadExplanation() {
   if (explanationModule == null) explanationModule = await import('./explain.js');
   return explanationModule;
+}
+
+async function runForwardDefault(engine, program, options) {
+  const registry = engine.getEyePrologRegistry();
+  const solver = new engine.Solver(program, {
+    registry,
+    ioOptions: {
+      write: (text) => process.stdout.write(String(text)),
+      errorWrite: (text) => process.stderr.write(String(text)),
+    },
+  });
+  try {
+    const result = engine.executeForwardRules(program, solver, {
+      onAnswer: (line) => process.stdout.write(line),
+      onFuse: (line) => process.stdout.write(line),
+      onDiagnostic: (line) => process.stderr.write(line),
+    });
+    if (result.haltCode != null) process.exitCode = result.haltCode;
+  } finally {
+    if (options.stats) printStats(solver.stats);
+  }
 }
 
 async function runDefault(engine, program, options) {
@@ -256,10 +279,9 @@ Options:
   -q, --quads           Run embedded quad tests and fail if any do not hold.
   -s, --stats           Print solver and memory statistics to stderr after execution.
   --iso-strict          Use ISO/IEC 13211-1 core + Corrigenda 1-3 only;
-                        reject EyeProlog language extensions and disable automatic tabling.
+                        reject EyeProlog language extensions.
   --portable            Enforce the EyeProlog/Trealla/Scryer interop profile.
   --no-autoload         Disable conservative interop predicate autoloading.
-  --no-auto-table       Use traditional depth-first control instead of automatic recursive tabling.
   -v, --version         Show the package version and exit.
   -w, --warnings        Print non-fatal portability warnings to stderr.
   -g, --goal goal       Solve goal and print its ground answers; may be repeated.

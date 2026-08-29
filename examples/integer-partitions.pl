@@ -1,6 +1,8 @@
 :- use_module(library(aggregate)).
 :- use_module(library(between), [between/3]).
 
+:- table partitions/3.
+
 % Integer partition counts by tabled dynamic programming.
 %
 % partitions(N, K, Count) counts unordered sums of N using parts no larger than K.

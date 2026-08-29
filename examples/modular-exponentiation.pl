@@ -1,3 +1,5 @@
+:- table pow_mod/4.
+
 % Modular exponentiation by repeated squaring.
 %
 % pow_mod(Base, Exp, Modulus, Result) uses the even/odd exponent split, giving

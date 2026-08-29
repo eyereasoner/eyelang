@@ -1,13 +1,15 @@
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
 
+:- table generator/2.
+
 % New Scientist puzzle Enigma 1225
 % Original code from https://www.sciencedirect.com/science/article/pii/S0898122106002057
 %
 % The maximum is retained in one pass with aggregate_max/5.  The recursive
 % helpers below are deterministic in the modes used by square/5; their cuts
-% make that operational contract explicit and keep automatic tabling for the
-% genuinely generative partition relation only.
+% make that operational contract explicit; the genuinely generative partition
+% relation opts into tabling with an explicit table declaration.
 
 enigma1225(Size, [Permutation, Board, Max]) :-
     aggregate_max(Total, board(M, Perm),

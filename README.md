@@ -58,6 +58,13 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
   npx --yes eyeprolog --proof --goal 'mortal(socrates)' -
 ```
 
+## Native forward rules (`:+`)
+
+Normal mode executes top-level `Conclusion :+ Premise` rules natively when no explicit
+`-g/--goal` is supplied. `true :+ Goal` prints answers and `false :+ Goal` emits a
+`fuse/1`; JavaScript `run()` follows the same rule. Strict ISO mode disables this
+extension. See [*The Art of EyeProlog*](the-art-of-eyeprolog.md) for the full semantics.
+
 ## Links
 
 - [The Art of EyeProlog](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog) — complete reference

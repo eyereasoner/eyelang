@@ -2,6 +2,8 @@
 % Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
+:- table tc/2.
+
 tc(X,Y) :- par(X,Y).
 tc(X,Y) :- par(X,Z), tc(Z,Y).
 benchmark(Count) :- findall(pair(X,Y), tc(X,Y), Answers), length(Answers, Count).

@@ -26,6 +26,7 @@ export {
 } from './standard-library.js';
 export { StreamManager } from './io.js';
 export { runQuads } from './quads.js';
+export { executeForwardRules, hasForwardRules } from './execute.js';
 
 import { installCleanupLifecycle } from './cleanup.js';
 import { Program, autoloadProgramGoals } from './program.js';
@@ -33,7 +34,7 @@ import { Solver } from './solver.js';
 import { whyNoProof, whyProof } from './explain.js';
 import { getStrictIsoRegistry } from './iso.js';
 import { getEyePrologRegistry } from './standard-library.js';
-import { executeGoals, normalizeGoals } from './execute.js';
+import { executeForwardRules, executeGoals, hasForwardRules, normalizeGoals } from './execute.js';
 
 // The public API is an entry point above the solver/registry layers, so it can
 // install pruning-aware iterator disposal without introducing an import cycle.
@@ -70,13 +71,27 @@ export function run(source, options = {}) {
     },
   });
   program = solver.program;
-  const goals = normalizeGoals(requestedGoals, solver);
-  const { haltCode } = executeGoals(program, solver, goals, {
-    onAnswer: (line, resolved) => {
-      output.push(line);
-      if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
-    },
-  });
+  let haltCode = null;
+  if (requestedGoals.length === 0 && !strictIso && hasForwardRules(program)) {
+    ({ haltCode } = executeForwardRules(program, solver, {
+      onAnswer: (line, resolved) => {
+        output.push(line);
+        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
+      },
+      onFuse: (line) => output.push(line),
+      onDiagnostic: (line) => {
+        options.ioOptions?.errorWrite?.(line);
+      },
+    }));
+  } else {
+    const goals = normalizeGoals(requestedGoals, solver);
+    ({ haltCode } = executeGoals(program, solver, goals, {
+      onAnswer: (line, resolved) => {
+        output.push(line);
+        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
+      },
+    }));
+  }
   return { stdout: output.join(''), stats: solver.stats, haltCode };
 }
 

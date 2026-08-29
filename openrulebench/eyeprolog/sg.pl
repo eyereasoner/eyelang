@@ -2,6 +2,8 @@
 % Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
+:- table sg/2.
+
 sg(X,Y) :- sib(X,Y).
 sg(X,Y) :- par(X,Z), sg(Z,Z1), par(Y,Z1).
 benchmark(Count) :- findall(pair(X,Y), sg(X,Y), Answers), length(Answers, Count).

@@ -1,6 +1,8 @@
 :- use_module(library(aggregate)).
 :- use_module(library(between), [between/3]).
 
+:- table choose_step/5.
+
 % Binomial coefficients and Vandermonde's identity.
 %
 % choose(N,K,C) is computed by a multiplicative recurrence, then vandermonde/5 checks
@@ -8,7 +10,7 @@
 % the binomial-row prefixes shared across both sides of the identity.
 % choose_step/5 uses the multiplicative recurrence
 %   C(N, I+1) = C(N, I) * (N-I) / (I+1)
-% and is cached automatically because row sums and identities reuse prefixes.
+% and is explicitly tabled because row sums and identities reuse prefixes.
 %% goal: binomial_answer(X0, X1)
 
 

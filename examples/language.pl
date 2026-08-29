@@ -1,9 +1,11 @@
+:- table path/2.
+
 % EyeProlog language-identity example.
 %
 % This file intentionally uses the modern EyeProlog surface syntax:
 %   - `.pl` source files instead of Prolog `.pl` files
 %   - ISO Prolog-style uppercase variables
-%   - automatic tabling for recursive predicates
+%   - explicit `table/1` declarations for tabled predicates
 %   - quoted angle-bracket atoms for web-shaped identifiers
 
 %% goal: path(X0, X1)

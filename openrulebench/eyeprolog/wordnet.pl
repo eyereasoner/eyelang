@@ -2,6 +2,10 @@
 % Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
+:- table hypernym_synsets/2.
+:- table meronym_synsets/2.
+:- table troponym_synsets/2.
+
 % Structural WordNet 3.0 port: same predicate shape and recursive query kernels, synthetic lexicon data.
 hypernyms(W1,W2) :- s(S1,_,W1,_,_,_), hypernym_synsets(S1,S2), s(S2,_,W2,_,_,_).
 hypernym_synsets(S1,S2) :- hypernym(S1,S2).

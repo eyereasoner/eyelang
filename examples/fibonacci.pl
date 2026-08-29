@@ -1,3 +1,5 @@
+:- table fib_pair/3.
+
 % Fibonacci numbers by fast doubling.
 %
 % The public fibonacci/2 relation is bounded by fib_case/1 facts, while fib_pair/3

@@ -67,7 +67,7 @@ function validateSource(engine, name, text, errors) {
 function validateAdaptation(engine, name, text, errors) {
   const tableCount = (text.match(/^:- table /gm) ?? []).length;
   let expectedTables;
-  if (engine === 'trealla' || engine === 'scryer') expectedTables = TABLED.get(name) ?? 0;
+  if (engine === 'eyeprolog' || engine === 'trealla' || engine === 'scryer') expectedTables = TABLED.get(name) ?? 0;
   else if (engine === 'swipl') expectedTables = TABLED.get(name) ?? SWI_WFS_TABLES.get(name) ?? 0;
   else expectedTables = 0;
   if (tableCount !== expectedTables) {

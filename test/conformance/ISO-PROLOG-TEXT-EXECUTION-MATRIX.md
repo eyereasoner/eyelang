@@ -66,7 +66,7 @@ converted body.
 
 | Row family | Status | EyeProlog disposition / executable evidence |
 | --- | --- | --- |
-| goal execution / procedure selection | covered | Strict mode uses ordinary clause selection and depth-first backtracking; EyeProlog automatic tabling, cycle guards, and recursive numeric shortcuts are disabled. |
+| goal execution / procedure selection | covered | Strict mode uses ordinary clause selection and depth-first backtracking; the normal-profile explicit `table` declaration, `tnot/1`, and recursive numeric shortcuts are unavailable. |
 | clause order and re-execution | covered | Clauses are tried in prepared/database order; re-executable predicates expose subsequent solutions on backtracking. |
 | empty versus unknown procedure | covered | A defined procedure with zero clauses fails normally. A missing procedure follows the `unknown` flag (`error` by default in the strict profile). |
 | side effects and database changes | covered | Standard side effects occur at their execution point; successful dynamic changes become visible to later activations while preserving the logical-update view of active calls. |

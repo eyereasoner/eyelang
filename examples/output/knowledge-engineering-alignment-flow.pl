@@ -1,3 +1,7 @@
+type(msg1, local_observation).
+type(probe7, temperature_probe).
+type(msg1, sosa_observation).
+type(probe7, sosa_sensor).
 target_fact(msg1, sosa_madeBySensor, probe7).
 target_fact(msg1, sosa_resultTime, "2026-06-17T12:34:56Z").
 target_fact(msg1, sosa_hasSimpleResult, 18.6).

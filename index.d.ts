@@ -28,12 +28,12 @@ export interface EyePrologRunOptions {
   /** Autoload uniquely mapped predicates from the conservative interop profile. Defaults to true outside strict ISO mode. */
   autoload?: boolean;
   /** Automatically table recursive user predicates in normal mode. Defaults to true; set false for traditional depth-first control. */
-  autoTabling?: boolean;
   /** Initial ISO interpretation of double-quoted list notation. Defaults to chars. */
   doubleQuotes?: 'chars' | 'codes' | 'atom';
   ioOptions?: {
     input?: string;
     write?: (text: string) => void;
+    errorWrite?: (text: string) => void;
   };
   [key: string]: unknown;
 }
@@ -42,6 +42,18 @@ export interface EyePrologRunResult {
   stdout: string;
   stats: EyePrologStats;
   haltCode: number | null;
+}
+
+export interface EyePrologForwardRunResult {
+  haltCode: number | null;
+  rounds: number;
+  derived: number;
+}
+
+export interface EyePrologForwardRunOptions {
+  onAnswer?: (line: string, term: EyePrologTerm) => void;
+  onFuse?: (line: string, term: EyePrologTerm) => void;
+  onDiagnostic?: (line: string) => void;
 }
 
 export class StreamManager {
@@ -290,6 +302,10 @@ export class HaltSignal extends Error {
   constructor(code?: number);
 }
 export function run(source: string | Program, options?: EyePrologRunOptions): EyePrologRunResult;
+/** True when a program contains one or more EyeProlog `:+/2` forward rules. */
+export function hasForwardRules(program: Program): boolean;
+/** Execute EyeProlog `:+/2` rules to closure using an existing solver. */
+export function executeForwardRules(program: Program, solver: Solver, options?: EyePrologForwardRunOptions): EyePrologForwardRunResult;
 export function runQuads(source: string | Program, options?: EyePrologQuadRunOptions): EyePrologQuadRunResult;
 export function whyProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): { ok: boolean; text: string };
 export function whyNoProof(goal: EyePrologTerm): string;
@@ -361,6 +377,8 @@ declare const eyeprolog: {
   eyePrologInteropLibraryIndicators: typeof eyePrologInteropLibraryIndicators;
   eyePrologInteropLibraryModules: typeof eyePrologInteropLibraryModules;
   run: typeof run;
+  hasForwardRules: typeof hasForwardRules;
+  executeForwardRules: typeof executeForwardRules;
   runQuads: typeof runQuads;
   whyProof: typeof whyProof;
   whyNoProof: typeof whyNoProof;

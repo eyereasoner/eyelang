@@ -92,7 +92,11 @@ export class Solver {
     this.registry = this.isoStrict ? getStrictIsoRegistry() : (options.registry ?? getEyePrologRegistry());
     this.mutableProgram = program.mutable === true;
     this.programRevision = this.program.revision ?? 0;
-    this.maxDepth = options.maxDepth ?? 100000;
+    // Normal Prolog execution must not silently acquire a semantic depth
+    // bound.  Callers that need bounded exploration (for example loop probes)
+    // can still pass maxDepth explicitly; exceeding such an explicit limit is
+    // reported as resource_error(depth_limit) rather than logical failure.
+    this.maxDepth = options.maxDepth ?? Infinity;
     this.depthLimitExceeded = false;
     this.maxInferences = options.maxInferences ?? Infinity;
     this.inferences = 0;
@@ -117,9 +121,6 @@ export class Solver {
     // still supply solutionLimit explicitly.
     this.solutionLimit = options.solutionLimit ?? Infinity;
     this.solutionsSeen = 0;
-    // Meta-call fast path: a caller may bypass automatic tabling only for
-    // recursion proven to consume a list tail on every recursive step.
-    this.skipListTailTabling = options.skipListTailTabling === true;
     this.prologFlags = options.prologFlags ?? defaultPrologFlags('error', this.isoStrict);
     if (this.isoStrict) {
       for (const name of [...this.prologFlags.keys()]) {
@@ -223,7 +224,6 @@ export class Solver {
       nonBacktrackableBlackboard: this.nonBacktrackableBlackboard,
       inferenceObservation: this.inferenceObservation,
       writeVariableState: this.writeVariableState,
-      skipListTailTabling: options.skipListTailTabling ?? this.skipListTailTabling,
     });
     if (options.tableScope != null) {
       const scope = this.innerTableScope(options.tableScope, options.tableScopeSignature ?? null);
@@ -556,7 +556,7 @@ export class Solver {
         this.stats.max_goal_count = Math.max(this.stats.max_goal_count, goals.length);
         if (depth > this.maxDepth) {
           this.depthLimitExceeded = true;
-          break;
+          throw new PrologError('resource_error(depth_limit)');
         }
         if (this.solutionsSeen >= this.solutionLimit) break;
 
@@ -777,7 +777,7 @@ export class Solver {
           continue;
         }
 
-        if (group.tabled && !(this.skipListTailTabling && group.listTailRecursive)) {
+        if (group.tabled) {
           const key = memoKey(goal, env, group);
           if (key.hasBound) {
             const mapKey = `${group.module}:${goal.name}/${goal.arity}:${key.text}`;
@@ -994,7 +994,7 @@ export class Solver {
     this.stats.solve_one_goal_calls++;
     if (depth > this.maxDepth) {
       this.depthLimitExceeded = true;
-      return;
+      throw new PrologError('resource_error(depth_limit)');
     }
     if (this.solutionsSeen >= this.solutionLimit) return;
     if (goal.type !== COMPOUND && goal.type !== 'atom') return;
@@ -1030,10 +1030,6 @@ export class Solver {
   }
 
   *solveUserGoalUncached(group, goal, rest, env, depth) {
-    if (this.program.autoTabling !== false && group.recursive && !group.cutRecursive && !group.linearNumeric && this.activeVariant(goal, env)) {
-      this.recursionCycleDetected = true;
-      return;
-    }
     // Program indexes provide candidate clauses, but every candidate is still
     // freshened and unified below. The index is a performance hint, not a
     // semantic shortcut.
@@ -1237,10 +1233,6 @@ function pushMemoAnswerFrames(stack, entry, goal, rest, env, depth, active, solv
 }
 
 function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth, active) {
-  if (solver.program.autoTabling !== false && group.recursive && !group.cutRecursive && !group.linearNumeric && activeVariantIn(goal, env, active)) {
-    solver.recursionCycleDetected = true;
-    return;
-  }
   if (group.fastPi && pushFastPiFrames(stack, goal, rest, env, depth, active)) return;
   if (tryPushGroundScalarRuleFrame(stack, solver, group, goal, rest, env, depth, active)) return;
   if (tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, active)) return;
@@ -1273,7 +1265,8 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   // boundary is then needed only if an actually reachable clause contains a
   // cut. Scalar indexes often narrow a mixed predicate to one cut-free
   // recursive clause; do not copy the whole active path at every such layer.
-  const guarded = solver.program.autoTabling === false
+  const traditionalDepthFirst = !group.tabled;
+  const guarded = traditionalDepthFirst
     ? frames.some((frame) => clauseHasCutForTailRelease(frame.clause))
     : groupNeedsActiveFrame(group);
   const release = guarded ? [{ kind: 'releaseActive' }] : [];
@@ -1281,9 +1274,9 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   for (const frame of frames) {
     frame.active = nextActive;
     frame.release = release;
-    frame.tailReleaseBeforeLast = solver.program.autoTabling === false && guarded &&
+    frame.tailReleaseBeforeLast = traditionalDepthFirst && guarded &&
       clauseCanReleaseActiveBeforeTailCall(group, frame.clause);
-    frame.directCutReleaseIndex = solver.program.autoTabling === false && guarded
+    frame.directCutReleaseIndex = traditionalDepthFirst && guarded
       ? clauseDirectCutReleaseIndex(frame.clause) : -1;
   }
   for (let i = frames.length - 1; i >= 0; i--) stack.push(frames[i]);
@@ -2314,10 +2307,6 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
     }
 
     const goal = runGoals[state.index];
-    if (solver.program.autoTabling !== false && activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
-      solver.recursionCycleDetected = true;
-      continue;
-    }
     solver.stats.solve_one_goal_calls++;
     const candidates = selectScalarFactCandidates(groups[state.index], goal, env, state.names, state.values);
     const nextStates = [];
@@ -2374,10 +2363,6 @@ function* scalarFactRunGenerator(solver, goals, groups, env, depth, active, pend
     }
 
     const goal = goals[state.index];
-    if (solver.program.autoTabling !== false && activeMightContain(goal, active) && activeVariantIn(goal, envWithLocal(env, state.names, state.values), active)) {
-      solver.recursionCycleDetected = true;
-      continue;
-    }
     solver.stats.solve_one_goal_calls++;
     const candidates = selectScalarFactCandidates(groups[state.index], goal, env, state.names, state.values);
     const nextStates = [];
@@ -2706,6 +2691,9 @@ function tryPushGroundScalarRuleFrame(stack, solver, group, goal, rest, env, dep
 }
 
 function tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, active) {
+  // Explicitly tabled predicates must pass through the table coordinator; do
+  // not replace their recursion with the deterministic chain shortcut.
+  if (group.tabled) return false;
   if (tryPushCompactBinaryChainFrames(stack, solver, group, goal, rest, env, depth, active)) return true;
   // Compress deterministic ground single-goal chains such as deep taxonomy
   // proofs: a(ind, n100000) -> a(ind, n99999) -> ... -> a(ind, n0).
@@ -2740,12 +2728,10 @@ function tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, 
     solver.stats.max_depth = Math.max(solver.stats.max_depth, currentDepth);
     const key = groundChainKey(currentGoal);
     if (seen.has(key)) {
-      solver.recursionCycleDetected = true;
-      return true;
-    }
-    if (solver.program.autoTabling !== false && activeVariantIn(currentGoal, currentEnv, active)) {
-      solver.recursionCycleDetected = true;
-      return true;
+      // The shortcut cannot preserve ordinary Prolog's behavior for a cyclic
+      // non-tabled chain. Fall back to the generic depth-first engine instead
+      // of turning the cycle into failure.
+      return false;
     }
     if (solver.groundChainSuccess.has(key)) {
       rememberGroundChainSuccess(solver, seen);

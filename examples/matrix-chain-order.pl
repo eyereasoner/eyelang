@@ -3,7 +3,9 @@
 :- use_module(library(lists)).
 :- use_module(library(iso_ext)).
 
-% Matrix-chain multiplication order by automatically tabled interval dynamic programming.
+:- table cost/3.
+
+% Matrix-chain multiplication order by explicitly tabled interval dynamic programming.
 %
 % cost(I, J, Cost) is the minimum scalar multiplication cost for matrices I..J.
 % best_split/3 records which split obtains that cost, and parenthesization/3

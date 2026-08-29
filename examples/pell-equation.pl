@@ -1,7 +1,9 @@
 :- use_module(library(aggregate)).
 :- use_module(library(between), [between/3]).
 
-% Pell equation x^2 - 2y^2 = 1 by automatically tabled recurrence.
+:- table pell/3.
+
+% Pell equation x^2 - 2y^2 = 1 by explicitly tabled recurrence.
 %
 % The fundamental solution (3,2) induces a linear recurrence for all positive
 % solutions of x^2 - 2y^2 = 1.  The example querys later solutions and also

@@ -1,5 +1,7 @@
 :- use_module(library(between), [between/3]).
 
+:- table collatz/2.
+
 % Collatz conjecture suite translated from Eyeling's examples/collatz-1000.n3.
 % It enumerates starts N = 1000, 999, ..., 1 by deriving N = 1000 - N0
 % from a repeat relation, then querys each full trajectory.
@@ -8,7 +10,7 @@
 % https://raw.githubusercontent.com/eyereasoner/eyeling/refs/heads/main/examples/collatz-1000.n3
 
 % Output declarations: host-supplied goals select the relations written to this example's golden output.
-% Automatic tabling caches shared suffix trajectories so the 1000 starts do not recompute
+% Explicit tabling caches shared suffix trajectories so the 1000 starts do not recompute
 % the same Collatz tails hundreds of times.
 %% goal: collatzTrajectory(X0, X1)
 

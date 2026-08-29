@@ -2,6 +2,9 @@
 % Generated deterministically by tools/generate.mjs.
 % See ../README.md for provenance and fidelity notes.
 
+:- table tc/2.
+:- table sg/2.
+
 tc(X,Y) :- par(X,Y).
 tc(X,Y) :- par(X,Z), tc(Z,Y).
 sg(X,Y) :- sib(X,Y).

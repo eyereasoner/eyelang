@@ -861,6 +861,8 @@ Recursive rules define an unbounded family of finite proofs. An ancestor is a
 parent, or a parent of an ancestor:
 
 ```eyeprolog
+:- table ancestor/2.
+
 ancestor(X, Y) :- parent(X, Y).
 ancestor(X, Z) :- parent(X, Y), ancestor(Y, Z).
 ```
@@ -898,10 +900,11 @@ open recursive question before selecting an edge and may destroy the useful
 mode. Meaning and control must be reviewed separately.
 
 Real graphs contain cycles. Naive depth-first recursion can revisit a call
-forever. EyeProlog analyzes predicate dependencies and automatically tables
-suitable positive recursive groups. A table records answers for a recursive
-call, iterates cyclic calls to a fixed point, and reuses results. Authors
-describe `path/2`; the engine chooses the recursive strategy.
+forever. EyeProlog therefore supports explicit tabling with `:- table p/n.`.
+A table records answers for a declared recursive call, iterates cyclic calls to
+a fixed point, and reuses results. Predicates without a `table` declaration keep
+ordinary depth-first Prolog control; the program, not a heuristic, chooses when
+tabling is part of the operational contract.
 
 <figure>
   <img src="book-assets/recursion-tabling-railway.svg" alt="A railway network with a cycle and a ledger of routes already reached.">
@@ -1595,16 +1598,16 @@ positive recursive domain, repeated rounds can compute the least fixed point.
 It is therefore especially natural for reachability, grammars, dependency
 analysis, and other recursive relations with overlapping subproblems.
 
-Ordinary goals use indexed depth-first resolution. Positive recursive groups
-are tabled automatically. Bound recursive calls reuse answers and cyclic calls
-iterate toward a fixed point. For sufficiently large finite, function-free
-Datalog dependency cones, EyeProlog may share one most-general relation table
-across call variants. This turns an open closure such as `tc(X, Y)` into one
-finite relation computation rather than many overlapping bound subcomputations;
-bound consumers can then use indexes over the stored answers. The exact
-admission policy is an engine optimization, not part of the language contract.
-Fully open or structurally unbounded recursive programs may retain ordinary
-resolution.
+Ordinary goals use indexed depth-first resolution, including ordinary recursive
+goals. Tabling is opt-in: declare a predicate with `:- table p/n.` when its
+recursive calls should share answers and cyclic calls should iterate toward a
+fixed point. For sufficiently large finite, function-free Datalog dependency
+cones rooted at an explicitly tabled predicate, EyeProlog may share one
+most-general relation table across call variants. This turns an open closure
+such as `tc(X, Y)` into one finite relation computation rather than many
+overlapping bound subcomputations; bound consumers can then use indexes over the
+stored answers. The declaration is the language-level choice; how a declared
+table is represented and indexed remains an engine optimization.
 
 Recursive components with negative dependencies are not positive least-fixed-
 point problems. When such a component uses explicit `tnot/1` and satisfies the
@@ -1663,6 +1666,44 @@ argument.
 list, one by finitely many tabled graph answers, and one that constructs terms
 without bound. State why the first two may terminate and why tabling does not
 repair the third.
+
+### Native forward rules and Eyelet execution
+
+EyeProlog normal mode also accepts `:+` at priority 1200 as an `xfx` operator.
+A source term
+
+```text
+Conclusion :+ Premise.
+```
+
+is a forward rule. When a loaded program contains such rules and no explicit
+top-level goal overrides them, the engine runs a native closure driver rather
+than a Prolog meta-interpreter. It repeatedly solves premises against the
+current program, asserts novel conjuncts from successful conclusions, and
+continues until no new conclusion is added. This is the execution path used by
+the Eyelet adapter.
+
+Two conclusions have control meaning. `true :+ Goal` is a query and prints each
+distinct successful instance of `Goal`. `false :+ Goal` is an integrity fuse:
+on success EyeProlog prints `fuse(Goal)` and returns halt status 2. Variables
+that occur only in an ordinary derived conclusion are existential and become
+`sk_0`, `sk_1`, and so on; a derived conclusion that is itself a `:+` rule keeps
+its variables universal. Eyelet's `stable/1` and `becomes/2` remain library-level
+compatibility helpers, while closure selection and assertion are native.
+
+The JavaScript convenience `run()` function selects this forward mode when no
+explicit `goal` or `goals` option is supplied. Advanced embedders can inspect a
+parsed program with `hasForwardRules(program)` and invoke
+`executeForwardRules(program, solver, callbacks)` directly. Strict ISO mode
+removes the `:+` operator and does not execute this extension.
+
+Resource bounds are never logical answers. Normal execution has no implicit
+depth limit. If an embedder explicitly supplies `maxDepth` and the search
+exceeds it, EyeProlog raises `resource_error(depth_limit)` instead of silently
+turning that branch into failure. Tabling is never selected implicitly: ordinary
+recursive predicates retain standard depth-first Prolog control, and only a
+source-level `:- table p/n.` declaration opts a predicate into fixed-point tabled
+execution.
 
 ## 14. Knowledge engineering
 
@@ -2046,7 +2087,7 @@ Part III moved from obtaining answers to trusting them:
 
 - a query selects a question; a proof records one successful justification;
 - an explicit integrity query identifies input that a host may reject;
-- automatic tabling computes fixed points for eligible positive recursion;
+- explicit `table` declarations compute fixed points for selected positive recursion;
 - explicit `tnot/1` gives eligible finite Datalog components well-founded,
   three-valued negation without changing ordinary `\+/1`;
 - indexing and ready filters improve control without changing intended meaning;
@@ -2064,7 +2105,7 @@ The least-model semantics developed by van Emden and Kowalski in 1976 connected
 definite programs to a mathematical fixed point: repeatedly add supported
 ground consequences until nothing new appears. Tabled logic programming later
 turned fixed-point ideas into a goal-directed technique that shares recursive
-calls and accumulates answers. EyeProlog's automatic positive tabling is smaller
+calls and accumulates answers. EyeProlog's explicit positive tabling is smaller
 than the general systems in that literature, but inherits their central
 insight: remembering a recursive question can change termination without
 changing what the relation says. For finite Datalog with recursion through
@@ -3658,29 +3699,20 @@ goal-directed proof search approach the same declarative meaning from opposite
 directions: one asks what follows globally, the other asks what is needed for
 this goal.
 
-Automatic tabling makes the connection visible. A table for a recursive
+Explicit tabling makes the connection visible. A table for a declared recursive
 component grows monotonically with newly discovered answers until no rule adds
 another. The implementation is performing a local, demand-driven fixed-point
 calculation.
 
 There is an important lifetime distinction between a table that is needed to
 finish one fixed point and a cache of tables retained for possible later reuse.
-For recursive grammars invoked through `phrase/2-3`, EyeProlog uses a separate
-invocation-keyed table scope rather than the caller's general table map. Static
-analysis also recognizes the normalized DCG form of strict list-tail recursion
-(for example `... --> [_], ...`). On a new input, such a grammar runs directly
-without automatic tabling because every recursive call consumes the input and
-there is no fixed-point cycle to close. This prevents a stream of distinct
-sequences from constructing a useless suffix-table family for every input.
-
-The optimization is deliberately asymmetric. If the same `phrase/2-3`
-invocation repeats, normal tabling is allowed again so the compact completed
-table from that invocation can serve subsequent repetitions. That is useful for
-workloads that probe one grammar/input many thousands of times. Only one
-invocation signature is retained in the phrase scope, completed entries are
-still subject to a bound, and active fixed points are never evicted. Thus the
-policy limits cross-call retention without turning each distinct input into an
-O(cache-size) eviction pass or changing the declarative answers.
+DCG nonterminals are ordinary predicates after expansion, so they are depth-first
+unless their expanded predicate indicator is explicitly tabled. For an
+explicitly tabled grammar invoked through `phrase/2-3`, EyeProlog uses a
+separate invocation-keyed table scope rather than retaining tables for unrelated
+input sequences. Untabled list-tail DCGs such as `... --> [_], ...` therefore
+run directly with standard Prolog control, while a declared table remains a
+conscious source-level choice.
 
 **Exercises.**
 
@@ -6341,7 +6373,7 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(reif)` | `,/3`, `;/3`, `=/3`, `cond_t/3`, `dif/3`, `if_/3`, `memberd_t/3`, `tfilter/3`, `tmember/2`, `tmember_t/3`, `tpartition/4` | Reified conditions and list filtering; reused upstream source |
 | `library(si)` | `atom_si/1`, `integer_si/1`, `atomic_si/1`, `list_si/1`, `character_si/1`, `term_si/1`, `chars_si/1`, `dif_si/2`, `not_si/1`, `when_si/2` | Sufficient-instantiation checks used by CLP(Z) |
 | `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` | Text relations |
-| `library(tabling)` | `abolish_all_tables/0`, `start_tabling/2` | Common explicit syntax over automatic recursive tabling |
+| `library(tabling)` | `abolish_all_tables/0`, `start_tabling/2` | Common helpers for explicitly declared tabling |
 | `library(terms)` | `numbervars/3`, `copy_term_nat/2` | Term operations used by bundled libraries |
 | `library(time)` | `current_time/1`, `format_time/4` | Clock timestamps and the expanded `format_time//2` nonterminal |
 | `library(ugraphs)` | `add_edges/3`, `add_vertices/3`, `complement/2`, `compose/3`, `connect_ugraph/3`, `del_edges/3`, `del_vertices/3`, `edges/2`, `neighbors/3`, `neighbours/3`, `reachable/3`, `top_sort/2`, `top_sort/3`, `transitive_closure/2`, `transpose_ugraph/2`, `ugraph_union/3`, `vertices/2`, `vertices_edges_to_ugraph/3` | Directed graph relations; reused upstream source |
@@ -6962,7 +6994,7 @@ make the observed question explicit.
 | `-h`, `--help` | Show usage |
 | `-p`, `--proof` | Print `why/2` explanations |
 | `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
-| `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions, disable interop autoloading, and disable automatic tabling |
+| `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions (including `table` and `:+`) and disable interop autoloading |
 | `--portable` | Enforce the conservative EyeProlog/Trealla/Scryer interoperability profile |
 | `--no-autoload` | Disable conservative interop predicate autoloading |
 | `-s`, `--stats` | Print final solver and memory statistics to stderr after execution |
@@ -6977,8 +7009,8 @@ predefined infix `(?-)/2` form are an EyeProlog testing extension. Strict mode
 retains the Part 1 prefix `(?-)/1` operator and treats `-->/2` as ordinary Part
 1 operator syntax; it does not perform Part 3 grammar-rule expansion or expose
 `phrase/2-3`. Part 2 module directives and EyeProlog libraries are rejected,
-the implementation-specific `occurs_check` flag is absent, and automatic
-tabling/recursion guards are disabled. Normal mode continues to support Parts
+the implementation-specific `occurs_check` flag is absent, and the normal-profile
+`table` declaration is unavailable. Normal mode continues to support Parts
 2–3 and EyeProlog extensions, plus conservative interop autoloading for the
 profile documented above.
 
@@ -7277,7 +7309,7 @@ Review questions:
 2. Why can one append relation construct lists and split them?
 3. When does goal order affect performance but not declarative meaning?
 4. Why should variables usually be bound before `\+/1`?
-5. What does automatic tabling solve, and what does it not solve?
+5. What does explicit tabling solve, and when should a predicate remain depth-first?
 6. Why is proof output useful when the answer is already known?
 7. When should a host query an `invalid/1` relation before domain decisions?
 8. Why should external data conversion remain outside the reasoning core?
@@ -7447,7 +7479,7 @@ finite search space, and which constraint removes which branches?
 | [Knapsack optimization](https://github.com/eyereasoner/eyeprolog/blob/main/examples/knapsack-optimization.pl) | Candidate subsets become feasible solutions, then aggregation selects a best value. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/knapsack-optimization.pl) |
 | [Map Four Color Search](https://github.com/eyereasoner/eyeprolog/blob/main/examples/map-four-color-search.pl) | Four-colour search for the European Union neighbour graph. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/map-four-color-search.pl) |
 | [Markov Logic Network](https://github.com/eyereasoner/eyeprolog/blob/main/examples/markov-logic-network.pl) | Markov Logic Network style scoring over a tiny finite domain. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/markov-logic-network.pl) |
-| [Matrix Chain Order](https://github.com/eyereasoner/eyeprolog/blob/main/examples/matrix-chain-order.pl) | Matrix-chain multiplication order by automatically tabled interval dynamic programming. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/matrix-chain-order.pl) |
+| [Matrix Chain Order](https://github.com/eyereasoner/eyeprolog/blob/main/examples/matrix-chain-order.pl) | Matrix-chain multiplication order by explicitly tabled interval dynamic programming. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/matrix-chain-order.pl) |
 | [Register allocation](https://github.com/eyereasoner/eyeprolog/blob/main/examples/register-allocation.pl) | Interference constraints turn compiler allocation into graph coloring. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/register-allocation.pl) |
 | [SEND + MORE = MONEY](https://github.com/eyereasoner/eyeprolog/blob/main/examples/send-more-money.pl) | Digit assignments are generated under distinctness, leading-zero, and column constraints. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/send-more-money.pl) |
 | [Stable marriage](https://github.com/eyereasoner/eyeprolog/blob/main/examples/stable-marriage.pl) | Preference data, matching generation, and the absence of blocking pairs define stability. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/stable-marriage.pl) |
@@ -7504,7 +7536,7 @@ the clauses.
 | [Collatz 1000](https://github.com/eyereasoner/eyeprolog/blob/main/examples/collatz-1000.pl) | Collatz conjecture suite translated from Eyeling's examples/collatz-1000.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/collatz-1000.pl) |
 | [Complex](https://github.com/eyereasoner/eyeprolog/blob/main/examples/complex.pl) | Complex numbers, adapted from Eyeling complex.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/complex.pl) |
 | [Composition Of Injective Functions Is Injective](https://github.com/eyereasoner/eyeprolog/blob/main/examples/composition-of-injective-functions-is-injective.pl) | Composition of injective functions is injective, adapted from Eyeling's examples/composition-of-injective-functions-is-injective.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/composition-of-injective-functions-is-injective.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/composition-of-injective-functions-is-injective.pl) |
-| [Continued Fraction Sqrt2](https://github.com/eyereasoner/eyeprolog/blob/main/examples/continued-fraction-sqrt2.pl) | Convergents of sqrt(2) by automatically tabled recurrence. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/continued-fraction-sqrt2.pl) |
+| [Continued Fraction Sqrt2](https://github.com/eyereasoner/eyeprolog/blob/main/examples/continued-fraction-sqrt2.pl) | Convergents of sqrt(2) by explicitly tabled recurrence. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/continued-fraction-sqrt2.pl) |
 | [D3 group](https://github.com/eyereasoner/eyeprolog/blob/main/examples/d3-group.pl) | A finite Cayley table, inverses, and subgroup closure make group laws executable. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/d3-group.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/d3-group.pl) |
 | [Diamond Property](https://github.com/eyereasoner/eyeprolog/blob/main/examples/diamond-property.pl) | Diamond property, adapted from Eyelet's input/diamond-property.pl. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/diamond-property.pl) · [proof](https://github.com/eyereasoner/eyeprolog/blob/main/examples/proof/diamond-property.pl) |
 | [Easter Computus](https://github.com/eyereasoner/eyeprolog/blob/main/examples/easter-computus.pl) | Gregorian Easter computus adapted from Eyeling's easter.n3. | [answers](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/easter-computus.pl) |
@@ -7747,7 +7779,7 @@ sentence, mode, finite domain, answer, proof, and revision.
 
 This book is the single reference for the EyeProlog implementation. Chapters 38–40
 describe its supported ISO Prolog syntax, directives, execution model,
-built-in predicates, and command-line interface. The earlier chapters explain the reasoner, automatic tabling,
+built-in predicates, and command-line interface. The earlier chapters explain the reasoner, explicit tabling,
 proof terms, warnings, answer formatting, embedding, and explicit host data
 boundaries.
 
@@ -7836,7 +7868,7 @@ Corrigenda 1–3. Corrigendum 2 additions—including `subsumes_term/2`,
 `acyclic_term/1`, `sort/2`, `keysort/2`, `term_variables/2`, `retractall/1`,
 and `call/2-8`—remain part of that strict baseline. Part 2 modules, Part 3 DCG
 expansion/`phrase/2-3`, quads, EyeProlog libraries, the `occurs_check` flag,
-automatic tabling, `call_cleanup/2`, and `setup_call_cleanup/3` are outside
+the normal-profile `table` declaration, `call_cleanup/2`, and `setup_call_cleanup/3` are outside
 that Part 1 strict surface.
 
 The strict-core audit has explicit dispositions for the Clause 5 processor
@@ -8001,7 +8033,7 @@ specifications.
   [“Tabled Evaluation with Delaying for General Logic
   Programs”](https://doi.org/10.1145/227595.227597), *Journal of the ACM*
   43(1), 1996, pp. 20–74. A foundational treatment of tabled logic-program
-  evaluation. EyeProlog's automatic positive tabling is smaller in scope, but the
+  evaluation. EyeProlog's explicit positive tabling is smaller in scope, but the
   shared-call and fixed-point intuitions are closely related.
 
 - Dörthe Arndt and Stephan Mennicke,

@@ -2,7 +2,9 @@
 :- use_module(library(lists)).
 :- use_module(library(iso_ext)).
 
-% Weighted interval scheduling via automatically tabled dynamic programming.
+:- table best_from/2.
+
+% Weighted interval scheduling via explicitly tabled dynamic programming.
 %
 % Intervals are ordered by finish time.  best_from(I,Best) compares the two
 % choices at position I: skip it, or take it and jump to the next compatible

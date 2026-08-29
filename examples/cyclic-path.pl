@@ -1,3 +1,5 @@
+:- table path/2.
+
 % Cyclic transitive closure.
 %
 % The graph deliberately contains the directed cycle a -> b -> c -> d -> a.  The

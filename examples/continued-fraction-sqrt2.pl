@@ -1,7 +1,9 @@
 :- use_module(library(aggregate)).
 :- use_module(library(between), [between/3]).
 
-% Convergents of sqrt(2) by automatically tabled recurrence.
+:- table conv/3.
+
+% Convergents of sqrt(2) by explicitly tabled recurrence.
 %
 % conv(N, P, Q) gives the Nth numerator/denominator pair for [1; 2, 2, ...].
 % Because each convergent depends on the previous two, memoization avoids the

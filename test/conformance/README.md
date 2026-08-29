@@ -30,7 +30,7 @@ syntax/rejection, Clause 7 semantics, the complete 8.2-8.17 built-in family, and
 Clause 9 evaluable functors. Public comparison material remains supporting review
 evidence rather than a duplicated vendored corpus. Cases under `iso/`
 identify standards-derived behavior; other directories cover EyeProlog host
-contracts and extensions. EyeProlog-only execution features such as automatic
+contracts and extensions. EyeProlog-only execution features such as explicit
 tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core
 claim. Their focused semantic coverage lives primarily in regression tests;
 `tnot/1` is absent from the strict ISO registry. The processor character set is documented as the Unicode scalar repertoire with

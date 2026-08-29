@@ -1,5 +1,7 @@
-% Automatic tabling is a search-control strategy and does not change answers.
+% Explicit tabling is a search-control strategy and does not change answers.
 %% goal: path(X0, X1)
+
+:- table path/2.
 
 edge(a, b).
 edge(b, c).

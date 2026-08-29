@@ -93,7 +93,7 @@ function runProcess(args, timeoutSeconds) {
 }
 
 function probeTabling(cmd, engine, timeout) {
-  if (engine === 'eyeprolog') return [true, 'automatic positive tabling + finite-Datalog WFS/tnot'];
+  if (engine === 'eyeprolog') return [true, 'explicit positive tabling + finite-Datalog WFS/tnot'];
   if (engine === 'swipl') return [true, 'built-in SLG tabling + WFS/tnot'];
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'eyeprolog-orb-'));
   const name = path.join(dir, 'probe.pl');

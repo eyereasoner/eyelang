@@ -1,8 +1,8 @@
 /** Common Scryer/Trealla tabling interface.
 
-    EyeProlog detects and tables recursive user predicates automatically.  The
-    explicit directive is therefore a source-compatible declaration, while
-    start_tabling/2 delegates to the already selected execution strategy.
+    EyeProlog tables predicates only when requested explicitly with
+    `:- table ...`.  The library keeps the portable start_tabling/2 and
+    abolish_all_tables/0 surface used by Scryer/Trealla-compatible source.
 */
 
 :- module(tabling, [start_tabling/2, abolish_all_tables/0, op(1150, fx, table)]).

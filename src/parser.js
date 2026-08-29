@@ -92,6 +92,7 @@ const graphicAtomChars = '#$&*+-./<=>?@^~\\:';
 // canonical notation. Commas remain separators except inside parentheses.
 const INFIX_OPERATORS = new Map([
   [':-', { precedence: 1, associativity: 'none' }],
+  [':+', { precedence: 1, associativity: 'none' }], // EyeProlog forward-rule extension
   ['?-', { precedence: 1, associativity: 'none' }], // quad label extension
   ['-->', { precedence: 1, associativity: 'none' }],
   ['|', { precedence: 96, associativity: 'right' }],
@@ -132,6 +133,7 @@ const INFIX_OPERATORS = new Map([
 ]);
 const PREFIX_OPERATORS = new Map([
   ['?-', { precedence: 1, strict: true }],
+  ['table', { precedence: 51, strict: true }],
   ['\\+', { precedence: 301, strict: false }],
   ['+', { precedence: 1001, strict: false }],
   ['-', { precedence: 1001, strict: false }],
@@ -156,6 +158,12 @@ export const ISO_OPERATOR_DEFINITIONS = [
 // infix operator at priority 1001 or greater (Corrigendum 2).
 export const PART3_OPERATOR_DEFINITIONS = [
   [1105, 'xfy', '|'],
+  // EyeProlog forward-rule extension.  A top-level Conclusion :+ Premise is
+  // executed by the native closure driver when no explicit CLI goal is given.
+  [1200, 'xfx', ':+'],
+  // Tabling is explicit in the normal EyeProlog profile. Make the common
+  // `:- table p/n.` declaration available without requiring a library import.
+  [1150, 'fx', 'table'],
 ];
 
 // EyeProlog's embedded quad syntax permits an optional label before `?-`.
@@ -227,6 +235,8 @@ export function createParserOperatorState(definitions = [], includeDefaults = tr
   if (options.isoStrict === true) {
     state.infixOperators.delete('?-');
     state.infixOperators.delete('|');
+    state.infixOperators.delete(':+');
+    state.prefixOperators.delete('table');
   }
   for (const definition of definitions) {
     const [priority, specifier, name] = Array.isArray(definition)

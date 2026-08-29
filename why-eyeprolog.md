@@ -136,10 +136,18 @@ systems need a different semantic choice. Normal mode therefore provides
 need three-valued well-founded semantics. EyeProlog does not silently change
 the meaning of `\+/1`, and strict ISO mode does not expose `tnot/1`.
 
-The engine can use automatic tabling and shared finite-Datalog evaluation to
-make recursive programs practical. Those strategies are optimizations, not a
-new source language: programs should depend on documented semantics and
-finiteness conditions rather than internal thresholds.
+EyeProlog keeps tabling explicit. A predicate uses ordinary depth-first Prolog
+control unless its source declares `:- table p/n.`; declared tables may then use
+shared finite-Datalog evaluation and other indexing optimizations internally.
+This avoids a heuristic silently changing answer multiplicity, termination, or
+resource behavior for an otherwise ordinary recursive predicate.
+
+Forward chaining is explicit too. Normal mode recognizes `Conclusion :+ Premise`
+and executes those rules with a native fixed-point driver, including Eyelet's
+`true :+ Goal` query and `false :+ Goal` fuse conventions. Strict ISO mode
+removes the operator. Because resource exhaustion is not logical failure, normal
+execution has no hidden depth cutoff; an explicitly requested depth limit raises
+`resource_error(depth_limit)`.
 
 Definite clause grammars follow the ISO Part 3 difference-list model. Internal
 fast paths make deep finite sequence processing economical while preserving

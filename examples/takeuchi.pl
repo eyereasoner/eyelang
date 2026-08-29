@@ -1,3 +1,5 @@
+:- table tak/2.
+
 % Takeuchi function
 % See https://en.wikipedia.org/wiki/Tak_(function)
 

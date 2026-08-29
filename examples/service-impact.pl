@@ -11,6 +11,9 @@
 %% goal: businessFunctionAtRisk(X0, X1)
 
 
+:- table impacted/2.
+
+
 % Program structure: facts set up the scenario, and rules derive the queried conclusions.
 depends_on(web_store, checkout_api).
 depends_on(mobile_app, checkout_api).

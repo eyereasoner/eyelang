@@ -217,6 +217,6 @@ wrappers/directives over those generated clauses and facts.
 
 The `eyeprolog/win_cycle.pl` and `eyeprolog/magicset.pl` variants require an
 EyeProlog build that provides finite-Datalog WFS through explicit `tnot/1`.
-Ordinary `\+/1` remains negation-as-failure. Positive recursive benchmarks do
-not need source-level `table/1` directives in EyeProlog because eligible
-recursion is tabled automatically.
+Ordinary `\+/1` remains negation-as-failure. Positive recursive EyeProlog benchmark variants use explicit `table/1`
+declarations, matching EyeProlog's ordinary-depth-first-by-default execution
+policy and making the benchmark's memoization choice visible in source.

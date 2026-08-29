@@ -96,10 +96,10 @@ score_decimal(bacterialPneumonia, 0.000047879999999999996).
 
 total_score_decimal(0.0016436300000000003).
 
-posterior(covid19, 0.9412093962753174).
-posterior(influenza, 0.029203652890249024).
-posterior(allergicRhinitis, 0.00045630707641014084).
-posterior(bacterialPneumonia, 0.029130643758023392).
+posterior_decimal(covid19, 0.9412093962753174).
+posterior_decimal(influenza, 0.029203652890249024).
+posterior_decimal(allergicRhinitis, 0.00045630707641014084).
+posterior_decimal(bacterialPneumonia, 0.029130643758023392).
 
 scores(case, [
   0.0015470000000000002,
@@ -111,4 +111,4 @@ evidenceTotal(case, Total) :- total_score_decimal(Total).
 result(case, result(Disease)) :- disease(Disease).
 disease(result(Disease), Disease) :- disease(Disease).
 unnormalized(result(Disease), Score) :- score_decimal(Disease, Score).
-posterior(result(Disease), Posterior) :- posterior(Disease, Posterior).
+posterior(result(Disease), Posterior) :- posterior_decimal(Disease, Posterior).

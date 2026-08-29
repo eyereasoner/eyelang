@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- table edge/3.
 
 % Eyelet-inspired Dijkstra example using findall/3 and sort/2.
 % The priority queue is represented as sorted list entries [Cost, Node | Path].

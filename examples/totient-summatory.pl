@@ -3,7 +3,9 @@
 :- use_module(library(lists)).
 :- use_module(library(iso_ext)).
 
-% Euler totients and coprimality by automatically tabled Euclidean gcd.
+:- table gcd/3.
+
+% Euler totients and coprimality by explicitly tabled Euclidean gcd.
 %
 % phi(N) is modeled directly as the count of integers K in 1..N with gcd(N,K)=1.
 % The summatory query reuses many gcd/totient subgoals, so memoization keeps the

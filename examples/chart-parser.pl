@@ -1,7 +1,9 @@
 :- use_module(library(lists)).
 :- use_module(library(iso_ext)).
 
-% A tiny automatically tabled chart parser for a context-free grammar.
+:- table span/4.
+
+% A tiny explicitly tabled chart parser for a context-free grammar.
 %
 % span(Sentence, Category, Start, End) is the dynamic-programming chart item:
 % Category covers a half-open token interval.  Memoizing span/4 turns recursive

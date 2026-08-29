@@ -1594,7 +1594,7 @@ export function runIsoStrict(reporter = new TestReporter()) {
     equal(abolished.stats.completed_goal_lists, 1, 'abolish removes the procedure');
   });
 
-  reporter.test('disables automatic tabling and recursion guards', () => {
+  reporter.test('disables normal-profile recursion planning', () => {
     const group = Program.parse('p :- p.\n', { isoStrict: true }).findGroup('p', 0);
     equal(group?.recursive, false, 'recursive planner');
     equal(group?.tabled, false, 'tabled planner');

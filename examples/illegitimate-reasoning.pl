@@ -27,7 +27,7 @@
 :- discontiguous(implication/3).
 :- discontiguous(observed/2).
 :- discontiguous(concludes/2).
-:- discontiguous(reason/2).
+:- discontiguous(reason_fact/2).
 
 % Program structure: facts set up the scenario, and rules derive the queried conclusions.
 argument(arg_affirming_consequent).
@@ -88,14 +88,14 @@ fallacy(A, false_dilemma) :-
   omitted_alternative(A, _),
   concludes(A, _).
 
-reason(arg_affirming_consequent, "observing the consequent does not prove the antecedent").
-reason(arg_denying_antecedent, "denying the antecedent does not disprove the consequent").
-reason(arg_hasty_generalization, "sample size is below the threshold for a universal conclusion").
-reason(arg_false_dilemma, "a relevant alternative is omitted").
+reason_fact(arg_affirming_consequent, "observing the consequent does not prove the antecedent").
+reason_fact(arg_denying_antecedent, "denying the antecedent does not disprove the consequent").
+reason_fact(arg_hasty_generalization, "sample size is below the threshold for a universal conclusion").
+reason_fact(arg_false_dilemma, "a relevant alternative is omitted").
 
 type(A, illegitimate_reasoning) :- fallacy(A, _).
 conclusion(A, C) :- fallacy(A, _), concludes(A, C).
-reason(A, R) :- fallacy(A, _), reason(A, R).
+reason(A, R) :- fallacy(A, _), reason_fact(A, R).
 sampleSize(A, N) :- fallacy(A, hasty_generalization), sample_size(A, N).
 requiredSampleSize(A, Min) :- fallacy(A, hasty_generalization), required_sample_size(A, Min).
 omittedAlternative(A, Alt) :- fallacy(A, false_dilemma), omitted_alternative(A, Alt).

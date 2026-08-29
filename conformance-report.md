@@ -21,10 +21,10 @@ spelling therefore changes this report even when no corpus file is added or remo
 | aggregation | 17 | 0 | 0 | 0 | 17 |
 | arithmetic | 38 | 0 | 0 | 0 | 38 |
 | atoms | 23 | 8 | 0 | 0 | 31 |
-| automatic-tabling | 6 | 0 | 0 | 0 | 6 |
 | builtins | 11 | 0 | 0 | 0 | 11 |
 | context | 11 | 0 | 0 | 0 | 11 |
 | control | 15 | 0 | 0 | 0 | 15 |
+| explicit-tabling | 6 | 0 | 0 | 0 | 6 |
 | iso | 169 | 217 | 0 | 0 | 386 |
 | lists | 52 | 3 | 0 | 0 | 55 |
 | modules | 2 | 0 | 0 | 0 | 2 |

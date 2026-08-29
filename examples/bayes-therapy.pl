@@ -1,3 +1,11 @@
+:- table likelihood/3.
+:- table scores_for/2.
+:- table score_sum/2.
+:- table normalize_scores/3.
+:- table disease_posterior/4.
+:- table dot_product/3.
+:- table best_therapy/2.
+
 % Memoize shared inference layers: the score vector, disease likelihood tails,
 % and expected therapy success are reused by several report relations.
 % Output declarations: host-supplied goals select the relations written to this example's golden output.
@@ -145,8 +153,8 @@ expected_success(Therapy, Expectedsuccess) :-
   success_by_disease(Therapy, Successbydisease),
   dot_product(Posteriors, Successbydisease, Expectedsuccess).
 
-% utility/2 turns expected success and adverse effects into a ranking score.
-utility(Therapy, Utility) :-
+% therapy_utility/2 turns expected success and adverse effects into a ranking score.
+therapy_utility(Therapy, Utility) :-
   expected_success(Therapy, Expectedsuccess),
   adverse(Therapy, Adverse),
   benefit_weight(Benefitweight),
@@ -156,12 +164,12 @@ utility(Therapy, Utility) :-
   (Utility is Benefit - Harmcost).
 
 better_of(Therapy1, Therapy2, Therapy1) :-
-  utility(Therapy1, Utility1),
-  utility(Therapy2, Utility2),
+  therapy_utility(Therapy1, Utility1),
+  therapy_utility(Therapy2, Utility2),
   (Utility1 >= Utility2).
 better_of(Therapy1, Therapy2, Therapy2) :-
-  utility(Therapy1, Utility1),
-  utility(Therapy2, Utility2),
+  therapy_utility(Therapy1, Utility1),
+  therapy_utility(Therapy2, Utility2),
   (Utility1 < Utility2).
 
 best_therapy([Therapy], Therapy).
@@ -191,7 +199,7 @@ expectedAdverse(Therapy, Adverse) :-
   adverse(Therapy, Adverse).
 utility(Therapy, Utility) :-
   therapy(Therapy),
-  utility(Therapy, Utility).
+  therapy_utility(Therapy, Utility).
 recommendedTherapy(case, Best) :-
   therapies(case, Therapies),
   best_therapy(Therapies, Best).

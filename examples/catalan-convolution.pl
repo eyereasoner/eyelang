@@ -1,7 +1,9 @@
 :- use_module(library(aggregate)).
 :- use_module(library(between), [between/3]).
 
-% Catalan numbers by automatically tabled convolution.
+:- table catalan/2.
+
+% Catalan numbers by explicitly tabled convolution.
 %
 % catalan(N,C) sums all splits of N-1 into left and right substructures.  The same
 % Catalan values appear in binary tree shapes, parenthesizations, and polygon

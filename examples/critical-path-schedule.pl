@@ -1,5 +1,8 @@
 :- use_module(library(aggregate)).
 
+:- table earliest_start/2.
+:- table finish_time/2.
+
 % Critical-path scheduling for a small project network.
 %
 % earliest_start/2 is the maximum finish time over all predecessors; finish_time/2

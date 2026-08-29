@@ -3040,27 +3040,19 @@ function* phraseSolutions({ solver, goal, env }, state) {
     module: grammarBody.module ?? goal.module ?? 'user',
   });
   const finish = goal.arity === 2 ? null : compound('=', [finalOutput, requestedOutput]);
-  // Recursive DCGs are automatically tabled in normal mode. Keep tables in a
+  // If a DCG nonterminal is explicitly tabled, keep its tables in a
   // phrase-local scope keyed by the whole invocation. Repeatedly testing the
-  // same grammar/input (issue #48) reuses its completed table, while switching
-  // to a distinct input (issue #28) drops the previous invocation as one unit
-  // instead of retaining or individually evicting every recursive tail.
+  // same grammar/input can reuse its completed table, while switching to a
+  // distinct input drops the previous invocation as one unit.
   const phraseModule = grammarBody.module ?? goal.module ?? 'user';
   const tableScopeSignature = solver.innerTableSignature(
     [grammarBody, input, requestedOutput],
     env,
     `${phraseModule}:`,
   );
-  const previousPhraseScope = solver.innerTableScopes.get('phrase');
-  const repeatedInvocation = previousPhraseScope?.signature === tableScopeSignature;
   const child = solver.cloneForInnerGoal(solver.solutionLimit, {
     tableScope: 'phrase',
     tableScopeSignature,
-    // A new phrase input cannot benefit from tables retained for a different
-    // input. For structurally tail-consuming DCGs, execute it directly. If the
-    // same invocation repeats (the issue #48 pattern), normal tabling resumes
-    // and the compact phrase-local table is reused by subsequent repetitions.
-    skipListTailTabling: !repeatedInvocation,
   });
   try {
     for (const answerEnv of child.solve(finish == null ? [expanded] : [expanded, finish], env, 0)) {

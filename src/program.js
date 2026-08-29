@@ -36,6 +36,163 @@ const FAST_PARSE_ABORT = Symbol('fastParseAbort');
 const PROGRAM_BUILD_BATCH_SIZE = 16384;
 const preparedBundledLibraryCache = new Map();
 
+function collectMultiplicitySensitiveDependencies(goal, out = []) {
+  if (goal?.type !== COMPOUND) return out;
+  if (goal.name === ',' && goal.arity === 2) {
+    collectMultiplicitySensitiveDependencies(goal.args[0], out);
+    collectMultiplicitySensitiveDependencies(goal.args[1], out);
+    return out;
+  }
+  if ((goal.name === 'findall' || goal.name === 'bagof') && goal.arity === 3) {
+    out.push(...collectGoalDependencies(goal.args[1], false, true));
+    return out;
+  }
+  if ((goal.name === ';' || goal.name === '->') && goal.arity === 2) {
+    collectMultiplicitySensitiveDependencies(goal.args[0], out);
+    collectMultiplicitySensitiveDependencies(goal.args[1], out);
+    return out;
+  }
+  if ((goal.name === '\\+' || goal.name === 'not' || goal.name === 'tnot' || goal.name === 'once') && goal.arity === 1) {
+    collectMultiplicitySensitiveDependencies(goal.args[0], out);
+    return out;
+  }
+  if (goal.name === 'forall' && goal.arity === 2) {
+    collectMultiplicitySensitiveDependencies(goal.args[0], out);
+    collectMultiplicitySensitiveDependencies(goal.args[1], out);
+  }
+  return out;
+}
+
+
+function scalarNodeKey(term) {
+  return isScalar(term) ? `${term.type}:${term.name}` : null;
+}
+
+// Some source-level self recursion is structurally finite even though the
+// predicate dependency graph contains a self-edge.  The deep-taxonomy family
+// is the canonical case: p(X,n10000) calls p(X,n9999), eventually reaching a
+// fact.  When one scalar argument forms an acyclic transition graph and every
+// other argument is carried through unchanged, depth-first execution is both
+// terminating and much cheaper than constructing the complete Datalog model.
+// Cut-guided tail recursion is usually a deterministic search loop rather than
+// a cyclic relation.  Tabling such loops can retain every intermediate numeric
+// state (for example prime scanning in Goldbach) and turn a bounded depth-first
+// search into an enormous table.  Keep this deliberately narrow: each recursive
+// clause must contain exactly one direct self-call and that call must be the last
+// body goal.  Branching recursion such as Takeuchi therefore remains eligible
+// for recursion planning and explicit tabling.
+function hasDirectCutTailRecursion(group) {
+  if (group.hasCut !== true || group.clauses.length === 0) return false;
+  let sawRecursive = false;
+  for (const clause of group.clauses) {
+    if (isCompactBinaryClause(clause)) return false;
+    const body = clause.body ?? [];
+    let recursiveIndex = -1;
+    let recursiveCount = 0;
+    for (let i = 0; i < body.length; i++) {
+      const goal = body[i];
+      if (goal?.type !== COMPOUND || goal.name !== group.name || goal.arity !== group.arity) continue;
+      if ((goal.module ?? group.module) !== group.module) continue;
+      recursiveIndex = i;
+      recursiveCount++;
+    }
+    if (recursiveCount === 0) continue;
+    if (recursiveCount !== 1 || recursiveIndex !== body.length - 1) return false;
+    sawRecursive = true;
+  }
+  return sawRecursive;
+}
+
+function hasAcyclicScalarSelfRecursion(group) {
+  if (group.arity === 0 || group.clauses.length === 0) return false;
+  for (let position = 0; position < group.arity; position++) {
+    const edges = new Map();
+    let sawRecursive = false;
+    let valid = true;
+    for (const clause of group.clauses) {
+      if (isCompactBinaryClause(clause)) {
+        if (group.arity !== 2) { valid = false; break; }
+        if (clause.bodyName == null) continue;
+        if (clause.bodyName !== group.name) { valid = false; break; }
+        const headType = position === 0 ? clause.head0Type : clause.head1Type;
+        const headName = position === 0 ? clause.head0Name : clause.head1Name;
+        const bodyType = position === 0 ? clause.body0Type : clause.body1Type;
+        const bodyName = position === 0 ? clause.body0Name : clause.body1Name;
+        if (!['atom', 'string', 'number'].includes(headType) ||
+            !['atom', 'string', 'number'].includes(bodyType)) { valid = false; break; }
+        const other = position === 0 ? 1 : 0;
+        const ohType = other === 0 ? clause.head0Type : clause.head1Type;
+        const ohName = other === 0 ? clause.head0Name : clause.head1Name;
+        const obType = other === 0 ? clause.body0Type : clause.body1Type;
+        const obName = other === 0 ? clause.body0Name : clause.body1Name;
+        const carried = (ohType === 'var' && obType === 'var' && ohName === obName) ||
+          (['atom', 'string', 'number'].includes(ohType) && ohType === obType && ohName === obName);
+        if (!carried) { valid = false; break; }
+        const from = `${headType}:${headName}`;
+        const to = `${bodyType}:${bodyName}`;
+        sawRecursive = true;
+        let targets = edges.get(from);
+        if (targets == null) edges.set(from, targets = new Set());
+        targets.add(to);
+        continue;
+      }
+
+      if (clause.head?.type !== COMPOUND || clause.head.name !== group.name || clause.head.arity !== group.arity) {
+        valid = false; break;
+      }
+      if ((clause.body?.length ?? 0) === 0) continue;
+      if (clause.body.length !== 1) { valid = false; break; }
+      const body = clause.body[0];
+      if (body?.type !== COMPOUND || body.name !== group.name || body.arity !== group.arity ||
+          (body.module ?? group.module) !== group.module) { valid = false; break; }
+      const from = scalarNodeKey(clause.head.args[position]);
+      const to = scalarNodeKey(body.args[position]);
+      if (from == null || to == null) { valid = false; break; }
+      for (let i = 0; i < group.arity; i++) {
+        if (i === position) continue;
+        const h = clause.head.args[i];
+        const b = body.args[i];
+        if (h.type === VAR && b.type === VAR && h.name === b.name) continue;
+        const hk = scalarNodeKey(h);
+        const bk = scalarNodeKey(b);
+        if (hk != null && hk === bk) continue;
+        valid = false;
+        break;
+      }
+      if (!valid) break;
+      sawRecursive = true;
+      let targets = edges.get(from);
+      if (targets == null) edges.set(from, targets = new Set());
+      targets.add(to);
+    }
+    if (!valid || !sawRecursive) continue;
+
+    // Use Kahn's algorithm rather than recursive DFS here.  Programs generated
+    // from large taxonomies can contain hundreds of thousands of scalar
+    // transitions, and recursing once per edge would overflow the JavaScript
+    // call stack before Prolog execution even begins.
+    const indegree = new Map();
+    for (const [node, targets] of edges) {
+      if (!indegree.has(node)) indegree.set(node, 0);
+      for (const next of targets) indegree.set(next, (indegree.get(next) ?? 0) + 1);
+    }
+    const ready = [];
+    for (const [node, degree] of indegree) if (degree === 0) ready.push(node);
+    let consumed = 0;
+    for (let cursor = 0; cursor < ready.length; cursor++) {
+      const node = ready[cursor];
+      consumed++;
+      for (const next of edges.get(node) ?? []) {
+        const degree = indegree.get(next) - 1;
+        indegree.set(next, degree);
+        if (degree === 0) ready.push(next);
+      }
+    }
+    if (consumed === indegree.size) return true;
+  }
+  return false;
+}
+
 function preparedBundledLibraryCacheKey(program, options) {
   const filename = String(options.filename ?? '');
   if (filename !== standardLibrarySources.get('clpz')?.filename) return null;
@@ -85,9 +242,9 @@ export class Program {
     this.multifilePredicates = new Set();
     this.discontiguousPredicates = new Set();
     this.strictIso = options.isoStrict === true;
-    // Normal mode automatically tables recursive user predicates unless an
-    // embedder explicitly requests traditional depth-first Prolog control.
-    this.autoTabling = options.autoTabling !== false;
+    // Tabling is opt-in through explicit `:- table ...` directives. Ordinary
+    // recursive predicates retain standard depth-first Prolog control.
+    this.tabledPredicates = new Set();
     this.operators = new Map();
     const predefinedOperatorSets = this.strictIso
       ? [ISO_OPERATOR_DEFINITIONS]
@@ -310,11 +467,12 @@ export class Program {
     if (reanalyze && !this.strictIso) this.markRecursivePredicates();
   }
   markRecursivePredicates() {
-    // Recursion analysis drives automatic tabling and is always part of program setup.
+    // Recursion analysis still drives execution optimizations and explicit tabling metadata.
     const groups = [...this.groups.values()];
     const indexByGroup = new Map(groups.map((group, i) => [group, i]));
     const deps = groups.map(() => new Set());
     const cutDeps = groups.map(() => new Set());
+    const multiplicitySensitiveRoots = new Set();
     const negativeEdges = [];
     const wfsNegativeEdges = [];
     for (const group of groups) {
@@ -326,6 +484,10 @@ export class Program {
           continue;
         }
         for (const goal of clause.body) {
+          for (const dependency of collectMultiplicitySensitiveDependencies(goal)) {
+            const dep = this.findGroup(dependency.name, dependency.arity, dependency.module ?? group.module);
+            if (dep) multiplicitySensitiveRoots.add(indexByGroup.get(dep));
+          }
           for (const dependency of collectGoalDependencies(goal, false, true)) {
             const dep = this.findGroup(dependency.name, dependency.arity, dependency.module ?? group.module);
             if (dep) cutDeps[groupIndex].add(indexByGroup.get(dep));
@@ -378,18 +540,16 @@ export class Program {
         }
       }
       // Bundled libraries use their written ISO control directly. User modules
-      // still receive EyeProlog's automatic cycle analysis and tabling.
+      // are analyzed for recursion, but tabling itself is strictly opt-in.
       const plannedRecursive = recursive && !standardLibraryModule;
+      const explicitlyTabled = this.tabledPredicates.has(modulePredicateKey(group.module, group.name, group.arity));
       group.recursive = plannedRecursive;
-      group.tableInputPositions = plannedRecursive
+      group.tabled = explicitlyTabled;
+      group.tableInputPositions = explicitlyTabled && plannedRecursive
         ? inferStructuralInputPositions(group)
         : [];
-      // Recursive predicates are proved with tabling automatically, keeping
-      // search control inside the engine. Cycles through negation retain
-      // guarded resolution because positive least-fixed-point tabling is not
-      // sound for an unstratified negative component.
       group.cutRecursive = plannedRecursive && componentHasCut(start, deps, groups);
-      const linearNumeric = plannedRecursive && hasLinearNumericRecursion(group) &&
+      const linearNumeric = plannedRecursive && !explicitlyTabled && hasLinearNumericRecursion(group) &&
         (isPiAccumulator(group) || isPortableBetweenGenerator(group));
       group.linearNumeric = linearNumeric;
       group.fastPi = linearNumeric && isPiAccumulator(group);
@@ -398,10 +558,13 @@ export class Program {
       );
       group.listTailRecursive = directRecursiveComponent && !group.cutRecursive &&
         hasStrictListTailRecursion(group);
-      group.tabled = this.autoTabling && plannedRecursive &&
-        !componentHasNegativeEdge(start, deps, negativeEdges) &&
-        !group.cutRecursive &&
-        !linearNumeric;
+      const acyclicScalarRecursion = plannedRecursive && hasAcyclicScalarSelfRecursion(group);
+      const cutTailRecursion = plannedRecursive && hasDirectCutTailRecursion(group);
+      const multiplicitySensitive = [...multiplicitySensitiveRoots].some((root) => reachableIndexes(root, deps).has(start));
+      group.acyclicScalarRecursion = acyclicScalarRecursion;
+      group.cutTailRecursion = cutTailRecursion;
+      group.multiplicitySensitive = multiplicitySensitive;
+      group.depthFirstRecursive = plannedRecursive && !explicitlyTabled;
       // Function-free positive recursive rules have a finite Herbrand base.
       // They can safely use a shared most-general table, which avoids computing
       // a separate recursive closure for every bound input (TC/SG/Wine style).
@@ -551,6 +714,7 @@ class ProgramBuilder {
     this.declaredDynamicIndicators = new Map();
     this.declaredMultifileIndicators = new Map();
     this.declaredDiscontiguousIndicators = new Map();
+    this.declaredTableIndicators = new Map();
     this.directiveDeclarationsByText = new Map();
     this.clauseTextUnitsByKey = new Map();
     this.lastPredicateByText = new Map();
@@ -563,7 +727,7 @@ class ProgramBuilder {
     const unit = textUnit ?? '<input>';
     let declarations = this.directiveDeclarationsByText.get(unit);
     if (!declarations) {
-      declarations = { dynamic: new Set(), multifile: new Set(), discontiguous: new Set() };
+      declarations = { dynamic: new Set(), multifile: new Set(), discontiguous: new Set(), table: new Set() };
       this.directiveDeclarationsByText.set(unit, declarations);
     }
     return declarations[kind];
@@ -737,6 +901,7 @@ class ProgramBuilder {
     this.addProcedureDirective(clause, 'dynamic', program.dynamicPredicates, this.declaredDynamicIndicators);
     this.addProcedureDirective(clause, 'multifile', program.multifilePredicates, this.declaredMultifileIndicators);
     this.addProcedureDirective(clause, 'discontiguous', program.discontiguousPredicates, this.declaredDiscontiguousIndicators);
+    this.addProcedureDirective(clause, 'table', program.tabledPredicates, this.declaredTableIndicators);
 
     const operator = operatorDirective(clause);
     if (operator) {
@@ -787,8 +952,8 @@ class ProgramBuilder {
     // Static indexes are built while clauses stream into the builder. Dynamic
     // updates still rebuild only the affected predicate group.
     // Strict ISO core mode follows ordinary ISO clause selection rather than
-    // EyeProlog's automatic recursion guards, numeric recursion shortcuts, or
-    // tabled fixed points.  Leaving the recursion-planning fields at their
+    // EyeProlog's recursion-planning metadata, numeric recursion shortcuts, or
+    // explicitly tabled fixed points.  Leaving the recursion-planning fields at their
     // neutral defaults preserves the standard depth-first execution model.
     if (!program.strictIso) program.markRecursivePredicates();
     if (this.options.analyzeNegation === true || this.options.strictNegation === true) {

@@ -676,7 +676,8 @@ probe :- empty_assoc(A), copy_term_nat(A, _), bb_b_put(current, ok), bb_get(curr
     {
       name: 'large source scanning avoids quadratic full-stop lookback',
       run: () => {
-        const result = runCli(['examples/path-discovery.pl'], { timeout: 10000 });
+        // Keep the guard well below quadratic behavior while allowing full-suite worker contention.
+        const result = runCli(['examples/path-discovery.pl'], { timeout: 30000 });
         if (result.error) throw new Error(`path-discovery timed out or failed to launch: ${result.error.message}`);
         assertEqual(result.status, 0, `path-discovery status; stderr=${result.stderr}`);
         assertIncludes(result.stdout, "airroute('Ostend-Bruges International Airport', 'Václav Havel Airport Prague'",
@@ -2213,7 +2214,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'runQuads recognizes recursion-guard cycle evidence as loops (issue #58)',
+      name: 'runQuads recognizes bounded recursive nontermination as loops (issue #58)',
       run: () => {
         const result = publicApi.runQuads(`inf :- inf, inf.\n\n23\n?- inf.\n   loops.\n`);
         assertEqual(result.passed, 1, 'quad passed');
@@ -2221,7 +2222,7 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'quad recursion-cycle evidence consistently refutes finite failure (issue #58 comment 5381101420)',
+      name: 'quad finite-failure claims stay undecided when recursive search exhausts its budget',
       run: () => {
         const result = publicApi.runQuads(`inf :- inf, inf.
 
@@ -2232,10 +2233,9 @@ c4 ?- call((!;1)).
 `);
         assertEqual(result.total, 2, 'quad total');
         assertEqual(result.passed, 1, 'loops passed');
-        assertEqual(result.failed, 1, 'false failed');
-        assertEqual(result.undecided, 0, 'no undecided result');
-        assertIncludes(result.stdout, 'expected: false.', 'finite failure diagnostic');
-        assertNotIncludes(result.stdout, 'undecided: recursion cycle encountered.', 'cycle is decisive');
+        assertEqual(result.failed, 0, 'finite failure is not claimed');
+        assertEqual(result.undecided, 1, 'bounded recursive search is undecided');
+        assertIncludes(result.stdout, 'undecided: inference limit reached.', 'bounded-search diagnostic');
       },
     },
     {
@@ -4013,6 +4013,14 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
       },
     },
     {
+      name: '--no-auto-table has been removed from the CLI',
+      run: () => {
+        const result = runCli(['--no-auto-table', '-'], { input: '' });
+        assertEqual(result.status, 1, 'exit status');
+        assertIncludes(result.stderr, 'unknown option: --no-auto-table', 'stderr');
+      },
+    },
+    {
       name: '--no-autoload also applies to CLI top-level goals',
       run: () => {
         const result = runCli(['--no-autoload', '-g', 'member(X,[a])', '-'], { input: '' });
@@ -4053,7 +4061,7 @@ countdown(N, Result) :-
     Result is Partial+1.
 answer(Result) :- countdown(2048, Result), Result = 2048.
 `;
-        const result = run(source, { goal: 'answer(Result)', autoTabling: false });
+        const result = run(source, { goal: 'answer(Result)' });
         assertEqual(result.stdout, 'answer(2048).\n', 'deep non-tail answer');
         assertEqual(result.stats.max_goal_count <= 70, true,
           'caller continuations stay opaque instead of growing one goal per recursive layer');
@@ -4422,7 +4430,7 @@ answer(Result) :- countdown(2048, Result), Result = 2048.
       },
     },
     {
-      name: 'strict ISO core mode disables automatic tabling and recursion guards',
+      name: 'strict ISO core mode disables normal-profile recursion planning',
       run: () => {
         const strict = Program.parse('p :- p.\n', { isoStrict: true });
         const normal = Program.parse('p :- p.\n');
@@ -5350,6 +5358,14 @@ function apiCases() {
       },
     },
     {
+      name: 'run executes native forward rules when no explicit goal is supplied',
+      run: () => {
+        const result = run('seed(a).\nseen(X) :+ seed(X).\ntrue :+ seen(X).\n');
+        assertEqual(result.stdout, 'seen(a).\n', 'forward stdout');
+        assertEqual(result.haltCode, null, 'forward halt code');
+      },
+    },
+    {
       name: 'run exposes false/0 as an always-failing built-in',
       run: () => {
         const result = run('answer(ok) :- false.\n', { goal: 'answer(X)' });
@@ -5573,10 +5589,9 @@ answer(A,B,Text,Bytes,Date) :-
       },
     },
     {
-      name: 'library(tabling) accepts the common table directive over automatic tabling',
+      name: 'normal profile accepts the explicit table directive without a library import',
       run: () => {
-        const source = `:- use_module(library(tabling)).
-:- table path/2.
+        const source = `:- table path/2.
 edge(a,b). edge(b,c).
 path(X,Y) :- path(X,Z), edge(Z,Y).
 path(X,Y) :- edge(X,Y).
@@ -5881,15 +5896,16 @@ answer(ok) :-
       },
     },
     {
-      name: 'repeated identical phrase invocation reuses a compact table (issue #48)',
+      name: 'explicitly tabled phrase invocation reuses a compact table (issue #48)',
       run: () => {
         const program = Program.parse(`
           :- use_module(library(prologue)).
-          ... --> [].
-          ... --> [_], ... .
-        `, { autoloadGoals: ['phrase((...,("ba"|"gh")),"abcdef")'] });
+          :- table tail/2.
+          tail --> [].
+          tail --> [_], tail .
+        `, { autoloadGoals: ['phrase((tail,("ba"|"gh")),"abcdef")'] });
         const solver = new Solver(program, { registry: getEyePrologRegistry(), maxMemoryBytes: Infinity });
-        const goal = parseGoalText('phrase((...,("ba"|"gh")),"abcdef")', {
+        const goal = parseGoalText('phrase((tail,("ba"|"gh")),"abcdef")', {
           doubleQuotes: 'chars',
           operatorDefinitions: [...program.operators.values()],
         });
@@ -5899,16 +5915,14 @@ answer(ok) :-
           assertEqual(answers, 0, 'failing phrase answer count');
         };
         runFailure();
-        assertEqual(solver.stats.table_fixpoint_rounds, 0, 'first distinct tail-DCG invocation stays untabled');
-        runFailure();
-        const roundsAfterSecond = solver.stats.table_fixpoint_rounds;
-        if (roundsAfterSecond <= 0) throw new Error('repeated phrase invocation did not build reusable table');
+        const roundsAfterFirst = solver.stats.table_fixpoint_rounds;
+        if (roundsAfterFirst <= 0) throw new Error('explicit table declaration did not build a table');
         const scope = solver.innerTableScopes.get('phrase');
         if (scope == null || scope.memo.size <= 0 || scope.memo.size > 1024) {
-          throw new Error('unexpected repeated phrase table size: ' + (scope?.memo.size ?? 'missing'));
+          throw new Error('unexpected explicit phrase table size: ' + (scope?.memo.size ?? 'missing'));
         }
         runFailure();
-        assertEqual(solver.stats.table_fixpoint_rounds, roundsAfterSecond, 'third identical phrase call reuses completed table');
+        assertEqual(solver.stats.table_fixpoint_rounds, roundsAfterFirst, 'second identical phrase call reuses completed table');
       },
     },
     {
@@ -6015,8 +6029,14 @@ answer(ok) :-
           maxDepth: 0,
           maxMemoryBytes: Infinity,
         });
-        const answers = [...solver.solve([compound('l', [left])], new Env(), 0)];
-        assertEqual(answers.length, 0, 'depth bound stops after stack-safe memo classification');
+        let error = null;
+        try {
+          [...solver.solve([compound('l', [left])], new Env(), 0)];
+        } catch (caught) {
+          error = caught;
+        }
+        assertEqual(error instanceof PrologError, true, 'explicit depth bound raises a Prolog resource error');
+        assertEqual(error?.formal, 'resource_error(depth_limit)', 'depth resource error');
         assertEqual(variantTerms(left, new Env(), right, new Env()), true, 'deep lists are variants');
       },
     },
@@ -6794,7 +6814,7 @@ function whiteBoxCases() {
     {
       name: 'dynamic mutations refresh recursive planning',
       run: () => {
-        const program = Program.parse(':- dynamic(loop/1).\n');
+        const program = Program.parse(':- dynamic(loop/1).\n:- table loop/1.\n');
         const group = program.findGroup('loop', 1);
         assertEqual(group.recursive, false, 'empty dynamic predicate is not recursive');
         assertEqual(program.revision, 0, 'initial revision');
@@ -6804,24 +6824,25 @@ function whiteBoxCases() {
         });
         assertEqual(program.revision, 1, 'mutation revision');
         assertEqual(group.recursive, true, 'recursive flag refreshed');
-        assertEqual(group.tabled, true, 'tabling decision refreshed');
+        assertEqual(group.tabled, true, 'explicit table declaration retained');
       },
     },
     {
-      name: 'recursive predicate groups are tabled automatically',
+      name: 'recursive predicate groups stay depth-first without a table directive',
       run: () => {
         const program = Program.parse('edge(a, b).\npath(X, Y) :- edge(X, Y).\npath(X, Z) :- path(X, Y), edge(Y, Z).\n');
         const group = program.findGroup('path', 2);
         assertEqual(Boolean(group), true, 'path/2 group exists');
-        assertEqual(group.tabled, true, 'path/2 tabled automatically');
+        assertEqual(group.recursive, true, 'path/2 recursion detected');
+        assertEqual(group.tabled, false, 'path/2 not tabled implicitly');
       },
     },
     {
-      name: 'directly queried recursive groups are tabled automatically',
+      name: 'explicit table directives opt recursive groups into tabling',
       run: () => {
-        const program = Program.parse('%% goal: path(X, Y)\nedge(a, b).\npath(X, Y) :- edge(X, Y).\npath(X, Z) :- edge(X, Y), path(Y, Z).\n');
+        const program = Program.parse(':- table path/2.\nedge(a, b).\npath(X, Y) :- edge(X, Y).\npath(X, Z) :- edge(X, Y), path(Y, Z).\n');
         const group = program.findGroup('path', 2);
-        assertEqual(group.tabled, true, 'queried path/2 tabled automatically');
+        assertEqual(group.tabled, true, 'path/2 explicitly tabled');
       },
     },
     {
@@ -6838,7 +6859,7 @@ function whiteBoxCases() {
       name: 'large finite Datalog uses an indexed least model only for broad calls',
       run: () => {
         const edges = Array.from({ length: 130 }, (_, i) => `edge(n${i}, n${i + 1}).`).join('\n');
-        const source = `${edges}\npath(X,Y) :- edge(X,Y).\npath(X,Y) :- edge(X,Z), path(Z,Y).\n`;
+        const source = `:- table path/2.\n${edges}\npath(X,Y) :- edge(X,Y).\npath(X,Y) :- edge(X,Z), path(Z,Y).\n`;
         const program = Program.parse(source);
         const group = program.findGroup('path', 2);
         assertEqual(group.datalogLeastModel, true, 'large range-restricted Datalog is eligible');
@@ -6856,7 +6877,7 @@ function whiteBoxCases() {
       name: 'compact finite Datalog planning preserves lazy clause terms',
       run: () => {
         const facts = Array.from({ length: 130 }, (_, i) => `compact_edge(n${i}, n${i + 1}).`).join('\n');
-        const source = `${facts}\ncompact_edge(X,Y) :- compact_edge(X,Y).\n`;
+        const source = `:- table compact_edge/2.\n${facts}\ncompact_edge(X,Y) :- compact_edge(X,Y).\n`;
         const program = Program.parseSources([{ text: source, filename: 'compact-datalog.pl' }], {
           sourceMetadata: false,
         });
@@ -6888,7 +6909,8 @@ collect(Bag,N) :- findall(X, q(X), Bag), length(Bag, N).
       name: 'ground negation probes a complete positive Datalog model',
       run: () => {
         const edges = Array.from({ length: 130 }, (_, i) => `edge(n${i}, n${i + 1}).`).join('\n');
-        const source = `${edges}
+        const source = `:- table path/2.
+${edges}
 path(X,Y) :- edge(X,Y).
 path(X,Y) :- edge(X,Z), path(Z,Y).
 blocked(X,Y) :- path(X,Y).
@@ -6943,6 +6965,7 @@ undefined_case :- tnot(win(c)).
       name: 'cyclic tabling reaches a complete fixed point',
       run: () => {
         const result = run(Program.parse(`
+:- table path/2.
 edge(a, b).
 edge(b, c).
 edge(c, d).
@@ -6959,7 +6982,7 @@ path(X, Z) :- edge(X, Y), path(Y, Z).
       },
     },
     {
-      name: 'challenging examples infer dynamic-programming predicates automatically',
+      name: 'challenging examples declare their dynamic-programming tables explicitly',
       run: () => {
         const checks = [
           ['binomial-vandermonde.pl', 'choose_step', 5, true],
@@ -6982,15 +7005,18 @@ path(X, Z) :- edge(X, Y), path(Y, Z).
           const program = Program.parseSources([{ text, filename }]);
           const group = program.findGroup(name, arity);
           assertEqual(Boolean(group), true, `${filename} ${name}/${arity} group exists`);
-          assertEqual(group.tabled, recursive, `${filename} ${name}/${arity} automatic table decision`);
+          assertEqual(group.tabled, recursive, `${filename} ${name}/${arity} explicit table decision`);
           assertEqual(group.recursive, recursive, `${filename} ${name}/${arity} recursive`);
         }
       },
     },
     {
-      name: 'recursive search pattern keeps scan and search predicates tabled',
+      name: 'recursive search pattern explicitly tables scan and search predicates',
       run: () => {
         const text = `
+          :- table queens/3.
+          :- table attack/3.
+
           queens([], Qs, Qs).
           queens(Us, Ps, Qs) :-
             select(Q, Us, Us1),
@@ -7016,7 +7042,7 @@ path(X, Z) :- edge(X, Y), path(Y, Z).
       },
     },
     {
-      name: 'collatz example keeps recursive trajectory predicate tabled',
+      name: 'collatz example explicitly tables the recursive trajectory predicate',
       run: () => {
         const text = fs.readFileSync(path.join(packageRoot, 'examples', 'collatz-1000.pl'), 'utf8');
         const program = Program.parseSources([{ text, filename: 'collatz-1000.pl' }]);

@@ -1,5 +1,6 @@
 :- use_module(library(primes)).
 :- use_module(library(lists)).
+:- table factor_smallest/2.
 
 % Adapted from Eyeling's fundamental-theorem-arithmetic.n3.
 % Compute a prime factorization by repeated smallest-divisor decomposition,
@@ -72,9 +73,9 @@ factor_largest(N, Factors) :-
   factor_smallest(N, Smallest),
   reverse(Smallest, Factors).
 
-product([], 1).
-product([X|Rest], P) :-
-  product(Rest, P0),
+factor_product([], 1).
+factor_product([X|Rest], P) :-
+  factor_product(Rest, P0),
   (P is X * P0).
 
 all_expected_primes(true) :-
@@ -97,7 +98,7 @@ factorsLargest(case, Factors) :-
 product(case, Product) :-
   case(fta, N),
   factor_smallest(N, Factors),
-  product(Factors, Product).
+  factor_product(Factors, Product).
 
 expectedFactorsMatched(case, true) :-
   case(fta, N),
@@ -107,7 +108,7 @@ expectedFactorsMatched(case, true) :-
 productReconstructsInput(case, true) :-
   case(fta, N),
   factor_smallest(N, Factors),
-  product(Factors, N).
+  factor_product(Factors, N).
 
 distinctPrimeCount(case, 4) :-
   all_expected_primes(true).

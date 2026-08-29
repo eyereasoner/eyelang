@@ -20,7 +20,7 @@ peano_multiply(A, s(B), C) :-
   peano_multiply(A, B, D),
   peano_add(A, D, C).
 
-factorial(A, B) :-
+factorial_value(A, B) :-
   fac(A, s(0), B).
 
 fac(0, A, A).
@@ -31,4 +31,4 @@ fac(s(A), B, C) :-
 factorial(B, C) :-
   peano_multiply(s(0), s(s(0)), A),
   peano_add(A, s(s(s(0))), B),
-  factorial(B, C).
+  factorial_value(B, C).

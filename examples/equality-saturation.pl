@@ -2,6 +2,9 @@
 :- use_module(library(between), [between/3]).
 :- use_module(library(lists)).
 :- use_module(library(iso_ext)).
+:- table rewrite_anywhere/2.
+:- table equivalent_at_depth/3.
+:- table expr_cost/2.
 
 % Bounded equality saturation over tiny arithmetic expression terms.
 %

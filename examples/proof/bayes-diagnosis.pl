@@ -206,3 +206,67 @@ why(
   )
 ).
 
+posterior(result(covid19), 0.9412093962753174).
+why(
+  posterior(result(covid19), 0.9412093962753174),
+  proof(
+    goal(posterior(result(covid19), 0.9412093962753174)),
+    by(rule("bayes-diagnosis.pl", clause(50))),
+    bindings([binding("Disease", covid19), binding("Posterior", 0.9412093962753174)]),
+    uses([
+      proof(
+        goal(posterior_decimal(covid19, 0.9412093962753174)),
+        by(fact("bayes-diagnosis.pl", clause(41)))
+      )
+    ])
+  )
+).
+
+posterior(result(influenza), 0.029203652890249024).
+why(
+  posterior(result(influenza), 0.029203652890249024),
+  proof(
+    goal(posterior(result(influenza), 0.029203652890249024)),
+    by(rule("bayes-diagnosis.pl", clause(50))),
+    bindings([binding("Disease", influenza), binding("Posterior", 0.029203652890249024)]),
+    uses([
+      proof(
+        goal(posterior_decimal(influenza, 0.029203652890249024)),
+        by(fact("bayes-diagnosis.pl", clause(42)))
+      )
+    ])
+  )
+).
+
+posterior(result(allergicRhinitis), 0.00045630707641014084).
+why(
+  posterior(result(allergicRhinitis), 0.00045630707641014084),
+  proof(
+    goal(posterior(result(allergicRhinitis), 0.00045630707641014084)),
+    by(rule("bayes-diagnosis.pl", clause(50))),
+    bindings([binding("Disease", allergicRhinitis), binding("Posterior", 0.00045630707641014084)]),
+    uses([
+      proof(
+        goal(posterior_decimal(allergicRhinitis, 0.00045630707641014084)),
+        by(fact("bayes-diagnosis.pl", clause(43)))
+      )
+    ])
+  )
+).
+
+posterior(result(bacterialPneumonia), 0.029130643758023392).
+why(
+  posterior(result(bacterialPneumonia), 0.029130643758023392),
+  proof(
+    goal(posterior(result(bacterialPneumonia), 0.029130643758023392)),
+    by(rule("bayes-diagnosis.pl", clause(50))),
+    bindings([binding("Disease", bacterialPneumonia), binding("Posterior", 0.029130643758023392)]),
+    uses([
+      proof(
+        goal(posterior_decimal(bacterialPneumonia, 0.029130643758023392)),
+        by(fact("bayes-diagnosis.pl", clause(44)))
+      )
+    ])
+  )
+).
+
