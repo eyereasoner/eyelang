@@ -159,7 +159,7 @@ export const ISO_OPERATOR_DEFINITIONS = [
 export const PART3_OPERATOR_DEFINITIONS = [
   [1105, 'xfy', '|'],
   // EyeProlog forward-rule extension.  A top-level Conclusion :+ Premise is
-  // executed by the native closure driver when no explicit CLI goal is given.
+  // executed by library(eyelet)'s Prolog closure driver when no explicit CLI goal is given.
   [1200, 'xfx', ':+'],
   // Tabling is explicit in the normal EyeProlog profile. Make the common
   // `:- table p/n.` declaration available without requiring a library import.

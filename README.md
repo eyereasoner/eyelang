@@ -56,14 +56,10 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
   npx --yes eyeprolog --proof --goal 'mortal(socrates)' -
 ```
 
-## Native forward rules (`:+`)
-Normal mode executes top-level `Conclusion :+ Premise` rules natively when no explicit
-`-g/--goal` is supplied. `true :+ Goal` prints answers and `false :+ Goal` emits a
-`fuse/1`; JavaScript `run()` follows the same rule. The bundled `library(eyelet)`
-exports the `:+` operator, `stable/1`, and `becomes/2`. Strict ISO mode disables this
-extension. Bundled `src/lib/` predicates autoload in files, CLI/API goals, and the REPL;
-use `--no-autoload` to require explicit imports, and explicitly import libraries that introduce
-operators before using their syntax. See [*The Art of EyeProlog*](the-art-of-eyeprolog.md) for the full semantics.
+## Eyelet forward rules (`:+`)
+Normal mode executes top-level `Conclusion :+ Premise` rules through the bundled Prolog `library(eyelet)` driver when no explicit `-g/--goal` is supplied. `true :+ Goal` prints answers and `false :+ Goal` emits a `fuse/1`; JavaScript `run()` follows the same rule. The module exports `:+`, `stable/1`, and `becomes/2`, and implements rule selection, fixed-point rounds, skolemization, state replacement, and duplicate suppression in Prolog. JavaScript only loads the driver and provides private mutability/output adapters. Strict ISO mode disables this extension.
+
+Bundled `src/lib/` predicates autoload in files, CLI/API goals, and the REPL; use `--no-autoload` to require explicit imports, and explicitly import libraries that introduce operators before using their syntax. See [*The Art of EyeProlog*](the-art-of-eyeprolog.md) for the full semantics.
 
 ## Links
 

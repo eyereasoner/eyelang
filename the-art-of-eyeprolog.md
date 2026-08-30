@@ -176,7 +176,7 @@ This rhythm deliberately joins declarative reading, operational reading, and
 program construction. Readers new to logic programming can follow Parts I–III
 in order. Experienced Prolog programmers can begin with Chapters 3, 13, and
 17 to see how EyeProlog combines ordinary depth-first Prolog with explicit
-tabling, native forward rules, and inspectable proofs.
+tabling, Eyelet forward rules, and inspectable proofs.
 Chapter 41 gives further routes through the material.
 
 ### When a run surprises you
@@ -1668,7 +1668,7 @@ list, one by finitely many tabled graph answers, and one that constructs terms
 without bound. State why the first two may terminate and why tabling does not
 repair the third.
 
-### Native forward rules and Eyelet execution
+### Eyelet forward rules and Prolog execution
 
 EyeProlog normal mode also accepts `:+` at priority 1200 as an `xfx` operator.
 A source term
@@ -1678,19 +1678,33 @@ Conclusion :+ Premise.
 ```
 
 is a forward rule. When a loaded program contains such rules and no explicit
-top-level goal overrides them, the engine runs a native closure driver rather
-than a Prolog meta-interpreter. It repeatedly solves premises against the
-current program, asserts novel conjuncts from successful conclusions, and
-continues until no new conclusion is added. This is the execution path used when
-Eyelet sources are run directly by EyeProlog.
+top-level goal overrides them, the engine loads `library(eyelet)` and invokes its
+Prolog closure driver. The driver inspects `:+/2` clauses structurally, prepares
+state predicates for updates, repeatedly solves premises against the current
+program, asserts novel conjuncts from successful conclusions, and continues until
+no new conclusion is added. Query-only programs take a single-pass fast path
+because they cannot grow the closure. This is the execution path used when Eyelet
+sources are run directly by EyeProlog.
 
 Two conclusions have control meaning. `true :+ Goal` is a query and prints each
 distinct successful instance of `Goal`. `false :+ Goal` is an integrity fuse:
 on success EyeProlog prints `fuse(Goal)` and returns halt status 2. Variables
 that occur only in an ordinary derived conclusion are existential and become
 `sk_0`, `sk_1`, and so on; a derived conclusion that is itself a `:+` rule keeps
-its variables universal. The bundled `library(eyelet)` exports the `:+` operator together with
-`stable/1` and `becomes/2`, while closure selection and assertion are native.
+its variables universal. The driver uses an explicit changed marker to repeat
+only productive rounds. `stable(Level)` raises the requested closure level and
+succeeds once that level has been reached. `becomes(From, To)` performs linear
+state replacement and prepares existing user predicates for mutation, so an
+EyeProlog source does not need a separate `dynamic/1` declaration merely to use
+that state with `becomes/2`.
+
+The `:+` reasoning algorithm is therefore Prolog code in `src/lib/eyelet.pl`, not
+a second JavaScript implementation. The host boundary is intentionally small:
+JavaScript bootstraps the private `eyelet:eyelet_run/3` entry point and supplies
+two private library adapters—one to make an existing user procedure mutable
+without rewriting its clauses, and one to forward answer/fuse terms to the CLI
+or embedding callbacks. Those adapters are not part of the strict ISO registry
+or the public `library(eyelet)` export surface.
 
 The JavaScript convenience `run()` function selects this forward mode when no
 explicit `goal` or `goals` option is supplied. Advanced embedders can inspect a
@@ -6368,7 +6382,7 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(debug)` | `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2`, `bb_global_get/2` | Declarative debug operators and constraint-library blackboards |
 | `library(dif)` | `dif/2` | Common module facade over native delayed disequality |
 | `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `call_with_error_context/2` | Error checking and construction |
-| `library(eyelet)` | `stable/1`, `becomes/2` | Eyelet forward-reasoning state helpers; the `:+` operator is exported by the module and executed natively by EyeProlog |
+| `library(eyelet)` | `stable/1`, `becomes/2` | Eyelet forward-reasoning driver and state helpers; the `:+` operator is exported by the module and its fixed point is implemented in Prolog |
 | `library(format)` | `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2` | Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals |
 | `library(freeze)` | `freeze/2` | Delayed goals |
 | `library(gensym)` | `gensym/2`, `reset_gensym/1` | Process-local generated atoms |

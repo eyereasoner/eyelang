@@ -1030,6 +1030,43 @@ function hybridFastSource(source, options) {
 // that phase, so extend the existing instance with the same canonical interop
 // imports before solving those goals. Keeping this here lets both paths share
 // the dependency analysis and module-loading rules.
+// Load one bundled library module into an already-built Program without
+// importing its public predicates into user. This is useful for host bootstraps
+// that call a module-private Prolog entry point while keeping the user-facing
+// module export list unchanged.
+export function loadBundledProgramLibrary(program, name, options = {}) {
+  if (program.modules.has(name)) return program;
+  const operatorState = createParserOperatorState(
+    [...program.operators.values()],
+    false,
+    { isoStrict: program.strictIso },
+  );
+  const parserFlagState = {
+    doubleQuotes: program.doubleQuotes ?? options.doubleQuotes ?? 'chars',
+    charConversion: 'on',
+    charConversions: new Map(),
+  };
+  const builder = new ProgramBuilder({ ...options, isoStrict: program.strictIso }, program);
+  const loadedModules = new Set([...program.modules.keys()].filter((module) => module !== 'user'));
+  const ensured = new Set();
+  const designation = compound('library', [atom(name)]);
+  const loaded = readModuleSource(designation, {
+    ...options,
+    isoStrict: program.strictIso,
+    operatorState,
+    parserFlagState,
+  });
+  const childContext = { module: loaded.name };
+  if (!loadSourceIntoBuilder(
+    builder, loaded.text, loaded.options, ensured, loadedModules, false, childContext,
+  )) {
+    throw new Error(`could not load library(${name})`);
+  }
+  program.noteMutation(false);
+  builder.finish();
+  return program;
+}
+
 export function autoloadProgramGoals(program, inputs, options = {}) {
   if (inputs == null || (Array.isArray(inputs) && inputs.length === 0)) return program;
   const operatorState = createParserOperatorState(
@@ -1131,7 +1168,7 @@ function bundledLibraryModule(program, module) {
 function groupDependencies(group) {
   const dependencies = [];
   for (const clause of group.clauses) {
-    // Native forward rules store their executable premise in the :+/2 head
+    // Eyelet forward rules store their executable premise in the :+/2 head
     // rather than in the ordinary clause body.  Treat that premise as a goal
     // dependency so bundled predicates such as stable/1 and becomes/2 can be
     // autoloaded exactly like calls in ordinary rules.  Derived :+ rules may

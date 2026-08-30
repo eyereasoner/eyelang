@@ -4806,7 +4806,7 @@ ${profile}`;
         assertIncludes(book, 'interactive top-level query therefore autoloads its canonical', 'REPL autoload');
         assertIncludes(book, 'Autoloading therefore supplies', 'autoload syntax boundary');
         assertIncludes(book, 'Residual constraints are part of the displayed answer even when', 'top-level hidden residuals');
-        assertIncludes(book, 'EyeProlog normal mode also accepts `:+`', 'native forward-rule extension');
+        assertIncludes(book, 'EyeProlog normal mode also accepts `:+`', 'Eyelet forward-rule extension');
         assertIncludes(book, '`library(eyelet)`', 'Eyelet library surface');
         assertIncludes(readme, '`library(eyelet)`', 'README Eyelet library surface');
         assertIncludes(profile, 'an unresolved unqualified predicate may autoload its unique provider', 'Why EyeProlog autoload policy');
@@ -5464,7 +5464,7 @@ function apiCases() {
       },
     },
     {
-      name: 'run executes native forward rules when no explicit goal is supplied',
+      name: 'run executes Prolog Eyelet forward rules when no explicit goal is supplied',
       run: () => {
         const result = run('seed(a).\nseen(X) :+ seed(X).\ntrue :+ seen(X).\n');
         assertEqual(result.stdout, 'seen(a).\n', 'forward stdout');
@@ -5472,10 +5472,9 @@ function apiCases() {
       },
     },
     {
-      name: 'native forward rules autoload library(eyelet) helpers from :+ premises',
+      name: 'Eyelet forward rules autoload library helpers and dynify source state',
       run: () => {
         const result = run(`
-:- dynamic(state/1).
 state(a).
 changed :+ becomes(state(a), state(b)).
 seed :+ state(b).
@@ -5483,6 +5482,21 @@ ready :+ seed, stable(1).
 true :+ ready.
 `);
         assertEqual(result.stdout, 'ready.\n', 'forward helper stdout');
+      },
+    },
+    {
+      name: 'Eyelet false conclusions emit a fuse and halt status 2',
+      run: () => {
+        const result = run('bad(a).\nfalse :+ bad(X).\n');
+        assertEqual(result.stdout, 'fuse(bad(a)).\n', 'fuse stdout');
+        assertEqual(result.haltCode, 2, 'fuse halt code');
+      },
+    },
+    {
+      name: 'Eyelet ordinary conclusions skolemize conclusion-only variables',
+      run: () => {
+        const result = run('seed(a).\npair(X, Y) :+ seed(X).\ntrue :+ pair(X, Y).\n');
+        assertEqual(result.stdout, 'pair(a,sk_0).\n', 'skolemized forward answer');
       },
     },
     {
@@ -6283,7 +6297,11 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 163, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 165, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(registry.get('eyeprolog__dynify', 1), null, 'Eyelet dynify adapter is absent from the ISO registry');
+        assertEqual(Boolean(library.get('eyeprolog__dynify', 1)), true, 'Eyelet dynify adapter is an internal EyeProlog library primitive');
+        assertEqual(registry.get('eyeprolog__eyelet_emit', 2), null, 'Eyelet event adapter is absent from the ISO registry');
+        assertEqual(Boolean(library.get('eyeprolog__eyelet_emit', 2)), true, 'Eyelet event adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__random_value', 1), null, 'native random helper is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__random_value', 1)), true, 'native random helper is an internal EyeProlog library adapter');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
