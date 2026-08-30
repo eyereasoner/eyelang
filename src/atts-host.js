@@ -11,6 +11,7 @@ import {
   properListItems, unify, variable,
 } from './term.js';
 import { PrologError } from './errors.js';
+import { callResidueVarsBuiltin } from './iso.js';
 
 function callerModule(goal) {
   return goal.module ?? 'user';
@@ -217,8 +218,9 @@ function* delFromAttrListBuiltin({ goal, env }) {
   yield next;
 }
 
-export const attsBuiltins = {
+export const attsHostBuiltins = {
   register(registry) {
+    registry.add('eyeprolog__call_residue_vars', 2, callResidueVarsBuiltin, { eyePrologLibrary: true });
     registry.add('put_atts', 2, putAttsBuiltin, { deterministic: true, eyePrologLibrary: true });
     registry.add('get_atts', 2, getAttsBuiltin, { deterministic: true, eyePrologLibrary: true });
     // Scryer's CLP(Z) sources use these through goal expansion. EyeProlog

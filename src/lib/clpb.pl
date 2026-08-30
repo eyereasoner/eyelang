@@ -59,7 +59,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(dcgs)).
 :- use_module(library(error), [domain_error/3, type_error/3]).
-:- use_module(library(debug), [bb_get/2, bb_put/2, bb_b_put/2]).
+:- use_module(library(iso_ext), [bb_get/2, bb_put/2, bb_b_put/2]).
 
 :- attribute
         clpb/1,

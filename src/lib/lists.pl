@@ -21,6 +21,7 @@
     maplist/6,
     maplist/7,
     maplist/8,
+    maplist/9,
     foldl/4,
     foldl/5,
     foldl/6,
@@ -45,6 +46,7 @@
 :- meta_predicate(maplist(5, '?', '?', '?', '?', '?')).
 :- meta_predicate(maplist(6, '?', '?', '?', '?', '?', '?')).
 :- meta_predicate(maplist(7, '?', '?', '?', '?', '?', '?', '?')).
+:- meta_predicate(maplist(8, '?', '?', '?', '?', '?', '?', '?', '?')).
 :- meta_predicate(foldl(3, '?', '?', '?')).
 :- meta_predicate(foldl(4, '?', '?', '?', '?')).
 :- meta_predicate(foldl(5, '?', '?', '?', '?', '?')).
@@ -90,6 +92,12 @@ maplist(_, [], [], [], [], [], [], []).
 maplist(Closure, [A|As], [B|Bs], [C|Cs], [D|Ds], [E|Es], [F|Fs], [G|Gs]) :-
     call(Closure, A, B, C, D, E, F, G),
     maplist(Closure, As, Bs, Cs, Ds, Es, Fs, Gs).
+
+
+maplist(_, [], [], [], [], [], [], [], []).
+maplist(Closure, [A|As], [B|Bs], [C|Cs], [D|Ds], [E|Es], [F|Fs], [G|Gs], [H|Hs]) :-
+    eyeprolog__call8(Closure, A, B, C, D, E, F, G, H),
+    maplist(Closure, As, Bs, Cs, Ds, Es, Fs, Gs, Hs).
 
 append([], []).
 append([Xs|Xss], Ys) :-

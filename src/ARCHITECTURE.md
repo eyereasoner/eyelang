@@ -15,8 +15,9 @@ higher-level frontends.
    `cleanup.js` owns lifecycle-aware disposal of protected builtin
    iterators and registers the normal-profile cleanup controls without making
    `solver.js` depend back on the language registry.
-4. **Language services** — `iso.js`, `iso-arithmetic.js`, `dcg.js`, `atts.js`,
-   `scryer-compat.js`, `library-host.js`, `standard-library.js`, and `src/lib/`.
+4. **Language services** — `iso.js`, `iso-arithmetic.js`, `dcg.js`, `atts-host.js`,
+   `standard-library.js`, the module-owned `src/<module>-host.js` adapters, and
+   the public Prolog modules under `src/lib/`.
 5. **Frontends/tools** — `execute.js`, `repl.js`, `cli.js`, `quads.js`,
    `explain.js`, and the playground worker.
 
@@ -40,7 +41,7 @@ annotations. Descriptors can optionally define logical subsumption so the
 store retains only its strongest pending constraints. `dif/2` is the first
 descriptor-based user of this mechanism.
 
-`atts.js` layers Prolog-visible attributed variables over that same persistent
+`atts-host.js` layers Prolog-visible attributed variables over that same persistent
 environment. Per-module attributes follow the current variable representative.
 When an attributed variable is about to be bound, the solver runs that module's
 `verify_attributes/3` against the still-unbound representative; only a successful
@@ -51,9 +52,9 @@ protocol directly for its domains and propagators.
 `Env` also owns the small generic backtrackable blackboard used by Scryer-style
 libraries. Blackboard maps are shared by clones and copied only on write, so
 `bb_b_put/2` follows ordinary Prolog backtracking without any CLP(Z)-specific
-state in the VM. `scryer-compat.js` exposes the private host bridge used by
-`library(debug)`; the remaining Scryer compatibility surface lives as Prolog
-modules under `src/lib/`.
+state in the VM. Its private runtime bridge is owned by `iso_ext-host.js`, matching
+Scryer's canonical `library(iso_ext)` ownership; `library(debug)` may re-export
+that interface for EyeProlog compatibility without owning another implementation.
 
 `source-expansion.js` is the explicit compile-time execution boundary. When an
 already-loaded `term_expansion/2` or `goal_expansion/2` hook exists, program
@@ -65,11 +66,17 @@ import graph acyclic while avoiding a second meta-interpreter solely for source
 expansion. `expansion-builtins.js` provides the lower-level `expand_term/2` DCG
 service without depending on `Solver`.
 
-The JavaScript runtime stays flat directly under `src/`; the existing `src/lib/`
-contains Prolog library sources rather than JavaScript runtime modules. The architecture
-test rejects JavaScript import cycles under `src/`. Cleanup lifecycle hooks are
-installed from the public API and CLI entry paths; `standard-library.js` only
-registers the predicates, so the execution layer remains acyclic.
+The JavaScript runtime stays flat directly under `src/`; `src/lib/` contains the
+public Prolog library sources. Runtime-dependent library primitives follow a
+one-module/one-host convention: a private `eyeprolog__*` adapter referenced by
+`src/lib/foo.pl` must be registered from `src/foo-host.js`. Pure Prolog modules,
+such as `library(freeze)`, intentionally have no host file. `standard-library.js`
+registers these module hosts without owning their semantics. The architecture
+test rejects JavaScript import cycles, verifies private adapter ownership, freezes
+the current Scryer export surface for all 32 overlapping bundled modules, and
+rejects the retired `library-host.js` and `scryer-compat.js` grab bags. Cleanup
+lifecycle hooks are installed from the public API and CLI entry paths, so the
+execution layer remains acyclic.
 
 ## Performance rule
 

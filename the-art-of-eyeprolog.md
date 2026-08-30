@@ -6293,12 +6293,12 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **344 distinct non-ISO library and normal-extension predicate
+EyeProlog exposes **368 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
-**246 are defined entirely as ordinary Prolog clauses** in focused modules under
-`src/lib/`; **98 use host support** for control, attributed variables,
-constraints, character conversion, filesystem/OS access, timing, or
-observability. The ISO and library catalogs therefore cover **473 distinct predicate indicators**. A normal-runtime predicate that is intentionally
+**259 are defined entirely as ordinary Prolog clauses** in focused modules under
+`src/lib/`; **109 use host support** for control, attributed variables,
+constraints, character conversion, filesystem/OS access, timing, cryptography,
+or observability. The ISO and library catalogs therefore cover **497 distinct predicate indicators**. A normal-runtime predicate that is intentionally
 re-exported by a compatibility module is counted once in this library surface:
 for example `call_cleanup/2` and `setup_call_cleanup/3` are exported by
 `library(iso_ext)`, while `time/1` and `statistics/2` are available from
@@ -6326,12 +6326,15 @@ module exposes p.p.1 through p.p.11 of the
 [working-draft Prologue](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue),
 as a compatibility facade over the canonical `lists`, `between`, `iso_ext`,
 and `freeze` modules. The published Prologue, `call_nth/2`, and `length/2`
-quads are retained as offline regressions. `src/standard-library.js` registers the module sources and private control and
-constraint adapters for Node and browser resolution. `src/library-host.js`
-contains the small character-I/O, Base64, rational-form, sleep, filesystem, and
-OS bridges used by the corresponding Prolog modules. `src/crypto-host.js` keeps
-the cryptographic host primitives separate from the public `library(crypto)`
-module. Explicit `use_module/1-2`
+quads are retained as offline regressions. `src/standard-library.js` registers the module sources and explicit module-owned
+host adapters. For example, attributed-variable support lives in
+`src/atts-host.js`, while cryptographic primitives live in `src/crypto-host.js`. Whenever `src/lib/foo.pl` needs a private runtime primitive, that
+primitive is registered from `src/foo-host.js`; pure Prolog libraries deliberately
+have no host file. This keeps character I/O, filesystem access, crypto, timing,
+attributed-variable support, and other runtime bridges with the module that owns
+their public semantics instead of in a compatibility grab bag. Architecture tests
+enforce this ownership and reject the retired `library-host.js` and
+`scryer-compat.js`. Explicit `use_module/1-2`
 loads remain supported; outside strict ISO mode, the bundled-library autoloader
 may also load the canonical owner of any exported `src/lib/` predicate. The
 autoload index is generated from the libraries' `module/2` declarations.
@@ -6375,32 +6378,32 @@ bindings make one aligned subterm pair sufficient. For example:
 | Module | Exported predicate indicators | Primary role |
 | --- | --- | --- |
 | `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` | Aggregation |
-| `library(arithmetic)` | `lsb/2`, `msb/2`, `number_to_rational/2`, `popcount/2`, `rational_numerator_denominator/3` | Bit helpers and Trealla/Scryer rational-form conversion |
+| `library(arithmetic)` | `expmod/4`, `lcm/3`, `lsb/2`, `msb/2`, `number_to_rational/2`, `number_to_rational/3`, `popcount/2`, `rational_numerator_denominator/3` | Scryer-compatible arithmetic helpers and rational-form conversion |
 | `library(assoc)` | `empty_assoc/1`, `assoc_to_keys/2`, `assoc_to_list/2`, `assoc_to_values/2`, `del_assoc/4`, `del_max_assoc/4`, `del_min_assoc/4`, `gen_assoc/3`, `get_assoc/3`, `get_assoc/5`, `is_assoc/1`, `list_to_assoc/2`, `map_assoc/2`, `map_assoc/3`, `max_assoc/3`, `min_assoc/3`, `ord_list_to_assoc/2`, `put_assoc/4` | AVL association trees; reused from the shared portable source |
 | `library(atts)` | `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, `call_residue_vars/2` | Attributed variables |
 | `library(between)` | `between/3`, `gen_int/1`, `gen_nat/1`, `numlist/2`, `numlist/3`, `repeat/1` | Integer generation |
-| `library(charsio)` | `char_type/2`, `chars_base64/3`, `get_line_to_chars/3`, `get_n_chars/3`, `get_single_char/1`, `read_from_chars/2`, `read_term_from_chars/3`, `write_term_to_chars/3` | Character classification, chars/term conversion, and Base64 |
+| `library(charsio)` | `char_type/2`, `chars_base64/3`, `chars_utf8bytes/2`, `get_line_to_chars/3`, `get_n_chars/3`, `get_single_char/1`, `read_from_chars/2`, `read_term_from_chars/3`, `write_term_to_chars/3` | Character classification, UTF-8, chars/term conversion, and Base64 |
 | `library(clpb)` | `labeling/1`, `random_labeling/2`, `sat/1`, `sat_count/2`, `taut/2`, `weighted_maximum/3` | Boolean constraints and BDD reasoning; upstream Prolog source with small state adapters |
 | `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `cumulative/1`, `cumulative/2`, `disjoint2/1`, `element/3`, `automaton/3`, `automaton/8`, `zcompare/3`, `chain/2`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2`, `clpz_t/2`, `#=/3`, `#</3` | Constraint logic programming over integers; the final three indicators support reified compatibility libraries |
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` | Generic comparison |
 | `library(crypto)` | `crypto_curve_generator/2`, `crypto_curve_order/2`, `crypto_curve_scalar_mult/4`, `crypto_data_decrypt/6`, `crypto_data_encrypt/6`, `crypto_data_hash/3`, `crypto_data_hkdf/4`, `crypto_n_random_bytes/2`, `crypto_name_curve/2`, `crypto_password_hash/2`, `crypto_password_hash/3`, `curve25519_generator/1`, `curve25519_scalar_mult/3`, `ed25519_keypair_public_key/2`, `ed25519_new_keypair/1`, `ed25519_seed_keypair/2`, `ed25519_sign/4`, `ed25519_verify/4`, `hex_bytes/2` | Scryer-compatible hashing, KDFs, authenticated encryption, Ed25519, X25519, and secp256k1 helpers |
 | `library(dates)` | `difference/3` | ISO duration differences |
-| `library(dcgs)` | `phrase/2`, `phrase/3`, `seq/3`, `seqq/3` | DCG compatibility; `seq/3` and `seqq/3` are declared as `seq //1` and `seqq //1` |
-| `library(debug)` | `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2`, `bb_global_get/2` | Declarative debug operators and constraint-library blackboards |
+| `library(dcgs)` | `-->/2`, `.../2`, `phrase/2`, `phrase/3`, `phrase/4`, `phrase/5`, `seq/3`, `seqq/3` | Full Scryer DCG export surface; nonterminals are shown at their expanded arities |
+| `library(debug)` | `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2` | Declarative debug operators plus compatibility re-exports of the canonical `iso_ext` blackboard |
 | `library(dif)` | `dif/2` | Common module facade over native delayed disequality |
 | `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `call_with_error_context/2` | Error checking and construction |
 | `library(eyelet)` | `stable/1`, `becomes/2` | Eyelet forward-reasoning driver and state helpers; the `:+` operator is exported by the module and its fixed point is implemented in Prolog |
-| `library(files)` | `delete_file/1`, `directory_files/2`, `make_directory/1`, `make_directory_path/1`, `rename_file/2`, `working_directory/2` | Trealla/Scryer filesystem intersection backed by the Node host |
+| `library(files)` | `delete_directory/1`, `delete_file/1`, `directory_exists/1`, `directory_files/2`, `file_access_time/2`, `file_copy/2`, `file_creation_time/2`, `file_exists/1`, `file_modification_time/2`, `file_size/2`, `make_directory/1`, `make_directory_path/1`, `path_canonical/2`, `path_segments/2`, `rename_file/2`, `working_directory/2` | Full Scryer filesystem surface backed by the Node host where filesystem access is required |
 | `library(format)` | `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2` | Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals |
 | `library(freeze)` | `freeze/2` | Delayed goals |
 | `library(gensym)` | `gensym/2`, `reset_gensym/1` | Process-local generated atoms |
-| `library(iso_ext)` | `call_cleanup/2`, `call_nth/2`, `call_residue_vars/2`, `copy_term_nat/2`, `countall/2`, `forall/2`, `succ/2`, `setup_call_cleanup/3`, `cfor/3`, `findall/4`, `variant/2`, `time/1`, `.../2` | Common ISO extensions and canonical compatibility re-exports |
+| `library(iso_ext)` | `bb_b_put/2`, `bb_get/2`, `bb_put/2`, `call_cleanup/2`, `call_nth/2`, `call_residue_vars/2`, `call_with_inference_limit/3`, `cfor/3`, `copy_term/3`, `copy_term_nat/2`, `countall/2`, `findall/4`, `forall/2`, `partial_string/1`, `partial_string/3`, `partial_string_tail/2`, `setup_call_cleanup/3`, `succ/2`, `time/1`, `variant/2` | Scryer ISO extensions plus EyeProlog compatibility helpers |
 | `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` | Higher-order lambda notation |
-| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`, `permutation/2`, `transpose/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` | List relations and shared matrix/permutation helpers |
+| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `maplist/9`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`, `permutation/2`, `transpose/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` | List relations and shared matrix/permutation helpers |
 | `library(ordsets)` | `is_ordset/1`, `list_to_ord_set/2`, `ord_add_element/3`, `ord_del_element/3`, `ord_disjoint/2`, `ord_empty/1`, `ord_intersect/2`, `ord_intersect/3`, `ord_intersection/2`, `ord_intersection/3`, `ord_intersection/4`, `ord_memberchk/2`, `ord_selectchk/3`, `ord_seteq/2`, `ord_subset/2`, `ord_subtract/3`, `ord_symdiff/3`, `ord_union/2`, `ord_union/3`, `ord_union/4` | Ordered-set relations; reused upstream source |
 | `library(os)` | `argv/1`, `getenv/2`, `pid/1`, `raw_argv/1`, `setenv/2`, `shell/1`, `shell/2`, `unsetenv/1` | Environment, shell, PID, and command-line access backed by the Node host |
 | `library(pairs)` | `pairs_keys_values/3`, `pairs_keys/2`, `pairs_values/2`, `group_pairs_by_key/2`, `map_list_to_pairs/3` | Key-value pair support |
-| `library(pio)` | `phrase_from_file/2`, `phrase_from_file/3`, `phrase_to_file/2`, `phrase_to_file/3`, `phrase_to_stream/2` | Eager portable DCG file and stream I/O |
+| `library(pio)` | `phrase_from_file/2`, `phrase_from_file/3`, `phrase_from_stream/2`, `phrase_to_file/2`, `phrase_to_file/3`, `phrase_to_stream/2` | Scryer-compatible eager DCG file/stream I/O with character-list and atom paths |
 | `library(primes)` | `smallest_divisor_from/3` | Prime factor support |
 | `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` | Legacy facade over canonical focused modules |
 | `library(random)` | `maybe/0`, `random/1`, `random/3`, `random_integer/3`, `set_random/1` | Common mutable-seed interface plus EyeProlog's pure state-threaded generator |
@@ -6409,7 +6412,7 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` | Text relations |
 | `library(tabling)` | `abolish_all_tables/0`, `start_tabling/2` | Common helpers for explicitly declared tabling |
 | `library(terms)` | `numbervars/3`, `copy_term_nat/2` | Term operations used by bundled libraries |
-| `library(time)` | `current_time/1`, `format_time/4`, `sleep/1`, `statistics/2`, `time/1` | Clock timestamps, sleeping, timing/statistics, and the expanded `format_time//2` nonterminal |
+| `library(time)` | `current_time/1`, `format_time/4`, `max_sleep_time/1`, `sleep/1`, `statistics/2`, `time/1` | Clock timestamps, sleep limits, timing/statistics, and the expanded `format_time//2` nonterminal |
 | `library(ugraphs)` | `add_edges/3`, `add_vertices/3`, `complement/2`, `compose/3`, `connect_ugraph/3`, `del_edges/3`, `del_vertices/3`, `edges/2`, `neighbors/3`, `neighbours/3`, `reachable/3`, `top_sort/2`, `top_sort/3`, `transitive_closure/2`, `transpose_ugraph/2`, `ugraph_union/3`, `vertices/2`, `vertices_edges_to_ugraph/3` | Directed graph relations; reused upstream source |
 | `library(uuid)` | `uuid/3`, `uuid_string/2`, `uuidv4/1`, `uuidv4_string/1` | Common UUID byte/string conversion and generation plus pure state threading |
 | `library(when)` | `when/2` | Shared delayed-condition interface over attributed variables |
@@ -6434,27 +6437,30 @@ adapter. In this section, **portable** refers to source portability between
 Prolog systems, not merely to the language in which a predicate happens to be
 implemented.
 
-The shared compatibility profile is derived from Scryer library modules and
-predicate indicators also documented by Trealla. Where Trealla exposes a
-predicate globally rather than from the same module, EyeProlog follows Scryer's
-module name so explicit Scryer-style imports remain available. The current
-module set includes `arithmetic`, `assoc`, `atts`, `charsio`, `clpb`, `clpz`,
-`crypto`, `debug`, `dif`, `files`, `format`, `freeze`, `gensym`, `iso_ext`, `lambda`,
-`lists`, `ordsets`, `os`, `pio`, `random`, `reif`, `tabling`, `time`, `ugraphs`,
-`uuid`, and `when`. The predicate profile is narrower than
-the union of their exports: for example, EyeProlog's explicit-state `random/3`
-and `uuid/3` remain useful extensions rather than shared interfaces.
+The conservative Trealla/Scryer compatibility profile is derived from Scryer
+library modules and predicate indicators also documented by Trealla. Where
+Trealla exposes a predicate globally rather than from the same module, EyeProlog
+follows Scryer's module name so explicit Scryer-style imports remain available.
+That interoperability profile currently spans 26 modules and is intentionally
+narrower than either implementation's union of exports; EyeProlog's explicit-state
+`random/3` and `uuid/3`, for example, remain useful extensions rather than shared
+interfaces. Separately, all 32 bundled EyeProlog modules whose basenames overlap
+Scryer's current `src/lib/` tree are checked against the frozen export snapshot in
+`test/scryer-library-exports.json` and cover the corresponding Scryer public
+predicate surface.
 
 Source reuse is preferred over translation. `clpb.pl`, `ordsets.pl`,
 `reif.pl`, and `ugraphs.pl` retain the upstream Prolog algorithms and license
 headers; `assoc.pl` uses the complete upstream AVL implementation. `gensym.pl`
 and `when.pl` keep the same algorithms with small blackboard and parser-safe
 closure adaptations. `dif.pl`, `tabling.pl`, and part of `time.pl` are thin
-facades over EyeProlog runtime facilities. `charsio.pl` adds the common
-chars/term and Base64 relations, while `pio.pl` provides eager DCG I/O.
-`files.pl` and `os.pl` expose the selected Trealla/Scryer host-service
-intersection through Node adapters. `crypto.pl` exposes Scryer's complete
-public crypto surface; its strict Trealla/Scryer overlap is `hex_bytes/2`,
+facades over EyeProlog runtime facilities. `charsio.pl` covers Scryer's UTF-8,
+chars/term, and Base64 relations; `pio.pl` covers the complete Scryer export
+surface and accepts Scryer character-list paths while retaining atom-path
+compatibility. `files.pl` covers Scryer's complete filesystem export surface,
+while `os.pl` covers its environment/shell process-context surface. Their actual
+filesystem and OS side effects are isolated in module-owned Node adapters.
+`crypto.pl` exposes Scryer's complete public crypto surface; its strict Trealla/Scryer overlap is `hex_bytes/2`,
 `crypto_n_random_bytes/2`, and `crypto_data_hash/3`. The
 [portable library overlap example](https://github.com/eyereasoner/eyeprolog/blob/main/examples/portable-library-overlap.pl)
 composes Boolean constraints, ordered sets, graphs, reification, delayed goals,

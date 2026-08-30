@@ -161,21 +161,6 @@ export const isoBuiltins = {
   }
 };
 
-// These Prologue library predicates have control behavior that cannot be
-// expressed portably as ordinary Prolog clauses. Keep their public wrappers in
-// library(prologue) and expose only private adapters to the host registry.
-export const eyePrologLibraryBuiltins = {
-  register(registry) {
-    registry.add('eyeprolog__call_nth', 2, callNthBuiltin, { eyePrologLibrary: true });
-    registry.add('eyeprolog__call_residue_vars', 2, callResidueVarsBuiltin, { eyePrologLibrary: true });
-    registry.add('eyeprolog__countall', 2, countAllBuiltin, { deterministic: true, eyePrologLibrary: true });
-    registry.add('eyeprolog__freeze', 2, freezeBuiltin, { eyePrologLibrary: true });
-    registry.add('dif', 2, difBuiltin, { deterministic: true, eyePrologLibrary: true });
-    registry.add('time', 1, timeBuiltin, { eyePrologLibrary: true });
-    registry.add('eyeprolog__time', 1, timeBuiltin, { eyePrologLibrary: true });
-  },
-};
-
 function* unification({ goal, env }) {
   const next = env.clone();
   const knownNonoccurringVariables = goal._knownNonoccurringVariables ?? null;
@@ -258,7 +243,7 @@ function projectDifSubterms(left, right, env) {
   return [left, right];
 }
 
-function* difBuiltin({ goal, env }) {
+export function* difBuiltin({ goal, env }) {
   const left = goal.args[0];
   const right = goal.args[1];
   if (identical(left, right, env)) return;
@@ -2771,7 +2756,7 @@ function* callClosureBuiltin(context) {
   }
 }
 
-function* countAllBuiltin({ solver, goal, env }) {
+export function* countAllBuiltin({ solver, goal, env }) {
   const requested = deref(goal.args[1], env);
   // Validate Count before inspecting or executing Goal. This preserves the
   // expected error priority for e.g. countall(throw(x), -1).
@@ -2815,7 +2800,7 @@ function writeElapsedTime(solver, startedAt, inferences) {
   );
 }
 
-function timeBuiltin(context) {
+export function timeBuiltin(context) {
   const state = { pending: true };
   return withPendingState(timeSolutions(context, state), state);
 }
@@ -2846,7 +2831,7 @@ function* timeSolutions({ solver, goal, env }, state) {
   }
 }
 
-function callNthBuiltin(context) {
+export function callNthBuiltin(context) {
   const state = { pending: true };
   return withPendingState(callNthSolutions(context, state), state);
 }
@@ -2946,7 +2931,7 @@ function residueVariablesSince(snapshot, env) {
   return names;
 }
 
-function callResidueVarsBuiltin({ solver, goal, env }) {
+export function callResidueVarsBuiltin({ solver, goal, env }) {
   const invoked = callable(goal.args[0], env);
   if (invoked.module == null) invoked.module = goal.module ?? 'user';
   const snapshot = residueSnapshot(env);

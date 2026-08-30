@@ -9,7 +9,7 @@
 
 :- module(random, [maybe/0, random/1, random/3, random_integer/3, set_random/1]).
 
-:- use_module(library(debug), [bb_global_get/2, bb_put/2]).
+:- use_module(library(iso_ext), [bb_get/2, bb_put/2]).
 :- use_module(library(error), [instantiation_error/1, type_error/3]).
 
 maybe :-
@@ -46,7 +46,7 @@ set_random(Seed) :-
     ; type_error(random_state, Seed, set_random/1)
     ).
 
-random__current_seed(Seed) :- bb_global_get('$random_seed', Seed), !.
+random__current_seed(Seed) :- bb_get('$random_seed', Seed), !.
 random__current_seed(1).
 
 % A Park-Miller generator with explicit state. Threading Seed into the next

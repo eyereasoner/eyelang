@@ -5,7 +5,7 @@
 :- use_module(library(lists)).
 :- use_module(library(iso_ext)).
 :- use_module(library(si)).
-:- use_module(library(debug), [bb_global_get/2, bb_put/2]).
+:- use_module(library(iso_ext), [bb_get/2, bb_put/2]).
 
 gensym_key(Base, BaseKey) :-
     atom_concat('gensym_', Base, BaseKey).
@@ -20,7 +20,7 @@ gensym(Base, Unique) :-
     must_be(var, Unique),
     atom_si(Base),
     gensym_key(Base, BaseKey),
-    (  bb_global_get(BaseKey, UniqueID0) -> true
+    (  bb_get(BaseKey, UniqueID0) -> true
     ;  UniqueID0 = 0
     ),
     UniqueID is UniqueID0 + 1,

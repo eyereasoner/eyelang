@@ -162,21 +162,25 @@ after parsing, so libraries that introduce operators still require an explicit
 `use_module/1-2` before that syntax is read.
 
 That compatibility boundary is intentionally driven by observable upstream
-interfaces rather than by library names alone. EyeProlog includes the common
-Trealla/Scryer character-term conversion and Base64 predicates, the shared
-arithmetic conversion helpers, `sleep/1`, and selected `iso_ext` re-exports. It
-also provides Scryer-style `library(files)` and `library(os)` modules for
-predicate indicators that Trealla documents too, plus the full Scryer
-`library(crypto)` predicate surface. The strict Trealla/Scryer crypto overlap is
-`hex_bytes/2`, `crypto_n_random_bytes/2`, and `crypto_data_hash/3`; EyeProlog
-also supports Scryer's HKDF, password hashing, authenticated encryption,
-Ed25519, X25519, and secp256k1 helpers. Hashing, KDF, authenticated encryption, Ed25519, and X25519 use
-Node's crypto backend; secure random bytes also use Web Crypto when available,
-and operations without a suitable backend report `resource_error(crypto)`. Filesystem, environment, shell, PID, and argument operations are
-likewise Node host services rather than a simulated browser OS. EyeProlog still
-has integer and float processor numbers only, so non-integral rational
-conversion results use a documented structural `rdiv(N,D)` form rather than
-silently extending arithmetic semantics.
+interfaces rather than by library names alone. The compatibility layer is now
+systematic rather than a collection of one-off ports: all 32 bundled modules that
+overlap Scryer's current `src/lib/` tree are checked against the frozen export
+snapshot in `test/scryer-library-exports.json` and cover that public predicate
+surface. Runtime-dependent primitives have explicit ownership: code in
+`src/lib/foo.pl` is backed, when necessary, by `src/foo-host.js`, while pure Prolog
+libraries need no host adapter. The completed surface includes character/UTF-8/term
+and Base64 predicates, arithmetic helpers, the full Scryer `library(files)` API,
+character-list paths in `library(pio)`, the `time` and `iso_ext` predicates, and
+the full Scryer `library(crypto)` interface. The conservative Trealla/Scryer
+intersection remains a separate portability profile; its crypto overlap is still
+`hex_bytes/2`, `crypto_n_random_bytes/2`, and `crypto_data_hash/3`. Hashing, KDF,
+authenticated encryption, Ed25519, and X25519 use Node's crypto backend; secure
+random bytes also use Web Crypto when available, and unsupported operations
+report `resource_error(crypto)`. Filesystem, environment, shell, PID, and argument
+operations are likewise Node host services rather than a simulated browser OS.
+EyeProlog still has integer and float processor numbers only, so non-integral
+rational conversion results use a documented structural `rdiv(N,D)` form rather
+than silently extending arithmetic semantics.
 
 Definite clause grammars follow the ISO Part 3 difference-list model. Internal
 fast paths make deep finite sequence processing economical while preserving

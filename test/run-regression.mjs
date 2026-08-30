@@ -5049,7 +5049,7 @@ ${profile}`;
           '<a href="https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog">\n    <img src="book-assets/title-page.svg" alt="Read The Art of EyeProlog"',
           'README cover links to the book',
         );
-        const documentedSources = ['src/iso.js', 'src/dcg.js', 'src/atts.js', 'src/standard-library.js',
+        const documentedSources = ['src/iso.js', 'src/dcg.js', 'src/atts-host.js', 'src/standard-library.js',
           ...[...standardLibrarySources.values()].map((entry) => entry.filename),
           'src/playground-worker.js'];
         for (const filename of documentedSources) {
@@ -5748,6 +5748,92 @@ answer(Status,Pid) :-
       },
     },
     {
+      name: 'completed Scryer arithmetic charsio dcgs and lists predicates compose',
+      run: () => {
+        const source = String.raw`:- use_module(library(arithmetic)).
+:- use_module(library(charsio)).
+:- use_module(library(dcgs)).
+:- use_module(library(lists)).
+oct(a,b,c,d,e,f,g,h).
+pair(A,B) --> [A,B].
+answer(R,Cs,Bs) :-
+  expmod(2,10,1000,24), lcm(12,18,36),
+  number_to_rational(0.001,0.3333333333333333,R),
+  chars_utf8bytes("∑",Bs), chars_utf8bytes(Cs,Bs),
+  maplist(oct,[a],[b],[c],[d],[e],[f],[g],[h]),
+  phrase(phrase(pair,a,b), [a,b]),
+  phrase((..., [z]), [x,y,z]).
+`;
+        assertEqual(run(source, { goal: 'answer(R,Cs,Bs)' }).stdout,
+          'answer(rdiv(1, 3), "∑", [226, 136, 145]).\n',
+          'completed portable Scryer surface');
+      },
+    },
+    {
+      name: 'library(iso_ext) supports Scryer blackboard bounded inference partial strings and copy_term/3 residues',
+      run: () => {
+        const source = `:- use_module(library(iso_ext)).
+:- use_module(library(dif)).
+:- use_module(library(clpz)).
+p(1). p(2).
+answer(R1,R2,Old,Partial,Tail,DifGoals,ClpGoals) :-
+  call_with_inference_limit(p(_),100,R1), R1=true,
+  call_with_inference_limit((repeat,fail),10,R2),
+  bb_put(k,old), (bb_b_put(k,new), fail ; bb_get(k,Old)),
+  partial_string("ab",Partial,Tail), Tail=[z],
+  dif(X,a), copy_term(X,C,DifGoals), C=b,
+  Y #> 3, copy_term(Y,D,ClpGoals), D=5.
+`;
+        const result = run(source, { goal: 'answer(R1,R2,Old,Partial,Tail,DifGoals,ClpGoals)' });
+        assertEqual(result.stdout,
+          'answer(true, inference_limit_exceeded, old, "abz", "z", [dif(b, a)], [clpz:(5 in 4..sup)]).\n',
+          'iso_ext Scryer semantics');
+        const negative = run(`:- use_module(library(iso_ext)).\nnegative :- catch(call_with_inference_limit(true,-1,_),error(domain_error(not_less_than_zero,-1),_),true).\n`, {
+          goal: 'negative',
+        });
+        assertEqual(negative.stdout, 'negative.\n', 'negative inference limit domain error');
+      },
+    },
+    {
+      name: 'library(files) covers the full current Scryer filesystem surface',
+      run: () => {
+        const root = path.join(tmp, 'scryer-files-full');
+        const file = path.join(root, 'a.txt');
+        const copy = path.join(root, 'b.txt');
+        fs.mkdirSync(root, { recursive: true });
+        fs.writeFileSync(file, 'abc');
+        const source = `:- use_module(library(files)).
+:- use_module(library(time)).
+answer(Size,Canonical,Segments,Back,Year) :-
+  file_exists(${JSON.stringify(file)}), directory_exists(${JSON.stringify(root)}),
+  file_size(${JSON.stringify(file)},Size), file_copy(${JSON.stringify(file)},${JSON.stringify(copy)}),
+  path_canonical(${JSON.stringify(copy)},Canonical), path_segments(${JSON.stringify(copy)},Segments),
+  path_segments(Back,Segments), file_modification_time(${JSON.stringify(copy)},T),
+  file_access_time(${JSON.stringify(copy)},_), file_creation_time(${JSON.stringify(copy)},_),
+  phrase(format_time("%Y",T),Year), delete_file(${JSON.stringify(copy)}).
+`;
+        const result = run(source, { goal: 'answer(Size,Canonical,Segments,Back,Year)' });
+        assertIncludes(result.stdout, 'answer(3, "', 'file size and canonical path');
+        assertIncludes(result.stdout, '"tmp"', 'path_segments/2 components');
+        assertEqual(fs.existsSync(copy), false, 'delete_file/1 removed the copy');
+      },
+    },
+    {
+      name: 'library(pio) accepts Scryer character-list paths and phrase_from_stream/2',
+      run: () => {
+        const file = path.join(tmp, 'pio-scryer-chars.txt');
+        fs.writeFileSync(file, 'abc');
+        const source = `:- use_module(library(pio)).
+all([C|Cs]) --> [C], !, all(Cs).
+all([]) --> [].
+from_file(Cs) :- phrase_from_file(all(Cs),${JSON.stringify(file)}).
+from_stream(Cs) :- open(${sourceAtom(file)},read,S), phrase_from_stream(all(Cs),S), close(S).
+`;
+        assertEqual(run(source, { goal: 'from_file(Cs)' }).stdout, 'from_file("abc").\n', 'character-list file path');
+        assertEqual(run(source, { goal: 'from_stream(Cs)' }).stdout, 'from_stream("abc").\n', 'stream DCG input');
+      },
+    },
+    {
       name: 'library(crypto) matches deterministic hash, HMAC, and HKDF vectors',
       run: () => {
         const source = `:- use_module(library(crypto)).
@@ -6407,7 +6493,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 201, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 215, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(registry.get('eyeprolog__dynify', 1), null, 'Eyelet dynify adapter is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__dynify', 1)), true, 'Eyelet dynify adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__eyelet_emit', 2), null, 'Eyelet event adapter is absent from the ISO registry');
@@ -6430,32 +6516,32 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 98, 'public host-supported EyeProlog library count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 246, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 217, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.length, 25, 'common explicit library module profile count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 109, 'public host-supported EyeProlog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 259, 'portable Prolog library count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 218, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryModules.length, 26, 'common explicit library module profile count');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'between', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['call_residue_vars/2'], 'atts', 'call_residue_vars/2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['time/1'], 'iso_ext', 'time/1 canonical interop autoload');
-        assertEqual(eyePrologInteropAutoload['.../2'], 'iso_ext', '.../2 canonical interop autoload');
+        assertEqual(eyePrologInteropAutoload['.../2'], 'dcgs', '.../2 canonical interop autoload');
         assertEqual(eyePrologInteropAutoload['set_nth0/4'] ?? null, null, 'set_nth0/4 is outside the conservative interop subset');
         assertEqual(eyePrologLibraryAutoload['set_nth0/4'], 'lists', 'complete library autoload includes EyeProlog-only exports');
         assertEqual(eyePrologLibraryAutoload['pairs_keys_values/3'], 'pairs', 'complete library autoload includes library(pairs)');
         assertEqual(eyePrologLibraryAutoload['stable/1'], 'eyelet', 'complete library autoload includes Eyelet stable/1');
         assertEqual(eyePrologLibraryAutoload['becomes/2'], 'eyelet', 'complete library autoload includes Eyelet becomes/2');
         assertEqual(eyePrologLibraryAutoloadModules.length, 39, 'all bundled src/lib modules are indexed for autoload');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 98, 'host-supported library count');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 109, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.includes('call_nth/2'), true, 'call_nth/2 remains classified as host-supported');
         assertEqual(eyePrologNativeLibraryIndicators.includes('random/1'), true, 'stateful random/1 is classified as host-supported');
-        assertEqual(eyePrologLibraryIndicators.length, 344, 'complete non-ISO EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 368, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');
         assertEqual(library.get('eyeprolog__call_nth', 2)?.eyePrologLibrary, true, 'private adapter is marked as library support');
-        assertEqual(registry.get('eyeprolog__freeze', 2), null, 'private freeze adapter is absent from ISO registry');
-        assertEqual(Boolean(library.get('eyeprolog__freeze', 2)), true, 'private freeze adapter is registered for EyeProlog');
+        assertEqual(library.get('eyeprolog__freeze', 2), null, 'freeze/2 no longer needs a private host adapter');
+        assertEqual(eyePrologPortableLibraryIndicators.includes('freeze/2'), true, 'freeze/2 is implemented in Prolog');
         assertEqual(registry.get('eyeprolog__countall', 2), null, 'private countall adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__countall', 2)), true, 'private countall adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__time', 1)), true, 'private time adapter is registered for EyeProlog');

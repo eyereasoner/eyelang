@@ -2,13 +2,24 @@
 // The sources are registered here so library(Name) works in Node and browsers.
 // Modules are loaded on demand by explicit use_module/1-2 or by the generic
 // source-level autoloader generated from every bundled module/2 export list.
-import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './iso.js';
-import { attsBuiltins } from './atts.js';
+import { PrologError, createDefaultRegistry } from './iso.js';
+import { attsHostBuiltins } from './atts-host.js';
 import { expansionBuiltins } from './expansion-builtins.js';
-import { scryerCompatibilityBuiltins } from './scryer-compat.js';
-import { libraryHostBuiltins } from './library-host.js';
 import { cryptoHostBuiltins } from './crypto-host.js';
-import { registerCleanupBuiltins } from './cleanup.js';
+import { dcgsHostBuiltins } from './dcgs-host.js';
+import { arithmeticHostBuiltins } from './arithmetic-host.js';
+import { charsioHostBuiltins } from './charsio-host.js';
+import { filesHostBuiltins } from './files-host.js';
+import { difHostBuiltins } from './dif-host.js';
+import { formatHostBuiltins } from './format-host.js';
+import { isoExtHostBuiltins } from './iso_ext-host.js';
+import { listsHostBuiltins } from './lists-host.js';
+import { eyeletHostBuiltins } from './eyelet-host.js';
+import { osHostBuiltins } from './os-host.js';
+import { pioHostBuiltins } from './pio-host.js';
+import { randomHostBuiltins } from './random-host.js';
+import { tablingHostBuiltins } from './tabling-host.js';
+import { timeHostBuiltins } from './time-host.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
 import { eyePrologAmbiguousLibraryAutoload, eyePrologLibraryAutoload, eyePrologLibraryAutoloadModules } from './library-autoload-index.js';
@@ -82,11 +93,15 @@ function libraryUrl(filename) {
 }
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([
-  'call_cleanup/2', 'setup_call_cleanup/3', 'call_nth/2', 'freeze/2', 'dif/2', 'countall/2', 'time/1', 'statistics/2',
-  'number_to_rational/2', 'rational_numerator_denominator/3',
+  'call_cleanup/2', 'setup_call_cleanup/3', 'call_with_inference_limit/3', 'call_nth/2',
+  'dif/2', 'countall/2', 'time/1', 'statistics/2',
+  'number_to_rational/2', 'number_to_rational/3', 'rational_numerator_denominator/3',
   'read_from_chars/2', 'read_term_from_chars/3', 'write_term_to_chars/3', 'chars_base64/3',
   'sleep/1',
-  'directory_files/2', 'delete_file/1', 'rename_file/2', 'make_directory/1', 'make_directory_path/1', 'working_directory/2',
+  'directory_files/2', 'file_size/2', 'file_exists/1', 'directory_exists/1',
+  'delete_file/1', 'rename_file/2', 'file_copy/2', 'delete_directory/1',
+  'make_directory/1', 'make_directory_path/1', 'working_directory/2', 'path_canonical/2',
+  'path_segments/2', 'file_modification_time/2', 'file_creation_time/2', 'file_access_time/2',
   'getenv/2', 'setenv/2', 'unsetenv/1', 'shell/1', 'shell/2', 'pid/1', 'raw_argv/1', 'argv/1',
   'hex_bytes/2', 'crypto_n_random_bytes/2', 'crypto_data_hash/3', 'crypto_data_hkdf/4',
   'crypto_password_hash/2', 'crypto_password_hash/3', 'crypto_data_encrypt/6', 'crypto_data_decrypt/6',
@@ -107,21 +122,22 @@ export const eyePrologNativeLibraryIndicators = Object.freeze([
 ]);
 export const eyePrologPortableLibraryIndicators = Object.freeze([
   'sumall/3', 'aggregate_min/5', 'aggregate_max/5',
-  'lsb/2', 'msb/2', 'popcount/2',
+  'freeze/2',
+  'expmod/4', 'lcm/3', 'lsb/2', 'msb/2', 'popcount/2',
   'empty_assoc/1', 'assoc_to_list/2', 'get_assoc/3', 'put_assoc/4',
   'assoc_to_keys/2', 'assoc_to_values/2', 'del_assoc/4', 'del_max_assoc/4',
   'del_min_assoc/4', 'gen_assoc/3', 'get_assoc/5', 'is_assoc/1',
   'list_to_assoc/2', 'map_assoc/2', 'map_assoc/3', 'max_assoc/3',
   'min_assoc/3', 'ord_list_to_assoc/2',
   'between/3', 'gen_int/1', 'gen_nat/1', 'numlist/2', 'numlist/3', 'repeat/1',
-  'char_type/2', 'get_line_to_chars/3', 'get_n_chars/3', 'get_single_char/1',
+  'char_type/2', 'chars_utf8bytes/2', 'get_line_to_chars/3', 'get_n_chars/3', 'get_single_char/1',
   'sat/1', 'taut/2', 'labeling/1', 'sat_count/2', 'random_labeling/2', 'weighted_maximum/3',
   'lt/2', 'gt/2', 'le/2', 'ge/2',
   'difference/3',
   'crypto_name_curve/2', 'crypto_curve_order/2', 'crypto_curve_generator/2',
   'stable/1', 'becomes/2',
-  'seq/3', 'seqq/3',
-  'debug/1', 'debug/3', 'nodebug/1', 'bb_get/2', 'bb_put/2', 'bb_b_put/2', 'bb_global_get/2',
+  '-->/2', 'phrase/4', 'phrase/5', 'seq/3', 'seqq/3', '.../2',
+  'debug/1', 'debug/3', 'nodebug/1', 'bb_get/2', 'bb_put/2', 'bb_b_put/2',
   '*/1', '$/1', '$-/1',
   'must_be/2', 'can_be/2', 'instantiation_error/0', 'instantiation_error/1',
   'domain_error/2', 'domain_error/3', 'type_error/2', 'type_error/3',
@@ -129,14 +145,15 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'format_/4', 'format/2', 'format/3', 'portray_clause_/3',
   'portray_clause/1', 'portray_clause/2', 'listing/1',
   'gensym/2', 'reset_gensym/1',
-  'forall/2', 'succ/2', 'cfor/3', 'findall/4', 'variant/2', '.../2',
+  'forall/2', 'succ/2', 'cfor/3', 'findall/4', 'variant/2',
+  'partial_string/1', 'partial_string/3', 'partial_string_tail/2', 'copy_term/3',
   '^/3', '^/4', '^/5', '^/6', '^/7', '^/8', '^/9', '^/10',
   '\\/1', '\\/2', '\\/3', '\\/4', '\\/5', '\\/6', '\\/7', '\\/8',
   '+\\/2', '+\\/3', '+\\/4', '+\\/5', '+\\/6', '+\\/7', '+\\/8', '+\\/9',
   'member/2', 'memberchk/2', 'select/3', 'append/2', 'append/3', 'last/2', 'same_length/2',
   'nth0/3', 'nth0/4', 'nth1/3', 'nth1/4', 'set_nth0/4', 'take/3', 'drop/3', 'slice/4', 'reverse/2',
   'length/2', 'maplist/2', 'maplist/3', 'maplist/4', 'maplist/5',
-  'maplist/6', 'maplist/7', 'maplist/8', 'foldl/4', 'foldl/5', 'foldl/6',
+  'maplist/6', 'maplist/7', 'maplist/8', 'maplist/9', 'foldl/4', 'foldl/5', 'foldl/6',
   'sum_list/2', 'min_list/2', 'max_list/2', 'list_to_set/2',
   'transpose/2', 'list_max/2', 'list_min/2', 'permutation/2',
   'is_ordset/1', 'list_to_ord_set/2', 'ord_add_element/3', 'ord_del_element/3',
@@ -146,7 +163,7 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'ord_subtract/3', 'ord_symdiff/3', 'ord_union/2', 'ord_union/3', 'ord_union/4',
   'pairs_keys_values/3', 'pairs_keys/2', 'pairs_values/2',
   'group_pairs_by_key/2', 'map_list_to_pairs/3',
-  'phrase_from_file/2', 'phrase_from_file/3', 'phrase_to_file/2',
+  'phrase_from_file/2', 'phrase_from_file/3', 'phrase_from_stream/2', 'phrase_to_file/2',
   'phrase_to_file/3', 'phrase_to_stream/2',
   'smallest_divisor_from/3',
   'maybe/0', 'random/3', 'random_integer/3', 'set_random/1',
@@ -159,7 +176,7 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'contains/2', 'matches/2', 'join/3', 'substring/4',
   'numbervars/3', 'copy_term_nat/2',
   'start_tabling/2', 'abolish_all_tables/0',
-  'current_time/1', 'format_time/4',
+  'max_sleep_time/1', 'current_time/1', 'format_time/4',
   'add_edges/3', 'add_vertices/3', 'complement/2', 'compose/3', 'connect_ugraph/3',
   'del_edges/3', 'del_vertices/3', 'edges/2', 'neighbors/3', 'neighbours/3',
   'reachable/3', 'top_sort/2', 'top_sort/3', 'transitive_closure/2',
@@ -216,11 +233,10 @@ export const eyePrologInteropAutoload = Object.freeze({
   // Scryer exposes call_residue_vars/2 from library(atts); autoload it for
   // constraint-test source that uses the predicate without an explicit import.
   'call_residue_vars/2': 'atts',
-  // Trealla exposes time/1 as a meta timing predicate and library(iso_ext)
-  // supplies ... //0. Autoload both so UWN's DCG hand-off benchmark runs
-  // unchanged while their implementations remain outside the ISO core.
+  // Trealla exposes time/1 as a meta timing predicate. Scryer owns ... //0
+  // in library(dcgs), which is now also EyeProlog's canonical module.
   'time/1': 'iso_ext',
-  '.../2': 'iso_ext',
+  '.../2': 'dcgs',
   // Scryer provides library(between), while Trealla exposes the relation as a
   // system predicate. Keep EyeProlog's canonical portable owner in the
   // specialized module; library(prologue) re-exports it for compatibility.
@@ -234,7 +250,7 @@ const eyePrologSharedLibraryIndicators = [
   'get_assoc/3', 'get_assoc/5', 'is_assoc/1', 'list_to_assoc/2',
   'map_assoc/2', 'map_assoc/3', 'max_assoc/3', 'min_assoc/3',
   'ord_list_to_assoc/2', 'put_assoc/4',
-  'char_type/2', 'get_line_to_chars/3', 'get_n_chars/3', 'get_single_char/1',
+  'char_type/2', 'chars_utf8bytes/2', 'get_line_to_chars/3', 'get_n_chars/3', 'get_single_char/1',
   'read_from_chars/2', 'read_term_from_chars/3', 'write_term_to_chars/3', 'chars_base64/3',
   'sat/1', 'taut/2', 'labeling/1', 'sat_count/2', 'random_labeling/2', 'weighted_maximum/3',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
@@ -280,7 +296,7 @@ export const eyePrologInteropLibraryIndicators = Object.freeze([
 // may freely use_module/1 with these common module names; predicates in those
 // modules outside eyePrologInteropLibraryIndicators are still diagnosed when used.
 export const eyePrologInteropLibraryModules = Object.freeze([
-  'arithmetic', 'assoc', 'atts', 'charsio', 'clpb', 'clpz', 'debug', 'dif',
+  'arithmetic', 'assoc', 'atts', 'charsio', 'clpb', 'clpz', 'dcgs', 'debug', 'dif',
   'files', 'format', 'freeze', 'gensym', 'iso_ext', 'lambda', 'lists', 'ordsets', 'os', 'pio',
   'random', 'reif', 'tabling', 'time', 'ugraphs', 'uuid', 'when',
 ]);
@@ -340,13 +356,23 @@ export function createEyePrologRegistry() {
   registry.add('statistics', 0, statisticsBuiltin, { deterministic: true });
   registry.add('statistics', 2, statisticsValueBuiltin);
   registry.add('tnot', 1, tabledNegationBuiltin, { deterministic: true });
-  registerCleanupBuiltins(registry);
-  eyePrologLibraryBuiltins.register(registry);
-  attsBuiltins.register(registry);
+  attsHostBuiltins.register(registry);
   expansionBuiltins.register(registry);
-  scryerCompatibilityBuiltins.register(registry);
-  libraryHostBuiltins.register(registry);
+  arithmeticHostBuiltins.register(registry);
+  charsioHostBuiltins.register(registry);
+  filesHostBuiltins.register(registry);
+  difHostBuiltins.register(registry);
+  formatHostBuiltins.register(registry);
+  isoExtHostBuiltins.register(registry);
+  listsHostBuiltins.register(registry);
+  eyeletHostBuiltins.register(registry);
+  osHostBuiltins.register(registry);
+  pioHostBuiltins.register(registry);
+  randomHostBuiltins.register(registry);
+  tablingHostBuiltins.register(registry);
+  timeHostBuiltins.register(registry);
   cryptoHostBuiltins.register(registry);
+  dcgsHostBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;
 }

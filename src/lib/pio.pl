@@ -8,6 +8,7 @@
 :- module(pio, [
     phrase_from_file/2,
     phrase_from_file/3,
+    phrase_from_stream/2,
     phrase_to_file/2,
     phrase_to_file/3,
     phrase_to_stream/2
@@ -18,6 +19,7 @@
 
 :- meta_predicate(phrase_from_file(2, '?')).
 :- meta_predicate(phrase_from_file(2, '?', '?')).
+:- meta_predicate(phrase_from_stream(2, '?')).
 :- meta_predicate(phrase_to_file(2, '?')).
 :- meta_predicate(phrase_to_file(2, '?', '?')).
 :- meta_predicate(phrase_to_stream(2, '?')).
@@ -28,10 +30,15 @@ phrase_from_file(Grammar, File) :-
 phrase_from_file(Grammar, File, Options) :-
     must_be(list, Options),
     setup_call_cleanup(
-        open(File, read, Stream, Options),
+        eyeprolog__pio_open_chars(File, read, Stream, Options),
         ( get_n_chars(Stream, _, Chars), phrase(Grammar, Chars) ),
         close(Stream)
     ).
+
+
+phrase_from_stream(Grammar, Stream) :-
+    get_n_chars(Stream, _, Chars),
+    phrase(Grammar, Chars).
 
 phrase_to_file(Grammar, File) :-
     phrase_to_file(Grammar, File, []).
@@ -39,7 +46,7 @@ phrase_to_file(Grammar, File) :-
 phrase_to_file(Grammar, File, Options) :-
     must_be(list, Options),
     setup_call_cleanup(
-        open(File, write, Stream, Options),
+        eyeprolog__pio_open_chars(File, write, Stream, Options),
         phrase_to_stream(Grammar, Stream),
         close(Stream)
     ).
