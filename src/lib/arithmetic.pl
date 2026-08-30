@@ -1,6 +1,12 @@
 /** Integer arithmetic helpers used by Scryer's CLP(Z) source. */
 
-:- module(arithmetic, [lsb/2, msb/2, popcount/2]).
+:- module(arithmetic, [
+    lsb/2,
+    msb/2,
+    number_to_rational/2,
+    popcount/2,
+    rational_numerator_denominator/3
+]).
 
 :- use_module(library(error), [must_be/2, domain_error/3]).
 
@@ -34,3 +40,13 @@ arithmetic__popcount(X, Count0, Count) :-
     Count1 is Count0 + Bit,
     X1 is X >> 1,
     arithmetic__popcount(X1, Count1, Count).
+
+
+% Rational-form compatibility. EyeProlog currently has integer and float
+% processor values; non-integral results are represented canonically as the
+% ordinary term rdiv(Numerator, Denominator).
+number_to_rational(Number, Rational) :-
+    eyeprolog__number_to_rational(Number, Rational).
+
+rational_numerator_denominator(Rational, Numerator, Denominator) :-
+    eyeprolog__rational_numerator_denominator(Rational, Numerator, Denominator).

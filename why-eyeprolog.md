@@ -161,6 +161,18 @@ convenience, and strict ISO mode disables it unconditionally. Autoloading happen
 after parsing, so libraries that introduce operators still require an explicit
 `use_module/1-2` before that syntax is read.
 
+That compatibility boundary is intentionally driven by observable upstream
+interfaces rather than by library names alone. EyeProlog includes the common
+Trealla/Scryer character-term conversion and Base64 predicates, the shared
+arithmetic conversion helpers, `sleep/1`, and selected `iso_ext` re-exports. It
+also provides Scryer-style `library(files)` and `library(os)` modules for
+predicate indicators that Trealla documents too. Their filesystem, environment,
+shell, PID, and argument operations are Node host services and therefore fail
+with a resource error in browser execution rather than inventing a virtual OS.
+EyeProlog still has integer and float processor numbers only, so non-integral
+rational conversion results use a documented structural `rdiv(N,D)` form rather
+than silently extending arithmetic semantics.
+
 Definite clause grammars follow the ISO Part 3 difference-list model. Internal
 fast paths make deep finite sequence processing economical while preserving
 relational modes. The checked

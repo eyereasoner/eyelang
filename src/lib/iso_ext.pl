@@ -1,10 +1,14 @@
 /** Widely implemented extensions to the ISO Prolog core. */
 
 :- module(iso_ext, [
+    call_cleanup/2,
     call_nth/2,
+    call_residue_vars/2,
     countall/2,
+    copy_term_nat/2,
     forall/2,
     succ/2,
+    setup_call_cleanup/3,
     cfor/3,
     findall/4,
     variant/2,
@@ -12,7 +16,13 @@
     '...'/2
 ]).
 
+:- use_module(library(atts), [call_residue_vars/2]).
+:- use_module(library(terms), [copy_term_nat/2]).
+
+:- meta_predicate(call_cleanup(0, 0)).
 :- meta_predicate(call_nth(0, '?')).
+:- meta_predicate(call_residue_vars(0, '?')).
+:- meta_predicate(setup_call_cleanup(0, 0, 0)).
 :- meta_predicate(countall(0, '?')).
 :- meta_predicate(forall(0, 0)).
 :- meta_predicate(findall('?', 0, '?', '?')).

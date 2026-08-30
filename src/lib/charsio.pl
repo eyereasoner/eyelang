@@ -4,7 +4,11 @@
     char_type/2,
     get_line_to_chars/3,
     get_single_char/1,
-    get_n_chars/3
+    get_n_chars/3,
+    read_from_chars/2,
+    read_term_from_chars/3,
+    write_term_to_chars/3,
+    chars_base64/3
 ]).
 
 :- use_module(library(error), [can_be/2]).
@@ -47,3 +51,16 @@ charsio__to_eof(Stream, Chars) :-
     (   Char == end_of_file -> Chars = []
     ;   Chars = [Char|Rest], charsio__to_eof(Stream, Rest)
     ).
+
+
+read_from_chars(Chars, Term) :-
+    eyeprolog__read_from_chars(Chars, Term).
+
+read_term_from_chars(Chars, Term, Options) :-
+    eyeprolog__read_term_from_chars(Chars, Term, Options).
+
+write_term_to_chars(Term, Options, Chars) :-
+    eyeprolog__write_term_to_chars(Term, Options, Chars).
+
+chars_base64(Chars, Base64, Options) :-
+    eyeprolog__chars_base64(Chars, Base64, Options).

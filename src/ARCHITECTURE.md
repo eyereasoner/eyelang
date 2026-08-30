@@ -16,7 +16,7 @@ higher-level frontends.
    iterators and registers the normal-profile cleanup controls without making
    `solver.js` depend back on the language registry.
 4. **Language services** — `iso.js`, `iso-arithmetic.js`, `dcg.js`, `atts.js`,
-   `standard-library.js`, and `src/lib/`.
+   `scryer-compat.js`, `library-host.js`, `standard-library.js`, and `src/lib/`.
 5. **Frontends/tools** — `execute.js`, `repl.js`, `cli.js`, `quads.js`,
    `explain.js`, and the playground worker.
 

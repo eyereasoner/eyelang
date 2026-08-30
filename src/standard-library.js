@@ -6,6 +6,7 @@ import { PrologError, createDefaultRegistry, eyePrologLibraryBuiltins } from './
 import { attsBuiltins } from './atts.js';
 import { expansionBuiltins } from './expansion-builtins.js';
 import { scryerCompatibilityBuiltins } from './scryer-compat.js';
+import { libraryHostBuiltins } from './library-host.js';
 import { registerCleanupBuiltins } from './cleanup.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
@@ -30,12 +31,14 @@ const moduleFiles = Object.freeze({
   error: 'error.pl',
   eyelet: 'eyelet.pl',
   format: 'format.pl',
+  files: 'files.pl',
   freeze: 'freeze.pl',
   gensym: 'gensym.pl',
   iso_ext: 'iso_ext.pl',
   lambda: 'lambda.pl',
   lists: 'lists.pl',
   ordsets: 'ordsets.pl',
+  os: 'os.pl',
   pairs: 'pairs.pl',
   pio: 'pio.pl',
   primes: 'primes.pl',
@@ -77,7 +80,12 @@ function libraryUrl(filename) {
 }
 
 export const eyePrologNativeLibraryIndicators = Object.freeze([
-  'call_nth/2', 'freeze/2', 'dif/2', 'countall/2', 'time/1',
+  'call_cleanup/2', 'setup_call_cleanup/3', 'call_nth/2', 'freeze/2', 'dif/2', 'countall/2', 'time/1', 'statistics/2',
+  'number_to_rational/2', 'rational_numerator_denominator/3',
+  'read_from_chars/2', 'read_term_from_chars/3', 'write_term_to_chars/3', 'chars_base64/3',
+  'sleep/1',
+  'directory_files/2', 'delete_file/1', 'rename_file/2', 'make_directory/1', 'make_directory_path/1', 'working_directory/2',
+  'getenv/2', 'setenv/2', 'unsetenv/1', 'shell/1', 'shell/2', 'pid/1', 'raw_argv/1', 'argv/1',
   'put_atts/2', 'get_atts/2', 'put_attr/3', 'get_attr/3', 'del_attr/2', 'term_attributed_variables/2', 'call_residue_vars/2',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
@@ -212,13 +220,14 @@ export const eyePrologInteropAutoload = Object.freeze({
 });
 
 const eyePrologSharedLibraryIndicators = [
-  'lsb/2', 'msb/2', 'popcount/2',
+  'lsb/2', 'msb/2', 'number_to_rational/2', 'popcount/2', 'rational_numerator_denominator/3',
   'empty_assoc/1', 'assoc_to_keys/2', 'assoc_to_list/2', 'assoc_to_values/2',
   'del_assoc/4', 'del_max_assoc/4', 'del_min_assoc/4', 'gen_assoc/3',
   'get_assoc/3', 'get_assoc/5', 'is_assoc/1', 'list_to_assoc/2',
   'map_assoc/2', 'map_assoc/3', 'max_assoc/3', 'min_assoc/3',
   'ord_list_to_assoc/2', 'put_assoc/4',
   'char_type/2', 'get_line_to_chars/3', 'get_n_chars/3', 'get_single_char/1',
+  'read_from_chars/2', 'read_term_from_chars/3', 'write_term_to_chars/3', 'chars_base64/3',
   'sat/1', 'taut/2', 'labeling/1', 'sat_count/2', 'random_labeling/2', 'weighted_maximum/3',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
@@ -229,6 +238,7 @@ const eyePrologSharedLibraryIndicators = [
   'automaton/8', 'chain/2', 'element/3', 'zcompare/3', 'fd_var/1', 'fd_inf/2',
   'fd_sup/2', 'fd_size/2', 'fd_dom/2', 'clpz_t/2', '#=/3', '#</3',
   '*/1', '$/1', '$-/1', 'dif/2',
+  'call_cleanup/2', 'setup_call_cleanup/3', 'copy_term_nat/2',
   'format_/4', 'format/2', 'format/3', 'portray_clause_/3',
   'portray_clause/1', 'portray_clause/2', 'listing/1',
   'gensym/2', 'reset_gensym/1',
@@ -238,12 +248,14 @@ const eyePrologSharedLibraryIndicators = [
   'ord_intersection/2', 'ord_intersection/3', 'ord_intersection/4',
   'ord_memberchk/2', 'ord_selectchk/3', 'ord_seteq/2', 'ord_subset/2',
   'ord_subtract/3', 'ord_symdiff/3', 'ord_union/2', 'ord_union/3', 'ord_union/4',
+  'directory_files/2', 'delete_file/1', 'rename_file/2', 'make_directory/1', 'make_directory_path/1', 'working_directory/2',
   'phrase_from_file/2', 'phrase_from_file/3', 'phrase_to_file/2',
   'phrase_to_file/3', 'phrase_to_stream/2',
   'maybe/0', 'random/1', 'random_integer/3', 'set_random/1',
   ',/3', ';/3', '=/3', 'cond_t/3', 'dif/3', 'if_/3', 'memberd_t/3',
   'tfilter/3', 'tmember/2', 'tmember_t/3', 'tpartition/4',
-  'start_tabling/2', 'abolish_all_tables/0', 'current_time/1', 'format_time/4',
+  'start_tabling/2', 'abolish_all_tables/0', 'sleep/1', 'current_time/1', 'format_time/4', 'statistics/2',
+  'getenv/2', 'setenv/2', 'unsetenv/1', 'shell/1', 'shell/2', 'pid/1', 'raw_argv/1', 'argv/1',
   'add_edges/3', 'add_vertices/3', 'complement/2', 'compose/3', 'connect_ugraph/3',
   'del_edges/3', 'del_vertices/3', 'edges/2', 'neighbors/3', 'neighbours/3',
   'reachable/3', 'top_sort/2', 'top_sort/3', 'transitive_closure/2',
@@ -260,7 +272,7 @@ export const eyePrologInteropLibraryIndicators = Object.freeze([
 // modules outside eyePrologInteropLibraryIndicators are still diagnosed when used.
 export const eyePrologInteropLibraryModules = Object.freeze([
   'arithmetic', 'assoc', 'atts', 'charsio', 'clpb', 'clpz', 'debug', 'dif',
-  'format', 'freeze', 'gensym', 'iso_ext', 'lambda', 'lists', 'ordsets', 'pio',
+  'files', 'format', 'freeze', 'gensym', 'iso_ext', 'lambda', 'lists', 'ordsets', 'os', 'pio',
   'random', 'reif', 'tabling', 'time', 'ugraphs', 'uuid', 'when',
 ]);
 
@@ -324,6 +336,7 @@ export function createEyePrologRegistry() {
   attsBuiltins.register(registry);
   expansionBuiltins.register(registry);
   scryerCompatibilityBuiltins.register(registry);
+  libraryHostBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;
 }

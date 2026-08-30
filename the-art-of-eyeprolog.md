@@ -6293,17 +6293,17 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **301 distinct non-ISO library and normal-extension predicate
+EyeProlog exposes **325 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
 **243 are defined entirely as ordinary Prolog clauses** in focused modules under
-`src/lib/`; **58 use host support** for control, attributed variables,
-constraints, or observability. The ISO and library catalogs therefore cover
-**430 distinct predicate indicators**. Normal-mode controls and observability
-relations that do not belong to a library, such as `call_cleanup/2`,
-`setup_call_cleanup/3`, `statistics/0,2`, and `tnot/1`, are documented in their
-own sections rather than counted as library predicates. `time/1` is additionally
-registered directly in the normal runtime so Trealla-style timing works at the
-interactive top level without an import; it is absent from the strict ISO
+`src/lib/`; **82 use host support** for control, attributed variables,
+constraints, character conversion, filesystem/OS access, timing, or
+observability. The ISO and library catalogs therefore cover **454 distinct predicate indicators**. A normal-runtime predicate that is intentionally
+re-exported by a compatibility module is counted once in this library surface:
+for example `call_cleanup/2` and `setup_call_cleanup/3` are exported by
+`library(iso_ext)`, while `time/1` and `statistics/2` are available from
+`library(time)`. `statistics/0` and `tnot/1` remain normal-runtime extensions
+outside the library catalog. These additions are absent from the strict ISO
 registry.
 
 The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
@@ -6311,13 +6311,14 @@ The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
 `src/lib/charsio.pl`, `src/lib/clpb.pl`, `src/lib/clpz.pl`,
 `src/lib/comparison.pl`, `src/lib/dates.pl`, `src/lib/dcgs.pl`,
 `src/lib/debug.pl`, `src/lib/dif.pl`, `src/lib/error.pl`,
-`src/lib/eyelet.pl`, `src/lib/format.pl`, `src/lib/freeze.pl`, `src/lib/gensym.pl`,
-`src/lib/iso_ext.pl`, `src/lib/lambda.pl`, `src/lib/lists.pl`,
-`src/lib/ordsets.pl`, `src/lib/pairs.pl`, `src/lib/pio.pl`,
-`src/lib/primes.pl`, `src/lib/prologue.pl`, `src/lib/random.pl`,
-`src/lib/reif.pl`, `src/lib/si.pl`, `src/lib/strings.pl`,
-`src/lib/tabling.pl`, `src/lib/terms.pl`, `src/lib/time.pl`,
-`src/lib/ugraphs.pl`, `src/lib/uuid.pl`, and `src/lib/when.pl`. Each declares a same-named module
+`src/lib/eyelet.pl`, `src/lib/files.pl`, `src/lib/format.pl`,
+`src/lib/freeze.pl`, `src/lib/gensym.pl`, `src/lib/iso_ext.pl`,
+`src/lib/lambda.pl`, `src/lib/lists.pl`, `src/lib/ordsets.pl`,
+`src/lib/os.pl`, `src/lib/pairs.pl`, `src/lib/pio.pl`, `src/lib/primes.pl`,
+`src/lib/prologue.pl`, `src/lib/random.pl`, `src/lib/reif.pl`, `src/lib/si.pl`,
+`src/lib/strings.pl`, `src/lib/tabling.pl`, `src/lib/terms.pl`,
+`src/lib/time.pl`, `src/lib/ugraphs.pl`, `src/lib/uuid.pl`, and
+`src/lib/when.pl`. Each declares a same-named module
 with `module/2`; there is no catch-all `library(eyeprolog)`. A program imports
 only the modules it needs, and
 `use_module/2` can select an even smaller indicator list. The Prologue
@@ -6326,7 +6327,9 @@ module exposes p.p.1 through p.p.11 of the
 as a compatibility facade over the canonical `lists`, `between`, `iso_ext`,
 and `freeze` modules. The published Prologue, `call_nth/2`, and `length/2`
 quads are retained as offline regressions. `src/standard-library.js` registers the module sources and private control and
-constraint adapters for Node and browser resolution. Explicit `use_module/1-2`
+constraint adapters for Node and browser resolution. `src/library-host.js`
+contains the small character-I/O, Base64, rational-form, sleep, filesystem, and
+OS bridges used by the corresponding Prolog modules. Explicit `use_module/1-2`
 loads remain supported; outside strict ISO mode, the bundled-library autoloader
 may also load the canonical owner of any exported `src/lib/` predicate. The
 autoload index is generated from the libraries' `module/2` declarations.
@@ -6370,11 +6373,11 @@ bindings make one aligned subterm pair sufficient. For example:
 | Module | Exported predicate indicators | Primary role |
 | --- | --- | --- |
 | `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` | Aggregation |
-| `library(arithmetic)` | `lsb/2`, `msb/2`, `popcount/2` | CLP(Z) arithmetic support |
+| `library(arithmetic)` | `lsb/2`, `msb/2`, `number_to_rational/2`, `popcount/2`, `rational_numerator_denominator/3` | Bit helpers and Trealla/Scryer rational-form conversion |
 | `library(assoc)` | `empty_assoc/1`, `assoc_to_keys/2`, `assoc_to_list/2`, `assoc_to_values/2`, `del_assoc/4`, `del_max_assoc/4`, `del_min_assoc/4`, `gen_assoc/3`, `get_assoc/3`, `get_assoc/5`, `is_assoc/1`, `list_to_assoc/2`, `map_assoc/2`, `map_assoc/3`, `max_assoc/3`, `min_assoc/3`, `ord_list_to_assoc/2`, `put_assoc/4` | AVL association trees; reused from the shared portable source |
 | `library(atts)` | `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, `call_residue_vars/2` | Attributed variables |
 | `library(between)` | `between/3`, `gen_int/1`, `gen_nat/1`, `numlist/2`, `numlist/3`, `repeat/1` | Integer generation |
-| `library(charsio)` | `char_type/2`, `get_line_to_chars/3`, `get_n_chars/3`, `get_single_char/1` | Character classification and stream reads |
+| `library(charsio)` | `char_type/2`, `chars_base64/3`, `get_line_to_chars/3`, `get_n_chars/3`, `get_single_char/1`, `read_from_chars/2`, `read_term_from_chars/3`, `write_term_to_chars/3` | Character classification, chars/term conversion, and Base64 |
 | `library(clpb)` | `labeling/1`, `random_labeling/2`, `sat/1`, `sat_count/2`, `taut/2`, `weighted_maximum/3` | Boolean constraints and BDD reasoning; upstream Prolog source with small state adapters |
 | `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `cumulative/1`, `cumulative/2`, `disjoint2/1`, `element/3`, `automaton/3`, `automaton/8`, `zcompare/3`, `chain/2`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2`, `clpz_t/2`, `#=/3`, `#</3` | Constraint logic programming over integers; the final three indicators support reified compatibility libraries |
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` | Generic comparison |
@@ -6384,13 +6387,15 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(dif)` | `dif/2` | Common module facade over native delayed disequality |
 | `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `call_with_error_context/2` | Error checking and construction |
 | `library(eyelet)` | `stable/1`, `becomes/2` | Eyelet forward-reasoning driver and state helpers; the `:+` operator is exported by the module and its fixed point is implemented in Prolog |
+| `library(files)` | `delete_file/1`, `directory_files/2`, `make_directory/1`, `make_directory_path/1`, `rename_file/2`, `working_directory/2` | Trealla/Scryer filesystem intersection backed by the Node host |
 | `library(format)` | `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2` | Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals |
 | `library(freeze)` | `freeze/2` | Delayed goals |
 | `library(gensym)` | `gensym/2`, `reset_gensym/1` | Process-local generated atoms |
-| `library(iso_ext)` | `call_nth/2`, `countall/2`, `forall/2`, `succ/2`, `cfor/3`, `findall/4`, `variant/2`, `time/1`, `.../2` | Common ISO extensions |
+| `library(iso_ext)` | `call_cleanup/2`, `call_nth/2`, `call_residue_vars/2`, `copy_term_nat/2`, `countall/2`, `forall/2`, `succ/2`, `setup_call_cleanup/3`, `cfor/3`, `findall/4`, `variant/2`, `time/1`, `.../2` | Common ISO extensions and canonical compatibility re-exports |
 | `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` | Higher-order lambda notation |
 | `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`, `permutation/2`, `transpose/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` | List relations and shared matrix/permutation helpers |
 | `library(ordsets)` | `is_ordset/1`, `list_to_ord_set/2`, `ord_add_element/3`, `ord_del_element/3`, `ord_disjoint/2`, `ord_empty/1`, `ord_intersect/2`, `ord_intersect/3`, `ord_intersection/2`, `ord_intersection/3`, `ord_intersection/4`, `ord_memberchk/2`, `ord_selectchk/3`, `ord_seteq/2`, `ord_subset/2`, `ord_subtract/3`, `ord_symdiff/3`, `ord_union/2`, `ord_union/3`, `ord_union/4` | Ordered-set relations; reused upstream source |
+| `library(os)` | `argv/1`, `getenv/2`, `pid/1`, `raw_argv/1`, `setenv/2`, `shell/1`, `shell/2`, `unsetenv/1` | Environment, shell, PID, and command-line access backed by the Node host |
 | `library(pairs)` | `pairs_keys_values/3`, `pairs_keys/2`, `pairs_values/2`, `group_pairs_by_key/2`, `map_list_to_pairs/3` | Key-value pair support |
 | `library(pio)` | `phrase_from_file/2`, `phrase_from_file/3`, `phrase_to_file/2`, `phrase_to_file/3`, `phrase_to_stream/2` | Eager portable DCG file and stream I/O |
 | `library(primes)` | `smallest_divisor_from/3` | Prime factor support |
@@ -6401,7 +6406,7 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` | Text relations |
 | `library(tabling)` | `abolish_all_tables/0`, `start_tabling/2` | Common helpers for explicitly declared tabling |
 | `library(terms)` | `numbervars/3`, `copy_term_nat/2` | Term operations used by bundled libraries |
-| `library(time)` | `current_time/1`, `format_time/4` | Clock timestamps and the expanded `format_time//2` nonterminal |
+| `library(time)` | `current_time/1`, `format_time/4`, `sleep/1`, `statistics/2`, `time/1` | Clock timestamps, sleeping, timing/statistics, and the expanded `format_time//2` nonterminal |
 | `library(ugraphs)` | `add_edges/3`, `add_vertices/3`, `complement/2`, `compose/3`, `connect_ugraph/3`, `del_edges/3`, `del_vertices/3`, `edges/2`, `neighbors/3`, `neighbours/3`, `reachable/3`, `top_sort/2`, `top_sort/3`, `transitive_closure/2`, `transpose_ugraph/2`, `ugraph_union/3`, `vertices/2`, `vertices_edges_to_ugraph/3` | Directed graph relations; reused upstream source |
 | `library(uuid)` | `uuid/3`, `uuid_string/2`, `uuidv4/1`, `uuidv4_string/1` | Common UUID byte/string conversion and generation plus pure state threading |
 | `library(when)` | `when/2` | Shared delayed-condition interface over attributed variables |
@@ -6426,12 +6431,14 @@ adapter. In this section, **portable** refers to source portability between
 Prolog systems, not merely to the language in which a predicate happens to be
 implemented.
 
-The shared module-name profile is the overlap of the Scryer `src/lib` and
-Trealla `library` layouts that EyeProlog can implement without pretending an
-engine-specific service exists. It includes `arithmetic`, `assoc`, `atts`,
-`charsio`, `clpb`, `clpz`, `debug`, `dif`, `format`, `freeze`, `gensym`,
-`iso_ext`, `lambda`, `lists`, `ordsets`, `pio`, `random`, `reif`, `tabling`,
-`time`, `ugraphs`, `uuid`, and `when`. The predicate profile is narrower than
+The shared compatibility profile is derived from Scryer library modules and
+predicate indicators also documented by Trealla. Where Trealla exposes a
+predicate globally rather than from the same module, EyeProlog follows Scryer's
+module name so explicit Scryer-style imports remain available. The current
+module set includes `arithmetic`, `assoc`, `atts`, `charsio`, `clpb`, `clpz`,
+`debug`, `dif`, `files`, `format`, `freeze`, `gensym`, `iso_ext`, `lambda`,
+`lists`, `ordsets`, `os`, `pio`, `random`, `reif`, `tabling`, `time`, `ugraphs`,
+`uuid`, and `when`. The predicate profile is narrower than
 the union of their exports: for example, EyeProlog's explicit-state `random/3`
 and `uuid/3` remain useful extensions rather than shared interfaces.
 
@@ -6439,9 +6446,11 @@ Source reuse is preferred over translation. `clpb.pl`, `ordsets.pl`,
 `reif.pl`, and `ugraphs.pl` retain the upstream Prolog algorithms and license
 headers; `assoc.pl` uses the complete upstream AVL implementation. `gensym.pl`
 and `when.pl` keep the same algorithms with small blackboard and parser-safe
-closure adaptations. `dif.pl`, `tabling.pl`, and the clock portion of
-`time.pl` are thin facades over EyeProlog runtime facilities. `charsio.pl` and
-`pio.pl` provide the common character and eager DCG I/O surfaces. The
+closure adaptations. `dif.pl`, `tabling.pl`, and part of `time.pl` are thin
+facades over EyeProlog runtime facilities. `charsio.pl` adds the common
+chars/term and Base64 relations, while `pio.pl` provides eager DCG I/O.
+`files.pl` and `os.pl` expose the selected Trealla/Scryer host-service
+intersection through Node adapters. The
 [portable library overlap example](https://github.com/eyereasoner/eyeprolog/blob/main/examples/portable-library-overlap.pl)
 composes Boolean constraints, ordered sets, graphs, reification, delayed goals,
 generated names, character conversion, transposition, and explicit table
@@ -6451,9 +6460,23 @@ Two matching upstream basenames are intentionally not exposed as portable
 libraries. The two `builtins.pl` files are private engine facades and have no
 shared public predicate interface. `sockets.pl` requires a native networking
 event loop and host socket objects; EyeProlog does not provide a source-only
-facade that would accept calls and then fail at runtime. Rational-only
-`library(arithmetic)` predicates are likewise omitted until rational numbers
-are processor values.
+facade that would accept calls and then fail at runtime.
+
+`number_to_rational/2` and `rational_numerator_denominator/3` are now present in
+`library(arithmetic)`. EyeProlog's processor numeric values are still integers
+and IEEE-754 floats, so a non-integral result is represented canonically as the
+ordinary term `rdiv(Numerator,Denominator)`. The conversion/decomposition
+interface is therefore available, but that structural `rdiv/2` value is not yet
+an evaluable rational number for `is/2` or arithmetic comparison.
+
+`library(files)` follows Scryer's character-list path convention and includes
+`directory_files/2`, `delete_file/1`, `rename_file/2`, `make_directory/1`,
+`make_directory_path/1`, and `working_directory/2`. `library(os)` similarly
+uses character lists for environment names, values, commands, and argument
+strings. Trealla documents the same predicate indicators, although several of
+its host predicates use atoms instead. Both EyeProlog modules require the Node
+host; browser calls raise a resource error instead of simulating filesystem,
+environment, or process side effects.
 
 For `library(lists)`, the current interop predicate set is `member/2`,
 `memberchk/2`, `select/3`, `append/2-3`, `last/2`, `same_length/2`,
@@ -6606,9 +6629,12 @@ Prolog modules `assoc`, `pairs`, `between`, `dcgs`, `terms`, `error`, `si`,
 synchronized with Scryer commit `e3df91e25f8a09ee942c04e8baef553bba5c6110`,
 Git blob `806445c11e14c8b2515f3de7f309e0ac04d9ad04`.
 
-Alongside its interop entries `call_nth/2`, `time/1`, and `.../2`,
-`library(iso_ext)` also exports EyeProlog's extension relations `countall/2`,
-`forall/2`, `succ/2`, `cfor/3`, `findall/4`, and `variant/2`. `forall/2` checks an action for every solution of a
+Alongside `call_nth/2`, `time/1`, and `.../2`, `library(iso_ext)` now
+re-exports the shared control/term interfaces `call_cleanup/2`,
+`setup_call_cleanup/3`, `call_residue_vars/2`, and `copy_term_nat/2` from their
+canonical runtime or focused-module implementations. It also exports
+EyeProlog's extension relations `countall/2`, `forall/2`, `succ/2`, `cfor/3`,
+`findall/4`, and `variant/2`. `forall/2` checks an action for every solution of a
 condition; `cfor/3` enumerates an inclusive evaluated integer range; `succ/2`
 relates adjacent nonnegative integers; `findall/4` collects into a difference
 list; and `variant/2` recognizes terms equal up to variable renaming.
@@ -6631,7 +6657,8 @@ predicates are already tabled by EyeProlog's program analysis, so the directive
 is a compatible declaration rather than a second tabling engine.
 `library(time)` returns a timestamp association list from the local clock;
 `format_time//2` supports the documented year, month, day, time, month-name,
-weekday-name, and day-of-year specifiers.
+weekday-name, and day-of-year specifiers. It also exports `sleep/1`, re-exports
+the canonical `time/1`, and exposes the normal runtime `statistics/2` interface.
 
 `random/1` keeps the common mutable-seed interface but uses a private native
 state step for hot-loop performance; its public sequence remains the same

@@ -5705,6 +5705,63 @@ answer(X,Y,U,R,F,W,G,C,T) :-
       },
     },
     {
+      name: 'new Trealla/Scryer arithmetic and charsio intersection predicates compose',
+      run: () => {
+        const source = `:- use_module(library(arithmetic)).
+:- use_module(library(charsio)).
+answer(R,N,D,V,S,C,B,Decoded) :-
+  number_to_rational(0.5,R), rational_numerator_denominator(R,N,D),
+  read_term_from_chars("f(X,X,Y).",T,[variable_names(V),singletons(S)]),
+  T=f(a,a,b),
+  write_term_to_chars(T,[quoted(true)],C),
+  chars_base64("hello",B,[]), chars_base64(Decoded,B,[]).
+`;
+        const result = run(source, { goal: 'answer(R,N,D,V,S,C,B,Decoded)' });
+        assertEqual(result.stdout,
+          'answer(rdiv(1, 2), 1, 2, [\'X\' = a, \'Y\' = b], [\'Y\' = b], "f(a,a,b)", "aGVsbG8=", "hello").\n',
+          'arithmetic/charsio common surface');
+      },
+    },
+    {
+      name: 'library(files) and library(os) expose the Trealla/Scryer Node host intersection',
+      run: () => {
+        const root = path.join(tmp, 'common-system-libs');
+        fs.mkdirSync(root, { recursive: true });
+        const oldFile = path.join(root, 'old.txt');
+        const newFile = path.join(root, 'new.txt');
+        const nested = path.join(root, 'a', 'b');
+        fs.writeFileSync(oldFile, 'ok');
+        const source = `:- use_module(library(files)).
+:- use_module(library(lists), [member/2]).
+:- use_module(library(os)).
+answer(Status,Pid) :-
+  make_directory_path(${JSON.stringify(nested)}),
+  rename_file(${JSON.stringify(oldFile)},${JSON.stringify(newFile)}),
+  directory_files(${JSON.stringify(root)},Entries), member(".",Entries), member("..",Entries), member("new.txt",Entries), member("a",Entries),
+  setenv("EYEPROLOG_LIBRARY_TEST","ok"), getenv("EYEPROLOG_LIBRARY_TEST","ok"),
+  shell("exit 7",Status), pid(Pid), unsetenv("EYEPROLOG_LIBRARY_TEST").
+`;
+        const result = run(source, { goal: 'answer(Status,Pid)' });
+        assertIncludes(result.stdout, 'answer(7, ', 'files/os result');
+        assertEqual(fs.existsSync(newFile), true, 'rename_file/2 changed the filesystem');
+        assertEqual(fs.existsSync(nested), true, 'make_directory_path/1 created nested directories');
+      },
+    },
+    {
+      name: 'library(time) and library(iso_ext) expose their shared compatibility re-exports',
+      run: () => {
+        const source = `:- use_module(library(iso_ext)).
+:- use_module(library(time)).
+answer(D) :-
+  copy_term_nat(f(a),f(a)), call_residue_vars(true,[]),
+  call_cleanup(true,true), setup_call_cleanup(true,true,true),
+  sleep(0), statistics(max_depth,D).
+`;
+        const result = run(source, { goal: 'answer(D)' });
+        assertIncludes(result.stdout, 'answer(', 'time/iso_ext re-exports');
+      },
+    },
+    {
       name: 'library(format), library(time), random, and UUID compatibility adapters retain reusable Prolog APIs',
       run: () => {
         const source = `:- use_module(library(format)).
@@ -6297,7 +6354,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 165, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 185, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(registry.get('eyeprolog__dynify', 1), null, 'Eyelet dynify adapter is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__dynify', 1)), true, 'Eyelet dynify adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__eyelet_emit', 2), null, 'Eyelet event adapter is absent from the ISO registry');
@@ -6320,10 +6377,10 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 58, 'public host-supported EyeProlog library count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 82, 'public host-supported EyeProlog library count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 243, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 189, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.length, 23, 'common explicit library module profile count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 214, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryModules.length, 25, 'common explicit library module profile count');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'between', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
@@ -6335,11 +6392,11 @@ answer(ok) :-
         assertEqual(eyePrologLibraryAutoload['pairs_keys_values/3'], 'pairs', 'complete library autoload includes library(pairs)');
         assertEqual(eyePrologLibraryAutoload['stable/1'], 'eyelet', 'complete library autoload includes Eyelet stable/1');
         assertEqual(eyePrologLibraryAutoload['becomes/2'], 'eyelet', 'complete library autoload includes Eyelet becomes/2');
-        assertEqual(eyePrologLibraryAutoloadModules.length, 36, 'all bundled src/lib modules are indexed for autoload');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 58, 'host-supported library count');
-        assertEqual(eyePrologNativeLibraryIndicators.slice(0, 3).join(','), 'call_nth/2,freeze/2,dif/2', 'control and constraint predicates requiring host support');
+        assertEqual(eyePrologLibraryAutoloadModules.length, 38, 'all bundled src/lib modules are indexed for autoload');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 82, 'host-supported library count');
+        assertEqual(eyePrologNativeLibraryIndicators.includes('call_nth/2'), true, 'call_nth/2 remains classified as host-supported');
         assertEqual(eyePrologNativeLibraryIndicators.includes('random/1'), true, 'stateful random/1 is classified as host-supported');
-        assertEqual(eyePrologLibraryIndicators.length, 301, 'complete non-ISO EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 325, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');
@@ -6421,25 +6478,35 @@ answer(ok) :-
       },
     },
     {
-      name: 'aligned bundled libraries have no overlapping full-module exports',
+      name: 'aligned bundled libraries have no conflicting full-module exports',
       run: () => {
         const owners = new Map();
         for (const [moduleName, entry] of standardLibrarySources) {
-          // library(prologue) is a facade whose nominal exports are re-exports;
-          // canonical libraries must remain pairwise collision-free so full
-          // use_module/1 imports can be combined safely.
+          // library(prologue) is an umbrella facade. Other aligned modules may
+          // intentionally re-export a canonical predicate (for example
+          // iso_ext:copy_term_nat/2 -> terms and time:time/1 -> iso_ext), but
+          // two distinct implementations must never claim the same indicator.
           if (moduleName === 'prologue') continue;
           const parsed = Program.parse(entry.source);
           const definition = parsed.modules.get(moduleName);
           if (!definition) throw new Error(`missing module declaration for ${moduleName}`);
           for (const indicator of definition.exports.keys()) {
+            const slash = indicator.lastIndexOf('/');
+            const name = indicator.slice(0, slash);
+            const arity = Number(indicator.slice(slash + 1));
+            const canonical = parsed.findGroup(name, arity, moduleName)?.module ?? moduleName;
             const previous = owners.get(indicator);
-            if (previous != null) throw new Error(`duplicate export ${indicator}: ${previous}, ${moduleName}`);
-            owners.set(indicator, moduleName);
+            if (previous != null && previous !== canonical) {
+              throw new Error(`conflicting export ${indicator}: ${previous}, ${canonical} via ${moduleName}`);
+            }
+            owners.set(indicator, canonical);
           }
         }
         assertEqual(owners.get('countall/2'), 'iso_ext', 'countall/2 has one aligned owner');
         assertEqual(owners.get('call_nth/2'), 'iso_ext', 'call_nth/2 has one aligned owner');
+        assertEqual(owners.get('call_residue_vars/2'), 'atts', 'iso_ext re-exports canonical atts call_residue_vars/2');
+        assertEqual(owners.get('copy_term_nat/2'), 'terms', 'iso_ext re-exports canonical terms copy_term_nat/2');
+        assertEqual(owners.get('time/1'), 'iso_ext', 'time re-exports canonical iso_ext time/1');
       },
     },
     {

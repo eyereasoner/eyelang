@@ -61,6 +61,8 @@ Normal mode executes top-level `Conclusion :+ Premise` rules through the bundled
 
 Bundled `src/lib/` predicates autoload in files, CLI/API goals, and the REPL; use `--no-autoload` to require explicit imports, and explicitly import libraries that introduce operators before using their syntax. See [*The Art of EyeProlog*](the-art-of-eyeprolog.md) for the full semantics.
 
+The Trealla/Scryer compatibility surface now also includes chars-based term I/O and Base64 helpers, rational-form conversion in `library(arithmetic)`, `sleep/1`, the shared `library(iso_ext)` control/term re-exports, and focused `library(files)` and `library(os)` modules. Filesystem and OS side effects require Node; browser calls report an unavailable host resource instead. Non-integral `number_to_rational/2` results are represented structurally as `rdiv(Numerator,Denominator)` until rational numbers become processor numeric values.
+
 ## Links
 
 - [The Art of EyeProlog](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog) — complete reference
