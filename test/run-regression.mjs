@@ -5748,6 +5748,59 @@ answer(Status,Pid) :-
       },
     },
     {
+      name: 'library(crypto) matches deterministic hash, HMAC, and HKDF vectors',
+      run: () => {
+        const source = `:- use_module(library(crypto)).
+answer(Bytes) :-
+  hex_bytes("501ACE",[80,26,206]),
+  crypto_data_hash("abc","ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",[algorithm(sha256)]),
+  crypto_data_hash("abc","9c196e32dc0175f86f4b1cb89289d6619de6bee699e4c378e68309ed97a1a6ab",[algorithm(sha256),hmac([107,101,121])]),
+  crypto_data_hkdf("ikm",16,Bytes,[algorithm(sha256),salt([1,2,3]),info("ctx")]).
+`;
+        const result = run(source, { goal: 'answer(Bytes)' });
+        assertEqual(result.stdout,
+          'answer([88, 155, 48, 74, 204, 30, 221, 100, 71, 23, 177, 120, 135, 159, 145, 52]).\n',
+          'crypto vectors');
+      },
+    },
+    {
+      name: 'library(crypto) supports password verification and authenticated ChaCha20-Poly1305 round trips',
+      run: () => {
+        const source = `:- use_module(library(crypto)).
+check :-
+  crypto_password_hash("secret",Hash,[cost(4),salt([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])]),
+  crypto_password_hash("secret",Hash),
+  Key=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+  IV=[0,1,2,3,4,5,6,7,8,9,10,11],
+  crypto_data_encrypt("hello",'chacha20-poly1305',Key,IV,Cipher,[tag(Tag),aad("meta")]),
+  crypto_data_decrypt(Cipher,'chacha20-poly1305',Key,IV,"hello",[tag(Tag),aad("meta")]).
+`;
+        assertEqual(run(source, { goal: 'check' }).stdout, 'check.\n', 'crypto round trip');
+      },
+    },
+    {
+      name: 'library(crypto) supports Ed25519, X25519, and secp256k1 compatibility operations',
+      run: () => {
+        const source = `:- use_module(library(crypto)).
+:- use_module(library(lists), [maplist/3]).
+check :-
+  hex_bytes("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",Seed),
+  ed25519_seed_keypair(Seed,Pair), ed25519_keypair_public_key(Pair,Public),
+  maplist(char_code,Public,PublicBytes),
+  hex_bytes("d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",PublicBytes),
+  ed25519_sign(Pair,[],"e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b",[]),
+  curve25519_generator(G),
+  A=[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  B=[2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  curve25519_scalar_mult(A,G,AP), curve25519_scalar_mult(B,G,BP),
+  curve25519_scalar_mult(A,BP,Shared), curve25519_scalar_mult(B,AP,Shared),
+  crypto_name_curve(secp256k1,Curve), crypto_curve_generator(Curve,Generator),
+  crypto_curve_scalar_mult(Curve,2,Generator,point(89565891926547004231252920425935692360644145829622209833684329913297188986597,12158399299693830322967808612713398636155367887041628176798871954788371653930)).
+`;
+        assertEqual(run(source, { goal: 'check' }).stdout, 'check.\n', 'elliptic-curve compatibility');
+      },
+    },
+    {
       name: 'library(time) and library(iso_ext) expose their shared compatibility re-exports',
       run: () => {
         const source = `:- use_module(library(iso_ext)).
@@ -6354,7 +6407,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 185, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 201, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(registry.get('eyeprolog__dynify', 1), null, 'Eyelet dynify adapter is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__dynify', 1)), true, 'Eyelet dynify adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__eyelet_emit', 2), null, 'Eyelet event adapter is absent from the ISO registry');
@@ -6377,9 +6430,9 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 82, 'public host-supported EyeProlog library count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 243, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 214, 'cross-implementation interop profile count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 98, 'public host-supported EyeProlog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 246, 'portable Prolog library count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 217, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.length, 25, 'common explicit library module profile count');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'between', 'between/3 canonical internal autoload');
@@ -6392,11 +6445,11 @@ answer(ok) :-
         assertEqual(eyePrologLibraryAutoload['pairs_keys_values/3'], 'pairs', 'complete library autoload includes library(pairs)');
         assertEqual(eyePrologLibraryAutoload['stable/1'], 'eyelet', 'complete library autoload includes Eyelet stable/1');
         assertEqual(eyePrologLibraryAutoload['becomes/2'], 'eyelet', 'complete library autoload includes Eyelet becomes/2');
-        assertEqual(eyePrologLibraryAutoloadModules.length, 38, 'all bundled src/lib modules are indexed for autoload');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 82, 'host-supported library count');
+        assertEqual(eyePrologLibraryAutoloadModules.length, 39, 'all bundled src/lib modules are indexed for autoload');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 98, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.includes('call_nth/2'), true, 'call_nth/2 remains classified as host-supported');
         assertEqual(eyePrologNativeLibraryIndicators.includes('random/1'), true, 'stateful random/1 is classified as host-supported');
-        assertEqual(eyePrologLibraryIndicators.length, 325, 'complete non-ISO EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 344, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');

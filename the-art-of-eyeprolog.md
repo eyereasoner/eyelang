@@ -6293,12 +6293,12 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **325 distinct non-ISO library and normal-extension predicate
+EyeProlog exposes **344 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
-**243 are defined entirely as ordinary Prolog clauses** in focused modules under
-`src/lib/`; **82 use host support** for control, attributed variables,
+**246 are defined entirely as ordinary Prolog clauses** in focused modules under
+`src/lib/`; **98 use host support** for control, attributed variables,
 constraints, character conversion, filesystem/OS access, timing, or
-observability. The ISO and library catalogs therefore cover **454 distinct predicate indicators**. A normal-runtime predicate that is intentionally
+observability. The ISO and library catalogs therefore cover **473 distinct predicate indicators**. A normal-runtime predicate that is intentionally
 re-exported by a compatibility module is counted once in this library surface:
 for example `call_cleanup/2` and `setup_call_cleanup/3` are exported by
 `library(iso_ext)`, while `time/1` and `statistics/2` are available from
@@ -6309,7 +6309,7 @@ registry.
 The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
 `src/lib/assoc.pl`, `src/lib/atts.pl`, `src/lib/between.pl`,
 `src/lib/charsio.pl`, `src/lib/clpb.pl`, `src/lib/clpz.pl`,
-`src/lib/comparison.pl`, `src/lib/dates.pl`, `src/lib/dcgs.pl`,
+`src/lib/comparison.pl`, `src/lib/crypto.pl`, `src/lib/dates.pl`, `src/lib/dcgs.pl`,
 `src/lib/debug.pl`, `src/lib/dif.pl`, `src/lib/error.pl`,
 `src/lib/eyelet.pl`, `src/lib/files.pl`, `src/lib/format.pl`,
 `src/lib/freeze.pl`, `src/lib/gensym.pl`, `src/lib/iso_ext.pl`,
@@ -6329,7 +6329,9 @@ and `freeze` modules. The published Prologue, `call_nth/2`, and `length/2`
 quads are retained as offline regressions. `src/standard-library.js` registers the module sources and private control and
 constraint adapters for Node and browser resolution. `src/library-host.js`
 contains the small character-I/O, Base64, rational-form, sleep, filesystem, and
-OS bridges used by the corresponding Prolog modules. Explicit `use_module/1-2`
+OS bridges used by the corresponding Prolog modules. `src/crypto-host.js` keeps
+the cryptographic host primitives separate from the public `library(crypto)`
+module. Explicit `use_module/1-2`
 loads remain supported; outside strict ISO mode, the bundled-library autoloader
 may also load the canonical owner of any exported `src/lib/` predicate. The
 autoload index is generated from the libraries' `module/2` declarations.
@@ -6381,6 +6383,7 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(clpb)` | `labeling/1`, `random_labeling/2`, `sat/1`, `sat_count/2`, `taut/2`, `weighted_maximum/3` | Boolean constraints and BDD reasoning; upstream Prolog source with small state adapters |
 | `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `cumulative/1`, `cumulative/2`, `disjoint2/1`, `element/3`, `automaton/3`, `automaton/8`, `zcompare/3`, `chain/2`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2`, `clpz_t/2`, `#=/3`, `#</3` | Constraint logic programming over integers; the final three indicators support reified compatibility libraries |
 | `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` | Generic comparison |
+| `library(crypto)` | `crypto_curve_generator/2`, `crypto_curve_order/2`, `crypto_curve_scalar_mult/4`, `crypto_data_decrypt/6`, `crypto_data_encrypt/6`, `crypto_data_hash/3`, `crypto_data_hkdf/4`, `crypto_n_random_bytes/2`, `crypto_name_curve/2`, `crypto_password_hash/2`, `crypto_password_hash/3`, `curve25519_generator/1`, `curve25519_scalar_mult/3`, `ed25519_keypair_public_key/2`, `ed25519_new_keypair/1`, `ed25519_seed_keypair/2`, `ed25519_sign/4`, `ed25519_verify/4`, `hex_bytes/2` | Scryer-compatible hashing, KDFs, authenticated encryption, Ed25519, X25519, and secp256k1 helpers |
 | `library(dates)` | `difference/3` | ISO duration differences |
 | `library(dcgs)` | `phrase/2`, `phrase/3`, `seq/3`, `seqq/3` | DCG compatibility; `seq/3` and `seqq/3` are declared as `seq //1` and `seqq //1` |
 | `library(debug)` | `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2`, `bb_global_get/2` | Declarative debug operators and constraint-library blackboards |
@@ -6436,7 +6439,7 @@ predicate indicators also documented by Trealla. Where Trealla exposes a
 predicate globally rather than from the same module, EyeProlog follows Scryer's
 module name so explicit Scryer-style imports remain available. The current
 module set includes `arithmetic`, `assoc`, `atts`, `charsio`, `clpb`, `clpz`,
-`debug`, `dif`, `files`, `format`, `freeze`, `gensym`, `iso_ext`, `lambda`,
+`crypto`, `debug`, `dif`, `files`, `format`, `freeze`, `gensym`, `iso_ext`, `lambda`,
 `lists`, `ordsets`, `os`, `pio`, `random`, `reif`, `tabling`, `time`, `ugraphs`,
 `uuid`, and `when`. The predicate profile is narrower than
 the union of their exports: for example, EyeProlog's explicit-state `random/3`
@@ -6450,7 +6453,9 @@ closure adaptations. `dif.pl`, `tabling.pl`, and part of `time.pl` are thin
 facades over EyeProlog runtime facilities. `charsio.pl` adds the common
 chars/term and Base64 relations, while `pio.pl` provides eager DCG I/O.
 `files.pl` and `os.pl` expose the selected Trealla/Scryer host-service
-intersection through Node adapters. The
+intersection through Node adapters. `crypto.pl` exposes Scryer's complete
+public crypto surface; its strict Trealla/Scryer overlap is `hex_bytes/2`,
+`crypto_n_random_bytes/2`, and `crypto_data_hash/3`. The
 [portable library overlap example](https://github.com/eyereasoner/eyeprolog/blob/main/examples/portable-library-overlap.pl)
 composes Boolean constraints, ordered sets, graphs, reification, delayed goals,
 generated names, character conversion, transposition, and explicit table
@@ -6477,6 +6482,16 @@ strings. Trealla documents the same predicate indicators, although several of
 its host predicates use atoms instead. Both EyeProlog modules require the Node
 host; browser calls raise a resource error instead of simulating filesystem,
 environment, or process side effects.
+
+`library(crypto)` follows Scryer's character-list and byte-list conventions.
+It provides hexadecimal conversion, cryptographically secure random bytes,
+hashes and HMAC, HKDF, PBKDF2-SHA512 password hashes, ChaCha20-Poly1305,
+Ed25519 signing and verification, X25519 key agreement, and the Scryer
+secp256k1 curve representation/helpers. Hashing, KDF, authenticated encryption, Ed25519, and X25519 use Node's
+cryptographic backend; `crypto_n_random_bytes/2` can also use Web Crypto's
+CSPRNG. Operations without a suitable backend raise `resource_error(crypto)`.
+`hex_bytes/2` and the static curve metadata remain usable without that backend. As in Scryer, new key-agreement code should prefer X25519 over
+the older generic secp256k1 helper.
 
 For `library(lists)`, the current interop predicate set is `member/2`,
 `memberchk/2`, `select/3`, `append/2-3`, `last/2`, `same_length/2`,

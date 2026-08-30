@@ -7,6 +7,7 @@ import { attsBuiltins } from './atts.js';
 import { expansionBuiltins } from './expansion-builtins.js';
 import { scryerCompatibilityBuiltins } from './scryer-compat.js';
 import { libraryHostBuiltins } from './library-host.js';
+import { cryptoHostBuiltins } from './crypto-host.js';
 import { registerCleanupBuiltins } from './cleanup.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
@@ -24,6 +25,7 @@ const moduleFiles = Object.freeze({
   clpb: 'clpb.pl',
   clpz: 'clpz.pl',
   comparison: 'comparison.pl',
+  crypto: 'crypto.pl',
   dates: 'dates.pl',
   dcgs: 'dcgs.pl',
   debug: 'debug.pl',
@@ -86,6 +88,11 @@ export const eyePrologNativeLibraryIndicators = Object.freeze([
   'sleep/1',
   'directory_files/2', 'delete_file/1', 'rename_file/2', 'make_directory/1', 'make_directory_path/1', 'working_directory/2',
   'getenv/2', 'setenv/2', 'unsetenv/1', 'shell/1', 'shell/2', 'pid/1', 'raw_argv/1', 'argv/1',
+  'hex_bytes/2', 'crypto_n_random_bytes/2', 'crypto_data_hash/3', 'crypto_data_hkdf/4',
+  'crypto_password_hash/2', 'crypto_password_hash/3', 'crypto_data_encrypt/6', 'crypto_data_decrypt/6',
+  'ed25519_seed_keypair/2', 'ed25519_new_keypair/1', 'ed25519_keypair_public_key/2',
+  'ed25519_sign/4', 'ed25519_verify/4', 'curve25519_generator/1', 'curve25519_scalar_mult/3',
+  'crypto_curve_scalar_mult/4',
   'put_atts/2', 'get_atts/2', 'put_attr/3', 'get_attr/3', 'del_attr/2', 'term_attributed_variables/2', 'call_residue_vars/2',
   '#>/2', '#</2', '#>=/2', '#=</2', '#=/2', '#\\=/2', '#\\/1',
   '#<==>/2', '#==>/2', '#<==/2', '#\\//2', '#\\/2', '#/\\/2',
@@ -111,6 +118,7 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'sat/1', 'taut/2', 'labeling/1', 'sat_count/2', 'random_labeling/2', 'weighted_maximum/3',
   'lt/2', 'gt/2', 'le/2', 'ge/2',
   'difference/3',
+  'crypto_name_curve/2', 'crypto_curve_order/2', 'crypto_curve_generator/2',
   'stable/1', 'becomes/2',
   'seq/3', 'seqq/3',
   'debug/1', 'debug/3', 'nodebug/1', 'bb_get/2', 'bb_put/2', 'bb_b_put/2', 'bb_global_get/2',
@@ -256,6 +264,7 @@ const eyePrologSharedLibraryIndicators = [
   'tfilter/3', 'tmember/2', 'tmember_t/3', 'tpartition/4',
   'start_tabling/2', 'abolish_all_tables/0', 'sleep/1', 'current_time/1', 'format_time/4', 'statistics/2',
   'getenv/2', 'setenv/2', 'unsetenv/1', 'shell/1', 'shell/2', 'pid/1', 'raw_argv/1', 'argv/1',
+  'hex_bytes/2', 'crypto_n_random_bytes/2', 'crypto_data_hash/3',
   'add_edges/3', 'add_vertices/3', 'complement/2', 'compose/3', 'connect_ugraph/3',
   'del_edges/3', 'del_vertices/3', 'edges/2', 'neighbors/3', 'neighbours/3',
   'reachable/3', 'top_sort/2', 'top_sort/3', 'transitive_closure/2',
@@ -337,6 +346,7 @@ export function createEyePrologRegistry() {
   expansionBuiltins.register(registry);
   scryerCompatibilityBuiltins.register(registry);
   libraryHostBuiltins.register(registry);
+  cryptoHostBuiltins.register(registry);
   registry.eyePrologLibrary = true;
   return registry;
 }

@@ -166,12 +166,17 @@ interfaces rather than by library names alone. EyeProlog includes the common
 Trealla/Scryer character-term conversion and Base64 predicates, the shared
 arithmetic conversion helpers, `sleep/1`, and selected `iso_ext` re-exports. It
 also provides Scryer-style `library(files)` and `library(os)` modules for
-predicate indicators that Trealla documents too. Their filesystem, environment,
-shell, PID, and argument operations are Node host services and therefore fail
-with a resource error in browser execution rather than inventing a virtual OS.
-EyeProlog still has integer and float processor numbers only, so non-integral
-rational conversion results use a documented structural `rdiv(N,D)` form rather
-than silently extending arithmetic semantics.
+predicate indicators that Trealla documents too, plus the full Scryer
+`library(crypto)` predicate surface. The strict Trealla/Scryer crypto overlap is
+`hex_bytes/2`, `crypto_n_random_bytes/2`, and `crypto_data_hash/3`; EyeProlog
+also supports Scryer's HKDF, password hashing, authenticated encryption,
+Ed25519, X25519, and secp256k1 helpers. Hashing, KDF, authenticated encryption, Ed25519, and X25519 use
+Node's crypto backend; secure random bytes also use Web Crypto when available,
+and operations without a suitable backend report `resource_error(crypto)`. Filesystem, environment, shell, PID, and argument operations are
+likewise Node host services rather than a simulated browser OS. EyeProlog still
+has integer and float processor numbers only, so non-integral rational
+conversion results use a documented structural `rdiv(N,D)` form rather than
+silently extending arithmetic semantics.
 
 Definite clause grammars follow the ISO Part 3 difference-list model. Internal
 fast paths make deep finite sequence processing economical while preserving
