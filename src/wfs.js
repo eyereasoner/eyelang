@@ -12,10 +12,14 @@
 
 import { ATOM, COMPOUND, VAR } from './term.js';
 import { numberValueKey } from './number-value.js';
-
-function predicateKey(module, name, arity) {
-  return `${module ?? 'user'}:${name}/${arity}`;
-}
+import {
+  EMPTY_ARRAY,
+  dependencyCone,
+  directLiteral,
+  estimateLiteral,
+  predicateKey,
+  resolvePatternTerm,
+} from './datalog-common.js';
 
 function scalarKey(term) {
   if (term.type === 'number') return `number\u0000${numberValueKey(term.name)}`;
@@ -73,8 +77,6 @@ class Relation {
   }
 }
 
-const EMPTY_ARRAY = Object.freeze([]);
-
 function emptyRelations(groups) {
   const relations = new Map();
   for (const group of groups) {
@@ -93,48 +95,18 @@ function copyBaseRelations(base, groups) {
   return relations;
 }
 
-function directLiteral(goal, module) {
-  if (goal?.type !== COMPOUND && goal?.type !== ATOM) return null;
-  return {
-    key: predicateKey(goal.module ?? module, goal.name, goal.arity),
-    name: goal.name,
-    arity: goal.arity,
-    module: goal.module ?? module,
-    args: goal.args ?? EMPTY_ARRAY,
-  };
-}
 
 function negativeLiteral(goal, module) {
   if (goal?.type !== COMPOUND || goal.name !== 'tnot' || goal.arity !== 1) return null;
   return directLiteral(goal.args[0], module);
 }
 
-function dependencyCone(program, rootGroup) {
-  const groups = [];
-  const seen = new Set();
-  const stack = [rootGroup];
-  while (stack.length > 0) {
-    const group = stack.pop();
-    const key = predicateKey(group.module, group.name, group.arity);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    groups.push(group);
-
-    for (const clause of group.clauses) {
-      for (const goal of clause.body) {
-        const neg = negativeLiteral(goal, group.module);
-        const literal = neg ?? directLiteral(goal, group.module);
-        if (!literal) continue;
-        const target = program.findGroup(literal.name, literal.arity, literal.module);
-        if (target) stack.push(target);
-      }
-    }
-  }
-  return groups;
+function dependencyLiteral(goal, module) {
+  return negativeLiteral(goal, module) ?? directLiteral(goal, module);
 }
 
 function compileProgram(program, rootGroup) {
-  const groups = dependencyCone(program, rootGroup);
+  const groups = dependencyCone(program, rootGroup, dependencyLiteral);
   const base = emptyRelations(groups);
   const rules = [];
 
@@ -175,10 +147,6 @@ function compileProgram(program, rootGroup) {
   return { groups, base, rules };
 }
 
-function resolvePatternTerm(term, bindings) {
-  if (term.type === VAR) return bindings.get(term.name) ?? null;
-  return term;
-}
 
 function matchTuple(args, tuple, bindings) {
   let next = null;
@@ -199,10 +167,6 @@ function matchTuple(args, tuple, bindings) {
   return next ?? bindings;
 }
 
-function estimateLiteral(literal, relation, bindings) {
-  const candidates = relation.candidateIndexes(literal.args, bindings);
-  return candidates == null ? relation.rows.length : candidates.length;
-}
 
 function forEachPositiveBinding(positives, relations, callback, bindings = new Map(), remaining = null) {
   if (remaining == null) remaining = positives.map((_, index) => index);

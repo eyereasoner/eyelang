@@ -5,14 +5,16 @@
 // newly-added row fires only the rule occurrences that mention its predicate.
 // This avoids replaying the whole recursive program on every table round.
 
-import { ATOM, COMPOUND, VAR } from './term.js';
+import { VAR } from './term.js';
 import { numberValueKey } from './number-value.js';
-
-const EMPTY_ARRAY = Object.freeze([]);
-
-function predicateKey(module, name, arity) {
-  return `${module ?? 'user'}:${name}/${arity}`;
-}
+import {
+  EMPTY_ARRAY,
+  dependencyCone,
+  directLiteral,
+  estimateLiteral,
+  predicateKey,
+  resolvePatternTerm,
+} from './datalog-common.js';
 
 const scalarKeyCache = new WeakMap();
 
@@ -28,11 +30,6 @@ function scalarKey(term) {
 
 function sameScalar(left, right) {
   return scalarKey(left) === scalarKey(right);
-}
-
-function tupleKey(tuple) {
-  if (tuple.length === 1) return scalarKey(tuple[0]);
-  return tuple.map(scalarKey).join('\u0001');
 }
 
 export class DatalogRelation {
@@ -117,50 +114,16 @@ export class DatalogRelation {
   }
 }
 
-function directLiteral(goal, module) {
-  if (goal?.type !== COMPOUND && goal?.type !== ATOM) return null;
-  return {
-    key: predicateKey(goal.module ?? module, goal.name, goal.arity),
-    name: goal.name,
-    arity: goal.arity,
-    module: goal.module ?? module,
-    args: goal.args ?? EMPTY_ARRAY,
-  };
-}
-
-function dependencyCone(program, rootGroup) {
-  const groups = [];
-  const seen = new Set();
-  const stack = [rootGroup];
-  while (stack.length > 0) {
-    const group = stack.pop();
-    const key = predicateKey(group.module, group.name, group.arity);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    groups.push(group);
-    for (const clause of group.clauses) {
-      for (const goal of clause.body) {
-        const literal = directLiteral(goal, group.module);
-        if (!literal) continue;
-        const target = program.findGroup(literal.name, literal.arity, literal.module);
-        if (target) stack.push(target);
-      }
-    }
-  }
-  return groups;
-}
 
 function compileProgram(program, rootGroup) {
   const groups = dependencyCone(program, rootGroup);
   const relations = new Map();
-  const groupByKey = new Map();
   const rules = [];
   const triggers = new Map();
 
   for (const group of groups) {
     const key = predicateKey(group.module, group.name, group.arity);
     relations.set(key, new DatalogRelation(group.arity));
-    groupByKey.set(key, group);
   }
 
   for (const group of groups) {
@@ -181,13 +144,9 @@ function compileProgram(program, rootGroup) {
     }
   }
 
-  return { groups, groupByKey, relations, rules, triggers };
+  return { groups, relations, rules, triggers };
 }
 
-function resolvePatternTerm(term, bindings) {
-  if (term.type === VAR) return bindings.get(term.name) ?? null;
-  return term;
-}
 
 function matchTupleMutable(args, tuple, bindings) {
   const added = [];
@@ -218,10 +177,6 @@ function undoBindings(bindings, added) {
   for (let i = added.length - 1; i >= 0; i--) bindings.delete(added[i]);
 }
 
-function estimateLiteral(literal, relation, bindings) {
-  const candidates = relation.candidateIndexes(literal.args, bindings);
-  return candidates == null ? relation.rows.length : candidates.length;
-}
 
 function forEachBinding(body, relations, callback, bindings, remaining) {
   if (remaining.length === 0) {
@@ -271,16 +226,6 @@ function forEachBinding(body, relations, callback, bindings, remaining) {
   }
 }
 
-function instantiateTuple(args, bindings) {
-  const tuple = new Array(args.length);
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    const value = arg.type === VAR ? bindings.get(arg.name) : arg;
-    if (value == null || value.type === VAR) return null;
-    tuple[i] = value;
-  }
-  return tuple;
-}
 
 export function evaluatePositiveDatalog(program, rootGroup) {
   const compiled = compileProgram(program, rootGroup);
