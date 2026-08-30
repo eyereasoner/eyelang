@@ -65,22 +65,12 @@ function collectMultiplicitySensitiveDependencies(goal, out = []) {
 }
 
 
-function scalarNodeKey(term) {
-  return isScalar(term) ? `${term.type}:${term.name}` : null;
-}
-
-// Some source-level self recursion is structurally finite even though the
-// predicate dependency graph contains a self-edge.  The deep-taxonomy family
-// is the canonical case: p(X,n10000) calls p(X,n9999), eventually reaching a
-// fact.  When one scalar argument forms an acyclic transition graph and every
-// other argument is carried through unchanged, depth-first execution is both
-// terminating and much cheaper than constructing the complete Datalog model.
 // Cut-guided tail recursion is usually a deterministic search loop rather than
-// a cyclic relation.  Tabling such loops can retain every intermediate numeric
+// a cyclic relation. Tabling such loops can retain every intermediate numeric
 // state (for example prime scanning in Goldbach) and turn a bounded depth-first
-// search into an enormous table.  Keep this deliberately narrow: each recursive
+// search into an enormous table. Keep this deliberately narrow: each recursive
 // clause must contain exactly one direct self-call and that call must be the last
-// body goal.  Branching recursion such as Takeuchi therefore remains eligible
+// body goal. Branching recursion such as Takeuchi therefore remains eligible
 // for recursion planning and explicit tabling.
 function hasDirectCutTailRecursion(group) {
   if (group.hasCut !== true || group.clauses.length === 0) return false;
@@ -102,96 +92,6 @@ function hasDirectCutTailRecursion(group) {
     sawRecursive = true;
   }
   return sawRecursive;
-}
-
-function hasAcyclicScalarSelfRecursion(group) {
-  if (group.arity === 0 || group.clauses.length === 0) return false;
-  for (let position = 0; position < group.arity; position++) {
-    const edges = new Map();
-    let sawRecursive = false;
-    let valid = true;
-    for (const clause of group.clauses) {
-      if (isCompactBinaryClause(clause)) {
-        if (group.arity !== 2) { valid = false; break; }
-        if (clause.bodyName == null) continue;
-        if (clause.bodyName !== group.name) { valid = false; break; }
-        const headType = position === 0 ? clause.head0Type : clause.head1Type;
-        const headName = position === 0 ? clause.head0Name : clause.head1Name;
-        const bodyType = position === 0 ? clause.body0Type : clause.body1Type;
-        const bodyName = position === 0 ? clause.body0Name : clause.body1Name;
-        if (!['atom', 'string', 'number'].includes(headType) ||
-            !['atom', 'string', 'number'].includes(bodyType)) { valid = false; break; }
-        const other = position === 0 ? 1 : 0;
-        const ohType = other === 0 ? clause.head0Type : clause.head1Type;
-        const ohName = other === 0 ? clause.head0Name : clause.head1Name;
-        const obType = other === 0 ? clause.body0Type : clause.body1Type;
-        const obName = other === 0 ? clause.body0Name : clause.body1Name;
-        const carried = (ohType === 'var' && obType === 'var' && ohName === obName) ||
-          (['atom', 'string', 'number'].includes(ohType) && ohType === obType && ohName === obName);
-        if (!carried) { valid = false; break; }
-        const from = `${headType}:${headName}`;
-        const to = `${bodyType}:${bodyName}`;
-        sawRecursive = true;
-        let targets = edges.get(from);
-        if (targets == null) edges.set(from, targets = new Set());
-        targets.add(to);
-        continue;
-      }
-
-      if (clause.head?.type !== COMPOUND || clause.head.name !== group.name || clause.head.arity !== group.arity) {
-        valid = false; break;
-      }
-      if ((clause.body?.length ?? 0) === 0) continue;
-      if (clause.body.length !== 1) { valid = false; break; }
-      const body = clause.body[0];
-      if (body?.type !== COMPOUND || body.name !== group.name || body.arity !== group.arity ||
-          (body.module ?? group.module) !== group.module) { valid = false; break; }
-      const from = scalarNodeKey(clause.head.args[position]);
-      const to = scalarNodeKey(body.args[position]);
-      if (from == null || to == null) { valid = false; break; }
-      for (let i = 0; i < group.arity; i++) {
-        if (i === position) continue;
-        const h = clause.head.args[i];
-        const b = body.args[i];
-        if (h.type === VAR && b.type === VAR && h.name === b.name) continue;
-        const hk = scalarNodeKey(h);
-        const bk = scalarNodeKey(b);
-        if (hk != null && hk === bk) continue;
-        valid = false;
-        break;
-      }
-      if (!valid) break;
-      sawRecursive = true;
-      let targets = edges.get(from);
-      if (targets == null) edges.set(from, targets = new Set());
-      targets.add(to);
-    }
-    if (!valid || !sawRecursive) continue;
-
-    // Use Kahn's algorithm rather than recursive DFS here.  Programs generated
-    // from large taxonomies can contain hundreds of thousands of scalar
-    // transitions, and recursing once per edge would overflow the JavaScript
-    // call stack before Prolog execution even begins.
-    const indegree = new Map();
-    for (const [node, targets] of edges) {
-      if (!indegree.has(node)) indegree.set(node, 0);
-      for (const next of targets) indegree.set(next, (indegree.get(next) ?? 0) + 1);
-    }
-    const ready = [];
-    for (const [node, degree] of indegree) if (degree === 0) ready.push(node);
-    let consumed = 0;
-    for (let cursor = 0; cursor < ready.length; cursor++) {
-      const node = ready[cursor];
-      consumed++;
-      for (const next of edges.get(node) ?? []) {
-        const degree = indegree.get(next) - 1;
-        indegree.set(next, degree);
-        if (degree === 0) ready.push(next);
-      }
-    }
-    if (consumed === indegree.size) return true;
-  }
-  return false;
 }
 
 function preparedBundledLibraryCacheKey(program, options) {
@@ -562,10 +462,8 @@ export class Program {
       );
       group.listTailRecursive = directRecursiveComponent && !group.cutRecursive &&
         hasStrictListTailRecursion(group);
-      const acyclicScalarRecursion = plannedRecursive && hasAcyclicScalarSelfRecursion(group);
       const cutTailRecursion = plannedRecursive && hasDirectCutTailRecursion(group);
       const multiplicitySensitive = [...multiplicitySensitiveRoots].some((root) => reachableIndexes(root, deps).has(start));
-      group.acyclicScalarRecursion = acyclicScalarRecursion;
       group.cutTailRecursion = cutTailRecursion;
       group.multiplicitySensitive = multiplicitySensitive;
       group.depthFirstRecursive = plannedRecursive && !explicitlyTabled;
@@ -1168,13 +1066,15 @@ function bundledLibraryModule(program, module) {
 function groupDependencies(group) {
   const dependencies = [];
   for (const clause of group.clauses) {
-    // Eyelet forward rules store their executable premise in the :+/2 head
-    // rather than in the ordinary clause body.  Treat that premise as a goal
-    // dependency so bundled predicates such as stable/1 and becomes/2 can be
-    // autoloaded exactly like calls in ordinary rules.  Derived :+ rules may
-    // themselves occur in a conclusion, so recurse through that shape too.
+    // Forward rules store executable premises inside their heads instead of in
+    // ordinary clause bodies. Include those premises in static dependency
+    // analysis so portability checks see the same calls that runtime will see.
     if (group.name === ':+') {
-      dependencies.push(...forwardRuleDependencies(clause.head));
+      collectForwardRulePremiseDependencies(
+        clause.head,
+        (goal, out) => out.push(...collectGoalDependencies(goal, false, true)),
+        dependencies,
+      );
     }
     if (isCompactBinaryClause(clause)) {
       if (clause.bodyName != null) {
@@ -1194,16 +1094,16 @@ function groupDependencies(group) {
   return dependencies;
 }
 
-function forwardRuleDependencies(term, out = []) {
+function collectForwardRulePremiseDependencies(term, collect, out) {
   if (term?.type !== COMPOUND) return out;
   if (term.name === ':+' && term.arity === 2) {
-    out.push(...collectGoalDependencies(term.args[1], false, true));
-    forwardRuleDependencies(term.args[0], out);
+    collect(term.args[1], out);
+    collectForwardRulePremiseDependencies(term.args[0], collect, out);
     return out;
   }
   if (term.name === ',' && term.arity === 2) {
-    forwardRuleDependencies(term.args[0], out);
-    forwardRuleDependencies(term.args[1], out);
+    collectForwardRulePremiseDependencies(term.args[0], collect, out);
+    collectForwardRulePremiseDependencies(term.args[1], collect, out);
   }
   return out;
 }
@@ -1257,24 +1157,12 @@ function collectAutoloadGoalDependencies(goal, out = []) {
   return out;
 }
 
-function forwardRuleAutoloadDependencies(term, out = []) {
-  if (term?.type !== COMPOUND) return out;
-  if (term.name === ':+' && term.arity === 2) {
-    collectAutoloadGoalDependencies(term.args[1], out);
-    forwardRuleAutoloadDependencies(term.args[0], out);
-    return out;
-  }
-  if (term.name === ',' && term.arity === 2) {
-    forwardRuleAutoloadDependencies(term.args[0], out);
-    forwardRuleAutoloadDependencies(term.args[1], out);
-  }
-  return out;
-}
-
 function groupAutoloadDependencies(group) {
   const dependencies = [];
   for (const clause of group.clauses) {
-    if (group.name === ':+') dependencies.push(...forwardRuleAutoloadDependencies(clause.head));
+    if (group.name === ':+') {
+      collectForwardRulePremiseDependencies(clause.head, collectAutoloadGoalDependencies, dependencies);
+    }
     if (isCompactBinaryClause(clause)) {
       if (clause.bodyName != null) {
         dependencies.push({

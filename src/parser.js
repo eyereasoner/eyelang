@@ -92,10 +92,7 @@ const graphicAtomChars = '#$&*+-./<=>?@^~\\:';
 // canonical notation. Commas remain separators except inside parentheses.
 const INFIX_OPERATORS = new Map([
   [':-', { precedence: 1, associativity: 'none' }],
-  [':+', { precedence: 1, associativity: 'none' }], // EyeProlog forward-rule extension
-  ['?-', { precedence: 1, associativity: 'none' }], // quad label extension
   ['-->', { precedence: 1, associativity: 'none' }],
-  ['|', { precedence: 96, associativity: 'right' }],
   [';', { precedence: 101, associativity: 'right' }],
   ['->', { precedence: 151, associativity: 'right' }],
   [',', { precedence: 201, associativity: 'right' }],
@@ -133,7 +130,6 @@ const INFIX_OPERATORS = new Map([
 ]);
 const PREFIX_OPERATORS = new Map([
   ['?-', { precedence: 1, strict: true }],
-  ['table', { precedence: 51, strict: true }],
   ['\\+', { precedence: 301, strict: false }],
   ['+', { precedence: 1001, strict: false }],
   ['-', { precedence: 1001, strict: false }],
@@ -229,14 +225,10 @@ export function createParserOperatorState(definitions = [], includeDefaults = tr
     prefixOperators: includeDefaults ? new Map(PREFIX_OPERATORS) : new Map(),
     postfixOperators: new Map(),
   };
-  // The infix ?-/2 form is an EyeProlog quad extension.  ISO 13211-1
-  // predefines only the 1200 fx ?- operator; strict core mode starts from that
-  // table and still permits an explicit op/3 directive to add an infix form.
-  if (options.isoStrict === true) {
-    state.infixOperators.delete('?-');
-    state.infixOperators.delete('|');
-    state.infixOperators.delete(':+');
-    state.prefixOperators.delete('table');
+  if (includeDefaults && options.isoStrict !== true) {
+    for (const [priority, specifier, name] of [...PART3_OPERATOR_DEFINITIONS, ...QUAD_OPERATOR_DEFINITIONS]) {
+      defineParserOperator(state, priority, specifier, name);
+    }
   }
   for (const definition of definitions) {
     const [priority, specifier, name] = Array.isArray(definition)

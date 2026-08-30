@@ -147,8 +147,9 @@ and executes those rules with the Prolog fixed-point driver in the bundled
 `library(eyelet)`. That module owns the Eyelet semantics—rule selection,
 fixed-point iteration, skolemization, `stable/1`, `becomes/2`, and the
 `true :+ Goal` / `false :+ Goal` control conventions—rather than duplicating the
-reasoning algorithm in JavaScript. The host layer is limited to private database
-mutability and output-event adapters. Strict ISO mode removes the operator.
+reasoning algorithm in JavaScript. The remaining JavaScript support is limited to
+syntax recognition, static dependency/autoload planning, driver bootstrap, and
+private database-mutability/output-event adapters. Strict ISO mode removes the operator.
 Because resource exhaustion is not logical failure, normal execution has no hidden
 depth cutoff; an explicitly requested depth limit raises `resource_error(depth_limit)`.
 

@@ -1699,12 +1699,13 @@ EyeProlog source does not need a separate `dynamic/1` declaration merely to use
 that state with `becomes/2`.
 
 The `:+` reasoning algorithm is therefore Prolog code in `src/lib/eyelet.pl`, not
-a second JavaScript implementation. The host boundary is intentionally small:
-JavaScript bootstraps the private `eyelet:eyelet_run/3` entry point and supplies
-two private library adapters—one to make an existing user procedure mutable
-without rewriting its clauses, and one to forward answer/fuse terms to the CLI
-or embedding callbacks. Those adapters are not part of the strict ISO registry
-or the public `library(eyelet)` export surface.
+a second JavaScript implementation. The remaining JavaScript references have
+non-semantic roles: the parser declares the normal-profile operator, program
+analysis scans forward-rule premises for dependency/autoload planning, execution
+bootstraps the private `eyelet:eyelet_run/3` entry point, and two private library
+adapters bridge database mutability and answer/fuse events to the host. Those
+adapters are not part of the strict ISO registry or the public `library(eyelet)`
+export surface.
 
 The JavaScript convenience `run()` function selects this forward mode when no
 explicit `goal` or `goals` option is supplied. Advanced embedders can inspect a
