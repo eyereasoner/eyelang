@@ -1,19 +1,28 @@
 /** Reproducible pseudo-random values.
 
-    random/3 is EyeProlog's explicit-state interface.  maybe/0,
+    random/3 is EyeProlog's explicit-state interface.  maybe/0, maybe/1, maybe/2,
     random/1, random_integer/3, and set_random/1 are the mutable-seed library
     interface used for compatibility. random/1 uses EyeProlog's private native
     state step for hot-loop performance; random/3 remains the portable explicit-
     state Park-Miller generator, and both retain the same sequence.
 */
 
-:- module(random, [maybe/0, random/1, random/3, random_integer/3, set_random/1]).
+:- module(random, [maybe/0, maybe/1, maybe/2, random/1, random/3, random_integer/3, set_random/1]).
 
 :- use_module(library(iso_ext), [bb_get/2, bb_put/2]).
 :- use_module(library(error), [instantiation_error/1, type_error/3]).
 
 maybe :-
     random_integer(0, 2, 0).
+
+maybe(Probability) :-
+    random(Value),
+    Value < Probability.
+
+maybe(K, N) :-
+    Probability is K / N,
+    random(Value),
+    Value < Probability.
 
 
 random(Value) :-

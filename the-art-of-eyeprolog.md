@@ -6308,12 +6308,12 @@ so side effects occur in Prolog execution order.
 
 ### The EyeProlog library
 
-EyeProlog exposes **368 distinct non-ISO library and normal-extension predicate
+EyeProlog exposes **389 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
-**259 are defined entirely as ordinary Prolog clauses** in focused modules under
+**280 are defined entirely as ordinary Prolog clauses** in focused modules under
 `src/lib/`; **109 use host support** for control, attributed variables,
 constraints, character conversion, filesystem/OS access, timing, cryptography,
-or observability. The ISO and library catalogs therefore cover **497 distinct predicate indicators**. A normal-runtime predicate that is intentionally
+or observability. The ISO and library catalogs therefore cover **518 distinct predicate indicators**. A normal-runtime predicate that is intentionally
 re-exported by a compatibility module is counted once in this library surface:
 for example `call_cleanup/2` and `setup_call_cleanup/3` are exported by
 `library(iso_ext)`, while `time/1` and `statistics/2` are available from
@@ -6392,7 +6392,7 @@ bindings make one aligned subterm pair sufficient. For example:
 
 | Module | Exported predicate indicators | Primary role |
 | --- | --- | --- |
-| `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5` | Aggregation |
+| `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5`, `aggregate_all/3`, `aggregate/3` | Aggregation, including Trealla-compatible aggregate templates |
 | `library(arithmetic)` | `expmod/4`, `lcm/3`, `lsb/2`, `msb/2`, `number_to_rational/2`, `number_to_rational/3`, `popcount/2`, `rational_numerator_denominator/3` | Scryer-compatible arithmetic helpers and rational-form conversion |
 | `library(assoc)` | `empty_assoc/1`, `assoc_to_keys/2`, `assoc_to_list/2`, `assoc_to_values/2`, `del_assoc/4`, `del_max_assoc/4`, `del_min_assoc/4`, `gen_assoc/3`, `get_assoc/3`, `get_assoc/5`, `is_assoc/1`, `list_to_assoc/2`, `map_assoc/2`, `map_assoc/3`, `max_assoc/3`, `min_assoc/3`, `ord_list_to_assoc/2`, `put_assoc/4` | AVL association trees; reused from the shared portable source |
 | `library(atts)` | `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, `call_residue_vars/2` | Attributed variables |
@@ -6406,26 +6406,26 @@ bindings make one aligned subterm pair sufficient. For example:
 | `library(dcgs)` | `-->/2`, `.../2`, `phrase/2`, `phrase/3`, `phrase/4`, `phrase/5`, `seq/3`, `seqq/3` | Full Scryer DCG export surface; nonterminals are shown at their expanded arities |
 | `library(debug)` | `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2` | Declarative debug operators plus compatibility re-exports of the canonical `iso_ext` blackboard |
 | `library(dif)` | `dif/2` | Common module facade over native delayed disequality |
-| `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `call_with_error_context/2` | Error checking and construction |
+| `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `resource_error/2`, `call_with_error_context/2` | Error checking and construction |
 | `library(eyelet)` | `stable/1`, `becomes/2` | Eyelet forward-reasoning driver and state helpers; the `:+` operator is exported by the module and its fixed point is implemented in Prolog |
 | `library(files)` | `delete_directory/1`, `delete_file/1`, `directory_exists/1`, `directory_files/2`, `file_access_time/2`, `file_copy/2`, `file_creation_time/2`, `file_exists/1`, `file_modification_time/2`, `file_size/2`, `make_directory/1`, `make_directory_path/1`, `path_canonical/2`, `path_segments/2`, `rename_file/2`, `working_directory/2` | Full Scryer filesystem surface backed by the Node host where filesystem access is required |
 | `library(format)` | `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2` | Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals |
-| `library(freeze)` | `freeze/2` | Delayed goals |
+| `library(freeze)` | `freeze/2`, `frozen/2` | Delayed goals and residual suspension inspection |
 | `library(gensym)` | `gensym/2`, `reset_gensym/1` | Process-local generated atoms |
 | `library(iso_ext)` | `bb_b_put/2`, `bb_get/2`, `bb_put/2`, `call_cleanup/2`, `call_nth/2`, `call_residue_vars/2`, `call_with_inference_limit/3`, `cfor/3`, `copy_term/3`, `copy_term_nat/2`, `countall/2`, `findall/4`, `forall/2`, `partial_string/1`, `partial_string/3`, `partial_string_tail/2`, `setup_call_cleanup/3`, `succ/2`, `time/1`, `variant/2` | Scryer ISO extensions plus EyeProlog compatibility helpers |
 | `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` | Higher-order lambda notation |
-| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `maplist/9`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`, `permutation/2`, `transpose/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` | List relations and shared matrix/permutation helpers |
+| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `selectchk/3`, `subtract/3`, `union/3`, `intersection/3`, `is_set/1`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `include/3`, `exclude/3`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `maplist/9`, `tasklist/2`, `tasklist/3`, `tasklist/4`, `tasklist/5`, `tasklist/6`, `tasklist/7`, `tasklist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`, `permutation/2`, `transpose/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` | List relations and shared matrix/permutation helpers; `tasklist/*` is a sequential compatibility fallback |
 | `library(ordsets)` | `is_ordset/1`, `list_to_ord_set/2`, `ord_add_element/3`, `ord_del_element/3`, `ord_disjoint/2`, `ord_empty/1`, `ord_intersect/2`, `ord_intersect/3`, `ord_intersection/2`, `ord_intersection/3`, `ord_intersection/4`, `ord_memberchk/2`, `ord_selectchk/3`, `ord_seteq/2`, `ord_subset/2`, `ord_subtract/3`, `ord_symdiff/3`, `ord_union/2`, `ord_union/3`, `ord_union/4` | Ordered-set relations; reused upstream source |
 | `library(os)` | `argv/1`, `getenv/2`, `pid/1`, `raw_argv/1`, `setenv/2`, `shell/1`, `shell/2`, `unsetenv/1` | Environment, shell, PID, and command-line access backed by the Node host |
 | `library(pairs)` | `pairs_keys_values/3`, `pairs_keys/2`, `pairs_values/2`, `group_pairs_by_key/2`, `map_list_to_pairs/3` | Key-value pair support |
 | `library(pio)` | `phrase_from_file/2`, `phrase_from_file/3`, `phrase_from_stream/2`, `phrase_to_file/2`, `phrase_to_file/3`, `phrase_to_stream/2` | Scryer-compatible eager DCG file/stream I/O with character-list and atom paths |
 | `library(primes)` | `smallest_divisor_from/3` | Prime factor support |
 | `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` | Legacy facade over canonical focused modules |
-| `library(random)` | `maybe/0`, `random/1`, `random/3`, `random_integer/3`, `set_random/1` | Common mutable-seed interface plus EyeProlog's pure state-threaded generator |
+| `library(random)` | `maybe/0`, `maybe/1`, `maybe/2`, `random/1`, `random/3`, `random_integer/3`, `set_random/1` | Trealla-compatible probability helpers plus the common mutable-seed interface and EyeProlog's pure state-threaded generator |
 | `library(reif)` | `,/3`, `;/3`, `=/3`, `cond_t/3`, `dif/3`, `if_/3`, `memberd_t/3`, `tfilter/3`, `tmember/2`, `tmember_t/3`, `tpartition/4` | Reified conditions and list filtering; reused upstream source |
 | `library(si)` | `atom_si/1`, `integer_si/1`, `atomic_si/1`, `list_si/1`, `character_si/1`, `term_si/1`, `chars_si/1`, `dif_si/2`, `not_si/1`, `when_si/2` | Sufficient-instantiation checks used by CLP(Z) |
 | `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` | Text relations |
-| `library(tabling)` | `abolish_all_tables/0`, `start_tabling/2` | Common helpers for explicitly declared tabling |
+| `library(tabling)` | `abolish_all_tables/0`, `abolish_table/1`, `start_tabling/2` | Common helpers for explicitly declared tabling, including targeted invalidation |
 | `library(terms)` | `numbervars/3`, `copy_term_nat/2` | Term operations used by bundled libraries |
 | `library(time)` | `current_time/1`, `format_time/4`, `max_sleep_time/1`, `sleep/1`, `statistics/2`, `time/1` | Clock timestamps, sleep limits, timing/statistics, and the expanded `format_time//2` nonterminal |
 | `library(ugraphs)` | `add_edges/3`, `add_vertices/3`, `complement/2`, `compose/3`, `connect_ugraph/3`, `del_edges/3`, `del_vertices/3`, `edges/2`, `neighbors/3`, `neighbours/3`, `reachable/3`, `top_sort/2`, `top_sort/3`, `transitive_closure/2`, `transpose_ugraph/2`, `ugraph_union/3`, `vertices/2`, `vertices_edges_to_ugraph/3` | Directed graph relations; reused upstream source |
@@ -6462,7 +6462,13 @@ narrower than either implementation's union of exports; EyeProlog's explicit-sta
 interfaces. Separately, all 32 bundled EyeProlog modules whose basenames overlap
 Scryer's current `src/lib/` tree are checked against the frozen export snapshot in
 `test/scryer-library-exports.json` and cover the corresponding Scryer public
-predicate surface.
+predicate surface. The same structural check is now applied to Trealla: the 26
+bundled modules that have public-module counterparts in Trealla `library/` cover
+Trealla's exported predicates at pinned upstream commit
+`f7a93bd521c07a4841f5123348111dd005918c89`, recorded in
+`test/trealla-library-exports.json`. This is module-overlap coverage, not a claim
+that EyeProlog bundles Trealla's native host libraries such as `curl`, `gsl`,
+`janus`, `raylib`, `socket`, or `sqlite3`.
 
 Source reuse is preferred over translation. `clpb.pl`, `ordsets.pl`,
 `reif.pl`, and `ugraphs.pl` retain the upstream Prolog algorithms and license
@@ -6476,7 +6482,12 @@ compatibility. `files.pl` covers Scryer's complete filesystem export surface,
 while `os.pl` covers its environment/shell process-context surface. Their actual
 filesystem and OS side effects are isolated in module-owned Node adapters.
 `crypto.pl` exposes Scryer's complete public crypto surface; its strict Trealla/Scryer overlap is `hex_bytes/2`,
-`crypto_n_random_bytes/2`, and `crypto_data_hash/3`. The
+`crypto_n_random_bytes/2`, and `crypto_data_hash/3`. Trealla-specific overlap additions include `aggregate_all/3` and
+`aggregate/3`, `frozen/2`, the set/filter/list helpers and `tasklist/2-8`,
+`maybe/1-2`, `resource_error/2`, and `abolish_table/1`. Because EyeProlog has no
+Trealla task scheduler, `tasklist/2-8` deliberately executes sequentially with
+`maplist`-equivalent success/failure semantics; it does not promise Trealla's
+parallel scheduling behavior. The
 [portable library overlap example](https://github.com/eyereasoner/eyeprolog/blob/main/examples/portable-library-overlap.pl)
 composes Boolean constraints, ordered sets, graphs, reification, delayed goals,
 generated names, character conversion, transposition, and explicit table

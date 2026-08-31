@@ -6493,7 +6493,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 215, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 216, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(registry.get('eyeprolog__dynify', 1), null, 'Eyelet dynify adapter is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__dynify', 1)), true, 'Eyelet dynify adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__eyelet_emit', 2), null, 'Eyelet event adapter is absent from the ISO registry');
@@ -6517,7 +6517,7 @@ answer(ok) :-
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
         assertEqual(registeredNativeEyePrologLibraryNames().length, 109, 'public host-supported EyeProlog library count');
-        assertEqual(eyePrologPortableLibraryIndicators.length, 259, 'portable Prolog library count');
+        assertEqual(eyePrologPortableLibraryIndicators.length, 280, 'portable Prolog library count');
         assertEqual(eyePrologInteropLibraryIndicators.length, 218, 'cross-implementation interop profile count');
         assertEqual(eyePrologInteropLibraryModules.length, 26, 'common explicit library module profile count');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
@@ -6535,7 +6535,7 @@ answer(ok) :-
         assertEqual(eyePrologNativeLibraryIndicators.length, 109, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.includes('call_nth/2'), true, 'call_nth/2 remains classified as host-supported');
         assertEqual(eyePrologNativeLibraryIndicators.includes('random/1'), true, 'stateful random/1 is classified as host-supported');
-        assertEqual(eyePrologLibraryIndicators.length, 368, 'complete non-ISO EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 389, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');
@@ -6586,6 +6586,51 @@ answer(ok) :-
         assertEqual(fs.existsSync(path.join(packageRoot, 'src', 'portable-library.js')), false, 'obsolete duplicate module remains absent');
         assertEqual(run(program, { goal: 'answer(X)' }).stdout, 'answer("ab").\n', 'imported append execution');
         assertEqual(program.findGroup('random', 3)?.module, 'random', 'random/3 is imported from library(random)');
+      },
+    },
+    {
+      name: 'Trealla library overlap predicates execute with EyeProlog semantics',
+      run: () => {
+        const program = Program.parse(`
+:- use_module(library(aggregate)).
+:- use_module(library(error)).
+:- use_module(library(freeze)).
+:- use_module(library(lists)).
+:- use_module(library(random)).
+:- use_module(library(tabling)).
+
+positive(X) :- X > 0.
+inc(X, Y) :- Y is X + 1.
+
+:- dynamic(edge/2).
+:- table(path/2).
+path(X, Y) :- edge(X, Y).
+path(X, Z) :- edge(X, Y), path(Y, Z).
+
+trealla_overlap_probe :-
+    aggregate_all(count, member(_, [a,b,c]), 3),
+    aggregate_all(sum(X), member(X, [1,2,3]), 6),
+    aggregate_all(bag(X), member(X, [a,b]), [a,b]),
+    aggregate_all(set(X), member(X, [b,a,b]), [a,b]),
+    aggregate(sum(X), member(K-X, [a-1,a-2,b-3]), 3), K = a,
+    aggregate(sum(Y), J^member(J-Y, [a-1,a-2,b-3]), 6),
+    selectchk(b, [a,b,c], [a,c]),
+    subtract([a,b,a,c], [a], [b,c]),
+    union([a,b], [b,c], [a,b,c]),
+    intersection([a,b,c], [b,d,c], [b,c]),
+    is_set([a,b,c]), \\+ is_set([a,a]),
+    include(positive, [-1,2,0,3], [2,3]),
+    exclude(positive, [-1,2,0,3], [-1,0]),
+    tasklist(inc, [1,2,3], [2,3,4]),
+    maybe(1.0), maybe(1, 1),
+    freeze(F, true), frozen(F, Frozen), Frozen \\== true, F = ready,
+    catch(resource_error(memory, context), error(resource_error(memory), context), true),
+    assertz(edge(a,b)), path(a,b),
+    retract(edge(a,b)), assertz(edge(a,c)),
+    abolish_table(path/2), \\+ path(a,b), path(a,c),
+    catch(abolish_table(missing/1), error(existence_error(table, missing/1), abolish_table/1), true).
+`);
+        assertEqual(run(program, { goal: 'trealla_overlap_probe' }).stdout, 'trealla_overlap_probe.\n', 'Trealla overlap execution');
       },
     },
     {

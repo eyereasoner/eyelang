@@ -11,6 +11,7 @@
     type_error/3,
     representation_error/1,
     resource_error/1,
+    resource_error/2,
     call_with_error_context/2
 ]).
 
@@ -118,6 +119,7 @@ type_error(Type, Term) :- throw(error(type_error(Type, Term), [])).
 type_error(Type, Term, Context) :- throw(error(type_error(Type, Term), Context)).
 representation_error(Flag) :- throw(error(representation_error(Flag), [])).
 resource_error(Resource) :- throw(error(resource_error(Resource), [])).
+resource_error(Resource, Context) :- throw(error(resource_error(Resource), Context)).
 
 call_with_error_context(Goal, Pair) :-
     catch(Goal, error(Error, Context), throw(error(Error, [Pair|Context]))).

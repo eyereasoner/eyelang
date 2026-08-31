@@ -1,8 +1,9 @@
-/** Attributed-variable implementation of Scryer-compatible freeze/2. */
+/** Attributed-variable freeze/2 plus Trealla-compatible frozen/2 inspection. */
 
-:- module(freeze, [freeze/2]).
+:- module(freeze, [freeze/2, frozen/2]).
 
 :- use_module(library(atts)).
+:- use_module(library(iso_ext), [copy_term/3]).
 :- meta_predicate(freeze(-, 0)).
 :- attribute frozen/1.
 
@@ -26,6 +27,23 @@ verify_attributes(_, _, []).
 freeze(X, Goal) :-
     put_atts(Fresh, frozen(frozen_goal(Goal))),
     Fresh = X.
+
+% Trealla-compatible frozen/2.  copy_term/3 already projects both native and
+% Prolog-defined attributed-variable residual goals.  Re-unifying the fresh
+% structural copy aliases those projected variables back to Term without
+% instantiating them, so Goal describes the suspensions on the original term.
+frozen(Term, Goal) :-
+    copy_term(Term, Copy, Goals),
+    Term = Copy,
+    freeze__goals_conjunction(Goals, Goal).
+
+freeze__goals_conjunction([], true).
+freeze__goals_conjunction([Goal|Goals], Conjunction) :-
+    freeze__goals_conjunction_(Goals, Goal, Conjunction).
+
+freeze__goals_conjunction_([], Goal, Goal).
+freeze__goals_conjunction_([Goal|Goals], Acc, Conjunction) :-
+    freeze__goals_conjunction_(Goals, (Acc, Goal), Conjunction).
 
 frozen_goals(Frozen, Goals) :-
     frozen_goals(Frozen, Goals, []).

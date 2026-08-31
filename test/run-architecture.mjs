@@ -57,6 +57,23 @@ export function runArchitecture(reporter = new TestReporter()) {
     }
     if (issues.length > 0) throw new Error(issues.join('\n'));
   });
+  reporter.test('overlapping bundled libraries cover the pinned Trealla export surface', () => {
+    const snapshotPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'trealla-library-exports.json');
+    const expected = JSON.parse(fs.readFileSync(snapshotPath, 'utf8'));
+    const issues = [];
+    for (const [module, indicators] of Object.entries(expected)) {
+      const file = path.join(ROOT, 'lib', `${module}.pl`);
+      if (!fs.existsSync(file)) {
+        issues.push(`missing src/lib/${module}.pl`);
+        continue;
+      }
+      const actual = new Set(moduleExportIndicators(fs.readFileSync(file, 'utf8'), `src/lib/${module}.pl`));
+      for (const indicator of indicators) {
+        if (!actual.has(indicator)) issues.push(`${module}: missing Trealla export ${indicator}`);
+      }
+    }
+    if (issues.length > 0) throw new Error(issues.join('\n'));
+  });
   reporter.test('legacy grab-bag library host files are absent', () => {
     for (const name of ['library-host.js', 'scryer-compat.js']) {
       if (fs.existsSync(path.join(ROOT, name))) throw new Error(`${name} must stay split into module-owned hosts`);

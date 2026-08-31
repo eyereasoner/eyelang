@@ -4,6 +4,11 @@
     member/2,
     memberchk/2,
     select/3,
+    selectchk/3,
+    subtract/3,
+    union/3,
+    intersection/3,
+    is_set/1,
     append/2,
     append/3,
     last/2,
@@ -14,6 +19,8 @@
     nth1/4,
     reverse/2,
     length/2,
+    exclude/3,
+    include/3,
     maplist/2,
     maplist/3,
     maplist/4,
@@ -22,6 +29,13 @@
     maplist/7,
     maplist/8,
     maplist/9,
+    tasklist/2,
+    tasklist/3,
+    tasklist/4,
+    tasklist/5,
+    tasklist/6,
+    tasklist/7,
+    tasklist/8,
     foldl/4,
     foldl/5,
     foldl/6,
@@ -50,6 +64,16 @@
 :- meta_predicate(foldl(3, '?', '?', '?')).
 :- meta_predicate(foldl(4, '?', '?', '?', '?')).
 :- meta_predicate(foldl(5, '?', '?', '?', '?', '?')).
+:- meta_predicate(include(1, '?', '?')).
+:- meta_predicate(exclude(1, '?', '?')).
+:- meta_predicate(tasklist(1, '?')).
+:- meta_predicate(tasklist(2, '?', '?')).
+:- meta_predicate(tasklist(3, '?', '?', '?')).
+:- meta_predicate(tasklist(4, '?', '?', '?', '?')).
+:- meta_predicate(tasklist(5, '?', '?', '?', '?', '?')).
+:- meta_predicate(tasklist(6, '?', '?', '?', '?', '?', '?')).
+:- meta_predicate(tasklist(7, '?', '?', '?', '?', '?', '?', '?')).
+
 
 % Common pure-Prolog library predicates for EyeProlog.
 %
@@ -99,6 +123,27 @@ maplist(Closure, [A|As], [B|Bs], [C|Cs], [D|Ds], [E|Es], [F|Fs], [G|Gs], [H|Hs])
     eyeprolog__call8(Closure, A, B, C, D, E, F, G, H),
     maplist(Closure, As, Bs, Cs, Ds, Es, Fs, Gs, Hs).
 
+include(_, [], []).
+include(Predicate, [X|Xs], Included) :-
+    ( call(Predicate, X) -> Included = [X|Rest] ; Included = Rest ),
+    include(Predicate, Xs, Rest).
+
+exclude(_, [], []).
+exclude(Predicate, [X|Xs], Excluded) :-
+    ( call(Predicate, X) -> Excluded = Rest ; Excluded = [X|Rest] ),
+    exclude(Predicate, Xs, Rest).
+
+% Trealla runs tasklist/* items through its task scheduler.  EyeProlog has no
+% task scheduler, so the compatibility surface deliberately uses deterministic
+% sequential maplist semantics while preserving solutions and failures.
+tasklist(Goal, A) :- maplist(Goal, A).
+tasklist(Goal, A, B) :- maplist(Goal, A, B).
+tasklist(Goal, A, B, C) :- maplist(Goal, A, B, C).
+tasklist(Goal, A, B, C, D) :- maplist(Goal, A, B, C, D).
+tasklist(Goal, A, B, C, D, E) :- maplist(Goal, A, B, C, D, E).
+tasklist(Goal, A, B, C, D, E, F) :- maplist(Goal, A, B, C, D, E, F).
+tasklist(Goal, A, B, C, D, E, F, G) :- maplist(Goal, A, B, C, D, E, F, G).
+
 append([], []).
 append([Xs|Xss], Ys) :-
     append(Xs, Rest, Ys),
@@ -114,6 +159,25 @@ memberchk(X, Xs) :- member(X, Xs), !.
 
 select(X, [X|Xs], Xs).
 select(X, [Y|Ys], [Y|Zs]) :- select(X, Ys, Zs).
+
+selectchk(X, Xs, Rest) :- select(X, Xs, Rest), !.
+
+subtract([], _, []) :- !.
+subtract([X|Xs], Ys, Rest) :- memberchk(X, Ys), !, subtract(Xs, Ys, Rest).
+subtract([X|Xs], Ys, [X|Rest]) :- subtract(Xs, Ys, Rest).
+
+union([], Ys, Ys).
+union([X|Xs], Ys, Union) :- member(X, Ys), !, union(Xs, Ys, Union).
+union([X|Xs], Ys, [X|Union]) :- union(Xs, Ys, Union).
+
+intersection([], _, []).
+intersection([X|Xs], Ys, [X|Intersection]) :- member(X, Ys), !, intersection(Xs, Ys, Intersection).
+intersection([_|Xs], Ys, Intersection) :- intersection(Xs, Ys, Intersection).
+
+is_set(Set) :-
+    sort(Set, Sorted),
+    length(Set, Length),
+    length(Sorted, Length).
 
 last([X], X).
 last([_|Xs], X) :- last(Xs, X).
