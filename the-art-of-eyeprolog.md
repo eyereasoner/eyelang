@@ -3147,7 +3147,12 @@ Before replacing one definition with another, record:
 
 Then compare both versions. `--stats` can show fewer calls or unifications, but
 performance evidence comes after semantic evidence. A faster program that
-silently drops a mode is a different program.
+silently drops a mode is a different program. Predicate and inference counts are
+also not reliable substitutes for elapsed time: one expensive host call can cost
+more than thousands of cheap Prolog calls. Repository-level performance work
+therefore uses `npm run benchmark`, which measures median wall-clock parse+execute
+time over representative workloads and rejects any run whose answer checksum no
+longer matches the committed result.
 
 **Exercises.**
 
@@ -7857,6 +7862,30 @@ with:
 ```sh
 npm test
 ```
+
+Performance is checked separately so ordinary correctness tests stay deterministic
+and fast:
+
+```sh
+npm run benchmark
+npm run benchmark:baseline
+```
+
+The benchmark suite contains 20 representative workloads and stores their
+semantic output digests in the repository, while wall-clock baselines remain
+machine-local under `.benchmarks/` because absolute timings are machine-specific.
+Each benchmark runs in its own fresh Node worker. Inside that worker, one untimed
+execution primes parser, module, and JIT state; short workloads are then repeated
+with independent `run()` calls until a batch is roughly 400 ms long. After one
+warm-up batch, five measured batches are reported as milliseconds per workload
+execution. Naturally long workloads keep a batch size of one.
+
+The report shows the median, per-operation range, chosen batch size, saved
+baseline median, and the percentage change between the current median and baseline
+median. The range remains visible as context, but it does not suppress or reinterpret
+the median-to-median comparison. Older unbatched baseline files are ignored with a
+request to regenerate them. This keeps the rule simple: unchanged answers first,
+sufficiently long wall-clock samples second, and direct median-versus-median change.
 
 When adding an example:
 

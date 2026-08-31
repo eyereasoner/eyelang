@@ -88,3 +88,10 @@ retains the same data structures and selection functions.
 Large solver fast paths deliberately remain co-located in `solver.js` until a
 split can demonstrate benchmark parity.  A cleaner file layout is not worth a
 runtime regression.
+
+Performance claims use the wall-clock workloads in `test/bench/`, not predicate,
+inference, or host-call counts as a substitute for elapsed time. Each benchmark
+runs in its own Node process, warms the engine before measured parse+execute
+runs, reports the median, and verifies a committed output SHA-256 before its
+timing is accepted. Machine-specific timing baselines live under `.benchmarks/`
+and are intentionally not versioned.

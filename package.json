@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.5.10",
+  "version": "1.5.11",
   "description": "EyeProlog turns facts and rules into answers and proofs.",
   "type": "module",
   "main": "./index.js",
@@ -66,6 +66,9 @@
     "report:wg17-syntax": "node tools/report-wg17-syntax-coverage.mjs",
     "preversion": "npm test && node test/run-conformance-report.mjs conformance-report.md",
     "postversion": "git push origin HEAD --follow-tags",
-    "test:architecture": "node test/run-architecture.mjs"
+    "test:architecture": "node test/run-architecture.mjs",
+    "benchmark": "node test/benchmark.mjs",
+    "benchmark:baseline": "node test/benchmark.mjs --save .benchmarks/baseline.json",
+    "test:benchmark": "node test/run-benchmark-tests.mjs"
   }
 }
