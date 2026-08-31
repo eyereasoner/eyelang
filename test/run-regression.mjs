@@ -4794,6 +4794,12 @@ function documentationSyncCases() {
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'predicate reference is up to date (518 predicates)', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
+
+        const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
+        const section = between(book, '<!-- eyeprolog-predicate-reference:start -->', '<!-- eyeprolog-predicate-reference:end -->');
+        assertEqual(section.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'predicate reference avoids Markdown tables and horizontal overflow');
+        assertEqual((section.match(/^- \*\*`/gm) ?? []).length, 518, 'one stacked reference entry per predicate');
+        assertIncludes(section, 'wrap naturally on narrow screens without horizontal scrolling', 'responsive predicate reference layout');
       },
     },
     {

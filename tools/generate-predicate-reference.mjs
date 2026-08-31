@@ -117,12 +117,6 @@ function validateMetadata(data, surface) {
   return { issues, byIndicator };
 }
 
-function escapeCell(value) {
-  return String(value)
-    .replace(/\|/g, '\\|')
-    .replace(/\r?\n/g, ' ');
-}
-
 function code(value) {
   const text = String(value);
   const fence = text.includes('`') ? '``' : '`';
@@ -157,10 +151,11 @@ function renderSection(byIndicator, surface) {
       `${surface.core.size} core registry indicators plus ${surface.library.size} bundled-library indicators, with ` +
       '`phrase/2` and `phrase/3` present in both layers and therefore counted once.',
     '',
-    'Each row is a compact contract. `+` marks a principal input, `-` a principal output, and `?` an argument that may be supplied or produced. ' +
-      'These are documented operating modes rather than parser-enforced mode declarations. The **Solutions** column uses `det`, `semidet`, `multi`, `nondet`, `delayed`, `meta`, `mode-dependent`, `declaration`, or `terminal`; `meta` means the solution behavior depends materially on a called goal.',
+    'Each entry is a compact contract. `+` marks a principal input, `-` a principal output, and `?` an argument that may be supplied or produced. ' +
+      'These are documented operating modes rather than parser-enforced mode declarations. **Solutions** uses `det`, `semidet`, `multi`, `nondet`, `delayed`, `meta`, `mode-dependent`, `declaration`, or `terminal`; `meta` means the solution behavior depends materially on a called goal.',
     '',
-    'The generated table is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.',
+    'The reference uses stacked entries instead of wide Markdown tables, so principal calls and contracts wrap naturally on narrow screens without horizontal scrolling. ' +
+      'It is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.',
     '',
     keys.map((key) => `[${key}](#predicate-reference-${key.toLowerCase()})`).join(' · '),
     '',
@@ -169,10 +164,10 @@ function renderSection(byIndicator, surface) {
   for (const key of keys) {
     lines.push(`##### Predicate reference — ${key}`);
     lines.push('');
-    lines.push('| Indicator | Origin | Principal call | Solutions | Contract |');
-    lines.push('| --- | --- | --- | --- | --- |');
     for (const entry of groups.get(key)) {
-      lines.push(`| ${code(escapeCell(entry.indicator))} | ${code(escapeCell(entry.origin))} | ${code(escapeCell(entry.call))} | ${code(escapeCell(entry.solutions))} | ${escapeCell(entry.contract)} |`);
+      lines.push(`- **${code(entry.indicator)}** — ${code(entry.origin)} · **${code(entry.solutions)}**  `);
+      lines.push(`  **Call:** ${code(entry.call)}  `);
+      lines.push(`  **Contract:** ${entry.contract}`);
     }
     lines.push('');
   }

@@ -6440,649 +6440,1637 @@ bindings make one aligned subterm pair sufficient. For example:
 
 This generated reference covers all **518 distinct predicate indicators** in the normal EyeProlog surface: 129 core registry indicators plus 391 bundled-library indicators, with `phrase/2` and `phrase/3` present in both layers and therefore counted once.
 
-Each row is a compact contract. `+` marks a principal input, `-` a principal output, and `?` an argument that may be supplied or produced. These are documented operating modes rather than parser-enforced mode declarations. The **Solutions** column uses `det`, `semidet`, `multi`, `nondet`, `delayed`, `meta`, `mode-dependent`, `declaration`, or `terminal`; `meta` means the solution behavior depends materially on a called goal.
+Each entry is a compact contract. `+` marks a principal input, `-` a principal output, and `?` an argument that may be supplied or produced. These are documented operating modes rather than parser-enforced mode declarations. **Solutions** uses `det`, `semidet`, `multi`, `nondet`, `delayed`, `meta`, `mode-dependent`, `declaration`, or `terminal`; `meta` means the solution behavior depends materially on a called goal.
 
-The generated table is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.
+The reference uses stacked entries instead of wide Markdown tables, so principal calls and contracts wrap naturally on narrow screens without horizontal scrolling. It is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.
 
 [Symbols](#predicate-reference-symbols) · [A](#predicate-reference-a) · [B](#predicate-reference-b) · [C](#predicate-reference-c) · [D](#predicate-reference-d) · [E](#predicate-reference-e) · [F](#predicate-reference-f) · [G](#predicate-reference-g) · [H](#predicate-reference-h) · [I](#predicate-reference-i) · [J](#predicate-reference-j) · [K](#predicate-reference-k) · [L](#predicate-reference-l) · [M](#predicate-reference-m) · [N](#predicate-reference-n) · [O](#predicate-reference-o) · [P](#predicate-reference-p) · [R](#predicate-reference-r) · [S](#predicate-reference-s) · [T](#predicate-reference-t) · [U](#predicate-reference-u) · [V](#predicate-reference-v) · [W](#predicate-reference-w) · [Z](#predicate-reference-z)
 
 ##### Predicate reference — Symbols
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `-->/2` | `library(dcgs)` | `(?Head --> ?Body)` | `declaration` | Represents a definite-clause grammar rule; program preparation expands it to an ordinary predicate with two extra list arguments. |
-| `->/2` | `ISO core` | `(+If -> +Then)` | `meta` | Commits to the first solution of If and then calls Then. |
-| `,/3` | `library(reif)` | `,(?A,?B,?Truth)` | `delayed` | Reifies conjunction: Truth describes whether both reified conditions A and B hold. |
-| `;/2` | `ISO core` | `(?Left ; ?Right)` | `nondet` | Enumerates solutions of Left and then Right, with ISO if-then-else behavior when Left is an ->/2 term. |
-| `;/3` | `library(reif)` | `;(?A,?B,?Truth)` | `delayed` | Reifies disjunction: Truth describes whether either reified condition A or B holds. |
-| `!/0` | `ISO core` | `!` | `det` | Commits to choices made since entry into the current predicate invocation. |
-| `.../2` | `library(dcgs)` | `...(?Input,?Rest)` | `nondet` | DCG nonterminal matching an arbitrary finite number of input elements and relating Rest to the remaining suffix. |
-| `@</2` | `ISO core` | `(?Left @< ?Right)` | `semidet` | Succeeds iff Left precedes Right in standard term order. |
-| `@=</2` | `ISO core` | `(?Left @=< ?Right)` | `semidet` | Succeeds iff Left precedes or is identical to Right in standard term order. |
-| `@>/2` | `ISO core` | `(?Left @> ?Right)` | `semidet` | Succeeds iff Left follows Right in standard term order. |
-| `@>=/2` | `ISO core` | `(?Left @>= ?Right)` | `semidet` | Succeeds iff Left follows or is identical to Right in standard term order. |
-| `*/1` | `library(debug)` | `*(+Goal)` | `meta` | Debug operator that invokes the documented tracing/portray behavior for Goal. |
-| `\/1` | `library(lambda)` | `\(+Closure)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\/2` | `library(lambda)` | `\(+Closure,?Arg1)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\/3` | `library(lambda)` | `\(+Closure,?Arg1,?Arg2)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\/4` | `library(lambda)` | `\(+Closure,?Arg1,?Arg2,?Arg3)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\/5` | `library(lambda)` | `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\/6` | `library(lambda)` | `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\/7` | `library(lambda)` | `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\/8` | `library(lambda)` | `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)` | `meta` | Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments. |
-| `\+/1` | `ISO core` | `\+(+Goal)` | `semidet` | Succeeds iff Goal has no solution; bindings made while testing Goal are discarded. |
-| `\=/2` | `ISO core` | `(?Left \= ?Right)` | `semidet` | Succeeds iff Left and Right cannot unify at call time. |
-| `\==/2` | `ISO core` | `(?Left \== ?Right)` | `semidet` | Succeeds iff Left and Right are not identical terms. |
-| `#/\/2` | `library(clpz)` | `#/\(?Left,?Right)` | `delayed` | Reifies Boolean conjunction of CLP(Z) propositions. |
-| `#\//2` | `library(clpz)` | `#\/(?Left,?Right)` | `delayed` | Reifies Boolean disjunction of CLP(Z) propositions. |
-| `#\/1` | `library(clpz)` | `#\(?Expr)` | `delayed` | Posts the reified negation of a CLP(Z) proposition. |
-| `#\/2` | `library(clpz)` | `#\(?Left,?Right)` | `delayed` | Reifies exclusive disjunction of CLP(Z) propositions. |
-| `#\=/2` | `library(clpz)` | `#\=(?Left,?Right)` | `delayed` | Constrains two integer expressions to be unequal. |
-| `#</2` | `library(clpz)` | `#<(?Left,?Right)` | `delayed` | Constrains the left integer expression to be less than the right. |
-| `#</3` | `library(clpz)` | `#<(?A,?B,?Truth)` | `delayed` | Reifies the CLP(Z) relation #</2 into Truth, used by reification helpers. |
-| `#<==/2` | `library(clpz)` | `#<==(?Left,?Right)` | `delayed` | Reifies reverse logical implication between CLP(Z) propositions. |
-| `#<==>/2` | `library(clpz)` | `#<==>(?Left,?Right)` | `delayed` | Reifies logical equivalence between CLP(Z) propositions. |
-| `#=/2` | `library(clpz)` | `#=(?Left,?Right)` | `delayed` | Constrains two integer expressions to be equal. |
-| `#=/3` | `library(clpz)` | `#=(?A,?B,?Truth)` | `delayed` | Reifies the CLP(Z) relation #=/2 into Truth, used by reification helpers. |
-| `#=</2` | `library(clpz)` | `#=<(?Left,?Right)` | `delayed` | Constrains the left integer expression to be at most the right. |
-| `#==>/2` | `library(clpz)` | `#==>(?Left,?Right)` | `delayed` | Reifies logical implication between CLP(Z) propositions. |
-| `#>/2` | `library(clpz)` | `#>(?Left,?Right)` | `delayed` | Constrains the left integer expression to be greater than the right. |
-| `#>=/2` | `library(clpz)` | `#>=(?Left,?Right)` | `delayed` | Constrains the left integer expression to be at least the right. |
-| `^/10` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7,?Arg8)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `^/3` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `^/4` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1,?Arg2)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `^/5` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `^/6` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `^/7` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `^/8` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `^/9` | `library(lambda)` | `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)` | `meta` | Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments. |
-| `+\/2` | `library(lambda)` | `+\(?Free,+Closure)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `+\/3` | `library(lambda)` | `+\(?Free,+Closure,?Arg1)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `+\/4` | `library(lambda)` | `+\(?Free,+Closure,?Arg1,?Arg2)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `+\/5` | `library(lambda)` | `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `+\/6` | `library(lambda)` | `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `+\/7` | `library(lambda)` | `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `+\/8` | `library(lambda)` | `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `+\/9` | `library(lambda)` | `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)` | `meta` | Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables. |
-| `</2` | `ISO core` | `(+Left < +Right)` | `semidet` | Succeeds iff the evaluated Left arithmetic expression is less than Right. |
-| `=:=/2` | `ISO core` | `(+Left =:= +Right)` | `semidet` | Succeeds iff the two evaluated arithmetic expressions are numerically equal. |
-| `=../2` | `ISO core` | `(?Term =.. ?List)` | `mode-dependent` | Relates a term to its nonempty list representation [Functor\|Arguments]. |
-| `=/2` | `ISO core` | `(?Left = ?Right)` | `semidet` | Succeeds iff Left and Right unify, returning their most general acyclic unifier. |
-| `=/3` | `library(reif)` | `=(?A,?B,?Truth)` | `delayed` | Reifies unifiability/equality of A and B into Boolean Truth. |
-| `=\=/2` | `ISO core` | `(+Left =\= +Right)` | `semidet` | Succeeds iff the two evaluated arithmetic expressions are numerically unequal. |
-| `=</2` | `ISO core` | `(+Left =< +Right)` | `semidet` | Succeeds iff the evaluated Left arithmetic expression is less than or equal to Right. |
-| `==/2` | `ISO core` | `(?Left == ?Right)` | `semidet` | Succeeds iff Left and Right are identical terms without performing unification. |
-| `>/2` | `ISO core` | `(+Left > +Right)` | `semidet` | Succeeds iff the evaluated Left arithmetic expression is greater than Right. |
-| `>=/2` | `ISO core` | `(+Left >= +Right)` | `semidet` | Succeeds iff the evaluated Left arithmetic expression is greater than or equal to Right. |
-| `$-/1` | `library(debug)` | `$-(+Goal)` | `meta` | Debug operator variant that runs Goal with the corresponding negative/disable diagnostic behavior. |
-| `$/1` | `library(debug)` | `$(+Goal)` | `meta` | Debug operator that runs Goal with the module's enabled diagnostic behavior. |
+- **`-->/2`** — `library(dcgs)` · **`declaration`**  
+  **Call:** `(?Head --> ?Body)`  
+  **Contract:** Represents a definite-clause grammar rule; program preparation expands it to an ordinary predicate with two extra list arguments.
+- **`->/2`** — `ISO core` · **`meta`**  
+  **Call:** `(+If -> +Then)`  
+  **Contract:** Commits to the first solution of If and then calls Then.
+- **`,/3`** — `library(reif)` · **`delayed`**  
+  **Call:** `,(?A,?B,?Truth)`  
+  **Contract:** Reifies conjunction: Truth describes whether both reified conditions A and B hold.
+- **`;/2`** — `ISO core` · **`nondet`**  
+  **Call:** `(?Left ; ?Right)`  
+  **Contract:** Enumerates solutions of Left and then Right, with ISO if-then-else behavior when Left is an ->/2 term.
+- **`;/3`** — `library(reif)` · **`delayed`**  
+  **Call:** `;(?A,?B,?Truth)`  
+  **Contract:** Reifies disjunction: Truth describes whether either reified condition A or B holds.
+- **`!/0`** — `ISO core` · **`det`**  
+  **Call:** `!`  
+  **Contract:** Commits to choices made since entry into the current predicate invocation.
+- **`.../2`** — `library(dcgs)` · **`nondet`**  
+  **Call:** `...(?Input,?Rest)`  
+  **Contract:** DCG nonterminal matching an arbitrary finite number of input elements and relating Rest to the remaining suffix.
+- **`@</2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left @< ?Right)`  
+  **Contract:** Succeeds iff Left precedes Right in standard term order.
+- **`@=</2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left @=< ?Right)`  
+  **Contract:** Succeeds iff Left precedes or is identical to Right in standard term order.
+- **`@>/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left @> ?Right)`  
+  **Contract:** Succeeds iff Left follows Right in standard term order.
+- **`@>=/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left @>= ?Right)`  
+  **Contract:** Succeeds iff Left follows or is identical to Right in standard term order.
+- **`*/1`** — `library(debug)` · **`meta`**  
+  **Call:** `*(+Goal)`  
+  **Contract:** Debug operator that invokes the documented tracing/portray behavior for Goal.
+- **`\/1`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\/2`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure,?Arg1)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\/3`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure,?Arg1,?Arg2)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\/4`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure,?Arg1,?Arg2,?Arg3)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\/5`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\/6`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\/7`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\/8`** — `library(lambda)` · **`meta`**  
+  **Call:** `\(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)`  
+  **Contract:** Copies a lambda closure so non-shared variables are fresh for this invocation, then calls it with the supplied arguments.
+- **`\+/1`** — `ISO core` · **`semidet`**  
+  **Call:** `\+(+Goal)`  
+  **Contract:** Succeeds iff Goal has no solution; bindings made while testing Goal are discarded.
+- **`\=/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left \= ?Right)`  
+  **Contract:** Succeeds iff Left and Right cannot unify at call time.
+- **`\==/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left \== ?Right)`  
+  **Contract:** Succeeds iff Left and Right are not identical terms.
+- **`#/\/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#/\(?Left,?Right)`  
+  **Contract:** Reifies Boolean conjunction of CLP(Z) propositions.
+- **`#\//2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#\/(?Left,?Right)`  
+  **Contract:** Reifies Boolean disjunction of CLP(Z) propositions.
+- **`#\/1`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#\(?Expr)`  
+  **Contract:** Posts the reified negation of a CLP(Z) proposition.
+- **`#\/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#\(?Left,?Right)`  
+  **Contract:** Reifies exclusive disjunction of CLP(Z) propositions.
+- **`#\=/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#\=(?Left,?Right)`  
+  **Contract:** Constrains two integer expressions to be unequal.
+- **`#</2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#<(?Left,?Right)`  
+  **Contract:** Constrains the left integer expression to be less than the right.
+- **`#</3`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#<(?A,?B,?Truth)`  
+  **Contract:** Reifies the CLP(Z) relation #</2 into Truth, used by reification helpers.
+- **`#<==/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#<==(?Left,?Right)`  
+  **Contract:** Reifies reverse logical implication between CLP(Z) propositions.
+- **`#<==>/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#<==>(?Left,?Right)`  
+  **Contract:** Reifies logical equivalence between CLP(Z) propositions.
+- **`#=/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#=(?Left,?Right)`  
+  **Contract:** Constrains two integer expressions to be equal.
+- **`#=/3`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#=(?A,?B,?Truth)`  
+  **Contract:** Reifies the CLP(Z) relation #=/2 into Truth, used by reification helpers.
+- **`#=</2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#=<(?Left,?Right)`  
+  **Contract:** Constrains the left integer expression to be at most the right.
+- **`#==>/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#==>(?Left,?Right)`  
+  **Contract:** Reifies logical implication between CLP(Z) propositions.
+- **`#>/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#>(?Left,?Right)`  
+  **Contract:** Constrains the left integer expression to be greater than the right.
+- **`#>=/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `#>=(?Left,?Right)`  
+  **Contract:** Constrains the left integer expression to be at least the right.
+- **`^/10`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7,?Arg8)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`^/3`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`^/4`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1,?Arg2)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`^/5`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`^/6`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`^/7`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`^/8`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`^/9`** — `library(lambda)` · **`meta`**  
+  **Call:** `^(?Parameter,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)`  
+  **Contract:** Implements one stage of Scryer-compatible lambda parameter binding and calls the remaining closure with any supplied arguments.
+- **`+\/2`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`+\/3`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure,?Arg1)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`+\/4`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure,?Arg1,?Arg2)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`+\/5`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`+\/6`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`+\/7`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`+\/8`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`+\/9`** — `library(lambda)` · **`meta`**  
+  **Call:** `+\(?Free,+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)`  
+  **Contract:** Invokes a lambda closure while preserving variables explicitly listed in Free and refreshing other closure variables.
+- **`</2`** — `ISO core` · **`semidet`**  
+  **Call:** `(+Left < +Right)`  
+  **Contract:** Succeeds iff the evaluated Left arithmetic expression is less than Right.
+- **`=:=/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(+Left =:= +Right)`  
+  **Contract:** Succeeds iff the two evaluated arithmetic expressions are numerically equal.
+- **`=../2`** — `ISO core` · **`mode-dependent`**  
+  **Call:** `(?Term =.. ?List)`  
+  **Contract:** Relates a term to its nonempty list representation [Functor|Arguments].
+- **`=/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left = ?Right)`  
+  **Contract:** Succeeds iff Left and Right unify, returning their most general acyclic unifier.
+- **`=/3`** — `library(reif)` · **`delayed`**  
+  **Call:** `=(?A,?B,?Truth)`  
+  **Contract:** Reifies unifiability/equality of A and B into Boolean Truth.
+- **`=\=/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(+Left =\= +Right)`  
+  **Contract:** Succeeds iff the two evaluated arithmetic expressions are numerically unequal.
+- **`=</2`** — `ISO core` · **`semidet`**  
+  **Call:** `(+Left =< +Right)`  
+  **Contract:** Succeeds iff the evaluated Left arithmetic expression is less than or equal to Right.
+- **`==/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Left == ?Right)`  
+  **Contract:** Succeeds iff Left and Right are identical terms without performing unification.
+- **`>/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(+Left > +Right)`  
+  **Contract:** Succeeds iff the evaluated Left arithmetic expression is greater than Right.
+- **`>=/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(+Left >= +Right)`  
+  **Contract:** Succeeds iff the evaluated Left arithmetic expression is greater than or equal to Right.
+- **`$-/1`** — `library(debug)` · **`meta`**  
+  **Call:** `$-(+Goal)`  
+  **Contract:** Debug operator variant that runs Goal with the corresponding negative/disable diagnostic behavior.
+- **`$/1`** — `library(debug)` · **`meta`**  
+  **Call:** `$(+Goal)`  
+  **Contract:** Debug operator that runs Goal with the module's enabled diagnostic behavior.
 
 ##### Predicate reference — A
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `abolish_all_tables/0` | `library(tabling)` | `abolish_all_tables` | `det` | Clears all memoized reasoning tables maintained by EyeProlog. |
-| `abolish_table/1` | `library(tabling)` | `abolish_table(+PredicateSpec)` | `det` | Invalidates memoized table data for the specified tabled predicate or conjunction of predicate indicators. |
-| `abolish/1` | `ISO core` | `abolish(+NameArity)` | `det` | Removes the named dynamic procedure and all of its clauses. |
-| `acyclic_term/1` | `ISO core` | `acyclic_term(?Term)` | `semidet` | Succeeds iff Term is finite and acyclic. |
-| `add_edges/3` | `library(ugraphs)` | `add_edges(+Graph,+Edges,-NewGraph)` | `det` | Adds directed Edges to Graph, preserving canonical adjacency ordering. |
-| `add_vertices/3` | `library(ugraphs)` | `add_vertices(+Graph,+Vertices,-NewGraph)` | `det` | Adds Vertices to Graph, preserving canonical graph ordering. |
-| `aggregate_all/3` | `library(aggregate)` | `aggregate_all(+Aggregate,+Goal,-Result)` | `det` | Aggregates the template specified by Aggregate over every solution of Goal without witness grouping. |
-| `aggregate_max/5` | `library(aggregate)` | `aggregate_max(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)` | `semidet` | Selects the first Goal solution having the greatest resolved KeyTemplate and returns its key and value; fails on no solutions. |
-| `aggregate_min/5` | `library(aggregate)` | `aggregate_min(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)` | `semidet` | Selects the first Goal solution having the least resolved KeyTemplate and returns its key and value; fails on no solutions. |
-| `aggregate/3` | `library(aggregate)` | `aggregate(+Aggregate,+Goal,-Result)` | `nondet` | Aggregates solutions of Goal by free witness-variable group, analogously to bagof/3. |
-| `all_different/1` | `library(clpz)` | `all_different(+Vars)` | `delayed` | Constrains all finite-domain expressions in Vars to take pairwise different values. |
-| `all_distinct/1` | `library(clpz)` | `all_distinct(+Vars)` | `delayed` | Posts the stronger global all-distinct constraint over Vars. |
-| `append/2` | `library(lists)` | `append(+Lists,?Whole)` | `nondet` | Concatenates a proper list of lists into Whole. |
-| `append/3` | `library(lists)` | `append(?Prefix,?Suffix,?Whole)` | `nondet` | Holds iff Whole is Prefix followed by Suffix; suitable modes enumerate every split. |
-| `arg/3` | `ISO core` | `arg(+Index,+Term,?Argument)` | `semidet` | Relates the one-based Index of a compound Term to its corresponding Argument. |
-| `argv/1` | `library(os)` | `argv(-Args)` | `det` | Returns the EyeProlog application argument vector as character-list strings. |
-| `asserta/1` | `ISO core` | `asserta(+Clause)` | `det` | Adds a copied clause at the beginning of a predicate declared dynamic. |
-| `assertz/1` | `ISO core` | `assertz(+Clause)` | `det` | Adds a copied clause at the end of a predicate declared dynamic. |
-| `assoc_to_keys/2` | `library(assoc)` | `assoc_to_keys(+Assoc,-Keys)` | `det` | Returns Assoc keys in ascending key order. |
-| `assoc_to_list/2` | `library(assoc)` | `assoc_to_list(+Assoc,-Pairs)` | `det` | Returns Key-Value pairs from Assoc in ascending key order. |
-| `assoc_to_values/2` | `library(assoc)` | `assoc_to_values(+Assoc,-Values)` | `det` | Returns Assoc values in ascending-key order. |
-| `at_end_of_stream/0` | `ISO core` | `at_end_of_stream` | `semidet` | Succeeds iff the current input stream is positioned at end of stream. |
-| `at_end_of_stream/1` | `ISO core` | `at_end_of_stream(+Stream)` | `semidet` | Succeeds iff Stream is positioned at end of stream. |
-| `atom_chars/2` | `ISO core` | `atom_chars(?Atom,?Chars)` | `mode-dependent` | Relates an atom to a proper list of one-character atoms. |
-| `atom_codes/2` | `ISO core` | `atom_codes(?Atom,?Codes)` | `mode-dependent` | Relates an atom to a proper list of Unicode scalar character codes. |
-| `atom_concat/3` | `ISO core` | `atom_concat(?Prefix,?Suffix,?Whole)` | `nondet` | Relates Whole to the concatenation of Prefix and Suffix; with Whole given, enumerates all splits. |
-| `atom_length/2` | `ISO core` | `atom_length(+Atom,?Length)` | `semidet` | Relates Atom to its number of Unicode scalar characters. |
-| `atom_si/1` | `library(si)` | `atom_si(?Term)` | `semidet` | Succeeds iff Term is sufficiently instantiated to be treated as atom by dependent constraint code. |
-| `atom_string/2` | `library(strings)` | `atom_string(?Atom,?Text)` | `mode-dependent` | Relates an atom to atom/character-list text. |
-| `atom/1` | `ISO core` | `atom(?Term)` | `semidet` | Succeeds iff Term is an atom. |
-| `atomic_si/1` | `library(si)` | `atomic_si(?Term)` | `semidet` | Succeeds iff Term is sufficiently instantiated to be treated as atomic by dependent constraint code. |
-| `atomic/1` | `ISO core` | `atomic(?Term)` | `semidet` | Succeeds iff Term is atomic. |
-| `automaton/3` | `library(clpz)` | `automaton(+Sequence,+Template,+Signature)` | `delayed` | Constrains Sequence by a finite automaton described by Template and Signature. |
-| `automaton/8` | `library(clpz)` | `automaton(+Sequence,+Template,+Signature,+Nodes,+Arcs,+Counters,+Initials,+Finals)` | `delayed` | Posts the extended automaton constraint with explicit graph and counter descriptions. |
+- **`abolish_all_tables/0`** — `library(tabling)` · **`det`**  
+  **Call:** `abolish_all_tables`  
+  **Contract:** Clears all memoized reasoning tables maintained by EyeProlog.
+- **`abolish_table/1`** — `library(tabling)` · **`det`**  
+  **Call:** `abolish_table(+PredicateSpec)`  
+  **Contract:** Invalidates memoized table data for the specified tabled predicate or conjunction of predicate indicators.
+- **`abolish/1`** — `ISO core` · **`det`**  
+  **Call:** `abolish(+NameArity)`  
+  **Contract:** Removes the named dynamic procedure and all of its clauses.
+- **`acyclic_term/1`** — `ISO core` · **`semidet`**  
+  **Call:** `acyclic_term(?Term)`  
+  **Contract:** Succeeds iff Term is finite and acyclic.
+- **`add_edges/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `add_edges(+Graph,+Edges,-NewGraph)`  
+  **Contract:** Adds directed Edges to Graph, preserving canonical adjacency ordering.
+- **`add_vertices/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `add_vertices(+Graph,+Vertices,-NewGraph)`  
+  **Contract:** Adds Vertices to Graph, preserving canonical graph ordering.
+- **`aggregate_all/3`** — `library(aggregate)` · **`det`**  
+  **Call:** `aggregate_all(+Aggregate,+Goal,-Result)`  
+  **Contract:** Aggregates the template specified by Aggregate over every solution of Goal without witness grouping.
+- **`aggregate_max/5`** — `library(aggregate)` · **`semidet`**  
+  **Call:** `aggregate_max(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)`  
+  **Contract:** Selects the first Goal solution having the greatest resolved KeyTemplate and returns its key and value; fails on no solutions.
+- **`aggregate_min/5`** — `library(aggregate)` · **`semidet`**  
+  **Call:** `aggregate_min(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)`  
+  **Contract:** Selects the first Goal solution having the least resolved KeyTemplate and returns its key and value; fails on no solutions.
+- **`aggregate/3`** — `library(aggregate)` · **`nondet`**  
+  **Call:** `aggregate(+Aggregate,+Goal,-Result)`  
+  **Contract:** Aggregates solutions of Goal by free witness-variable group, analogously to bagof/3.
+- **`all_different/1`** — `library(clpz)` · **`delayed`**  
+  **Call:** `all_different(+Vars)`  
+  **Contract:** Constrains all finite-domain expressions in Vars to take pairwise different values.
+- **`all_distinct/1`** — `library(clpz)` · **`delayed`**  
+  **Call:** `all_distinct(+Vars)`  
+  **Contract:** Posts the stronger global all-distinct constraint over Vars.
+- **`append/2`** — `library(lists)` · **`nondet`**  
+  **Call:** `append(+Lists,?Whole)`  
+  **Contract:** Concatenates a proper list of lists into Whole.
+- **`append/3`** — `library(lists)` · **`nondet`**  
+  **Call:** `append(?Prefix,?Suffix,?Whole)`  
+  **Contract:** Holds iff Whole is Prefix followed by Suffix; suitable modes enumerate every split.
+- **`arg/3`** — `ISO core` · **`semidet`**  
+  **Call:** `arg(+Index,+Term,?Argument)`  
+  **Contract:** Relates the one-based Index of a compound Term to its corresponding Argument.
+- **`argv/1`** — `library(os)` · **`det`**  
+  **Call:** `argv(-Args)`  
+  **Contract:** Returns the EyeProlog application argument vector as character-list strings.
+- **`asserta/1`** — `ISO core` · **`det`**  
+  **Call:** `asserta(+Clause)`  
+  **Contract:** Adds a copied clause at the beginning of a predicate declared dynamic.
+- **`assertz/1`** — `ISO core` · **`det`**  
+  **Call:** `assertz(+Clause)`  
+  **Contract:** Adds a copied clause at the end of a predicate declared dynamic.
+- **`assoc_to_keys/2`** — `library(assoc)` · **`det`**  
+  **Call:** `assoc_to_keys(+Assoc,-Keys)`  
+  **Contract:** Returns Assoc keys in ascending key order.
+- **`assoc_to_list/2`** — `library(assoc)` · **`det`**  
+  **Call:** `assoc_to_list(+Assoc,-Pairs)`  
+  **Contract:** Returns Key-Value pairs from Assoc in ascending key order.
+- **`assoc_to_values/2`** — `library(assoc)` · **`det`**  
+  **Call:** `assoc_to_values(+Assoc,-Values)`  
+  **Contract:** Returns Assoc values in ascending-key order.
+- **`at_end_of_stream/0`** — `ISO core` · **`semidet`**  
+  **Call:** `at_end_of_stream`  
+  **Contract:** Succeeds iff the current input stream is positioned at end of stream.
+- **`at_end_of_stream/1`** — `ISO core` · **`semidet`**  
+  **Call:** `at_end_of_stream(+Stream)`  
+  **Contract:** Succeeds iff Stream is positioned at end of stream.
+- **`atom_chars/2`** — `ISO core` · **`mode-dependent`**  
+  **Call:** `atom_chars(?Atom,?Chars)`  
+  **Contract:** Relates an atom to a proper list of one-character atoms.
+- **`atom_codes/2`** — `ISO core` · **`mode-dependent`**  
+  **Call:** `atom_codes(?Atom,?Codes)`  
+  **Contract:** Relates an atom to a proper list of Unicode scalar character codes.
+- **`atom_concat/3`** — `ISO core` · **`nondet`**  
+  **Call:** `atom_concat(?Prefix,?Suffix,?Whole)`  
+  **Contract:** Relates Whole to the concatenation of Prefix and Suffix; with Whole given, enumerates all splits.
+- **`atom_length/2`** — `ISO core` · **`semidet`**  
+  **Call:** `atom_length(+Atom,?Length)`  
+  **Contract:** Relates Atom to its number of Unicode scalar characters.
+- **`atom_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `atom_si(?Term)`  
+  **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as atom by dependent constraint code.
+- **`atom_string/2`** — `library(strings)` · **`mode-dependent`**  
+  **Call:** `atom_string(?Atom,?Text)`  
+  **Contract:** Relates an atom to atom/character-list text.
+- **`atom/1`** — `ISO core` · **`semidet`**  
+  **Call:** `atom(?Term)`  
+  **Contract:** Succeeds iff Term is an atom.
+- **`atomic_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `atomic_si(?Term)`  
+  **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as atomic by dependent constraint code.
+- **`atomic/1`** — `ISO core` · **`semidet`**  
+  **Call:** `atomic(?Term)`  
+  **Contract:** Succeeds iff Term is atomic.
+- **`automaton/3`** — `library(clpz)` · **`delayed`**  
+  **Call:** `automaton(+Sequence,+Template,+Signature)`  
+  **Contract:** Constrains Sequence by a finite automaton described by Template and Signature.
+- **`automaton/8`** — `library(clpz)` · **`delayed`**  
+  **Call:** `automaton(+Sequence,+Template,+Signature,+Nodes,+Arcs,+Counters,+Initials,+Finals)`  
+  **Contract:** Posts the extended automaton constraint with explicit graph and counter descriptions.
 
 ##### Predicate reference — B
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `bagof/3` | `ISO core` | `bagof(+Template,+Goal,?Bag)` | `nondet` | Groups Template solutions by free witness variables of Goal and yields one nonempty bag per group. |
-| `bb_b_put/2` | `library(iso_ext)` | `bb_b_put(+Key,+Value)` | `det` | Backtrackably associates Key with Value in the EyeProlog blackboard. |
-| `bb_get/2` | `library(iso_ext)` | `bb_get(+Key,?Value)` | `semidet` | Retrieves the current blackboard Value associated with Key. |
-| `bb_put/2` | `library(iso_ext)` | `bb_put(+Key,+Value)` | `det` | Nonbacktrackably associates Key with Value in the EyeProlog blackboard. |
-| `becomes/2` | `library(eyelet)` | `becomes(+Condition,+Action)` | `meta` | Declares/executes the Eyelet forward transition relating Condition to Action. |
-| `between/3` | `library(between)` | `between(+Low,+High,?Value)` | `nondet` | Enumerates integers Value from Low through High inclusively, or checks a supplied Value. |
+- **`bagof/3`** — `ISO core` · **`nondet`**  
+  **Call:** `bagof(+Template,+Goal,?Bag)`  
+  **Contract:** Groups Template solutions by free witness variables of Goal and yields one nonempty bag per group.
+- **`bb_b_put/2`** — `library(iso_ext)` · **`det`**  
+  **Call:** `bb_b_put(+Key,+Value)`  
+  **Contract:** Backtrackably associates Key with Value in the EyeProlog blackboard.
+- **`bb_get/2`** — `library(iso_ext)` · **`semidet`**  
+  **Call:** `bb_get(+Key,?Value)`  
+  **Contract:** Retrieves the current blackboard Value associated with Key.
+- **`bb_put/2`** — `library(iso_ext)` · **`det`**  
+  **Call:** `bb_put(+Key,+Value)`  
+  **Contract:** Nonbacktrackably associates Key with Value in the EyeProlog blackboard.
+- **`becomes/2`** — `library(eyelet)` · **`meta`**  
+  **Call:** `becomes(+Condition,+Action)`  
+  **Contract:** Declares/executes the Eyelet forward transition relating Condition to Action.
+- **`between/3`** — `library(between)` · **`nondet`**  
+  **Call:** `between(+Low,+High,?Value)`  
+  **Contract:** Enumerates integers Value from Low through High inclusively, or checks a supplied Value.
 
 ##### Predicate reference — C
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `call_cleanup/2` | `library(iso_ext)` | `call_cleanup(+Goal,+Cleanup)` | `meta` | Runs Goal and guarantees Cleanup when the call finishes, fails, is cut, or raises an exception. |
-| `call_nth/2` | `library(iso_ext)` | `call_nth(+Goal,?N)` | `nondet` | Relates each solution of Goal to its one-based solution number N. |
-| `call_residue_vars/2` | `library(atts)` | `call_residue_vars(+Goal,-Vars)` | `meta` | Runs Goal and returns the attributed variables that remain as residual constraints on that solution. |
-| `call_with_error_context/2` | `library(error)` | `call_with_error_context(+Goal,+Context)` | `meta` | Runs Goal and, when a standard error is raised without useful context, associates it with Context. |
-| `call_with_inference_limit/3` | `library(iso_ext)` | `call_with_inference_limit(+Goal,+Limit,?Result)` | `meta` | Runs Goal subject to an inference limit and reports whether a solution, failure, exception, or limit condition occurred. |
-| `call/1` | `ISO core` | `call(+Goal)` | `meta` | Calls Goal in the current module and substitution. |
-| `call/2` | `ISO core` | `call(+Closure,?Arg1)` | `meta` | Appends 1 argument(s) to Closure and calls the resulting goal. |
-| `call/3` | `ISO core` | `call(+Closure,?Arg1,?Arg2)` | `meta` | Appends 2 argument(s) to Closure and calls the resulting goal. |
-| `call/4` | `ISO core` | `call(+Closure,?Arg1,?Arg2,?Arg3)` | `meta` | Appends 3 argument(s) to Closure and calls the resulting goal. |
-| `call/5` | `ISO core` | `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4)` | `meta` | Appends 4 argument(s) to Closure and calls the resulting goal. |
-| `call/6` | `ISO core` | `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)` | `meta` | Appends 5 argument(s) to Closure and calls the resulting goal. |
-| `call/7` | `ISO core` | `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)` | `meta` | Appends 6 argument(s) to Closure and calls the resulting goal. |
-| `call/8` | `ISO core` | `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)` | `meta` | Appends 7 argument(s) to Closure and calls the resulting goal. |
-| `callable/1` | `ISO core` | `callable(?Term)` | `semidet` | Succeeds iff Term is a callable atom or compound. |
-| `can_be/2` | `library(error)` | `can_be(+Type,?Term)` | `semidet` | Allows an unbound Term or validates an instantiated Term against Type, raising an error for an invalid value. |
-| `catch/3` | `ISO core` | `catch(+Goal,?Catcher,+Recovery)` | `meta` | Runs Goal; a matching thrown term is unified with Catcher and handled by Recovery. |
-| `cfor/3` | `library(iso_ext)` | `cfor(+Low,+High,?Value)` | `nondet` | Enumerates evaluated integer Value from Low through High inclusively. |
-| `chain/2` | `library(clpz)` | `chain(+Vars,+Relation)` | `delayed` | Constrains every adjacent pair in Vars by the supplied CLP(Z) Relation. |
-| `char_code/2` | `ISO core` | `char_code(?Character,?Code)` | `mode-dependent` | Relates a one-character atom to its Unicode scalar code. |
-| `char_conversion/2` | `ISO core` | `char_conversion(+Input,+Output)` | `det` | Installs or removes the one-character conversion Input -> Output. |
-| `char_type/2` | `library(charsio)` | `char_type(?Char,?Type)` | `nondet` | Tests or enumerates supported character classifications for a one-character atom. |
-| `character_si/1` | `library(si)` | `character_si(?Term)` | `semidet` | Succeeds iff Term is sufficiently instantiated to be treated as character by dependent constraint code. |
-| `chars_base64/3` | `library(charsio)` | `chars_base64(?Chars,?Base64,+Options)` | `mode-dependent` | Relates character data to Base64 text according to Options. |
-| `chars_si/1` | `library(si)` | `chars_si(?Term)` | `semidet` | Succeeds iff Term is sufficiently instantiated to be treated as chars by dependent constraint code. |
-| `chars_utf8bytes/2` | `library(charsio)` | `chars_utf8bytes(?Chars,?Bytes)` | `mode-dependent` | Relates Unicode character data to its UTF-8 byte encoding. |
-| `circuit/1` | `library(clpz)` | `circuit(+Successors)` | `delayed` | Constrains Successors to encode one Hamiltonian circuit over their indices. |
-| `clause/2` | `ISO core` | `clause(+Head,?Body)` | `nondet` | Enumerates fresh copies of accessible source clauses matching Head; facts have body true. |
-| `close/1` | `ISO core` | `close(+Stream)` | `det` | Closes Stream. |
-| `close/2` | `ISO core` | `close(+Stream,+Options)` | `det` | Closes Stream using the supplied close Options. |
-| `clpz_t/2` | `library(clpz)` | `clpz_t(+Constraint,?Truth)` | `delayed` | Reifies a supported CLP(Z) Constraint into Boolean Truth. |
-| `compare/3` | `ISO core` | `compare(?Order,+Left,+Right)` | `det` | Unifies Order with <, =, or > according to standard term order. |
-| `complement/2` | `library(ugraphs)` | `complement(+Graph,-Complement)` | `det` | Constructs the graph containing the non-self edges absent from Graph over the same vertex set. |
-| `compose/3` | `library(ugraphs)` | `compose(+Left,+Right,-Composition)` | `det` | Computes relational graph composition: X->Z when X->Y in Left and Y->Z in Right. |
-| `compound/1` | `ISO core` | `compound(?Term)` | `semidet` | Succeeds iff Term is a compound term. |
-| `cond_t/3` | `library(reif)` | `cond_t(+Condition,?ThenTruth,?Truth)` | `meta` | Combines a reified condition with a reified consequent according to the library conditional truth relation. |
-| `connect_ugraph/3` | `library(ugraphs)` | `connect_ugraph(+Graph,?Start,-Connected)` | `nondet` | Adds the minimal/library-defined connecting edges needed to produce a connected traversal rooted at Start. |
-| `contains/2` | `library(strings)` | `contains(+Text,+Needle)` | `semidet` | Succeeds iff Needle occurs literally within Text. |
-| `copy_term_nat/2` | `library(terms)` | `copy_term_nat(+Term,-Copy)` | `det` | Copies Term with fresh variables while omitting attributed-variable constraints from the copy. |
-| `copy_term/2` | `ISO core` | `copy_term(+Term,-Copy)` | `det` | Copies Term, replacing each distinct unbound variable with a fresh variable while preserving sharing. |
-| `copy_term/3` | `library(iso_ext)` | `copy_term(+Term,-Copy,-Goals)` | `det` | Copies Term and projects residual attributed-variable constraints into Goals. |
-| `countall/2` | `library(iso_ext)` | `countall(+Goal,-Count)` | `det` | Counts all solutions of Goal; the empty count is 0. |
-| `crypto_curve_generator/2` | `library(crypto)` | `crypto_curve_generator(+Curve,-Generator)` | `det` | Returns the generator point for a supported named curve. |
-| `crypto_curve_order/2` | `library(crypto)` | `crypto_curve_order(+Curve,-Order)` | `det` | Returns the group order for a supported named curve. |
-| `crypto_curve_scalar_mult/4` | `library(crypto)` | `crypto_curve_scalar_mult(+Curve,+Scalar,+Point,-Result)` | `det` | Computes scalar multiplication on a supported named curve. |
-| `crypto_data_decrypt/6` | `library(crypto)` | `crypto_data_decrypt(+Cipher,+Key,+Nonce,+AAD,+Tag,-Plain)` | `semidet` | Authenticates and decrypts Cipher; fails or errors when authentication cannot be established. |
-| `crypto_data_encrypt/6` | `library(crypto)` | `crypto_data_encrypt(+Plain,+Key,+Nonce,+AAD,-Cipher,-Tag)` | `det` | Encrypts Plain with the supported authenticated-encryption primitive, returning Cipher and authentication Tag. |
-| `crypto_data_hash/3` | `library(crypto)` | `crypto_data_hash(+Data,-Hash,+Options)` | `det` | Computes the requested cryptographic digest or HMAC of Data according to Options. |
-| `crypto_data_hkdf/4` | `library(crypto)` | `crypto_data_hkdf(+Data,+Length,-Key,+Options)` | `det` | Derives Length bytes from Data using HKDF according to Options. |
-| `crypto_n_random_bytes/2` | `library(crypto)` | `crypto_n_random_bytes(+Count,-Bytes)` | `det` | Obtains Count cryptographically secure random bytes from an available host CSPRNG. |
-| `crypto_name_curve/2` | `library(crypto)` | `crypto_name_curve(?Name,?Curve)` | `mode-dependent` | Relates a supported curve name to its canonical curve representation. |
-| `crypto_password_hash/2` | `library(crypto)` | `crypto_password_hash(+Password,-Hash)` | `det` | Computes a password hash using the library default password-hashing parameters. |
-| `crypto_password_hash/3` | `library(crypto)` | `crypto_password_hash(+Password,?Hash,+Options)` | `mode-dependent` | Creates or verifies a password hash according to Options. |
-| `cumulative/1` | `library(clpz)` | `cumulative(+Tasks)` | `delayed` | Posts cumulative resource constraints for Tasks using default options. |
-| `cumulative/2` | `library(clpz)` | `cumulative(+Tasks,+Options)` | `delayed` | Posts cumulative resource constraints for Tasks according to Options. |
-| `current_char_conversion/2` | `ISO core` | `current_char_conversion(?Input,?Output)` | `nondet` | Enumerates installed nonidentity character conversions. |
-| `current_input/1` | `ISO core` | `current_input(?Stream)` | `det` | Returns the current input stream. |
-| `current_op/3` | `ISO core` | `current_op(?Priority,?Specifier,?Name)` | `nondet` | Enumerates active operator definitions, filtering any supplied arguments. |
-| `current_output/1` | `ISO core` | `current_output(?Stream)` | `det` | Returns the current output stream. |
-| `current_predicate/1` | `ISO core` | `current_predicate(?NameArity)` | `nondet` | Enumerates predicate indicators present in the loaded program. |
-| `current_prolog_flag/2` | `ISO core` | `current_prolog_flag(?Flag,?Value)` | `nondet` | Enumerates supported Prolog flags or returns the value of a named flag. |
-| `current_time/1` | `library(time)` | `current_time(-Stamp)` | `det` | Returns the current local date/time as the module's timestamp association list. |
-| `curve25519_generator/1` | `library(crypto)` | `curve25519_generator(-Generator)` | `det` | Returns the canonical X25519/Curve25519 generator representation. |
-| `curve25519_scalar_mult/3` | `library(crypto)` | `curve25519_scalar_mult(+Scalar,+Point,-Result)` | `det` | Computes Curve25519 scalar multiplication. |
+- **`call_cleanup/2`** — `library(iso_ext)` · **`meta`**  
+  **Call:** `call_cleanup(+Goal,+Cleanup)`  
+  **Contract:** Runs Goal and guarantees Cleanup when the call finishes, fails, is cut, or raises an exception.
+- **`call_nth/2`** — `library(iso_ext)` · **`nondet`**  
+  **Call:** `call_nth(+Goal,?N)`  
+  **Contract:** Relates each solution of Goal to its one-based solution number N.
+- **`call_residue_vars/2`** — `library(atts)` · **`meta`**  
+  **Call:** `call_residue_vars(+Goal,-Vars)`  
+  **Contract:** Runs Goal and returns the attributed variables that remain as residual constraints on that solution.
+- **`call_with_error_context/2`** — `library(error)` · **`meta`**  
+  **Call:** `call_with_error_context(+Goal,+Context)`  
+  **Contract:** Runs Goal and, when a standard error is raised without useful context, associates it with Context.
+- **`call_with_inference_limit/3`** — `library(iso_ext)` · **`meta`**  
+  **Call:** `call_with_inference_limit(+Goal,+Limit,?Result)`  
+  **Contract:** Runs Goal subject to an inference limit and reports whether a solution, failure, exception, or limit condition occurred.
+- **`call/1`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Goal)`  
+  **Contract:** Calls Goal in the current module and substitution.
+- **`call/2`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Closure,?Arg1)`  
+  **Contract:** Appends 1 argument(s) to Closure and calls the resulting goal.
+- **`call/3`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Closure,?Arg1,?Arg2)`  
+  **Contract:** Appends 2 argument(s) to Closure and calls the resulting goal.
+- **`call/4`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Closure,?Arg1,?Arg2,?Arg3)`  
+  **Contract:** Appends 3 argument(s) to Closure and calls the resulting goal.
+- **`call/5`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4)`  
+  **Contract:** Appends 4 argument(s) to Closure and calls the resulting goal.
+- **`call/6`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5)`  
+  **Contract:** Appends 5 argument(s) to Closure and calls the resulting goal.
+- **`call/7`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6)`  
+  **Contract:** Appends 6 argument(s) to Closure and calls the resulting goal.
+- **`call/8`** — `ISO core` · **`meta`**  
+  **Call:** `call(+Closure,?Arg1,?Arg2,?Arg3,?Arg4,?Arg5,?Arg6,?Arg7)`  
+  **Contract:** Appends 7 argument(s) to Closure and calls the resulting goal.
+- **`callable/1`** — `ISO core` · **`semidet`**  
+  **Call:** `callable(?Term)`  
+  **Contract:** Succeeds iff Term is a callable atom or compound.
+- **`can_be/2`** — `library(error)` · **`semidet`**  
+  **Call:** `can_be(+Type,?Term)`  
+  **Contract:** Allows an unbound Term or validates an instantiated Term against Type, raising an error for an invalid value.
+- **`catch/3`** — `ISO core` · **`meta`**  
+  **Call:** `catch(+Goal,?Catcher,+Recovery)`  
+  **Contract:** Runs Goal; a matching thrown term is unified with Catcher and handled by Recovery.
+- **`cfor/3`** — `library(iso_ext)` · **`nondet`**  
+  **Call:** `cfor(+Low,+High,?Value)`  
+  **Contract:** Enumerates evaluated integer Value from Low through High inclusively.
+- **`chain/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `chain(+Vars,+Relation)`  
+  **Contract:** Constrains every adjacent pair in Vars by the supplied CLP(Z) Relation.
+- **`char_code/2`** — `ISO core` · **`mode-dependent`**  
+  **Call:** `char_code(?Character,?Code)`  
+  **Contract:** Relates a one-character atom to its Unicode scalar code.
+- **`char_conversion/2`** — `ISO core` · **`det`**  
+  **Call:** `char_conversion(+Input,+Output)`  
+  **Contract:** Installs or removes the one-character conversion Input -> Output.
+- **`char_type/2`** — `library(charsio)` · **`nondet`**  
+  **Call:** `char_type(?Char,?Type)`  
+  **Contract:** Tests or enumerates supported character classifications for a one-character atom.
+- **`character_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `character_si(?Term)`  
+  **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as character by dependent constraint code.
+- **`chars_base64/3`** — `library(charsio)` · **`mode-dependent`**  
+  **Call:** `chars_base64(?Chars,?Base64,+Options)`  
+  **Contract:** Relates character data to Base64 text according to Options.
+- **`chars_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `chars_si(?Term)`  
+  **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as chars by dependent constraint code.
+- **`chars_utf8bytes/2`** — `library(charsio)` · **`mode-dependent`**  
+  **Call:** `chars_utf8bytes(?Chars,?Bytes)`  
+  **Contract:** Relates Unicode character data to its UTF-8 byte encoding.
+- **`circuit/1`** — `library(clpz)` · **`delayed`**  
+  **Call:** `circuit(+Successors)`  
+  **Contract:** Constrains Successors to encode one Hamiltonian circuit over their indices.
+- **`clause/2`** — `ISO core` · **`nondet`**  
+  **Call:** `clause(+Head,?Body)`  
+  **Contract:** Enumerates fresh copies of accessible source clauses matching Head; facts have body true.
+- **`close/1`** — `ISO core` · **`det`**  
+  **Call:** `close(+Stream)`  
+  **Contract:** Closes Stream.
+- **`close/2`** — `ISO core` · **`det`**  
+  **Call:** `close(+Stream,+Options)`  
+  **Contract:** Closes Stream using the supplied close Options.
+- **`clpz_t/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `clpz_t(+Constraint,?Truth)`  
+  **Contract:** Reifies a supported CLP(Z) Constraint into Boolean Truth.
+- **`compare/3`** — `ISO core` · **`det`**  
+  **Call:** `compare(?Order,+Left,+Right)`  
+  **Contract:** Unifies Order with <, =, or > according to standard term order.
+- **`complement/2`** — `library(ugraphs)` · **`det`**  
+  **Call:** `complement(+Graph,-Complement)`  
+  **Contract:** Constructs the graph containing the non-self edges absent from Graph over the same vertex set.
+- **`compose/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `compose(+Left,+Right,-Composition)`  
+  **Contract:** Computes relational graph composition: X->Z when X->Y in Left and Y->Z in Right.
+- **`compound/1`** — `ISO core` · **`semidet`**  
+  **Call:** `compound(?Term)`  
+  **Contract:** Succeeds iff Term is a compound term.
+- **`cond_t/3`** — `library(reif)` · **`meta`**  
+  **Call:** `cond_t(+Condition,?ThenTruth,?Truth)`  
+  **Contract:** Combines a reified condition with a reified consequent according to the library conditional truth relation.
+- **`connect_ugraph/3`** — `library(ugraphs)` · **`nondet`**  
+  **Call:** `connect_ugraph(+Graph,?Start,-Connected)`  
+  **Contract:** Adds the minimal/library-defined connecting edges needed to produce a connected traversal rooted at Start.
+- **`contains/2`** — `library(strings)` · **`semidet`**  
+  **Call:** `contains(+Text,+Needle)`  
+  **Contract:** Succeeds iff Needle occurs literally within Text.
+- **`copy_term_nat/2`** — `library(terms)` · **`det`**  
+  **Call:** `copy_term_nat(+Term,-Copy)`  
+  **Contract:** Copies Term with fresh variables while omitting attributed-variable constraints from the copy.
+- **`copy_term/2`** — `ISO core` · **`det`**  
+  **Call:** `copy_term(+Term,-Copy)`  
+  **Contract:** Copies Term, replacing each distinct unbound variable with a fresh variable while preserving sharing.
+- **`copy_term/3`** — `library(iso_ext)` · **`det`**  
+  **Call:** `copy_term(+Term,-Copy,-Goals)`  
+  **Contract:** Copies Term and projects residual attributed-variable constraints into Goals.
+- **`countall/2`** — `library(iso_ext)` · **`det`**  
+  **Call:** `countall(+Goal,-Count)`  
+  **Contract:** Counts all solutions of Goal; the empty count is 0.
+- **`crypto_curve_generator/2`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_curve_generator(+Curve,-Generator)`  
+  **Contract:** Returns the generator point for a supported named curve.
+- **`crypto_curve_order/2`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_curve_order(+Curve,-Order)`  
+  **Contract:** Returns the group order for a supported named curve.
+- **`crypto_curve_scalar_mult/4`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_curve_scalar_mult(+Curve,+Scalar,+Point,-Result)`  
+  **Contract:** Computes scalar multiplication on a supported named curve.
+- **`crypto_data_decrypt/6`** — `library(crypto)` · **`semidet`**  
+  **Call:** `crypto_data_decrypt(+Cipher,+Key,+Nonce,+AAD,+Tag,-Plain)`  
+  **Contract:** Authenticates and decrypts Cipher; fails or errors when authentication cannot be established.
+- **`crypto_data_encrypt/6`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_data_encrypt(+Plain,+Key,+Nonce,+AAD,-Cipher,-Tag)`  
+  **Contract:** Encrypts Plain with the supported authenticated-encryption primitive, returning Cipher and authentication Tag.
+- **`crypto_data_hash/3`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_data_hash(+Data,-Hash,+Options)`  
+  **Contract:** Computes the requested cryptographic digest or HMAC of Data according to Options.
+- **`crypto_data_hkdf/4`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_data_hkdf(+Data,+Length,-Key,+Options)`  
+  **Contract:** Derives Length bytes from Data using HKDF according to Options.
+- **`crypto_n_random_bytes/2`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_n_random_bytes(+Count,-Bytes)`  
+  **Contract:** Obtains Count cryptographically secure random bytes from an available host CSPRNG.
+- **`crypto_name_curve/2`** — `library(crypto)` · **`mode-dependent`**  
+  **Call:** `crypto_name_curve(?Name,?Curve)`  
+  **Contract:** Relates a supported curve name to its canonical curve representation.
+- **`crypto_password_hash/2`** — `library(crypto)` · **`det`**  
+  **Call:** `crypto_password_hash(+Password,-Hash)`  
+  **Contract:** Computes a password hash using the library default password-hashing parameters.
+- **`crypto_password_hash/3`** — `library(crypto)` · **`mode-dependent`**  
+  **Call:** `crypto_password_hash(+Password,?Hash,+Options)`  
+  **Contract:** Creates or verifies a password hash according to Options.
+- **`cumulative/1`** — `library(clpz)` · **`delayed`**  
+  **Call:** `cumulative(+Tasks)`  
+  **Contract:** Posts cumulative resource constraints for Tasks using default options.
+- **`cumulative/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `cumulative(+Tasks,+Options)`  
+  **Contract:** Posts cumulative resource constraints for Tasks according to Options.
+- **`current_char_conversion/2`** — `ISO core` · **`nondet`**  
+  **Call:** `current_char_conversion(?Input,?Output)`  
+  **Contract:** Enumerates installed nonidentity character conversions.
+- **`current_input/1`** — `ISO core` · **`det`**  
+  **Call:** `current_input(?Stream)`  
+  **Contract:** Returns the current input stream.
+- **`current_op/3`** — `ISO core` · **`nondet`**  
+  **Call:** `current_op(?Priority,?Specifier,?Name)`  
+  **Contract:** Enumerates active operator definitions, filtering any supplied arguments.
+- **`current_output/1`** — `ISO core` · **`det`**  
+  **Call:** `current_output(?Stream)`  
+  **Contract:** Returns the current output stream.
+- **`current_predicate/1`** — `ISO core` · **`nondet`**  
+  **Call:** `current_predicate(?NameArity)`  
+  **Contract:** Enumerates predicate indicators present in the loaded program.
+- **`current_prolog_flag/2`** — `ISO core` · **`nondet`**  
+  **Call:** `current_prolog_flag(?Flag,?Value)`  
+  **Contract:** Enumerates supported Prolog flags or returns the value of a named flag.
+- **`current_time/1`** — `library(time)` · **`det`**  
+  **Call:** `current_time(-Stamp)`  
+  **Contract:** Returns the current local date/time as the module's timestamp association list.
+- **`curve25519_generator/1`** — `library(crypto)` · **`det`**  
+  **Call:** `curve25519_generator(-Generator)`  
+  **Contract:** Returns the canonical X25519/Curve25519 generator representation.
+- **`curve25519_scalar_mult/3`** — `library(crypto)` · **`det`**  
+  **Call:** `curve25519_scalar_mult(+Scalar,+Point,-Result)`  
+  **Contract:** Computes Curve25519 scalar multiplication.
 
 ##### Predicate reference — D
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `debug/1` | `library(debug)` | `debug(+Topic)` | `det` | Enables debugging messages for Topic. |
-| `debug/3` | `library(debug)` | `debug(+Topic,+Format,+Args)` | `det` | Emits a formatted debugging message when Topic is enabled. |
-| `del_assoc/4` | `library(assoc)` | `del_assoc(+Key,+Assoc0,?Value,-Assoc)` | `semidet` | Removes Key from Assoc0, returning its Value and the remaining Assoc. |
-| `del_attr/2` | `library(atts)` | `del_attr(+Var,+Module)` | `det` | Removes Module's attribute from Var if present. |
-| `del_edges/3` | `library(ugraphs)` | `del_edges(+Graph,+Edges,-NewGraph)` | `det` | Removes directed Edges from Graph. |
-| `del_max_assoc/4` | `library(assoc)` | `del_max_assoc(+Assoc0,?Key,?Value,-Assoc)` | `semidet` | Removes and returns the greatest-key entry of a nonempty association. |
-| `del_min_assoc/4` | `library(assoc)` | `del_min_assoc(+Assoc0,?Key,?Value,-Assoc)` | `semidet` | Removes and returns the least-key entry of a nonempty association. |
-| `del_vertices/3` | `library(ugraphs)` | `del_vertices(+Graph,+Vertices,-NewGraph)` | `det` | Removes Vertices and all incident edges from Graph. |
-| `delete_directory/1` | `library(files)` | `delete_directory(+Path)` | `det` | Deletes the empty directory at Path using the Node filesystem host. |
-| `delete_file/1` | `library(files)` | `delete_file(+Path)` | `det` | Deletes the file at Path using the Node filesystem host. |
-| `dif_si/2` | `library(si)` | `dif_si(?A,?B)` | `semidet` | Succeeds when A and B are sufficiently instantiated to decide non-unifiability, otherwise delays or rejects insufficient instantiation as defined by the SI layer. |
-| `dif/2` | `library(dif)` | `dif(?A,?B)` | `delayed` | Constrains A and B to remain non-unifiable, delaying until the distinction can be decided when necessary. |
-| `dif/3` | `library(reif)` | `dif(?A,?B,?Truth)` | `delayed` | Reifies disequality of A and B into Boolean Truth. |
-| `difference/3` | `library(dates)` | `difference(+End,+Start,-Duration)` | `semidet` | Computes the nonnegative calendar difference from Start to End as a normalized ISO-like duration; invalid or descending dates fail. |
-| `directory_exists/1` | `library(files)` | `directory_exists(+Path)` | `semidet` | Succeeds iff Path exists and is a directory. |
-| `directory_files/2` | `library(files)` | `directory_files(+Path,-Entries)` | `det` | Returns the directory entries of Path using the host filesystem. |
-| `disjoint2/1` | `library(clpz)` | `disjoint2(+Rectangles)` | `delayed` | Constrains axis-aligned rectangles not to overlap in two dimensions. |
-| `domain_error/2` | `library(error)` | `domain_error(+Domain,+Term)` | `terminal` | Raises a domain_error(Domain,Term) exception. |
-| `domain_error/3` | `library(error)` | `domain_error(+Domain,+Term,+Context)` | `terminal` | Raises a domain_error(Domain,Term) exception carrying Context. |
-| `drop/3` | `library(lists)` | `drop(+Count,+List,-Suffix)` | `semidet` | Returns the suffix after removing exactly Count leading elements; fails when List is too short. |
+- **`debug/1`** — `library(debug)` · **`det`**  
+  **Call:** `debug(+Topic)`  
+  **Contract:** Enables debugging messages for Topic.
+- **`debug/3`** — `library(debug)` · **`det`**  
+  **Call:** `debug(+Topic,+Format,+Args)`  
+  **Contract:** Emits a formatted debugging message when Topic is enabled.
+- **`del_assoc/4`** — `library(assoc)` · **`semidet`**  
+  **Call:** `del_assoc(+Key,+Assoc0,?Value,-Assoc)`  
+  **Contract:** Removes Key from Assoc0, returning its Value and the remaining Assoc.
+- **`del_attr/2`** — `library(atts)` · **`det`**  
+  **Call:** `del_attr(+Var,+Module)`  
+  **Contract:** Removes Module's attribute from Var if present.
+- **`del_edges/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `del_edges(+Graph,+Edges,-NewGraph)`  
+  **Contract:** Removes directed Edges from Graph.
+- **`del_max_assoc/4`** — `library(assoc)` · **`semidet`**  
+  **Call:** `del_max_assoc(+Assoc0,?Key,?Value,-Assoc)`  
+  **Contract:** Removes and returns the greatest-key entry of a nonempty association.
+- **`del_min_assoc/4`** — `library(assoc)` · **`semidet`**  
+  **Call:** `del_min_assoc(+Assoc0,?Key,?Value,-Assoc)`  
+  **Contract:** Removes and returns the least-key entry of a nonempty association.
+- **`del_vertices/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `del_vertices(+Graph,+Vertices,-NewGraph)`  
+  **Contract:** Removes Vertices and all incident edges from Graph.
+- **`delete_directory/1`** — `library(files)` · **`det`**  
+  **Call:** `delete_directory(+Path)`  
+  **Contract:** Deletes the empty directory at Path using the Node filesystem host.
+- **`delete_file/1`** — `library(files)` · **`det`**  
+  **Call:** `delete_file(+Path)`  
+  **Contract:** Deletes the file at Path using the Node filesystem host.
+- **`dif_si/2`** — `library(si)` · **`semidet`**  
+  **Call:** `dif_si(?A,?B)`  
+  **Contract:** Succeeds when A and B are sufficiently instantiated to decide non-unifiability, otherwise delays or rejects insufficient instantiation as defined by the SI layer.
+- **`dif/2`** — `library(dif)` · **`delayed`**  
+  **Call:** `dif(?A,?B)`  
+  **Contract:** Constrains A and B to remain non-unifiable, delaying until the distinction can be decided when necessary.
+- **`dif/3`** — `library(reif)` · **`delayed`**  
+  **Call:** `dif(?A,?B,?Truth)`  
+  **Contract:** Reifies disequality of A and B into Boolean Truth.
+- **`difference/3`** — `library(dates)` · **`semidet`**  
+  **Call:** `difference(+End,+Start,-Duration)`  
+  **Contract:** Computes the nonnegative calendar difference from Start to End as a normalized ISO-like duration; invalid or descending dates fail.
+- **`directory_exists/1`** — `library(files)` · **`semidet`**  
+  **Call:** `directory_exists(+Path)`  
+  **Contract:** Succeeds iff Path exists and is a directory.
+- **`directory_files/2`** — `library(files)` · **`det`**  
+  **Call:** `directory_files(+Path,-Entries)`  
+  **Contract:** Returns the directory entries of Path using the host filesystem.
+- **`disjoint2/1`** — `library(clpz)` · **`delayed`**  
+  **Call:** `disjoint2(+Rectangles)`  
+  **Contract:** Constrains axis-aligned rectangles not to overlap in two dimensions.
+- **`domain_error/2`** — `library(error)` · **`terminal`**  
+  **Call:** `domain_error(+Domain,+Term)`  
+  **Contract:** Raises a domain_error(Domain,Term) exception.
+- **`domain_error/3`** — `library(error)` · **`terminal`**  
+  **Call:** `domain_error(+Domain,+Term,+Context)`  
+  **Contract:** Raises a domain_error(Domain,Term) exception carrying Context.
+- **`drop/3`** — `library(lists)` · **`semidet`**  
+  **Call:** `drop(+Count,+List,-Suffix)`  
+  **Contract:** Returns the suffix after removing exactly Count leading elements; fails when List is too short.
 
 ##### Predicate reference — E
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `ed25519_keypair_public_key/2` | `library(crypto)` | `ed25519_keypair_public_key(+KeyPair,-PublicKey)` | `det` | Extracts the Ed25519 public key from KeyPair. |
-| `ed25519_new_keypair/1` | `library(crypto)` | `ed25519_new_keypair(-KeyPair)` | `det` | Generates a fresh Ed25519 keypair using the host cryptographic backend. |
-| `ed25519_seed_keypair/2` | `library(crypto)` | `ed25519_seed_keypair(+Seed,-KeyPair)` | `det` | Derives an Ed25519 keypair deterministically from Seed. |
-| `ed25519_sign/4` | `library(crypto)` | `ed25519_sign(+Data,+KeyPair,-Signature,+Options)` | `det` | Produces an Ed25519 signature of Data using KeyPair and supported Options. |
-| `ed25519_verify/4` | `library(crypto)` | `ed25519_verify(+Data,+PublicKey,+Signature,+Options)` | `semidet` | Succeeds iff Signature is a valid Ed25519 signature of Data for PublicKey. |
-| `edges/2` | `library(ugraphs)` | `edges(+Graph,-Edges)` | `det` | Returns all directed Vertex-Neighbor edges of Graph. |
-| `element/3` | `library(clpz)` | `element(?Index,+List,?Element)` | `delayed` | Constrains one-based Index and Element so Element is the indexed member of List. |
-| `empty_assoc/1` | `library(assoc)` | `empty_assoc(-Assoc)` | `det` | Constructs the empty association tree. |
-| `exclude/3` | `library(lists)` | `exclude(+Pred,+List,-Excluded)` | `meta` | Keeps exactly the elements of List for which Pred fails, preserving order. |
-| `expmod/4` | `library(arithmetic)` | `expmod(+Base,+Exponent,+Modulus,-Result)` | `det` | Computes Base^Exponent modulo Modulus for integer inputs. |
+- **`ed25519_keypair_public_key/2`** — `library(crypto)` · **`det`**  
+  **Call:** `ed25519_keypair_public_key(+KeyPair,-PublicKey)`  
+  **Contract:** Extracts the Ed25519 public key from KeyPair.
+- **`ed25519_new_keypair/1`** — `library(crypto)` · **`det`**  
+  **Call:** `ed25519_new_keypair(-KeyPair)`  
+  **Contract:** Generates a fresh Ed25519 keypair using the host cryptographic backend.
+- **`ed25519_seed_keypair/2`** — `library(crypto)` · **`det`**  
+  **Call:** `ed25519_seed_keypair(+Seed,-KeyPair)`  
+  **Contract:** Derives an Ed25519 keypair deterministically from Seed.
+- **`ed25519_sign/4`** — `library(crypto)` · **`det`**  
+  **Call:** `ed25519_sign(+Data,+KeyPair,-Signature,+Options)`  
+  **Contract:** Produces an Ed25519 signature of Data using KeyPair and supported Options.
+- **`ed25519_verify/4`** — `library(crypto)` · **`semidet`**  
+  **Call:** `ed25519_verify(+Data,+PublicKey,+Signature,+Options)`  
+  **Contract:** Succeeds iff Signature is a valid Ed25519 signature of Data for PublicKey.
+- **`edges/2`** — `library(ugraphs)` · **`det`**  
+  **Call:** `edges(+Graph,-Edges)`  
+  **Contract:** Returns all directed Vertex-Neighbor edges of Graph.
+- **`element/3`** — `library(clpz)` · **`delayed`**  
+  **Call:** `element(?Index,+List,?Element)`  
+  **Contract:** Constrains one-based Index and Element so Element is the indexed member of List.
+- **`empty_assoc/1`** — `library(assoc)` · **`det`**  
+  **Call:** `empty_assoc(-Assoc)`  
+  **Contract:** Constructs the empty association tree.
+- **`exclude/3`** — `library(lists)` · **`meta`**  
+  **Call:** `exclude(+Pred,+List,-Excluded)`  
+  **Contract:** Keeps exactly the elements of List for which Pred fails, preserving order.
+- **`expmod/4`** — `library(arithmetic)` · **`det`**  
+  **Call:** `expmod(+Base,+Exponent,+Modulus,-Result)`  
+  **Contract:** Computes Base^Exponent modulo Modulus for integer inputs.
 
 ##### Predicate reference — F
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `fail/0` | `ISO core` | `fail` | `semidet` | Always fails. |
-| `false/0` | `ISO core` | `false` | `semidet` | Always fails; this compatibility alias is protected from source redefinition. |
-| `fd_dom/2` | `library(clpz)` | `fd_dom(+Var,?Domain)` | `det` | Returns a term describing Var's current finite domain. |
-| `fd_inf/2` | `library(clpz)` | `fd_inf(+Var,?Infimum)` | `det` | Returns the current lower bound of Var's finite domain. |
-| `fd_size/2` | `library(clpz)` | `fd_size(+Var,?Size)` | `det` | Returns the cardinality of Var's current finite domain when finite. |
-| `fd_sup/2` | `library(clpz)` | `fd_sup(+Var,?Supremum)` | `det` | Returns the current upper bound of Var's finite domain. |
-| `fd_var/1` | `library(clpz)` | `fd_var(?Term)` | `semidet` | Succeeds iff Term is currently a CLP(Z) finite-domain variable. |
-| `file_access_time/2` | `library(files)` | `file_access_time(+Path,-Time)` | `det` | Returns the host access timestamp for Path. |
-| `file_copy/2` | `library(files)` | `file_copy(+Source,+Target)` | `det` | Copies Source to Target using the Node filesystem host. |
-| `file_creation_time/2` | `library(files)` | `file_creation_time(+Path,-Time)` | `det` | Returns the host creation/birth timestamp for Path. |
-| `file_exists/1` | `library(files)` | `file_exists(+Path)` | `semidet` | Succeeds iff Path exists and is a regular file. |
-| `file_modification_time/2` | `library(files)` | `file_modification_time(+Path,-Time)` | `det` | Returns the host modification timestamp for Path. |
-| `file_size/2` | `library(files)` | `file_size(+Path,-Bytes)` | `det` | Returns the size of Path in bytes. |
-| `findall/3` | `ISO core` | `findall(+Template,+Goal,?Bag)` | `det` | Collects a copy of Template for every solution of Goal, treating all free variables existentially; the empty result is []. |
-| `findall/4` | `library(iso_ext)` | `findall(+Template,+Goal,?List,?Tail)` | `det` | Collects Template solutions as a difference list whose tail is Tail. |
-| `float/1` | `ISO core` | `float(?Term)` | `semidet` | Succeeds iff Term is a floating-point number. |
-| `flush_output/0` | `ISO core` | `flush_output` | `det` | Flushes buffered output on the current output stream. |
-| `flush_output/1` | `ISO core` | `flush_output(+Stream)` | `det` | Flushes buffered output on Stream. |
-| `foldl/4` | `library(lists)` | `foldl(+Goal,+List1,+State0,-State)` | `meta` | Folds Goal left-to-right over 1 list(s), threading an accumulator from State0 to State. |
-| `foldl/5` | `library(lists)` | `foldl(+Goal,+List1,+List2,+State0,-State)` | `meta` | Folds Goal left-to-right over 2 list(s), threading an accumulator from State0 to State. |
-| `foldl/6` | `library(lists)` | `foldl(+Goal,+List1,+List2,+List3,+State0,-State)` | `meta` | Folds Goal left-to-right over 3 list(s), threading an accumulator from State0 to State. |
-| `forall/2` | `library(iso_ext)` | `forall(+Condition,+Action)` | `semidet` | Succeeds iff Action succeeds for every solution of Condition, implemented by double negation. |
-| `format_/4` | `library(format)` | `format_(+Format,+Args,?S0,?S)` | `det` | Expanded DCG form of format_//2, relating formatted characters between difference-list states S0 and S. |
-| `format_time/4` | `library(time)` | `format_time(+Format,+Stamp,?S0,?S)` | `det` | Expanded DCG form of format_time//2, emitting formatted time characters between S0 and S. |
-| `format/2` | `library(format)` | `format(+Format,+Args)` | `det` | Formats Args according to Format and writes the result to the current output stream. |
-| `format/3` | `library(format)` | `format(+Stream,+Format,+Args)` | `det` | Formats Args according to Format and writes the result to Stream. |
-| `freeze/2` | `library(freeze)` | `freeze(?Var,+Goal)` | `delayed` | If Var is unbound, delays Goal until Var becomes instantiated; otherwise calls Goal immediately. |
-| `frozen/2` | `library(freeze)` | `frozen(+Term,-Goal)` | `det` | Collects residual freeze goals attached to attributed variables in Term and returns them as a conjunction, or true when none remain. |
-| `functor/3` | `ISO core` | `functor(?Term,?Name,?Arity)` | `mode-dependent` | Decomposes an instantiated term into functor and arity, or constructs a term when Name and Arity are given. |
+- **`fail/0`** — `ISO core` · **`semidet`**  
+  **Call:** `fail`  
+  **Contract:** Always fails.
+- **`false/0`** — `ISO core` · **`semidet`**  
+  **Call:** `false`  
+  **Contract:** Always fails; this compatibility alias is protected from source redefinition.
+- **`fd_dom/2`** — `library(clpz)` · **`det`**  
+  **Call:** `fd_dom(+Var,?Domain)`  
+  **Contract:** Returns a term describing Var's current finite domain.
+- **`fd_inf/2`** — `library(clpz)` · **`det`**  
+  **Call:** `fd_inf(+Var,?Infimum)`  
+  **Contract:** Returns the current lower bound of Var's finite domain.
+- **`fd_size/2`** — `library(clpz)` · **`det`**  
+  **Call:** `fd_size(+Var,?Size)`  
+  **Contract:** Returns the cardinality of Var's current finite domain when finite.
+- **`fd_sup/2`** — `library(clpz)` · **`det`**  
+  **Call:** `fd_sup(+Var,?Supremum)`  
+  **Contract:** Returns the current upper bound of Var's finite domain.
+- **`fd_var/1`** — `library(clpz)` · **`semidet`**  
+  **Call:** `fd_var(?Term)`  
+  **Contract:** Succeeds iff Term is currently a CLP(Z) finite-domain variable.
+- **`file_access_time/2`** — `library(files)` · **`det`**  
+  **Call:** `file_access_time(+Path,-Time)`  
+  **Contract:** Returns the host access timestamp for Path.
+- **`file_copy/2`** — `library(files)` · **`det`**  
+  **Call:** `file_copy(+Source,+Target)`  
+  **Contract:** Copies Source to Target using the Node filesystem host.
+- **`file_creation_time/2`** — `library(files)` · **`det`**  
+  **Call:** `file_creation_time(+Path,-Time)`  
+  **Contract:** Returns the host creation/birth timestamp for Path.
+- **`file_exists/1`** — `library(files)` · **`semidet`**  
+  **Call:** `file_exists(+Path)`  
+  **Contract:** Succeeds iff Path exists and is a regular file.
+- **`file_modification_time/2`** — `library(files)` · **`det`**  
+  **Call:** `file_modification_time(+Path,-Time)`  
+  **Contract:** Returns the host modification timestamp for Path.
+- **`file_size/2`** — `library(files)` · **`det`**  
+  **Call:** `file_size(+Path,-Bytes)`  
+  **Contract:** Returns the size of Path in bytes.
+- **`findall/3`** — `ISO core` · **`det`**  
+  **Call:** `findall(+Template,+Goal,?Bag)`  
+  **Contract:** Collects a copy of Template for every solution of Goal, treating all free variables existentially; the empty result is [].
+- **`findall/4`** — `library(iso_ext)` · **`det`**  
+  **Call:** `findall(+Template,+Goal,?List,?Tail)`  
+  **Contract:** Collects Template solutions as a difference list whose tail is Tail.
+- **`float/1`** — `ISO core` · **`semidet`**  
+  **Call:** `float(?Term)`  
+  **Contract:** Succeeds iff Term is a floating-point number.
+- **`flush_output/0`** — `ISO core` · **`det`**  
+  **Call:** `flush_output`  
+  **Contract:** Flushes buffered output on the current output stream.
+- **`flush_output/1`** — `ISO core` · **`det`**  
+  **Call:** `flush_output(+Stream)`  
+  **Contract:** Flushes buffered output on Stream.
+- **`foldl/4`** — `library(lists)` · **`meta`**  
+  **Call:** `foldl(+Goal,+List1,+State0,-State)`  
+  **Contract:** Folds Goal left-to-right over 1 list(s), threading an accumulator from State0 to State.
+- **`foldl/5`** — `library(lists)` · **`meta`**  
+  **Call:** `foldl(+Goal,+List1,+List2,+State0,-State)`  
+  **Contract:** Folds Goal left-to-right over 2 list(s), threading an accumulator from State0 to State.
+- **`foldl/6`** — `library(lists)` · **`meta`**  
+  **Call:** `foldl(+Goal,+List1,+List2,+List3,+State0,-State)`  
+  **Contract:** Folds Goal left-to-right over 3 list(s), threading an accumulator from State0 to State.
+- **`forall/2`** — `library(iso_ext)` · **`semidet`**  
+  **Call:** `forall(+Condition,+Action)`  
+  **Contract:** Succeeds iff Action succeeds for every solution of Condition, implemented by double negation.
+- **`format_/4`** — `library(format)` · **`det`**  
+  **Call:** `format_(+Format,+Args,?S0,?S)`  
+  **Contract:** Expanded DCG form of format_//2, relating formatted characters between difference-list states S0 and S.
+- **`format_time/4`** — `library(time)` · **`det`**  
+  **Call:** `format_time(+Format,+Stamp,?S0,?S)`  
+  **Contract:** Expanded DCG form of format_time//2, emitting formatted time characters between S0 and S.
+- **`format/2`** — `library(format)` · **`det`**  
+  **Call:** `format(+Format,+Args)`  
+  **Contract:** Formats Args according to Format and writes the result to the current output stream.
+- **`format/3`** — `library(format)` · **`det`**  
+  **Call:** `format(+Stream,+Format,+Args)`  
+  **Contract:** Formats Args according to Format and writes the result to Stream.
+- **`freeze/2`** — `library(freeze)` · **`delayed`**  
+  **Call:** `freeze(?Var,+Goal)`  
+  **Contract:** If Var is unbound, delays Goal until Var becomes instantiated; otherwise calls Goal immediately.
+- **`frozen/2`** — `library(freeze)` · **`det`**  
+  **Call:** `frozen(+Term,-Goal)`  
+  **Contract:** Collects residual freeze goals attached to attributed variables in Term and returns them as a conjunction, or true when none remain.
+- **`functor/3`** — `ISO core` · **`mode-dependent`**  
+  **Call:** `functor(?Term,?Name,?Arity)`  
+  **Contract:** Decomposes an instantiated term into functor and arity, or constructs a term when Name and Arity are given.
 
 ##### Predicate reference — G
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `ge/2` | `library(comparison)` | `ge(+A,+B)` | `semidet` | Succeeds iff A is greater than or equal to B under the library's portable comparison rules. |
-| `gen_assoc/3` | `library(assoc)` | `gen_assoc(?Key,+Assoc,?Value)` | `nondet` | Enumerates or checks Key-Value bindings stored in Assoc in key order. |
-| `gen_int/1` | `library(between)` | `gen_int(?N)` | `multi` | Enumerates all integers in an expanding symmetric sequence. |
-| `gen_nat/1` | `library(between)` | `gen_nat(?N)` | `multi` | Enumerates the natural numbers 0,1,2,... without bound. |
-| `gensym/2` | `library(gensym)` | `gensym(+Base,-Atom)` | `det` | Generates the next process-local atom formed from Base and its monotonically increasing counter. |
-| `get_assoc/3` | `library(assoc)` | `get_assoc(+Key,+Assoc,?Value)` | `semidet` | Looks up Key in Assoc and relates it to Value. |
-| `get_assoc/5` | `library(assoc)` | `get_assoc(+Key,+Assoc0,?OldValue,-Assoc,+NewValue)` | `semidet` | Looks up Key and, when present, returns OldValue together with a copy having that key updated to NewValue. |
-| `get_attr/3` | `library(atts)` | `get_attr(+Var,+Module,?Value)` | `semidet` | Retrieves Module's attribute Value from attributed variable Var. |
-| `get_atts/2` | `library(atts)` | `get_atts(+Var,?Attributes)` | `semidet` | Compatibility relation that retrieves or matches the attribute collection of Var. |
-| `get_byte/1` | `ISO core` | `get_byte(?Byte)` | `det` | Reads the next byte from the current binary input stream, or -1 at end of file. |
-| `get_byte/2` | `ISO core` | `get_byte(+Stream,?Byte)` | `det` | Reads the next byte from Stream, or -1 at end of file. |
-| `get_char/1` | `ISO core` | `get_char(?Char)` | `det` | Reads the next character from the current input stream, or end_of_file. |
-| `get_char/2` | `ISO core` | `get_char(+Stream,?Char)` | `det` | Reads the next character from Stream, or end_of_file. |
-| `get_code/1` | `ISO core` | `get_code(?Code)` | `det` | Reads the next character code from the current input stream, or -1 at end of file. |
-| `get_code/2` | `ISO core` | `get_code(+Stream,?Code)` | `det` | Reads the next character code from Stream, or -1 at end of file. |
-| `get_line_to_chars/3` | `library(charsio)` | `get_line_to_chars(+Stream,-Chars,?Tail)` | `det` | Reads a line of characters from Stream and appends Tail, enabling difference-list use. |
-| `get_n_chars/3` | `library(charsio)` | `get_n_chars(+Stream,+Count,-Chars)` | `det` | Reads up to Count characters from Stream. |
-| `get_single_char/1` | `library(charsio)` | `get_single_char(-Code)` | `det` | Reads one character code from the current input stream without line editing. |
-| `getenv/2` | `library(os)` | `getenv(+Name,?Value)` | `semidet` | Relates environment variable Name to its current host Value. |
-| `global_cardinality/2` | `library(clpz)` | `global_cardinality(+Vars,+Pairs)` | `delayed` | Constrains Value-Count pairs to describe occurrence counts of values in Vars. |
-| `global_cardinality/3` | `library(clpz)` | `global_cardinality(+Vars,+Pairs,+Options)` | `delayed` | Posts global-cardinality constraints with supported cost/options extensions. |
-| `ground/1` | `ISO core` | `ground(?Term)` | `semidet` | Succeeds iff Term contains no unbound variables. |
-| `group_pairs_by_key/2` | `library(pairs)` | `group_pairs_by_key(+Pairs,-Grouped)` | `det` | Groups consecutive equal-key pairs into Key-Values pairs; input is expected to be key ordered. |
-| `gt/2` | `library(comparison)` | `gt(+A,+B)` | `semidet` | Succeeds iff A is greater than B under the library's portable comparison rules. |
+- **`ge/2`** — `library(comparison)` · **`semidet`**  
+  **Call:** `ge(+A,+B)`  
+  **Contract:** Succeeds iff A is greater than or equal to B under the library's portable comparison rules.
+- **`gen_assoc/3`** — `library(assoc)` · **`nondet`**  
+  **Call:** `gen_assoc(?Key,+Assoc,?Value)`  
+  **Contract:** Enumerates or checks Key-Value bindings stored in Assoc in key order.
+- **`gen_int/1`** — `library(between)` · **`multi`**  
+  **Call:** `gen_int(?N)`  
+  **Contract:** Enumerates all integers in an expanding symmetric sequence.
+- **`gen_nat/1`** — `library(between)` · **`multi`**  
+  **Call:** `gen_nat(?N)`  
+  **Contract:** Enumerates the natural numbers 0,1,2,... without bound.
+- **`gensym/2`** — `library(gensym)` · **`det`**  
+  **Call:** `gensym(+Base,-Atom)`  
+  **Contract:** Generates the next process-local atom formed from Base and its monotonically increasing counter.
+- **`get_assoc/3`** — `library(assoc)` · **`semidet`**  
+  **Call:** `get_assoc(+Key,+Assoc,?Value)`  
+  **Contract:** Looks up Key in Assoc and relates it to Value.
+- **`get_assoc/5`** — `library(assoc)` · **`semidet`**  
+  **Call:** `get_assoc(+Key,+Assoc0,?OldValue,-Assoc,+NewValue)`  
+  **Contract:** Looks up Key and, when present, returns OldValue together with a copy having that key updated to NewValue.
+- **`get_attr/3`** — `library(atts)` · **`semidet`**  
+  **Call:** `get_attr(+Var,+Module,?Value)`  
+  **Contract:** Retrieves Module's attribute Value from attributed variable Var.
+- **`get_atts/2`** — `library(atts)` · **`semidet`**  
+  **Call:** `get_atts(+Var,?Attributes)`  
+  **Contract:** Compatibility relation that retrieves or matches the attribute collection of Var.
+- **`get_byte/1`** — `ISO core` · **`det`**  
+  **Call:** `get_byte(?Byte)`  
+  **Contract:** Reads the next byte from the current binary input stream, or -1 at end of file.
+- **`get_byte/2`** — `ISO core` · **`det`**  
+  **Call:** `get_byte(+Stream,?Byte)`  
+  **Contract:** Reads the next byte from Stream, or -1 at end of file.
+- **`get_char/1`** — `ISO core` · **`det`**  
+  **Call:** `get_char(?Char)`  
+  **Contract:** Reads the next character from the current input stream, or end_of_file.
+- **`get_char/2`** — `ISO core` · **`det`**  
+  **Call:** `get_char(+Stream,?Char)`  
+  **Contract:** Reads the next character from Stream, or end_of_file.
+- **`get_code/1`** — `ISO core` · **`det`**  
+  **Call:** `get_code(?Code)`  
+  **Contract:** Reads the next character code from the current input stream, or -1 at end of file.
+- **`get_code/2`** — `ISO core` · **`det`**  
+  **Call:** `get_code(+Stream,?Code)`  
+  **Contract:** Reads the next character code from Stream, or -1 at end of file.
+- **`get_line_to_chars/3`** — `library(charsio)` · **`det`**  
+  **Call:** `get_line_to_chars(+Stream,-Chars,?Tail)`  
+  **Contract:** Reads a line of characters from Stream and appends Tail, enabling difference-list use.
+- **`get_n_chars/3`** — `library(charsio)` · **`det`**  
+  **Call:** `get_n_chars(+Stream,+Count,-Chars)`  
+  **Contract:** Reads up to Count characters from Stream.
+- **`get_single_char/1`** — `library(charsio)` · **`det`**  
+  **Call:** `get_single_char(-Code)`  
+  **Contract:** Reads one character code from the current input stream without line editing.
+- **`getenv/2`** — `library(os)` · **`semidet`**  
+  **Call:** `getenv(+Name,?Value)`  
+  **Contract:** Relates environment variable Name to its current host Value.
+- **`global_cardinality/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `global_cardinality(+Vars,+Pairs)`  
+  **Contract:** Constrains Value-Count pairs to describe occurrence counts of values in Vars.
+- **`global_cardinality/3`** — `library(clpz)` · **`delayed`**  
+  **Call:** `global_cardinality(+Vars,+Pairs,+Options)`  
+  **Contract:** Posts global-cardinality constraints with supported cost/options extensions.
+- **`ground/1`** — `ISO core` · **`semidet`**  
+  **Call:** `ground(?Term)`  
+  **Contract:** Succeeds iff Term contains no unbound variables.
+- **`group_pairs_by_key/2`** — `library(pairs)` · **`det`**  
+  **Call:** `group_pairs_by_key(+Pairs,-Grouped)`  
+  **Contract:** Groups consecutive equal-key pairs into Key-Values pairs; input is expected to be key ordered.
+- **`gt/2`** — `library(comparison)` · **`semidet`**  
+  **Call:** `gt(+A,+B)`  
+  **Contract:** Succeeds iff A is greater than B under the library's portable comparison rules.
 
 ##### Predicate reference — H
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `halt/0` | `ISO core` | `halt` | `terminal` | Requests processor termination with status 0. |
-| `halt/1` | `ISO core` | `halt(+Status)` | `terminal` | Requests processor termination with the supplied integer status. |
-| `hex_bytes/2` | `library(crypto)` | `hex_bytes(?Hex,?Bytes)` | `mode-dependent` | Relates hexadecimal character data to the corresponding byte list. |
+- **`halt/0`** — `ISO core` · **`terminal`**  
+  **Call:** `halt`  
+  **Contract:** Requests processor termination with status 0.
+- **`halt/1`** — `ISO core` · **`terminal`**  
+  **Call:** `halt(+Status)`  
+  **Contract:** Requests processor termination with the supplied integer status.
+- **`hex_bytes/2`** — `library(crypto)` · **`mode-dependent`**  
+  **Call:** `hex_bytes(?Hex,?Bytes)`  
+  **Contract:** Relates hexadecimal character data to the corresponding byte list.
 
 ##### Predicate reference — I
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `if_/3` | `library(reif)` | `if_(+Condition,+Then,+Else)` | `meta` | Calls reified Condition and commits to Then when it yields true or Else when it yields false. |
-| `in/2` | `library(clpz)` | `in(?Left,?Right)` | `delayed` | Constrains one integer variable/expression to the supplied finite-domain expression. |
-| `include/3` | `library(lists)` | `include(+Pred,+List,-Included)` | `meta` | Keeps exactly the elements of List for which Pred succeeds, preserving order. |
-| `indomain/1` | `library(clpz)` | `indomain(+Var)` | `nondet` | Enumerates the finite-domain values currently permitted for Var. |
-| `ins/2` | `library(clpz)` | `ins(?Left,?Right)` | `delayed` | Constrains every variable in a list to the supplied finite-domain expression. |
-| `instantiation_error/0` | `library(error)` | `instantiation_error` | `terminal` | Raises error(instantiation_error,[]). |
-| `instantiation_error/1` | `library(error)` | `instantiation_error(+Context)` | `terminal` | Raises an instantiation error carrying Context. |
-| `integer_si/1` | `library(si)` | `integer_si(?Term)` | `semidet` | Succeeds iff Term is sufficiently instantiated to be treated as integer by dependent constraint code. |
-| `integer/1` | `ISO core` | `integer(?Term)` | `semidet` | Succeeds iff Term is an integer. |
-| `intersection/3` | `library(lists)` | `intersection(+A,+B,-Intersection)` | `det` | Keeps elements of A that unify with some member of B, preserving A order. |
-| `is_assoc/1` | `library(assoc)` | `is_assoc(+Assoc)` | `semidet` | Succeeds iff Assoc is a valid association tree. |
-| `is_ordset/1` | `library(ordsets)` | `is_ordset(+Set)` | `semidet` | Succeeds iff Set is a proper strictly ordered duplicate-free list under standard term order. |
-| `is_set/1` | `library(lists)` | `is_set(+List)` | `semidet` | Succeeds iff List is proper and contains no duplicate terms under the library's set equality test. |
-| `is/2` | `ISO core` | `(?Result is +Expression)` | `semidet` | Evaluates the arithmetic Expression and unifies Result with the resulting number. |
+- **`if_/3`** — `library(reif)` · **`meta`**  
+  **Call:** `if_(+Condition,+Then,+Else)`  
+  **Contract:** Calls reified Condition and commits to Then when it yields true or Else when it yields false.
+- **`in/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `in(?Left,?Right)`  
+  **Contract:** Constrains one integer variable/expression to the supplied finite-domain expression.
+- **`include/3`** — `library(lists)` · **`meta`**  
+  **Call:** `include(+Pred,+List,-Included)`  
+  **Contract:** Keeps exactly the elements of List for which Pred succeeds, preserving order.
+- **`indomain/1`** — `library(clpz)` · **`nondet`**  
+  **Call:** `indomain(+Var)`  
+  **Contract:** Enumerates the finite-domain values currently permitted for Var.
+- **`ins/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `ins(?Left,?Right)`  
+  **Contract:** Constrains every variable in a list to the supplied finite-domain expression.
+- **`instantiation_error/0`** — `library(error)` · **`terminal`**  
+  **Call:** `instantiation_error`  
+  **Contract:** Raises error(instantiation_error,[]).
+- **`instantiation_error/1`** — `library(error)` · **`terminal`**  
+  **Call:** `instantiation_error(+Context)`  
+  **Contract:** Raises an instantiation error carrying Context.
+- **`integer_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `integer_si(?Term)`  
+  **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as integer by dependent constraint code.
+- **`integer/1`** — `ISO core` · **`semidet`**  
+  **Call:** `integer(?Term)`  
+  **Contract:** Succeeds iff Term is an integer.
+- **`intersection/3`** — `library(lists)` · **`det`**  
+  **Call:** `intersection(+A,+B,-Intersection)`  
+  **Contract:** Keeps elements of A that unify with some member of B, preserving A order.
+- **`is_assoc/1`** — `library(assoc)` · **`semidet`**  
+  **Call:** `is_assoc(+Assoc)`  
+  **Contract:** Succeeds iff Assoc is a valid association tree.
+- **`is_ordset/1`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `is_ordset(+Set)`  
+  **Contract:** Succeeds iff Set is a proper strictly ordered duplicate-free list under standard term order.
+- **`is_set/1`** — `library(lists)` · **`semidet`**  
+  **Call:** `is_set(+List)`  
+  **Contract:** Succeeds iff List is proper and contains no duplicate terms under the library's set equality test.
+- **`is/2`** — `ISO core` · **`semidet`**  
+  **Call:** `(?Result is +Expression)`  
+  **Contract:** Evaluates the arithmetic Expression and unifies Result with the resulting number.
 
 ##### Predicate reference — J
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `join/3` | `library(strings)` | `join(+Parts,+Separator,-Text)` | `det` | Joins lexical Parts with literal Separator to produce Text. |
+- **`join/3`** — `library(strings)` · **`det`**  
+  **Call:** `join(+Parts,+Separator,-Text)`  
+  **Contract:** Joins lexical Parts with literal Separator to produce Text.
 
 ##### Predicate reference — K
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `keysort/2` | `ISO core` | `keysort(+Pairs,?Sorted)` | `det` | Stably sorts Key-Value pairs by key without removing duplicates. |
+- **`keysort/2`** — `ISO core` · **`det`**  
+  **Call:** `keysort(+Pairs,?Sorted)`  
+  **Contract:** Stably sorts Key-Value pairs by key without removing duplicates.
 
 ##### Predicate reference — L
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `label/1` | `library(clpz)` | `label(+Vars)` | `nondet` | Labels Vars using default CLP(Z) enumeration options. |
-| `labeling/1` | `library(clpb)` | `labeling(+BooleanVariables)` | `nondet` | Enumerates truth assignments for constrained Boolean variables. |
-| `labeling/2` | `library(clpz)` | `labeling(+Options,+Vars)` | `nondet` | Enumerates integer assignments satisfying posted constraints using the requested labeling Options. |
-| `last/2` | `library(lists)` | `last(+List,?Last)` | `semidet` | Relates Last to the final element of a nonempty proper list. |
-| `lcm/3` | `library(arithmetic)` | `lcm(+A,+B,-LCM)` | `det` | Computes the least common multiple of integers A and B. |
-| `le/2` | `library(comparison)` | `le(+A,+B)` | `semidet` | Succeeds iff A is less than or equal to B under the library's portable comparison rules. |
-| `length/2` | `library(lists)` | `length(?List,?Length)` | `nondet` | Relates a list skeleton to its nonnegative length; with both arguments variable it enumerates increasing finite lengths. |
-| `lex_chain/1` | `library(clpz)` | `lex_chain(+Lists)` | `delayed` | Constrains successive lists to be lexicographically nondecreasing. |
-| `list_max/2` | `library(lists)` | `list_max(+List,-Max)` | `semidet` | Compatibility alias returning the greatest element of a nonempty list. |
-| `list_min/2` | `library(lists)` | `list_min(+List,-Min)` | `semidet` | Compatibility alias returning the least element of a nonempty list. |
-| `list_si/1` | `library(si)` | `list_si(?Term)` | `semidet` | Succeeds iff Term is sufficiently instantiated to be treated as list by dependent constraint code. |
-| `list_to_assoc/2` | `library(assoc)` | `list_to_assoc(+Pairs,-Assoc)` | `det` | Builds an association tree from Key-Value pairs after key ordering/validation. |
-| `list_to_ord_set/2` | `library(ordsets)` | `list_to_ord_set(+List,-Set)` | `det` | Sorts List and removes duplicates to form an ordered set. |
-| `list_to_set/2` | `library(lists)` | `list_to_set(+List,-Set)` | `det` | Removes later structural duplicates while preserving first-occurrence order. |
-| `listing/1` | `library(format)` | `listing(+PredicateSpec)` | `nondet` | Writes accessible clauses selected by PredicateSpec in source-like form. |
-| `lowercase/2` | `library(strings)` | `lowercase(+Text,-Lower)` | `det` | Maps ASCII uppercase letters in Text to lowercase while preserving other characters. |
-| `lsb/2` | `library(arithmetic)` | `lsb(+Integer,-Index)` | `semidet` | Returns the zero-based index of the least significant set bit of a positive integer. |
-| `lt/2` | `library(comparison)` | `lt(+A,+B)` | `semidet` | Succeeds iff A is less than B under the library's portable comparison rules. |
+- **`label/1`** — `library(clpz)` · **`nondet`**  
+  **Call:** `label(+Vars)`  
+  **Contract:** Labels Vars using default CLP(Z) enumeration options.
+- **`labeling/1`** — `library(clpb)` · **`nondet`**  
+  **Call:** `labeling(+BooleanVariables)`  
+  **Contract:** Enumerates truth assignments for constrained Boolean variables.
+- **`labeling/2`** — `library(clpz)` · **`nondet`**  
+  **Call:** `labeling(+Options,+Vars)`  
+  **Contract:** Enumerates integer assignments satisfying posted constraints using the requested labeling Options.
+- **`last/2`** — `library(lists)` · **`semidet`**  
+  **Call:** `last(+List,?Last)`  
+  **Contract:** Relates Last to the final element of a nonempty proper list.
+- **`lcm/3`** — `library(arithmetic)` · **`det`**  
+  **Call:** `lcm(+A,+B,-LCM)`  
+  **Contract:** Computes the least common multiple of integers A and B.
+- **`le/2`** — `library(comparison)` · **`semidet`**  
+  **Call:** `le(+A,+B)`  
+  **Contract:** Succeeds iff A is less than or equal to B under the library's portable comparison rules.
+- **`length/2`** — `library(lists)` · **`nondet`**  
+  **Call:** `length(?List,?Length)`  
+  **Contract:** Relates a list skeleton to its nonnegative length; with both arguments variable it enumerates increasing finite lengths.
+- **`lex_chain/1`** — `library(clpz)` · **`delayed`**  
+  **Call:** `lex_chain(+Lists)`  
+  **Contract:** Constrains successive lists to be lexicographically nondecreasing.
+- **`list_max/2`** — `library(lists)` · **`semidet`**  
+  **Call:** `list_max(+List,-Max)`  
+  **Contract:** Compatibility alias returning the greatest element of a nonempty list.
+- **`list_min/2`** — `library(lists)` · **`semidet`**  
+  **Call:** `list_min(+List,-Min)`  
+  **Contract:** Compatibility alias returning the least element of a nonempty list.
+- **`list_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `list_si(?Term)`  
+  **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as list by dependent constraint code.
+- **`list_to_assoc/2`** — `library(assoc)` · **`det`**  
+  **Call:** `list_to_assoc(+Pairs,-Assoc)`  
+  **Contract:** Builds an association tree from Key-Value pairs after key ordering/validation.
+- **`list_to_ord_set/2`** — `library(ordsets)` · **`det`**  
+  **Call:** `list_to_ord_set(+List,-Set)`  
+  **Contract:** Sorts List and removes duplicates to form an ordered set.
+- **`list_to_set/2`** — `library(lists)` · **`det`**  
+  **Call:** `list_to_set(+List,-Set)`  
+  **Contract:** Removes later structural duplicates while preserving first-occurrence order.
+- **`listing/1`** — `library(format)` · **`nondet`**  
+  **Call:** `listing(+PredicateSpec)`  
+  **Contract:** Writes accessible clauses selected by PredicateSpec in source-like form.
+- **`lowercase/2`** — `library(strings)` · **`det`**  
+  **Call:** `lowercase(+Text,-Lower)`  
+  **Contract:** Maps ASCII uppercase letters in Text to lowercase while preserving other characters.
+- **`lsb/2`** — `library(arithmetic)` · **`semidet`**  
+  **Call:** `lsb(+Integer,-Index)`  
+  **Contract:** Returns the zero-based index of the least significant set bit of a positive integer.
+- **`lt/2`** — `library(comparison)` · **`semidet`**  
+  **Call:** `lt(+A,+B)`  
+  **Contract:** Succeeds iff A is less than B under the library's portable comparison rules.
 
 ##### Predicate reference — M
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `make_directory_path/1` | `library(files)` | `make_directory_path(+Path)` | `det` | Creates Path and any missing parent directories. |
-| `make_directory/1` | `library(files)` | `make_directory(+Path)` | `det` | Creates one directory at Path. |
-| `map_assoc/2` | `library(assoc)` | `map_assoc(+Goal,+Assoc)` | `meta` | Calls Goal for each value in Assoc in key order. |
-| `map_assoc/3` | `library(assoc)` | `map_assoc(+Goal,+Assoc0,-Assoc)` | `meta` | Maps Goal over corresponding values of Assoc0 to construct Assoc with the same keys. |
-| `map_list_to_pairs/3` | `library(pairs)` | `map_list_to_pairs(+Goal,+List,-Pairs)` | `meta` | Calls Goal(Element,Key) for each element and returns Key-Element pairs in input order. |
-| `maplist/2` | `library(lists)` | `maplist(+Goal,?List1)` | `meta` | Calls Goal pointwise over 1 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `maplist/3` | `library(lists)` | `maplist(+Goal,?List1,?List2)` | `meta` | Calls Goal pointwise over 2 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `maplist/4` | `library(lists)` | `maplist(+Goal,?List1,?List2,?List3)` | `meta` | Calls Goal pointwise over 3 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `maplist/5` | `library(lists)` | `maplist(+Goal,?List1,?List2,?List3,?List4)` | `meta` | Calls Goal pointwise over 4 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `maplist/6` | `library(lists)` | `maplist(+Goal,?List1,?List2,?List3,?List4,?List5)` | `meta` | Calls Goal pointwise over 5 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `maplist/7` | `library(lists)` | `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6)` | `meta` | Calls Goal pointwise over 6 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `maplist/8` | `library(lists)` | `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7)` | `meta` | Calls Goal pointwise over 7 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `maplist/9` | `library(lists)` | `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7,?List8)` | `meta` | Calls Goal pointwise over 8 list(s); all lists must end together and Goal receives the corresponding elements. |
-| `matches/2` | `library(strings)` | `matches(+Text,+Pattern)` | `semidet` | Succeeds iff Text matches the library's portable pattern language described by Pattern. |
-| `matches/3` | `library(strings)` | `matches(+Text,+Pattern,-Context)` | `semidet` | Matches Text against the portable pattern language and returns named-capture Context. |
-| `max_assoc/3` | `library(assoc)` | `max_assoc(+Assoc,?Key,?Value)` | `semidet` | Relates Key and Value to the greatest-key entry; fails for an empty association. |
-| `max_list/2` | `library(lists)` | `max_list(+List,-Max)` | `semidet` | Returns the greatest element of a nonempty list under EyeProlog term order. |
-| `max_sleep_time/1` | `library(time)` | `max_sleep_time(-Seconds)` | `det` | Returns the implementation maximum supported sleep interval in seconds. |
-| `maybe/0` | `library(random)` | `maybe` | `semidet` | Succeeds with probability approximately 1/2 using the current pseudo-random generator state. |
-| `maybe/1` | `library(random)` | `maybe(+Probability)` | `semidet` | Succeeds with the supplied probability in the unit interval using the current pseudo-random state. |
-| `maybe/2` | `library(random)` | `maybe(+K,+N)` | `semidet` | Succeeds with probability K/N using the current pseudo-random state. |
-| `member/2` | `library(lists)` | `member(?Item,+List)` | `nondet` | Succeeds once for each list position whose element unifies with Item, preserving list order. |
-| `memberchk/2` | `library(lists)` | `memberchk(?Item,+List)` | `semidet` | Succeeds for the first member of List that unifies with Item and commits to that match. |
-| `memberd_t/3` | `library(reif)` | `memberd_t(?Item,+List,?Truth)` | `delayed` | Reifies membership of Item in List into Boolean Truth using dif/3-aware comparison. |
-| `min_assoc/3` | `library(assoc)` | `min_assoc(+Assoc,?Key,?Value)` | `semidet` | Relates Key and Value to the least-key entry; fails for an empty association. |
-| `min_list/2` | `library(lists)` | `min_list(+List,-Min)` | `semidet` | Returns the least element of a nonempty list under EyeProlog term order. |
-| `msb/2` | `library(arithmetic)` | `msb(+Integer,-Index)` | `semidet` | Returns the zero-based index of the most significant set bit of a positive integer. |
-| `must_be/2` | `library(error)` | `must_be(+Type,+Term)` | `semidet` | Succeeds when Term is instantiated and satisfies Type; otherwise raises the corresponding instantiation or type/domain error. |
+- **`make_directory_path/1`** — `library(files)` · **`det`**  
+  **Call:** `make_directory_path(+Path)`  
+  **Contract:** Creates Path and any missing parent directories.
+- **`make_directory/1`** — `library(files)` · **`det`**  
+  **Call:** `make_directory(+Path)`  
+  **Contract:** Creates one directory at Path.
+- **`map_assoc/2`** — `library(assoc)` · **`meta`**  
+  **Call:** `map_assoc(+Goal,+Assoc)`  
+  **Contract:** Calls Goal for each value in Assoc in key order.
+- **`map_assoc/3`** — `library(assoc)` · **`meta`**  
+  **Call:** `map_assoc(+Goal,+Assoc0,-Assoc)`  
+  **Contract:** Maps Goal over corresponding values of Assoc0 to construct Assoc with the same keys.
+- **`map_list_to_pairs/3`** — `library(pairs)` · **`meta`**  
+  **Call:** `map_list_to_pairs(+Goal,+List,-Pairs)`  
+  **Contract:** Calls Goal(Element,Key) for each element and returns Key-Element pairs in input order.
+- **`maplist/2`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1)`  
+  **Contract:** Calls Goal pointwise over 1 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`maplist/3`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1,?List2)`  
+  **Contract:** Calls Goal pointwise over 2 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`maplist/4`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1,?List2,?List3)`  
+  **Contract:** Calls Goal pointwise over 3 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`maplist/5`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4)`  
+  **Contract:** Calls Goal pointwise over 4 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`maplist/6`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5)`  
+  **Contract:** Calls Goal pointwise over 5 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`maplist/7`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6)`  
+  **Contract:** Calls Goal pointwise over 6 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`maplist/8`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7)`  
+  **Contract:** Calls Goal pointwise over 7 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`maplist/9`** — `library(lists)` · **`meta`**  
+  **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7,?List8)`  
+  **Contract:** Calls Goal pointwise over 8 list(s); all lists must end together and Goal receives the corresponding elements.
+- **`matches/2`** — `library(strings)` · **`semidet`**  
+  **Call:** `matches(+Text,+Pattern)`  
+  **Contract:** Succeeds iff Text matches the library's portable pattern language described by Pattern.
+- **`matches/3`** — `library(strings)` · **`semidet`**  
+  **Call:** `matches(+Text,+Pattern,-Context)`  
+  **Contract:** Matches Text against the portable pattern language and returns named-capture Context.
+- **`max_assoc/3`** — `library(assoc)` · **`semidet`**  
+  **Call:** `max_assoc(+Assoc,?Key,?Value)`  
+  **Contract:** Relates Key and Value to the greatest-key entry; fails for an empty association.
+- **`max_list/2`** — `library(lists)` · **`semidet`**  
+  **Call:** `max_list(+List,-Max)`  
+  **Contract:** Returns the greatest element of a nonempty list under EyeProlog term order.
+- **`max_sleep_time/1`** — `library(time)` · **`det`**  
+  **Call:** `max_sleep_time(-Seconds)`  
+  **Contract:** Returns the implementation maximum supported sleep interval in seconds.
+- **`maybe/0`** — `library(random)` · **`semidet`**  
+  **Call:** `maybe`  
+  **Contract:** Succeeds with probability approximately 1/2 using the current pseudo-random generator state.
+- **`maybe/1`** — `library(random)` · **`semidet`**  
+  **Call:** `maybe(+Probability)`  
+  **Contract:** Succeeds with the supplied probability in the unit interval using the current pseudo-random state.
+- **`maybe/2`** — `library(random)` · **`semidet`**  
+  **Call:** `maybe(+K,+N)`  
+  **Contract:** Succeeds with probability K/N using the current pseudo-random state.
+- **`member/2`** — `library(lists)` · **`nondet`**  
+  **Call:** `member(?Item,+List)`  
+  **Contract:** Succeeds once for each list position whose element unifies with Item, preserving list order.
+- **`memberchk/2`** — `library(lists)` · **`semidet`**  
+  **Call:** `memberchk(?Item,+List)`  
+  **Contract:** Succeeds for the first member of List that unifies with Item and commits to that match.
+- **`memberd_t/3`** — `library(reif)` · **`delayed`**  
+  **Call:** `memberd_t(?Item,+List,?Truth)`  
+  **Contract:** Reifies membership of Item in List into Boolean Truth using dif/3-aware comparison.
+- **`min_assoc/3`** — `library(assoc)` · **`semidet`**  
+  **Call:** `min_assoc(+Assoc,?Key,?Value)`  
+  **Contract:** Relates Key and Value to the least-key entry; fails for an empty association.
+- **`min_list/2`** — `library(lists)` · **`semidet`**  
+  **Call:** `min_list(+List,-Min)`  
+  **Contract:** Returns the least element of a nonempty list under EyeProlog term order.
+- **`msb/2`** — `library(arithmetic)` · **`semidet`**  
+  **Call:** `msb(+Integer,-Index)`  
+  **Contract:** Returns the zero-based index of the most significant set bit of a positive integer.
+- **`must_be/2`** — `library(error)` · **`semidet`**  
+  **Call:** `must_be(+Type,+Term)`  
+  **Contract:** Succeeds when Term is instantiated and satisfies Type; otherwise raises the corresponding instantiation or type/domain error.
 
 ##### Predicate reference — N
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `neighbors/3` | `library(ugraphs)` | `neighbors(+Vertex,+Graph,?Neighbors)` | `semidet` | Relates Vertex to its outgoing neighbor list in Graph. |
-| `neighbours/3` | `library(ugraphs)` | `neighbours(+Vertex,+Graph,?Neighbors)` | `semidet` | British-spelling alias of neighbors/3. |
-| `nl/0` | `ISO core` | `nl` | `det` | Writes one newline to the current output stream. |
-| `nl/1` | `ISO core` | `nl(+Stream)` | `det` | Writes one newline to Stream. |
-| `nodebug/1` | `library(debug)` | `nodebug(+Topic)` | `det` | Disables debugging messages for Topic. |
-| `nonvar/1` | `ISO core` | `nonvar(?Term)` | `semidet` | Succeeds iff Term is not an unbound variable. |
-| `not_si/1` | `library(si)` | `not_si(+Goal)` | `semidet` | Performs sufficient-instantiation-aware negation for the SI compatibility layer. |
-| `nth0/3` | `library(lists)` | `nth0(?Index,+List,?Item)` | `nondet` | Relates zero-based Index to Item at that position in List. |
-| `nth0/4` | `library(lists)` | `nth0(?Index,+List,?Item,?Rest)` | `nondet` | Relates zero-based Index and Item to List and the list Rest obtained by deleting that position. |
-| `nth1/3` | `library(lists)` | `nth1(?Index,+List,?Item)` | `nondet` | Relates one-based Index to Item at that position in List. |
-| `nth1/4` | `library(lists)` | `nth1(?Index,+List,?Item,?Rest)` | `nondet` | Relates one-based Index and Item to List and the list Rest obtained by deleting that position. |
-| `number_chars/2` | `ISO core` | `number_chars(?Number,?Chars)` | `mode-dependent` | Relates a finite number to its canonical character-list representation or parses such a list. |
-| `number_codes/2` | `ISO core` | `number_codes(?Number,?Codes)` | `mode-dependent` | Relates a finite number to its canonical character-code representation or parses such a list. |
-| `number_string/2` | `library(strings)` | `number_string(?Number,?Text)` | `mode-dependent` | Relates a number to atom/character-list text using the library lexical conversion rules. |
-| `number_to_rational/2` | `library(arithmetic)` | `number_to_rational(+Number,-Rational)` | `det` | Converts an EyeProlog number to the library rational representation, preserving integers exactly. |
-| `number_to_rational/3` | `library(arithmetic)` | `number_to_rational(+Number,-Numerator,-Denominator)` | `det` | Converts Number to a normalized numerator and positive denominator. |
-| `number/1` | `ISO core` | `number(?Term)` | `semidet` | Succeeds iff Term is an integer or float. |
-| `numbervars/3` | `library(terms)` | `numbervars(+Term,+Start,-End)` | `det` | Numbers unbound variables in Term using $VAR(N) terms beginning at Start and returns the next unused End index. |
-| `numlist/2` | `library(between)` | `numlist(+High,-List)` | `det` | Constructs the inclusive integer list from 1 through High, with the module's empty-range behavior. |
-| `numlist/3` | `library(between)` | `numlist(+Low,+High,-List)` | `det` | Constructs the inclusive ascending integer list from Low through High. |
-| `nvalue/2` | `library(clpz)` | `nvalue(?N,+Vars)` | `delayed` | Constrains N to the number of distinct values taken by Vars. |
+- **`neighbors/3`** — `library(ugraphs)` · **`semidet`**  
+  **Call:** `neighbors(+Vertex,+Graph,?Neighbors)`  
+  **Contract:** Relates Vertex to its outgoing neighbor list in Graph.
+- **`neighbours/3`** — `library(ugraphs)` · **`semidet`**  
+  **Call:** `neighbours(+Vertex,+Graph,?Neighbors)`  
+  **Contract:** British-spelling alias of neighbors/3.
+- **`nl/0`** — `ISO core` · **`det`**  
+  **Call:** `nl`  
+  **Contract:** Writes one newline to the current output stream.
+- **`nl/1`** — `ISO core` · **`det`**  
+  **Call:** `nl(+Stream)`  
+  **Contract:** Writes one newline to Stream.
+- **`nodebug/1`** — `library(debug)` · **`det`**  
+  **Call:** `nodebug(+Topic)`  
+  **Contract:** Disables debugging messages for Topic.
+- **`nonvar/1`** — `ISO core` · **`semidet`**  
+  **Call:** `nonvar(?Term)`  
+  **Contract:** Succeeds iff Term is not an unbound variable.
+- **`not_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `not_si(+Goal)`  
+  **Contract:** Performs sufficient-instantiation-aware negation for the SI compatibility layer.
+- **`nth0/3`** — `library(lists)` · **`nondet`**  
+  **Call:** `nth0(?Index,+List,?Item)`  
+  **Contract:** Relates zero-based Index to Item at that position in List.
+- **`nth0/4`** — `library(lists)` · **`nondet`**  
+  **Call:** `nth0(?Index,+List,?Item,?Rest)`  
+  **Contract:** Relates zero-based Index and Item to List and the list Rest obtained by deleting that position.
+- **`nth1/3`** — `library(lists)` · **`nondet`**  
+  **Call:** `nth1(?Index,+List,?Item)`  
+  **Contract:** Relates one-based Index to Item at that position in List.
+- **`nth1/4`** — `library(lists)` · **`nondet`**  
+  **Call:** `nth1(?Index,+List,?Item,?Rest)`  
+  **Contract:** Relates one-based Index and Item to List and the list Rest obtained by deleting that position.
+- **`number_chars/2`** — `ISO core` · **`mode-dependent`**  
+  **Call:** `number_chars(?Number,?Chars)`  
+  **Contract:** Relates a finite number to its canonical character-list representation or parses such a list.
+- **`number_codes/2`** — `ISO core` · **`mode-dependent`**  
+  **Call:** `number_codes(?Number,?Codes)`  
+  **Contract:** Relates a finite number to its canonical character-code representation or parses such a list.
+- **`number_string/2`** — `library(strings)` · **`mode-dependent`**  
+  **Call:** `number_string(?Number,?Text)`  
+  **Contract:** Relates a number to atom/character-list text using the library lexical conversion rules.
+- **`number_to_rational/2`** — `library(arithmetic)` · **`det`**  
+  **Call:** `number_to_rational(+Number,-Rational)`  
+  **Contract:** Converts an EyeProlog number to the library rational representation, preserving integers exactly.
+- **`number_to_rational/3`** — `library(arithmetic)` · **`det`**  
+  **Call:** `number_to_rational(+Number,-Numerator,-Denominator)`  
+  **Contract:** Converts Number to a normalized numerator and positive denominator.
+- **`number/1`** — `ISO core` · **`semidet`**  
+  **Call:** `number(?Term)`  
+  **Contract:** Succeeds iff Term is an integer or float.
+- **`numbervars/3`** — `library(terms)` · **`det`**  
+  **Call:** `numbervars(+Term,+Start,-End)`  
+  **Contract:** Numbers unbound variables in Term using $VAR(N) terms beginning at Start and returns the next unused End index.
+- **`numlist/2`** — `library(between)` · **`det`**  
+  **Call:** `numlist(+High,-List)`  
+  **Contract:** Constructs the inclusive integer list from 1 through High, with the module's empty-range behavior.
+- **`numlist/3`** — `library(between)` · **`det`**  
+  **Call:** `numlist(+Low,+High,-List)`  
+  **Contract:** Constructs the inclusive ascending integer list from Low through High.
+- **`nvalue/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `nvalue(?N,+Vars)`  
+  **Contract:** Constrains N to the number of distinct values taken by Vars.
 
 ##### Predicate reference — O
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `once/1` | `ISO core` | `once(+Goal)` | `semidet` | Runs Goal and returns at most its first solution. |
-| `op/3` | `ISO core` | `op(+Priority,+Specifier,+NameOrNames)` | `det` | Defines, replaces, or removes operator declarations in the current program. |
-| `open/3` | `ISO core` | `open(+SourceSink,+Mode,-Stream)` | `det` | Opens SourceSink in Mode and returns a stream handle. |
-| `open/4` | `ISO core` | `open(+SourceSink,+Mode,-Stream,+Options)` | `det` | Opens SourceSink in Mode with validated stream Options and returns a stream handle. |
-| `ord_add_element/3` | `library(ordsets)` | `ord_add_element(+Set,+Element,-NewSet)` | `det` | Inserts Element into ordered Set if absent, preserving order. |
-| `ord_del_element/3` | `library(ordsets)` | `ord_del_element(+Set,+Element,-NewSet)` | `det` | Removes Element from ordered Set if present, preserving order. |
-| `ord_disjoint/2` | `library(ordsets)` | `ord_disjoint(+A,+B)` | `semidet` | Succeeds iff ordered sets A and B have no common element. |
-| `ord_empty/1` | `library(ordsets)` | `ord_empty(?Set)` | `semidet` | Succeeds exactly when Set is the empty ordered set []. |
-| `ord_intersect/2` | `library(ordsets)` | `ord_intersect(+A,+B)` | `semidet` | Succeeds iff ordered sets A and B have a nonempty intersection. |
-| `ord_intersect/3` | `library(ordsets)` | `ord_intersect(+A,+B,-Intersection)` | `det` | Computes the ordered-set intersection of A and B. |
-| `ord_intersection/2` | `library(ordsets)` | `ord_intersection(+Sets,-Intersection)` | `det` | Computes the intersection of a list of ordered sets. |
-| `ord_intersection/3` | `library(ordsets)` | `ord_intersection(+A,+B,-Intersection)` | `det` | Computes the ordered-set intersection of A and B. |
-| `ord_intersection/4` | `library(ordsets)` | `ord_intersection(+A,+B,-Intersection,-Difference)` | `det` | Computes A intersect B and the elements of A outside B in one traversal. |
-| `ord_list_to_assoc/2` | `library(assoc)` | `ord_list_to_assoc(+Pairs,-Assoc)` | `det` | Builds an association tree from an already key-ordered pair list. |
-| `ord_memberchk/2` | `library(ordsets)` | `ord_memberchk(+Element,+Set)` | `semidet` | Tests Element membership using ordered-set comparison and early termination. |
-| `ord_selectchk/3` | `library(ordsets)` | `ord_selectchk(+Element,+Set,?Rest)` | `semidet` | Checks membership of Element in ordered Set and returns Rest with that element removed. |
-| `ord_seteq/2` | `library(ordsets)` | `ord_seteq(+A,+B)` | `semidet` | Succeeds iff ordered sets A and B contain exactly the same elements. |
-| `ord_subset/2` | `library(ordsets)` | `ord_subset(+Sub,+Super)` | `semidet` | Succeeds iff every element of ordered Sub is present in ordered Super. |
-| `ord_subtract/3` | `library(ordsets)` | `ord_subtract(+Set,+Delete,-Remaining)` | `det` | Computes ordered Set minus every element of ordered Delete. |
-| `ord_symdiff/3` | `library(ordsets)` | `ord_symdiff(+A,+B,-Difference)` | `det` | Computes the symmetric difference of ordered sets A and B. |
-| `ord_union/2` | `library(ordsets)` | `ord_union(+Sets,-Union)` | `det` | Computes the union of a list of ordered sets. |
-| `ord_union/3` | `library(ordsets)` | `ord_union(+A,+B,-Union)` | `det` | Computes the ordered-set union of A and B. |
-| `ord_union/4` | `library(ordsets)` | `ord_union(+A,+B,-Union,-New)` | `det` | Computes Union and the elements contributed by one side according to the library's four-argument contract. |
+- **`once/1`** — `ISO core` · **`semidet`**  
+  **Call:** `once(+Goal)`  
+  **Contract:** Runs Goal and returns at most its first solution.
+- **`op/3`** — `ISO core` · **`det`**  
+  **Call:** `op(+Priority,+Specifier,+NameOrNames)`  
+  **Contract:** Defines, replaces, or removes operator declarations in the current program.
+- **`open/3`** — `ISO core` · **`det`**  
+  **Call:** `open(+SourceSink,+Mode,-Stream)`  
+  **Contract:** Opens SourceSink in Mode and returns a stream handle.
+- **`open/4`** — `ISO core` · **`det`**  
+  **Call:** `open(+SourceSink,+Mode,-Stream,+Options)`  
+  **Contract:** Opens SourceSink in Mode with validated stream Options and returns a stream handle.
+- **`ord_add_element/3`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_add_element(+Set,+Element,-NewSet)`  
+  **Contract:** Inserts Element into ordered Set if absent, preserving order.
+- **`ord_del_element/3`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_del_element(+Set,+Element,-NewSet)`  
+  **Contract:** Removes Element from ordered Set if present, preserving order.
+- **`ord_disjoint/2`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `ord_disjoint(+A,+B)`  
+  **Contract:** Succeeds iff ordered sets A and B have no common element.
+- **`ord_empty/1`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `ord_empty(?Set)`  
+  **Contract:** Succeeds exactly when Set is the empty ordered set [].
+- **`ord_intersect/2`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `ord_intersect(+A,+B)`  
+  **Contract:** Succeeds iff ordered sets A and B have a nonempty intersection.
+- **`ord_intersect/3`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_intersect(+A,+B,-Intersection)`  
+  **Contract:** Computes the ordered-set intersection of A and B.
+- **`ord_intersection/2`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_intersection(+Sets,-Intersection)`  
+  **Contract:** Computes the intersection of a list of ordered sets.
+- **`ord_intersection/3`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_intersection(+A,+B,-Intersection)`  
+  **Contract:** Computes the ordered-set intersection of A and B.
+- **`ord_intersection/4`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_intersection(+A,+B,-Intersection,-Difference)`  
+  **Contract:** Computes A intersect B and the elements of A outside B in one traversal.
+- **`ord_list_to_assoc/2`** — `library(assoc)` · **`det`**  
+  **Call:** `ord_list_to_assoc(+Pairs,-Assoc)`  
+  **Contract:** Builds an association tree from an already key-ordered pair list.
+- **`ord_memberchk/2`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `ord_memberchk(+Element,+Set)`  
+  **Contract:** Tests Element membership using ordered-set comparison and early termination.
+- **`ord_selectchk/3`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `ord_selectchk(+Element,+Set,?Rest)`  
+  **Contract:** Checks membership of Element in ordered Set and returns Rest with that element removed.
+- **`ord_seteq/2`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `ord_seteq(+A,+B)`  
+  **Contract:** Succeeds iff ordered sets A and B contain exactly the same elements.
+- **`ord_subset/2`** — `library(ordsets)` · **`semidet`**  
+  **Call:** `ord_subset(+Sub,+Super)`  
+  **Contract:** Succeeds iff every element of ordered Sub is present in ordered Super.
+- **`ord_subtract/3`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_subtract(+Set,+Delete,-Remaining)`  
+  **Contract:** Computes ordered Set minus every element of ordered Delete.
+- **`ord_symdiff/3`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_symdiff(+A,+B,-Difference)`  
+  **Contract:** Computes the symmetric difference of ordered sets A and B.
+- **`ord_union/2`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_union(+Sets,-Union)`  
+  **Contract:** Computes the union of a list of ordered sets.
+- **`ord_union/3`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_union(+A,+B,-Union)`  
+  **Contract:** Computes the ordered-set union of A and B.
+- **`ord_union/4`** — `library(ordsets)` · **`det`**  
+  **Call:** `ord_union(+A,+B,-Union,-New)`  
+  **Contract:** Computes Union and the elements contributed by one side according to the library's four-argument contract.
 
 ##### Predicate reference — P
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `pairs_keys_values/3` | `library(pairs)` | `pairs_keys_values(?Pairs,?Keys,?Values)` | `mode-dependent` | Relates a list of Key-Value pairs to the corresponding Keys and Values lists. |
-| `pairs_keys/2` | `library(pairs)` | `pairs_keys(+Pairs,-Keys)` | `det` | Projects the keys of Pairs in order. |
-| `pairs_values/2` | `library(pairs)` | `pairs_values(+Pairs,-Values)` | `det` | Projects the values of Pairs in order. |
-| `partial_string_tail/2` | `library(iso_ext)` | `partial_string_tail(+Term,?Tail)` | `semidet` | Relates a partial string to its open tail. |
-| `partial_string/1` | `library(iso_ext)` | `partial_string(?Term)` | `semidet` | Succeeds iff Term has the library's partial-string/list representation. |
-| `partial_string/3` | `library(iso_ext)` | `partial_string(?Term,?Chars,?Tail)` | `mode-dependent` | Relates a partial-string term to its character prefix Chars and open Tail. |
-| `path_canonical/2` | `library(files)` | `path_canonical(+Path,-Canonical)` | `det` | Returns the canonicalized host path corresponding to Path. |
-| `path_segments/2` | `library(files)` | `path_segments(?Path,?Segments)` | `mode-dependent` | Relates a filesystem path to its component segments. |
-| `peek_byte/1` | `ISO core` | `peek_byte(?Byte)` | `det` | Observes the next byte on the current binary input stream without consuming it. |
-| `peek_byte/2` | `ISO core` | `peek_byte(+Stream,?Byte)` | `det` | Observes the next byte on Stream without consuming it. |
-| `peek_char/1` | `ISO core` | `peek_char(?Char)` | `det` | Observes the next character on the current input stream without consuming it. |
-| `peek_char/2` | `ISO core` | `peek_char(+Stream,?Char)` | `det` | Observes the next character on Stream without consuming it. |
-| `peek_code/1` | `ISO core` | `peek_code(?Code)` | `det` | Observes the next character code on the current input stream without consuming it. |
-| `peek_code/2` | `ISO core` | `peek_code(+Stream,?Code)` | `det` | Observes the next character code on Stream without consuming it. |
-| `permutation/2` | `library(lists)` | `permutation(?List,?Permutation)` | `nondet` | Relates two proper lists that are permutations of one another, enumerating permutations in select/3 order. |
-| `phrase_from_file/2` | `library(pio)` | `phrase_from_file(+Grammar,+Path)` | `semidet` | Reads Path as characters and succeeds iff Grammar consumes the complete content. |
-| `phrase_from_file/3` | `library(pio)` | `phrase_from_file(+Grammar,+Path,+Options)` | `semidet` | Reads Path with Options and succeeds iff Grammar consumes the complete content. |
-| `phrase_from_stream/2` | `library(pio)` | `phrase_from_stream(+Grammar,+Stream)` | `semidet` | Reads Stream as characters and succeeds iff Grammar consumes the complete content. |
-| `phrase_to_file/2` | `library(pio)` | `phrase_to_file(+Grammar,+Path)` | `semidet` | Generates characters with Grammar and writes them to Path. |
-| `phrase_to_file/3` | `library(pio)` | `phrase_to_file(+Grammar,+Path,+Options)` | `semidet` | Generates characters with Grammar and writes them to Path according to Options. |
-| `phrase_to_stream/2` | `library(pio)` | `phrase_to_stream(+Grammar,+Stream)` | `semidet` | Generates characters with Grammar and writes them to Stream. |
-| `phrase/2` | `ISO core + library(dcgs)` | `phrase(+Body,?Sequence)` | `mode-dependent` | Runs a DCG Body over Sequence and requires complete consumption. |
-| `phrase/3` | `ISO core + library(dcgs)` | `phrase(+Body,?Sequence,?Rest)` | `mode-dependent` | Runs a DCG Body over Sequence and relates Rest to the unconsumed suffix. |
-| `phrase/4` | `library(dcgs)` | `phrase(+Body,?S0,?S,?A1)` | `mode-dependent` | Calls the parameterized DCG Body with one additional argument and the difference-list pair S0,S. |
-| `phrase/5` | `library(dcgs)` | `phrase(+Body,?S0,?S,?A1,?A2)` | `mode-dependent` | Calls the parameterized DCG Body with two additional arguments and the difference-list pair S0,S. |
-| `pid/1` | `library(os)` | `pid(-Pid)` | `det` | Returns the host process identifier. |
-| `popcount/2` | `library(arithmetic)` | `popcount(+Integer,-Count)` | `det` | Counts the set bits in the nonnegative integer representation. |
-| `portray_clause_/3` | `library(format)` | `portray_clause_(+Clause,?S0,?S)` | `det` | Expanded DCG form of portray_clause_//1 producing clause text between S0 and S. |
-| `portray_clause/1` | `library(format)` | `portray_clause(+Clause)` | `det` | Writes Clause in readable clause-oriented layout to the current output stream. |
-| `portray_clause/2` | `library(format)` | `portray_clause(+Stream,+Clause)` | `det` | Writes Clause in readable clause-oriented layout to Stream. |
-| `put_assoc/4` | `library(assoc)` | `put_assoc(+Key,+Assoc0,+Value,-Assoc)` | `det` | Returns Assoc equal to Assoc0 with Key inserted or replaced by Value. |
-| `put_attr/3` | `library(atts)` | `put_attr(+Var,+Module,+Value)` | `det` | Sets Module's attribute Value on Var in the current logical branch. |
-| `put_atts/2` | `library(atts)` | `put_atts(+Var,+AttributeSpec)` | `det` | Compatibility relation that adds, replaces, or removes attributes on Var according to AttributeSpec. |
-| `put_byte/1` | `ISO core` | `put_byte(+Byte)` | `det` | Writes one byte to the current binary output stream. |
-| `put_byte/2` | `ISO core` | `put_byte(+Stream,+Byte)` | `det` | Writes one byte to Stream. |
-| `put_char/1` | `ISO core` | `put_char(+Char)` | `det` | Writes one character to the current output stream. |
-| `put_char/2` | `ISO core` | `put_char(+Stream,+Char)` | `det` | Writes one character to Stream. |
-| `put_code/1` | `ISO core` | `put_code(+Code)` | `det` | Writes one character code to the current output stream. |
-| `put_code/2` | `ISO core` | `put_code(+Stream,+Code)` | `det` | Writes one character code to Stream. |
+- **`pairs_keys_values/3`** — `library(pairs)` · **`mode-dependent`**  
+  **Call:** `pairs_keys_values(?Pairs,?Keys,?Values)`  
+  **Contract:** Relates a list of Key-Value pairs to the corresponding Keys and Values lists.
+- **`pairs_keys/2`** — `library(pairs)` · **`det`**  
+  **Call:** `pairs_keys(+Pairs,-Keys)`  
+  **Contract:** Projects the keys of Pairs in order.
+- **`pairs_values/2`** — `library(pairs)` · **`det`**  
+  **Call:** `pairs_values(+Pairs,-Values)`  
+  **Contract:** Projects the values of Pairs in order.
+- **`partial_string_tail/2`** — `library(iso_ext)` · **`semidet`**  
+  **Call:** `partial_string_tail(+Term,?Tail)`  
+  **Contract:** Relates a partial string to its open tail.
+- **`partial_string/1`** — `library(iso_ext)` · **`semidet`**  
+  **Call:** `partial_string(?Term)`  
+  **Contract:** Succeeds iff Term has the library's partial-string/list representation.
+- **`partial_string/3`** — `library(iso_ext)` · **`mode-dependent`**  
+  **Call:** `partial_string(?Term,?Chars,?Tail)`  
+  **Contract:** Relates a partial-string term to its character prefix Chars and open Tail.
+- **`path_canonical/2`** — `library(files)` · **`det`**  
+  **Call:** `path_canonical(+Path,-Canonical)`  
+  **Contract:** Returns the canonicalized host path corresponding to Path.
+- **`path_segments/2`** — `library(files)` · **`mode-dependent`**  
+  **Call:** `path_segments(?Path,?Segments)`  
+  **Contract:** Relates a filesystem path to its component segments.
+- **`peek_byte/1`** — `ISO core` · **`det`**  
+  **Call:** `peek_byte(?Byte)`  
+  **Contract:** Observes the next byte on the current binary input stream without consuming it.
+- **`peek_byte/2`** — `ISO core` · **`det`**  
+  **Call:** `peek_byte(+Stream,?Byte)`  
+  **Contract:** Observes the next byte on Stream without consuming it.
+- **`peek_char/1`** — `ISO core` · **`det`**  
+  **Call:** `peek_char(?Char)`  
+  **Contract:** Observes the next character on the current input stream without consuming it.
+- **`peek_char/2`** — `ISO core` · **`det`**  
+  **Call:** `peek_char(+Stream,?Char)`  
+  **Contract:** Observes the next character on Stream without consuming it.
+- **`peek_code/1`** — `ISO core` · **`det`**  
+  **Call:** `peek_code(?Code)`  
+  **Contract:** Observes the next character code on the current input stream without consuming it.
+- **`peek_code/2`** — `ISO core` · **`det`**  
+  **Call:** `peek_code(+Stream,?Code)`  
+  **Contract:** Observes the next character code on Stream without consuming it.
+- **`permutation/2`** — `library(lists)` · **`nondet`**  
+  **Call:** `permutation(?List,?Permutation)`  
+  **Contract:** Relates two proper lists that are permutations of one another, enumerating permutations in select/3 order.
+- **`phrase_from_file/2`** — `library(pio)` · **`semidet`**  
+  **Call:** `phrase_from_file(+Grammar,+Path)`  
+  **Contract:** Reads Path as characters and succeeds iff Grammar consumes the complete content.
+- **`phrase_from_file/3`** — `library(pio)` · **`semidet`**  
+  **Call:** `phrase_from_file(+Grammar,+Path,+Options)`  
+  **Contract:** Reads Path with Options and succeeds iff Grammar consumes the complete content.
+- **`phrase_from_stream/2`** — `library(pio)` · **`semidet`**  
+  **Call:** `phrase_from_stream(+Grammar,+Stream)`  
+  **Contract:** Reads Stream as characters and succeeds iff Grammar consumes the complete content.
+- **`phrase_to_file/2`** — `library(pio)` · **`semidet`**  
+  **Call:** `phrase_to_file(+Grammar,+Path)`  
+  **Contract:** Generates characters with Grammar and writes them to Path.
+- **`phrase_to_file/3`** — `library(pio)` · **`semidet`**  
+  **Call:** `phrase_to_file(+Grammar,+Path,+Options)`  
+  **Contract:** Generates characters with Grammar and writes them to Path according to Options.
+- **`phrase_to_stream/2`** — `library(pio)` · **`semidet`**  
+  **Call:** `phrase_to_stream(+Grammar,+Stream)`  
+  **Contract:** Generates characters with Grammar and writes them to Stream.
+- **`phrase/2`** — `ISO core + library(dcgs)` · **`mode-dependent`**  
+  **Call:** `phrase(+Body,?Sequence)`  
+  **Contract:** Runs a DCG Body over Sequence and requires complete consumption.
+- **`phrase/3`** — `ISO core + library(dcgs)` · **`mode-dependent`**  
+  **Call:** `phrase(+Body,?Sequence,?Rest)`  
+  **Contract:** Runs a DCG Body over Sequence and relates Rest to the unconsumed suffix.
+- **`phrase/4`** — `library(dcgs)` · **`mode-dependent`**  
+  **Call:** `phrase(+Body,?S0,?S,?A1)`  
+  **Contract:** Calls the parameterized DCG Body with one additional argument and the difference-list pair S0,S.
+- **`phrase/5`** — `library(dcgs)` · **`mode-dependent`**  
+  **Call:** `phrase(+Body,?S0,?S,?A1,?A2)`  
+  **Contract:** Calls the parameterized DCG Body with two additional arguments and the difference-list pair S0,S.
+- **`pid/1`** — `library(os)` · **`det`**  
+  **Call:** `pid(-Pid)`  
+  **Contract:** Returns the host process identifier.
+- **`popcount/2`** — `library(arithmetic)` · **`det`**  
+  **Call:** `popcount(+Integer,-Count)`  
+  **Contract:** Counts the set bits in the nonnegative integer representation.
+- **`portray_clause_/3`** — `library(format)` · **`det`**  
+  **Call:** `portray_clause_(+Clause,?S0,?S)`  
+  **Contract:** Expanded DCG form of portray_clause_//1 producing clause text between S0 and S.
+- **`portray_clause/1`** — `library(format)` · **`det`**  
+  **Call:** `portray_clause(+Clause)`  
+  **Contract:** Writes Clause in readable clause-oriented layout to the current output stream.
+- **`portray_clause/2`** — `library(format)` · **`det`**  
+  **Call:** `portray_clause(+Stream,+Clause)`  
+  **Contract:** Writes Clause in readable clause-oriented layout to Stream.
+- **`put_assoc/4`** — `library(assoc)` · **`det`**  
+  **Call:** `put_assoc(+Key,+Assoc0,+Value,-Assoc)`  
+  **Contract:** Returns Assoc equal to Assoc0 with Key inserted or replaced by Value.
+- **`put_attr/3`** — `library(atts)` · **`det`**  
+  **Call:** `put_attr(+Var,+Module,+Value)`  
+  **Contract:** Sets Module's attribute Value on Var in the current logical branch.
+- **`put_atts/2`** — `library(atts)` · **`det`**  
+  **Call:** `put_atts(+Var,+AttributeSpec)`  
+  **Contract:** Compatibility relation that adds, replaces, or removes attributes on Var according to AttributeSpec.
+- **`put_byte/1`** — `ISO core` · **`det`**  
+  **Call:** `put_byte(+Byte)`  
+  **Contract:** Writes one byte to the current binary output stream.
+- **`put_byte/2`** — `ISO core` · **`det`**  
+  **Call:** `put_byte(+Stream,+Byte)`  
+  **Contract:** Writes one byte to Stream.
+- **`put_char/1`** — `ISO core` · **`det`**  
+  **Call:** `put_char(+Char)`  
+  **Contract:** Writes one character to the current output stream.
+- **`put_char/2`** — `ISO core` · **`det`**  
+  **Call:** `put_char(+Stream,+Char)`  
+  **Contract:** Writes one character to Stream.
+- **`put_code/1`** — `ISO core` · **`det`**  
+  **Call:** `put_code(+Code)`  
+  **Contract:** Writes one character code to the current output stream.
+- **`put_code/2`** — `ISO core` · **`det`**  
+  **Call:** `put_code(+Stream,+Code)`  
+  **Contract:** Writes one character code to Stream.
 
 ##### Predicate reference — R
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `random_integer/3` | `library(random)` | `random_integer(+Lower,+Upper,-Value)` | `det` | Returns a pseudo-random integer Value in the half-open interval [Lower,Upper). |
-| `random_labeling/2` | `library(clpb)` | `random_labeling(+Seed,+BooleanVariables)` | `nondet` | Labels constrained Boolean variables in pseudo-randomized order determined by Seed. |
-| `random/1` | `library(random)` | `random(-Value)` | `det` | Advances the current Park-Miller pseudo-random state and returns Value in [0,1). |
-| `random/3` | `library(random)` | `random(+Seed0,-Value,-Seed)` | `det` | Pure state-threaded Park-Miller step: Value is in [0,1) and Seed is the successor state. |
-| `rational_numerator_denominator/3` | `library(arithmetic)` | `rational_numerator_denominator(+Rational,-Numerator,-Denominator)` | `det` | Decomposes a supported rational representation into normalized numerator and denominator. |
-| `raw_argv/1` | `library(os)` | `raw_argv(-Args)` | `det` | Returns the raw host process argument vector. |
-| `reachable/3` | `library(ugraphs)` | `reachable(+Vertex,+Graph,-Reachable)` | `det` | Returns vertices reachable from Vertex by zero or more directed edges. |
-| `read_from_chars/2` | `library(charsio)` | `read_from_chars(+Chars,?Term)` | `det` | Parses one term from character-list source using default read options. |
-| `read_term_from_chars/3` | `library(charsio)` | `read_term_from_chars(+Chars,?Term,+Options)` | `det` | Parses one term from character-list source according to Options. |
-| `read_term/2` | `ISO core` | `read_term(?Term,+Options)` | `det` | Reads one Prolog term from the current input stream using Options. |
-| `read_term/3` | `ISO core` | `read_term(+Stream,?Term,+Options)` | `det` | Reads one Prolog term from Stream using Options. |
-| `read/1` | `ISO core` | `read(?Term)` | `det` | Reads one Prolog term from the current input stream using default read options. |
-| `read/2` | `ISO core` | `read(+Stream,?Term)` | `det` | Reads one Prolog term from Stream using default read options. |
-| `rename_file/2` | `library(files)` | `rename_file(+Source,+Target)` | `det` | Renames or moves Source to Target on the host filesystem. |
-| `repeat/0` | `ISO core` | `repeat` | `multi` | Succeeds repeatedly without end, producing another solution on every backtracking step. |
-| `repeat/1` | `library(between)` | `repeat(+Count)` | `multi` | Succeeds Count times on backtracking for a nonnegative integer Count. |
-| `replace/4` | `library(strings)` | `replace(+Text,+Search,+Replacement,-Result)` | `det` | Replaces every literal occurrence of Search in Text by Replacement. |
-| `representation_error/1` | `library(error)` | `representation_error(+Flag)` | `terminal` | Raises a representation_error(Flag) exception. |
-| `reset_gensym/1` | `library(gensym)` | `reset_gensym(+Base)` | `det` | Resets the generated-atom counter associated with Base. |
-| `resource_error/1` | `library(error)` | `resource_error(+Resource)` | `terminal` | Raises a resource_error(Resource) exception. |
-| `resource_error/2` | `library(error)` | `resource_error(+Resource,+Context)` | `terminal` | Raises a resource_error(Resource) exception carrying Context. |
-| `retract/1` | `ISO core` | `retract(+Clause)` | `nondet` | Removes matching clauses from a dynamic predicate one at a time under the logical update view. |
-| `retractall/1` | `ISO core` | `retractall(+Head)` | `det` | Removes every dynamic clause whose head matches Head while retaining the empty dynamic procedure. |
-| `reverse/2` | `library(lists)` | `reverse(?List,?Reversed)` | `mode-dependent` | Relates a proper list to the list containing the same elements in reverse order. |
+- **`random_integer/3`** — `library(random)` · **`det`**  
+  **Call:** `random_integer(+Lower,+Upper,-Value)`  
+  **Contract:** Returns a pseudo-random integer Value in the half-open interval [Lower,Upper).
+- **`random_labeling/2`** — `library(clpb)` · **`nondet`**  
+  **Call:** `random_labeling(+Seed,+BooleanVariables)`  
+  **Contract:** Labels constrained Boolean variables in pseudo-randomized order determined by Seed.
+- **`random/1`** — `library(random)` · **`det`**  
+  **Call:** `random(-Value)`  
+  **Contract:** Advances the current Park-Miller pseudo-random state and returns Value in [0,1).
+- **`random/3`** — `library(random)` · **`det`**  
+  **Call:** `random(+Seed0,-Value,-Seed)`  
+  **Contract:** Pure state-threaded Park-Miller step: Value is in [0,1) and Seed is the successor state.
+- **`rational_numerator_denominator/3`** — `library(arithmetic)` · **`det`**  
+  **Call:** `rational_numerator_denominator(+Rational,-Numerator,-Denominator)`  
+  **Contract:** Decomposes a supported rational representation into normalized numerator and denominator.
+- **`raw_argv/1`** — `library(os)` · **`det`**  
+  **Call:** `raw_argv(-Args)`  
+  **Contract:** Returns the raw host process argument vector.
+- **`reachable/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `reachable(+Vertex,+Graph,-Reachable)`  
+  **Contract:** Returns vertices reachable from Vertex by zero or more directed edges.
+- **`read_from_chars/2`** — `library(charsio)` · **`det`**  
+  **Call:** `read_from_chars(+Chars,?Term)`  
+  **Contract:** Parses one term from character-list source using default read options.
+- **`read_term_from_chars/3`** — `library(charsio)` · **`det`**  
+  **Call:** `read_term_from_chars(+Chars,?Term,+Options)`  
+  **Contract:** Parses one term from character-list source according to Options.
+- **`read_term/2`** — `ISO core` · **`det`**  
+  **Call:** `read_term(?Term,+Options)`  
+  **Contract:** Reads one Prolog term from the current input stream using Options.
+- **`read_term/3`** — `ISO core` · **`det`**  
+  **Call:** `read_term(+Stream,?Term,+Options)`  
+  **Contract:** Reads one Prolog term from Stream using Options.
+- **`read/1`** — `ISO core` · **`det`**  
+  **Call:** `read(?Term)`  
+  **Contract:** Reads one Prolog term from the current input stream using default read options.
+- **`read/2`** — `ISO core` · **`det`**  
+  **Call:** `read(+Stream,?Term)`  
+  **Contract:** Reads one Prolog term from Stream using default read options.
+- **`rename_file/2`** — `library(files)` · **`det`**  
+  **Call:** `rename_file(+Source,+Target)`  
+  **Contract:** Renames or moves Source to Target on the host filesystem.
+- **`repeat/0`** — `ISO core` · **`multi`**  
+  **Call:** `repeat`  
+  **Contract:** Succeeds repeatedly without end, producing another solution on every backtracking step.
+- **`repeat/1`** — `library(between)` · **`multi`**  
+  **Call:** `repeat(+Count)`  
+  **Contract:** Succeeds Count times on backtracking for a nonnegative integer Count.
+- **`replace/4`** — `library(strings)` · **`det`**  
+  **Call:** `replace(+Text,+Search,+Replacement,-Result)`  
+  **Contract:** Replaces every literal occurrence of Search in Text by Replacement.
+- **`representation_error/1`** — `library(error)` · **`terminal`**  
+  **Call:** `representation_error(+Flag)`  
+  **Contract:** Raises a representation_error(Flag) exception.
+- **`reset_gensym/1`** — `library(gensym)` · **`det`**  
+  **Call:** `reset_gensym(+Base)`  
+  **Contract:** Resets the generated-atom counter associated with Base.
+- **`resource_error/1`** — `library(error)` · **`terminal`**  
+  **Call:** `resource_error(+Resource)`  
+  **Contract:** Raises a resource_error(Resource) exception.
+- **`resource_error/2`** — `library(error)` · **`terminal`**  
+  **Call:** `resource_error(+Resource,+Context)`  
+  **Contract:** Raises a resource_error(Resource) exception carrying Context.
+- **`retract/1`** — `ISO core` · **`nondet`**  
+  **Call:** `retract(+Clause)`  
+  **Contract:** Removes matching clauses from a dynamic predicate one at a time under the logical update view.
+- **`retractall/1`** — `ISO core` · **`det`**  
+  **Call:** `retractall(+Head)`  
+  **Contract:** Removes every dynamic clause whose head matches Head while retaining the empty dynamic procedure.
+- **`reverse/2`** — `library(lists)` · **`mode-dependent`**  
+  **Call:** `reverse(?List,?Reversed)`  
+  **Contract:** Relates a proper list to the list containing the same elements in reverse order.
 
 ##### Predicate reference — S
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `same_length/2` | `library(lists)` | `same_length(?A,?B)` | `mode-dependent` | Relates lists A and B when they have the same length, constructing a skeleton when one length is known. |
-| `sat_count/2` | `library(clpb)` | `sat_count(+BooleanExpression,-Count)` | `det` | Counts satisfying assignments of BooleanExpression. |
-| `sat/1` | `library(clpb)` | `sat(+BooleanExpression)` | `delayed` | Posts Boolean constraints represented by BooleanExpression and fails iff they are inconsistent. |
-| `scalar_product/4` | `library(clpz)` | `scalar_product(+Coefficients,+Vars,+Relation,+Expr)` | `delayed` | Constrains the scalar product of Coefficients and Vars by Relation to Expr. |
-| `select/3` | `library(lists)` | `select(?Item,+List,?Rest)` | `nondet` | Relates List to Rest after removing one occurrence that unifies with Item; alternatives remove later occurrences. |
-| `selectchk/3` | `library(lists)` | `selectchk(?Item,+List,?Rest)` | `semidet` | Like select/3 but commits to the first removable occurrence. |
-| `seq/3` | `library(dcgs)` | `seq(?Sequence,?S0,?S)` | `mode-dependent` | DCG relation that consumes or emits exactly Sequence between difference-list states S0 and S. |
-| `seqq/3` | `library(dcgs)` | `seqq(+Sequences,?S0,?S)` | `nondet` | DCG relation that chooses one sequence from Sequences and consumes or emits it between S0 and S. |
-| `serialized/2` | `library(clpz)` | `serialized(+Starts,+Durations)` | `delayed` | Constrains tasks with Starts and Durations not to overlap. |
-| `set_input/1` | `ISO core` | `set_input(+Stream)` | `det` | Makes Stream the current input stream. |
-| `set_nth0/4` | `library(lists)` | `set_nth0(+Index,+List,+Item,-NewList)` | `semidet` | Returns NewList with the existing zero-based Index replaced by Item. |
-| `set_output/1` | `ISO core` | `set_output(+Stream)` | `det` | Makes Stream the current output stream. |
-| `set_prolog_flag/2` | `ISO core` | `set_prolog_flag(+Flag,+Value)` | `det` | Sets a supported mutable Prolog flag after validating its value. |
-| `set_random/1` | `library(random)` | `set_random(+Option)` | `det` | Sets the mutable pseudo-random generator state; seed(random) chooses a time-derived seed. |
-| `set_stream_position/2` | `ISO core` | `set_stream_position(+Stream,+Position)` | `det` | Repositions a repositionable stream to Position. |
-| `setenv/2` | `library(os)` | `setenv(+Name,+Value)` | `det` | Sets the host process environment variable Name to Value. |
-| `setof/3` | `ISO core` | `setof(+Template,+Goal,?Set)` | `nondet` | Like bagof/3, but each witness group is sorted by term order with identical duplicates removed. |
-| `setup_call_cleanup/3` | `library(iso_ext)` | `setup_call_cleanup(+Setup,+Goal,+Cleanup)` | `meta` | Runs Setup once, calls Goal, and guarantees Cleanup after Goal terminates in any way. |
-| `shell/1` | `library(os)` | `shell(+Command)` | `semidet` | Runs Command in the host shell and succeeds iff it exits successfully. |
-| `shell/2` | `library(os)` | `shell(+Command,?Status)` | `det` | Runs Command in the host shell and returns its exit Status. |
-| `sleep/1` | `library(time)` | `sleep(+Seconds)` | `det` | Suspends execution for the requested finite nonnegative duration, subject to the implementation limit. |
-| `slice/4` | `library(lists)` | `slice(+Start,+Count,+List,-Slice)` | `semidet` | Returns exactly Count elements of List beginning at zero-based Start. |
-| `smallest_divisor_from/3` | `library(primes)` | `smallest_divisor_from(+N,+Start,-Divisor)` | `semidet` | Returns the least divisor of N not smaller than Start according to the module's integer primality search. |
-| `sort/2` | `ISO core` | `sort(+List,?Sorted)` | `det` | Sorts List by standard term order and removes identical duplicates. |
-| `split/3` | `library(strings)` | `split(+Text,+Separator,-Parts)` | `det` | Splits Text at literal Separator occurrences into a proper list of atom parts. |
-| `stable/1` | `library(eyelet)` | `stable(+Goal)` | `meta` | Runs Goal to Eyelet fixed-point stability. |
-| `start_tabling/2` | `library(tabling)` | `start_tabling(+Wrapper,+Worker)` | `meta` | Compatibility entry point that executes Worker through EyeProlog's table-aware evaluation for Wrapper. |
-| `statistics/2` | `library(time)` | `statistics(+Key,?Value)` | `det` | Returns the supported runtime statistic selected by Key. |
-| `stream_property/2` | `ISO core` | `stream_property(?Stream,?Property)` | `nondet` | Enumerates supported properties of open streams, optionally filtering Stream or Property. |
-| `string_concat/3` | `library(strings)` | `string_concat(?Left,?Right,?Text)` | `nondet` | Relates Text to literal concatenation of Left and Right; with Text fixed it can enumerate splits. |
-| `sub_atom/5` | `ISO core` | `sub_atom(+Atom,?Before,?Length,?After,?SubAtom)` | `nondet` | Relates Atom to a substring, its Unicode-scalar offset, length, and remaining suffix length. |
-| `substring/4` | `library(strings)` | `substring(+Text,+Start,+Count,-Part)` | `semidet` | Extracts exactly Count characters beginning at zero-based Start from Text. |
-| `subsumes_term/2` | `ISO core` | `subsumes_term(+General,+Specific)` | `semidet` | Succeeds iff General subsumes Specific without binding either argument. |
-| `subtract/3` | `library(lists)` | `subtract(+List,+Delete,-Rest)` | `det` | Removes from List every element that unifies with some element of Delete, preserving the remaining order. |
-| `succ/2` | `library(iso_ext)` | `succ(?N,?S)` | `mode-dependent` | Relates nonnegative integers N and S when S is exactly N+1. |
-| `sum_list/2` | `library(lists)` | `sum_list(+List,-Sum)` | `det` | Evaluates and sums the numeric elements of List; the empty sum is 0. |
-| `sum/3` | `library(clpz)` | `sum(+Exprs,+Relation,+Expr)` | `delayed` | Constrains the sum of Exprs to stand in Relation (#=, #=<, etc.) to Expr. |
-| `sumall/3` | `library(aggregate)` | `sumall(+Template,+Goal,-Sum)` | `det` | Sums the numeric Template value over every solution of Goal; the empty sum is 0. |
+- **`same_length/2`** — `library(lists)` · **`mode-dependent`**  
+  **Call:** `same_length(?A,?B)`  
+  **Contract:** Relates lists A and B when they have the same length, constructing a skeleton when one length is known.
+- **`sat_count/2`** — `library(clpb)` · **`det`**  
+  **Call:** `sat_count(+BooleanExpression,-Count)`  
+  **Contract:** Counts satisfying assignments of BooleanExpression.
+- **`sat/1`** — `library(clpb)` · **`delayed`**  
+  **Call:** `sat(+BooleanExpression)`  
+  **Contract:** Posts Boolean constraints represented by BooleanExpression and fails iff they are inconsistent.
+- **`scalar_product/4`** — `library(clpz)` · **`delayed`**  
+  **Call:** `scalar_product(+Coefficients,+Vars,+Relation,+Expr)`  
+  **Contract:** Constrains the scalar product of Coefficients and Vars by Relation to Expr.
+- **`select/3`** — `library(lists)` · **`nondet`**  
+  **Call:** `select(?Item,+List,?Rest)`  
+  **Contract:** Relates List to Rest after removing one occurrence that unifies with Item; alternatives remove later occurrences.
+- **`selectchk/3`** — `library(lists)` · **`semidet`**  
+  **Call:** `selectchk(?Item,+List,?Rest)`  
+  **Contract:** Like select/3 but commits to the first removable occurrence.
+- **`seq/3`** — `library(dcgs)` · **`mode-dependent`**  
+  **Call:** `seq(?Sequence,?S0,?S)`  
+  **Contract:** DCG relation that consumes or emits exactly Sequence between difference-list states S0 and S.
+- **`seqq/3`** — `library(dcgs)` · **`nondet`**  
+  **Call:** `seqq(+Sequences,?S0,?S)`  
+  **Contract:** DCG relation that chooses one sequence from Sequences and consumes or emits it between S0 and S.
+- **`serialized/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `serialized(+Starts,+Durations)`  
+  **Contract:** Constrains tasks with Starts and Durations not to overlap.
+- **`set_input/1`** — `ISO core` · **`det`**  
+  **Call:** `set_input(+Stream)`  
+  **Contract:** Makes Stream the current input stream.
+- **`set_nth0/4`** — `library(lists)` · **`semidet`**  
+  **Call:** `set_nth0(+Index,+List,+Item,-NewList)`  
+  **Contract:** Returns NewList with the existing zero-based Index replaced by Item.
+- **`set_output/1`** — `ISO core` · **`det`**  
+  **Call:** `set_output(+Stream)`  
+  **Contract:** Makes Stream the current output stream.
+- **`set_prolog_flag/2`** — `ISO core` · **`det`**  
+  **Call:** `set_prolog_flag(+Flag,+Value)`  
+  **Contract:** Sets a supported mutable Prolog flag after validating its value.
+- **`set_random/1`** — `library(random)` · **`det`**  
+  **Call:** `set_random(+Option)`  
+  **Contract:** Sets the mutable pseudo-random generator state; seed(random) chooses a time-derived seed.
+- **`set_stream_position/2`** — `ISO core` · **`det`**  
+  **Call:** `set_stream_position(+Stream,+Position)`  
+  **Contract:** Repositions a repositionable stream to Position.
+- **`setenv/2`** — `library(os)` · **`det`**  
+  **Call:** `setenv(+Name,+Value)`  
+  **Contract:** Sets the host process environment variable Name to Value.
+- **`setof/3`** — `ISO core` · **`nondet`**  
+  **Call:** `setof(+Template,+Goal,?Set)`  
+  **Contract:** Like bagof/3, but each witness group is sorted by term order with identical duplicates removed.
+- **`setup_call_cleanup/3`** — `library(iso_ext)` · **`meta`**  
+  **Call:** `setup_call_cleanup(+Setup,+Goal,+Cleanup)`  
+  **Contract:** Runs Setup once, calls Goal, and guarantees Cleanup after Goal terminates in any way.
+- **`shell/1`** — `library(os)` · **`semidet`**  
+  **Call:** `shell(+Command)`  
+  **Contract:** Runs Command in the host shell and succeeds iff it exits successfully.
+- **`shell/2`** — `library(os)` · **`det`**  
+  **Call:** `shell(+Command,?Status)`  
+  **Contract:** Runs Command in the host shell and returns its exit Status.
+- **`sleep/1`** — `library(time)` · **`det`**  
+  **Call:** `sleep(+Seconds)`  
+  **Contract:** Suspends execution for the requested finite nonnegative duration, subject to the implementation limit.
+- **`slice/4`** — `library(lists)` · **`semidet`**  
+  **Call:** `slice(+Start,+Count,+List,-Slice)`  
+  **Contract:** Returns exactly Count elements of List beginning at zero-based Start.
+- **`smallest_divisor_from/3`** — `library(primes)` · **`semidet`**  
+  **Call:** `smallest_divisor_from(+N,+Start,-Divisor)`  
+  **Contract:** Returns the least divisor of N not smaller than Start according to the module's integer primality search.
+- **`sort/2`** — `ISO core` · **`det`**  
+  **Call:** `sort(+List,?Sorted)`  
+  **Contract:** Sorts List by standard term order and removes identical duplicates.
+- **`split/3`** — `library(strings)` · **`det`**  
+  **Call:** `split(+Text,+Separator,-Parts)`  
+  **Contract:** Splits Text at literal Separator occurrences into a proper list of atom parts.
+- **`stable/1`** — `library(eyelet)` · **`meta`**  
+  **Call:** `stable(+Goal)`  
+  **Contract:** Runs Goal to Eyelet fixed-point stability.
+- **`start_tabling/2`** — `library(tabling)` · **`meta`**  
+  **Call:** `start_tabling(+Wrapper,+Worker)`  
+  **Contract:** Compatibility entry point that executes Worker through EyeProlog's table-aware evaluation for Wrapper.
+- **`statistics/2`** — `library(time)` · **`det`**  
+  **Call:** `statistics(+Key,?Value)`  
+  **Contract:** Returns the supported runtime statistic selected by Key.
+- **`stream_property/2`** — `ISO core` · **`nondet`**  
+  **Call:** `stream_property(?Stream,?Property)`  
+  **Contract:** Enumerates supported properties of open streams, optionally filtering Stream or Property.
+- **`string_concat/3`** — `library(strings)` · **`nondet`**  
+  **Call:** `string_concat(?Left,?Right,?Text)`  
+  **Contract:** Relates Text to literal concatenation of Left and Right; with Text fixed it can enumerate splits.
+- **`sub_atom/5`** — `ISO core` · **`nondet`**  
+  **Call:** `sub_atom(+Atom,?Before,?Length,?After,?SubAtom)`  
+  **Contract:** Relates Atom to a substring, its Unicode-scalar offset, length, and remaining suffix length.
+- **`substring/4`** — `library(strings)` · **`semidet`**  
+  **Call:** `substring(+Text,+Start,+Count,-Part)`  
+  **Contract:** Extracts exactly Count characters beginning at zero-based Start from Text.
+- **`subsumes_term/2`** — `ISO core` · **`semidet`**  
+  **Call:** `subsumes_term(+General,+Specific)`  
+  **Contract:** Succeeds iff General subsumes Specific without binding either argument.
+- **`subtract/3`** — `library(lists)` · **`det`**  
+  **Call:** `subtract(+List,+Delete,-Rest)`  
+  **Contract:** Removes from List every element that unifies with some element of Delete, preserving the remaining order.
+- **`succ/2`** — `library(iso_ext)` · **`mode-dependent`**  
+  **Call:** `succ(?N,?S)`  
+  **Contract:** Relates nonnegative integers N and S when S is exactly N+1.
+- **`sum_list/2`** — `library(lists)` · **`det`**  
+  **Call:** `sum_list(+List,-Sum)`  
+  **Contract:** Evaluates and sums the numeric elements of List; the empty sum is 0.
+- **`sum/3`** — `library(clpz)` · **`delayed`**  
+  **Call:** `sum(+Exprs,+Relation,+Expr)`  
+  **Contract:** Constrains the sum of Exprs to stand in Relation (#=, #=<, etc.) to Expr.
+- **`sumall/3`** — `library(aggregate)` · **`det`**  
+  **Call:** `sumall(+Template,+Goal,-Sum)`  
+  **Contract:** Sums the numeric Template value over every solution of Goal; the empty sum is 0.
 
 ##### Predicate reference — T
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `take/3` | `library(lists)` | `take(+Count,+List,-Prefix)` | `semidet` | Returns exactly the first Count elements of List; fails when List is too short. |
-| `tasklist/2` | `library(lists)` | `tasklist(+Goal,?List1)` | `meta` | Compatibility relation applying Goal pointwise over 1 list(s); EyeProlog deliberately executes these tasks sequentially. |
-| `tasklist/3` | `library(lists)` | `tasklist(+Goal,?List1,?List2)` | `meta` | Compatibility relation applying Goal pointwise over 2 list(s); EyeProlog deliberately executes these tasks sequentially. |
-| `tasklist/4` | `library(lists)` | `tasklist(+Goal,?List1,?List2,?List3)` | `meta` | Compatibility relation applying Goal pointwise over 3 list(s); EyeProlog deliberately executes these tasks sequentially. |
-| `tasklist/5` | `library(lists)` | `tasklist(+Goal,?List1,?List2,?List3,?List4)` | `meta` | Compatibility relation applying Goal pointwise over 4 list(s); EyeProlog deliberately executes these tasks sequentially. |
-| `tasklist/6` | `library(lists)` | `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5)` | `meta` | Compatibility relation applying Goal pointwise over 5 list(s); EyeProlog deliberately executes these tasks sequentially. |
-| `tasklist/7` | `library(lists)` | `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6)` | `meta` | Compatibility relation applying Goal pointwise over 6 list(s); EyeProlog deliberately executes these tasks sequentially. |
-| `tasklist/8` | `library(lists)` | `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7)` | `meta` | Compatibility relation applying Goal pointwise over 7 list(s); EyeProlog deliberately executes these tasks sequentially. |
-| `taut/2` | `library(clpb)` | `taut(+BooleanExpression,?Truth)` | `semidet` | Determines whether the Boolean expression is a tautology or contradiction and relates Truth to the result. |
-| `term_attributed_variables/2` | `library(atts)` | `term_attributed_variables(+Term,-Vars)` | `det` | Returns the distinct attributed variables reachable in Term. |
-| `term_si/1` | `library(si)` | `term_si(?Term)` | `semidet` | Succeeds iff Term is sufficiently instantiated to be treated as term by dependent constraint code. |
-| `term_string/2` | `library(strings)` | `term_string(+Term,-Text)` | `det` | Renders a nonvariable Term to portable atom/character-list text; this implementation does not parse Text back. |
-| `term_variables/2` | `ISO core` | `term_variables(+Term,?Variables)` | `det` | Returns the distinct variables of Term in first-occurrence traversal order. |
-| `tfilter/3` | `library(reif)` | `tfilter(+ReifiedPred,+List,-Filtered)` | `meta` | Filters List by a reified predicate whose final argument is true or false. |
-| `throw/1` | `ISO core` | `throw(+Ball)` | `terminal` | Raises Ball as the current Prolog exception; Ball must be instantiated. |
-| `time/1` | `library(iso_ext)` | `time(+Goal)` | `meta` | Runs Goal and reports elapsed time, inference count, and MLips for each solution. |
-| `tmember_t/3` | `library(reif)` | `tmember_t(?Item,+List,?Truth)` | `delayed` | Reifies tmember/2 membership into Truth. |
-| `tmember/2` | `library(reif)` | `tmember(?Item,+List)` | `nondet` | Membership relation implemented through reified disequality so duplicate/unbound cases remain declarative. |
-| `top_sort/2` | `library(ugraphs)` | `top_sort(+Graph,-Order)` | `semidet` | Returns a topological ordering of an acyclic directed graph; fails when a cycle prevents one. |
-| `top_sort/3` | `library(ugraphs)` | `top_sort(+Graph,-Order,-Rest)` | `mode-dependent` | Extended topological-sort relation returning the ordered portion and the library-defined residual/cyclic portion. |
-| `tpartition/4` | `library(reif)` | `tpartition(+ReifiedPred,+List,-True,-False)` | `meta` | Partitions List into elements for which ReifiedPred yields true and false, preserving order. |
-| `transitive_closure/2` | `library(ugraphs)` | `transitive_closure(+Graph,-Closure)` | `det` | Computes the graph whose adjacency lists contain all reachable vertices. |
-| `transpose_ugraph/2` | `library(ugraphs)` | `transpose_ugraph(+Graph,-Transpose)` | `det` | Reverses every directed edge of Graph. |
-| `transpose/2` | `library(lists)` | `transpose(+Rows,?Columns)` | `det` | Transposes a rectangular list of equal-length row lists into columns. |
-| `trim/2` | `library(strings)` | `trim(+Text,-Trimmed)` | `det` | Removes portable ASCII whitespace from both ends of Text. |
-| `true/0` | `ISO core` | `true` | `det` | Succeeds exactly once without changing the substitution. |
-| `tuples_in/2` | `library(clpz)` | `tuples_in(+Tuples,+RelationTuples)` | `delayed` | Constrains each tuple in Tuples to be a member of the extensional relation RelationTuples. |
-| `type_error/2` | `library(error)` | `type_error(+Type,+Term)` | `terminal` | Raises a type_error(Type,Term) exception. |
-| `type_error/3` | `library(error)` | `type_error(+Type,+Term,+Context)` | `terminal` | Raises a type_error(Type,Term) exception carrying Context. |
+- **`take/3`** — `library(lists)` · **`semidet`**  
+  **Call:** `take(+Count,+List,-Prefix)`  
+  **Contract:** Returns exactly the first Count elements of List; fails when List is too short.
+- **`tasklist/2`** — `library(lists)` · **`meta`**  
+  **Call:** `tasklist(+Goal,?List1)`  
+  **Contract:** Compatibility relation applying Goal pointwise over 1 list(s); EyeProlog deliberately executes these tasks sequentially.
+- **`tasklist/3`** — `library(lists)` · **`meta`**  
+  **Call:** `tasklist(+Goal,?List1,?List2)`  
+  **Contract:** Compatibility relation applying Goal pointwise over 2 list(s); EyeProlog deliberately executes these tasks sequentially.
+- **`tasklist/4`** — `library(lists)` · **`meta`**  
+  **Call:** `tasklist(+Goal,?List1,?List2,?List3)`  
+  **Contract:** Compatibility relation applying Goal pointwise over 3 list(s); EyeProlog deliberately executes these tasks sequentially.
+- **`tasklist/5`** — `library(lists)` · **`meta`**  
+  **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4)`  
+  **Contract:** Compatibility relation applying Goal pointwise over 4 list(s); EyeProlog deliberately executes these tasks sequentially.
+- **`tasklist/6`** — `library(lists)` · **`meta`**  
+  **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5)`  
+  **Contract:** Compatibility relation applying Goal pointwise over 5 list(s); EyeProlog deliberately executes these tasks sequentially.
+- **`tasklist/7`** — `library(lists)` · **`meta`**  
+  **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6)`  
+  **Contract:** Compatibility relation applying Goal pointwise over 6 list(s); EyeProlog deliberately executes these tasks sequentially.
+- **`tasklist/8`** — `library(lists)` · **`meta`**  
+  **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7)`  
+  **Contract:** Compatibility relation applying Goal pointwise over 7 list(s); EyeProlog deliberately executes these tasks sequentially.
+- **`taut/2`** — `library(clpb)` · **`semidet`**  
+  **Call:** `taut(+BooleanExpression,?Truth)`  
+  **Contract:** Determines whether the Boolean expression is a tautology or contradiction and relates Truth to the result.
+- **`term_attributed_variables/2`** — `library(atts)` · **`det`**  
+  **Call:** `term_attributed_variables(+Term,-Vars)`  
+  **Contract:** Returns the distinct attributed variables reachable in Term.
+- **`term_si/1`** — `library(si)` · **`semidet`**  
+  **Call:** `term_si(?Term)`  
+  **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as term by dependent constraint code.
+- **`term_string/2`** — `library(strings)` · **`det`**  
+  **Call:** `term_string(+Term,-Text)`  
+  **Contract:** Renders a nonvariable Term to portable atom/character-list text; this implementation does not parse Text back.
+- **`term_variables/2`** — `ISO core` · **`det`**  
+  **Call:** `term_variables(+Term,?Variables)`  
+  **Contract:** Returns the distinct variables of Term in first-occurrence traversal order.
+- **`tfilter/3`** — `library(reif)` · **`meta`**  
+  **Call:** `tfilter(+ReifiedPred,+List,-Filtered)`  
+  **Contract:** Filters List by a reified predicate whose final argument is true or false.
+- **`throw/1`** — `ISO core` · **`terminal`**  
+  **Call:** `throw(+Ball)`  
+  **Contract:** Raises Ball as the current Prolog exception; Ball must be instantiated.
+- **`time/1`** — `library(iso_ext)` · **`meta`**  
+  **Call:** `time(+Goal)`  
+  **Contract:** Runs Goal and reports elapsed time, inference count, and MLips for each solution.
+- **`tmember_t/3`** — `library(reif)` · **`delayed`**  
+  **Call:** `tmember_t(?Item,+List,?Truth)`  
+  **Contract:** Reifies tmember/2 membership into Truth.
+- **`tmember/2`** — `library(reif)` · **`nondet`**  
+  **Call:** `tmember(?Item,+List)`  
+  **Contract:** Membership relation implemented through reified disequality so duplicate/unbound cases remain declarative.
+- **`top_sort/2`** — `library(ugraphs)` · **`semidet`**  
+  **Call:** `top_sort(+Graph,-Order)`  
+  **Contract:** Returns a topological ordering of an acyclic directed graph; fails when a cycle prevents one.
+- **`top_sort/3`** — `library(ugraphs)` · **`mode-dependent`**  
+  **Call:** `top_sort(+Graph,-Order,-Rest)`  
+  **Contract:** Extended topological-sort relation returning the ordered portion and the library-defined residual/cyclic portion.
+- **`tpartition/4`** — `library(reif)` · **`meta`**  
+  **Call:** `tpartition(+ReifiedPred,+List,-True,-False)`  
+  **Contract:** Partitions List into elements for which ReifiedPred yields true and false, preserving order.
+- **`transitive_closure/2`** — `library(ugraphs)` · **`det`**  
+  **Call:** `transitive_closure(+Graph,-Closure)`  
+  **Contract:** Computes the graph whose adjacency lists contain all reachable vertices.
+- **`transpose_ugraph/2`** — `library(ugraphs)` · **`det`**  
+  **Call:** `transpose_ugraph(+Graph,-Transpose)`  
+  **Contract:** Reverses every directed edge of Graph.
+- **`transpose/2`** — `library(lists)` · **`det`**  
+  **Call:** `transpose(+Rows,?Columns)`  
+  **Contract:** Transposes a rectangular list of equal-length row lists into columns.
+- **`trim/2`** — `library(strings)` · **`det`**  
+  **Call:** `trim(+Text,-Trimmed)`  
+  **Contract:** Removes portable ASCII whitespace from both ends of Text.
+- **`true/0`** — `ISO core` · **`det`**  
+  **Call:** `true`  
+  **Contract:** Succeeds exactly once without changing the substitution.
+- **`tuples_in/2`** — `library(clpz)` · **`delayed`**  
+  **Call:** `tuples_in(+Tuples,+RelationTuples)`  
+  **Contract:** Constrains each tuple in Tuples to be a member of the extensional relation RelationTuples.
+- **`type_error/2`** — `library(error)` · **`terminal`**  
+  **Call:** `type_error(+Type,+Term)`  
+  **Contract:** Raises a type_error(Type,Term) exception.
+- **`type_error/3`** — `library(error)` · **`terminal`**  
+  **Call:** `type_error(+Type,+Term,+Context)`  
+  **Contract:** Raises a type_error(Type,Term) exception carrying Context.
 
 ##### Predicate reference — U
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `ugraph_union/3` | `library(ugraphs)` | `ugraph_union(+A,+B,-Union)` | `det` | Computes the union of two canonical directed graphs. |
-| `unify_with_occurs_check/2` | `ISO core` | `unify_with_occurs_check(?Left,?Right)` | `semidet` | Unifies Left and Right while rejecting bindings that would create a cyclic term. |
-| `union/3` | `library(lists)` | `union(+A,+B,-Union)` | `det` | Constructs the list-set union by adding elements of A not already unifiable with members of B. |
-| `unsetenv/1` | `library(os)` | `unsetenv(+Name)` | `det` | Removes Name from the host process environment. |
-| `uppercase/2` | `library(strings)` | `uppercase(+Text,-Upper)` | `det` | Maps ASCII lowercase letters in Text to uppercase while preserving other characters. |
-| `uuid_string/2` | `library(uuid)` | `uuid_string(?UUID,?Chars)` | `mode-dependent` | Relates a UUID byte/term representation to its canonical textual character-list form. |
-| `uuid/3` | `library(uuid)` | `uuid(+Seed0,-UUID,-Seed)` | `det` | Pure state-threaded generation of a version-4 UUID atom from Seed0, returning successor Seed. |
-| `uuidv4_string/1` | `library(uuid)` | `uuidv4_string(-Chars)` | `det` | Generates a version-4 UUID directly in canonical textual character-list form. |
-| `uuidv4/1` | `library(uuid)` | `uuidv4(-UUID)` | `det` | Generates a version-4 UUID byte/term representation using the current pseudo-random generator. |
+- **`ugraph_union/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `ugraph_union(+A,+B,-Union)`  
+  **Contract:** Computes the union of two canonical directed graphs.
+- **`unify_with_occurs_check/2`** — `ISO core` · **`semidet`**  
+  **Call:** `unify_with_occurs_check(?Left,?Right)`  
+  **Contract:** Unifies Left and Right while rejecting bindings that would create a cyclic term.
+- **`union/3`** — `library(lists)` · **`det`**  
+  **Call:** `union(+A,+B,-Union)`  
+  **Contract:** Constructs the list-set union by adding elements of A not already unifiable with members of B.
+- **`unsetenv/1`** — `library(os)` · **`det`**  
+  **Call:** `unsetenv(+Name)`  
+  **Contract:** Removes Name from the host process environment.
+- **`uppercase/2`** — `library(strings)` · **`det`**  
+  **Call:** `uppercase(+Text,-Upper)`  
+  **Contract:** Maps ASCII lowercase letters in Text to uppercase while preserving other characters.
+- **`uuid_string/2`** — `library(uuid)` · **`mode-dependent`**  
+  **Call:** `uuid_string(?UUID,?Chars)`  
+  **Contract:** Relates a UUID byte/term representation to its canonical textual character-list form.
+- **`uuid/3`** — `library(uuid)` · **`det`**  
+  **Call:** `uuid(+Seed0,-UUID,-Seed)`  
+  **Contract:** Pure state-threaded generation of a version-4 UUID atom from Seed0, returning successor Seed.
+- **`uuidv4_string/1`** — `library(uuid)` · **`det`**  
+  **Call:** `uuidv4_string(-Chars)`  
+  **Contract:** Generates a version-4 UUID directly in canonical textual character-list form.
+- **`uuidv4/1`** — `library(uuid)` · **`det`**  
+  **Call:** `uuidv4(-UUID)`  
+  **Contract:** Generates a version-4 UUID byte/term representation using the current pseudo-random generator.
 
 ##### Predicate reference — V
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `var/1` | `ISO core` | `var(?Term)` | `semidet` | Succeeds iff Term is an unbound variable. |
-| `variant/2` | `library(iso_ext)` | `variant(+A,+B)` | `semidet` | Succeeds iff A and B are structurally identical up to a bijective renaming of variables. |
-| `vertices_edges_to_ugraph/3` | `library(ugraphs)` | `vertices_edges_to_ugraph(+Vertices,+Edges,-Graph)` | `det` | Builds the canonical ordered adjacency-list graph from Vertices and directed Edges. |
-| `vertices/2` | `library(ugraphs)` | `vertices(+Graph,-Vertices)` | `det` | Returns the vertices of Graph in graph order. |
+- **`var/1`** — `ISO core` · **`semidet`**  
+  **Call:** `var(?Term)`  
+  **Contract:** Succeeds iff Term is an unbound variable.
+- **`variant/2`** — `library(iso_ext)` · **`semidet`**  
+  **Call:** `variant(+A,+B)`  
+  **Contract:** Succeeds iff A and B are structurally identical up to a bijective renaming of variables.
+- **`vertices_edges_to_ugraph/3`** — `library(ugraphs)` · **`det`**  
+  **Call:** `vertices_edges_to_ugraph(+Vertices,+Edges,-Graph)`  
+  **Contract:** Builds the canonical ordered adjacency-list graph from Vertices and directed Edges.
+- **`vertices/2`** — `library(ugraphs)` · **`det`**  
+  **Call:** `vertices(+Graph,-Vertices)`  
+  **Contract:** Returns the vertices of Graph in graph order.
 
 ##### Predicate reference — W
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `weighted_maximum/3` | `library(clpb)` | `weighted_maximum(+Weights,+BooleanVariables,-Maximum)` | `nondet` | Finds Boolean assignments maximizing the weighted objective and returns its maximum. |
-| `when_si/2` | `library(si)` | `when_si(+Condition,+Goal)` | `delayed` | Runs Goal once Condition is sufficiently instantiated according to the SI condition language. |
-| `when/2` | `library(when)` | `when(+Condition,+Goal)` | `delayed` | Calls Goal as soon as Condition over attributed variables becomes true; otherwise suspends it. |
-| `working_directory/2` | `library(files)` | `working_directory(?Old,+New)` | `det` | Returns the current working directory in Old and, when New differs, changes the process working directory. |
-| `write_canonical/1` | `ISO core` | `write_canonical(+Term)` | `det` | Writes Term to the current output stream in canonical syntax without operator abbreviations. |
-| `write_canonical/2` | `ISO core` | `write_canonical(+Stream,+Term)` | `det` | Writes Term to Stream in canonical syntax without operator abbreviations. |
-| `write_term_to_chars/3` | `library(charsio)` | `write_term_to_chars(+Term,-Chars,+Options)` | `det` | Renders Term as a character list according to write Options. |
-| `write_term/2` | `ISO core` | `write_term(+Term,+Options)` | `det` | Writes Term to the current output stream according to Options. |
-| `write_term/3` | `ISO core` | `write_term(+Stream,+Term,+Options)` | `det` | Writes Term to Stream according to Options. |
-| `write/1` | `ISO core` | `write(+Term)` | `det` | Writes Term to the current output stream using ordinary operator notation. |
-| `write/2` | `ISO core` | `write(+Stream,+Term)` | `det` | Writes Term to Stream using ordinary operator notation. |
-| `writeq/1` | `ISO core` | `writeq(+Term)` | `det` | Writes Term to the current output stream with quoting sufficient for readback. |
-| `writeq/2` | `ISO core` | `writeq(+Stream,+Term)` | `det` | Writes Term to Stream with quoting sufficient for readback. |
+- **`weighted_maximum/3`** — `library(clpb)` · **`nondet`**  
+  **Call:** `weighted_maximum(+Weights,+BooleanVariables,-Maximum)`  
+  **Contract:** Finds Boolean assignments maximizing the weighted objective and returns its maximum.
+- **`when_si/2`** — `library(si)` · **`delayed`**  
+  **Call:** `when_si(+Condition,+Goal)`  
+  **Contract:** Runs Goal once Condition is sufficiently instantiated according to the SI condition language.
+- **`when/2`** — `library(when)` · **`delayed`**  
+  **Call:** `when(+Condition,+Goal)`  
+  **Contract:** Calls Goal as soon as Condition over attributed variables becomes true; otherwise suspends it.
+- **`working_directory/2`** — `library(files)` · **`det`**  
+  **Call:** `working_directory(?Old,+New)`  
+  **Contract:** Returns the current working directory in Old and, when New differs, changes the process working directory.
+- **`write_canonical/1`** — `ISO core` · **`det`**  
+  **Call:** `write_canonical(+Term)`  
+  **Contract:** Writes Term to the current output stream in canonical syntax without operator abbreviations.
+- **`write_canonical/2`** — `ISO core` · **`det`**  
+  **Call:** `write_canonical(+Stream,+Term)`  
+  **Contract:** Writes Term to Stream in canonical syntax without operator abbreviations.
+- **`write_term_to_chars/3`** — `library(charsio)` · **`det`**  
+  **Call:** `write_term_to_chars(+Term,-Chars,+Options)`  
+  **Contract:** Renders Term as a character list according to write Options.
+- **`write_term/2`** — `ISO core` · **`det`**  
+  **Call:** `write_term(+Term,+Options)`  
+  **Contract:** Writes Term to the current output stream according to Options.
+- **`write_term/3`** — `ISO core` · **`det`**  
+  **Call:** `write_term(+Stream,+Term,+Options)`  
+  **Contract:** Writes Term to Stream according to Options.
+- **`write/1`** — `ISO core` · **`det`**  
+  **Call:** `write(+Term)`  
+  **Contract:** Writes Term to the current output stream using ordinary operator notation.
+- **`write/2`** — `ISO core` · **`det`**  
+  **Call:** `write(+Stream,+Term)`  
+  **Contract:** Writes Term to Stream using ordinary operator notation.
+- **`writeq/1`** — `ISO core` · **`det`**  
+  **Call:** `writeq(+Term)`  
+  **Contract:** Writes Term to the current output stream with quoting sufficient for readback.
+- **`writeq/2`** — `ISO core` · **`det`**  
+  **Call:** `writeq(+Stream,+Term)`  
+  **Contract:** Writes Term to Stream with quoting sufficient for readback.
 
 ##### Predicate reference — Z
 
-| Indicator | Origin | Principal call | Solutions | Contract |
-| --- | --- | --- | --- | --- |
-| `zcompare/3` | `library(clpz)` | `zcompare(?Order,?A,?B)` | `delayed` | Relates Order (<,=,>) to the constrained integer comparison between A and B. |
+- **`zcompare/3`** — `library(clpz)` · **`delayed`**  
+  **Call:** `zcompare(?Order,?A,?B)`  
+  **Contract:** Relates Order (<,=,>) to the constrained integer comparison between A and B.
 
 <!-- eyeprolog-predicate-reference:end -->
 
