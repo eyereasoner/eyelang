@@ -345,6 +345,13 @@
     "not_si/1",
     "when_si/2"
   ],
+  "sockets": [
+    "socket_client_open/3",
+    "socket_server_open/2",
+    "socket_server_accept/4",
+    "socket_server_close/1",
+    "current_hostname/1"
+  ],
   "tabling": [
     "start_tabling/2",
     "abolish_all_tables/0"

@@ -163,7 +163,7 @@ after parsing, so libraries that introduce operators still require an explicit
 
 That compatibility boundary is intentionally driven by observable upstream
 interfaces rather than by library names alone. The compatibility layer is now
-systematic rather than a collection of one-off ports: all 32 bundled modules that
+systematic rather than a collection of one-off ports: all 33 bundled modules that
 overlap Scryer's current `src/lib/` tree are checked against the frozen export
 snapshot in `test/scryer-library-exports.json` and cover that public predicate
 surface. Runtime-dependent primitives have explicit ownership: code in
@@ -176,8 +176,7 @@ intersection remains a separate portability profile; its crypto overlap is still
 `hex_bytes/2`, `crypto_n_random_bytes/2`, and `crypto_data_hash/3`. Hashing, KDF,
 authenticated encryption, Ed25519, and X25519 use Node's crypto backend; secure
 random bytes also use Web Crypto when available, and unsupported operations
-report `resource_error(crypto)`. Filesystem, environment, shell, PID, and argument
-operations are likewise Node host services rather than a simulated browser OS.
+report `resource_error(crypto)`. Filesystem, environment, shell, PID, argument, and TCP socket operations are likewise Node host services rather than simulated browser facilities.
 EyeProlog still has integer and float processor numbers only, so non-integral
 rational conversion results use a documented structural `rdiv(N,D)` form rather
 than silently extending arithmetic semantics.

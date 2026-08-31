@@ -1154,8 +1154,12 @@ function requireStream(solver, term, env, mode = null) {
   const culprit = deref(term, env);
   const stream = solver.io.resolve(streamReference(term, env));
   if (!stream) throw new PrologError('existence_error(stream)', culprit);
-  if (mode && stream.mode !== mode && !(mode === 'write' && stream.mode === 'append')) {
-    throw new PrologError(`permission_error(${mode === 'read' ? 'input' : 'output'}, stream)`, culprit);
+  if (mode) {
+    const readable = stream.readable ?? stream.mode === 'read';
+    const writable = stream.writable ?? (stream.mode === 'write' || stream.mode === 'append');
+    if ((mode === 'read' && !readable) || (mode === 'write' && !writable)) {
+      throw new PrologError(`permission_error(${mode === 'read' ? 'input' : 'output'}, stream)`, culprit);
+    }
   }
   return stream;
 }
@@ -1358,18 +1362,27 @@ function* flushOutputBuiltin({ solver, goal, env }) {
   yield env;
 }
 
+function streamEndState(stream) {
+  if (stream.pastEnd) return 'past';
+  if (stream.position < stream.content.length) return 'not';
+  if (stream.remoteEnded === true) return 'at';
+  if (typeof stream.interactiveReadUnit === 'function') return 'not';
+  return 'at';
+}
+
 function streamProperties(stream) {
   const properties = [
     compound('mode', [atom(stream.mode)]),
     compound('type', [atom(stream.type)]),
     compound('reposition', [atom(stream.reposition ? 'true' : 'false')]),
     compound('eof_action', [atom(stream.eofAction)]),
-    compound('position', [numberTerm(stream.position)]),
+    compound('position', [numberTerm(stream.reportedPosition ?? stream.position)]),
   ];
-  properties.push(atom(stream.mode === 'read' ? 'input' : 'output'));
-  properties.push(compound('end_of_stream', [
-    atom(stream.pastEnd ? 'past' : stream.position >= stream.content.length ? 'at' : 'not'),
-  ]));
+  const readable = stream.readable ?? stream.mode === 'read';
+  const writable = stream.writable ?? (stream.mode === 'write' || stream.mode === 'append');
+  if (readable) properties.push(atom('input'));
+  if (writable) properties.push(atom('output'));
+  properties.push(compound('end_of_stream', [atom(streamEndState(stream))]));
   if (stream.alias) properties.push(compound('alias', [atom(stream.alias)]));
   if (stream.path) properties.push(compound('file_name', [atom(stream.path)]));
   return properties;
@@ -1461,7 +1474,7 @@ function* atEndBuiltin({ solver, goal, env }) {
   // stream property and therefore accepts any open stream-or-alias; it is not
   // an input-only operation.
   const stream = goal.arity === 0 ? solver.io.resolve(solver.io.currentInput) : requireStream(solver, goal.args[0], env);
-  if (stream.pastEnd || stream.position >= stream.content.length) yield env;
+  if (streamEndState(stream) !== 'not') yield env;
 }
 function validStrictInputCharacterCode(value, solver) {
   if (value.type !== NUMBER || !isDecimalInteger(value.name)) return false;
@@ -1521,11 +1534,7 @@ function inputUnitBuiltin(name) {
     }
     const peek = name.startsWith('peek');
     if (stream.position >= stream.content.length && typeof stream.interactiveReadUnit === 'function') {
-      const text = stream.interactiveReadUnit();
-      if (text != null) {
-        stream.content += String(text);
-        stream.pastEnd = false;
-      }
+      solver.io.refill(stream);
     }
     let unit;
     try {
@@ -1827,6 +1836,13 @@ function readTermFromStream(stream, solver) {
         throw new PrologError('syntax_error(read_term)');
       }
       throw error;
+    }
+
+    // Streams backed by a synchronous refill hook (for example TCP sockets)
+    // may need more input before the current term becomes complete. Refill and
+    // rescan until a complete term is available or the underlying stream ends.
+    if (stream.continuousRefill === true && typeof stream.interactiveReadUnit === 'function' && stream.remoteEnded !== true) {
+      if (solver.io.refill(stream)) continue;
     }
 
     // The interactive top level may attach a synchronous reader to the

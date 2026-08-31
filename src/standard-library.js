@@ -20,6 +20,7 @@ import { pioHostBuiltins } from './pio-host.js';
 import { randomHostBuiltins } from './random-host.js';
 import { tablingHostBuiltins } from './tabling-host.js';
 import { timeHostBuiltins } from './time-host.js';
+import { socketsHostBuiltins } from './sockets-host.js';
 import { fs, isNode, memoryStatistics } from './platform.js';
 import { ATOM, VAR, atom, deref, numberTerm, unify } from './term.js';
 import { eyePrologAmbiguousLibraryAutoload, eyePrologLibraryAutoload, eyePrologLibraryAutoloadModules } from './library-autoload-index.js';
@@ -59,6 +60,7 @@ const moduleFiles = Object.freeze({
   random: 'random.pl',
   reif: 'reif.pl',
   si: 'si.pl',
+  sockets: 'sockets.pl',
   strings: 'strings.pl',
   terms: 'terms.pl',
   tabling: 'tabling.pl',
@@ -98,6 +100,7 @@ export const eyePrologNativeLibraryIndicators = Object.freeze([
   'number_to_rational/2', 'number_to_rational/3', 'rational_numerator_denominator/3',
   'read_from_chars/2', 'read_term_from_chars/3', 'write_term_to_chars/3', 'chars_base64/3',
   'sleep/1',
+  'socket_client_open/3', 'socket_server_open/2', 'socket_server_accept/4', 'socket_server_close/1', 'current_hostname/1',
   'directory_files/2', 'file_size/2', 'file_exists/1', 'directory_exists/1',
   'delete_file/1', 'rename_file/2', 'file_copy/2', 'delete_directory/1',
   'make_directory/1', 'make_directory_path/1', 'working_directory/2', 'path_canonical/2',
@@ -274,6 +277,7 @@ const eyePrologSharedLibraryIndicators = [
   'ord_memberchk/2', 'ord_selectchk/3', 'ord_seteq/2', 'ord_subset/2',
   'ord_subtract/3', 'ord_symdiff/3', 'ord_union/2', 'ord_union/3', 'ord_union/4',
   'directory_files/2', 'delete_file/1', 'rename_file/2', 'make_directory/1', 'make_directory_path/1', 'working_directory/2',
+  'socket_client_open/3', 'socket_server_accept/4', 'socket_server_close/1',
   'phrase_from_file/2', 'phrase_from_file/3', 'phrase_to_file/2',
   'phrase_to_file/3', 'phrase_to_stream/2',
   'maybe/0', 'random/1', 'random_integer/3', 'set_random/1',
@@ -299,7 +303,7 @@ export const eyePrologInteropLibraryIndicators = Object.freeze([
 export const eyePrologInteropLibraryModules = Object.freeze([
   'arithmetic', 'assoc', 'atts', 'charsio', 'clpb', 'clpz', 'dcgs', 'debug', 'dif',
   'files', 'format', 'freeze', 'gensym', 'iso_ext', 'lambda', 'lists', 'ordsets', 'os', 'pio',
-  'random', 'reif', 'tabling', 'time', 'ugraphs', 'uuid', 'when',
+  'random', 'reif', 'sockets', 'tabling', 'time', 'ugraphs', 'uuid', 'when',
 ]);
 
 function* tabledNegationBuiltin({ solver, goal, env }) {
@@ -372,6 +376,7 @@ export function createEyePrologRegistry() {
   randomHostBuiltins.register(registry);
   tablingHostBuiltins.register(registry);
   timeHostBuiltins.register(registry);
+  socketsHostBuiltins.register(registry);
   cryptoHostBuiltins.register(registry);
   dcgsHostBuiltins.register(registry);
   registry.eyePrologLibrary = true;

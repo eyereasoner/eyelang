@@ -112,7 +112,8 @@ export class StreamManager {
     });
   }
   flush(stream) {
-    if (!stream || stream.standard || stream.mode === 'read') return;
+    if (!stream || stream.standard || (stream.mode === 'read' && stream.writable !== true)) return;
+    if (typeof stream.flush === 'function') { stream.flush(); return; }
     fs.writeFileSync(stream.path, stream.type === 'binary' ? BufferCtor.from(stream.content) : stream.content);
   }
   discard(stream) {
@@ -120,8 +121,33 @@ export class StreamManager {
     this.streams.delete(stream.id);
   }
   close(stream) {
-    this.flush(stream);
+    if (typeof stream.closeTransport !== 'function') {
+      this.flush(stream);
+      this.discard(stream);
+      return;
+    }
+    let error = null;
+    try { this.flush(stream); } catch (caught) { error = caught; }
+    try { stream.closeTransport(); } catch (caught) { error ??= caught; }
     this.discard(stream);
+    if (error != null) throw error;
+  }
+  refill(stream) {
+    if (typeof stream?.interactiveReadUnit !== 'function') return false;
+    if (stream.continuousRefill === true && stream.position >= stream.content.length && stream.position > 0) {
+      stream.content = stream.type === 'binary' ? [] : '';
+      stream.position = 0;
+    }
+    const value = stream.interactiveReadUnit();
+    if (value == null) return false;
+    if (stream.type === 'binary') {
+      const incoming = Array.isArray(value) ? value : [...value];
+      stream.content.push(...incoming);
+    } else {
+      stream.content += String(value);
+    }
+    stream.pastEnd = false;
+    return true;
   }
   readUnit(stream, peek = false) {
     if (stream.position >= stream.content.length) return null;
@@ -142,6 +168,10 @@ export class StreamManager {
     return value;
   }
   writeUnit(stream, value) {
+    if (typeof stream.writeUnit === 'function') {
+      stream.writeUnit(value);
+      return;
+    }
     if (stream.standard && stream.write) {
       stream.write(String(value));
       return;

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "surface_count": 518,
+  "surface_count": 523,
   "generated_from": {
     "core_registry": "src/iso.js createDefaultRegistry()",
     "library_index": "src/library-autoload-index.js"
@@ -1454,6 +1454,15 @@
       "contract": "Enumerates installed nonidentity character conversions.",
       "source": "src/iso.js",
       "profile": "core"
+    },
+    {
+      "indicator": "current_hostname/1",
+      "origin": "library(sockets)",
+      "call": "current_hostname(-HostName)",
+      "solutions": "det",
+      "contract": "Unifies HostName with the local host name used by the networking runtime.",
+      "source": "src/lib/sockets.pl; src/sockets-host.js",
+      "profile": "library"
     },
     {
       "indicator": "current_input/1",
@@ -4027,6 +4036,42 @@
       "solutions": "semidet",
       "contract": "Returns the least divisor of N not smaller than Start according to the module's integer primality search.",
       "source": "src/lib/primes.pl",
+      "profile": "library"
+    },
+    {
+      "indicator": "socket_client_open/3",
+      "origin": "library(sockets)",
+      "call": "socket_client_open(+Address,-Stream,+Options)",
+      "solutions": "semidet",
+      "contract": "Opens a TCP connection to Address:Port and returns a bidirectional stream using the requested stream options.",
+      "source": "src/lib/sockets.pl; src/sockets-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "socket_server_accept/4",
+      "origin": "library(sockets)",
+      "call": "socket_server_accept(+ServerSocket,-Client,-Stream,+Options)",
+      "solutions": "det",
+      "contract": "Waits for the next TCP connection, returning the peer address and a bidirectional stream for that connection.",
+      "source": "src/lib/sockets.pl; src/sockets-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "socket_server_close/1",
+      "origin": "library(sockets)",
+      "call": "socket_server_close(+ServerSocket)",
+      "solutions": "det",
+      "contract": "Stops accepting new TCP connections on ServerSocket without closing streams already accepted from it.",
+      "source": "src/lib/sockets.pl; src/sockets-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "socket_server_open/2",
+      "origin": "library(sockets)",
+      "call": "socket_server_open(?Address,-ServerSocket)",
+      "solutions": "semidet",
+      "contract": "Opens a TCP listening socket; an unbound port requests an ephemeral port and is unified with the selected port.",
+      "source": "src/lib/sockets.pl; src/sockets-host.js",
       "profile": "library"
     },
     {

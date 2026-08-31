@@ -4792,15 +4792,15 @@ function documentationSyncCases() {
           encoding: 'utf8',
         });
         assertEqual(result.status, 0, 'exit status');
-        assertIncludes(result.stdout, 'predicate reference is up to date (518 predicates)', 'stdout');
+        assertIncludes(result.stdout, 'predicate reference is up to date (523 predicates)', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
 
         const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
         const section = between(book, '<!-- eyeprolog-predicate-reference:start -->', '<!-- eyeprolog-predicate-reference:end -->');
         assertEqual(section.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'predicate reference avoids wide table markup');
-        assertEqual((section.match(/^- \*\*`/gm) ?? []).length, 518, 'one reference entry per predicate');
-        assertEqual((section.match(/<a id="predicate-reference-\d{4}"><\/a>/g) ?? []).length, 518, 'one explicit anchor per predicate');
-        assertEqual((section.match(/\]\(#predicate-reference-\d{4}\)/g) ?? []).length, 518, 'one direct index link per predicate');
+        assertEqual((section.match(/^- \*\*`/gm) ?? []).length, 523, 'one reference entry per predicate');
+        assertEqual((section.match(/<a id="predicate-reference-\d{4}"><\/a>/g) ?? []).length, 523, 'one explicit anchor per predicate');
+        assertEqual((section.match(/\]\(#predicate-reference-\d{4}\)/g) ?? []).length, 523, 'one direct index link per predicate');
         assertNotIncludes(section, '[Symbols](#predicate-reference-symbols)', 'predicate index does not rely on renderer-generated group anchors');
 
         const chapter = between(book, '## 39. Predicate reference', '## 40. Running EyeProlog: command line and corpus');
@@ -5828,6 +5828,50 @@ answer(Status,Pid) :-
       },
     },
     {
+      name: 'library(sockets) provides Scryer-compatible bidirectional TCP text streams',
+      run: () => {
+        const source = `:- use_module(library(sockets)).
+answer(Port,Client,Term,Mode,Alias,Host) :-
+  current_hostname(Host), atom(Host),
+  socket_server_open('127.0.0.1':Port,Server), Port > 0,
+  socket_client_open('127.0.0.1':Port,Out,[type(text),alias(client_socket),eof_action(eof_code)]),
+  socket_server_accept(Server,Client,In,[type(text)]),
+  stream_property(Out,input), stream_property(Out,output),
+  stream_property(Out,mode(Mode)), stream_property(Out,alias(Alias)),
+  stream_property(Out,position(0)), stream_property(Out,file_name(FileName)), atom(FileName),
+  socket_server_close(Server),
+  write(Out,ping), put_char(Out,'.'), nl(Out), flush_output(client_socket),
+  read(In,Term),
+  close(Out), close(In).
+`;
+        const result = run(source, { goal: 'answer(Port,Client,Term,Mode,Alias,Host)' });
+        assertIncludes(result.stdout, ', ping, read_append, client_socket, ', 'socket text stream result');
+        assertIncludes(result.stdout, "'127.0.0.1:", 'accepted peer address');
+      },
+    },
+    {
+      name: 'library(sockets) supports binary streams and rejects repositioning',
+      run: () => {
+        const source = `:- use_module(library(sockets)).
+answer(A,B) :-
+  socket_server_open(Port,Server),
+  socket_client_open('127.0.0.1':Port,Out,[type(binary)]),
+  socket_server_accept(Server,_,In,[type(binary)]),
+  put_byte(Out,65), put_byte(Out,255), flush_output(Out),
+  get_byte(In,A), get_byte(In,B),
+  close(Out), close(In), socket_server_close(Server).
+reject_reposition :-
+  socket_server_open(Port,Server),
+  catch(socket_client_open('127.0.0.1':Port,_,[reposition(true)]),
+        error(permission_error(reposition,stream,_),_),
+        true),
+  socket_server_close(Server).
+`;
+        assertEqual(run(source, { goal: 'answer(A,B)' }).stdout, 'answer(65, 255).\n', 'binary socket stream');
+        assertEqual(run(source, { goal: 'reject_reposition' }).stdout, 'reject_reposition.\n', 'socket reposition error');
+      },
+    },
+    {
       name: 'completed Scryer arithmetic charsio dcgs and lists predicates compose',
       run: () => {
         const source = String.raw`:- use_module(library(arithmetic)).
@@ -6573,13 +6617,15 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 216, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 221, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
         assertEqual(registry.get('eyeprolog__dynify', 1), null, 'Eyelet dynify adapter is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__dynify', 1)), true, 'Eyelet dynify adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__eyelet_emit', 2), null, 'Eyelet event adapter is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__eyelet_emit', 2)), true, 'Eyelet event adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__random_value', 1), null, 'native random helper is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__random_value', 1)), true, 'native random helper is an internal EyeProlog library adapter');
+        assertEqual(registry.get('eyeprolog__socket_client_open', 4), null, 'socket adapter is absent from the ISO registry');
+        assertEqual(Boolean(library.get('eyeprolog__socket_client_open', 4)), true, 'socket client adapter is an internal EyeProlog library primitive');
         assertEqual(Boolean(registry.get('phrase', 2)), true, 'Part 3 phrase/2 exists');
         assertEqual(Boolean(registry.get('phrase', 3)), true, 'Part 3 phrase/3 exists');
         assertEqual(registry.get('statistics', 0), null, 'statistics/0 is absent from the ISO registry');
@@ -6596,10 +6642,10 @@ answer(ok) :-
         assertEqual(Boolean(library.get('call_cleanup', 2)), true, 'call_cleanup/2 is an EyeProlog cleanup control');
         assertEqual(registry.get('setup_call_cleanup', 3), null, 'setup_call_cleanup/3 is absent from the ISO registry');
         assertEqual(Boolean(library.get('setup_call_cleanup', 3)), true, 'setup_call_cleanup/3 is an EyeProlog cleanup control');
-        assertEqual(registeredNativeEyePrologLibraryNames().length, 109, 'public host-supported EyeProlog library count');
+        assertEqual(registeredNativeEyePrologLibraryNames().length, 114, 'public host-supported EyeProlog library count');
         assertEqual(eyePrologPortableLibraryIndicators.length, 280, 'portable Prolog library count');
-        assertEqual(eyePrologInteropLibraryIndicators.length, 218, 'cross-implementation interop profile count');
-        assertEqual(eyePrologInteropLibraryModules.length, 26, 'common explicit library module profile count');
+        assertEqual(eyePrologInteropLibraryIndicators.length, 221, 'cross-implementation interop profile count');
+        assertEqual(eyePrologInteropLibraryModules.length, 27, 'common explicit library module profile count');
         assertEqual(eyePrologInteropAutoload['member/2'], 'lists', 'member/2 canonical autoload');
         assertEqual(eyePrologInteropAutoload['between/3'], 'between', 'between/3 canonical internal autoload');
         assertEqual(eyePrologInteropAutoload['call_nth/2'], 'iso_ext', 'call_nth/2 canonical interop autoload');
@@ -6611,11 +6657,11 @@ answer(ok) :-
         assertEqual(eyePrologLibraryAutoload['pairs_keys_values/3'], 'pairs', 'complete library autoload includes library(pairs)');
         assertEqual(eyePrologLibraryAutoload['stable/1'], 'eyelet', 'complete library autoload includes Eyelet stable/1');
         assertEqual(eyePrologLibraryAutoload['becomes/2'], 'eyelet', 'complete library autoload includes Eyelet becomes/2');
-        assertEqual(eyePrologLibraryAutoloadModules.length, 39, 'all bundled src/lib modules are indexed for autoload');
-        assertEqual(eyePrologNativeLibraryIndicators.length, 109, 'host-supported library count');
+        assertEqual(eyePrologLibraryAutoloadModules.length, 40, 'all bundled src/lib modules are indexed for autoload');
+        assertEqual(eyePrologNativeLibraryIndicators.length, 114, 'host-supported library count');
         assertEqual(eyePrologNativeLibraryIndicators.includes('call_nth/2'), true, 'call_nth/2 remains classified as host-supported');
         assertEqual(eyePrologNativeLibraryIndicators.includes('random/1'), true, 'stateful random/1 is classified as host-supported');
-        assertEqual(eyePrologLibraryIndicators.length, 389, 'complete non-ISO EyeProlog library surface');
+        assertEqual(eyePrologLibraryIndicators.length, 394, 'complete non-ISO EyeProlog library surface');
         assertEqual(registry.get('eyeprolog__call_nth', 2), null, 'private call_nth adapter is absent from ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__call_nth', 2)), true, 'private call_nth adapter is registered for EyeProlog');
         assertEqual(Boolean(library.get('eyeprolog__call_residue_vars', 2)), true, 'private call_residue_vars adapter is registered for EyeProlog');
