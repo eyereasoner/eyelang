@@ -147,19 +147,16 @@ function renderSection(byIndicator, surface) {
     START,
     '### Complete predicate indicator reference',
     '',
-    `This generated reference covers all **${EXPECTED_COUNT} distinct predicate indicators** in the normal EyeProlog surface: ` +
+    `The normal EyeProlog surface contains **${EXPECTED_COUNT} distinct predicate indicators**: ` +
       `${surface.core.size} core registry indicators plus ${surface.library.size} bundled-library indicators, with ` +
       '`phrase/2` and `phrase/3` present in both layers and therefore counted once.',
     '',
     'Each entry is a compact contract. `+` marks a principal input, `-` a principal output, and `?` an argument that may be supplied or produced. ' +
       'These are documented operating modes rather than parser-enforced mode declarations. **Solutions** uses `det`, `semidet`, `multi`, `nondet`, `delayed`, `meta`, `mode-dependent`, `declaration`, or `terminal`; `meta` means the solution behavior depends materially on a called goal.',
     '',
-    'The reference uses stacked entries instead of wide Markdown tables, so principal calls and contracts wrap naturally on narrow screens without horizontal scrolling. ' +
-      'It is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.',
-    '',
     '#### Predicate index',
     '',
-    'Every indicator below links directly to its own explicit anchor. These anchors are generated as stable numeric IDs instead of relying on Markdown heading-slug rules, so the links behave consistently in GitHub Pages and other renderers.',
+    'Each indicator links directly to its contract.',
     '',
   ];
 

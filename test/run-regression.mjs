@@ -4797,18 +4797,28 @@ function documentationSyncCases() {
 
         const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
         const section = between(book, '<!-- eyeprolog-predicate-reference:start -->', '<!-- eyeprolog-predicate-reference:end -->');
-        assertEqual(section.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'predicate reference avoids Markdown tables and horizontal overflow');
-        assertEqual((section.match(/^- \*\*`/gm) ?? []).length, 518, 'one stacked reference entry per predicate');
-        assertEqual((section.match(/<a id="predicate-reference-\d{4}"><\/a>/g) ?? []).length, 518, 'one explicit stable anchor per predicate');
+        assertEqual(section.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'predicate reference avoids wide table markup');
+        assertEqual((section.match(/^- \*\*`/gm) ?? []).length, 518, 'one reference entry per predicate');
+        assertEqual((section.match(/<a id="predicate-reference-\d{4}"><\/a>/g) ?? []).length, 518, 'one explicit anchor per predicate');
         assertEqual((section.match(/\]\(#predicate-reference-\d{4}\)/g) ?? []).length, 518, 'one direct index link per predicate');
         assertNotIncludes(section, '[Symbols](#predicate-reference-symbols)', 'predicate index does not rely on renderer-generated group anchors');
-        assertIncludes(section, 'stable numeric IDs instead of relying on Markdown heading-slug rules', 'renderer-independent predicate anchors');
-        assertIncludes(section, 'wrap naturally on narrow screens without horizontal scrolling', 'responsive predicate reference layout');
 
         const chapter = between(book, '## 39. Predicate reference', '## 40. Running EyeProlog: command line and corpus');
-        assertEqual(chapter.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'Chapter 39 uses one wrapping stacked layout without Markdown tables');
+        assertEqual(chapter.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'Chapter 39 avoids wide table markup');
+        for (const backstage of [
+          'stacked layout',
+          'Markdown tables',
+          'horizontal scrollbars',
+          'horizontal scrolling',
+          'documentation test',
+          'documentation regression',
+          'stable numeric IDs',
+          'generated reference',
+          'Read the chapter in that order',
+          'final generated section',
+        ]) assertNotIncludes(chapter, backstage, `Chapter 39 avoids editorial/process prose: ${backstage}`);
         const orderedHeadings = [
-          '### How to read this chapter',
+          '### Notation and conventions',
           '### Core registry',
           '### Normal-mode extensions',
           '### Bundled libraries',
@@ -4823,6 +4833,35 @@ function documentationSyncCases() {
           assertEqual(position > previous, true, `Chapter 39 section order: ${heading}`);
           previous = position;
         }
+      },
+    },
+    {
+      name: 'book keeps editorial and build mechanics out of reader-facing prose',
+      run: () => {
+        const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
+        for (const backstage of [
+          'stacked layout',
+          'Markdown tables',
+          'horizontal scrollbars',
+          'horizontal scrolling',
+          'documentation test',
+          'documentation regression',
+          'stable numeric IDs',
+          'generated reference',
+          'final generated section',
+          'Read the chapter in that order',
+          'after editing the book',
+          'should be rebuilt with `npm run generate`',
+          'Keeping these details here',
+          '# Part XII — Development note',
+          '## 46. AI-assisted editing',
+          'release gate',
+          'release-facing',
+          '# Refresh the vendored TU Wien WG17 inventory',
+          'the tables in this chapter',
+          'The generated [`examples/book/`',
+        ]) assertNotIncludes(book, backstage, `book avoids backstage prose: ${backstage}`);
+        assertIncludes(book, 'Chapters are numbered continuously across eleven parts, from Chapter 1 to Chapter 45.', 'reader-facing chapter count');
       },
     },
     {
@@ -4844,7 +4883,7 @@ ${profile}`;
         assertIncludes(book, 'including recursive calls, use depth-first resolution unless the source', 'ordinary recursion is depth-first');
         assertIncludes(book, 'explicitly declares `:- table p/n.`', 'tabling is explicit');
         assertIncludes(book, 'The autoload index covers every', 'generic bundled-library autoload');
-        assertIncludes(book, 'interactive top-level query therefore autoloads its canonical', 'REPL autoload');
+        assertIncludes(book, 'interactive top-level query autoloads its canonical bundled provider', 'REPL autoload');
         assertIncludes(book, 'Autoloading therefore supplies', 'autoload syntax boundary');
         assertIncludes(book, 'Residual constraints are part of the displayed answer even when', 'top-level hidden residuals');
         assertIncludes(book, 'EyeProlog normal mode also accepts `:+`', 'Eyelet forward-rule extension');

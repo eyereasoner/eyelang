@@ -17,8 +17,7 @@ the two.
 This book is also the reference for the EyeProlog implementation. EyeProlog is a
 standards-based reasoning system: programs use the documented and tested ISO
 Prolog profile.
-Chapters 38–40 define the supported ISO Prolog profile, built-ins, libraries, and execution interface. Chapter 39 describes every supported built-in predicate in detail and also contains a generated compact contract for all **518 distinct predicate indicators** in the normal EyeProlog surface; Chapter 40 documents the command-line interface. The explanatory chapters give the reasoning and operational context
-needed to use those details correctly.
+Chapters 38–40 define the supported ISO Prolog profile, predicate surface, libraries, and execution interface. Chapter 39 describes every supported built-in and library predicate, with compact contracts for all **518 distinct predicate indicators** in the normal EyeProlog surface; Chapter 40 documents command-line execution. The explanatory chapters give the reasoning and operational context needed to use those details correctly.
 
 Its subject is not syntax alone. A logic program has two inseparable aspects:
 the relation described by its clauses and the procedure induced when goals are
@@ -114,14 +113,12 @@ require their documented host environment.
 
 The best way to read is beside a running interpreter. Before each run, predict
 the answer; after it, change one fact or query and explain the difference.
-Use `npm run generate` after editing the book to refresh the extracted
-`examples/book/` files.
 
 ### Reading conventions
 
 Code displays serve three different purposes:
 
-- an `eyeprolog` block is Prolog source accepted by EyeProlog; complete blocks are extracted under
+- an `eyeprolog` block is Prolog source accepted by EyeProlog; complete blocks also appear under
   `examples/book/`, although a short block may rely on facts introduced in the
   surrounding chapter;
 - a `text` block shows output, a trace, a data shape, or pseudocode and is not
@@ -130,8 +127,8 @@ Code displays serve three different purposes:
 
 Top-level programs under [`examples/`](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) are the complete runnable
 cases. Their exact outputs live under `examples/output/`; selected proof
-outputs live under `examples/proof/`. Use the chapter extractions for copying a
-particular display and the top-level corpus for end-to-end experiments.
+outputs live under `examples/proof/`. Use `examples/book/` to copy a particular
+display and the top-level corpus for end-to-end experiments.
 
 ### The promise of this book
 
@@ -152,10 +149,7 @@ tricks. By the end, a reader should be able to:
 That is the stake in the ground: a focused implementation of standard Prolog
 is enough to teach the large ideas when semantics, execution, and evidence
 remain visible together.
-The implementation is therefore part of the argument. The examples are
-programs, the reference chapters are the reference for the running system, and
-`npm test` checks the complete code displays, local references, and
-built-in index against the source tree.
+The implementation is therefore part of the argument: the examples are executable programs, the reference chapters describe the running system, and proof terms remain available for inspection.
 
 ### A working discipline
 
@@ -242,8 +236,7 @@ making a relationship visible that prose alone would make easy to miss.
 
 ## Contents
 
-Chapters are numbered continuously across the twelve parts, from Chapter 1 to
-Chapter 46.
+Chapters are numbered continuously across eleven parts, from Chapter 1 to Chapter 45.
 
 ### Part I — Relations
 
@@ -344,12 +337,6 @@ Chapter 44
 Chapter 45
 
 - [45. Checkpoint notes and selected answers](#45-checkpoint-notes-and-selected-answers)
-
-### Part XII — Development note
-
-Chapter 46
-
-- [46. AI-assisted editing](#46-ai-assisted-editing)
 
 ---
 
@@ -4351,9 +4338,7 @@ Before trusting an EyeProlog conclusion, ask:
 9. What counterexample would overturn the model?
 10. Can the result be reconstructed under the same source and theory version?
 
-That ritual is the book in miniature. State a small theory. Ask a precise
-question. Let the machine search. Inspect the witness. Challenge the premises.
-Preserve the proof.
+That ritual captures the discipline. State a small theory. Ask a precise question. Let the machine search. Inspect the witness. Challenge the premises. Preserve the proof.
 
 **Exercises.**
 
@@ -4428,8 +4413,7 @@ state a claim precisely, derive consequences, seek counterexamples, measure the
 computation, and preserve enough evidence for another person to repeat the
 work.
 
-This Part turns the book's ideas into a daily discipline. It does not add a new
-language feature. It shows how to make theories survive change.
+The reasoning laboratory turns these ideas into a daily discipline. It adds no new language feature; it shows how to make theories survive change.
 
 ## 31. Testing a theory
 
@@ -4873,7 +4857,7 @@ choice, repaired invariant, and test that would fail if the defect returned.
 
 A pattern is not a copied code fragment. It is a recurring arrangement of
 meaning, representation, and control that solves a named design problem. The
-following patterns summarize the strongest constructions in this book.
+following patterns summarize recurring constructions that are especially useful in practice.
 
 <figure>
   <img src="book-assets/pattern-selection-map.svg" alt="Six recurring design symptoms point to patterns for meaning, tabling, closed boundaries, finite search, proof-carrying answers, and canonical representation.">
@@ -5916,21 +5900,11 @@ Queries for predicates with no group follow the known groups.
 
 ## 39. Predicate reference
 
-Chapter 39 documents the normal EyeProlog predicate surface as one coherent
-reference. The surface has two layers: **129 core registry indicators** and
-**389 distinct non-ISO library or normal-extension indicators**. Because
-`phrase/2` and `phrase/3` occur in both layers, their union contains **518
-distinct predicate indicators**.
+EyeProlog's normal predicate surface has two layers: **129 core registry indicators** and **389 distinct non-ISO library or normal-extension indicators**. Because `phrase/2` and `phrase/3` occur in both layers, their union contains **518 distinct predicate indicators**.
 
-Read the chapter in that order. The core registry comes first because it defines
-the language-level operations available without a library import. The bundled
-library layer then adds reusable relations, followed by the portability and
-implementation boundaries that explain how those libraries behave across
-EyeProlog, Trealla, and Scryer. The final generated section is deliberately a
-lookup index: it gives one compact contract and one stable link for every one of
-the 518 indicators without interrupting the explanatory flow above it.
+Core predicates are available without a library import. Bundled libraries add reusable relations for collections, constraints, graphs, text, time, cryptography, files, and other domains. Interoperability notes identify the subset shared with Trealla and Scryer, and the complete alphabetical reference gives one compact contract for every indicator.
 
-### How to read this chapter
+### Notation and conventions
 
 The call patterns below use `+` for an argument that must be sufficiently
 instantiated, `-` for a result normally produced by the call, and `?` for an
@@ -5947,12 +5921,6 @@ dispatch exceptions: when a program defines a source predicate with that same
 indicator, EyeProlog uses the source clauses. `false/0` is stricter still and is
 rejected as a source-clause head. Portable programs should avoid every such
 collision because other Prolog systems commonly reject it while loading.
-
-Reference material in this chapter uses a single stacked layout instead of wide
-Markdown tables. A bold term introduces one predicate, role, flag, error form,
-or module; the explanation follows on the same item and wraps normally on narrow
-screens. This keeps the reference usable on phones and avoids horizontal
-scrollbars while preserving copyable predicate indicators.
 
 ### Core registry
 
@@ -6168,11 +6136,7 @@ non-BMP character. Trailing layout, comments, and other material are rejected;
 bound integers are converted to their canonical decimal spelling, and
 non-finite values are rejected. Equivalent spellings of the same numeric type
 compare by value, preserving the standard conversion round trip, while integer
-and floating-point terms remain distinct. The
-regression gate vendors all 74 numbered cases from Ulrich Neumerkel's contemporary
-`number_chars/2` comparison, including the Cor.2 error-precedence cases;
-`number_codes/2` shares the same numeric parser and has mirrored coverage for
-the recent numeric-syntax regressions.
+and floating-point terms remain distinct. The numeric conversion behavior follows the 74 numbered cases in Ulrich Neumerkel's contemporary `number_chars/2` comparison, including the Corrigendum 2 error-precedence cases; `number_codes/2` uses the same numeric parser.
 
 #### Streams and unit I/O
 
@@ -6340,19 +6304,12 @@ only the modules it needs, and
 module exposes p.p.1 through p.p.11 of the
 [working-draft Prologue](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/prologue),
 as a compatibility facade over the canonical `lists`, `between`, `iso_ext`,
-and `freeze` modules. The published Prologue, `call_nth/2`, and `length/2`
-quads are retained as offline regressions. `src/standard-library.js` registers the module sources and explicit module-owned
-host adapters. For example, attributed-variable support lives in
+and `freeze` modules. `src/standard-library.js` registers the module sources and explicit module-owned host adapters. For example, attributed-variable support lives in
 `src/atts-host.js`, while cryptographic primitives live in `src/crypto-host.js`. Whenever `src/lib/foo.pl` needs a private runtime primitive, that
 primitive is registered from `src/foo-host.js`; pure Prolog libraries deliberately
 have no host file. This keeps character I/O, filesystem access, crypto, timing,
 attributed-variable support, and other runtime bridges with the module that owns
-their public semantics instead of in a compatibility grab bag. Architecture tests
-enforce this ownership and reject the retired `library-host.js` and
-`scryer-compat.js`. Explicit `use_module/1-2`
-loads remain supported; outside strict ISO mode, the bundled-library autoloader
-may also load the canonical owner of any exported `src/lib/` predicate. The
-autoload index is generated from the libraries' `module/2` declarations.
+their public semantics instead of in a compatibility grab bag. Private runtime adapters remain owned by the module whose public semantics they support; no shared compatibility grab bag participates in library execution. Explicit `use_module/1-2` loads remain supported; outside strict ISO mode, the bundled-library autoloader may also load the canonical owner of any exported `src/lib/` predicate.
 The core registry remains available through `createDefaultRegistry()` and
 `getDefaultRegistry()` for low-level embedding. The stricter Part 1 +
 Corrigenda registry is exposed as `createStrictIsoRegistry()` and
@@ -6710,9 +6667,9 @@ extension_answer(same_shape, true) :-
 EyeProlog keeps four related concepts separate:
 
 - ****ISO core**** — The documented ISO predicate profile built into the processor. No EyeProlog library import is involved.
-- ****EyeProlog library surface**** — Every module and exported predicate listed in the catalog above. Programs normally access these with `use_module/1-2`.
+- ****EyeProlog library surface**** — Every public module and exported predicate in the bundled library layer. Programs normally access these with `use_module/1-2`.
 - ****Interoperability profile**** — A deliberately smaller set of library names and predicate interfaces that EyeProlog intends to keep source-compatible with Trealla and Scryer where practical.
-- ****Autoload index**** — A generated index of every predicate exported by the bundled `src/lib/` modules, with one canonical provider per unambiguous predicate.
+- ****Autoload surface**** — Every bundled predicate with one canonical provider per unambiguous indicator.
 
 These layers answer different questions. A predicate may be implemented entirely
 as ordinary Prolog and still be outside the cross-processor interoperability
@@ -6728,16 +6685,7 @@ follows Scryer's module name so explicit Scryer-style imports remain available.
 That interoperability profile currently spans 26 modules and is intentionally
 narrower than either implementation's union of exports; EyeProlog's explicit-state
 `random/3` and `uuid/3`, for example, remain useful extensions rather than shared
-interfaces. Separately, all 32 bundled EyeProlog modules whose basenames overlap
-Scryer's current `src/lib/` tree are checked against the frozen export snapshot in
-`test/scryer-library-exports.json` and cover the corresponding Scryer public
-predicate surface. The same structural check is now applied to Trealla: the 26
-bundled modules that have public-module counterparts in Trealla `library/` cover
-Trealla's exported predicates at pinned upstream commit
-`f7a93bd521c07a4841f5123348111dd005918c89`, recorded in
-`test/trealla-library-exports.json`. This is module-overlap coverage, not a claim
-that EyeProlog bundles Trealla's native host libraries such as `curl`, `gsl`,
-`janus`, `raylib`, `socket`, or `sqlite3`.
+interfaces. Separately, all 32 bundled EyeProlog modules whose basenames overlap Scryer's current `src/lib/` tree cover the corresponding Scryer public predicate surface. The 26 bundled modules that have public-module counterparts in Trealla `library/` cover Trealla's exported predicates at pinned upstream commit `f7a93bd521c07a4841f5123348111dd005918c89`. This is module-overlap coverage, not a claim that EyeProlog bundles Trealla's native host libraries such as `curl`, `gsl`, `janus`, `raylib`, `socket`, or `sqlite3`.
 
 Source reuse is preferred over translation. `clpb.pl`, `ordsets.pl`,
 `reif.pl`, and `ugraphs.pl` retain the upstream Prolog algorithms and license
@@ -6760,7 +6708,7 @@ parallel scheduling behavior. The
 [portable library overlap example](https://github.com/eyereasoner/eyeprolog/blob/main/examples/portable-library-overlap.pl)
 composes Boolean constraints, ordered sets, graphs, reification, delayed goals,
 generated names, character conversion, transposition, and explicit table
-syntax in one checked program.
+syntax in one runnable program.
 
 Two matching upstream basenames are intentionally not exposed as portable
 libraries. The two `builtins.pl` files are private engine facades and have no
@@ -6853,12 +6801,7 @@ too few parameters raises `existence_error(lambda_parameter, ...)`. EyeProlog
 uses its ISO `copy_term/2` implementation for the fresh-copy step and does not
 require a separate `copy_term_nat/2` predicate.
 
-Autoloading is a convenience layered on top of the module system and is
-independent of the smaller interoperability profile. At build time EyeProlog
-uses a generated index derived from every bundled `src/lib/*.pl` `module/2`
-export list. An otherwise unresolved predicate in source, initialization code, an explicit
-CLI/API goal, or an interactive top-level query therefore autoloads its canonical
-bundled provider.
+Autoloading is a convenience layered on top of the module system and is independent of the smaller interoperability profile. An otherwise unresolved predicate in source, initialization code, an explicit CLI/API goal, or an interactive top-level query autoloads its canonical bundled provider.
 For example:
 
 - **`member/2`** — `library(lists)`
@@ -6871,9 +6814,7 @@ The resolution order is deliberately conservative with respect to Prolog
 semantics: a predicate already defined by the program wins; ISO/standard
 built-ins are not replaced by an autoloaded library; an explicit module import
 wins over autoloading; only then is the bundled autoload index consulted.
-Facade modules such as `library(prologue)` may re-export predicates from focused
-modules; the generated index chooses the unique module that actually defines
-the predicate. If more than one bundled module genuinely defines the same
+Facade modules such as `library(prologue)` may re-export predicates from focused modules; autoload resolution chooses the unique module that actually defines the predicate. If more than one bundled module genuinely defines the same
 export, EyeProlog reports an import ambiguity and requires explicit
 `use_module/1-2` rather than guessing. The interactive top level applies this
 same resolution after a query has been parsed. Autoloading therefore supplies
@@ -6881,11 +6822,7 @@ predicates, not retroactive syntax: a library that introduces operators (for
 example `library(clpz)` and `ins`) must still be explicitly imported before a
 query or source term uses those operators.
 
-The index is generated by `npm run generate:autoload` into
-`src/library-autoload-index.js`, and the documentation regression suite checks
-that it is synchronized with the current `src/lib/` sources. Explicit imports
-remain the clearest way to state dependencies when portability or module intent
-should be visible in the source:
+Explicit imports remain the clearest way to state dependencies when portability or module intent should be visible in the source:
 
 ```text
 :- use_module(library(lists)).
@@ -6897,22 +6834,11 @@ library dependency should be explicit. `--iso-strict` always disables EyeProlog
 library autoloading, so strict ISO execution never gains procedures from this
 implementation convenience.
 
-`-w` / `--warnings` reports explicit dependencies on non-profile libraries and
-calls to non-profile predicates from otherwise common modules. `--portable`
-turns those diagnostics into a failing run, making the conservative profile
-suitable for continuous integration. `npm run test:interop` executes the same
-portable Towers of Hanoi source under EyeProlog, Trealla, and Scryer when those commands
-are installed. Because those are external runtimes, the default `npm test`
-instead validates all four generated OpenRuleBench source trees and their
-engine-specific tabling and WFS adaptations without requiring them. The fast
-structural check is also available directly as `npm run test:openrulebench`.
+`-w` / `--warnings` reports explicit dependencies on non-profile libraries and calls to non-profile predicates from otherwise common modules. `--portable` turns those diagnostics into a failing run, making the conservative profile suitable for continuous integration. Cross-engine portability can be exercised with `npm run test:interop` when EyeProlog, Trealla, and Scryer are installed.
 
 ### Specialized library implementation notes
 
-The catalog and role summaries above define the public surface. The following
-notes record implementation details and semantic boundaries that matter when a
-library uses attributed variables, delayed goals, host services, tabling, or
-mutable runtime state.
+Several libraries have implementation details and semantic boundaries that matter when they use attributed variables, delayed goals, host services, tabling, or mutable runtime state.
 
 `freeze(?Term,:Goal)` runs `Goal` immediately when `Term` is already nonvariable;
 otherwise it delays the goal until `Term` becomes nonvariable. Suspensions are
@@ -6942,9 +6868,7 @@ bindings make one aligned subterm pair sufficient. For example:
 ;  A = B, dif(X, Y).
 ```
 
-The catalog above is authoritative for the complete EyeProlog library surface.
-The following notes describe useful parts of that surface without extending the
-cross-engine claims made above.
+The following notes describe implementation-specific library behavior without extending the cross-engine compatibility claims.
 
 `library(atts)` is the Prolog-facing attributed-variable layer over the persistent
 annotated-variable machinery in `src/term.js`, with its small host bridge in
@@ -6953,9 +6877,7 @@ accepts `:- attribute ...` declarations, invokes module-local
 `verify_attributes/3` before an attributed binding is committed, and schedules
 the returned goals immediately after the binding. Attribute maps are copied only
 when changed and therefore backtrack with `Env` branches; the interactive top
-level projects module `attribute_goals//1` hooks as residual goals. The checked
-[`examples/attributed-variables.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/attributed-variables.pl)
-demonstrates binding verification and attribute transfer across aliases.
+level projects module `attribute_goals//1` hooks as residual goals. [`examples/attributed-variables.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/attributed-variables.pl) demonstrates binding verification and attribute transfer across aliases.
 
 `library(clpz)` is Markus Triska's MIT-licensed Scryer Prolog implementation of
 constraint logic programming over integers, bundled as `src/lib/clpz.pl`.
@@ -7023,15 +6945,13 @@ the common stateful generator used by `uuidv4/1`.
 <!-- eyeprolog-predicate-reference:start -->
 ### Complete predicate indicator reference
 
-This generated reference covers all **518 distinct predicate indicators** in the normal EyeProlog surface: 129 core registry indicators plus 391 bundled-library indicators, with `phrase/2` and `phrase/3` present in both layers and therefore counted once.
+The normal EyeProlog surface contains **518 distinct predicate indicators**: 129 core registry indicators plus 391 bundled-library indicators, with `phrase/2` and `phrase/3` present in both layers and therefore counted once.
 
 Each entry is a compact contract. `+` marks a principal input, `-` a principal output, and `?` an argument that may be supplied or produced. These are documented operating modes rather than parser-enforced mode declarations. **Solutions** uses `det`, `semidet`, `multi`, `nondet`, `delayed`, `meta`, `mode-dependent`, `declaration`, or `terminal`; `meta` means the solution behavior depends materially on a called goal.
 
-The reference uses stacked entries instead of wide Markdown tables, so principal calls and contracts wrap naturally on narrow screens without horizontal scrolling. It is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.
-
 #### Predicate index
 
-Every indicator below links directly to its own explicit anchor. These anchors are generated as stable numeric IDs instead of relying on Markdown heading-slug rules, so the links behave consistently in GitHub Pages and other renderers.
+Each indicator links directly to its contract.
 
 **Symbols:** [`-->/2`](#predicate-reference-0001) · [`->/2`](#predicate-reference-0002) · [`,/3`](#predicate-reference-0003) · [`;/2`](#predicate-reference-0004) · [`;/3`](#predicate-reference-0005) · [`!/0`](#predicate-reference-0006) · [`.../2`](#predicate-reference-0007) · [`@</2`](#predicate-reference-0008) · [`@=</2`](#predicate-reference-0009) · [`@>/2`](#predicate-reference-0010) · [`@>=/2`](#predicate-reference-0011) · [`*/1`](#predicate-reference-0012) · [`\/1`](#predicate-reference-0013) · [`\/2`](#predicate-reference-0014) · [`\/3`](#predicate-reference-0015) · [`\/4`](#predicate-reference-0016) · [`\/5`](#predicate-reference-0017) · [`\/6`](#predicate-reference-0018) · [`\/7`](#predicate-reference-0019) · [`\/8`](#predicate-reference-0020) · [`\+/1`](#predicate-reference-0021) · [`\=/2`](#predicate-reference-0022) · [`\==/2`](#predicate-reference-0023) · [`#/\/2`](#predicate-reference-0024) · [`#\//2`](#predicate-reference-0025) · [`#\/1`](#predicate-reference-0026) · [`#\/2`](#predicate-reference-0027) · [`#\=/2`](#predicate-reference-0028) · [`#</2`](#predicate-reference-0029) · [`#</3`](#predicate-reference-0030) · [`#<==/2`](#predicate-reference-0031) · [`#<==>/2`](#predicate-reference-0032) · [`#=/2`](#predicate-reference-0033) · [`#=/3`](#predicate-reference-0034) · [`#=</2`](#predicate-reference-0035) · [`#==>/2`](#predicate-reference-0036) · [`#>/2`](#predicate-reference-0037) · [`#>=/2`](#predicate-reference-0038) · [`^/10`](#predicate-reference-0039) · [`^/3`](#predicate-reference-0040) · [`^/4`](#predicate-reference-0041) · [`^/5`](#predicate-reference-0042) · [`^/6`](#predicate-reference-0043) · [`^/7`](#predicate-reference-0044) · [`^/8`](#predicate-reference-0045) · [`^/9`](#predicate-reference-0046) · [`+\/2`](#predicate-reference-0047) · [`+\/3`](#predicate-reference-0048) · [`+\/4`](#predicate-reference-0049) · [`+\/5`](#predicate-reference-0050) · [`+\/6`](#predicate-reference-0051) · [`+\/7`](#predicate-reference-0052) · [`+\/8`](#predicate-reference-0053) · [`+\/9`](#predicate-reference-0054) · [`</2`](#predicate-reference-0055) · [`=:=/2`](#predicate-reference-0056) · [`=../2`](#predicate-reference-0057) · [`=/2`](#predicate-reference-0058) · [`=/3`](#predicate-reference-0059) · [`=\=/2`](#predicate-reference-0060) · [`=</2`](#predicate-reference-0061) · [`==/2`](#predicate-reference-0062) · [`>/2`](#predicate-reference-0063) · [`>=/2`](#predicate-reference-0064) · [`$-/1`](#predicate-reference-0065) · [`$/1`](#predicate-reference-0066)
 
@@ -9605,13 +9525,7 @@ and the chosen resource measure improves on the relevant scale case.
 
 ### The corpus as executable documentation
 
-The files under `examples/` pair readable programs with checked output under
-`examples/output/`. The conformance cases under `test/conformance/` focus on
-language behavior, including success, failure, errors, warnings, and file
-loading. Use an example to learn a modeling pattern and a conformance case to
-settle an exact processor question. `npm test` checks both along with the book's
-extracted programs; `npm run generate` refreshes those extracted examples after
-changing executable book blocks.
+The files under `examples/` pair readable programs with checked output under `examples/output/`. The conformance cases under `test/conformance/` focus on language behavior, including success, failure, errors, warnings, and file loading. Use an example to learn a modeling pattern and a conformance case to settle an exact processor question. Run `npm test` to execute the complete correctness corpus.
 
 **Checkpoint.** Run one example with `--proof --stats`. Identify which bytes
 belong to the reusable logical result, which describe this execution, and which
@@ -9700,16 +9614,10 @@ The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/exam
 top-level directory contains **224 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
-explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic tables below link every top-level program and open the program
+explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic lists link every top-level program and open the program
 itself rather than merely naming it.
 
-The generated [`examples/book/`](https://github.com/eyereasoner/eyeprolog/tree/main/examples/book/) tree serves a different
-purpose: it mirrors the complete inline EyeProlog displays chapter by chapter.
-Those files are checked for syntax, and displays containing queries are
-executed, but some teaching fragments deliberately depend on neighboring
-facts or helpers. Use the top-level catalog below when you want a self-contained
-program with a golden answer; use `examples/book/` when you want the exact
-display being discussed on a page.
+[`examples/book/`](https://github.com/eyereasoner/eyeprolog/tree/main/examples/book/) mirrors the inline EyeProlog displays chapter by chapter. Those files are checked for syntax, and displays containing queries are executed, but some teaching fragments deliberately depend on neighboring facts or helpers. Use the top-level examples when you want a self-contained program with a golden answer; use `examples/book/` when you want the exact display being discussed on a page.
 
 For any named example, the three useful views are:
 
@@ -10161,11 +10069,7 @@ When adding an example:
 6. include both a positive case and a meaningful boundary or failure case;
 7. run the full corpus before treating the example as documentation.
 
-The full set of runnable source programs is checked against exact output, and
-the tables in this chapter link every top-level program under `examples/`. The
-thematic tables remain the recommended reading routes; the final alphabetical
-table completes the index. Apply the same reading discipline to every example—
-sentence, mode, finite domain, answer, proof, and revision.
+Every top-level program under `examples/` appears in the thematic lists and the alphabetical index. Apply the same reading discipline to every example—sentence, mode, finite domain, answer, proof, and revision.
 
 ## 42. Standards, limits, and implementation boundaries
 
@@ -10184,8 +10088,6 @@ syntax. Separate corpora cover expected errors, warnings, and proofs:
 npm run test:conformance
 npm run test:iso-strict
 npm run test:wg17
-# Refresh the vendored TU Wien WG17 inventory when upstream changes:
-npm run wg17:upgrade
 node test/run-conformance-report.mjs
 ```
 
@@ -10209,32 +10111,19 @@ must preserve the same observable outcome. Additional normal-mode syntax may
 accept texts outside the strict grammar, but it may not reinterpret an accepted
 standard case.
 
-The complete suite must pass before release. The file-based conformance corpus
-contains 802 cases, including 386 focused ISO
-cases derived from the success, failure, mode, and error behavior in
-ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
-Separate exact-output suites check 210 normal
-examples and 61 proof examples; all extracted book programs are parsed and
-their declared goals are executed. The eight-case
+The file-based conformance corpus contains 802 cases, including 386 focused ISO cases derived from the success, failure, mode, and error behavior in ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
+Separate exact-output suites check 210 normal examples and 61 proof examples; all executable chapter programs are parsed and their declared goals are executed. The eight-case
 playground contract suite imports the production worker, sends real reasoning
 requests through its message protocol, and crawls the served module graph for
-missing assets, bad MIME types, and static Node-only imports. The generated
-`conformance-report.md` is the authoritative source for the current executable
-WG17 syntax result and file-based conformance category totals.
+missing assets, bad MIME types, and static Node-only imports. `conformance-report.md` records the current executable WG17 syntax result and file-based conformance category totals.
 
-### Generated and checked repository material
+### Conformance artifacts
 
-Repository artifacts have distinct roles:
+The repository exposes several forms of executable evidence:
 
-- `conformance-report.md` executes the vendored WG17 syntax gate and also inventories the file-based conformance corpus;
-- `examples/book/` is extracted from executable code blocks in this book and
-  should be rebuilt with `npm run generate` rather than edited directly;
-- `examples/output/` and `examples/proof/` contain reviewed exact-output
-  goldens that make behavior changes visible in version control.
-
-Release preparation runs the complete suite and refreshes the conformance
-report. Keeping these details here allows the README to remain a short project
-landing page while this book remains the implementation reference.
+- `conformance-report.md` records the vendored WG17 syntax result and inventories the file-based conformance corpus;
+- `examples/book/` contains the executable code displays associated with the chapters;
+- `examples/output/` and `examples/proof/` contain reviewed exact-output goldens that make behavior changes visible in version control.
 
 Run the browser contract independently with:
 
@@ -10266,13 +10155,10 @@ that Part 1 strict surface.
 The strict-core audit has explicit dispositions for the Clause 5 processor
 obligations, Clause 6 syntax and rejection families, Clause 7 term/execution/I/O
 and error semantics, the 8.2-8.17 built-in families, and Clause 9 evaluable
-functors. The complete vendored WG17 syntax matrix is a release gate, and each
-strict-success WG17 observation is also checked through normal mode so syntax
-extensions cannot reinterpret accepted standard text. Implementation-defined
+functors. The complete vendored WG17 syntax matrix is checked together with normal-mode safety: each strict-success WG17 observation must keep the same result when normal-mode extensions are enabled. Implementation-defined
 choices—including the Unicode-scalar processor character set, stream details,
 flag defaults, floating behavior, and signed bitwise/shift semantics—are indexed
-in `test/conformance/ISO-IMPLEMENTATION-DEFINED.md`. The release-facing closure
-ledger is `test/conformance/ISO-COMPLIANCE.md`.
+in `test/conformance/ISO-IMPLEMENTATION-DEFINED.md`. The conformance closure ledger is `test/conformance/ISO-COMPLIANCE.md`.
 
 Notable implementation boundaries are:
 
@@ -10294,9 +10180,7 @@ Notable implementation boundaries are:
 
 Write terms explicitly, keep variables uppercase or underscore-prefixed, and
 quote atom names that are neither lowercase plain names nor graphic tokens.
-The conformance ledger and release gates verify this documented strict-core
-boundary. Their closure is implementation evidence, not independent ISO
-certification.
+The conformance ledger provides executable evidence for this documented strict-core boundary; it is not independent ISO certification.
 
 ### Security and resource use
 
@@ -10451,8 +10335,7 @@ can discuss, answers you can test, and proofs you can carry forward as data.
 
 ### Glossary
 
-This glossary fixes the book's vocabulary. Definitions describe EyeProlog unless a
-broader mathematical meaning is explicitly stated.
+The glossary uses the following EyeProlog-specific meanings unless a broader mathematical meaning is explicitly stated.
 
 **Aggregate.** A relation that evaluates a finite nested solution space and
 combines its solutions, as `findall/3`, `countall/2`, `sumall/3`,
@@ -10677,9 +10560,7 @@ such as a path, assignment, factorization, schedule, or proof-relevant object.
 
 ## 44. Twelve laboratories
 
-These laboratories turn the book into a course. Each has a deliverable, an
-acceptance test, and a reflection question. Complete them in order or choose a
-route suited to a study group.
+These laboratories turn the preceding material into hands-on work. Each has a deliverable, an acceptance test, and a reflection question. Complete them in order or choose a route suited to a study group.
 
 <figure>
   <img src="book-assets/laboratory-progression.svg" alt="Twelve laboratories progress from relational foundations through finite search, mathematical and symbolic methods, domain reasoning, and a release-quality reasoning service.">
@@ -11061,18 +10942,5 @@ counterexample refutes a universal claim; an exhausted finite carrier proves a
 property only for that model; repeated bounded confirmations do not become an
 unbounded theorem.
 
-For laboratory checkpoints, leave an artifact. A useful completion is not
-merely a paragraph: it is a small source file, predicted output, actual output,
-and one sentence explaining any difference. The extracted chapter examples,
-top-level goldens, and `npm test` demonstrate that rhythm at repository scale.
+For laboratory checkpoints, leave an artifact. A useful completion is not merely a paragraph: it is a small source file, predicted output, actual output, and one sentence explaining any difference.
 
-# Part XII — Development note
-
-## 46. AI-assisted editing
-
-GPT-5.6 was used during the development of this book to assist with chapter
-reorganisation, refinement of explanations, and review of examples and
-diagrams.
-
-All suggestions were evaluated and directed by the author, who remains
-responsible for the book's claims, choices, and any remaining errors.
