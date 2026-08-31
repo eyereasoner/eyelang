@@ -4785,6 +4785,18 @@ function documentationSyncCases() {
       },
     },
     {
+      name: 'generated complete predicate reference matches core and library surfaces',
+      run: () => {
+        const result = spawnSync(process.execPath, [path.join(packageRoot, 'tools', 'generate-predicate-reference.mjs'), '--check'], {
+          cwd: packageRoot,
+          encoding: 'utf8',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'predicate reference is up to date (518 predicates)', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'reference docs match explicit tabling and current runtime extensions',
       run: () => {
         const readme = fs.readFileSync(path.join(packageRoot, 'README.md'), 'utf8');
