@@ -5482,8 +5482,12 @@ still retained where adjacent graphic tokens would otherwise merge, as in
 `double_quotes(true|false)`: `true` lets eligible character/code lists use the
 current `double_quotes` representation. Proper lists can therefore be written
 as `"text"`, while a partial list such as `[a,b|Tail]` is written as
-`"ab"||Tail`. Strict ISO mode rejects this implementation-specific write
-option. Normal mode also accepts the
+`"ab"||Tail`. This representation choice is independent of `ignore_ops/1`: with
+`ignore_ops(true)`, operator terms use functional notation while an explicitly
+requested character/code list remains double quoted. Thus
+`write_term(f("ab",a+b),[quoted(true),ignore_ops(true),double_quotes(true)])`
+emits `f("ab",+(a,b))`. Reversing the two options has the same effect. Strict
+ISO mode rejects this implementation-specific write option. Normal mode also accepts the
 implementation-specific boolean `spacing(true|false)` option: `false` emits
 only separators required to avoid lexical ambiguity, while `true` adds
 conventional layout around operators. For example,
@@ -6175,7 +6179,7 @@ the beginning. A peek does not mark the stream as past-end.
 - **`write(+Term)`, `write(+Stream,+Term)`** — Writes readable operator notation without quoting atoms merely because quoting would be required for reparsing. Number variables are enabled.
 - **`writeq(+Term)`, `writeq(+Stream,+Term)`** — Like `write`, but quotes atoms when required for unambiguous input syntax.
 - **`write_canonical(+Term)`, `write_canonical(+Stream,+Term)`** — Writes quoted canonical functor notation while ignoring operators and without interpreting *$VAR/1*.
-- **`write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)`** — Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(true or false)*.
+- **`write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)`** — Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(true or false)*. `double_quotes(true)` remains effective with `ignore_ops(true)`: operator terms are written functionally while eligible character/code lists retain double-quoted notation, independently of option order.
 
 Term input uses the program's current operator table and the same ISO quoted-character
 syntax as source text, including backslash-terminated octal and hexadecimal

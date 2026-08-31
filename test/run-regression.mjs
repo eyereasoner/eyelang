@@ -7098,6 +7098,51 @@ function whiteBoxCases() {
       },
     },
     {
+      name: 'double_quotes(true) remains effective with ignore_ops(true) in either option order (issue #88 follow-up)',
+      run: () => {
+        const source = [
+          'emit :-',
+          `  write_term(f("ab",a+b), [double_quotes(true),ignore_ops(true),quoted(true)]), put_char('|'),`,
+          `  write_term(f("ab",a+b), [ignore_ops(true),double_quotes(true),quoted(true)]), put_char('|'),`,
+          `  write_term("ab"||tail, [double_quotes(true),ignore_ops(true)]), put_char('|'),`,
+          `  write_term("ab"||tail, [ignore_ops(true),double_quotes(true)]), put_char('|'),`,
+          '  write_term("ab", [double_quotes(false),ignore_ops(true)]).',
+          '',
+        ].join('\n');
+        assertEqual(
+          run(source, { goal: 'emit' }).stdout,
+          'f("ab",+(a,b))|f("ab",+(a,b))|"ab"||tail|"ab"||tail|.(a,.(b,[]))emit.\n',
+          'write_term option composition',
+        );
+
+        const codesSource = [
+          'emit_codes :-',
+          '  set_prolog_flag(double_quotes, codes),',
+          '  write_term([97,955], [ignore_ops(true),double_quotes(true)]).',
+          '',
+        ].join('\n');
+        assertEqual(run(codesSource, { goal: 'emit_codes' }).stdout, '"aλ"emit_codes.\n',
+          'double_quotes(codes) representation');
+      },
+    },
+    {
+      name: 'charsio write_term_to_chars composes double_quotes with ignore_ops',
+      run: () => {
+        const source = [
+          ':- use_module(library(charsio)).',
+          'answer(A,B) :-',
+          '  write_term_to_chars(f("ab",a+b), [double_quotes(true),ignore_ops(true)], A),',
+          '  write_term_to_chars("ab"||tail, [ignore_ops(true),double_quotes(true)], B).',
+          '',
+        ].join('\n');
+        assertEqual(
+          run(source, { goal: 'answer(A,B)' }).stdout,
+          'answer("f(\\"ab\\",+(a,b))", "\\"ab\\"||tail").\n',
+          'charsio output',
+        );
+      },
+    },
+    {
       name: 'REPL prints partial character lists with double-bar syntax (issue #88)',
       run: () => {
         const result = runCli([], {

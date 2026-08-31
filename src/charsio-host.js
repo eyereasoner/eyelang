@@ -188,6 +188,11 @@ function writeOptions(term, env, solver) {
     else if (option.name === 'double_quotes' && !solver.isoStrict) result.doubleQuotes = optionBoolean(option.args[0], env, option);
     else throw new PrologError('domain_error(write_option)', copyResolved(option, env));
   }
+  if (result.doubleQuotes === true) {
+    result.doubleQuotes = solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars';
+  } else {
+    result.doubleQuotes = null;
+  }
   return result;
 }
 

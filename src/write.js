@@ -334,7 +334,11 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
     }
   }
 
-  if (!options.ignoreOps && isCons(resolved)) {
+  if (isCons(resolved)) {
+    // double_quotes/1 selects a character-list representation independently
+    // of operator notation. In normal mode, `||` is fixed list-splice syntax
+    // rather than an op/3 declaration, so ignore_ops(true) does not suppress
+    // an explicitly requested double-quoted proper or partial character list.
     const quotedSplice = quotedListSplice(resolved, env, options.doubleQuotes);
     if (quotedSplice != null && (quotedSplice.tail == null || options.doubleBar)) {
       const prefix = writeString(quotedSplice.text);
@@ -344,18 +348,21 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
       // emitted text readable as the same term.
       return `${prefix}||${format(quotedSplice.tail, env, options, table, 1, 'term')}`;
     }
-    const parts = [];
-    let cursor = resolved;
-    while (true) {
-      cursor = deref(cursor, env);
-      const separator = options.compact ? ',' : ', ';
-      if (isEmptyList(cursor)) return `[${parts.join(separator)}]`;
-      if (!isCons(cursor)) {
-        const tailSeparator = options.compact ? '|' : ' | ';
-        return `[${parts.join(separator)}${tailSeparator}${format(cursor, env, options, table, 999, 'argument')}]`;
+
+    if (!options.ignoreOps) {
+      const parts = [];
+      let cursor = resolved;
+      while (true) {
+        cursor = deref(cursor, env);
+        const separator = options.compact ? ',' : ', ';
+        if (isEmptyList(cursor)) return `[${parts.join(separator)}]`;
+        if (!isCons(cursor)) {
+          const tailSeparator = options.compact ? '|' : ' | ';
+          return `[${parts.join(separator)}${tailSeparator}${format(cursor, env, options, table, 999, 'argument')}]`;
+        }
+        parts.push(format(cursor.args[0], env, options, table, 999, 'argument'));
+        cursor = cursor.args[1];
       }
-      parts.push(format(cursor.args[0], env, options, table, 999, 'argument'));
-      cursor = cursor.args[1];
     }
   }
 
