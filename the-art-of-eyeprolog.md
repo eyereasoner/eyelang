@@ -327,7 +327,7 @@ Chapters 34–37
 Chapters 38–43
 
 - [38. Language and ISO profile](#38-language-and-iso-profile)
-- [39. Built-in predicates by programming role](#39-built-in-predicates-by-programming-role)
+- [39. Predicate reference](#39-predicate-reference)
 - [40. Running EyeProlog: command line and corpus](#40-running-eyeprolog-command-line-and-corpus)
 - [41. Study paths, review, and further examples](#41-study-paths-review-and-further-examples)
 - [42. Standards, limits, and implementation boundaries](#42-standards-limits-and-implementation-boundaries)
@@ -5914,39 +5914,23 @@ known predicates are grouped by the source order in which their predicate
 groups first appear; goals within one group retain their supplied order.
 Queries for predicates with no group follow the known groups.
 
-## 39. Built-in predicates by programming role
+## 39. Predicate reference
 
-EyeProlog's default registry contains the built-ins in its ISO compatibility
-profile. Where a predicate is defined by ISO/IEC 13211-1:1995, EyeProlog uses its
-standard predicate indicator; the registry also includes a few later or common
-compatibility predicates identified below. Arithmetic is expressed through
-`is/2` rather than output arguments on arithmetic predicates. The registry
-contains 129 name/arity entries across 100 names. After the detailed core
-reference and the library catalog, the generated **Complete predicate indicator
-reference** gives one compact formal contract for every distinct core or bundled
-library indicator, so Chapter 39 can also be used as an alphabetical API index.
+Chapter 39 documents the normal EyeProlog predicate surface as one coherent
+reference. The surface has two layers: **129 core registry indicators** and
+**389 distinct non-ISO library or normal-extension indicators**. Because
+`phrase/2` and `phrase/3` occur in both layers, their union contains **518
+distinct predicate indicators**.
 
-| Role | Registered predicate indicators |
-| --- | --- |
-| Control and exceptions | `true/0`, `fail/0`, `false/0`, `!/0`, `call/1`, `call/2`, `call/3`, `call/4`, `call/5`, `call/6`, `call/7`, `call/8`, `\+/1`, `once/1`, `repeat/0`, `;/2`, `->/2`, `catch/3`, `throw/1`, `halt/0`, `halt/1` |
-| Unification and identity | `=/2`, `unify_with_occurs_check/2`, `\=/2`, `subsumes_term/2`, `==/2`, `\==/2` |
-| Type tests | `var/1`, `nonvar/1`, `atom/1`, `integer/1`, `float/1`, `number/1`, `atomic/1`, `compound/1`, `callable/1`, `ground/1`, `acyclic_term/1` |
-| Term order | `compare/3`, `@</2`, `@=</2`, `@>/2`, `@>=/2`, `sort/2`, `keysort/2` |
-| Term inspection | `functor/3`, `arg/3`, `=../2`, `copy_term/2`, `term_variables/2` |
-| Collection | `findall/3`, `bagof/3`, `setof/3` |
-| Grammar processing | `phrase/2`, `phrase/3` |
-| Database and information | `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, `retractall/1`, `abolish/1`, `current_predicate/1` |
-| Operators, conversion, and flags | `op/3`, `current_op/3`, `char_conversion/2`, `current_char_conversion/2`, `current_prolog_flag/2`, `set_prolog_flag/2` |
-| Atomic terms | `atom_length/2`, `atom_concat/3`, `sub_atom/5`, `atom_chars/2`, `atom_codes/2`, `char_code/2`, `number_chars/2`, `number_codes/2` |
-| Stream control | `open/3`, `open/4`, `close/1`, `close/2`, `current_input/1`, `current_output/1`, `set_input/1`, `set_output/1`, `flush_output/0`, `flush_output/1`, `stream_property/2`, `set_stream_position/2`, `at_end_of_stream/0`, `at_end_of_stream/1` |
-| Character input | `get_char/1`, `get_char/2`, `peek_char/1`, `peek_char/2`, `get_code/1`, `get_code/2`, `peek_code/1`, `peek_code/2` |
-| Character output | `put_char/1`, `put_char/2`, `put_code/1`, `put_code/2`, `nl/0`, `nl/1` |
-| Byte input/output | `get_byte/1`, `get_byte/2`, `peek_byte/1`, `peek_byte/2`, `put_byte/1`, `put_byte/2` |
-| Term input | `read/1`, `read/2`, `read_term/2`, `read_term/3` |
-| Term output | `write/1`, `write/2`, `writeq/1`, `writeq/2`, `write_canonical/1`, `write_canonical/2`, `write_term/2`, `write_term/3` |
-| Arithmetic | `is/2`, `=:=/2`, `=\=/2`, `</2`, `=</2`, `>/2`, `>=/2` |
+Read the chapter in that order. The core registry comes first because it defines
+the language-level operations available without a library import. The bundled
+library layer then adds reusable relations, followed by the portability and
+implementation boundaries that explain how those libraries behave across
+EyeProlog, Trealla, and Scryer. The final generated section is deliberately a
+lookup index: it gives one compact contract and one stable link for every one of
+the 518 indicators without interrupting the explanatory flow above it.
 
-### Reading the built-in reference
+### How to read this chapter
 
 The call patterns below use `+` for an argument that must be sufficiently
 instantiated, `-` for a result normally produced by the call, and `?` for an
@@ -5964,35 +5948,68 @@ indicator, EyeProlog uses the source clauses. `false/0` is stricter still and is
 rejected as a source-clause head. Portable programs should avoid every such
 collision because other Prolog systems commonly reject it while loading.
 
-### Control, search, and exceptions
+Reference material in this chapter uses a single stacked layout instead of wide
+Markdown tables. A bold term introduces one predicate, role, flag, error form,
+or module; the explanation follows on the same item and wraps normally on narrow
+screens. This keeps the reference usable on phones and avoids horizontal
+scrollbars while preserving copyable predicate indicators.
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `true` | Succeeds once without binding variables. |
-| `fail`, `false` | Always fail. `false/0` is provided as a compatibility alias and is also forbidden as a source-clause head. |
-| `!` | Commits to choices made since entry into the current predicate invocation. It does not erase alternatives belonging to an enclosing caller. |
-| `call(+Goal)` | Calls an atom or compound goal. An unbound argument raises *instantiation_error*; another non-callable term raises *type_error(callable)*. |
-| `call(+Closure,?Arg,...)` | `call/2` through `call/8` append their extra arguments to an atom or compound closure, as specified by Corrigendum 2. |
-| `\+(+Goal)` | Negation as finite failure. It succeeds once when `Goal` has no solution and never exports bindings made while testing `Goal`. Bind variables needed by the test first. |
-| `once(+Goal)` | Returns only the first solution of `Goal`, or fails when there is none. |
-| `repeat` | Produces an unbounded sequence of successes; normally paired with a test, cut, exception, or `halt/0`. |
-| `Left ; Right` | Enumerates `Left`, then `Right`, restoring the incoming environment between branches. A cut inside a called predicate cannot discard the other branch. |
-| `If -> Then` | Commits to the first solution of `If` and runs `Then`; it does not provide an else branch by itself. |
-| `(If -> Then ; Else)` | Runs `Then` from the first solution of `If`, otherwise runs `Else`. Alternatives of `If` are discarded. |
-| `catch(+Goal,?Catcher,+Recovery)` | Runs `Goal`; on a matching thrown ball or `PrologError`, unifies it with `Catcher` and calls `Recovery`. Runtime errors are exposed as *error(Formal,eyeprolog)*. |
-| `throw(+Ball)` | Throws a copied nonvariable term. An unbound ball raises `instantiation_error`. |
-| `halt`, `halt(+Status)` | Stops the processor with status `0` or the supplied integer. The JavaScript API reports the status without terminating its host process. |
+### Core registry
+
+EyeProlog's default registry contains the built-ins in its ISO compatibility
+profile. Where ISO/IEC 13211-1:1995 defines a predicate, EyeProlog uses its
+standard predicate indicator; the registry also includes the later or common
+compatibility predicates identified below. Arithmetic is expressed through
+`is/2` rather than output arguments on arithmetic predicates. The registry
+contains 129 name/arity entries across 100 names.
+
+#### Core registry at a glance
+
+<!-- eyeprolog-core-catalog:start -->
+- **Control and exceptions** — `true/0`, `fail/0`, `false/0`, `!/0`, `call/1`, `call/2`, `call/3`, `call/4`, `call/5`, `call/6`, `call/7`, `call/8`, `\+/1`, `once/1`, `repeat/0`, `;/2`, `->/2`, `catch/3`, `throw/1`, `halt/0`, `halt/1`
+- **Unification and identity** — `=/2`, `unify_with_occurs_check/2`, `\=/2`, `subsumes_term/2`, `==/2`, `\==/2`
+- **Type tests** — `var/1`, `nonvar/1`, `atom/1`, `integer/1`, `float/1`, `number/1`, `atomic/1`, `compound/1`, `callable/1`, `ground/1`, `acyclic_term/1`
+- **Term order** — `compare/3`, `@</2`, `@=</2`, `@>/2`, `@>=/2`, `sort/2`, `keysort/2`
+- **Term inspection** — `functor/3`, `arg/3`, `=../2`, `copy_term/2`, `term_variables/2`
+- **Collection** — `findall/3`, `bagof/3`, `setof/3`
+- **Grammar processing** — `phrase/2`, `phrase/3`
+- **Database and information** — `clause/2`, `asserta/1`, `assertz/1`, `retract/1`, `retractall/1`, `abolish/1`, `current_predicate/1`
+- **Operators, conversion, and flags** — `op/3`, `current_op/3`, `char_conversion/2`, `current_char_conversion/2`, `current_prolog_flag/2`, `set_prolog_flag/2`
+- **Atomic terms** — `atom_length/2`, `atom_concat/3`, `sub_atom/5`, `atom_chars/2`, `atom_codes/2`, `char_code/2`, `number_chars/2`, `number_codes/2`
+- **Stream control** — `open/3`, `open/4`, `close/1`, `close/2`, `current_input/1`, `current_output/1`, `set_input/1`, `set_output/1`, `flush_output/0`, `flush_output/1`, `stream_property/2`, `set_stream_position/2`, `at_end_of_stream/0`, `at_end_of_stream/1`
+- **Character input** — `get_char/1`, `get_char/2`, `peek_char/1`, `peek_char/2`, `get_code/1`, `get_code/2`, `peek_code/1`, `peek_code/2`
+- **Character output** — `put_char/1`, `put_char/2`, `put_code/1`, `put_code/2`, `nl/0`, `nl/1`
+- **Byte input/output** — `get_byte/1`, `get_byte/2`, `peek_byte/1`, `peek_byte/2`, `put_byte/1`, `put_byte/2`
+- **Term input** — `read/1`, `read/2`, `read_term/2`, `read_term/3`
+- **Term output** — `write/1`, `write/2`, `writeq/1`, `writeq/2`, `write_canonical/1`, `write_canonical/2`, `write_term/2`, `write_term/3`
+- **Arithmetic** — `is/2`, `=:=/2`, `=\=/2`, `</2`, `=</2`, `>/2`, `>=/2`
+<!-- eyeprolog-core-catalog:end -->
+
+#### Control, search, and exceptions
+
+- **`true`** — Succeeds once without binding variables.
+- **`fail`, `false`** — Always fail. `false/0` is provided as a compatibility alias and is also forbidden as a source-clause head.
+- **`!`** — Commits to choices made since entry into the current predicate invocation. It does not erase alternatives belonging to an enclosing caller.
+- **`call(+Goal)`** — Calls an atom or compound goal. An unbound argument raises *instantiation_error*; another non-callable term raises *type_error(callable)*.
+- **`call(+Closure,?Arg,...)`** — `call/2` through `call/8` append their extra arguments to an atom or compound closure, as specified by Corrigendum 2.
+- **`\+(+Goal)`** — Negation as finite failure. It succeeds once when `Goal` has no solution and never exports bindings made while testing `Goal`. Bind variables needed by the test first.
+- **`once(+Goal)`** — Returns only the first solution of `Goal`, or fails when there is none.
+- **`repeat`** — Produces an unbounded sequence of successes; normally paired with a test, cut, exception, or `halt/0`.
+- **`Left ; Right`** — Enumerates `Left`, then `Right`, restoring the incoming environment between branches. A cut inside a called predicate cannot discard the other branch.
+- **`If -> Then`** — Commits to the first solution of `If` and runs `Then`; it does not provide an else branch by itself.
+- **`(If -> Then ; Else)`** — Runs `Then` from the first solution of `If`, otherwise runs `Else`. Alternatives of `If` are discarded.
+- **`catch(+Goal,?Catcher,+Recovery)`** — Runs `Goal`; on a matching thrown ball or `PrologError`, unifies it with `Catcher` and calls `Recovery`. Runtime errors are exposed as *error(Formal,eyeprolog)*.
+- **`throw(+Ball)`** — Throws a copied nonvariable term. An unbound ball raises `instantiation_error`.
+- **`halt`, `halt(+Status)`** — Stops the processor with status `0` or the supplied integer. The JavaScript API reports the status without terminating its host process.
 
 `;/2` recognizes an `->/2` term on its left and implements the ISO
 if-then-else commitment described above. Cuts and committed conditions are
 operational controls; use ordinary relations when all alternatives should
 remain observable. 
-### Definite clause grammar processing
+#### Definite clause grammar processing
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `phrase(+Body,?Sequence)` | Parses or generates `Sequence` with a Part 3 grammar body and requires complete consumption. |
-| `phrase(+Body,?Sequence,?Rest)` | Parses or generates a prefix described by `Body` and unifies `Rest` with the unconsumed terminal sequence. The final unification is delayed so the third argument is steadfast. |
+- **`phrase(+Body,?Sequence)`** — Parses or generates `Sequence` with a Part 3 grammar body and requires complete consumption.
+- **`phrase(+Body,?Sequence,?Rest)`** — Parses or generates a prefix described by `Body` and unifies `Rest` with the unconsumed terminal sequence. The final unification is delayed so the third argument is steadfast.
 
 Grammar rules are expanded during program preparation and therefore appear to
 the solver as ordinary predicates with two extra arguments. Dynamic grammar
@@ -6000,22 +6017,20 @@ bodies passed to `phrase/2-3` use the same expansion rules. This includes
 module qualification and the caller module used by embedded or meta-called
 nonterminals.
 
-### Unification, type tests, and term order
+#### Unification, type tests, and term order
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `?Left = ?Right` | Unifies two terms and returns the resulting bindings. EyeProlog rejects direct and indirect cyclic bindings. |
-| `unify_with_occurs_check(?Left,?Right)` | Performs occurs-check-safe unification. Because ordinary EyeProlog unification is already cycle-safe, it has the same successful bindings as `=/2`. |
-| `?Left \= ?Right` | Succeeds only when the terms cannot unify at call time. It is a test, not a delayed disequality constraint. |
-| `subsumes_term(+General,+Specific)` | Tests one-sided syntactic unification without binding either argument. Variables in `Specific` remain unchanged. |
-| `?Left == ?Right`, `?Left \== ?Right` | Test term identity or non-identity without binding variables. Two distinct unbound variables are not identical. |
-| `var(?Term)`, `nonvar(?Term)` | Test whether the dereferenced term is or is not an unbound variable. |
-| `atom(?Term)`, `integer(?Term)`, `float(?Term)`, `number(?Term)` | Test the corresponding scalar category. Integer values retain arbitrary precision; finite noninteger numeric values are floats. |
-| `atomic(?Term)`, `compound(?Term)`, `callable(?Term)`, `ground(?Term)`, `acyclic_term(?Term)` | Test for an ISO atomic term, a compound, a callable atom/compound, a term containing no unbound variables, or a finite acyclic term. A default double-quoted value is a list and is therefore compound unless it is empty. |
-| `compare(?Order,+Left,+Right)` | Unifies `Order` with `<`, `=`, or `>` according to standard term order. A supplied order must be one of those atoms. |
-| `Left @< Right`, `Left @=< Right`, `Left @> Right`, `Left @>= Right` | Compare terms without arithmetic evaluation or bindings. These calls are semidet. |
-| `sort(+List,?Sorted)` | Sorts by standard term order and removes identical duplicates. |
-| `keysort(+Pairs,?Sorted)` | Stably sorts `Key-Value` pairs by key without removing duplicates. |
+- **`?Left = ?Right`** — Unifies two terms and returns the resulting bindings. EyeProlog rejects direct and indirect cyclic bindings.
+- **`unify_with_occurs_check(?Left,?Right)`** — Performs occurs-check-safe unification. Because ordinary EyeProlog unification is already cycle-safe, it has the same successful bindings as `=/2`.
+- **`?Left \= ?Right`** — Succeeds only when the terms cannot unify at call time. It is a test, not a delayed disequality constraint.
+- **`subsumes_term(+General,+Specific)`** — Tests one-sided syntactic unification without binding either argument. Variables in `Specific` remain unchanged.
+- **`?Left == ?Right`, `?Left \== ?Right`** — Test term identity or non-identity without binding variables. Two distinct unbound variables are not identical.
+- **`var(?Term)`, `nonvar(?Term)`** — Test whether the dereferenced term is or is not an unbound variable.
+- **`atom(?Term)`, `integer(?Term)`, `float(?Term)`, `number(?Term)`** — Test the corresponding scalar category. Integer values retain arbitrary precision; finite noninteger numeric values are floats.
+- **`atomic(?Term)`, `compound(?Term)`, `callable(?Term)`, `ground(?Term)`, `acyclic_term(?Term)`** — Test for an ISO atomic term, a compound, a callable atom/compound, a term containing no unbound variables, or a finite acyclic term. A default double-quoted value is a list and is therefore compound unless it is empty.
+- **`compare(?Order,+Left,+Right)`** — Unifies `Order` with `<`, `=`, or `>` according to standard term order. A supplied order must be one of those atoms.
+- **`Left @< Right`, `Left @=< Right`, `Left @> Right`, `Left @>= Right`** — Compare terms without arithmetic evaluation or bindings. These calls are semidet.
+- **`sort(+List,?Sorted)`** — Sorts by standard term order and removes identical duplicates.
+- **`keysort(+Pairs,?Sorted)`** — Stably sorts `Key-Value` pairs by key without removing duplicates.
 
 For ISO terms, the standard term order is variables, numbers, atoms, then compounds;
 compound terms compare by arity, functor, and arguments. Within the numeric
@@ -6031,44 +6046,38 @@ host `Map`. Double-quoted Prolog source
 follows the `double_quotes` flag and never creates an extra host-only scalar
 category.
 
-### Term construction and inspection
+#### Term construction and inspection
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `functor(+Term,?Name,?Arity)` | Decomposes a term. Scalars have arity zero. |
-| `functor(-Term,+Name,+Arity)` | Constructs a scalar when `Arity` is zero or a compound with fresh arguments otherwise. Arity must be a nonnegative representable integer and a positive-arity name must be an atom. |
-| `arg(+Index,+Term,?Argument)` | Selects the one-based argument of a compound. Index zero or an index beyond the arity fails; a negative index is a domain error. |
-| `?Term =.. ?List` | Converts a term to `[Functor\|Arguments]` or constructs a term from a nonempty proper list. A one-item list constructs its atomic item. |
-| `copy_term(+Term,-Copy)` | Copies the dereferenced term while replacing every distinct unbound variable with a fresh variable and preserving variable sharing. |
-| `term_variables(+Term,?Variables)` | Returns distinct variables in first-occurrence traversal order. A supplied result may be a proper or partial list. |
+- **`functor(+Term,?Name,?Arity)`** — Decomposes a term. Scalars have arity zero.
+- **`functor(-Term,+Name,+Arity)`** — Constructs a scalar when `Arity` is zero or a compound with fresh arguments otherwise. Arity must be a nonnegative representable integer and a positive-arity name must be an atom.
+- **`arg(+Index,+Term,?Argument)`** — Selects the one-based argument of a compound. Index zero or an index beyond the arity fails; a negative index is a domain error.
+- **`?Term =.. ?List`** — Converts a term to `[Functor\|Arguments]` or constructs a term from a nonempty proper list. A one-item list constructs its atomic item.
+- **`copy_term(+Term,-Copy)`** — Copies the dereferenced term while replacing every distinct unbound variable with a fresh variable and preserving variable sharing.
+- **`term_variables(+Term,?Variables)`** — Returns distinct variables in first-occurrence traversal order. A supplied result may be a proper or partial list.
 
 Construction calls raise `instantiation_error` when neither side supplies the
 required shape. `=../2` distinguishes an incomplete list
 (`instantiation_error`) from an improper list (`type_error(list)`).
 
-### Solution collection
+#### Solution collection
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `findall(+Template,+Goal,?Bag)` | Collects a fresh copy of `Template` for every solution of `Goal`, preserving solution order. It succeeds with `[]` when there are no solutions and treats all free variables existentially. |
-| `bagof(+Template,+Goal,?Bag)` | Groups answers by free variables not present in `Template`. It yields one nonempty bag per witness group and fails when no group exists. Prefix variables with `^` in `Goal` to quantify them existentially. |
-| `setof(+Template,+Goal,?Set)` | Has the grouping behavior of `bagof/3`, then sorts each group by profile term order and removes identical duplicates. |
+- **`findall(+Template,+Goal,?Bag)`** — Collects a fresh copy of `Template` for every solution of `Goal`, preserving solution order. It succeeds with `[]` when there are no solutions and treats all free variables existentially.
+- **`bagof(+Template,+Goal,?Bag)`** — Groups answers by free variables not present in `Template`. It yields one nonempty bag per witness group and fails when no group exists. Prefix variables with `^` in `Goal` to quantify them existentially.
+- **`setof(+Template,+Goal,?Set)`** — Has the grouping behavior of `bagof/3`, then sorts each group by profile term order and removes identical duplicates.
 
 Each collector runs its goal in an isolated inner search while sharing the
 current logical program and stream state. Collected terms are copied, so local
 variables do not escape accidentally. The bag argument must be a proper or
 partial list.
 
-### Dynamic database and procedure information
+#### Dynamic database and procedure information
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `clause(+Head,?Body)` | Enumerates fresh copies of source clauses matching the callable `Head`; facts have body `true`. Access to built-ins raises *permission_error(access,private_procedure)*. |
-| `asserta(+Clause)`, `assertz(+Clause)` | Insert a copied fact or rule at the beginning or end of a predicate declared *dynamic/1*. Static and built-in procedures cannot be modified. |
-| `retract(+Clause)` | Removes matching dynamic clauses one at a time on backtracking. A call sees the logical update view captured when it began. A fact pattern matches facts only. |
-| `retractall(+Head)` | Removes every matching clause from a dynamic procedure, succeeds when none match, and keeps the empty dynamic procedure known. |
-| `abolish(+Name/+Arity)` | Removes a dynamic procedure and its clauses. The indicator must contain an atom and a nonnegative representable integer. |
-| `current_predicate(?Name/?Arity)` | Enumerates predicate groups present in the loaded program, including empty dynamic groups. It does not enumerate registry-only built-ins. |
+- **`clause(+Head,?Body)`** — Enumerates fresh copies of source clauses matching the callable `Head`; facts have body `true`. Access to built-ins raises *permission_error(access,private_procedure)*.
+- **`asserta(+Clause)`, `assertz(+Clause)`** — Insert a copied fact or rule at the beginning or end of a predicate declared *dynamic/1*. Static and built-in procedures cannot be modified.
+- **`retract(+Clause)`** — Removes matching dynamic clauses one at a time on backtracking. A call sees the logical update view captured when it began. A fact pattern matches facts only.
+- **`retractall(+Head)`** — Removes every matching clause from a dynamic procedure, succeeds when none match, and keeps the empty dynamic procedure known.
+- **`abolish(+Name/+Arity)`** — Removes a dynamic procedure and its clauses. The indicator must contain an atom and a nonnegative representable integer.
+- **`current_predicate(?Name/?Arity)`** — Enumerates predicate groups present in the loaded program, including empty dynamic groups. It does not enumerate registry-only built-ins.
 
 Declare mutable predicates explicitly, including empty ones:
 
@@ -6083,29 +6092,25 @@ Assertions and retractions invalidate affected reasoning tables. Mutating a
 predicate that was not declared dynamic raises a permission error rather than
 silently changing a static program.
 
-### Operators, character conversion, and flags
+#### Operators, character conversion, and flags
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `op(+Priority,+Specifier,+NameOrNames)` | Defines or removes operators in the current program. Priority is `0..1200`; specifiers are `fx`, `fy`, `xf`, `yf`, `xfx`, `xfy`, or `yfx`; names may be one atom or a proper list. Priority zero removes the definition. `,` and `\|` cannot be modified. |
-| `current_op(?Priority,?Specifier,?Name)` | Enumerates active operator definitions and filters supplied arguments. |
-| `char_conversion(+Input,+Output)` | Installs a one-character conversion. In prepared Prolog text, later **unquoted** characters are converted when `char_conversion=on`; quoted characters are unchanged. The same mapping initializes execution-time term input. Mapping a character to itself removes its custom mapping. |
-| `current_char_conversion(?Input,?Output)` | Enumerates installed nonidentity conversions. |
-| `current_prolog_flag(?Flag,?Value)` | Enumerates flags or retrieves one named flag. An unknown bound flag raises *domain_error(prolog_flag)*. |
-| `set_prolog_flag(+Flag,+Value)` | Changes a supported mutable flag after validating its allowed atom value. Read-only flags raise a permission error. |
+- **`op(+Priority,+Specifier,+NameOrNames)`** — Defines or removes operators in the current program. Priority is `0..1200`; specifiers are `fx`, `fy`, `xf`, `yf`, `xfx`, `xfy`, or `yfx`; names may be one atom or a proper list. Priority zero removes the definition. `,` and `\|` cannot be modified.
+- **`current_op(?Priority,?Specifier,?Name)`** — Enumerates active operator definitions and filters supplied arguments.
+- **`char_conversion(+Input,+Output)`** — Installs a one-character conversion. In prepared Prolog text, later **unquoted** characters are converted when `char_conversion=on`; quoted characters are unchanged. The same mapping initializes execution-time term input. Mapping a character to itself removes its custom mapping.
+- **`current_char_conversion(?Input,?Output)`** — Enumerates installed nonidentity conversions.
+- **`current_prolog_flag(?Flag,?Value)`** — Enumerates flags or retrieves one named flag. An unknown bound flag raises *domain_error(prolog_flag)*.
+- **`set_prolog_flag(+Flag,+Value)`** — Changes a supported mutable flag after validating its allowed atom value. Read-only flags raise a permission error.
 
-| Flag | Default in normal EyeProlog | Allowed values | Mutable |
-| --- | --- | --- | --- |
-| `bounded` | `false` | `false` | no |
-| `integer_rounding_function` | `toward_zero` | `toward_zero` | no |
-| `char_conversion` | `on` | `on`, `off` | yes |
-| `debug` | `off` | `on`, `off` | yes |
-| `max_integer` | no current value because `bounded=false` | not applicable | no |
-| `min_integer` | no current value because `bounded=false` | not applicable | no |
-| `max_arity` | `unbounded` | `unbounded` | no |
-| `unknown` | `error` | `error`, `fail`, `warning` | yes |
-| `double_quotes` | `chars` | `chars`, `codes`, `atom` | yes |
-| `occurs_check` | `true` | `true`, `error` | yes |
+- **`bounded`** — **Default:** `false`; **Allowed:** `false`; **Mutable:** no.
+- **`integer_rounding_function`** — **Default:** `toward_zero`; **Allowed:** `toward_zero`; **Mutable:** no.
+- **`char_conversion`** — **Default:** `on`; **Allowed:** `on`, `off`; **Mutable:** yes.
+- **`debug`** — **Default:** `off`; **Allowed:** `on`, `off`; **Mutable:** yes.
+- **`max_integer`** — **Default:** no current value because `bounded=false`; **Allowed:** not applicable; **Mutable:** no.
+- **`min_integer`** — **Default:** no current value because `bounded=false`; **Allowed:** not applicable; **Mutable:** no.
+- **`max_arity`** — **Default:** `unbounded`; **Allowed:** `unbounded`; **Mutable:** no.
+- **`unknown`** — **Default:** `error`; **Allowed:** `error`, `fail`, `warning`; **Mutable:** yes.
+- **`double_quotes`** — **Default:** `chars`; **Allowed:** `chars`, `codes`, `atom`; **Mutable:** yes.
+- **`occurs_check`** — **Default:** `true`; **Allowed:** `true`, `error`; **Mutable:** yes.
 
 Because `bounded=false`, `current_prolog_flag(max_integer, _)` and
 `current_prolog_flag(min_integer, _)` fail as required by ISO 7.11.1.1;
@@ -6140,16 +6145,14 @@ codes("ab").                 % codes([97,98])
 quoted_atom("ab").           % quoted_atom(ab)
 ```
 
-### Atomic-term operations and conversions
+#### Atomic-term operations and conversions
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `atom_length(+Atom,?Length)` | Counts Unicode code points, not UTF-16 code units. A supplied length must be a nonnegative integer. |
-| `atom_concat(?Prefix,?Suffix,?Whole)` | Concatenates two atoms, removes a supplied prefix or suffix, or enumerates every split when only `Whole` is bound. At least `Whole`, or both parts, must determine the operation. |
-| `sub_atom(+Atom,?Before,?Length,?After,?SubAtom)` | Enumerates substrings and their Unicode-code-point offsets. Supplied counts must be nonnegative integers. |
-| `atom_chars(?Atom,?Chars)`, `atom_codes(?Atom,?Codes)` | Convert between an atom and a proper list of one-character atoms or character codes. Both profiles use EyeProlog's Unicode scalar PCS/codes; surrogates and values above U+10FFFF are rejected. At least one side must be instantiated. |
-| `char_code(?Character,?Code)` | Converts one character atom and its collating/code value. Both profiles accept Unicode scalar codes and reject surrogates/out-of-range values. |
-| `number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)` | Convert finite numbers to canonical text or parse a proper character/code list using ISO number and negative-number syntax, including radix integers, character-code constants, and leading layout. The input is not parsed as a general term: grouping such as `(0)` is a syntax error. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*. |
+- **`atom_length(+Atom,?Length)`** — Counts Unicode code points, not UTF-16 code units. A supplied length must be a nonnegative integer.
+- **`atom_concat(?Prefix,?Suffix,?Whole)`** — Concatenates two atoms, removes a supplied prefix or suffix, or enumerates every split when only `Whole` is bound. At least `Whole`, or both parts, must determine the operation.
+- **`sub_atom(+Atom,?Before,?Length,?After,?SubAtom)`** — Enumerates substrings and their Unicode-code-point offsets. Supplied counts must be nonnegative integers.
+- **`atom_chars(?Atom,?Chars)`, `atom_codes(?Atom,?Codes)`** — Convert between an atom and a proper list of one-character atoms or character codes. Both profiles use EyeProlog's Unicode scalar PCS/codes; surrogates and values above U+10FFFF are rejected. At least one side must be instantiated.
+- **`char_code(?Character,?Code)`** — Converts one character atom and its collating/code value. Both profiles accept Unicode scalar codes and reject surrogates/out-of-range values.
+- **`number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)`** — Convert finite numbers to canonical text or parse a proper character/code list using ISO number and negative-number syntax, including radix integers, character-code constants, and leading layout. The input is not parsed as a general term: grouping such as `(0)` is a syntax error. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*.
 
 Conversions accept partial output lists when the atomic input is known, but
 constructing an atom or number requires a complete proper list with no unbound
@@ -6171,48 +6174,44 @@ regression gate vendors all 74 numbered cases from Ulrich Neumerkel's contempora
 `number_codes/2` shares the same numeric parser and has mirrored coverage for
 the recent numeric-syntax regressions.
 
-### Streams and unit I/O
+#### Streams and unit I/O
 
 Stream arguments accept an alias atom or the opaque handle returned by
 `open/3` or `open/4`. Omitting a stream argument selects the current standard
 input or output.
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `open(+Source,+Mode,-Stream)`, `open(+Source,+Mode,-Stream,+Options)` | Opens an atom path in `read`, `write`, or `append` mode. Options are *type(text or binary)*, *alias(Atom)*, *reposition(true or false)*, and *eof_action(error, eof_code, or reset)*. |
-| `close(+Stream)`, `close(+Stream,+Options)` | Closes a nonstandard stream. The only close option is *force(true or false)*; standard streams remain available. |
-| `current_input(?Stream)`, `current_output(?Stream)` | Return or test the current input or output handle. |
-| `set_input(+Stream)`, `set_output(+Stream)` | Select an existing stream with the required direction. |
-| `flush_output`, `flush_output(+Stream)` | Completes successfully for the current output or validates and flushes the selected output stream. EyeProlog writes synchronously. |
-| `stream_property(?Stream,?Property)` | Enumerates streams and their properties: *mode/1*, *type/1*, *reposition/1*, *eof_action/1*, *position/1*, *input*, *output*, *end_of_stream/1*, and optional *alias/1* and *file_name/1*. |
-| `set_stream_position(+Stream,+Position)` | Repositions a stream opened with *reposition(true)*. `Position` is a nonnegative integer or *position(Integer)* within the stream content. |
-| `at_end_of_stream`, `at_end_of_stream(+Stream)` | Succeeds when the current or selected input position is at or beyond its content. |
-| `get_char(?Character)`, `get_char(+Stream,?Character)` | Reads one text character; end of input is `end_of_file`. |
-| `peek_char(?Character)`, `peek_char(+Stream,?Character)` | Observes the next text character without advancing. |
-| `get_code(?Code)`, `get_code(+Stream,?Code)` | Reads a character code; end of input is `-1`. Both profiles return codes from EyeProlog's Unicode scalar PCS. |
-| `peek_code(?Code)`, `peek_code(+Stream,?Code)` | Observes the next Unicode scalar character code without advancing. |
-| `get_byte(?Byte)`, `get_byte(+Stream,?Byte)` | Reads one unit from a binary stream; end of input is `-1`. |
-| `peek_byte(?Byte)`, `peek_byte(+Stream,?Byte)` | Observes the next binary unit without advancing. |
-| `put_char(+Character)`, `put_char(+Stream,+Character)` | Writes one character atom to a text stream. |
-| `put_code(+Code)`, `put_code(+Stream,+Code)` | Writes one character code to a text stream. Both profiles accept Unicode scalar codes. |
-| `put_byte(+Byte)`, `put_byte(+Stream,+Byte)` | Writes an integer in `0..255` to a binary stream. |
-| `nl`, `nl(+Stream)` | Writes a newline to a text stream. |
+- **`open(+Source,+Mode,-Stream)`, `open(+Source,+Mode,-Stream,+Options)`** — Opens an atom path in `read`, `write`, or `append` mode. Options are *type(text or binary)*, *alias(Atom)*, *reposition(true or false)*, and *eof_action(error, eof_code, or reset)*.
+- **`close(+Stream)`, `close(+Stream,+Options)`** — Closes a nonstandard stream. The only close option is *force(true or false)*; standard streams remain available.
+- **`current_input(?Stream)`, `current_output(?Stream)`** — Return or test the current input or output handle.
+- **`set_input(+Stream)`, `set_output(+Stream)`** — Select an existing stream with the required direction.
+- **`flush_output`, `flush_output(+Stream)`** — Completes successfully for the current output or validates and flushes the selected output stream. EyeProlog writes synchronously.
+- **`stream_property(?Stream,?Property)`** — Enumerates streams and their properties: *mode/1*, *type/1*, *reposition/1*, *eof_action/1*, *position/1*, *input*, *output*, *end_of_stream/1*, and optional *alias/1* and *file_name/1*.
+- **`set_stream_position(+Stream,+Position)`** — Repositions a stream opened with *reposition(true)*. `Position` is a nonnegative integer or *position(Integer)* within the stream content.
+- **`at_end_of_stream`, `at_end_of_stream(+Stream)`** — Succeeds when the current or selected input position is at or beyond its content.
+- **`get_char(?Character)`, `get_char(+Stream,?Character)`** — Reads one text character; end of input is `end_of_file`.
+- **`peek_char(?Character)`, `peek_char(+Stream,?Character)`** — Observes the next text character without advancing.
+- **`get_code(?Code)`, `get_code(+Stream,?Code)`** — Reads a character code; end of input is `-1`. Both profiles return codes from EyeProlog's Unicode scalar PCS.
+- **`peek_code(?Code)`, `peek_code(+Stream,?Code)`** — Observes the next Unicode scalar character code without advancing.
+- **`get_byte(?Byte)`, `get_byte(+Stream,?Byte)`** — Reads one unit from a binary stream; end of input is `-1`.
+- **`peek_byte(?Byte)`, `peek_byte(+Stream,?Byte)`** — Observes the next binary unit without advancing.
+- **`put_char(+Character)`, `put_char(+Stream,+Character)`** — Writes one character atom to a text stream.
+- **`put_code(+Code)`, `put_code(+Stream,+Code)`** — Writes one character code to a text stream. Both profiles accept Unicode scalar codes.
+- **`put_byte(+Byte)`, `put_byte(+Stream,+Byte)`** — Writes an integer in `0..255` to a binary stream.
+- **`nl`, `nl(+Stream)`** — Writes a newline to a text stream.
 
 Text operations on binary streams and byte operations on text streams raise
 permission errors. After EOF, `eof_action(error)` rejects another consuming
 read, `eof_code` continues returning the EOF value, and `reset` resumes from
 the beginning. A peek does not mark the stream as past-end.
 
-### Term input and output
+#### Term input and output
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `read(?Term)`, `read(+Stream,?Term)` | Reads one full-stop-terminated Prolog term from a text stream. Returns `end_of_file` when no term remains. |
-| `read_term(?Term,+Options)`, `read_term(+Stream,?Term,+Options)` | Reads a term and supports *variables(List)*, *variable_names(Pairs)*, and *singletons(Pairs)*. Unknown options raise *domain_error(read_option)*. |
-| `write(+Term)`, `write(+Stream,+Term)` | Writes readable operator notation without quoting atoms merely because quoting would be required for reparsing. Number variables are enabled. |
-| `writeq(+Term)`, `writeq(+Stream,+Term)` | Like `write`, but quotes atoms when required for unambiguous input syntax. |
-| `write_canonical(+Term)`, `write_canonical(+Stream,+Term)` | Writes quoted canonical functor notation while ignoring operators and without interpreting *$VAR/1*. |
-| `write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)` | Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(true or false)*. |
+- **`read(?Term)`, `read(+Stream,?Term)`** — Reads one full-stop-terminated Prolog term from a text stream. Returns `end_of_file` when no term remains.
+- **`read_term(?Term,+Options)`, `read_term(+Stream,?Term,+Options)`** — Reads a term and supports *variables(List)*, *variable_names(Pairs)*, and *singletons(Pairs)*. Unknown options raise *domain_error(read_option)*.
+- **`write(+Term)`, `write(+Stream,+Term)`** — Writes readable operator notation without quoting atoms merely because quoting would be required for reparsing. Number variables are enabled.
+- **`writeq(+Term)`, `writeq(+Stream,+Term)`** — Like `write`, but quotes atoms when required for unambiguous input syntax.
+- **`write_canonical(+Term)`, `write_canonical(+Stream,+Term)`** — Writes quoted canonical functor notation while ignoring operators and without interpreting *$VAR/1*.
+- **`write_term(+Term,+Options)`, `write_term(+Stream,+Term,+Options)`** — Writes with *quoted(true or false)*, *ignore_ops(true or false)*, *numbervars(true or false)*, and *variable_names([Name=Variable,...])*. Normal mode also supports *double_quotes(true or false)* and *spacing(true or false)*.
 
 Term input uses the program's current operator table and the same ISO quoted-character
 syntax as source text, including backslash-terminated octal and hexadecimal
@@ -6228,32 +6227,28 @@ Consequently every numeric character sequence accepted by `number_chars/2` has
 the same value when read as a full-stop-terminated term, without requiring EOF
 after that term.
 
-### Arithmetic expressions
+#### Arithmetic expressions
 
-| Predicate and principal call | Behavior |
-| --- | --- |
-| `is(?Result,+Expression)` | Evaluates `Expression` once and unifies its numeric value with `Result`. It is evaluation plus unification, not mutable assignment. |
-| `Left =:= Right`, `Left =\= Right` | Evaluate both sides and test numeric equality or inequality. Integer/float representation differences do not by themselves make values unequal. |
-| `Left < Right`, `Left =< Right`, `Left > Right`, `Left >= Right` | Evaluate both sides and perform the indicated numeric comparison. |
+- **`is(?Result,+Expression)`** — Evaluates `Expression` once and unifies its numeric value with `Result`. It is evaluation plus unification, not mutable assignment.
+- **`Left =:= Right`, `Left =\= Right`** — Evaluate both sides and test numeric equality or inequality. Integer/float representation differences do not by themselves make values unequal.
+- **`Left < Right`, `Left =< Right`, `Left > Right`, `Left >= Right`** — Evaluate both sides and perform the indicated numeric comparison.
 
 Every variable in an arithmetic expression must already be bound to a number
 or evaluable expression. Integers use arbitrary-precision arithmetic while an
 operation remains in the integer domain; operations requiring floating point
 convert their operands to finite JavaScript numbers.
 
-| Expression family | Supported forms and result rules |
-| --- | --- |
-| Literals and constants | Integer and finite floating-point literals; `pi` and `e` produce floating-point constants. |
-| Unary arithmetic | Unary `+`, unary `-`, and integer bitwise complement `\`. |
-| Basic binary arithmetic | `+`, `-`, and `*` preserve integers when both operands are integers. `/` produces a float and rejects a zero divisor. |
-| Exponentiation | `Base ^ Exponent` remains an integer for nonnegative integer operands. Corrigendum 3 requires a float base for most negative integer exponents; `**` is floating-point exponentiation. |
-| Integer division | `//` and `div` require integers and reject zero divisors. `//` rounds toward zero as reported by `integer_rounding_function`; `div` rounds down. |
-| Integer remainder | `rem` is the truncating remainder; `mod` normalizes the result with the divisor's sign. Both require integers and a nonzero divisor. |
-| Bit operations | Integer `/\`, `\/`, `xor`, `<<`, and `>>`, plus unary `\`. |
-| Numeric normalization | `abs`, `sign`, and `float`. Integer `abs` and `sign` preserve integer results; `float` produces a float. |
-| Rounding | `truncate`, `round`, `ceiling`, and `floor` produce integers. |
-| Float decomposition | `float_integer_part` and `float_fractional_part` require a float and return floats. |
-| Min/max and transcendental functions | `min`, `max`, `sin`, `cos`, `atan`, `asin`, `acos`, `atan2`, `tan`, `exp`, `log`, and `sqrt`; `pi` is the Corrigendum 2 constant. |
+- **Literals and constants** — Integer and finite floating-point literals; `pi` and `e` produce floating-point constants.
+- **Unary arithmetic** — Unary `+`, unary `-`, and integer bitwise complement `\`.
+- **Basic binary arithmetic** — `+`, `-`, and `*` preserve integers when both operands are integers. `/` produces a float and rejects a zero divisor.
+- **Exponentiation** — `Base ^ Exponent` remains an integer for nonnegative integer operands. Corrigendum 3 requires a float base for most negative integer exponents; `**` is floating-point exponentiation.
+- **Integer division** — `//` and `div` require integers and reject zero divisors. `//` rounds toward zero as reported by `integer_rounding_function`; `div` rounds down.
+- **Integer remainder** — `rem` is the truncating remainder; `mod` normalizes the result with the divisor's sign. Both require integers and a nonzero divisor.
+- **Bit operations** — Integer `/\`, `\/`, `xor`, `<<`, and `>>`, plus unary `\`.
+- **Numeric normalization** — `abs`, `sign`, and `float`. Integer `abs` and `sign` preserve integer results; `float` produces a float.
+- **Rounding** — `truncate`, `round`, `ceiling`, and `floor` produce integers.
+- **Float decomposition** — `float_integer_part` and `float_fractional_part` require a float and return floats.
+- **Min/max and transcendental functions** — `min`, `max`, `sin`, `cos`, `atan`, `asin`, `acos`, `atan2`, `tan`, `exp`, `log`, and `sqrt`; `pi` is the Corrigendum 2 constant.
 
 Arithmetic comparisons evaluate both operands. Standard term-order predicates
 (`@<`, `@=<`, `@>`, `@>=`) compare terms without arithmetic evaluation.
@@ -6262,7 +6257,7 @@ than applying arithmetic equality across representations. Double-quoted text
 does not introduce another ISO term-order category: it becomes the list or atom
 selected by `double_quotes` before comparison.
 
-### Errors
+#### Errors
 
 ISO built-ins distinguish logical failure from exceptional calls. Insufficient
 instantiation raises `instantiation_error`; wrong argument categories raise
@@ -6270,17 +6265,15 @@ instantiation raises `instantiation_error`; wrong argument categories raise
 `evaluation_error`. JavaScript embedders receive these as `PrologError`
 instances whose message contains the corresponding Prolog error term.
 
-| Error class | Typical cause |
-| --- | --- |
-| *instantiation_error* | A required callable, stream, number, list, option value, or construction input is still unbound. |
-| *type_error(Expected,Culprit)* | A bound value has the wrong term category, such as a noninteger index or non-callable goal. |
-| *domain_error(Domain,Culprit)* | The type is correct but the value is outside the supported domain, such as a bad stream option or operator priority. |
-| *representation_error(Flag)* | A value cannot be represented by the profile, such as an invalid Unicode scalar code. |
-| *evaluation_error(zero_divisor)* | Integer or floating-point division was attempted with a zero divisor. |
-| *evaluation_error(undefined)* | Floating-point evaluation produced a non-finite or undefined result. |
-| *permission_error(Operation,Permission,Culprit)* | A static procedure was modified, a stream was used in the wrong mode, or a protected resource was accessed. |
-| *existence_error(Object,Culprit)* | A stream, source sink, or required procedure does not exist. |
-| *syntax_error(number)*, *syntax_error(read_term)* | Lexical number conversion or streamed term parsing failed. |
+- ***instantiation_error*** — A required callable, stream, number, list, option value, or construction input is still unbound.
+- ***type_error(Expected,Culprit)*** — A bound value has the wrong term category, such as a noninteger index or non-callable goal.
+- ***domain_error(Domain,Culprit)*** — The type is correct but the value is outside the supported domain, such as a bad stream option or operator priority.
+- ***representation_error(Flag)*** — A value cannot be represented by the profile, such as an invalid Unicode scalar code.
+- ***evaluation_error(zero_divisor)*** — Integer or floating-point division was attempted with a zero divisor.
+- ***evaluation_error(undefined)*** — Floating-point evaluation produced a non-finite or undefined result.
+- ***permission_error(Operation,Permission,Culprit)*** — A static procedure was modified, a stream was used in the wrong mode, or a protected resource was accessed.
+- ***existence_error(Object,Culprit)*** — A stream, source sink, or required procedure does not exist.
+- ***syntax_error(number)*, *syntax_error(read_term)*** — Lexical number conversion or streamed term parsing failed.
 
 `catch/3` converts a `PrologError` into a catchable
 `error(Formal,eyeprolog)` term. `throw/1` copies its ball before unwinding: bound
@@ -6303,11 +6296,17 @@ The JavaScript `ioOptions.input` and `ioOptions.write` hooks connect standard
 streams to an embedder. File-backed streams use synchronous lifecycle semantics
 so side effects occur in Prolog execution order.
 
-### Normal-mode cleanup controls
+### Normal-mode extensions
+
+The normal profile also supplies a small number of runtime controls that are not
+members of the isolated ISO registry. They are kept separate here so the core
+boundary remains visible.
+
+#### Cleanup controls
 
 `call_cleanup/2` and `setup_call_cleanup/3` are normal EyeProlog runtime extensions rather than members of the isolated ISO builtin registry. They protect a goal across deterministic completion, exhaustion, cut, top-level abandonment, and exception unwinding, running Cleanup exactly once. `setup_call_cleanup/3` runs Setup once and installs Cleanup only after Setup succeeds. A successful Cleanup run before a deterministic answer contributes its substitutions to that answer. Nested cleanups run inside-out, and strict ISO mode does not provide either predicate.
 
-### The EyeProlog library
+### Bundled libraries
 
 EyeProlog exposes **389 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
@@ -6361,6 +6360,560 @@ Corrigenda registry is exposed as `createStrictIsoRegistry()` and
 strict-language boundary is required. Module-local predicate identity keeps
 private helpers and same-named predicates in different modules separate.
 
+#### Module catalog
+
+<!-- eyeprolog-library-catalog:start -->
+
+- **`library(aggregate)`** — Aggregation, including Trealla-compatible aggregate templates  
+  **Exports:** `sumall/3`, `aggregate_min/5`, `aggregate_max/5`, `aggregate_all/3`, `aggregate/3`
+- **`library(arithmetic)`** — Scryer-compatible arithmetic helpers and rational-form conversion  
+  **Exports:** `expmod/4`, `lcm/3`, `lsb/2`, `msb/2`, `number_to_rational/2`, `number_to_rational/3`, `popcount/2`, `rational_numerator_denominator/3`
+- **`library(assoc)`** — AVL association trees; reused from the shared portable source  
+  **Exports:** `empty_assoc/1`, `assoc_to_keys/2`, `assoc_to_list/2`, `assoc_to_values/2`, `del_assoc/4`, `del_max_assoc/4`, `del_min_assoc/4`, `gen_assoc/3`, `get_assoc/3`, `get_assoc/5`, `is_assoc/1`, `list_to_assoc/2`, `map_assoc/2`, `map_assoc/3`, `max_assoc/3`, `min_assoc/3`, `ord_list_to_assoc/2`, `put_assoc/4`
+- **`library(atts)`** — Attributed variables  
+  **Exports:** `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, `call_residue_vars/2`
+- **`library(between)`** — Integer generation  
+  **Exports:** `between/3`, `gen_int/1`, `gen_nat/1`, `numlist/2`, `numlist/3`, `repeat/1`
+- **`library(charsio)`** — Character classification, UTF-8, chars/term conversion, and Base64  
+  **Exports:** `char_type/2`, `chars_base64/3`, `chars_utf8bytes/2`, `get_line_to_chars/3`, `get_n_chars/3`, `get_single_char/1`, `read_from_chars/2`, `read_term_from_chars/3`, `write_term_to_chars/3`
+- **`library(clpb)`** — Boolean constraints and BDD reasoning; upstream Prolog source with small state adapters  
+  **Exports:** `labeling/1`, `random_labeling/2`, `sat/1`, `sat_count/2`, `taut/2`, `weighted_maximum/3`
+- **`library(clpz)`** — Constraint logic programming over integers; the final three indicators support reified compatibility libraries  
+  **Exports:** `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `cumulative/1`, `cumulative/2`, `disjoint2/1`, `element/3`, `automaton/3`, `automaton/8`, `zcompare/3`, `chain/2`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2`, `clpz_t/2`, `#=/3`, `#</3`
+- **`library(comparison)`** — Generic comparison  
+  **Exports:** `lt/2`, `gt/2`, `le/2`, `ge/2`
+- **`library(crypto)`** — Scryer-compatible hashing, KDFs, authenticated encryption, Ed25519, X25519, and secp256k1 helpers  
+  **Exports:** `crypto_curve_generator/2`, `crypto_curve_order/2`, `crypto_curve_scalar_mult/4`, `crypto_data_decrypt/6`, `crypto_data_encrypt/6`, `crypto_data_hash/3`, `crypto_data_hkdf/4`, `crypto_n_random_bytes/2`, `crypto_name_curve/2`, `crypto_password_hash/2`, `crypto_password_hash/3`, `curve25519_generator/1`, `curve25519_scalar_mult/3`, `ed25519_keypair_public_key/2`, `ed25519_new_keypair/1`, `ed25519_seed_keypair/2`, `ed25519_sign/4`, `ed25519_verify/4`, `hex_bytes/2`
+- **`library(dates)`** — ISO duration differences  
+  **Exports:** `difference/3`
+- **`library(dcgs)`** — Full Scryer DCG export surface; nonterminals are shown at their expanded arities  
+  **Exports:** `-->/2`, `.../2`, `phrase/2`, `phrase/3`, `phrase/4`, `phrase/5`, `seq/3`, `seqq/3`
+- **`library(debug)`** — Declarative debug operators plus compatibility re-exports of the canonical `iso_ext` blackboard  
+  **Exports:** `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2`
+- **`library(dif)`** — Common module facade over native delayed disequality  
+  **Exports:** `dif/2`
+- **`library(error)`** — Error checking and construction  
+  **Exports:** `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `resource_error/2`, `call_with_error_context/2`
+- **`library(eyelet)`** — Eyelet forward-reasoning driver and state helpers; the `:+` operator is exported by the module and its fixed point is implemented in Prolog  
+  **Exports:** `stable/1`, `becomes/2`
+- **`library(files)`** — Full Scryer filesystem surface backed by the Node host where filesystem access is required  
+  **Exports:** `delete_directory/1`, `delete_file/1`, `directory_exists/1`, `directory_files/2`, `file_access_time/2`, `file_copy/2`, `file_creation_time/2`, `file_exists/1`, `file_modification_time/2`, `file_size/2`, `make_directory/1`, `make_directory_path/1`, `path_canonical/2`, `path_segments/2`, `rename_file/2`, `working_directory/2`
+- **`library(format)`** — Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals  
+  **Exports:** `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2`
+- **`library(freeze)`** — Delayed goals and residual suspension inspection  
+  **Exports:** `freeze/2`, `frozen/2`
+- **`library(gensym)`** — Process-local generated atoms  
+  **Exports:** `gensym/2`, `reset_gensym/1`
+- **`library(iso_ext)`** — Scryer ISO extensions plus EyeProlog compatibility helpers  
+  **Exports:** `bb_b_put/2`, `bb_get/2`, `bb_put/2`, `call_cleanup/2`, `call_nth/2`, `call_residue_vars/2`, `call_with_inference_limit/3`, `cfor/3`, `copy_term/3`, `copy_term_nat/2`, `countall/2`, `findall/4`, `forall/2`, `partial_string/1`, `partial_string/3`, `partial_string_tail/2`, `setup_call_cleanup/3`, `succ/2`, `time/1`, `variant/2`
+- **`library(lambda)`** — Higher-order lambda notation  
+  **Exports:** `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9`
+- **`library(lists)`** — List relations and shared matrix/permutation helpers; `tasklist/*` is a sequential compatibility fallback  
+  **Exports:** `member/2`, `memberchk/2`, `select/3`, `selectchk/3`, `subtract/3`, `union/3`, `intersection/3`, `is_set/1`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `include/3`, `exclude/3`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `maplist/9`, `tasklist/2`, `tasklist/3`, `tasklist/4`, `tasklist/5`, `tasklist/6`, `tasklist/7`, `tasklist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`, `permutation/2`, `transpose/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4`
+- **`library(ordsets)`** — Ordered-set relations; reused upstream source  
+  **Exports:** `is_ordset/1`, `list_to_ord_set/2`, `ord_add_element/3`, `ord_del_element/3`, `ord_disjoint/2`, `ord_empty/1`, `ord_intersect/2`, `ord_intersect/3`, `ord_intersection/2`, `ord_intersection/3`, `ord_intersection/4`, `ord_memberchk/2`, `ord_selectchk/3`, `ord_seteq/2`, `ord_subset/2`, `ord_subtract/3`, `ord_symdiff/3`, `ord_union/2`, `ord_union/3`, `ord_union/4`
+- **`library(os)`** — Environment, shell, PID, and command-line access backed by the Node host  
+  **Exports:** `argv/1`, `getenv/2`, `pid/1`, `raw_argv/1`, `setenv/2`, `shell/1`, `shell/2`, `unsetenv/1`
+- **`library(pairs)`** — Key-value pair support  
+  **Exports:** `pairs_keys_values/3`, `pairs_keys/2`, `pairs_values/2`, `group_pairs_by_key/2`, `map_list_to_pairs/3`
+- **`library(pio)`** — Scryer-compatible eager DCG file/stream I/O with character-list and atom paths  
+  **Exports:** `phrase_from_file/2`, `phrase_from_file/3`, `phrase_from_stream/2`, `phrase_to_file/2`, `phrase_to_file/3`, `phrase_to_stream/2`
+- **`library(primes)`** — Prime factor support  
+  **Exports:** `smallest_divisor_from/3`
+- **`library(prologue)`** — Legacy facade over canonical focused modules  
+  **Exports:** `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2`
+- **`library(random)`** — Trealla-compatible probability helpers plus the common mutable-seed interface and EyeProlog's pure state-threaded generator  
+  **Exports:** `maybe/0`, `maybe/1`, `maybe/2`, `random/1`, `random/3`, `random_integer/3`, `set_random/1`
+- **`library(reif)`** — Reified conditions and list filtering; reused upstream source  
+  **Exports:** `,/3`, `;/3`, `=/3`, `cond_t/3`, `dif/3`, `if_/3`, `memberd_t/3`, `tfilter/3`, `tmember/2`, `tmember_t/3`, `tpartition/4`
+- **`library(si)`** — Sufficient-instantiation checks used by CLP(Z)  
+  **Exports:** `atom_si/1`, `integer_si/1`, `atomic_si/1`, `list_si/1`, `character_si/1`, `term_si/1`, `chars_si/1`, `dif_si/2`, `not_si/1`, `when_si/2`
+- **`library(strings)`** — Text relations  
+  **Exports:** `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4`
+- **`library(tabling)`** — Common helpers for explicitly declared tabling, including targeted invalidation  
+  **Exports:** `abolish_all_tables/0`, `abolish_table/1`, `start_tabling/2`
+- **`library(terms)`** — Term operations used by bundled libraries  
+  **Exports:** `numbervars/3`, `copy_term_nat/2`
+- **`library(time)`** — Clock timestamps, sleep limits, timing/statistics, and the expanded `format_time//2` nonterminal  
+  **Exports:** `current_time/1`, `format_time/4`, `max_sleep_time/1`, `sleep/1`, `statistics/2`, `time/1`
+- **`library(ugraphs)`** — Directed graph relations; reused upstream source  
+  **Exports:** `add_edges/3`, `add_vertices/3`, `complement/2`, `compose/3`, `connect_ugraph/3`, `del_edges/3`, `del_vertices/3`, `edges/2`, `neighbors/3`, `neighbours/3`, `reachable/3`, `top_sort/2`, `top_sort/3`, `transitive_closure/2`, `transpose_ugraph/2`, `ugraph_union/3`, `vertices/2`, `vertices_edges_to_ugraph/3`
+- **`library(uuid)`** — Common UUID byte/string conversion and generation plus pure state threading  
+  **Exports:** `uuid/3`, `uuid_string/2`, `uuidv4/1`, `uuidv4_string/1`
+- **`library(when)`** — Shared delayed-condition interface over attributed variables  
+  **Exports:** `when/2`
+
+<!-- eyeprolog-library-catalog:end -->
+
+#### Using bundled libraries
+
+On the command line, a program can state its library dependencies explicitly:
+
+```sh
+printf '%s\n' ':- use_module(library(lists)).' 'answer(X) :- member(X, [ready]).' > program.pl
+eyeprolog --goal 'answer(X)' program.pl
+eyeprolog -p program.pl        # add proof output
+```
+
+JavaScript uses the same normal EyeProlog library registry by default:
+
+```js
+import { run } from 'eyeprolog';
+
+const source = `
+:- use_module(library(lists)).
+answer(Whole) :- append([red, green], [blue], Whole).
+`;
+
+const result = run(source, { goal: 'answer(X)' });
+console.log(result.stdout);
+```
+
+### Library relations by programming role
+
+The mode notation used in the role summaries below is descriptive:
+
+- `+` means the argument must already have the required input shape;
+- `-` means the predicate produces that argument;
+- `?` means a bound value can be checked or an unbound value generated.
+
+Most EyeProlog library predicates are projections or filters. When an input is
+unbound, malformed, outside its domain, or incompatible with the requested
+output, they normally **fail** rather than raising the ISO errors described in
+the errors section above. They do not invent open-ended domains. Bind arithmetic
+operands, source text, proper lists, indexes, dates, and aggregate generators
+before calling the corresponding predicate.
+
+#### Portable numeric, comparison, and date relations
+
+- **`lt(+A,+B)`, `le(+A,+B)`, `gt(+A,+B)`, `ge(+A,+B)`** — Compare integers exactly, finite numeric text numerically, `PnYnMnD` duration text component-wise, and other lexical values by string order. These differ from ISO arithmetic comparison and standard term order.
+- **`random(-Value)`** — Stateful Park-Miller step using the library seed set by `set_random/1`; implemented through a private native fast path while retaining the same sequence and numeric conversion as `random/3`.
+- **`random(+Seed0,-Value,-Seed)`** — Portable Park-Miller generator with explicit state. `Value` is in `[0,1)`; pass the returned integer `Seed` to the next call. The same initial integer seed always reproduces the same sequence.
+- **`difference(+End,+Start,-Duration)`** — Portable Prolog. Computes a nonnegative calendar difference between ISO date atoms/character lists and returns atom `'PnYnMnD'`. Invalid dates or an end before the start fail.
+
+```eyeprolog
+:- use_module(library(dates)).
+:- use_module(library(between), [between/3]).
+:- use_module(library(random)).
+:- use_module(library(lists)).
+
+answer(square, S) :- (S is 12 * 12).
+answer(day_count, N) :- between(3, 5, N).
+answer(age, D) :- difference('2026-07-28', '2020-05-20', D).
+answer(random_pair, [A,B]) :- random(42, A, S), random(S, B, _).
+```
+
+```sh
+eyeprolog --goal 'answer(Kind, Value)' program.pl
+```
+
+The library deliberately does not register named arithmetic wrappers such as
+`add/3`, `mul/3`, `abs/2`, or `sqrt/2`, because ISO arithmetic already
+expresses them: for example, `R is A + B`, `R is abs(A)`, and
+`R is sqrt(A)`. The same applies to subtraction, multiplication, division,
+modulo, powers, sine, cosine, exponential, logarithm, and the ISO rounding
+functions.
+
+The bundled library layer defines `between/3` in `library(between)` and
+`smallest_divisor_from/3` in `library(primes)` as ordinary Prolog clauses.
+Choose the smaller or
+larger of two arithmetic values directly with ISO control, for example
+`(A =< B -> Min = A ; Min = B)` or `(A >= B -> Max = A ; Max = B)`.
+
+#### List relations
+
+These relations are the actual Prolog implementations in
+`src/lib/lists.pl`. Every list-consuming relation below expects a
+proper list unless explicitly stated otherwise. Indexes and counts are
+zero-based, nonnegative safe integers.
+
+- **`append(+Prefix,+Suffix,-Whole)`** — Appends a proper prefix to any suffix, including an improper tail.
+- **`append(-Prefix,-Suffix,+Whole)`** — Enumerates every split of a proper `Whole`, from empty prefix to empty suffix.
+- **`member(?Item,+List)`** — Produces one answer per matching position, so duplicates remain observable.
+- **`select(?Item,+List,-Rest)`** — Removes one occurrence at a time and preserves the order of all other elements. Duplicate occurrences may produce duplicate answers.
+- **`\+ member(+Item,+List)`** — Succeeds only when `Item` does not unify with any member. Use it after binding the item and list.
+- **`nth0(?Index,+List,?Item)`** — Checks a bound zero-based index or enumerates indexes and their items.
+- **`nth1(?Index,+List,?Item)`** — Checks a bound one-based index or enumerates one-based indexes and items.
+- **`maplist(+Closure,+List1,?List2)`** — Applies a two-argument closure pairwise through ISO `call/3`; partially applied compound closures are supported.
+- **`[Head|Tail] = List`** — Decomposes a nonempty list directly with ISO unification; no library wrapper is needed.
+- **`set_nth0(+Index,+List,+Item,-NewList)`** — Replaces one existing position without mutating the input list.
+- **`last(+List,?Last)`** — Returns the final element of a nonempty proper list.
+- **`take(+Count,+List,-Prefix)`, `drop(+Count,+List,-Suffix)`** — Select the first `Count` elements or remove them. Counts beyond the list length fail.
+- **`slice(+Start,+Count,+List,-Slice)`** — Selects exactly `Count` elements beginning at `Start`; an out-of-range slice fails.
+- **`reverse(+List,-Reversed)`** — Reverses a proper list.
+- **`length(?List,?Length)`** — Reports or checks the length of a proper list, or generates a list skeleton when `Length` is a bound nonnegative integer.
+- **`sum_list(+List,-Sum)`** — Sums numeric elements with ISO `is/2`. The empty sum is `0`; invalid arithmetic raises the corresponding ISO error.
+- **`min_list(+List,-Min)`, `max_list(+List,-Max)`** — Select by EyeProlog term order, not numeric coercion. Empty lists fail.
+- **`list_to_set(+List,-Set)`** — Removes later structural duplicates while preserving first-occurrence order.
+
+```eyeprolog
+
+:- use_module(library(lists)).
+
+answer(split, pair(Prefix, Suffix)) :-
+  append(Prefix, Suffix, [a, b]).
+
+answer(second, Item) :-
+  nth0(1, [a, b, c], Item).
+```
+
+```sh
+eyeprolog --goal 'answer(Kind, Value)' program.pl
+```
+
+#### Portable text, lexical values, and pattern matching
+
+The portable text API uses **ISO atoms or proper lists of one-character atoms**.
+A generated text result defaults to an atom. Double-quoted source text uses the
+ISO representation selected by `double_quotes`; with the default `chars`, it is
+already a proper character list accepted by this API. The 56-predicate portable
+library itself has no STRING or JavaScript dependency.
+
+- **`string_concat(?Left,?Right,?Text)`** — Concatenates or splits atom/character-list text. At least two arguments must determine the operation; generated text is an atom.
+- **`contains(+Text,+Needle)`** — Tests literal containment.
+- **`matches(+Text,+Pattern)`** — Tests `|`-separated literal alternatives.
+- **`matches(+Text,+Pattern,-Context)`** — Portable named-capture matcher. Supports literals, `^`/`$`, named groups `(?<name>...)`, optional named groups, `\w+`, `[A-Za-z]+`, `[0-9]+`, and literal group bodies. Captures are atoms in comma-context data such as `(year('2026'), month('07'))`.
+- **`split(+Text,+Separator,-Parts)`** — Literal split into a proper list of atoms.
+- **`join(+Parts,+Separator,-Text)`** — Joins atom/number/character-list lexical values. The empty list produces the empty atom `''`.
+- **`substring(+Text,+Start,+Count,-Part)`** — Extracts characters using zero-based nonnegative integer indexes.
+- **`replace(+Text,+Search,+Replacement,-Result)`** — Replaces every literal occurrence. An empty search leaves the text unchanged.
+- **`lowercase(+Text,-Lower)`, `uppercase(+Text,-Upper)`** — Portable ASCII case mapping. Non-ASCII characters are preserved unchanged rather than delegated to host Unicode case conversion.
+- **`trim(+Text,-Trimmed)`** — Removes the ISO-portable ASCII whitespace set at both ends.
+- **`number_string(?Number,?Text)`** — Historical predicate name retained for compatibility; converts a number to atom/character-list text or parses such text.
+- **`atom_string(?Atom,?Text)`** — Historical predicate name retained for compatibility; relates an atom to atom/character-list text.
+- **`term_string(+Term,-Text)`** — Renders a nonvariable term into atom/character-list text using the portable library serializer. It does not parse text back into a term.
+
+The named-capture matcher deliberately implements a small, auditable Prolog
+subset rather than JavaScript regular-expression semantics. Use a host predicate
+when an application genuinely requires a full host regex engine.
+
+```eyeprolog
+:- use_module(library(strings)).
+:- use_module(library(lists)).
+
+answer(words, Words) :-
+  trim('  Logic Made Visible  ', Clean),
+  lowercase(Clean, Lower),
+  split(Lower, ' ', Words).
+
+answer(captures, Context) :-
+  matches('Ada Lovelace',
+          '^(?<first>[A-Za-z]+) (?<last>[A-Za-z]+)$',
+          Context).
+```
+
+```sh
+eyeprolog --goal 'answer(Kind, Value)' program.pl
+```
+
+#### Portable aggregation and bounded control
+
+These Prolog relations follow the documented collection, arithmetic,
+term-order, and scoping contracts. The caller is responsible for making that
+search finite. Bind outer variables before the nested goal when they are
+intended to restrict its domain.
+
+- **`countall(+Goal,-Count)`** — Counts all solutions, including solutions that produce the same visible template. The empty count is `0`.
+- **`sumall(+Template,+Goal,-Sum)`** — Sums the numeric value of `Template` in every solution. The empty sum is `0`; invalid arithmetic raises the corresponding ISO error.
+- **`aggregate_min(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)`** — Retains the solution with the smallest resolved key under standard term order.
+- **`aggregate_max(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)`** — Retains the solution with the largest resolved key. Both best-value predicates fail on an empty solution set and retain the first solution on an equal key.
+
+ISO `findall/3` is present in both registries. The EyeProlog library aggregates follow
+the same scoping principle: variables created inside the nested search do not
+leak except through the declared templates and outputs.
+
+There is no `not/1` alias; use ISO `\+/1`. `forall/2` is available from
+`library(iso_ext)`, and `once/1` is supplied directly by the ISO registry.
+
+```eyeprolog
+:- use_module(library(aggregate)).
+:- use_module(library(lists)).
+:- use_module(library(iso_ext)).
+
+cost(a, 8).
+cost(b, 3).
+cost(c, 3).
+
+answer(count, N) :- countall(cost(_, _), N).
+answer(best(Name), Cost) :-
+  aggregate_min(CandidateCost, CandidateName,
+                cost(CandidateName, CandidateCost),
+                Cost, Name).
+```
+
+```sh
+eyeprolog --goal 'answer(Kind, Value)' program.pl
+```
+
+#### Contexts with ordinary terms
+
+A comma-context needs no special native predicate. A small program relation can
+walk its members, and ISO `=../2` can expose any member's name and argument list.
+
+```eyeprolog
+
+:- use_module(library(lists)).
+
+message(event_17,
+        (severity(high), source(sensor_3), reading(temp, 91))).
+
+context_member((Left, _right), Member) :- context_member(Left, Member).
+context_member((_left, Right), Member) :- context_member(Right, Member).
+context_member(Member, Member) :- Member \= (_left, _right).
+
+context_parts(Context, Name, Args) :-
+  context_member(Context, Member),
+  (Member =.. [Name | Args]),
+  atom(Name).
+
+answer(field(Name, Args)) :-
+  message(event_17, Context),
+  context_parts(Context, Name, Args).
+```
+
+```sh
+eyeprolog --goal 'answer(X)' program.pl
+```
+
+The ISO profile includes `functor/3`, `arg/3`, and `=../2`. Use `=../2` for whole-argument-list
+decomposition and construction, `=/2` for unification, and `\=/2` for
+non-unifiability; redundant aliases are not registered.
+
+#### Typical ISO extensions
+
+Import `library(iso_ext)` when a program needs portable solution counting,
+universal checks, inclusive integer generation, difference-list collection,
+or variant comparison:
+
+```eyeprolog
+:- use_module(library(iso_ext)).
+
+task(parse).
+task(check).
+task(report).
+
+extension_answer(all_tasks_are_atoms, true) :-
+  forall(task(Task), atom(Task)).
+
+extension_answer(numbered, Pairs) :-
+  findall(N-S, (cfor(1, 3, N), succ(N, S)), Pairs).
+
+extension_answer(with_tail, Tasks) :-
+  findall(Task, task(Task), Tasks, [done]).
+
+extension_answer(same_shape, true) :-
+  variant(node(X, X), node(Y, Y)).
+```
+
+### Interoperability, autoloading, and portability
+
+EyeProlog keeps four related concepts separate:
+
+- ****ISO core**** — The documented ISO predicate profile built into the processor. No EyeProlog library import is involved.
+- ****EyeProlog library surface**** — Every module and exported predicate listed in the catalog above. Programs normally access these with `use_module/1-2`.
+- ****Interoperability profile**** — A deliberately smaller set of library names and predicate interfaces that EyeProlog intends to keep source-compatible with Trealla and Scryer where practical.
+- ****Autoload index**** — A generated index of every predicate exported by the bundled `src/lib/` modules, with one canonical provider per unambiguous predicate.
+
+These layers answer different questions. A predicate may be implemented entirely
+as ordinary Prolog and still be outside the cross-processor interoperability
+profile; conversely, an interoperable predicate may be backed by a private host
+adapter. In this section, **portable** refers to source portability between
+Prolog systems, not merely to the language in which a predicate happens to be
+implemented.
+
+The conservative Trealla/Scryer compatibility profile is derived from Scryer
+library modules and predicate indicators also documented by Trealla. Where
+Trealla exposes a predicate globally rather than from the same module, EyeProlog
+follows Scryer's module name so explicit Scryer-style imports remain available.
+That interoperability profile currently spans 26 modules and is intentionally
+narrower than either implementation's union of exports; EyeProlog's explicit-state
+`random/3` and `uuid/3`, for example, remain useful extensions rather than shared
+interfaces. Separately, all 32 bundled EyeProlog modules whose basenames overlap
+Scryer's current `src/lib/` tree are checked against the frozen export snapshot in
+`test/scryer-library-exports.json` and cover the corresponding Scryer public
+predicate surface. The same structural check is now applied to Trealla: the 26
+bundled modules that have public-module counterparts in Trealla `library/` cover
+Trealla's exported predicates at pinned upstream commit
+`f7a93bd521c07a4841f5123348111dd005918c89`, recorded in
+`test/trealla-library-exports.json`. This is module-overlap coverage, not a claim
+that EyeProlog bundles Trealla's native host libraries such as `curl`, `gsl`,
+`janus`, `raylib`, `socket`, or `sqlite3`.
+
+Source reuse is preferred over translation. `clpb.pl`, `ordsets.pl`,
+`reif.pl`, and `ugraphs.pl` retain the upstream Prolog algorithms and license
+headers; `assoc.pl` uses the complete upstream AVL implementation. `gensym.pl`
+and `when.pl` keep the same algorithms with small blackboard and parser-safe
+closure adaptations. `dif.pl`, `tabling.pl`, and part of `time.pl` are thin
+facades over EyeProlog runtime facilities. `charsio.pl` covers Scryer's UTF-8,
+chars/term, and Base64 relations; `pio.pl` covers the complete Scryer export
+surface and accepts Scryer character-list paths while retaining atom-path
+compatibility. `files.pl` covers Scryer's complete filesystem export surface,
+while `os.pl` covers its environment/shell process-context surface. Their actual
+filesystem and OS side effects are isolated in module-owned Node adapters.
+`crypto.pl` exposes Scryer's complete public crypto surface; its strict Trealla/Scryer overlap is `hex_bytes/2`,
+`crypto_n_random_bytes/2`, and `crypto_data_hash/3`. Trealla-specific overlap additions include `aggregate_all/3` and
+`aggregate/3`, `frozen/2`, the set/filter/list helpers and `tasklist/2-8`,
+`maybe/1-2`, `resource_error/2`, and `abolish_table/1`. Because EyeProlog has no
+Trealla task scheduler, `tasklist/2-8` deliberately executes sequentially with
+`maplist`-equivalent success/failure semantics; it does not promise Trealla's
+parallel scheduling behavior. The
+[portable library overlap example](https://github.com/eyereasoner/eyeprolog/blob/main/examples/portable-library-overlap.pl)
+composes Boolean constraints, ordered sets, graphs, reification, delayed goals,
+generated names, character conversion, transposition, and explicit table
+syntax in one checked program.
+
+Two matching upstream basenames are intentionally not exposed as portable
+libraries. The two `builtins.pl` files are private engine facades and have no
+shared public predicate interface. `sockets.pl` requires a native networking
+event loop and host socket objects; EyeProlog does not provide a source-only
+facade that would accept calls and then fail at runtime.
+
+`number_to_rational/2` and `rational_numerator_denominator/3` are now present in
+`library(arithmetic)`. EyeProlog's processor numeric values are still integers
+and IEEE-754 floats, so a non-integral result is represented canonically as the
+ordinary term `rdiv(Numerator,Denominator)`. The conversion/decomposition
+interface is therefore available, but that structural `rdiv/2` value is not yet
+an evaluable rational number for `is/2` or arithmetic comparison.
+
+`library(files)` follows Scryer's character-list path convention and includes
+`directory_files/2`, `delete_file/1`, `rename_file/2`, `make_directory/1`,
+`make_directory_path/1`, and `working_directory/2`. `library(os)` similarly
+uses character lists for environment names, values, commands, and argument
+strings. Trealla documents the same predicate indicators, although several of
+its host predicates use atoms instead. Both EyeProlog modules require the Node
+host; browser calls raise a resource error instead of simulating filesystem,
+environment, or process side effects.
+
+`library(crypto)` follows Scryer's character-list and byte-list conventions.
+It provides hexadecimal conversion, cryptographically secure random bytes,
+hashes and HMAC, HKDF, PBKDF2-SHA512 password hashes, ChaCha20-Poly1305,
+Ed25519 signing and verification, X25519 key agreement, and the Scryer
+secp256k1 curve representation/helpers. Hashing, KDF, authenticated encryption, Ed25519, and X25519 use Node's
+cryptographic backend; `crypto_n_random_bytes/2` can also use Web Crypto's
+CSPRNG. Operations without a suitable backend raise `resource_error(crypto)`.
+`hex_bytes/2` and the static curve metadata remain usable without that backend. As in Scryer, new key-agreement code should prefer X25519 over
+the older generic secp256k1 helper.
+
+For `library(lists)`, the current interop predicate set is `member/2`,
+`memberchk/2`, `select/3`, `append/2-3`, `last/2`, `same_length/2`,
+`nth0/3-4`, `nth1/3-4`, `reverse/2`, `length/2`, `maplist/2-8`,
+`foldl/4-6`, `sum_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`,
+`permutation/2`, and `transpose/2`. Other exports from the same
+module, such as `min_list/2`, `max_list/2`, `set_nth0/4`, `take/3`, `drop/3`,
+and `slice/4`, remain available to EyeProlog programs but lie outside this
+conservative cross-engine subset.
+
+`length/2` remains fully relational. With both arguments variable,
+`length(Xs, N)` enumerates `Xs = [], N = 0`, then one-element lists with
+`N = 1`, and so on. Open-ended generation uses the normal memory guard with
+recovery headroom so finite-heap exhaustion remains a catchable
+`resource_error(memory)`. A supplied nonnegative length selects at most one
+answer, and a supplied closed list has exactly one length; these modes do not
+retain an exhausted choicepoint.
+
+`library(iso_ext)` is a common interop module name, but only part of its
+EyeProlog API belongs to the shared profile. `call_nth/2`, `time/1`, and
+`.../2` are mapped there. `time/1` measures each solution of a meta-call and
+prints elapsed time, EyeProlog inference count, and MLips in Trealla-style form,
+for example `% Time elapsed 0.832s, 65551 Inferences, 0.079 MLips`; `... //0`
+describes an arbitrary number of input elements. Together they let the
+Trealla/Scryer DCG hand-off benchmark run in EyeProlog without source changes;
+the interactive top level uses the same bundled-predicate autoloader as file and
+CLI/API goal execution. The focused modules have one canonical implementation owner per
+predicate. `library(prologue)` re-exports those same owners, so legacy code can
+combine the facade with `library(lists)`, `library(iso_ext)`, and
+`library(freeze)` in either import order without an accidental collision.
+
+`library(lambda)` follows Scryer's higher-order notation, adapted from Ulrich
+Neumerkel's permissively licensed implementation. Its public syntax is:
+
+```text
+\X1^X2^...^XN^Goal
+Free+\X1^X2^...^XN^Goal
+```
+
+The first form has no explicitly shared free variables. Before each invocation,
+EyeProlog copies the closure term so local variables are fresh on successive
+`maplist/2-8`, `foldl/4-6`, or direct `call/N` uses. In the second form, the
+variables contained in `Free` remain shared with the surrounding goal.
+Importing the library installs `+\` as a priority-201 `xfx` operator; `\` and
+`^` use their existing ISO operator definitions. Parenthesize lower-priority
+goal operators after `^`, for example `\X^(X > 3)`.
+
+A continuation lambda may leave arguments for a later call:
+
+```text
+f(x, y).
+
+answer(A, B) :- call(\X^f(X), A, B).
+```
+
+This is equivalent to supplying both arguments directly. A lambda called with
+too few parameters raises `existence_error(lambda_parameter, ...)`. EyeProlog
+uses its ISO `copy_term/2` implementation for the fresh-copy step and does not
+require a separate `copy_term_nat/2` predicate.
+
+Autoloading is a convenience layered on top of the module system and is
+independent of the smaller interoperability profile. At build time EyeProlog
+uses a generated index derived from every bundled `src/lib/*.pl` `module/2`
+export list. An otherwise unresolved predicate in source, initialization code, an explicit
+CLI/API goal, or an interactive top-level query therefore autoloads its canonical
+bundled provider.
+For example:
+
+- **`member/2`** — `library(lists)`
+- **`pairs_keys_values/3`** — `library(pairs)`
+- **`uppercase/2`** — `library(strings)`
+- **`smallest_divisor_from/3`** — `library(primes)`
+- **`between/3`** — `library(between)`
+
+The resolution order is deliberately conservative with respect to Prolog
+semantics: a predicate already defined by the program wins; ISO/standard
+built-ins are not replaced by an autoloaded library; an explicit module import
+wins over autoloading; only then is the bundled autoload index consulted.
+Facade modules such as `library(prologue)` may re-export predicates from focused
+modules; the generated index chooses the unique module that actually defines
+the predicate. If more than one bundled module genuinely defines the same
+export, EyeProlog reports an import ambiguity and requires explicit
+`use_module/1-2` rather than guessing. The interactive top level applies this
+same resolution after a query has been parsed. Autoloading therefore supplies
+predicates, not retroactive syntax: a library that introduces operators (for
+example `library(clpz)` and `ins`) must still be explicitly imported before a
+query or source term uses those operators.
+
+The index is generated by `npm run generate:autoload` into
+`src/library-autoload-index.js`, and the documentation regression suite checks
+that it is synchronized with the current `src/lib/` sources. Explicit imports
+remain the clearest way to state dependencies when portability or module intent
+should be visible in the source:
+
+```text
+:- use_module(library(lists)).
+:- use_module(library(iso_ext), [call_nth/2]).
+```
+
+Use `--no-autoload`, or the JavaScript option `autoload: false`, when every
+library dependency should be explicit. `--iso-strict` always disables EyeProlog
+library autoloading, so strict ISO execution never gains procedures from this
+implementation convenience.
+
+`-w` / `--warnings` reports explicit dependencies on non-profile libraries and
+calls to non-profile predicates from otherwise common modules. `--portable`
+turns those diagnostics into a failing run, making the conservative profile
+suitable for continuous integration. `npm run test:interop` executes the same
+portable Towers of Hanoi source under EyeProlog, Trealla, and Scryer when those commands
+are installed. Because those are external runtimes, the default `npm test`
+instead validates all four generated OpenRuleBench source trees and their
+engine-specific tabling and WFS adaptations without requiring them. The fast
+structural check is also available directly as `npm run test:openrulebench`.
+
+### Specialized library implementation notes
+
+The catalog and role summaries above define the public surface. The following
+notes record implementation details and semantic boundaries that matter when a
+library uses attributed variables, delayed goals, host services, tabling, or
+mutable runtime state.
+
 `freeze(?Term,:Goal)` runs `Goal` immediately when `Term` is already nonvariable;
 otherwise it delays the goal until `Term` becomes nonvariable. Suspensions are
 kept in the logical environment, so bindings and backtracking remain isolated
@@ -6389,54 +6942,86 @@ bindings make one aligned subterm pair sufficient. For example:
 ;  A = B, dif(X, Y).
 ```
 
-<!-- eyeprolog-library-catalog:start -->
+The catalog above is authoritative for the complete EyeProlog library surface.
+The following notes describe useful parts of that surface without extending the
+cross-engine claims made above.
 
-| Module | Exported predicate indicators | Primary role |
-| --- | --- | --- |
-| `library(aggregate)` | `sumall/3`, `aggregate_min/5`, `aggregate_max/5`, `aggregate_all/3`, `aggregate/3` | Aggregation, including Trealla-compatible aggregate templates |
-| `library(arithmetic)` | `expmod/4`, `lcm/3`, `lsb/2`, `msb/2`, `number_to_rational/2`, `number_to_rational/3`, `popcount/2`, `rational_numerator_denominator/3` | Scryer-compatible arithmetic helpers and rational-form conversion |
-| `library(assoc)` | `empty_assoc/1`, `assoc_to_keys/2`, `assoc_to_list/2`, `assoc_to_values/2`, `del_assoc/4`, `del_max_assoc/4`, `del_min_assoc/4`, `gen_assoc/3`, `get_assoc/3`, `get_assoc/5`, `is_assoc/1`, `list_to_assoc/2`, `map_assoc/2`, `map_assoc/3`, `max_assoc/3`, `min_assoc/3`, `ord_list_to_assoc/2`, `put_assoc/4` | AVL association trees; reused from the shared portable source |
-| `library(atts)` | `put_atts/2`, `get_atts/2`, `put_attr/3`, `get_attr/3`, `del_attr/2`, `term_attributed_variables/2`, `call_residue_vars/2` | Attributed variables |
-| `library(between)` | `between/3`, `gen_int/1`, `gen_nat/1`, `numlist/2`, `numlist/3`, `repeat/1` | Integer generation |
-| `library(charsio)` | `char_type/2`, `chars_base64/3`, `chars_utf8bytes/2`, `get_line_to_chars/3`, `get_n_chars/3`, `get_single_char/1`, `read_from_chars/2`, `read_term_from_chars/3`, `write_term_to_chars/3` | Character classification, UTF-8, chars/term conversion, and Base64 |
-| `library(clpb)` | `labeling/1`, `random_labeling/2`, `sat/1`, `sat_count/2`, `taut/2`, `weighted_maximum/3` | Boolean constraints and BDD reasoning; upstream Prolog source with small state adapters |
-| `library(clpz)` | `#>/2`, `#</2`, `#>=/2`, `#=</2`, `#=/2`, `#\=/2`, `#\/1`, `#<==>/2`, `#==>/2`, `#<==/2`, `#\//2`, `#\/2`, `#/\/2`, `in/2`, `ins/2`, `all_different/1`, `all_distinct/1`, `nvalue/2`, `sum/3`, `scalar_product/4`, `tuples_in/2`, `labeling/2`, `label/1`, `indomain/1`, `lex_chain/1`, `serialized/2`, `global_cardinality/2`, `global_cardinality/3`, `circuit/1`, `cumulative/1`, `cumulative/2`, `disjoint2/1`, `element/3`, `automaton/3`, `automaton/8`, `zcompare/3`, `chain/2`, `fd_var/1`, `fd_inf/2`, `fd_sup/2`, `fd_size/2`, `fd_dom/2`, `clpz_t/2`, `#=/3`, `#</3` | Constraint logic programming over integers; the final three indicators support reified compatibility libraries |
-| `library(comparison)` | `lt/2`, `gt/2`, `le/2`, `ge/2` | Generic comparison |
-| `library(crypto)` | `crypto_curve_generator/2`, `crypto_curve_order/2`, `crypto_curve_scalar_mult/4`, `crypto_data_decrypt/6`, `crypto_data_encrypt/6`, `crypto_data_hash/3`, `crypto_data_hkdf/4`, `crypto_n_random_bytes/2`, `crypto_name_curve/2`, `crypto_password_hash/2`, `crypto_password_hash/3`, `curve25519_generator/1`, `curve25519_scalar_mult/3`, `ed25519_keypair_public_key/2`, `ed25519_new_keypair/1`, `ed25519_seed_keypair/2`, `ed25519_sign/4`, `ed25519_verify/4`, `hex_bytes/2` | Scryer-compatible hashing, KDFs, authenticated encryption, Ed25519, X25519, and secp256k1 helpers |
-| `library(dates)` | `difference/3` | ISO duration differences |
-| `library(dcgs)` | `-->/2`, `.../2`, `phrase/2`, `phrase/3`, `phrase/4`, `phrase/5`, `seq/3`, `seqq/3` | Full Scryer DCG export surface; nonterminals are shown at their expanded arities |
-| `library(debug)` | `*/1`, `$/1`, `$-/1`, `debug/1`, `debug/3`, `nodebug/1`, `bb_get/2`, `bb_put/2`, `bb_b_put/2` | Declarative debug operators plus compatibility re-exports of the canonical `iso_ext` blackboard |
-| `library(dif)` | `dif/2` | Common module facade over native delayed disequality |
-| `library(error)` | `must_be/2`, `can_be/2`, `instantiation_error/0`, `instantiation_error/1`, `domain_error/2`, `domain_error/3`, `type_error/2`, `type_error/3`, `representation_error/1`, `resource_error/1`, `resource_error/2`, `call_with_error_context/2` | Error checking and construction |
-| `library(eyelet)` | `stable/1`, `becomes/2` | Eyelet forward-reasoning driver and state helpers; the `:+` operator is exported by the module and its fixed point is implemented in Prolog |
-| `library(files)` | `delete_directory/1`, `delete_file/1`, `directory_exists/1`, `directory_files/2`, `file_access_time/2`, `file_copy/2`, `file_creation_time/2`, `file_exists/1`, `file_modification_time/2`, `file_size/2`, `make_directory/1`, `make_directory_path/1`, `path_canonical/2`, `path_segments/2`, `rename_file/2`, `working_directory/2` | Full Scryer filesystem surface backed by the Node host where filesystem access is required |
-| `library(format)` | `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2` | Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals |
-| `library(freeze)` | `freeze/2`, `frozen/2` | Delayed goals and residual suspension inspection |
-| `library(gensym)` | `gensym/2`, `reset_gensym/1` | Process-local generated atoms |
-| `library(iso_ext)` | `bb_b_put/2`, `bb_get/2`, `bb_put/2`, `call_cleanup/2`, `call_nth/2`, `call_residue_vars/2`, `call_with_inference_limit/3`, `cfor/3`, `copy_term/3`, `copy_term_nat/2`, `countall/2`, `findall/4`, `forall/2`, `partial_string/1`, `partial_string/3`, `partial_string_tail/2`, `setup_call_cleanup/3`, `succ/2`, `time/1`, `variant/2` | Scryer ISO extensions plus EyeProlog compatibility helpers |
-| `library(lambda)` | `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9` | Higher-order lambda notation |
-| `library(lists)` | `member/2`, `memberchk/2`, `select/3`, `selectchk/3`, `subtract/3`, `union/3`, `intersection/3`, `is_set/1`, `append/2`, `append/3`, `last/2`, `same_length/2`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `reverse/2`, `length/2`, `include/3`, `exclude/3`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `maplist/9`, `tasklist/2`, `tasklist/3`, `tasklist/4`, `tasklist/5`, `tasklist/6`, `tasklist/7`, `tasklist/8`, `foldl/4`, `foldl/5`, `foldl/6`, `sum_list/2`, `min_list/2`, `max_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`, `permutation/2`, `transpose/2`, `set_nth0/4`, `take/3`, `drop/3`, `slice/4` | List relations and shared matrix/permutation helpers; `tasklist/*` is a sequential compatibility fallback |
-| `library(ordsets)` | `is_ordset/1`, `list_to_ord_set/2`, `ord_add_element/3`, `ord_del_element/3`, `ord_disjoint/2`, `ord_empty/1`, `ord_intersect/2`, `ord_intersect/3`, `ord_intersection/2`, `ord_intersection/3`, `ord_intersection/4`, `ord_memberchk/2`, `ord_selectchk/3`, `ord_seteq/2`, `ord_subset/2`, `ord_subtract/3`, `ord_symdiff/3`, `ord_union/2`, `ord_union/3`, `ord_union/4` | Ordered-set relations; reused upstream source |
-| `library(os)` | `argv/1`, `getenv/2`, `pid/1`, `raw_argv/1`, `setenv/2`, `shell/1`, `shell/2`, `unsetenv/1` | Environment, shell, PID, and command-line access backed by the Node host |
-| `library(pairs)` | `pairs_keys_values/3`, `pairs_keys/2`, `pairs_values/2`, `group_pairs_by_key/2`, `map_list_to_pairs/3` | Key-value pair support |
-| `library(pio)` | `phrase_from_file/2`, `phrase_from_file/3`, `phrase_from_stream/2`, `phrase_to_file/2`, `phrase_to_file/3`, `phrase_to_stream/2` | Scryer-compatible eager DCG file/stream I/O with character-list and atom paths |
-| `library(primes)` | `smallest_divisor_from/3` | Prime factor support |
-| `library(prologue)` | `member/2`, `append/3`, `length/2`, `between/3`, `select/3`, `succ/2`, `maplist/2`, `maplist/3`, `maplist/4`, `maplist/5`, `maplist/6`, `maplist/7`, `maplist/8`, `nth0/3`, `nth0/4`, `nth1/3`, `nth1/4`, `call_nth/2`, `freeze/2`, `foldl/4`, `foldl/5`, `foldl/6`, `countall/2` | Legacy facade over canonical focused modules |
-| `library(random)` | `maybe/0`, `maybe/1`, `maybe/2`, `random/1`, `random/3`, `random_integer/3`, `set_random/1` | Trealla-compatible probability helpers plus the common mutable-seed interface and EyeProlog's pure state-threaded generator |
-| `library(reif)` | `,/3`, `;/3`, `=/3`, `cond_t/3`, `dif/3`, `if_/3`, `memberd_t/3`, `tfilter/3`, `tmember/2`, `tmember_t/3`, `tpartition/4` | Reified conditions and list filtering; reused upstream source |
-| `library(si)` | `atom_si/1`, `integer_si/1`, `atomic_si/1`, `list_si/1`, `character_si/1`, `term_si/1`, `chars_si/1`, `dif_si/2`, `not_si/1`, `when_si/2` | Sufficient-instantiation checks used by CLP(Z) |
-| `library(strings)` | `matches/3`, `split/3`, `replace/4`, `lowercase/2`, `uppercase/2`, `trim/2`, `number_string/2`, `atom_string/2`, `term_string/2`, `string_concat/3`, `contains/2`, `matches/2`, `join/3`, `substring/4` | Text relations |
-| `library(tabling)` | `abolish_all_tables/0`, `abolish_table/1`, `start_tabling/2` | Common helpers for explicitly declared tabling, including targeted invalidation |
-| `library(terms)` | `numbervars/3`, `copy_term_nat/2` | Term operations used by bundled libraries |
-| `library(time)` | `current_time/1`, `format_time/4`, `max_sleep_time/1`, `sleep/1`, `statistics/2`, `time/1` | Clock timestamps, sleep limits, timing/statistics, and the expanded `format_time//2` nonterminal |
-| `library(ugraphs)` | `add_edges/3`, `add_vertices/3`, `complement/2`, `compose/3`, `connect_ugraph/3`, `del_edges/3`, `del_vertices/3`, `edges/2`, `neighbors/3`, `neighbours/3`, `reachable/3`, `top_sort/2`, `top_sort/3`, `transitive_closure/2`, `transpose_ugraph/2`, `ugraph_union/3`, `vertices/2`, `vertices_edges_to_ugraph/3` | Directed graph relations; reused upstream source |
-| `library(uuid)` | `uuid/3`, `uuid_string/2`, `uuidv4/1`, `uuidv4_string/1` | Common UUID byte/string conversion and generation plus pure state threading |
-| `library(when)` | `when/2` | Shared delayed-condition interface over attributed variables |
+`library(atts)` is the Prolog-facing attributed-variable layer over the persistent
+annotated-variable machinery in `src/term.js`, with its small host bridge in
+`src/atts.js`. It provides the attribute operations used by Scryer libraries,
+accepts `:- attribute ...` declarations, invokes module-local
+`verify_attributes/3` before an attributed binding is committed, and schedules
+the returned goals immediately after the binding. Attribute maps are copied only
+when changed and therefore backtrack with `Env` branches; the interactive top
+level projects module `attribute_goals//1` hooks as residual goals. The checked
+[`examples/attributed-variables.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/attributed-variables.pl)
+demonstrates binding verification and attribute transfer across aliases.
 
-<!-- eyeprolog-library-catalog:end -->
+`library(clpz)` is Markus Triska's MIT-licensed Scryer Prolog implementation of
+constraint logic programming over integers, bundled as `src/lib/clpz.pl`.
+EyeProlog executes the Prolog propagator implementation through the generic
+attributed-variable machinery in `src/term.js` and `src/atts.js`. The library
+provides relational arithmetic and reification, finite and union domains,
+labeling, all-different/all-distinct constraints, sums and scalar products,
+extensional tuple tables, lexicographic chains, serialized and cumulative
+scheduling, global cardinality with costs, Hamiltonian circuits, `disjoint2/1`,
+`automaton/3,8`, value counting, comparison, and domain reflection.
+
+The compiler services used by the library are ordinary EyeProlog facilities:
+module-local and `user` `term_expansion/2` and `goal_expansion/2`, clause-list
+expansion, and `expand_term/2` for processor DCG lowering. The same runtime also
+provides a generic copy-on-write backtrackable blackboard and the supporting
+Prolog modules `assoc`, `pairs`, `between`, `dcgs`, `terms`, `error`, `si`,
+`freeze`, `arithmetic`, `debug`, and `format`. The bundled CLP(Z) source is
+synchronized with Scryer commit `e3df91e25f8a09ee942c04e8baef553bba5c6110`,
+Git blob `806445c11e14c8b2515f3de7f309e0ac04d9ad04`.
+
+Alongside `call_nth/2`, `time/1`, and `.../2`, `library(iso_ext)` now
+re-exports the shared control/term interfaces `call_cleanup/2`,
+`setup_call_cleanup/3`, `call_residue_vars/2`, and `copy_term_nat/2` from their
+canonical runtime or focused-module implementations. It also exports
+EyeProlog's extension relations `countall/2`, `forall/2`, `succ/2`, `cfor/3`,
+`findall/4`, and `variant/2`. `forall/2` checks an action for every solution of a
+condition; `cfor/3` enumerates an inclusive evaluated integer range; `succ/2`
+relates adjacent nonnegative integers; `findall/4` collects into a difference
+list; and `variant/2` recognizes terms equal up to variable renaming.
+`countall/2` counts solutions without exposing a template. These exports do not
+all belong to the conservative interop subset merely because they share the
+`iso_ext` module.
+
+`library(format)` accepts the common `format/[2,3]`, `format_//2`,
+`portray_clause/[1,2]`, `portray_clause_//1`, and `listing/1` interfaces. Its
+portable formatter currently implements literal text, `~~`, `~n`, `~w`, `~q`,
+`~a`, and `~d`; controls for field widths and floating-point presentation are
+not yet part of EyeProlog's compatibility subset. `library(pio)` eagerly reads
+or materializes a DCG character list around ISO streams. It preserves the
+declarative grammar interface, but unlike Scryer's lazy list implementation it
+does not defer file reads.
+
+`library(tabling)` accepts `:- table Name/Arity.` and the common
+`start_tabling/2` and `abolish_all_tables/0` predicates. Recursive user
+predicates are already tabled by EyeProlog's program analysis, so the directive
+is a compatible declaration rather than a second tabling engine.
+`library(time)` returns a timestamp association list from the local clock;
+`format_time//2` supports the documented year, month, day, time, month-name,
+weekday-name, and day-of-year specifiers. It also exports `sleep/1`, re-exports
+the canonical `time/1`, and exposes the normal runtime `statistics/2` interface.
+
+`random/1` keeps the common mutable-seed interface but uses a private native
+state step for hot-loop performance; its public sequence remains the same
+Park-Miller sequence used by the portable explicit-state `random/3`. The helper
+is internal to the normal EyeProlog registry and is not part of the ISO or
+public library predicate catalogs.
+
+`uuidv4/1`, `uuidv4_string/1`, and `uuid_string/2` provide the common UUID byte
+list and character-list interface. `uuid(+Seed0,-UUID,-Seed)` remains an
+EyeProlog extension that creates a version 4 UUID atom using pure `random/3`.
+Passing the returned seed to the next call produces the next UUID; restarting
+with the same integer seed reproduces the same sequence. `set_random/1` controls
+the common stateful generator used by `uuidv4/1`.
 
 <!-- eyeprolog-predicate-reference:start -->
-#### Complete predicate indicator reference
+### Complete predicate indicator reference
 
 This generated reference covers all **518 distinct predicate indicators** in the normal EyeProlog surface: 129 core registry indicators plus 391 bundled-library indicators, with `phrase/2` and `phrase/3` present in both layers and therefore counted once.
 
@@ -6444,7 +7029,7 @@ Each entry is a compact contract. `+` marks a principal input, `-` a principal o
 
 The reference uses stacked entries instead of wide Markdown tables, so principal calls and contracts wrap naturally on narrow screens without horizontal scrolling. It is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.
 
-##### Predicate index
+#### Predicate index
 
 Every indicator below links directly to its own explicit anchor. These anchors are generated as stable numeric IDs instead of relying on Markdown heading-slug rules, so the links behave consistently in GitHub Pages and other renderers.
 
@@ -6496,7 +7081,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
 
 **Z:** [`zcompare/3`](#predicate-reference-0518)
 
-##### Predicate reference — Symbols
+#### Predicate reference — Symbols
 
 <a id="predicate-reference-0001"></a>
 - **`-->/2`** — `library(dcgs)` · **`declaration`**  
@@ -6763,7 +7348,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `$(+Goal)`  
   **Contract:** Debug operator that runs Goal with the module's enabled diagnostic behavior.
 
-##### Predicate reference — A
+#### Predicate reference — A
 
 <a id="predicate-reference-0067"></a>
 - **`abolish_all_tables/0`** — `library(tabling)` · **`det`**  
@@ -6902,7 +7487,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `automaton(+Sequence,+Template,+Signature,+Nodes,+Arcs,+Counters,+Initials,+Finals)`  
   **Contract:** Posts the extended automaton constraint with explicit graph and counter descriptions.
 
-##### Predicate reference — B
+#### Predicate reference — B
 
 <a id="predicate-reference-0101"></a>
 - **`bagof/3`** — `ISO core` · **`nondet`**  
@@ -6929,7 +7514,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `between(+Low,+High,?Value)`  
   **Contract:** Enumerates integers Value from Low through High inclusively, or checks a supplied Value.
 
-##### Predicate reference — C
+#### Predicate reference — C
 
 <a id="predicate-reference-0107"></a>
 - **`call_cleanup/2`** — `library(iso_ext)` · **`meta`**  
@@ -7184,7 +7769,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `curve25519_scalar_mult(+Scalar,+Point,-Result)`  
   **Contract:** Computes Curve25519 scalar multiplication.
 
-##### Predicate reference — D
+#### Predicate reference — D
 
 <a id="predicate-reference-0170"></a>
 - **`debug/1`** — `library(debug)` · **`det`**  
@@ -7267,7 +7852,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `drop(+Count,+List,-Suffix)`  
   **Contract:** Returns the suffix after removing exactly Count leading elements; fails when List is too short.
 
-##### Predicate reference — E
+#### Predicate reference — E
 
 <a id="predicate-reference-0190"></a>
 - **`ed25519_keypair_public_key/2`** — `library(crypto)` · **`det`**  
@@ -7310,7 +7895,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `expmod(+Base,+Exponent,+Modulus,-Result)`  
   **Contract:** Computes Base^Exponent modulo Modulus for integer inputs.
 
-##### Predicate reference — F
+#### Predicate reference — F
 
 <a id="predicate-reference-0200"></a>
 - **`fail/0`** — `ISO core` · **`semidet`**  
@@ -7429,7 +8014,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `functor(?Term,?Name,?Arity)`  
   **Contract:** Decomposes an instantiated term into functor and arity, or constructs a term when Name and Arity are given.
 
-##### Predicate reference — G
+#### Predicate reference — G
 
 <a id="predicate-reference-0229"></a>
 - **`ge/2`** — `library(comparison)` · **`semidet`**  
@@ -7528,7 +8113,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `gt(+A,+B)`  
   **Contract:** Succeeds iff A is greater than B under the library's portable comparison rules.
 
-##### Predicate reference — H
+#### Predicate reference — H
 
 <a id="predicate-reference-0253"></a>
 - **`halt/0`** — `ISO core` · **`terminal`**  
@@ -7543,7 +8128,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `hex_bytes(?Hex,?Bytes)`  
   **Contract:** Relates hexadecimal character data to the corresponding byte list.
 
-##### Predicate reference — I
+#### Predicate reference — I
 
 <a id="predicate-reference-0256"></a>
 - **`if_/3`** — `library(reif)` · **`meta`**  
@@ -7602,21 +8187,21 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `(?Result is +Expression)`  
   **Contract:** Evaluates the arithmetic Expression and unifies Result with the resulting number.
 
-##### Predicate reference — J
+#### Predicate reference — J
 
 <a id="predicate-reference-0270"></a>
 - **`join/3`** — `library(strings)` · **`det`**  
   **Call:** `join(+Parts,+Separator,-Text)`  
   **Contract:** Joins lexical Parts with literal Separator to produce Text.
 
-##### Predicate reference — K
+#### Predicate reference — K
 
 <a id="predicate-reference-0271"></a>
 - **`keysort/2`** — `ISO core` · **`det`**  
   **Call:** `keysort(+Pairs,?Sorted)`  
   **Contract:** Stably sorts Key-Value pairs by key without removing duplicates.
 
-##### Predicate reference — L
+#### Predicate reference — L
 
 <a id="predicate-reference-0272"></a>
 - **`label/1`** — `library(clpz)` · **`nondet`**  
@@ -7691,7 +8276,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `lt(+A,+B)`  
   **Contract:** Succeeds iff A is less than B under the library's portable comparison rules.
 
-##### Predicate reference — M
+#### Predicate reference — M
 
 <a id="predicate-reference-0290"></a>
 - **`make_directory_path/1`** — `library(files)` · **`det`**  
@@ -7806,7 +8391,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `must_be(+Type,+Term)`  
   **Contract:** Succeeds when Term is instantiated and satisfies Type; otherwise raises the corresponding instantiation or type/domain error.
 
-##### Predicate reference — N
+#### Predicate reference — N
 
 <a id="predicate-reference-0318"></a>
 - **`neighbors/3`** — `library(ugraphs)` · **`semidet`**  
@@ -7893,7 +8478,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `nvalue(?N,+Vars)`  
   **Contract:** Constrains N to the number of distinct values taken by Vars.
 
-##### Predicate reference — O
+#### Predicate reference — O
 
 <a id="predicate-reference-0339"></a>
 - **`once/1`** — `ISO core` · **`semidet`**  
@@ -7988,7 +8573,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `ord_union(+A,+B,-Union,-New)`  
   **Contract:** Computes Union and the elements contributed by one side according to the library's four-argument contract.
 
-##### Predicate reference — P
+#### Predicate reference — P
 
 <a id="predicate-reference-0362"></a>
 - **`pairs_keys_values/3`** — `library(pairs)` · **`mode-dependent`**  
@@ -8147,7 +8732,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `put_code(+Stream,+Code)`  
   **Contract:** Writes one character code to Stream.
 
-##### Predicate reference — R
+#### Predicate reference — R
 
 <a id="predicate-reference-0401"></a>
 - **`random_integer/3`** — `library(random)` · **`det`**  
@@ -8246,7 +8831,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `reverse(?List,?Reversed)`  
   **Contract:** Relates a proper list to the list containing the same elements in reverse order.
 
-##### Predicate reference — S
+#### Predicate reference — S
 
 <a id="predicate-reference-0425"></a>
 - **`same_length/2`** — `library(lists)` · **`mode-dependent`**  
@@ -8401,7 +8986,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `sumall(+Template,+Goal,-Sum)`  
   **Contract:** Sums the numeric Template value over every solution of Goal; the empty sum is 0.
 
-##### Predicate reference — T
+#### Predicate reference — T
 
 <a id="predicate-reference-0463"></a>
 - **`take/3`** — `library(lists)` · **`semidet`**  
@@ -8520,7 +9105,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `type_error(+Type,+Term,+Context)`  
   **Contract:** Raises a type_error(Type,Term) exception carrying Context.
 
-##### Predicate reference — U
+#### Predicate reference — U
 
 <a id="predicate-reference-0492"></a>
 - **`ugraph_union/3`** — `library(ugraphs)` · **`det`**  
@@ -8559,7 +9144,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `uuidv4(-UUID)`  
   **Contract:** Generates a version-4 UUID byte/term representation using the current pseudo-random generator.
 
-##### Predicate reference — V
+#### Predicate reference — V
 
 <a id="predicate-reference-0501"></a>
 - **`var/1`** — `ISO core` · **`semidet`**  
@@ -8578,7 +9163,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `vertices(+Graph,-Vertices)`  
   **Contract:** Returns the vertices of Graph in graph order.
 
-##### Predicate reference — W
+#### Predicate reference — W
 
 <a id="predicate-reference-0505"></a>
 - **`weighted_maximum/3`** — `library(clpb)` · **`nondet`**  
@@ -8633,7 +9218,7 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Call:** `writeq(+Stream,+Term)`  
   **Contract:** Writes Term to Stream with quoting sufficient for readback.
 
-##### Predicate reference — Z
+#### Predicate reference — Z
 
 <a id="predicate-reference-0518"></a>
 - **`zcompare/3`** — `library(clpz)` · **`delayed`**  
@@ -8641,556 +9226,6 @@ Every indicator below links directly to its own explicit anchor. These anchors a
   **Contract:** Relates Order (<,=,>) to the constrained integer comparison between A and B.
 
 <!-- eyeprolog-predicate-reference:end -->
-
-#### Interoperability profile and bundled-library autoloading
-
-EyeProlog keeps four related concepts separate:
-
-| Layer | Meaning |
-| --- | --- |
-| **ISO core** | The documented ISO predicate profile built into the processor. No EyeProlog library import is involved. |
-| **EyeProlog library surface** | Every module and exported predicate listed in the catalog above. Programs normally access these with `use_module/1-2`. |
-| **Interoperability profile** | A deliberately smaller set of library names and predicate interfaces that EyeProlog intends to keep source-compatible with Trealla and Scryer where practical. |
-| **Autoload index** | A generated index of every predicate exported by the bundled `src/lib/` modules, with one canonical provider per unambiguous predicate. |
-
-These layers answer different questions. A predicate may be implemented entirely
-as ordinary Prolog and still be outside the cross-processor interoperability
-profile; conversely, an interoperable predicate may be backed by a private host
-adapter. In this section, **portable** refers to source portability between
-Prolog systems, not merely to the language in which a predicate happens to be
-implemented.
-
-The conservative Trealla/Scryer compatibility profile is derived from Scryer
-library modules and predicate indicators also documented by Trealla. Where
-Trealla exposes a predicate globally rather than from the same module, EyeProlog
-follows Scryer's module name so explicit Scryer-style imports remain available.
-That interoperability profile currently spans 26 modules and is intentionally
-narrower than either implementation's union of exports; EyeProlog's explicit-state
-`random/3` and `uuid/3`, for example, remain useful extensions rather than shared
-interfaces. Separately, all 32 bundled EyeProlog modules whose basenames overlap
-Scryer's current `src/lib/` tree are checked against the frozen export snapshot in
-`test/scryer-library-exports.json` and cover the corresponding Scryer public
-predicate surface. The same structural check is now applied to Trealla: the 26
-bundled modules that have public-module counterparts in Trealla `library/` cover
-Trealla's exported predicates at pinned upstream commit
-`f7a93bd521c07a4841f5123348111dd005918c89`, recorded in
-`test/trealla-library-exports.json`. This is module-overlap coverage, not a claim
-that EyeProlog bundles Trealla's native host libraries such as `curl`, `gsl`,
-`janus`, `raylib`, `socket`, or `sqlite3`.
-
-Source reuse is preferred over translation. `clpb.pl`, `ordsets.pl`,
-`reif.pl`, and `ugraphs.pl` retain the upstream Prolog algorithms and license
-headers; `assoc.pl` uses the complete upstream AVL implementation. `gensym.pl`
-and `when.pl` keep the same algorithms with small blackboard and parser-safe
-closure adaptations. `dif.pl`, `tabling.pl`, and part of `time.pl` are thin
-facades over EyeProlog runtime facilities. `charsio.pl` covers Scryer's UTF-8,
-chars/term, and Base64 relations; `pio.pl` covers the complete Scryer export
-surface and accepts Scryer character-list paths while retaining atom-path
-compatibility. `files.pl` covers Scryer's complete filesystem export surface,
-while `os.pl` covers its environment/shell process-context surface. Their actual
-filesystem and OS side effects are isolated in module-owned Node adapters.
-`crypto.pl` exposes Scryer's complete public crypto surface; its strict Trealla/Scryer overlap is `hex_bytes/2`,
-`crypto_n_random_bytes/2`, and `crypto_data_hash/3`. Trealla-specific overlap additions include `aggregate_all/3` and
-`aggregate/3`, `frozen/2`, the set/filter/list helpers and `tasklist/2-8`,
-`maybe/1-2`, `resource_error/2`, and `abolish_table/1`. Because EyeProlog has no
-Trealla task scheduler, `tasklist/2-8` deliberately executes sequentially with
-`maplist`-equivalent success/failure semantics; it does not promise Trealla's
-parallel scheduling behavior. The
-[portable library overlap example](https://github.com/eyereasoner/eyeprolog/blob/main/examples/portable-library-overlap.pl)
-composes Boolean constraints, ordered sets, graphs, reification, delayed goals,
-generated names, character conversion, transposition, and explicit table
-syntax in one checked program.
-
-Two matching upstream basenames are intentionally not exposed as portable
-libraries. The two `builtins.pl` files are private engine facades and have no
-shared public predicate interface. `sockets.pl` requires a native networking
-event loop and host socket objects; EyeProlog does not provide a source-only
-facade that would accept calls and then fail at runtime.
-
-`number_to_rational/2` and `rational_numerator_denominator/3` are now present in
-`library(arithmetic)`. EyeProlog's processor numeric values are still integers
-and IEEE-754 floats, so a non-integral result is represented canonically as the
-ordinary term `rdiv(Numerator,Denominator)`. The conversion/decomposition
-interface is therefore available, but that structural `rdiv/2` value is not yet
-an evaluable rational number for `is/2` or arithmetic comparison.
-
-`library(files)` follows Scryer's character-list path convention and includes
-`directory_files/2`, `delete_file/1`, `rename_file/2`, `make_directory/1`,
-`make_directory_path/1`, and `working_directory/2`. `library(os)` similarly
-uses character lists for environment names, values, commands, and argument
-strings. Trealla documents the same predicate indicators, although several of
-its host predicates use atoms instead. Both EyeProlog modules require the Node
-host; browser calls raise a resource error instead of simulating filesystem,
-environment, or process side effects.
-
-`library(crypto)` follows Scryer's character-list and byte-list conventions.
-It provides hexadecimal conversion, cryptographically secure random bytes,
-hashes and HMAC, HKDF, PBKDF2-SHA512 password hashes, ChaCha20-Poly1305,
-Ed25519 signing and verification, X25519 key agreement, and the Scryer
-secp256k1 curve representation/helpers. Hashing, KDF, authenticated encryption, Ed25519, and X25519 use Node's
-cryptographic backend; `crypto_n_random_bytes/2` can also use Web Crypto's
-CSPRNG. Operations without a suitable backend raise `resource_error(crypto)`.
-`hex_bytes/2` and the static curve metadata remain usable without that backend. As in Scryer, new key-agreement code should prefer X25519 over
-the older generic secp256k1 helper.
-
-For `library(lists)`, the current interop predicate set is `member/2`,
-`memberchk/2`, `select/3`, `append/2-3`, `last/2`, `same_length/2`,
-`nth0/3-4`, `nth1/3-4`, `reverse/2`, `length/2`, `maplist/2-8`,
-`foldl/4-6`, `sum_list/2`, `list_to_set/2`, `list_max/2`, `list_min/2`,
-`permutation/2`, and `transpose/2`. Other exports from the same
-module, such as `min_list/2`, `max_list/2`, `set_nth0/4`, `take/3`, `drop/3`,
-and `slice/4`, remain available to EyeProlog programs but lie outside this
-conservative cross-engine subset.
-
-`length/2` remains fully relational. With both arguments variable,
-`length(Xs, N)` enumerates `Xs = [], N = 0`, then one-element lists with
-`N = 1`, and so on. Open-ended generation uses the normal memory guard with
-recovery headroom so finite-heap exhaustion remains a catchable
-`resource_error(memory)`. A supplied nonnegative length selects at most one
-answer, and a supplied closed list has exactly one length; these modes do not
-retain an exhausted choicepoint.
-
-`library(iso_ext)` is a common interop module name, but only part of its
-EyeProlog API belongs to the shared profile. `call_nth/2`, `time/1`, and
-`.../2` are mapped there. `time/1` measures each solution of a meta-call and
-prints elapsed time, EyeProlog inference count, and MLips in Trealla-style form,
-for example `% Time elapsed 0.832s, 65551 Inferences, 0.079 MLips`; `... //0`
-describes an arbitrary number of input elements. Together they let the
-Trealla/Scryer DCG hand-off benchmark run in EyeProlog without source changes;
-the interactive top level uses the same bundled-predicate autoloader as file and
-CLI/API goal execution. The focused modules have one canonical implementation owner per
-predicate. `library(prologue)` re-exports those same owners, so legacy code can
-combine the facade with `library(lists)`, `library(iso_ext)`, and
-`library(freeze)` in either import order without an accidental collision.
-
-`library(lambda)` follows Scryer's higher-order notation, adapted from Ulrich
-Neumerkel's permissively licensed implementation. Its public syntax is:
-
-```text
-\X1^X2^...^XN^Goal
-Free+\X1^X2^...^XN^Goal
-```
-
-The first form has no explicitly shared free variables. Before each invocation,
-EyeProlog copies the closure term so local variables are fresh on successive
-`maplist/2-8`, `foldl/4-6`, or direct `call/N` uses. In the second form, the
-variables contained in `Free` remain shared with the surrounding goal.
-Importing the library installs `+\` as a priority-201 `xfx` operator; `\` and
-`^` use their existing ISO operator definitions. Parenthesize lower-priority
-goal operators after `^`, for example `\X^(X > 3)`.
-
-A continuation lambda may leave arguments for a later call:
-
-```text
-f(x, y).
-
-answer(A, B) :- call(\X^f(X), A, B).
-```
-
-This is equivalent to supplying both arguments directly. A lambda called with
-too few parameters raises `existence_error(lambda_parameter, ...)`. EyeProlog
-uses its ISO `copy_term/2` implementation for the fresh-copy step and does not
-require a separate `copy_term_nat/2` predicate.
-
-Autoloading is a convenience layered on top of the module system and is
-independent of the smaller interoperability profile. At build time EyeProlog
-uses a generated index derived from every bundled `src/lib/*.pl` `module/2`
-export list. An otherwise unresolved predicate in source, initialization code, an explicit
-CLI/API goal, or an interactive top-level query therefore autoloads its canonical
-bundled provider.
-For example:
-
-| Predicate | Canonical autoload provider |
-| --- | --- |
-| `member/2` | `library(lists)` |
-| `pairs_keys_values/3` | `library(pairs)` |
-| `uppercase/2` | `library(strings)` |
-| `smallest_divisor_from/3` | `library(primes)` |
-| `between/3` | `library(between)` |
-
-The resolution order is deliberately conservative with respect to Prolog
-semantics: a predicate already defined by the program wins; ISO/standard
-built-ins are not replaced by an autoloaded library; an explicit module import
-wins over autoloading; only then is the bundled autoload index consulted.
-Facade modules such as `library(prologue)` may re-export predicates from focused
-modules; the generated index chooses the unique module that actually defines
-the predicate. If more than one bundled module genuinely defines the same
-export, EyeProlog reports an import ambiguity and requires explicit
-`use_module/1-2` rather than guessing. The interactive top level applies this
-same resolution after a query has been parsed. Autoloading therefore supplies
-predicates, not retroactive syntax: a library that introduces operators (for
-example `library(clpz)` and `ins`) must still be explicitly imported before a
-query or source term uses those operators.
-
-The index is generated by `npm run generate:autoload` into
-`src/library-autoload-index.js`, and the documentation regression suite checks
-that it is synchronized with the current `src/lib/` sources. Explicit imports
-remain the clearest way to state dependencies when portability or module intent
-should be visible in the source:
-
-```text
-:- use_module(library(lists)).
-:- use_module(library(iso_ext), [call_nth/2]).
-```
-
-Use `--no-autoload`, or the JavaScript option `autoload: false`, when every
-library dependency should be explicit. `--iso-strict` always disables EyeProlog
-library autoloading, so strict ISO execution never gains procedures from this
-implementation convenience.
-
-`-w` / `--warnings` reports explicit dependencies on non-profile libraries and
-calls to non-profile predicates from otherwise common modules. `--portable`
-turns those diagnostics into a failing run, making the conservative profile
-suitable for continuous integration. `npm run test:interop` executes the same
-portable Towers of Hanoi source under EyeProlog, Trealla, and Scryer when those commands
-are installed. Because those are external runtimes, the default `npm test`
-instead validates all four generated OpenRuleBench source trees and their
-engine-specific tabling and WFS adaptations without requiring them. The fast
-structural check is also available directly as `npm run test:openrulebench`.
-
-#### Library notes beyond the interoperability profile
-
-The catalog above is authoritative for the complete EyeProlog library surface.
-The following notes describe useful parts of that surface without extending the
-cross-engine claims made above.
-
-`library(atts)` is the Prolog-facing attributed-variable layer over the persistent
-annotated-variable machinery in `src/term.js`, with its small host bridge in
-`src/atts.js`. It provides the attribute operations used by Scryer libraries,
-accepts `:- attribute ...` declarations, invokes module-local
-`verify_attributes/3` before an attributed binding is committed, and schedules
-the returned goals immediately after the binding. Attribute maps are copied only
-when changed and therefore backtrack with `Env` branches; the interactive top
-level projects module `attribute_goals//1` hooks as residual goals. The checked
-[`examples/attributed-variables.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/attributed-variables.pl)
-demonstrates binding verification and attribute transfer across aliases.
-
-`library(clpz)` is Markus Triska's MIT-licensed Scryer Prolog implementation of
-constraint logic programming over integers, bundled as `src/lib/clpz.pl`.
-EyeProlog executes the Prolog propagator implementation through the generic
-attributed-variable machinery in `src/term.js` and `src/atts.js`. The library
-provides relational arithmetic and reification, finite and union domains,
-labeling, all-different/all-distinct constraints, sums and scalar products,
-extensional tuple tables, lexicographic chains, serialized and cumulative
-scheduling, global cardinality with costs, Hamiltonian circuits, `disjoint2/1`,
-`automaton/3,8`, value counting, comparison, and domain reflection.
-
-The compiler services used by the library are ordinary EyeProlog facilities:
-module-local and `user` `term_expansion/2` and `goal_expansion/2`, clause-list
-expansion, and `expand_term/2` for processor DCG lowering. The same runtime also
-provides a generic copy-on-write backtrackable blackboard and the supporting
-Prolog modules `assoc`, `pairs`, `between`, `dcgs`, `terms`, `error`, `si`,
-`freeze`, `arithmetic`, `debug`, and `format`. The bundled CLP(Z) source is
-synchronized with Scryer commit `e3df91e25f8a09ee942c04e8baef553bba5c6110`,
-Git blob `806445c11e14c8b2515f3de7f309e0ac04d9ad04`.
-
-Alongside `call_nth/2`, `time/1`, and `.../2`, `library(iso_ext)` now
-re-exports the shared control/term interfaces `call_cleanup/2`,
-`setup_call_cleanup/3`, `call_residue_vars/2`, and `copy_term_nat/2` from their
-canonical runtime or focused-module implementations. It also exports
-EyeProlog's extension relations `countall/2`, `forall/2`, `succ/2`, `cfor/3`,
-`findall/4`, and `variant/2`. `forall/2` checks an action for every solution of a
-condition; `cfor/3` enumerates an inclusive evaluated integer range; `succ/2`
-relates adjacent nonnegative integers; `findall/4` collects into a difference
-list; and `variant/2` recognizes terms equal up to variable renaming.
-`countall/2` counts solutions without exposing a template. These exports do not
-all belong to the conservative interop subset merely because they share the
-`iso_ext` module.
-
-`library(format)` accepts the common `format/[2,3]`, `format_//2`,
-`portray_clause/[1,2]`, `portray_clause_//1`, and `listing/1` interfaces. Its
-portable formatter currently implements literal text, `~~`, `~n`, `~w`, `~q`,
-`~a`, and `~d`; controls for field widths and floating-point presentation are
-not yet part of EyeProlog's compatibility subset. `library(pio)` eagerly reads
-or materializes a DCG character list around ISO streams. It preserves the
-declarative grammar interface, but unlike Scryer's lazy list implementation it
-does not defer file reads.
-
-`library(tabling)` accepts `:- table Name/Arity.` and the common
-`start_tabling/2` and `abolish_all_tables/0` predicates. Recursive user
-predicates are already tabled by EyeProlog's program analysis, so the directive
-is a compatible declaration rather than a second tabling engine.
-`library(time)` returns a timestamp association list from the local clock;
-`format_time//2` supports the documented year, month, day, time, month-name,
-weekday-name, and day-of-year specifiers. It also exports `sleep/1`, re-exports
-the canonical `time/1`, and exposes the normal runtime `statistics/2` interface.
-
-`random/1` keeps the common mutable-seed interface but uses a private native
-state step for hot-loop performance; its public sequence remains the same
-Park-Miller sequence used by the portable explicit-state `random/3`. The helper
-is internal to the normal EyeProlog registry and is not part of the ISO or
-public library predicate catalogs.
-
-`uuidv4/1`, `uuidv4_string/1`, and `uuid_string/2` provide the common UUID byte
-list and character-list interface. `uuid(+Seed0,-UUID,-Seed)` remains an
-EyeProlog extension that creates a version 4 UUID atom using pure `random/3`.
-Passing the returned seed to the next call produces the next UUID; restarting
-with the same integer seed reproduces the same sequence. `set_random/1` controls
-the common stateful generator used by `uuidv4/1`.
-
-On the command line, a program can state its library dependencies explicitly:
-
-```sh
-printf '%s\n' ':- use_module(library(lists)).' 'answer(X) :- member(X, [ready]).' > program.pl
-eyeprolog --goal 'answer(X)' program.pl
-eyeprolog -p program.pl        # add proof output
-```
-
-JavaScript uses the same normal EyeProlog library registry by default:
-
-```js
-import { run } from 'eyeprolog';
-
-const source = `
-:- use_module(library(lists)).
-answer(Whole) :- append([red, green], [blue], Whole).
-`;
-
-const result = run(source, { goal: 'answer(X)' });
-console.log(result.stdout);
-```
-
-The mode notation used in the reference tables below is descriptive:
-
-- `+` means the argument must already have the required input shape;
-- `-` means the predicate produces that argument;
-- `?` means a bound value can be checked or an unbound value generated.
-
-Most EyeProlog library predicates are projections or filters. When an input is
-unbound, malformed, outside its domain, or incompatible with the requested
-output, they normally **fail** rather than raising the ISO errors described in
-the errors section above. They do not invent open-ended domains. Bind arithmetic
-operands, source text, proper lists, indexes, dates, and aggregate generators
-before calling the corresponding predicate.
-
-#### Portable numeric, comparison, and date relations
-
-| Predicates and principal modes | Behavior |
-| --- | --- |
-| `lt(+A,+B)`, `le(+A,+B)`, `gt(+A,+B)`, `ge(+A,+B)` | Compare integers exactly, finite numeric text numerically, `PnYnMnD` duration text component-wise, and other lexical values by string order. These differ from ISO arithmetic comparison and standard term order. |
-| `random(-Value)` | Stateful Park-Miller step using the library seed set by `set_random/1`; implemented through a private native fast path while retaining the same sequence and numeric conversion as `random/3`. |
-| `random(+Seed0,-Value,-Seed)` | Portable Park-Miller generator with explicit state. `Value` is in `[0,1)`; pass the returned integer `Seed` to the next call. The same initial integer seed always reproduces the same sequence. |
-| `difference(+End,+Start,-Duration)` | Portable Prolog. Computes a nonnegative calendar difference between ISO date atoms/character lists and returns atom `'PnYnMnD'`. Invalid dates or an end before the start fail. |
-
-```eyeprolog
-:- use_module(library(dates)).
-:- use_module(library(between), [between/3]).
-:- use_module(library(random)).
-:- use_module(library(lists)).
-
-answer(square, S) :- (S is 12 * 12).
-answer(day_count, N) :- between(3, 5, N).
-answer(age, D) :- difference('2026-07-28', '2020-05-20', D).
-answer(random_pair, [A,B]) :- random(42, A, S), random(S, B, _).
-```
-
-```sh
-eyeprolog --goal 'answer(Kind, Value)' program.pl
-```
-
-The library deliberately does not register named arithmetic wrappers such as
-`add/3`, `mul/3`, `abs/2`, or `sqrt/2`, because ISO arithmetic already
-expresses them: for example, `R is A + B`, `R is abs(A)`, and
-`R is sqrt(A)`. The same applies to subtraction, multiplication, division,
-modulo, powers, sine, cosine, exponential, logarithm, and the ISO rounding
-functions.
-
-The bundled library layer defines `between/3` in `library(between)` and
-`smallest_divisor_from/3` in `library(primes)` as ordinary Prolog clauses.
-Choose the smaller or
-larger of two arithmetic values directly with ISO control, for example
-`(A =< B -> Min = A ; Min = B)` or `(A >= B -> Max = A ; Max = B)`.
-
-#### List relations
-
-These relations are the actual Prolog implementations in
-`src/lib/lists.pl`. Every list-consuming relation below expects a
-proper list unless explicitly stated otherwise. Indexes and counts are
-zero-based, nonnegative safe integers.
-
-| Predicate and principal mode | Behavior |
-| --- | --- |
-| `append(+Prefix,+Suffix,-Whole)` | Appends a proper prefix to any suffix, including an improper tail. |
-| `append(-Prefix,-Suffix,+Whole)` | Enumerates every split of a proper `Whole`, from empty prefix to empty suffix. |
-| `member(?Item,+List)` | Produces one answer per matching position, so duplicates remain observable. |
-| `select(?Item,+List,-Rest)` | Removes one occurrence at a time and preserves the order of all other elements. Duplicate occurrences may produce duplicate answers. |
-| `\+ member(+Item,+List)` | Succeeds only when `Item` does not unify with any member. Use it after binding the item and list. |
-| `nth0(?Index,+List,?Item)` | Checks a bound zero-based index or enumerates indexes and their items. |
-| `nth1(?Index,+List,?Item)` | Checks a bound one-based index or enumerates one-based indexes and items. |
-| `maplist(+Closure,+List1,?List2)` | Applies a two-argument closure pairwise through ISO `call/3`; partially applied compound closures are supported. |
-| `[Head|Tail] = List` | Decomposes a nonempty list directly with ISO unification; no library wrapper is needed. |
-| `set_nth0(+Index,+List,+Item,-NewList)` | Replaces one existing position without mutating the input list. |
-| `last(+List,?Last)` | Returns the final element of a nonempty proper list. |
-| `take(+Count,+List,-Prefix)`, `drop(+Count,+List,-Suffix)` | Select the first `Count` elements or remove them. Counts beyond the list length fail. |
-| `slice(+Start,+Count,+List,-Slice)` | Selects exactly `Count` elements beginning at `Start`; an out-of-range slice fails. |
-| `reverse(+List,-Reversed)` | Reverses a proper list. |
-| `length(?List,?Length)` | Reports or checks the length of a proper list, or generates a list skeleton when `Length` is a bound nonnegative integer. |
-| `sum_list(+List,-Sum)` | Sums numeric elements with ISO `is/2`. The empty sum is `0`; invalid arithmetic raises the corresponding ISO error. |
-| `min_list(+List,-Min)`, `max_list(+List,-Max)` | Select by EyeProlog term order, not numeric coercion. Empty lists fail. |
-| `list_to_set(+List,-Set)` | Removes later structural duplicates while preserving first-occurrence order. |
-
-```eyeprolog
-
-:- use_module(library(lists)).
-
-answer(split, pair(Prefix, Suffix)) :-
-  append(Prefix, Suffix, [a, b]).
-
-answer(second, Item) :-
-  nth0(1, [a, b, c], Item).
-```
-
-```sh
-eyeprolog --goal 'answer(Kind, Value)' program.pl
-```
-
-#### Portable text, lexical values, and pattern matching
-
-The portable text API uses **ISO atoms or proper lists of one-character atoms**.
-A generated text result defaults to an atom. Double-quoted source text uses the
-ISO representation selected by `double_quotes`; with the default `chars`, it is
-already a proper character list accepted by this API. The 56-predicate portable
-library itself has no STRING or JavaScript dependency.
-
-| Predicate and principal mode | Behavior |
-| --- | --- |
-| `string_concat(?Left,?Right,?Text)` | Concatenates or splits atom/character-list text. At least two arguments must determine the operation; generated text is an atom. |
-| `contains(+Text,+Needle)` | Tests literal containment. |
-| `matches(+Text,+Pattern)` | Tests `|`-separated literal alternatives. |
-| `matches(+Text,+Pattern,-Context)` | Portable named-capture matcher. Supports literals, `^`/`$`, named groups `(?<name>...)`, optional named groups, `\w+`, `[A-Za-z]+`, `[0-9]+`, and literal group bodies. Captures are atoms in comma-context data such as `(year('2026'), month('07'))`. |
-| `split(+Text,+Separator,-Parts)` | Literal split into a proper list of atoms. |
-| `join(+Parts,+Separator,-Text)` | Joins atom/number/character-list lexical values. The empty list produces the empty atom `''`. |
-| `substring(+Text,+Start,+Count,-Part)` | Extracts characters using zero-based nonnegative integer indexes. |
-| `replace(+Text,+Search,+Replacement,-Result)` | Replaces every literal occurrence. An empty search leaves the text unchanged. |
-| `lowercase(+Text,-Lower)`, `uppercase(+Text,-Upper)` | Portable ASCII case mapping. Non-ASCII characters are preserved unchanged rather than delegated to host Unicode case conversion. |
-| `trim(+Text,-Trimmed)` | Removes the ISO-portable ASCII whitespace set at both ends. |
-| `number_string(?Number,?Text)` | Historical predicate name retained for compatibility; converts a number to atom/character-list text or parses such text. |
-| `atom_string(?Atom,?Text)` | Historical predicate name retained for compatibility; relates an atom to atom/character-list text. |
-| `term_string(+Term,-Text)` | Renders a nonvariable term into atom/character-list text using the portable library serializer. It does not parse text back into a term. |
-
-The named-capture matcher deliberately implements a small, auditable Prolog
-subset rather than JavaScript regular-expression semantics. Use a host predicate
-when an application genuinely requires a full host regex engine.
-
-```eyeprolog
-:- use_module(library(strings)).
-:- use_module(library(lists)).
-
-answer(words, Words) :-
-  trim('  Logic Made Visible  ', Clean),
-  lowercase(Clean, Lower),
-  split(Lower, ' ', Words).
-
-answer(captures, Context) :-
-  matches('Ada Lovelace',
-          '^(?<first>[A-Za-z]+) (?<last>[A-Za-z]+)$',
-          Context).
-```
-
-```sh
-eyeprolog --goal 'answer(Kind, Value)' program.pl
-```
-
-#### Portable aggregation and bounded control
-
-These Prolog relations follow the documented collection, arithmetic,
-term-order, and scoping contracts. The caller is responsible for making that
-search finite. Bind outer variables before the nested goal when they are
-intended to restrict its domain.
-
-| Predicate and principal mode | Behavior |
-| --- | --- |
-| `countall(+Goal,-Count)` | Counts all solutions, including solutions that produce the same visible template. The empty count is `0`. |
-| `sumall(+Template,+Goal,-Sum)` | Sums the numeric value of `Template` in every solution. The empty sum is `0`; invalid arithmetic raises the corresponding ISO error. |
-| `aggregate_min(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)` | Retains the solution with the smallest resolved key under standard term order. |
-| `aggregate_max(+KeyTemplate,+ValueTemplate,+Goal,-BestKey,-BestValue)` | Retains the solution with the largest resolved key. Both best-value predicates fail on an empty solution set and retain the first solution on an equal key. |
-
-ISO `findall/3` is present in both registries. The EyeProlog library aggregates follow
-the same scoping principle: variables created inside the nested search do not
-leak except through the declared templates and outputs.
-
-There is no `not/1` alias; use ISO `\+/1`. `forall/2` is available from
-`library(iso_ext)`, and `once/1` is supplied directly by the ISO registry.
-
-```eyeprolog
-:- use_module(library(aggregate)).
-:- use_module(library(lists)).
-:- use_module(library(iso_ext)).
-
-cost(a, 8).
-cost(b, 3).
-cost(c, 3).
-
-answer(count, N) :- countall(cost(_, _), N).
-answer(best(Name), Cost) :-
-  aggregate_min(CandidateCost, CandidateName,
-                cost(CandidateName, CandidateCost),
-                Cost, Name).
-```
-
-```sh
-eyeprolog --goal 'answer(Kind, Value)' program.pl
-```
-
-#### Contexts with ordinary terms
-
-A comma-context needs no special native predicate. A small program relation can
-walk its members, and ISO `=../2` can expose any member's name and argument list.
-
-```eyeprolog
-
-:- use_module(library(lists)).
-
-message(event_17,
-        (severity(high), source(sensor_3), reading(temp, 91))).
-
-context_member((Left, _right), Member) :- context_member(Left, Member).
-context_member((_left, Right), Member) :- context_member(Right, Member).
-context_member(Member, Member) :- Member \= (_left, _right).
-
-context_parts(Context, Name, Args) :-
-  context_member(Context, Member),
-  (Member =.. [Name | Args]),
-  atom(Name).
-
-answer(field(Name, Args)) :-
-  message(event_17, Context),
-  context_parts(Context, Name, Args).
-```
-
-```sh
-eyeprolog --goal 'answer(X)' program.pl
-```
-
-The ISO profile includes `functor/3`, `arg/3`, and `=../2`. Use `=../2` for whole-argument-list
-decomposition and construction, `=/2` for unification, and `\=/2` for
-non-unifiability; redundant aliases are not registered.
-
-#### Typical ISO extensions
-
-Import `library(iso_ext)` when a program needs portable solution counting,
-universal checks, inclusive integer generation, difference-list collection,
-or variant comparison:
-
-```eyeprolog
-:- use_module(library(iso_ext)).
-
-task(parse).
-task(check).
-task(report).
-
-extension_answer(all_tasks_are_atoms, true) :-
-  forall(task(Task), atom(Task)).
-
-extension_answer(numbered, Pairs) :-
-  findall(N-S, (cfor(1, 3, N), succ(N, S)), Pairs).
-
-extension_answer(with_tail, Tasks) :-
-  findall(Task, task(Task), Tasks, [done]).
-
-extension_answer(same_shape, true) :-
-  variant(node(X, X), node(Y, Y)).
-```
 
 ## 40. Running EyeProlog: command line and corpus
 

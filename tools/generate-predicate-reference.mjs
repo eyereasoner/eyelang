@@ -10,7 +10,7 @@ const metadataFile = path.join(root, 'tools', 'predicate-reference.json');
 const bookFile = path.join(root, 'the-art-of-eyeprolog.md');
 const START = '<!-- eyeprolog-predicate-reference:start -->';
 const END = '<!-- eyeprolog-predicate-reference:end -->';
-const CATALOG_END = '<!-- eyeprolog-library-catalog:end -->';
+const CHAPTER_END = '\n## 40. Running EyeProlog: command line and corpus';
 const EXPECTED_COUNT = 518;
 const allowedSolutions = new Set([
   'det', 'semidet', 'multi', 'nondet', 'delayed', 'meta', 'mode-dependent',
@@ -145,7 +145,7 @@ function renderSection(byIndicator, surface) {
 
   const lines = [
     START,
-    '#### Complete predicate indicator reference',
+    '### Complete predicate indicator reference',
     '',
     `This generated reference covers all **${EXPECTED_COUNT} distinct predicate indicators** in the normal EyeProlog surface: ` +
       `${surface.core.size} core registry indicators plus ${surface.library.size} bundled-library indicators, with ` +
@@ -157,7 +157,7 @@ function renderSection(byIndicator, surface) {
     'The reference uses stacked entries instead of wide Markdown tables, so principal calls and contracts wrap naturally on narrow screens without horizontal scrolling. ' +
       'It is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.',
     '',
-    '##### Predicate index',
+    '#### Predicate index',
     '',
     'Every indicator below links directly to its own explicit anchor. These anchors are generated as stable numeric IDs instead of relying on Markdown heading-slug rules, so the links behave consistently in GitHub Pages and other renderers.',
     '',
@@ -174,7 +174,7 @@ function renderSection(byIndicator, surface) {
   }
 
   for (const key of keys) {
-    lines.push(`##### Predicate reference — ${key}`);
+    lines.push(`#### Predicate reference — ${key}`);
     lines.push('');
     for (const entry of groups.get(key)) {
       lines.push(`<a id="${anchorByIndicator.get(entry.indicator)}"></a>`);
@@ -196,10 +196,9 @@ function expectedBook(book, generated) {
     const after = end + END.length;
     return `${book.slice(0, start)}${generated}${book.slice(after).replace(/^\n*/, '\n')}`;
   }
-  const catalog = book.indexOf(CATALOG_END);
-  if (catalog < 0) fail(`cannot insert predicate reference: ${CATALOG_END} not found`);
-  const insertAt = catalog + CATALOG_END.length;
-  return `${book.slice(0, insertAt)}\n\n${generated}${book.slice(insertAt).replace(/^\n*/, '\n')}`;
+  const chapterEnd = book.indexOf(CHAPTER_END);
+  if (chapterEnd < 0) fail(`cannot insert predicate reference: Chapter 40 heading not found`);
+  return `${book.slice(0, chapterEnd).replace(/\n*$/, '\n\n')}${generated}\n${book.slice(chapterEnd + 1)}`;
 }
 
 const surface = liveSurface();

@@ -4804,6 +4804,25 @@ function documentationSyncCases() {
         assertNotIncludes(section, '[Symbols](#predicate-reference-symbols)', 'predicate index does not rely on renderer-generated group anchors');
         assertIncludes(section, 'stable numeric IDs instead of relying on Markdown heading-slug rules', 'renderer-independent predicate anchors');
         assertIncludes(section, 'wrap naturally on narrow screens without horizontal scrolling', 'responsive predicate reference layout');
+
+        const chapter = between(book, '## 39. Predicate reference', '## 40. Running EyeProlog: command line and corpus');
+        assertEqual(chapter.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'Chapter 39 uses one wrapping stacked layout without Markdown tables');
+        const orderedHeadings = [
+          '### How to read this chapter',
+          '### Core registry',
+          '### Normal-mode extensions',
+          '### Bundled libraries',
+          '### Library relations by programming role',
+          '### Interoperability, autoloading, and portability',
+          '### Specialized library implementation notes',
+          '### Complete predicate indicator reference',
+        ];
+        let previous = -1;
+        for (const heading of orderedHeadings) {
+          const position = chapter.indexOf(heading);
+          assertEqual(position > previous, true, `Chapter 39 section order: ${heading}`);
+          previous = position;
+        }
       },
     },
     {
@@ -7564,7 +7583,7 @@ function bookReferenceDocumentationIssues() {
   if (book.includes('EyeProlog does not perform it.')) {
     issues.push('book contradicts implementation occurs-check behavior');
   }
-  for (const heading of ['## 38. Language and ISO profile', '## 39. Built-in predicates by programming role', '## 40. Running EyeProlog: command line and corpus']) {
+  for (const heading of ['## 38. Language and ISO profile', '## 39. Predicate reference', '## 40. Running EyeProlog: command line and corpus']) {
     if (!book.includes(heading)) issues.push(`book is missing ${heading}`);
   }
   if (!guide.includes('[*The Art of EyeProlog*](../../the-art-of-eyeprolog.md) is the reference')) {
@@ -7811,26 +7830,31 @@ function registeredBuiltinSummary() {
 
 function bookBuiltinNames() {
   const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
-  return documentedBuiltinNames(between(book, '## 39. Built-in predicates by programming role', '### The EyeProlog library'), 2);
+  return documentedBuiltinNames(
+    between(book, '<!-- eyeprolog-core-catalog:start -->', '<!-- eyeprolog-core-catalog:end -->'),
+  );
 }
 
 function bookEyePrologLibraryNames() {
   const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
   const iso = new Set(registeredBuiltinNames());
-  return documentedBuiltinNames(
-    between(book, '<!-- eyeprolog-library-catalog:start -->', '<!-- eyeprolog-library-catalog:end -->'),
-    2,
-  ).filter((indicator) => !iso.has(indicator));
+  const section = between(book, '<!-- eyeprolog-library-catalog:start -->', '<!-- eyeprolog-library-catalog:end -->');
+  const exports = section.split('\n')
+    .filter((line) => line.trimStart().startsWith('**Exports:**'))
+    .join('\n');
+  return documentedBuiltinNames(exports).filter((indicator) => !iso.has(indicator));
 }
 
 function bookLibraryModuleIssues() {
   const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
   const section = between(book, '<!-- eyeprolog-library-catalog:start -->', '<!-- eyeprolog-library-catalog:end -->');
   const documented = new Map();
-  for (const line of section.split('\n')) {
-    const match = line.match(/^\|\s*`library\(([^)`]+)\)`\s*\|/);
+  const lines = section.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(/^- \*\*`library\(([^)`]+)\)`\*\*/);
     if (match == null) continue;
-    documented.set(match[1], documentedBuiltinNames(line, 2));
+    const exports = lines[i + 1] ?? '';
+    documented.set(match[1], documentedBuiltinNames(exports));
   }
 
   const issues = [];
@@ -7864,18 +7888,12 @@ function bookBuiltinSummary() {
   return { entries: Number(match[1]), names: Number(match[2]) };
 }
 
-function documentedBuiltinNames(section, catalogColumn) {
+function documentedBuiltinNames(section) {
   const names = [];
-  for (const line of section.split('\n')) {
-    if (!line.trim().startsWith('|') || !line.includes('`')) continue;
-    const catalogCell = line.split('|')[catalogColumn] ?? '';
-    for (const match of catalogCell.matchAll(/`([A-Za-z_][A-Za-z0-9_]*)\(([^`)]*)\)`/g)) {
-      const arity = match[2].trim() === '' ? 0 : match[2].split(',').length;
-      names.push(`${match[1]}/${arity}`);
-    }
-    for (const match of catalogCell.matchAll(/`([^`\s]+)\/(\d+)`/g)) {
-      names.push(`${match[1]}/${match[2]}`);
-    }
+  for (const match of section.matchAll(/`([^`]+)`/g)) {
+    const indicator = match[1].match(/^(.+)\/(\d+)$/);
+    if (indicator == null) continue;
+    names.push(`${indicator[1]}/${indicator[2]}`);
   }
   return [...new Set(names)].sort();
 }

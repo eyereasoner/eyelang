@@ -1,4 +1,4 @@
-% From The Art of EyeProlog, Chapter 39.
+% From The Art of EyeProlog, Chapter 39 — Library relations by programming role.
 :- use_module(library(dates)).
 :- use_module(library(between), [between/3]).
 :- use_module(library(random)).
