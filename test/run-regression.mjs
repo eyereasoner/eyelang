@@ -2441,7 +2441,7 @@ c4 ?- call((!;1)).
           '?-    Xs = [].\n' +
           '?-    true.\n' +
           '?-    true.\n' +
-          '?-    Xs0 = [a | Xs].\n' +
+          '?-    Xs0 = "a"||Xs.\n' +
           '?- ',
           'stdout');
         assertEqual(result.stderr, '', 'stderr');
@@ -6945,6 +6945,44 @@ function whiteBoxCases() {
 
         const quotedAtom = parseGoalText('p("aλ")', { doubleQuotes: 'atom' }).args[0];
         assertEqual(`${quotedAtom.type}:${quotedAtom.name}`, 'atom:aλ', 'atom');
+      },
+    },
+    {
+      name: 'double-bar syntax splices double-quoted list prefixes (issue #88)',
+      run: () => {
+        const chars = parseGoalText('p("ab"||Tail)').args[0];
+        assertEqual(chars.args[0].name, 'a', 'chars first element');
+        assertEqual(chars.args[1].args[0].name, 'b', 'chars second element');
+        assertEqual(chars.args[1].args[1].type, 'var', 'chars partial tail type');
+        assertEqual(chars.args[1].args[1].name, 'Tail', 'chars partial tail name');
+        assertEqual(termToString(chars, new Env(), true, { doubleBar: true }), '"ab"||Tail', 'chars readback');
+
+        const codes = parseGoalText('p("aλ" || Tail)', { doubleQuotes: 'codes' }).args[0];
+        assertEqual(codes.args[0].name, '97', 'codes first element');
+        assertEqual(codes.args[1].args[0].name, '955', 'codes second element');
+        assertEqual(termToString(codes, new Env(), true, { doubleQuotes: 'codes', doubleBar: true }), '"aλ"||Tail', 'codes readback');
+
+        const nested = parseGoalText('p(["ab"|Tail])');
+        assertEqual(termToString(nested), 'p(["ab" | Tail])', 'single bar remains list syntax');
+
+        for (const options of [{ isoStrict: true }, { doubleQuotes: 'atom' }]) {
+          let threw = false;
+          try { parseGoalText('p("ab"||Tail)', options); } catch (_) { threw = true; }
+          assertEqual(threw, true, `double-bar rejected for ${JSON.stringify(options)}`);
+        }
+      },
+    },
+    {
+      name: 'REPL prints partial character lists with double-bar syntax (issue #88)',
+      run: () => {
+        const result = runCli([], {
+          input: 'phrase("Think of this text, and much more.", S0,S).\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'REPL exit status');
+        assertIncludes(result.stdout,
+          'S0 = "Think of this text, and much more."||S.',
+          'Trealla-compatible partial string answer');
+        assertNotIncludes(result.stdout, "S0 = ['T'", 'legacy expanded list answer');
       },
     },
     {

@@ -1988,6 +1988,7 @@ function writeBuiltin(mode) {
       generateVariableNames: true,
       variableNameState: solver.writeVariableState,
       operators: solver.program.operators.values(),
+      doubleBar: !solver.isoStrict,
     }));
     yield env;
   };
@@ -2019,6 +2020,7 @@ function* writeTermBuiltin({ solver, goal, env }) {
     generateVariableNames: true,
     variableNameState: solver.writeVariableState,
     operators: solver.program.operators.values(),
+    doubleBar: !solver.isoStrict,
   }));
   yield env;
 }

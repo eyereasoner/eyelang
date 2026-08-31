@@ -1,1 +1,1 @@
-answer(append_to_improper_tail, [a, b | tail]).
+answer(append_to_improper_tail, "ab"||tail).

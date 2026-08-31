@@ -152,14 +152,18 @@ function writeString(value) {
   return out + '"';
 }
 
-function quotedListText(term, env, doubleQuotes) {
+function quotedListSplice(term, env, doubleQuotes) {
   if (doubleQuotes !== 'chars' && doubleQuotes !== 'codes') return null;
   const characters = [];
   let cursor = term;
   while (true) {
     cursor = deref(cursor, env);
-    if (isEmptyList(cursor)) return characters.length === 0 ? null : characters.join('');
-    if (!isCons(cursor)) return null;
+    if (isEmptyList(cursor)) {
+      return characters.length === 0 ? null : { text: characters.join(''), tail: null };
+    }
+    if (!isCons(cursor)) {
+      return characters.length === 0 ? null : { text: characters.join(''), tail: cursor };
+    }
     const item = deref(cursor.args[0], env);
     if (doubleQuotes === 'chars') {
       if (item.type !== ATOM || Array.from(item.name).length !== 1) return null;
@@ -331,8 +335,15 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
   }
 
   if (!options.ignoreOps && isCons(resolved)) {
-    const quotedText = quotedListText(resolved, env, options.doubleQuotes);
-    if (quotedText != null) return writeString(quotedText);
+    const quotedSplice = quotedListSplice(resolved, env, options.doubleQuotes);
+    if (quotedSplice != null && (quotedSplice.tail == null || options.doubleBar)) {
+      const prefix = writeString(quotedSplice.text);
+      if (quotedSplice.tail == null) return prefix;
+      // `||` is a normal-profile syntax extension with priority 1, so a
+      // looser operator in the right operand must be parenthesized to keep the
+      // emitted text readable as the same term.
+      return `${prefix}||${format(quotedSplice.tail, env, options, table, 1, 'term')}`;
+    }
     const parts = [];
     let cursor = resolved;
     while (true) {
@@ -442,6 +453,9 @@ export function formatTermForWrite(term, env = new Env(), options = {}) {
     ignoreOps: options.ignoreOps === true,
     numbervars: options.numbervars !== false,
     doubleQuotes: options.doubleQuotes,
+    // `||` is a normal-profile syntax extension. Public normal-mode writers
+    // enable it by default; strict callers explicitly turn it off.
+    doubleBar: options.doubleBar !== false,
     variableNames: options.generateVariableNames === true
       ? printableGeneratedVariableNames(term, env, explicitVariableNames, options.variableNameState)
       : printableReadVariableNames(term, env, explicitVariableNames),

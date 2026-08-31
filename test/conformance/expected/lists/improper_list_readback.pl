@@ -1,1 +1,1 @@
-answer([a, b | tail]).
+answer("ab"||tail).

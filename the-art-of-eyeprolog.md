@@ -474,6 +474,12 @@ Prolog programs accepted by EyeProlog are built from terms:
 - compound terms: `point(3, 4)`, `reading(temp, 91)`;
 - lists: `[]`, `[red, green, blue]`, `[Head | Tail]`.
 
+In normal mode, double-quoted character/code lists also support Trealla's
+right-splice notation. With `double_quotes(chars)`, `"ab"||Tail` is shorthand
+for `[a,b|Tail]`; with `double_quotes(codes)`, it denotes `[97,98|Tail]`. The
+splice is not available when `double_quotes(atom)` is active, and
+`--iso-strict` rejects it as an implementation-specific syntax extension.
+
 Plain atom constants begin with a lowercase ASCII letter. Variables begin with
 an uppercase letter or underscore. The bare `_` is anonymous and every
 occurrence is fresh. `_Name` is a named variable; repeated occurrences refer to
@@ -5492,8 +5498,10 @@ still retained where adjacent graphic tokens would otherwise merge, as in
 `write_term/2-3` supports `quoted/1`, `ignore_ops/1`, `numbervars/1`, and
 `variable_names/1`. Normal mode additionally accepts the EyeProlog extension
 `double_quotes(true|false)`: `true` lets eligible character/code lists use the
-current `double_quotes` representation, while strict ISO mode rejects this
-implementation-specific write option. Normal mode also accepts the
+current `double_quotes` representation. Proper lists can therefore be written
+as `"text"`, while a partial list such as `[a,b|Tail]` is written as
+`"ab"||Tail`. Strict ISO mode rejects this implementation-specific write
+option. Normal mode also accepts the
 implementation-specific boolean `spacing(true|false)` option: `false` emits
 only separators required to avoid lexical ambiguity, while `true` adds
 conventional layout around operators. For example,
@@ -5588,6 +5596,8 @@ lowercase ASCII letter. Variables begin with uppercase or underscore. The bare
 `_` is fresh each time. Single quotes delimit quoted atoms; double quotes use
 ISO double-quoted-list notation. Integers, decimals, scientific notation,
 binary/octal/hexadecimal integers, and character-code constants are accepted.
+Normal mode additionally accepts the Trealla-compatible `"text"||Tail`
+right-splice for double-quoted `chars`/`codes` lists; strict ISO mode does not.
 
 The processor character set is shared by normal and `--iso-strict` modes because
 Part 1 makes it implementation defined rather than an extension boundary.
@@ -8017,7 +8027,9 @@ Notable implementation boundaries are:
 - module and ISO/IEC TS 13211-3-oriented DCG compatibility profiles are supported in normal mode, without a complete Part 2/Part 3 certification claim;
 - variables cannot occupy functor or predicate position;
 - double-quoted text follows `double_quotes` exactly; the default `chars` value
-  matches Trealla and Scryer and may be changed to `codes` or `atom`;
+  matches Trealla and Scryer and may be changed to `codes` or `atom`; normal
+  mode additionally accepts Trealla-compatible `"text"||Tail` right-splicing
+  for the `chars` and `codes` values, while strict mode rejects that syntax;
 - `write_term/2-3` implements the Part 1 plus Corrigendum 3 `quoted/1`,
   `ignore_ops/1`, `numbervars/1`, and `variable_names/1` option surface,
   including option validation and traversal rules; normal mode also offers

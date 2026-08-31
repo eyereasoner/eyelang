@@ -51,6 +51,7 @@ export function executeGoals(program, solver, goals, { onAnswer = () => {} } = {
 function currentWriteOptions(program, solver) {
   return {
     doubleQuotes: solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+    doubleBar: !solver.isoStrict,
     operators: [...program.operators.values()],
     quoted: true,
   };

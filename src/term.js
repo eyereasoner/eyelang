@@ -1067,14 +1067,18 @@ function writeString(value, quoteStrings) {
   return out + '"';
 }
 
-function quotedListText(term, env, doubleQuotes) {
+function quotedListSplice(term, env, doubleQuotes) {
   if (doubleQuotes !== 'chars' && doubleQuotes !== 'codes') return null;
   const characters = [];
   let cursor = term;
   while (true) {
     cursor = deref(cursor, env);
-    if (isEmptyList(cursor)) return characters.length === 0 ? null : characters.join('');
-    if (!isCons(cursor)) return null;
+    if (isEmptyList(cursor)) {
+      return characters.length === 0 ? null : { text: characters.join(''), tail: null };
+    }
+    if (!isCons(cursor)) {
+      return characters.length === 0 ? null : { text: characters.join(''), tail: cursor };
+    }
     const item = deref(cursor.args[0], env);
     if (doubleQuotes === 'chars') {
       if (item.type !== ATOM || Array.from(item.name).length !== 1) return null;
@@ -1090,8 +1094,12 @@ function quotedListText(term, env, doubleQuotes) {
 }
 
 function writeList(term, env, options) {
-  const quotedText = quotedListText(term, env, options.doubleQuotes);
-  if (quotedText != null) return writeString(quotedText, true);
+  const quotedSplice = quotedListSplice(term, env, options.doubleQuotes);
+  if (quotedSplice != null && (quotedSplice.tail == null || options.doubleBar === true)) {
+    const prefix = writeString(quotedSplice.text, true);
+    if (quotedSplice.tail == null) return prefix;
+    return `${prefix}||${termToString(quotedSplice.tail, env, true, options)}`;
+  }
   const parts = [];
   let cursor = term;
   while (true) {
@@ -1110,6 +1118,10 @@ export function termToString(term, env = new Env(), quoteStrings = true, options
   options = {
     ...options,
     doubleQuotes: options.doubleQuotes ?? 'chars',
+    // termToString is also used for context-free processor-error messages.
+    // Keep the normal-profile `||` extension opt-in here so strict errors do
+    // not accidentally emit syntax that the strict parser rejects.
+    doubleBar: options.doubleBar === true,
     readVariableNames: options.readVariableNames instanceof Map ? options.readVariableNames : new Map(),
     usedReadVariableNames: options.usedReadVariableNames instanceof Set ? options.usedReadVariableNames : new Set(),
   };

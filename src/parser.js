@@ -937,9 +937,37 @@ class Parser {
         this.parserFlagState.doubleQuotes === 'chars'
           ? atom(character)
           : numberTerm(character.codePointAt(0)));
-      let list = emptyList();
-      for (let i = items.length - 1; i >= 0; i--) list = cons(items[i], list);
-      return list;
+      let tail = emptyList();
+
+      // Trealla-compatible double-bar right splice (issue #88): in normal
+      // mode, a double-quoted chars/codes prefix may be followed by `||Tail`.
+      // It is equivalent to the corresponding list prefix with Tail as its
+      // final list tail, e.g. "ab"||T is [a,b|T] with double_quotes(chars).
+      // The extension binds at priority 1 (tighter than ordinary operators)
+      // and is deliberately absent from the strict ISO profile.
+      if (!this.strictIso && this.token.type === TOK.BAR) {
+        const state = {
+          pos: this.pos,
+          line: this.line,
+          previousToken: this.previousToken,
+          token: this.token,
+        };
+        this.advance();
+        if (this.token.type === TOK.BAR) {
+          this.advance();
+          tail = this.parseTerm(operatorStrength(1), false, allowBar, false);
+        } else {
+          // A single bar remains ordinary bar syntax. We had to advance once
+          // to distinguish it from `||`, so restore the tokenizer state.
+          this.pos = state.pos;
+          this.line = state.line;
+          this.previousToken = state.previousToken;
+          this.token = state.token;
+        }
+      }
+
+      for (let i = items.length - 1; i >= 0; i--) tail = cons(items[i], tail);
+      return tail;
     }
     if (this.token.type === TOK.NUMBER) {
       const value = this.token.text;

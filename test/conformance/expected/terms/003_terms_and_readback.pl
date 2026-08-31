@@ -10,4 +10,4 @@ value(compound, pair(3, nested(atom, "xy"))).
 value(arity_zero_atom, nil).
 value(empty_list, []).
 value(proper_list, "abc").
-value(improper_list, [a, b | tail]).
+value(improper_list, "ab"||tail).

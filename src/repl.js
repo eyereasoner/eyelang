@@ -746,6 +746,7 @@ function formatAnswer(engine, state, variables, env) {
     operatorAtomsAsArgs: true,
     dottedGraphicAtoms: true,
     doubleQuotes: state.solver.prologFlags.get('double_quotes')?.value?.name ?? 'chars',
+    doubleBar: !state.strictIso,
   };
   let generated = 0;
 
@@ -844,6 +845,7 @@ function formatError(engine, state, error) {
       quoted: true,
       operators: [...state.program.operators.values()],
       variableNames,
+      doubleBar: !state.strictIso,
     })}.`;
   }
   const message = error?.message ?? String(error);
