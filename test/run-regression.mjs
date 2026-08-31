@@ -4799,6 +4799,10 @@ function documentationSyncCases() {
         const section = between(book, '<!-- eyeprolog-predicate-reference:start -->', '<!-- eyeprolog-predicate-reference:end -->');
         assertEqual(section.split('\n').some((line) => line.trimStart().startsWith('|')), false, 'predicate reference avoids Markdown tables and horizontal overflow');
         assertEqual((section.match(/^- \*\*`/gm) ?? []).length, 518, 'one stacked reference entry per predicate');
+        assertEqual((section.match(/<a id="predicate-reference-\d{4}"><\/a>/g) ?? []).length, 518, 'one explicit stable anchor per predicate');
+        assertEqual((section.match(/\]\(#predicate-reference-\d{4}\)/g) ?? []).length, 518, 'one direct index link per predicate');
+        assertNotIncludes(section, '[Symbols](#predicate-reference-symbols)', 'predicate index does not rely on renderer-generated group anchors');
+        assertIncludes(section, 'stable numeric IDs instead of relying on Markdown heading-slug rules', 'renderer-independent predicate anchors');
         assertIncludes(section, 'wrap naturally on narrow screens without horizontal scrolling', 'responsive predicate reference layout');
       },
     },
@@ -8076,6 +8080,9 @@ function markdownAnchors(file) {
     const count = counts.get(base) ?? 0;
     counts.set(base, count + 1);
     anchors.add(count === 0 ? base : `${base}-${count}`);
+  }
+  for (const match of text.matchAll(/<(?:a|[A-Za-z][A-Za-z0-9:-]*)\b[^>]*\b(?:id|name)=["']([^"']+)["'][^>]*>/g)) {
+    anchors.add(match[1]);
   }
   return anchors;
 }

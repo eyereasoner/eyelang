@@ -157,14 +157,27 @@ function renderSection(byIndicator, surface) {
     'The reference uses stacked entries instead of wide Markdown tables, so principal calls and contracts wrap naturally on narrow screens without horizontal scrolling. ' +
       'It is checked against the live core registry and every `src/lib/*.pl` export. Adding, removing, or renaming a predicate therefore makes the documentation test fail until its contract metadata is updated.',
     '',
-    keys.map((key) => `[${key}](#predicate-reference-${key.toLowerCase()})`).join(' · '),
+    '##### Predicate index',
+    '',
+    'Every indicator below links directly to its own explicit anchor. These anchors are generated as stable numeric IDs instead of relying on Markdown heading-slug rules, so the links behave consistently in GitHub Pages and other renderers.',
     '',
   ];
+
+  const anchorByIndicator = new Map(
+    surface.indicators.map((indicator, index) => [indicator, `predicate-reference-${String(index + 1).padStart(4, '0')}`]),
+  );
+
+  for (const key of keys) {
+    const entries = groups.get(key);
+    lines.push(`**${key}:** ${entries.map((entry) => `[${code(entry.indicator)}](#${anchorByIndicator.get(entry.indicator)})`).join(' · ')}`);
+    lines.push('');
+  }
 
   for (const key of keys) {
     lines.push(`##### Predicate reference — ${key}`);
     lines.push('');
     for (const entry of groups.get(key)) {
+      lines.push(`<a id="${anchorByIndicator.get(entry.indicator)}"></a>`);
       lines.push(`- **${code(entry.indicator)}** — ${code(entry.origin)} · **${code(entry.solutions)}**  `);
       lines.push(`  **Call:** ${code(entry.call)}  `);
       lines.push(`  **Contract:** ${entry.contract}`);
