@@ -5547,6 +5547,21 @@ and document the command line; the conformance corpus fixes success, failure,
 mode, and error behavior. Use this part for working practice and those chapters
 for exact reference.
 
+### Historical note: the practical language becomes portable
+
+By the late 1970s and 1980s, Prolog had spread from its Marseille origins into
+several implementation traditions. The Edinburgh and DECsystem-10 lineage in
+particular helped establish a practical programming vocabulary around ordered
+control, term inspection, dynamic clauses, operators, and streams. These
+facilities made Prolog useful far beyond theorem-proving examples, but
+differences between systems also made portability a recurring concern.
+
+ISO/IEC 13211-1:1995 gave that accumulated practice a common core. It did not
+freeze the language: constraints, modules, tabling, coroutining, and other
+facilities continued to develop in implementations and later standardization
+work. What the standard supplied was a stable shared account of ordinary Prolog
+terms, control, state, errors, and I/O against which extensions could be named.
+
 # Part IX — Reference as practice
 
 Reference is useful only when the route into it is clear. Begin with the task
@@ -10594,6 +10609,22 @@ variables. Variant recognition is important for tabling and cycle analysis.
 **Witness.** A constructed ground term demonstrating an existential result,
 such as a path, assignment, factorization, schedule, or proof-relevant object.
 
+### Historical note: manuals become specifications
+
+Early Prolog programmers learned from implementation manuals, examples, and
+books whose descriptions were often inseparable from one particular system. As
+the language spread, reference writing acquired a second task: distinguish the
+portable language from implementation convention. Predicate indexes, precise
+mode and error descriptions, and standards documents became tools for comparing
+systems rather than merely operating one of them.
+
+ISO standardization made that distinction explicit, while conformance tests and
+cross-processor corpora made many disagreements executable. A mature reference
+therefore joins several forms of evidence: normative prose, named predicates
+and flags, examples, implementation boundaries, and reproducible tests. The
+result is not a substitute for programming practice; it is a map from a
+concrete question to the exact contract that governs it.
+
 # Part X — Laboratories
 
 ## 44. Twelve laboratories
@@ -10858,6 +10889,21 @@ A beautiful program is not merely short. It makes the reason for its
 correctness, the shape of its search, and the boundary of its trust available
 to the next reader.
 
+### Historical note: logic programming grows through exercises
+
+Logic programming has long been taught by construction. Lists, family
+relations, puzzles, grammars, interpreters, search problems, and small expert
+systems became recurring exercises because each exposes both a logical relation
+and the control needed to compute with it. Texts such as *The Art of Prolog*
+made this dual reading central: an exercise was not finished when a clause
+parsed, but when its meaning, modes, and behavior could be explained.
+
+Laboratory practice later absorbed regression testing, property-oriented
+checking, benchmark corpora, and reproducible command-line runs. These tools
+fit logic programming unusually well because a small change can be examined at
+several levels at once: answers, failures, witnesses, proofs, and search. The
+laboratory is where a declarative claim becomes an executable experiment.
+
 # Part XI — Review
 
 ## 45. Checkpoint notes and selected answers
@@ -10982,3 +11028,17 @@ unbounded theorem.
 
 For laboratory checkpoints, leave an artifact. A useful completion is not merely a paragraph: it is a small source file, predicted output, actual output, and one sentence explaining any difference.
 
+### Historical note: review becomes explanation
+
+The declarative reading of logic programs encouraged debugging methods that ask
+what a relation was intended to mean, not only which machine step came next. In
+the early 1980s, Ehud Shapiro's work on algorithmic debugging used computation
+trees together with a programmer's judgments about intended results to narrow a
+fault to the clause responsible for it. Declarative debugging developed this
+idea alongside, rather than instead of, ordinary tracing.
+
+That tradition gives review a distinctive role in logic programming. A worked
+answer is useful when it can be reconstructed from the relation, the calling
+mode, and the evidence, and when a disagreement can be turned into a smaller
+question about meaning or control. Review then becomes another pass through the
+same discipline as programming: predict, execute, explain, and revise.
