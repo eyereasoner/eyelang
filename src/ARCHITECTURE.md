@@ -21,6 +21,12 @@ higher-level frontends.
 5. **Frontends/tools** — `execute.js`, `repl.js`, `cli.js`, `quads.js`,
    `explain.js`, and the playground worker.
 
+`explain.js` owns both proof construction and proof-certificate verification.
+Verification walks the supplied certificate and checks source-clause steps against
+the parsed `Program`; it does not call the solver to rediscover the proof.
+Built-in and abstract library nodes are explicit trust boundaries, while expanded
+proofs expose bundled Prolog-library clauses as ordinary source steps.
+
 `iso.js` and `program.js` remain facade modules for their existing exports, so
 this refactor does not change the public JavaScript API.
 

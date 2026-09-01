@@ -203,9 +203,20 @@ make decisions, combine data from several sources, or need to be reviewed by
 someone who did not write them.
 
 Proofs make successful reasoning easier to inspect, test, teach, and discuss.
-They do not authenticate source data or replace application security. Embedders
-remain responsible for validating inputs and imposing suitable time, memory,
-depth, and solution limits.
+EyeProlog also treats a successful `why/2` term as a portable proof certificate.
+A certificate can be saved, transmitted as ordinary Prolog data, and checked later
+against the program without repeating the search that found the answer. Source
+steps are checked against the named clauses and their substitutions. Built-ins
+and abstract library steps remain explicit trusted boundaries; expanded proof
+detail opens bundled Prolog-library clauses so that more of the derivation can
+be checked from source. The verification result enumerates the remaining trusted
+boundaries rather than folding them into an undifferentiated success result.
+
+Verification and discovery therefore have different jobs: solving searches for
+a derivation, while certificate verification checks a supplied derivation. The
+certificate does not authenticate source data or replace application security.
+Embedders remain responsible for validating inputs and imposing suitable time,
+memory, depth, and solution limits.
 
 ## One engine across JavaScript environments
 

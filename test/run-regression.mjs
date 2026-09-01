@@ -47,6 +47,9 @@ import {
   unify,
   variantTerms,
   parseProgramText,
+  proofCertificate,
+  proofCertificatesFromText,
+  verifyProof,
 } from '../src/index.js';
 import { ISO_OPERATOR_DEFINITIONS, parseGoalText, parseNumberTokenText, tryParseClausesFastInto } from '../src/parser.js';
 import { PrologError, formalErrorTerm } from '../src/iso.js';
@@ -73,6 +76,10 @@ const testRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRoot = path.resolve(testRoot, '..');
 const bin = path.join(packageRoot, 'bin', 'eyeprolog.js');
 const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, 'package.json'), 'utf8'));
+// The issue #49 hand-off checks assert demand-driven completion and bounded memory,
+// not a machine-speed threshold. Leave enough wall-clock headroom for slower or
+// contended CI hosts while still terminating a genuinely stuck child process.
+const DCG_HANDOFF_TEST_TIMEOUT_MS = 20_000;
 let tmp = null;
 let tmpCounter = 0;
 
@@ -2863,7 +2870,7 @@ c4 ?- call((!;1)).
         const result = spawnSync(process.execPath, ['--input-type=module', '--eval', script], {
           cwd: packageRoot,
           encoding: 'utf8',
-          timeout: 5000,
+          timeout: DCG_HANDOFF_TEST_TIMEOUT_MS,
         });
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `65536-cell hand-off status; stderr=${result.stderr}`);
@@ -2906,7 +2913,7 @@ c4 ?- call((!;1)).
             'length(_,E),E>12,N is 2^E,\\+ \\+ (length(L,N),time(phrase(a,L))).\n' +
             ';\n;\n;\n\n' +
             'halt.\n',
-          timeout: 5000,
+          timeout: DCG_HANDOFF_TEST_TIMEOUT_MS,
         });
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `deep REPL hand-off status; stderr=${result.stderr}`);
@@ -3840,6 +3847,39 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
         assertEqual(result.status, 0, 'exit status');
         assertIncludes(result.stdout, 'q(a, b).\nwhy(', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+
+    {
+      name: '--proof-detail expanded exposes bundled Prolog library clauses',
+      run: () => {
+        const input = '%% goal: q(a)\n:- use_module(library(lists)).\nq(X) :- member(X, [a,b]).\n';
+        const result = runCli(['--proof-detail', 'expanded', '-'], { input });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, 'by(fact("src/lib/lists.pl"', 'expanded library source');
+        assertNotIncludes(result.stdout, 'by(library(member, 2))', 'abstract library boundary');
+      },
+    },
+    {
+      name: '--verify-proof accepts saved why/2 proof output and rejects tampering',
+      run: () => {
+        const programFile = path.join(tmp, `proof-program-${++tmpCounter}.pl`);
+        const proofFile = path.join(tmp, `proof-certificate-${++tmpCounter}.pl`);
+        fs.writeFileSync(programFile, '%% goal: q(a)\np(a).\nq(X) :- p(X).\n');
+        const generated = runCli(['--proof', programFile]);
+        assertEqual(generated.status, 0, 'proof generation status');
+        fs.writeFileSync(proofFile, generated.stdout);
+        const verified = runCli(['--verify-proof', proofFile, programFile]);
+        assertEqual(verified.status, 0, 'verification status');
+        assertEqual(verified.stdout, 'verified 1 proof certificate.\n', 'verification stdout');
+        const strictVerified = runCli(['--iso-strict', '--verify-proof', proofFile, programFile]);
+        assertEqual(strictVerified.status, 0, 'strict verification status');
+        assertEqual(strictVerified.stdout, 'verified 1 proof certificate.\n', 'strict verification stdout');
+        const tamperedFile = path.join(tmp, `proof-certificate-bad-${++tmpCounter}.pl`);
+        fs.writeFileSync(tamperedFile, generated.stdout.replace('goal(p(a))', 'goal(p(b))'));
+        const rejected = runCli(['--verify-proof', tamperedFile, programFile]);
+        assertEqual(rejected.status, 1, 'tampered verification status');
+        assertIncludes(rejected.stderr, 'proof certificate 1 failed verification', 'tampered verification stderr');
       },
     },
     {
@@ -5625,6 +5665,74 @@ true :+ ready.
     },
 
     {
+      name: 'proof certificates verify source derivations without proof search',
+      run: () => {
+        const program = Program.parse('p(a, b).\nq(X, Y) :- p(X, Y).\n', { sourceMetadata: true });
+        const result = proofCertificate(program, parseGoalText('q(a, b)'));
+        assertEqual(result.ok, true, 'certificate generated');
+        assertEqual(result.certificate.version, 1, 'certificate version');
+        assertEqual(result.certificate.answer, 'q(a, b)', 'certificate answer');
+        const checked = verifyProof(program, result);
+        assertEqual(checked.ok, true, 'certificate verifies');
+        assertEqual(checked.trusted.length, 0, 'source-only certificate has no trusted boundaries');
+      },
+    },
+    {
+      name: 'proof verification rejects a tampered child goal',
+      run: () => {
+        const program = Program.parse('p(a, b).\nq(X, Y) :- p(X, Y).\n', { sourceMetadata: true });
+        const result = proofCertificate(program, parseGoalText('q(a, b)'));
+        const tampered = structuredClone(result.certificate);
+        tampered.proof.children[0].goal = 'p(a, c)';
+        assertEqual(verifyProof(program, tampered).ok, false, 'tampered child is rejected');
+        const bindingTamper = structuredClone(result.certificate);
+        bindingTamper.proof.bindings[1].value = 'c';
+        assertEqual(verifyProof(program, bindingTamper).ok, false, 'tampered binding is rejected');
+        const changedProgram = Program.parse('p(a, c).\nq(X, Y) :- p(X, Y).\n', { sourceMetadata: true });
+        assertEqual(verifyProof(changedProgram, result).ok, false, 'changed source program is rejected');
+      },
+    },
+    {
+      name: 'why/2 text round-trips into a verifiable proof certificate',
+      run: () => {
+        const program = Program.parse('p(a).\nq(X) :- p(X).\n', { sourceMetadata: true });
+        const result = proofCertificate(program, parseGoalText('q(a)'));
+        const parsed = proofCertificatesFromText(result.text, program);
+        assertEqual(parsed.length, 1, 'certificate count');
+        assertEqual(verifyProof(program, parsed[0]).ok, true, 'round-tripped certificate verifies');
+      },
+    },
+    {
+      name: 'proof certificate text round-trips under every double_quotes mode',
+      run: () => {
+        for (const doubleQuotes of ['chars', 'codes', 'atom']) {
+          const program = Program.parse('p(a).\nq(X) :- p(X).\n', { sourceMetadata: true, doubleQuotes });
+          const result = proofCertificate(program, parseGoalText('q(a)', { doubleQuotes }));
+          const parsed = proofCertificatesFromText(result.text, program);
+          assertEqual(parsed.length, 1, `${doubleQuotes} certificate count`);
+          assertEqual(verifyProof(program, parsed[0]).ok, true, `${doubleQuotes} certificate verifies`);
+        }
+      },
+    },
+    {
+      name: 'expanded proof detail opens bundled Prolog library clauses',
+      run: () => {
+        const program = Program.parse(':- use_module(library(lists)).\nq(X) :- member(X, [a,b]).\n', { sourceMetadata: true });
+        const abstract = proofCertificate(program, parseGoalText('q(a)'));
+        const expanded = proofCertificate(program, parseGoalText('q(a)'), { proofDetail: 'expanded' });
+        assertEqual(abstract.certificate.proof.children[0].method.type, 'library', 'abstract library boundary');
+        assertEqual(expanded.certificate.proof.children[0].method.type, 'source', 'expanded library source');
+        const abstractChecked = verifyProof(program, abstract);
+        const expandedChecked = verifyProof(program, expanded);
+        assertEqual(abstractChecked.ok, true, 'abstract certificate verifies');
+        assertEqual(abstractChecked.trusted.length, 1, 'abstract certificate reports library trust');
+        assertEqual(abstractChecked.trusted[0].type, 'library', 'reported trust boundary type');
+        assertEqual(expandedChecked.ok, true, 'expanded certificate verifies');
+        assertEqual(expandedChecked.trusted.length, 0, 'pure-Prolog expanded certificate removes library trust');
+      },
+    },
+
+    {
       name: 'run accepts Program instances',
       run: () => {
         const program = Program.parse('p(a, b).\nq(X, Y) :- p(X, Y).\n');
@@ -7171,6 +7279,92 @@ function whiteBoxCases() {
           'double_quotes(codes) representation');
       },
     },
+    {
+      name: 'double-quoted character and code suffixes are recognized inside proper lists (issue #88 suffix follow-up)',
+      run: () => {
+        const repl = runCli([], {
+          input: 'T = [A,b,c,d,e,f].\nhalt.\n',
+        });
+        assertEqual(repl.status, 0, 'REPL exit status');
+        assertIncludes(repl.stdout, 'T = [A|"bcdef"].', 'Scryer-compatible character suffix');
+        assertNotIncludes(repl.stdout, 'T = [A, b, c, d, e, f].', 'expanded suffix suppressed');
+
+        const chars = parseGoalText('p([foo,b,c])').args[0];
+        assertEqual(
+          formatTermForWrite(chars, new Env(), {
+            quoted: true,
+            doubleQuotes: 'chars',
+            doubleBar: true,
+            compact: true,
+            operators: ISO_OPERATOR_DEFINITIONS,
+          }),
+          '[foo|"bc"]',
+          'ordinary list notation uses a quoted suffix',
+        );
+        assertEqual(
+          formatTermForWrite(chars, new Env(), {
+            quoted: true,
+            ignoreOps: true,
+            doubleQuotes: 'chars',
+            doubleBar: true,
+            compact: true,
+            operators: ISO_OPERATOR_DEFINITIONS,
+          }),
+          `'.'(foo,"bc")`,
+          'ignore_ops remains orthogonal to suffix quoting',
+        );
+        assertEqual(
+          formatTermForWrite(chars, new Env(), {
+            quoted: true,
+            doubleQuotes: null,
+            doubleBar: true,
+            compact: true,
+            operators: ISO_OPERATOR_DEFINITIONS,
+          }),
+          '[foo,b,c]',
+          'disabled double_quotes keeps expanded list notation',
+        );
+        const improper = parseGoalText('p([foo,b,c|tail])').args[0];
+        assertEqual(
+          formatTermForWrite(improper, new Env(), {
+            quoted: true,
+            doubleQuotes: 'chars',
+            doubleBar: true,
+            compact: true,
+            operators: ISO_OPERATOR_DEFINITIONS,
+          }),
+          '[foo,b,c|tail]',
+          'improper suffix is not mistaken for a proper string suffix',
+        );
+
+        const astral = parseGoalText("p([foo,'😀',x])").args[0];
+        assertEqual(
+          formatTermForWrite(astral, new Env(), {
+            quoted: true,
+            doubleQuotes: 'chars',
+            doubleBar: true,
+            compact: true,
+            operators: ISO_OPERATOR_DEFINITIONS,
+          }),
+          '[foo|"😀x"]',
+          'Unicode scalar suffix',
+        );
+
+        const codes = parseGoalText('p([foo,98,128512])', { doubleQuotes: 'codes' }).args[0];
+        assertEqual(
+          formatTermForWrite(codes, new Env(), {
+            quoted: true,
+            doubleQuotes: 'codes',
+            doubleBar: true,
+            compact: true,
+            operators: ISO_OPERATOR_DEFINITIONS,
+          }),
+          '[foo|"b😀"]',
+          'code-list suffix',
+        );
+      },
+    },
+
     {
       name: 'charsio write_term_to_chars composes double_quotes with ignore_ops',
       run: () => {

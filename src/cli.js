@@ -25,6 +25,8 @@ export async function main(argv) {
   const options = {
     files: [],
     proof: false,
+    proofDetail: 'abstract',
+    verifyProof: null,
     quads: false,
     stats: false,
     isoStrict: false,
@@ -47,6 +49,15 @@ export async function main(argv) {
       return;
     } else if (!endOptions && (arg === '--proof' || arg === '-p')) {
       options.proof = true;
+    } else if (!endOptions && arg === '--proof-detail') {
+      const detail = argv[++i];
+      if (detail !== 'abstract' && detail !== 'expanded') throw new Error('--proof-detail requires abstract or expanded');
+      options.proof = true;
+      options.proofDetail = detail;
+    } else if (!endOptions && arg === '--verify-proof') {
+      const file = argv[++i];
+      if (file == null) throw new Error('--verify-proof requires a file');
+      options.verifyProof = file;
     } else if (!endOptions && (arg === '--quads' || arg === '-q')) {
       options.quads = true;
     } else if (!endOptions && (arg === '--stats' || arg === '-s')) {
@@ -94,9 +105,18 @@ export async function main(argv) {
   if (options.isoStrict && options.quads) {
     throw new Error('--iso-strict cannot be combined with --quads');
   }
+  if (options.verifyProof != null && options.quads) {
+    throw new Error('--verify-proof cannot be combined with --quads');
+  }
+  if (options.verifyProof != null && options.proof) {
+    throw new Error('--verify-proof cannot be combined with --proof or --proof-detail');
+  }
+  if (options.verifyProof != null && options.goals.length > 0) {
+    throw new Error('--verify-proof cannot be combined with --goal');
+  }
 
   if (options.isoStrict && options.files.length === 0 && options.goals.length === 0 &&
-      !options.proof && !options.stats && !options.warnings) {
+      options.verifyProof == null && !options.proof && !options.stats && !options.warnings) {
     const engine = await loadEngine();
     const { runRepl } = await import('./repl.js');
     const exitCode = await runRepl(engine, {
@@ -134,7 +154,7 @@ export async function main(argv) {
     }
   }
 
-  if (options.goals.length === 0 && !options.quads) {
+  if (options.goals.length === 0 && !options.quads && options.verifyProof == null) {
     for (const source of sourceParts) options.goals.push(...goalsFromSource(source.text));
   }
 
@@ -150,7 +170,7 @@ export async function main(argv) {
 
   const engine = await loadEngine();
   let program = engine.Program.parseSources(sourceParts, {
-    sourceMetadata: options.proof || options.isoStrict,
+    sourceMetadata: options.proof || options.verifyProof != null || options.isoStrict,
     isoStrict: options.isoStrict,
     autoload: options.autoload,
     autoloadGoals: options.goals,
@@ -161,6 +181,20 @@ export async function main(argv) {
   if (options.warnings || (options.portable && portabilityFailures.length > 0)) printWarnings(program);
   if (options.portable && portabilityFailures.length > 0) {
     process.exitCode = 1;
+    return;
+  }
+
+  if (options.verifyProof != null) {
+    const explanation = await loadExplanation();
+    const proofText = await fs.readFile(options.verifyProof, 'utf8');
+    const certificates = explanation.proofCertificatesFromText(proofText, program);
+    if (certificates.length === 0) throw new Error(`no why/2 proof certificate found in ${options.verifyProof}`);
+    const registry = options.isoStrict ? engine.getStrictIsoRegistry() : engine.getEyePrologRegistry();
+    for (let i = 0; i < certificates.length; i++) {
+      const checked = explanation.verifyProof(program, certificates[i], { registry });
+      if (!checked.ok) throw new Error(`proof certificate ${i + 1} failed verification: ${checked.error}`);
+    }
+    process.stdout.write(`verified ${certificates.length} proof certificate${certificates.length === 1 ? '' : 's'}.\n`);
     return;
   }
 
@@ -244,7 +278,7 @@ async function runDefault(engine, program, options) {
     const { haltCode } = engine.executeGoals(program, solver, goals, {
       onAnswer: (line, resolved) => {
         process.stdout.write(line);
-        if (options.proof) writeExplanation(explanation, program, resolved, registry);
+        if (options.proof) writeExplanation(explanation, program, resolved, registry, options);
       },
     });
     if (haltCode != null) process.exitCode = haltCode;
@@ -253,8 +287,8 @@ async function runDefault(engine, program, options) {
   }
 }
 
-function writeExplanation(explanation, program, resolved, registry) {
-  const proof = explanation.whyProof(program, resolved, { registry });
+function writeExplanation(explanation, program, resolved, registry, options = {}) {
+  const proof = explanation.whyProof(program, resolved, { registry, proofDetail: options?.proofDetail ?? 'abstract' });
   process.stdout.write(proof.text);
   if (!proof.ok) process.stdout.write(explanation.whyNoProof(resolved));
 }
@@ -276,6 +310,8 @@ Input:
 Options:
   -h, --help            Show this help text and exit.
   -p, --proof           Enable proof explanations.
+  --proof-detail mode   Use abstract or expanded proof detail (implies --proof).
+  --verify-proof file   Verify why/2 proof certificates against the input program.
   -q, --quads           Run embedded quad tests and fail if any do not hold.
   -s, --stats           Print solver and memory statistics to stderr after execution.
   --iso-strict          Use ISO/IEC 13211-1 core + Corrigenda 1-3 only;

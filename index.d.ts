@@ -12,6 +12,8 @@ export interface EyePrologRunOptions {
   /** Host-supplied goals, executed in order. */
   goals?: Array<string | EyePrologTerm>;
   proof?: boolean;
+  /** Proof detail: abstract keeps library predicates as trusted leaves; expanded opens bundled Prolog library clauses. */
+  proofDetail?: 'abstract' | 'expanded';
   why?: boolean;
   explain?: boolean;
   maxDepth?: number;
@@ -310,9 +312,54 @@ export function hasForwardRules(program: Program): boolean;
 /** Execute EyeProlog `:+/2` rules to closure using an existing solver. */
 export function executeForwardRules(program: Program, solver: Solver, options?: EyePrologForwardRunOptions): EyePrologForwardRunResult;
 export function runQuads(source: string | Program, options?: EyePrologQuadRunOptions): EyePrologQuadRunResult;
-export function whyProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): { ok: boolean; text: string };
+export interface EyePrologProofMethod {
+  type: 'source' | 'builtin' | 'library' | 'conjunction';
+  kind?: 'fact' | 'rule';
+  filename?: string;
+  clause?: number;
+  name?: string;
+  arity?: number;
+}
+
+export interface EyePrologProofNode {
+  goal: string;
+  method: EyePrologProofMethod;
+  bindings: Array<{ name: string; value: string }>;
+  children: EyePrologProofNode[];
+}
+
+export interface EyePrologProofCertificate {
+  version: 1;
+  detail: 'abstract' | 'expanded';
+  answer: string;
+  proof: EyePrologProofNode;
+}
+
+export interface EyePrologProofResult {
+  ok: boolean;
+  certificate: EyePrologProofCertificate | null;
+  text: string;
+}
+
+export interface EyePrologProofTrustBoundary {
+  type: 'builtin' | 'library';
+  name: string;
+  arity: number;
+  goal: string;
+}
+
+export interface EyePrologProofVerification {
+  ok: boolean;
+  error: string | null;
+  trusted: EyePrologProofTrustBoundary[];
+}
+
+export function proofCertificate(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): EyePrologProofResult;
+export function proofCertificatesFromText(text: string, program: Program): EyePrologProofCertificate[];
+export function verifyProof(program: Program, certificate: EyePrologProofCertificate | EyePrologProofResult, options?: EyePrologRunOptions): EyePrologProofVerification;
+export function whyProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): EyePrologProofResult;
 export function whyNoProof(goal: EyePrologTerm): string;
-export function explainProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): { ok: boolean; text: string };
+export function explainProof(program: Program, goal: EyePrologTerm, options?: EyePrologRunOptions): EyePrologProofResult;
 
 declare const eyeprolog: {
   VAR: typeof VAR;
@@ -386,6 +433,9 @@ declare const eyeprolog: {
   hasForwardRules: typeof hasForwardRules;
   executeForwardRules: typeof executeForwardRules;
   runQuads: typeof runQuads;
+  proofCertificate: typeof proofCertificate;
+  proofCertificatesFromText: typeof proofCertificatesFromText;
+  verifyProof: typeof verifyProof;
   whyProof: typeof whyProof;
   whyNoProof: typeof whyNoProof;
   explainProof: typeof explainProof;

@@ -1467,24 +1467,41 @@ why(
 ).
 ```
 
-Proof output is valid EyeProlog input:
+Proof output is valid EyeProlog input and can be kept as a proof certificate:
 
 ```sh
 eyeprolog --proof examples/socrates.pl > socrates.why.pl
+eyeprolog --verify-proof socrates.why.pl examples/socrates.pl
 ```
+
+The second command checks the supplied `why/2` derivation against the program;
+it does not search again for a proof. A changed source clause, child goal, source
+location, or recorded substitution makes the certificate fail verification.
+Certificate input is parsed as Prolog data rather than loaded as a program, so
+its terms cannot trigger directives while being checked.
 
 A normal answer is one resolved ground term followed by a period. Strings,
 quoted atoms, lists, and compounds are rendered in supported source syntax so
 the output can be read back. Enabling `--proof`, `--warnings`, or `--stats`
 must not change which answers are found.
 
-The second argument of `why/2` is an abstract proof term of the general shape
+The second argument of `why/2` is a proof term of the general shape
 `proof(goal(G), by(Method), bindings(Bindings), uses(Proofs))`. User clauses
 are identified as `fact(Filename, clause(N))` or
 `rule(Filename, clause(N))`, with one-based source clause numbers. Built-ins
-are identified as `builtin(Name, Arity)`. Explanation data is outside the
+are identified as `builtin(Name, Arity)`. By default, bundled Prolog-library
+predicates appear as `library(Name, Arity)` trusted boundaries. Use
+`--proof-detail expanded` to replace those boundaries with the library source
+clauses and any trusted built-ins they call. Explanation data is outside the
 logical semantics of the input program: it describes the derivation but does
 not participate in finding it.
+
+Verification checks source steps structurally: the named clause must exist, its
+head must unify with the certified goal, its body must correspond to the child
+proofs, and recorded clause-variable bindings must agree with that derivation.
+Built-ins and abstract library nodes are deliberately trusted boundaries. This
+separates proof discovery from proof checking without pretending that host
+operations can be justified by Prolog source that does not exist.
 
 A second program can query `why/2`. Read a proof as an argument. If it contains
 irrelevant detours, improve the helpers. If a key premise is hidden inside an
@@ -1862,10 +1879,42 @@ prints numeric work counters; those counters describe this run rather than an
 additional logical answer.
 
 `run/2` accepts source text or an already parsed `Program`. Its options include
-`proof` (with `why` and `explain` as aliases), `maxDepth`, `maxInferences`,
-`maxMemoryBytes`, `solutionLimit`, a custom `registry`, and `strictNegation` or
-`analyzeNegation`. It returns `stdout`, the solver's numeric `stats`, and a
-nullable `haltCode`; it does not write to the process streams.
+`proof` (with `why` and `explain` as aliases), `proofDetail` (`abstract` or
+`expanded`), `maxDepth`, `maxInferences`, `maxMemoryBytes`, `solutionLimit`, a
+custom `registry`, and `strictNegation` or `analyzeNegation`. It returns
+`stdout`, the solver's numeric `stats`, and a nullable `haltCode`; it does not
+write to the process streams.
+
+For applications that exchange proofs independently of answer output, the same
+module exposes `proofCertificate(program, goal, options)`,
+`proofCertificatesFromText(text, program)`, and
+`verifyProof(program, certificate, options)`:
+
+```js
+import {
+  Program, parseGoalText,
+  proofCertificate, proofCertificatesFromText, verifyProof
+} from 'eyeprolog';
+
+const program = Program.parse(`
+p(a).
+q(X) :- p(X).
+`, { sourceMetadata: true });
+
+const made = proofCertificate(program, parseGoalText('q(a)'));
+console.log(verifyProof(program, made).ok); // true
+
+const received = proofCertificatesFromText(made.text, program)[0];
+console.log(verifyProof(program, received).ok); // true
+```
+
+`proofCertificate` returns both the ordinary `why/2` text and a JSON-serializable
+certificate object. `verifyProof` walks the supplied certificate rather than
+asking the solver to find another proof; its `trusted` array lists every builtin
+or abstract-library boundary that was assumed while checking it. Passing
+`proofDetail: 'expanded'` exposes bundled Prolog-library clauses in the
+certificate and therefore reduces library-level trust boundaries to the
+built-ins those clauses ultimately use.
 
 When `run` receives an already parsed `Program`, bundled-library imports
 needed only by its host-supplied goals are added to that Program before solving,
@@ -5480,9 +5529,11 @@ still retained where adjacent graphic tokens would otherwise merge, as in
 `write_term/2-3` supports `quoted/1`, `ignore_ops/1`, `numbervars/1`, and
 `variable_names/1`. Normal mode additionally accepts the EyeProlog extension
 `double_quotes(true|false)`: `true` lets eligible character/code lists use the
-current `double_quotes` representation. Proper lists can therefore be written
-as `"text"`, while a partial list such as `[a,b|Tail]` is written as
-`"ab"||Tail`. This representation choice is independent of `ignore_ops/1`: with
+current `double_quotes` representation. Proper character/code lists can therefore be written
+as `"text"`. A proper list whose final segment contains at least two characters/codes
+uses that representation for the suffix, so `[A,b,c,d,e,f]` is written as
+`[A|"bcdef"]`. A partial list such as `[a,b|Tail]` is written as `"ab"||Tail`.
+This representation choice is independent of `ignore_ops/1`: with
 `ignore_ops(true)`, operator terms use functional notation while an explicitly
 requested character/code list remains double quoted. Thus
 `write_term(f("ab",a+b),[quoted(true),ignore_ops(true),double_quotes(true)])`
@@ -9334,6 +9385,8 @@ make the observed question explicit.
 | --- | --- |
 | `-h`, `--help` | Show usage |
 | `-p`, `--proof` | Print `why/2` explanations |
+| `--proof-detail abstract|expanded` | Select library abstraction for proof output; implies `--proof` |
+| `--verify-proof File` | Verify saved `why/2` proof certificates against the input program without proof search |
 | `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
 | `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions (including `table` and `:+`) and disable bundled-library autoloading |
 | `--portable` | Enforce the conservative EyeProlog/Trealla/Scryer interoperability profile |
@@ -9378,7 +9431,9 @@ Work in a fixed sequence:
 
 1. predict the ground answers before running the program;
 2. run without observation flags and compare stdout with that prediction;
-3. add `--proof` when the support for an answer is the question;
+3. add `--proof` when the support for an answer is the question; save the
+   output and use `--verify-proof` when the derivation itself must cross a
+   process or review boundary;
 4. add `--warnings` when portability or negative dependencies are the
    question; use `--portable` when non-profile dependencies must fail CI;
 5. add `--stats` only when comparing two executions of the same semantic case.
@@ -9388,6 +9443,8 @@ For example:
 ```sh
 eyeprolog --goal 'ancestor(X, Y)' examples/ancestor.pl
 eyeprolog --proof --goal 'type(X, Y)' examples/socrates.pl
+eyeprolog --proof examples/socrates.pl > socrates.why.pl
+eyeprolog --verify-proof socrates.why.pl examples/socrates.pl
 eyeprolog --warnings --goal 'answer(X)' test/conformance/warnings/negation/unstratified_mutual.pl
 eyeprolog --portable --goal 'sudoku9_solution(S)' examples/clpz-sudoku-9x9.pl
 eyeprolog --stats --goal 'path(a, X)' examples/path-discovery.pl > answers.pl 2> run.stats

@@ -79,7 +79,7 @@ export function run(source, options = {}) {
     ({ haltCode } = executeForwardRules(program, solver, {
       onAnswer: (line, resolved) => {
         output.push(line);
-        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
+        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry, options.proofDetail);
       },
       onFuse: (line) => output.push(line),
       onDiagnostic: (line) => {
@@ -91,15 +91,15 @@ export function run(source, options = {}) {
     ({ haltCode } = executeGoals(program, solver, goals, {
       onAnswer: (line, resolved) => {
         output.push(line);
-        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry);
+        if (includeWhy) appendExplanation(output, program, resolved, runOptions.registry, options.proofDetail);
       },
     }));
   }
   return { stdout: output.join(''), stats: solver.stats, haltCode };
 }
 
-function appendExplanation(output, program, resolved, registry) {
-  const proof = whyProof(program, resolved, { registry });
+function appendExplanation(output, program, resolved, registry, proofDetail = 'abstract') {
+  const proof = whyProof(program, resolved, { registry, proofDetail });
   output.push(proof.text);
   if (!proof.ok) output.push(whyNoProof(resolved));
 }

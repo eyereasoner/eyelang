@@ -152,6 +152,20 @@ function writeString(value) {
   return out + '"';
 }
 
+function quotedListCharacter(item, doubleQuotes) {
+  if (doubleQuotes === 'chars') {
+    if (item.type !== ATOM || Array.from(item.name).length !== 1) return null;
+    return item.name;
+  }
+  if (doubleQuotes === 'codes') {
+    if (item.type !== NUMBER || !/^\d+$/.test(item.name)) return null;
+    const code = BigInt(item.name);
+    if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) return null;
+    return String.fromCodePoint(Number(code));
+  }
+  return null;
+}
+
 function quotedListSplice(term, env, doubleQuotes) {
   if (doubleQuotes !== 'chars' && doubleQuotes !== 'codes') return null;
   const characters = [];
@@ -164,16 +178,9 @@ function quotedListSplice(term, env, doubleQuotes) {
     if (!isCons(cursor)) {
       return characters.length === 0 ? null : { text: characters.join(''), tail: cursor };
     }
-    const item = deref(cursor.args[0], env);
-    if (doubleQuotes === 'chars') {
-      if (item.type !== ATOM || Array.from(item.name).length !== 1) return null;
-      characters.push(item.name);
-    } else {
-      if (item.type !== NUMBER || !/^\d+$/.test(item.name)) return null;
-      const code = BigInt(item.name);
-      if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) return null;
-      characters.push(String.fromCodePoint(Number(code)));
-    }
+    const character = quotedListCharacter(deref(cursor.args[0], env), doubleQuotes);
+    if (character == null) return null;
+    characters.push(character);
     cursor = cursor.args[1];
   }
 }
@@ -351,15 +358,26 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
 
     if (!options.ignoreOps) {
       const parts = [];
+      let quotedSuffix = [];
       let cursor = resolved;
       while (true) {
         cursor = deref(cursor, env);
         const separator = options.compact ? ',' : ', ';
-        if (isEmptyList(cursor)) return `[${parts.join(separator)}]`;
+        if (isEmptyList(cursor)) {
+          if (quotedSuffix.length > 1 && quotedSuffix.length < parts.length) {
+            const prefix = parts.slice(0, parts.length - quotedSuffix.length);
+            return `[${prefix.join(separator)}|${writeString(quotedSuffix.join(''))}]`;
+          }
+          return `[${parts.join(separator)}]`;
+        }
         if (!isCons(cursor)) {
           const tailSeparator = options.compact ? '|' : ' | ';
           return `[${parts.join(separator)}${tailSeparator}${format(cursor, env, options, table, 999, 'argument')}]`;
         }
+        const item = deref(cursor.args[0], env);
+        const character = quotedListCharacter(item, options.doubleQuotes);
+        if (character == null) quotedSuffix = [];
+        else quotedSuffix.push(character);
         parts.push(format(cursor.args[0], env, options, table, 999, 'argument'));
         cursor = cursor.args[1];
       }
