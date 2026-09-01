@@ -7253,6 +7253,54 @@ function whiteBoxCases() {
       },
     },
     {
+      name: 'normal integer syntax accepts WG17 digit separators (issue #89)',
+      run: () => {
+        const values = parseGoalText(`values(
+          1_000,
+          0b1010_0101,
+          0o7_ 7,
+          0xCA_/* digit group */FE,
+          -9_% line group
+          223
+        )`).args;
+        assertEqual(values.map((value) => value.name).join(','), '1000,165,63,51966,-9223',
+          'decimal and radix separator values');
+        const program = Program.parse('decimal(1_000).\nhexadecimal(0xCA_FE).\n');
+        assertEqual(program.findGroup('decimal', 1)?.clauses[0].head.args[0].name, '1000',
+          'program decimal literal');
+        assertEqual(program.findGroup('hexadecimal', 1)?.clauses[0].head.args[0].name, '51966',
+          'program radix literal');
+        assertEqual(parseNumberTokenText('1_ /* group */ 000').name, '1000',
+          'number-token conversion with layout');
+        assertEqual(
+          run('', { goal: 'number_chars(N,"1_000")' }).stdout,
+          'number_chars(1000, "1_000").\n',
+          'normal number_chars input',
+        );
+        assertEqual(
+          run('', { goal: 'read_term(N, [])', ioOptions: { input: '1_ /* group */ 000. ' } }).stdout,
+          'read_term(1000, []).\n',
+          'stream term input',
+        );
+
+        for (const source of ['1__000', '1_', '1_a', '0b1_2', '1_1.25', '1.2_5', '1.0e1_0']) {
+          let threw = false;
+          try { parseGoalText(`p(${source})`); } catch (_) { threw = true; }
+          assertEqual(threw, true, `malformed or non-integer separator rejected: ${source}`);
+        }
+
+        for (const source of ['1_000', '0b1010_0101', '0o7_7', '0xCA_FE']) {
+          let threw = false;
+          try { parseGoalText(`p(${source})`, { isoStrict: true }); } catch (_) { threw = true; }
+          assertEqual(threw, true, `strict syntax rejects ${source}`);
+        }
+        let strictConversion = null;
+        try { run('', { isoStrict: true, goal: 'number_chars(N,"1_000")' }); }
+        catch (error) { strictConversion = error; }
+        assertEqual(strictConversion?.formal, 'syntax_error(number)', 'strict number_chars rejection');
+      },
+    },
+    {
       name: 'double_quotes(true) remains effective with ignore_ops(true) in either option order (issue #88 follow-up)',
       run: () => {
         const source = [

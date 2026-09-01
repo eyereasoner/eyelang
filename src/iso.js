@@ -1762,7 +1762,7 @@ function parseReadTermText(text, solver) {
   const numericText = converted.slice(0, -1).replace(/[\u0009-\u000d\u0020]+$/, '');
   let numericTerm;
   try {
-    numericTerm = parseIsoNumber(numericText);
+    numericTerm = parseIsoNumber(numericText, { isoStrict: solver.isoStrict });
   } catch (error) {
     // parseIsoNumber/1 exposes Prolog errors to number_chars/2. The stream
     // reader's candidate loop instead recognizes parser representation errors
@@ -2338,7 +2338,7 @@ function quotedNumberSign(text, start) {
   return null;
 }
 
-function parseIsoNumber(text) {
+function parseIsoNumber(text, options = {}) {
   if (text.length === 0) return null;
   let position = skipNumberLayout(text, 0);
   let sign = '';
@@ -2375,7 +2375,7 @@ function parseIsoNumber(text) {
   // ISO floating-point syntax requires a decimal fraction before an exponent.
   if (/^-?\d+[eE][+-]?\d+$/.test(numericText)) return null;
   try {
-    const value = parseNumberTokenText(numericText);
+    const value = parseNumberTokenText(numericText, options);
     if (isDecimalInteger(value.name)) return numberTerm(BigInt(value.name).toString());
     const finite = Number(value.name);
     if (!Number.isFinite(finite)) return null;
@@ -2447,7 +2447,7 @@ function numberListBuiltin(kind) {
     const text = numberListText(list, env, kind, value.type === NUMBER, solver);
     if (value.type === NUMBER) {
       if (text != null) {
-        const parsed = parseIsoNumber(text);
+        const parsed = parseIsoNumber(text, { isoStrict: solver?.isoStrict === true });
         if (parsed == null) throw numberSyntaxError;
         if (sameNumber(value, parsed)) yield env.clone();
         return;
@@ -2458,7 +2458,7 @@ function numberListBuiltin(kind) {
       if (unify(goal.args[1], listFromItems(items), next)) yield next;
       return;
     }
-    const parsed = parseIsoNumber(text);
+    const parsed = parseIsoNumber(text, { isoStrict: solver?.isoStrict === true });
     if (parsed == null) throw numberSyntaxError;
     const next = env.clone();
     if (unify(goal.args[0], parsed, next)) yield next;

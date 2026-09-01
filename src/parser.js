@@ -439,6 +439,21 @@ class Parser {
       break;
     }
   }
+  integerDigits(digitPattern, line) {
+    let digits = '';
+    let separated = false;
+    while (digitPattern.test(this.peek())) {
+      digits += this.take();
+      if (this.strictIso || this.peek() !== '_') continue;
+      separated = true;
+      this.take();
+      this.skipWhitespaceAndComments();
+      if (!digitPattern.test(this.peek())) {
+        throw new Error(`parse line ${line}: bad digit separator`);
+      }
+    }
+    return { digits, separated };
+  }
   readEscape(line, options = {}) {
     const takeChar = () => options.raw ? this.rawTake() : this.take();
     const peekChar = () => options.raw ? this.rawPeek() : this.peek();
@@ -646,17 +661,16 @@ class Parser {
         const kind = this.take();
         const radix = kind === 'b' ? 2 : kind === 'o' ? 8 : 16;
         const digitPattern = radix === 2 ? /^[01]$/ : radix === 8 ? /^[0-7]$/ : /^[0-9A-Fa-f]$/;
-        let digits = '';
-        while (digitPattern.test(this.peek())) digits += this.take();
+        const { digits } = this.integerDigits(digitPattern, line);
         if (!digits) throw new Error(`parse line ${line}: bad radix integer`);
         let integer = 0n;
         for (const digit of digits) integer = integer * BigInt(radix) + BigInt(Number.parseInt(digit, radix));
         if (negative) integer = -integer;
         return { type: TOK.NUMBER, text: integer.toString(), line };
       }
-      while (isDigitCode(this.peek().charCodeAt(0))) this.take();
+      const { digits, separated } = this.integerDigits(/^[0-9]$/, line);
       let hasFraction = false;
-      if (this.peek() === '.' && isDigitCode(this.peek(1).charCodeAt(0))) {
+      if (!separated && this.peek() === '.' && isDigitCode(this.peek(1).charCodeAt(0))) {
         hasFraction = true;
         this.take();
         while (isDigitCode(this.peek().charCodeAt(0))) this.take();
@@ -674,7 +688,7 @@ class Parser {
         }
       }
       let text = this.convertedSlice(start, this.pos);
-      if (!hasFraction) text = BigInt(text).toString();
+      if (!hasFraction) text = BigInt(`${negative ? '-' : ''}${digits}`).toString();
       else text = finiteFloatTokenText(text);
       return { type: TOK.NUMBER, text, line };
     }
@@ -1704,8 +1718,43 @@ export function parseProgramText(source, options = {}) {
 
 const invalidNumberTokenError = new Error('not exactly one number token');
 
-export function parseNumberTokenText(text) {
+function skipDigitSeparatorLayout(source, start) {
+  let position = start;
+  while (true) {
+    while (isWhitespaceCharacter(source[position] ?? '')) position++;
+    if (source[position] === '%') {
+      const newline = source.indexOf('\n', position + 1);
+      if (newline < 0) return source.length;
+      position = newline + 1;
+      continue;
+    }
+    if (source.startsWith('/*', position)) {
+      const end = source.indexOf('*/', position + 2);
+      if (end < 0) return source.length;
+      position = end + 2;
+      continue;
+    }
+    return position;
+  }
+}
+
+function separatedIntegerDigits(source, start, digitPattern, enabled) {
+  let position = start;
+  let digits = '';
+  let separated = false;
+  while (digitPattern.test(source[position] ?? '')) {
+    digits += source[position++];
+    if (!enabled || source[position] !== '_') continue;
+    separated = true;
+    position = skipDigitSeparatorLayout(source, position + 1);
+    if (!digitPattern.test(source[position] ?? '')) throw invalidNumberTokenError;
+  }
+  return { digits, position, separated };
+}
+
+export function parseNumberTokenText(text, options = {}) {
   const source = String(text ?? '');
+  const digitSeparators = options.isoStrict !== true;
   let position = 0;
   let negative = false;
   if (source[position] === '-') {
@@ -1771,8 +1820,9 @@ export function parseNumberTokenText(text) {
     const radix = kind === 'b' ? 2 : kind === 'o' ? 8 : 16;
     const digitPattern = radix === 2 ? /^[01]$/ : radix === 8 ? /^[0-7]$/ : /^[0-9A-Fa-f]$/;
     position += 2;
-    let digits = '';
-    while (digitPattern.test(source[position] ?? '')) digits += source[position++];
+    const scanned = separatedIntegerDigits(source, position, digitPattern, digitSeparators);
+    const { digits } = scanned;
+    position = scanned.position;
     if (!digits || position !== source.length) throw invalidNumberTokenError;
     let integer = 0n;
     for (const digit of digits) integer = integer * BigInt(radix) + BigInt(Number.parseInt(digit, radix));
@@ -1780,11 +1830,12 @@ export function parseNumberTokenText(text) {
     return numberTerm(integer.toString());
   }
 
-  const digitsStart = position;
-  while (isDigitCode(source.charCodeAt(position))) position++;
-  if (position === digitsStart) throw invalidNumberTokenError;
+  const scanned = separatedIntegerDigits(source, position, /^[0-9]$/, digitSeparators);
+  const { digits, separated } = scanned;
+  position = scanned.position;
+  if (!digits) throw invalidNumberTokenError;
   let hasFraction = false;
-  if (source[position] === '.' && isDigitCode(source.charCodeAt(position + 1))) {
+  if (!separated && source[position] === '.' && isDigitCode(source.charCodeAt(position + 1))) {
     hasFraction = true;
     position++;
     while (isDigitCode(source.charCodeAt(position))) position++;
@@ -1797,7 +1848,7 @@ export function parseNumberTokenText(text) {
     if (position === exponentStart) throw invalidNumberTokenError;
   }
   if (position !== source.length) throw invalidNumberTokenError;
-  if (/^-?\d+$/.test(source)) return numberTerm(BigInt(source).toString());
+  if (!hasFraction) return numberTerm(BigInt(`${negative ? '-' : ''}${digits}`).toString());
   return numberTerm(finiteFloatTokenText(source));
 }
 

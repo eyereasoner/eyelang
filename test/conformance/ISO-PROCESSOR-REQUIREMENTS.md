@@ -34,7 +34,7 @@ certification claim.
 | Requirement | Status | EyeProlog decision / evidence |
 | --- | --- | --- |
 | 5.5 general extension rule | covered | normal mode may provide documented extensions; strict mode removes their Part 1 interpretation rather than changing implementation-defined choices |
-| 5.5.1 syntax extensions preserve standard token/text meaning | covered | WG17 syntax is a release gate and strict mode removes module/DCG/quad interpretation. Every vendored WG17 case that succeeds in the strict reader has the same observable outcome in normal mode; the focused Clause 6 gate separately covers each standard token/term family and malformed counterparts. |
+| 5.5.1 syntax extensions preserve standard token/text meaning | covered | WG17 syntax is a release gate and strict mode removes module/DCG/quad, digit-separator, and double-bar interpretation. Every vendored WG17 case that succeeds in the strict reader has the same observable outcome in normal mode; the focused Clause 6 gate separately covers each standard token/term family and malformed counterparts. |
 | 5.5.2 additional predefined operators | covered | strict mode starts from the Part 1 predefined operator table; normal-profile extra operators are documented and filtered |
 | 5.5.3 initial character-conversion mapping | covered | identity initial mapping; user changes are exercised through preparation/execution `char_conversion/2` behavior |
 | 5.5.4 additional term types | covered | the normal JavaScript API's `stringTerm(Text)` is documented as an implementation-specific sixth term type, including disjointness, ordering, clause conversion, lack of source token syntax, expression behavior, and writing; strict program/goal entry rejects that type with `representation_error(term)` |

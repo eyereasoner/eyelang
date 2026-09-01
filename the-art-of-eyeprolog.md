@@ -465,6 +465,11 @@ for `[a,b|Tail]`; with `double_quotes(codes)`, it denotes `[97,98|Tail]`. The
 splice is not available when `double_quotes(atom)` is active, and
 `--iso-strict` rejects it as an implementation-specific syntax extension.
 
+Normal-mode integer constants may use one underscore between adjacent digits,
+as in `1_000` or `0xCA_FE`. Layout, including comments and newlines, may follow
+the underscore before the next digit. Separators do not apply to floating-point
+fractions or exponents, and `--iso-strict` rejects them.
+
 Plain atom constants begin with a lowercase ASCII letter. Variables begin with
 an uppercase letter or underscore. The bare `_` is anonymous and every
 occurrence is fresh. `_Name` is a named variable; repeated occurrences refer to
@@ -5648,8 +5653,10 @@ lowercase ASCII letter. Variables begin with uppercase or underscore. The bare
 `_` is fresh each time. Single quotes delimit quoted atoms; double quotes use
 ISO double-quoted-list notation. Integers, decimals, scientific notation,
 binary/octal/hexadecimal integers, and character-code constants are accepted.
-Normal mode additionally accepts the Trealla-compatible `"text"||Tail`
-right-splice for double-quoted `chars`/`codes` lists; strict ISO mode does not.
+Normal mode additionally accepts digit-separated integer constants such as
+`1_000` and `0xCA_FE`, with optional layout after the underscore, and the
+Trealla-compatible `"text"||Tail` right-splice for double-quoted `chars`/`codes`
+lists; strict ISO mode accepts neither syntax extension.
 
 The processor character set is shared by normal and `--iso-strict` modes because
 Part 1 makes it implementation defined rather than an extension boundary.
@@ -6190,7 +6197,7 @@ quoted_atom("ab").           % quoted_atom(ab)
 - **`sub_atom(+Atom,?Before,?Length,?After,?SubAtom)`** — Enumerates substrings and their Unicode-code-point offsets. Supplied counts must be nonnegative integers.
 - **`atom_chars(?Atom,?Chars)`, `atom_codes(?Atom,?Codes)`** — Convert between an atom and a proper list of one-character atoms or character codes. Both profiles use EyeProlog's Unicode scalar PCS/codes; surrogates and values above U+10FFFF are rejected. At least one side must be instantiated.
 - **`char_code(?Character,?Code)`** — Converts one character atom and its collating/code value. Both profiles accept Unicode scalar codes and reject surrogates/out-of-range values.
-- **`number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)`** — Convert finite numbers to canonical text or parse a proper character/code list using ISO number and negative-number syntax, including radix integers, character-code constants, and leading layout. The input is not parsed as a general term: grouping such as `(0)` is a syntax error. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*.
+- **`number_chars(?Number,?Chars)`, `number_codes(?Number,?Codes)`** — Convert finite numbers to canonical text or parse a proper character/code list using number and negative-number syntax, including radix integers, character-code constants, and leading layout. Normal mode also accepts digit separators in integer input; strict mode retains the ISO syntax. The input is not parsed as a general term: grouping such as `(0)` is a syntax error. At least one side must be instantiated; malformed numeric input raises *syntax_error(number)*.
 
 Conversions accept partial output lists when the atomic input is known, but
 constructing an atom or number requires a complete proper list with no unbound
