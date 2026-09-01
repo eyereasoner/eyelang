@@ -11,6 +11,11 @@ const syntaxSource = 'https://www.complang.tuwien.ac.at/ulrich/iso-prolog/confor
 const syntaxFixturePath = path.join(packageRoot, 'test', 'conformance', 'wg17-syntax-cases.json');
 const syntaxCoveragePath = path.join(packageRoot, 'test', 'conformance', 'wg17-syntax-coverage.json');
 const syntaxStatusPath = path.join(packageRoot, 'test', 'conformance', 'WG17-SYNTAX-STATUS.md');
+const conformanceReportPath = path.join(packageRoot, 'conformance-report.md');
+const countDocumentationPaths = [
+  path.join(packageRoot, 'test', 'conformance', 'README.md'),
+  path.join(packageRoot, 'test', 'conformance', 'ISO-COMPLIANCE.md'),
+];
 
 const namedEntities = new Map([
   ['amp', '&'], ['lt', '<'], ['gt', '>'], ['quot', '"'], ['apos', "'"],
@@ -318,6 +323,20 @@ function formatIdList(ids) {
   return ids.length === 0 ? 'none' : ids.map((id) => `#${id}`).join(', ');
 }
 
+function updateDocumentedInventoryCount(previousCount, nextCount) {
+  if (previousCount === nextCount) return;
+  for (const filename of countDocumentationPaths) {
+    const original = fs.readFileSync(filename, 'utf8');
+    const updated = original
+      .replaceAll(`${previousCount}-case`, `${nextCount}-case`)
+      .replaceAll(`WG17 matrix has ${previousCount} executable`, `WG17 matrix has ${nextCount} executable`);
+    if (updated === original) {
+      throw new Error(`WG17 inventory count was not found in ${path.relative(packageRoot, filename)}`);
+    }
+    fs.writeFileSync(filename, updated);
+  }
+}
+
 async function readSource(source) {
   if (/^https?:\/\//i.test(source)) {
     const response = await fetch(source, {
@@ -415,6 +434,13 @@ export async function upgradeWg17({ check = false, source = syntaxSource } = {})
   // Generate status after the fixture/manifest are synchronized.
   const { renderWg17SyntaxStatus } = await import('./report-wg17-syntax-coverage.mjs');
   fs.writeFileSync(syntaxStatusPath, renderWg17SyntaxStatus());
+  updateDocumentedInventoryCount(previous.cases.length, fixture.cases.length);
+
+  // The public report executes the refreshed fixture, so keep its measured row
+  // synchronized as part of the same explicit upgrade operation.
+  const { buildConformanceReport, formatConformanceReport } = await import('../test/run-conformance-report.mjs');
+  const conformanceReport = buildConformanceReport();
+  fs.writeFileSync(conformanceReportPath, formatConformanceReport(conformanceReport));
 
   const upstreamAssertions = fixture.cases
     .filter((item) => item.outcome == null)

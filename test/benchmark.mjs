@@ -128,6 +128,48 @@ function changeText(item) {
   return `${change < 0 ? '↓' : '↑'} ${value}`;
 }
 
+function summarizeResults(results) {
+  const comparable = results.filter((item) =>
+    Number.isFinite(item.medianMs) &&
+    item.medianMs > 0 &&
+    Number.isFinite(item.baselineMs) &&
+    item.baselineMs > 0);
+
+  if (comparable.length === 0) {
+    return {
+      comparable: 0,
+      total: results.length,
+      ratio: null,
+      changePercent: null,
+      currentTotalMs: null,
+      baselineTotalMs: null,
+      totalRatio: null,
+      totalChangePercent: null,
+    };
+  }
+
+  const ratio = Math.exp(
+    comparable.reduce(
+      (sum, item) => sum + Math.log(item.medianMs / item.baselineMs),
+      0,
+    ) / comparable.length,
+  );
+  const currentTotalMs = comparable.reduce((sum, item) => sum + item.medianMs, 0);
+  const baselineTotalMs = comparable.reduce((sum, item) => sum + item.baselineMs, 0);
+  const totalRatio = currentTotalMs / baselineTotalMs;
+
+  return {
+    comparable: comparable.length,
+    total: results.length,
+    ratio,
+    changePercent: (ratio - 1) * 100,
+    currentTotalMs,
+    baselineTotalMs,
+    totalRatio,
+    totalChangePercent: (totalRatio - 1) * 100,
+  };
+}
+
 function runWorker(item) {
   const child = spawnSync(process.execPath, [
     path.join(root, 'test', 'benchmark-worker.mjs'),
@@ -176,6 +218,8 @@ for (const item of selected) {
   });
 }
 
+const summary = summarizeResults(results);
+
 if (options.save != null) {
   await fs.mkdir(path.dirname(options.save), { recursive: true });
   const saved = {
@@ -202,6 +246,7 @@ if (options.json) {
     targetMs: options.targetMs,
     baseline: baselinePath,
     baselineWarning,
+    summary,
     results,
   }, null, 2)}\n`);
 } else {
@@ -220,9 +265,25 @@ if (options.json) {
   printRow(headers);
   printRow(widths.map((width) => '-'.repeat(width)));
   for (const row of rows) printRow(row);
+
+  if (summary.comparable > 0) {
+    process.stdout.write(
+      `\nSuite score: ${summary.ratio.toFixed(3)}x baseline ` +
+      `(${changeText({ changePercent: summary.changePercent })}); ` +
+      `equal-weight geometric mean across ${summary.comparable}/${summary.total} comparable benchmarks.\n`,
+    );
+    process.stdout.write(
+      `Time-weighted total: ${formatMs(summary.currentTotalMs)} vs ${formatMs(summary.baselineTotalMs)} ` +
+      `(${changeText({ changePercent: summary.totalChangePercent })}).\n`,
+    );
+  }
+
   process.stdout.write(`\n${results.length} benchmarks; ${options.runs} measured batch${options.runs === 1 ? '' : 'es'} each after ${options.warmup} warm-up batch${options.warmup === 1 ? '' : 'es'}, calibrated after one priming execution toward ${options.targetMs} ms per batch.\n`);
   if (baselineWarning) process.stdout.write(`${baselineWarning}\n`);
   if (baselinePath == null && !baselineWarning) process.stdout.write('No timing baseline found; run npm run benchmark:baseline to create .benchmarks/baseline.json.\n');
   if (options.save != null) process.stdout.write(`Saved timing baseline: ${path.relative(root, options.save)}\n`);
   process.stdout.write('Change compares the current median/op directly with the saved baseline median/op; the measured range is shown separately.\n');
+  if (summary.comparable > 0) {
+    process.stdout.write('Suite score is the geometric mean of current/baseline ratios, so every benchmark has equal relative weight; Time-weighted total compares summed medians and is dominated by longer workloads.\n');
+  }
 }

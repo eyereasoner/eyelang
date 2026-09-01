@@ -8,9 +8,9 @@ when this report is generated; it is not inferred from fixture counts.
 
 | Gate | Passed | Total | Status |
 |---|---:|---:|---|
-| WG17 syntax | 372 | 372 | pass |
+| WG17 syntax | 366 | 366 | pass |
 
-The WG17 syntax row executes the vendored 372-case conformity-testing matrix
+The WG17 syntax row executes the vendored 366-case conformity-testing matrix
 against EyeProlog's strict ISO reader/writer. A behavior fix such as operator-token
 spelling therefore changes this report even when no corpus file is added or removed.
 

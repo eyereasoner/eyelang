@@ -5387,11 +5387,12 @@ ${profile}`;
         assertEqual(report.total.positive + report.total.errors + report.total.warnings + report.total.proofs, report.total.total, 'conformance total');
         assertEqual(report.rows.some((row) => row.category === 'legacy-numbered'), false, 'legacy-numbered category');
         const wg17 = report.executable.find((gate) => gate.name === 'WG17 syntax');
-        assertEqual(wg17?.total, 372, 'WG17 executable total');
-        assertEqual(wg17?.passed, 372, 'WG17 executable passed');
+        const wg17FixtureTotal = readWg17SyntaxFixture().cases.length;
+        assertEqual(wg17?.total, wg17FixtureTotal, 'WG17 executable total');
+        assertEqual(wg17?.passed, wg17FixtureTotal, 'WG17 executable passed');
         assertArrayEqual(wg17?.failures ?? [], [], 'WG17 executable failures');
         const text = formatConformanceReport(report);
-        assertIncludes(text, '| WG17 syntax | 372 | 372 | pass |', 'report');
+        assertIncludes(text, `| WG17 syntax | ${wg17FixtureTotal} | ${wg17FixtureTotal} | pass |`, 'report');
         assertIncludes(text, '| variables |', 'report');
         assertIncludes(text, '| Proofs |', 'report');
         assertIncludes(text, '| **Total** |', 'report');
@@ -8342,6 +8343,7 @@ function documentedConformanceMetricIssues() {
   const report = buildConformanceReport();
   const iso = report.rows.find((row) => row.category === 'iso')?.total;
   const total = report.total.total;
+  const wg17 = report.executable.find((gate) => gate.name === 'WG17 syntax')?.total;
   const checks = [
     {
       file: path.join(packageRoot, 'the-art-of-eyeprolog.md'),
@@ -8369,6 +8371,21 @@ function documentedConformanceMetricIssues() {
       if (actual !== check.expected[i]) {
         issues.push(`${relative}: ${check.labels[i]} count ${actual} != ${check.expected[i]}`);
       }
+    }
+  }
+  for (const file of [
+    path.join(packageRoot, 'test', 'conformance', 'README.md'),
+    path.join(packageRoot, 'test', 'conformance', 'ISO-COMPLIANCE.md'),
+  ]) {
+    const relative = path.relative(packageRoot, file);
+    const text = fs.readFileSync(file, 'utf8');
+    const claims = [
+      ...[...text.matchAll(/\b(\d+)-case[^\n|]*WG17/g)].map((match) => Number(match[1])),
+      ...[...text.matchAll(/WG17[^\n|]*?\b(\d+) executable/g)].map((match) => Number(match[1])),
+    ];
+    if (claims.length === 0) issues.push(`${relative}: WG17 total not found`);
+    for (const claim of claims) {
+      if (claim !== wg17) issues.push(`${relative}: WG17 count ${claim} != ${wg17}`);
     }
   }
   return issues.sort();

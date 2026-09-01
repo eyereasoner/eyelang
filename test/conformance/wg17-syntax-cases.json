@@ -1,6 +1,6 @@
 {
   "source": "https://www.complang.tuwien.ac.at/ulrich/iso-prolog/conformity_testing",
-  "checkedOn": "2026-08-16",
+  "checkedOn": "2026-09-01",
   "protocol": "Each query is read and executed in strict ISO mode; /**/ rows reuse the preceding setup.",
   "cases": [
     {
@@ -4139,16 +4139,8 @@
       "query": "write_canonical(B+B).",
       "input": "write_canonical(B+B).",
       "readCount": 1,
-      "expected": "e.g. +(_1,\n_1)",
-      "outcome": {
-        "type": "success",
-        "stages": [
-          {
-            "output": "+(_A,_A)",
-            "variables": "['B'=B]"
-          }
-        ]
-      }
+      "expected": "e.g. +(_1,_1)",
+      "assertion": "upstream"
     },
     {
       "id": 228,
@@ -5565,99 +5557,8 @@
           }
         ]
       }
-    },
-    {
-      "id": 369,
-      "query": "writeq(?-).",
-      "input": "writeq(?-).",
-      "readCount": 1,
-      "expected": "?-",
-      "outcome": {
-        "type": "success",
-        "stages": [
-          {
-            "output": "?-",
-            "variables": "[]"
-          }
-        ]
-      }
-    },
-    {
-      "id": 370,
-      "query": "writeq(./*).",
-      "input": "writeq(./*).",
-      "readCount": 1,
-      "expected": "./*",
-      "outcome": {
-        "type": "success",
-        "stages": [
-          {
-            "output": "./*",
-            "variables": "[]"
-          }
-        ]
-      }
-    },
-    {
-      "id": 371,
-      "query": "writeq({*}).",
-      "input": "writeq({*}).",
-      "readCount": 1,
-      "expected": "{*}",
-      "outcome": {
-        "type": "success",
-        "stages": [
-          {
-            "output": "{*}",
-            "variables": "[]"
-          }
-        ]
-      }
-    },
-    {
-      "id": 372,
-      "query": "writeq(.*).",
-      "input": "writeq(.*).",
-      "readCount": 1,
-      "expected": ".*",
-      "outcome": {
-        "type": "success",
-        "stages": [
-          {
-            "output": ".*",
-            "variables": "[]"
-          }
-        ]
-      }
-    },
-    {
-      "id": 373,
-      "query": "writeq(...*).",
-      "input": "writeq(...*).",
-      "readCount": 1,
-      "expected": "...*",
-      "outcome": {
-        "type": "success",
-        "stages": [
-          {
-            "output": "...*",
-            "variables": "[]"
-          }
-        ]
-      }
-    },
-    {
-      "id": 374,
-      "query": "Finis ().",
-      "input": "Finis ().",
-      "readCount": 1,
-      "expected": "syntax err.",
-      "outcome": {
-        "type": "error",
-        "formal": "syntax_error(read_term)"
-      }
     }
   ],
   "sourceRevision": "1.300",
-  "sourceSha256": "d7ca05e90cfafe786d5edca4783e691a356a35508c50b62f5a99bd9057e2cd05"
+  "sourceSha256": "b6590c1c5269e8e62a1ec72a8f04f21f123a77709854a8a66c436df25f3ff418"
 }
