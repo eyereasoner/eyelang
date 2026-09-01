@@ -345,11 +345,11 @@ profile_prohibition(Request) :-
   cycle_request(Request),
   tnot(profile_permission(Request)).
 
-% For a ground WFS claim, both Claim and tnot(Claim) conditionally succeed when
-% the truth value is undefined.  That lets this example expose all three states.
+% For a ground WFS claim, true and false are successful positive and negative
+% probes.  If neither probe succeeds, the WFS truth value is undefined.
 wfs_truth(Claim, true) :- call(Claim), \+ tnot(Claim).
 wfs_truth(Claim, false) :- tnot(Claim), \+ call(Claim).
-wfs_truth(Claim, undefined) :- call(Claim), tnot(Claim).
+wfs_truth(Claim, undefined) :- \+ call(Claim), \+ tnot(Claim).
 
 % --- Curated questions -----------------------------------------------------
 

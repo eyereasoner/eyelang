@@ -1144,8 +1144,9 @@ win(X) :- move(X, Y), tnot(win(Y)).
 ```
 
 Here neither `win(a)` nor `win(b)` is unconditionally established; both belong
-to the undefined part of the well-founded model. EyeProlog exposes undefined
-WFS answers as conditional successes, including inside finite collectors.
+to the undefined part of the well-founded model. EyeProlog retains that state
+internally but does not expose undefined atoms as successful query answers or
+run the remaining goals of a conjunction through them.
 Direct calls to `tnot/1` must be ground. In WFS rules, variables occurring in
 the head or a negated literal must be range-restricted by positive body
 literals. Ordinary `\+/1` is unchanged, and strict ISO mode does not provide
@@ -1664,8 +1665,8 @@ The reported counters include completed goal lists, calls to the goal solver
 and single-goal solver, unification attempts, maximum depth and goal-list size,
 deterministic built-in successes and failures, and table fixed-point rounds.
 WFS execution additionally reports `wfs_fixpoint_rounds` and
-`wfs_undefined_answers`. The latter counts undefined-answer observations made
-while producing query results; it is an execution statistic, not a declaration
+`wfs_undefined_answers`. The latter counts undefined atoms encountered while
+resolving query goals; it is an execution statistic, not a declaration
 that those atoms are true. All statistics describe work performed, not logical
 truth. Compare counters only across equivalent queries and the same
 implementation version.

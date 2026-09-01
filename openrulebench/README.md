@@ -116,10 +116,9 @@ win(X) :- move(X,Y), tnot(win(Y)).
 
 For `magicset.pl`, the recursive negative calls likewise use `tnot(ab(X))`.
 Both WFS benchmarks therefore run by default under EyeProlog and SWI-Prolog.
-Undefined WFS answers are conditional: for the portable cyclic win/not-win
-data, EyeProlog's `benchmark/1` counts the 5,000 undefined `win/1` answers that
-participate in the collector; it does not mean those atoms are unconditionally
-true.
+EyeProlog retains undefined WFS atoms internally but does not expose them as
+successful goal solutions. For the portable cyclic win/not-win data,
+`benchmark/1` therefore counts zero unconditional `win/1` answers.
 
 Trealla's native tabling is least-model variant tabling without `tnot`/WFS, and
 this pack does not assume a compatible WFS-negation interface for Scryer. Their
@@ -186,7 +185,7 @@ engine version, JavaScript/Prolog runtime, CPU, memory limits, and host load.
 | `wine` | 400 |
 | `modsg` | 21405 |
 | `win_tree` | 6665 |
-| `win_cycle` | 5000 conditional/undefined WFS answers |
+| `win_cycle` | 0 unconditional WFS answers |
 | `magicset` | 0 |
 
 ## Benchmark classes

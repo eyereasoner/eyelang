@@ -7782,9 +7782,9 @@ win(X) :- move(X, Y), tnot(win(Y)).
         assertEqual(program.findGroup('win', 1).wfsDatalog, true, 'win/1 uses finite WFS evaluation');
         assertEqual(program.findGroup('win', 1).tabled, false, 'win/1 is not positive least-model tabled');
         const result = run(program, { goal: 'win(X)' });
-        assertEqual(result.stdout.trim().split('\n').length, 4, 'negative cycle yields four conditional WFS answers');
+        assertEqual(result.stdout, '', 'negative cycle does not expose undefined atoms as successful answers');
         assertEqual(result.stats.wfs_fixpoint_rounds, 2, 'alternating fixed point converges in two rounds');
-        assertEqual(result.stats.wfs_undefined_answers, 4, 'cycle answers are undefined rather than unconditional truths');
+        assertEqual(result.stats.wfs_undefined_answers, 4, 'cycle atoms are observed as undefined rather than unconditional truths');
 
         const nafProgram = Program.parse('p(X) :- \\+ q(X).\nq(X) :- p(X).\n');
         assertEqual(nafProgram.findGroup('p', 1).wfsDatalog, false, '\\+/1 remains ordinary negation as failure');
@@ -7804,7 +7804,23 @@ undefined_case :- tnot(win(c)).
 `;
         assertEqual(run(source, { goal: 'true_case' }).stdout, 'true_case.\n', 'win(a) is true because b is false');
         assertEqual(run(source, { goal: 'false_case' }).stdout, '', 'tnot(win(a)) fails for a true atom');
-        assertEqual(run(source, { goal: 'undefined_case' }).stdout, 'undefined_case.\n', 'tnot of an undefined WFS atom is a conditional success');
+        assertEqual(run(source, { goal: 'undefined_case' }).stdout, '', 'tnot of an undefined WFS atom is not a successful answer');
+      },
+    },
+    {
+      name: 'undefined WFS goals do not run continuations or print CLI answers',
+      run: () => {
+        const source = `
+:- use_module(library(tabling)).
+:- table(a/0).
+:- table(b/0).
+a :- tnot(b).
+b :- tnot(a).
+`;
+        const result = run(source, { goal: 'a, write(true), nl; halt' });
+        assertEqual(result.stdout, '', 'undefined first branch neither writes nor produces a ground answer');
+        assertEqual(result.haltCode, 0, 'fallback halt branch runs');
+        assertEqual(result.stats.wfs_undefined_answers, 1, 'undefined atom remains observable in statistics');
       },
     },
     {

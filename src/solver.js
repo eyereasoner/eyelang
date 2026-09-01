@@ -909,7 +909,10 @@ export class Solver {
         if (!unify(goal.args[i], row[i], next)) { ok = false; break; }
       }
       if (!ok) continue;
-      if (!lower?.has(row)) this.stats.wfs_undefined_answers++;
+      if (!lower?.has(row)) {
+        this.stats.wfs_undefined_answers++;
+        continue;
+      }
       yield* this.solve(rest, next, depth + 1);
       if (this.solutionsSeen >= this.solutionLimit) return;
     }
@@ -927,7 +930,10 @@ export class Solver {
       const model = this.wfsModelFor(group);
       const truth = truthOfGroundGoal(model, invoked);
       if (truth === 'true') return;
-      if (truth === 'undefined') this.stats.wfs_undefined_answers++;
+      if (truth === 'undefined') {
+        this.stats.wfs_undefined_answers++;
+        return;
+      }
       yield env;
       return;
     }
@@ -1523,7 +1529,10 @@ function pushWfsAnswerFrames(stack, model, group, goal, rest, env, depth, active
       if (!unify(goal.args[i], row[i], next)) { ok = false; break; }
     }
     if (!ok) continue;
-    if (!lower?.has(row)) solver.stats.wfs_undefined_answers++;
+    if (!lower?.has(row)) {
+      solver.stats.wfs_undefined_answers++;
+      continue;
+    }
     stack.push({ kind: 'goals', goals: rest, env: next, depth: depth + 1, active });
   }
 }

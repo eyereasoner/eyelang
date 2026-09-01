@@ -1,7 +1,7 @@
 export interface EyePrologStats {
   /** Alternating-fixed-point rounds used to build WFS models. */
   wfs_fixpoint_rounds: number;
-  /** Undefined WFS answers observed while producing query results. */
+  /** Undefined WFS atoms encountered while resolving query goals. */
   wfs_undefined_answers: number;
   [key: string]: number;
 }
