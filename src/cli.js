@@ -28,6 +28,7 @@ export async function main(argv) {
     proofDetail: 'abstract',
     verifyProof: null,
     quads: false,
+    quiet: false,
     stats: false,
     isoStrict: false,
     portable: false,
@@ -60,6 +61,8 @@ export async function main(argv) {
       options.verifyProof = file;
     } else if (!endOptions && (arg === '--quads' || arg === '-q')) {
       options.quads = true;
+    } else if (!endOptions && arg === '--quiet') {
+      options.quiet = true;
     } else if (!endOptions && (arg === '--stats' || arg === '-s')) {
       options.stats = true;
     } else if (!endOptions && arg === '--iso-strict') {
@@ -116,7 +119,7 @@ export async function main(argv) {
   }
 
   if (options.isoStrict && options.files.length === 0 && options.goals.length === 0 &&
-      options.verifyProof == null && !options.proof && !options.stats && !options.warnings) {
+      options.verifyProof == null && !options.proof && !options.quiet && !options.stats && !options.warnings) {
     const engine = await loadEngine();
     const { runRepl } = await import('./repl.js');
     const exitCode = await runRepl(engine, {
@@ -251,8 +254,8 @@ async function runForwardDefault(engine, program, options) {
   });
   try {
     const result = engine.executeForwardRules(program, solver, {
-      onAnswer: (line) => process.stdout.write(line),
-      onFuse: (line) => process.stdout.write(line),
+      onAnswer: (line) => { if (!options.quiet) process.stdout.write(line); },
+      onFuse: (line) => { if (!options.quiet) process.stdout.write(line); },
       onDiagnostic: (line) => process.stderr.write(line),
     });
     if (result.haltCode != null) process.exitCode = result.haltCode;
@@ -277,7 +280,7 @@ async function runDefault(engine, program, options) {
   try {
     const { haltCode } = engine.executeGoals(program, solver, goals, {
       onAnswer: (line, resolved) => {
-        process.stdout.write(line);
+        if (!options.quiet) process.stdout.write(line);
         if (options.proof) writeExplanation(explanation, program, resolved, registry, options);
       },
     });
@@ -313,6 +316,7 @@ Options:
   --proof-detail mode   Use abstract or expanded proof detail (implies --proof).
   --verify-proof file   Verify why/2 proof certificates against the input program.
   -q, --quads           Run embedded quad tests and fail if any do not hold.
+  --quiet               Suppress answer terms while preserving Prolog output.
   -s, --stats           Print solver and memory statistics to stderr after execution.
   --iso-strict          Use ISO/IEC 13211-1 core + Corrigenda 1-3 only;
                         reject EyeProlog language extensions.

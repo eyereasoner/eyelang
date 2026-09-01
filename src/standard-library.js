@@ -310,6 +310,13 @@ function* tabledNegationBuiltin({ solver, goal, env }) {
   yield* solver.solveTabledNegation(goal.args[0], env);
 }
 
+function* wfsTruthBuiltin({ solver, goal, env }) {
+  const truth = solver.groundGoalTruth(goal.args[0], env);
+  if (truth === 'undefined') solver.stats.wfs_undefined_answers++;
+  const next = env.clone();
+  if (unify(goal.args[1], atom(truth), next)) yield next;
+}
+
 function runtimeStatistics(solver) {
   return { ...solver.stats, ...memoryStatistics() };
 }
@@ -361,6 +368,7 @@ export function createEyePrologRegistry() {
   registry.add('statistics', 0, statisticsBuiltin, { deterministic: true });
   registry.add('statistics', 2, statisticsValueBuiltin);
   registry.add('tnot', 1, tabledNegationBuiltin, { deterministic: true });
+  registry.add('wfs_truth', 2, wfsTruthBuiltin, { deterministic: true });
   attsHostBuiltins.register(registry);
   expansionBuiltins.register(registry);
   arithmeticHostBuiltins.register(registry);

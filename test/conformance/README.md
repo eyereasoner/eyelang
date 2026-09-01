@@ -31,9 +31,9 @@ Clause 9 evaluable functors. Public comparison material remains supporting revie
 evidence rather than a duplicated vendored corpus. Cases under `iso/`
 identify standards-derived behavior; other directories cover EyeProlog host
 contracts and extensions. EyeProlog-only execution features such as explicit
-tabling and `tnot/1` well-founded negation are outside the Part 1 strict-core
+tabling, `tnot/1` well-founded negation, and `wfs_truth/2` inspection are outside the Part 1 strict-core
 claim. Their focused semantic coverage lives primarily in regression tests;
-`tnot/1` is absent from the strict ISO registry. The processor character set is documented as the Unicode scalar repertoire with
+`tnot/1` and `wfs_truth/2` are absent from the strict ISO registry. The processor character set is documented as the Unicode scalar repertoire with
 scalar-value collation in both normal and strict profiles; `--iso-strict`
 therefore changes only implementation-specific language facilities, not this
 implementation-defined processor choice.

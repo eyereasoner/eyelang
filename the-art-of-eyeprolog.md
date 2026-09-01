@@ -1147,6 +1147,16 @@ Here neither `win(a)` nor `win(b)` is unconditionally established; both belong
 to the undefined part of the well-founded model. EyeProlog retains that state
 internally but does not expose undefined atoms as successful query answers or
 run the remaining goals of a conjunction through them.
+Use `wfs_truth/2` when the truth state itself is data:
+
+```text
+?- wfs_truth(win(a), Truth).
+   Truth = undefined.
+```
+
+The inspected goal must be ground. The predicate reports `true`, `false`, or
+`undefined`; reporting `undefined` is a successful result of `wfs_truth/2`, not
+a successful execution of the inspected goal.
 Direct calls to `tnot/1` must be ground. In WFS rules, variables occurring in
 the head or a negated literal must be range-restricted by positive body
 literals. Ordinary `\+/1` is unchanged, and strict ISO mode does not provide
@@ -5951,8 +5961,9 @@ declaration; they never opt an undeclared predicate into tabling.
 
 Ordinary `\+/1` remains ISO-style negation as failure. The separate `tnot/1`
 extension explicitly requests well-founded evaluation for eligible finite,
-range-restricted Datalog dependencies. Strict ISO mode exposes neither `table`
-nor `tnot/1`.
+range-restricted Datalog dependencies. `wfs_truth/2` reports the three-valued
+state of a ground callable as `true`, `false`, or `undefined`. Strict ISO mode
+exposes none of `table`, `tnot/1`, or `wfs_truth/2`.
 
 #### Query execution
 
@@ -6359,9 +6370,9 @@ or observability. The ISO and library catalogs therefore cover **523 distinct pr
 re-exported by a compatibility module is counted once in this library surface:
 for example `call_cleanup/2` and `setup_call_cleanup/3` are exported by
 `library(iso_ext)`, while `time/1` and `statistics/2` are available from
-`library(time)`. `statistics/0` and `tnot/1` remain normal-runtime extensions
-outside the library catalog. These additions are absent from the strict ISO
-registry.
+`library(time)`. `statistics/0`, `tnot/1`, and `wfs_truth/2` remain
+normal-runtime extensions outside the library catalog. These additions are
+absent from the strict ISO registry.
 
 The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
 `src/lib/assoc.pl`, `src/lib/atts.pl`, `src/lib/between.pl`,
@@ -9375,6 +9386,8 @@ eyeprolog --goal 'ancestor(ada, Who)' examples/ancestor.pl
 
 Repeat `-g` or `--goal` to request several result relations in one run. EyeProlog prints
 their ground answers in the order the goals were supplied.
+Use `--quiet` for command-style goals: Prolog output such as `write/1` remains
+visible, while the resolved answer terms are suppressed.
 
 For a self-running example, place the host goal in an ordinary comment:
 
@@ -9396,6 +9409,7 @@ make the observed question explicit.
 | `--proof-detail abstract|expanded` | Select library abstraction for proof output; implies `--proof` |
 | `--verify-proof File` | Verify saved `why/2` proof certificates against the input program without proof search |
 | `-q`, `--quads` | Run embedded quad tests and fail if any do not hold |
+| `--quiet` | Suppress resolved answer terms while preserving Prolog output and diagnostics |
 | `--iso-strict` | Restrict parsing and execution to ISO/IEC 13211-1:1995 + Corrigenda 1–3; reject EyeProlog language extensions (including `table` and `:+`) and disable bundled-library autoloading |
 | `--portable` | Enforce the conservative EyeProlog/Trealla/Scryer interoperability profile |
 | `--no-autoload` | Disable bundled-library predicate autoloading |

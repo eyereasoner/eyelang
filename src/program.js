@@ -57,6 +57,10 @@ function collectMultiplicitySensitiveDependencies(goal, out = []) {
     collectMultiplicitySensitiveDependencies(goal.args[0], out);
     return out;
   }
+  if (goal.name === 'wfs_truth' && goal.arity === 2) {
+    collectMultiplicitySensitiveDependencies(goal.args[0], out);
+    return out;
+  }
   if (goal.name === 'forall' && goal.arity === 2) {
     collectMultiplicitySensitiveDependencies(goal.args[0], out);
     collectMultiplicitySensitiveDependencies(goal.args[1], out);
@@ -1134,6 +1138,10 @@ function collectAutoloadGoalDependencies(goal, out = []) {
     collectAutoloadGoalDependencies(goal.args[0], out);
     return out;
   }
+  if (goal.name === 'wfs_truth' && goal.arity === 2) {
+    collectAutoloadGoalDependencies(goal.args[0], out);
+    return out;
+  }
 
   out.push({ key: `${goal.name}/${goal.arity}`, name: goal.name, arity: goal.arity, module: goal.module });
 
@@ -1687,7 +1695,8 @@ function annotateGoalModule(term, module) {
   if (!term || (term.type !== ATOM && term.type !== COMPOUND)) return term;
   term.module = module;
   const callableArguments = (term.name === ',' || term.name === ';' || term.name === '->') ? term.args
-    : (['call', 'once', '\\+', 'not', 'catch', 'call_cleanup', 'setup_call_cleanup',
+    : (term.name === 'wfs_truth' && term.arity === 2) ? [term.args[0]]
+    : (['call', 'once', '\\+', 'not', 'tnot', 'catch', 'call_cleanup', 'setup_call_cleanup',
       'forall', 'findall', 'bagof', 'setof', 'countall', 'sumall',
       'aggregate_min', 'aggregate_max', 'maplist', 'phrase'].includes(term.name)
       ? term.args

@@ -919,7 +919,27 @@ export class Solver {
   }
 
   *solveTabledNegation(argument, env) {
-    const invoked = copyResolved(argument, env);
+    const truth = this.groundGoalTruth(argument, env);
+    if (truth === 'true') return;
+    if (truth === 'undefined') {
+      this.stats.wfs_undefined_answers++;
+      return;
+    }
+    yield env;
+  }
+
+  groundGoalTruth(argument, env) {
+    let invoked = copyResolved(argument, env);
+    while (invoked.type === COMPOUND && invoked.name === ':' && invoked.arity === 2) {
+      const module = invoked.args[0];
+      if (module.type === VAR) throw new PrologError('instantiation_error');
+      if (module.type !== 'atom') throw new PrologError('type_error(atom)', module);
+      invoked = invoked.args[1];
+      if (invoked.type !== COMPOUND && invoked.type !== 'atom') {
+        throw new PrologError('type_error(callable)', invoked);
+      }
+      qualifyTerm(invoked, module.name);
+    }
     if (invoked.type === VAR) throw new PrologError('instantiation_error');
     if (invoked.type !== COMPOUND && invoked.type !== 'atom') {
       throw new PrologError('type_error(callable)', invoked);
@@ -928,25 +948,18 @@ export class Solver {
     const group = this.program.findGroup(invoked.name, invoked.arity, invoked.module ?? 'user');
     if (group?.wfsDatalog === true) {
       const model = this.wfsModelFor(group);
-      const truth = truthOfGroundGoal(model, invoked);
-      if (truth === 'true') return;
-      if (truth === 'undefined') {
-        this.stats.wfs_undefined_answers++;
-        return;
-      }
-      yield env;
-      return;
+      return truthOfGroundGoal(model, invoked);
     }
 
-    // Outside an unstratified WFS component, a ground tabled negation has the
-    // ordinary two-valued result after the positive goal is evaluated.
+    // Outside an unstratified WFS component, a ground goal has the ordinary
+    // two-valued result after the positive goal is evaluated.
     const child = this.cloneForInnerGoal(1);
     for (const _ of child.solve([invoked], env.clone(), 0)) {
       this.absorbStatsFrom(child);
-      return;
+      return 'true';
     }
     this.absorbStatsFrom(child);
-    yield env;
+    return 'false';
   }
 
   activeVariant(goal, env) {

@@ -2404,6 +2404,7 @@ c4 ?- call((!;1)).
         assertIncludes(result.stdout, '-g, --goal goal', 'stdout');
         assertIncludes(result.stdout, '-p, --proof', 'stdout');
         assertIncludes(result.stdout, '-q, --quads', 'stdout');
+        assertIncludes(result.stdout, '--quiet', 'stdout');
         assertIncludes(result.stdout, '-s, --stats', 'stdout');
         assertIncludes(result.stdout, '--portable', 'stdout');
         assertIncludes(result.stdout, '--no-autoload', 'stdout');
@@ -3819,6 +3820,19 @@ child.stdin.write(\`consult(${consultedAtom}).\\n\`);
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, 'answer(explicit, selected).\n', 'stdout');
         assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: '--quiet preserves goal side effects without printing answer terms',
+      run: () => {
+        const input = 'emit :- write(side_effect), nl.\n';
+        const quiet = runCli(['--quiet', '--goal', 'emit', '-'], { input });
+        assertEqual(quiet.status, 0, 'quiet exit status');
+        assertEqual(quiet.stdout, 'side_effect\n', 'quiet stdout');
+        assertEqual(quiet.stderr, '', 'quiet stderr');
+
+        const ordinary = runCli(['--goal', 'emit', '-'], { input });
+        assertEqual(ordinary.stdout, 'side_effect\nemit.\n', 'ordinary answer output remains unchanged');
       },
     },
     {
@@ -6726,7 +6740,7 @@ answer(ok) :-
         assertEqual(Boolean(registry.get('is', 2)), true, 'ISO is/2 exists');
         assertEqual(Boolean(registry.get('append', 3)), false, 'append/3 is not ISO core');
         assertEqual(library.eyePrologLibrary, true, 'complete registry marker');
-        assertEqual(library.defs.size, 221, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS tnot/1, and generic library adapters');
+        assertEqual(library.defs.size, 222, 'EyeProlog registry contains ISO definitions, cleanup controls, observability extensions, WFS predicates, and generic library adapters');
         assertEqual(registry.get('eyeprolog__dynify', 1), null, 'Eyelet dynify adapter is absent from the ISO registry');
         assertEqual(Boolean(library.get('eyeprolog__dynify', 1)), true, 'Eyelet dynify adapter is an internal EyeProlog library primitive');
         assertEqual(registry.get('eyeprolog__eyelet_emit', 2), null, 'Eyelet event adapter is absent from the ISO registry');
@@ -6743,6 +6757,8 @@ answer(ok) :-
         assertEqual(Boolean(library.get('statistics', 2)), true, 'statistics/2 is an EyeProlog observability extension');
         assertEqual(registry.get('tnot', 1), null, 'tnot/1 is absent from the ISO registry');
         assertEqual(Boolean(library.get('tnot', 1)), true, 'tnot/1 is an EyeProlog WFS extension');
+        assertEqual(registry.get('wfs_truth', 2), null, 'wfs_truth/2 is absent from the ISO registry');
+        assertEqual(Boolean(library.get('wfs_truth', 2)), true, 'wfs_truth/2 is an EyeProlog WFS extension');
         assertEqual(registry.get('time', 1), null, 'time/1 is absent from the ISO registry');
         assertEqual(Boolean(library.get('time', 1)), true, 'time/1 is an EyeProlog timing extension');
         assertEqual(registry.get('dif', 2), null, 'dif/2 is absent from the strict ISO core registry');
@@ -7805,6 +7821,50 @@ undefined_case :- tnot(win(c)).
         assertEqual(run(source, { goal: 'true_case' }).stdout, 'true_case.\n', 'win(a) is true because b is false');
         assertEqual(run(source, { goal: 'false_case' }).stdout, '', 'tnot(win(a)) fails for a true atom');
         assertEqual(run(source, { goal: 'undefined_case' }).stdout, '', 'tnot of an undefined WFS atom is not a successful answer');
+      },
+    },
+    {
+      name: 'wfs_truth exposes three-valued results without executing undefined goals',
+      run: () => {
+        const source = `
+:- use_module(library(tabling)).
+:- table(win/1).
+move(a, b).
+move(c, d).
+move(d, c).
+win(X) :- move(X, Y), tnot(win(Y)).
+`;
+        assertEqual(run(source, { goal: 'wfs_truth(win(a), Truth)' }).stdout,
+          'wfs_truth(win(a), true).\n', 'true WFS atom');
+        assertEqual(run(source, { goal: 'wfs_truth(win(b), Truth)' }).stdout,
+          'wfs_truth(win(b), false).\n', 'false WFS atom');
+        const undefinedResult = run(source, { goal: 'wfs_truth(win(c), Truth)' });
+        assertEqual(undefinedResult.stdout, 'wfs_truth(win(c), undefined).\n', 'undefined WFS atom');
+        assertEqual(undefinedResult.stats.wfs_undefined_answers, 1, 'undefined truth inspection is counted');
+        assertEqual(run(source, { goal: 'wfs_truth(win(c), true)' }).stdout, '', 'truth filter can reject undefined');
+        let nongroundError = null;
+        try {
+          run(source, { goal: 'wfs_truth(win(X), Truth)' });
+        } catch (error) {
+          nongroundError = error;
+        }
+        assertEqual(nongroundError?.formal, 'instantiation_error', 'inspected goal must be ground');
+
+        const moduleSource = `
+:- module(cycle, [status/1]).
+:- use_module(library(tabling)).
+:- table(a/0).
+:- table(b/0).
+a :- tnot(b).
+b :- tnot(a).
+status(Truth) :- wfs_truth(a, Truth).
+`;
+        assertEqual(run(moduleSource, { goal: 'cycle:status(Truth)' }).stdout,
+          'cycle:status(undefined).\n', 'lexical module qualification');
+        assertEqual(run(moduleSource, { goal: 'wfs_truth(cycle:a, Truth)' }).stdout,
+          'wfs_truth(cycle:a, undefined).\n', 'explicit module qualification');
+        assertEqual(run(moduleSource, { goal: 'tnot(cycle:a)' }).stdout, '',
+          'qualified tnot preserves undefined failure');
       },
     },
     {

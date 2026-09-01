@@ -345,11 +345,8 @@ profile_prohibition(Request) :-
   cycle_request(Request),
   tnot(profile_permission(Request)).
 
-% For a ground WFS claim, true and false are successful positive and negative
-% probes.  If neither probe succeeds, the WFS truth value is undefined.
-wfs_truth(Claim, true) :- call(Claim), \+ tnot(Claim).
-wfs_truth(Claim, false) :- tnot(Claim), \+ call(Claim).
-wfs_truth(Claim, undefined) :- \+ call(Claim), \+ tnot(Claim).
+% The normal-profile wfs_truth/2 predicate reports the three-valued result of
+% each ground claim without treating an undefined claim as ordinary success.
 
 % --- Curated questions -----------------------------------------------------
 
