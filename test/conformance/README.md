@@ -14,6 +14,10 @@ tracks the row-by-row built-in audit,
 closes 7.4-7.8, [ISO-EVALUABLE-FUNCTOR-MATRIX.md](ISO-EVALUABLE-FUNCTOR-MATRIX.md)
 closes 7.9/Clause 9, and [ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md)
 decomposes the Clause 5 processor obligations.
+[ISO-CORRIGENDA-MATRIX.md](ISO-CORRIGENDA-MATRIX.md) gives every published
+Corrigenda amendment cluster an executable, editorial, or superseded
+disposition. Built-in rows may group closely related conditions only when the
+row names every grouped condition and its executable evidence.
 The exit checklist is embedded in [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md). [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
 complete one-to-one trace for the vendored active upstream WG17 syntax cases.
 [STC-DRAFT-STATUS.md](STC-DRAFT-STATUS.md) separately tracks executable

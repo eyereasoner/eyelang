@@ -17,11 +17,13 @@ table.
 The table is intentionally explicit about what has and has not been closed.
 The current audit now covers the complete 8.2-8.17 built-in family at the
 level of prescribed modes, success/failure behavior, individual error
-conditions, and explicit not-applicable processor branches. Higher-level
-Clause 7 and Clause 9 semantics remain tracked separately.
+conditions, and explicit not-applicable processor branches. Closely related
+conditions may share a row only when that row names every condition and the
+executable evidence for each. Higher-level Clause 7 and Clause 9 semantics
+remain tracked separately.
 
 The focused assertions added for this matrix live in `test/run-iso-strict.mjs`;
-existing file-based cases remain additional independent evidence.
+existing file-based cases remain additional regression evidence.
 
 ## 8.2 — term unification
 
@@ -369,6 +371,8 @@ built-in matrix does not have a gap at 8.17.
 The built-in **8.2-8.17 row audit is complete** at the level tracked by this
 file: prescribed modes, success/failure behavior, individual error conditions,
 and conditional/not-applicable processor branches all have explicit outcomes.
+“Row audit” means condition-by-condition accounting; it does not promise one
+Markdown table row per condition when a grouped row enumerates them all.
 ISO 7.12 simultaneous-error selection remains an implementation-dependent
 processor choice unless more specific normative text constrains it.
 

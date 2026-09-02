@@ -5286,6 +5286,34 @@ ${profile}`;
       },
     },
     {
+      name: 'published ISO Corrigenda have a complete stable audit inventory',
+      run: () => {
+        const compliance = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-COMPLIANCE.md'), 'utf8');
+        const matrix = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-CORRIGENDA-MATRIX.md'), 'utf8');
+        const expected = [
+          ...Array.from({ length: 18 }, (_, index) => `C1-${String(index + 1).padStart(2, '0')}`),
+          ...Array.from({ length: 23 }, (_, index) => `C2-${String(index + 1).padStart(2, '0')}`),
+          ...Array.from({ length: 19 }, (_, index) => `C3-${String(index + 1).padStart(2, '0')}`),
+        ];
+        const rows = matrix.split('\n')
+          .filter((line) => /^\| C[123]-\d\d \|/.test(line))
+          .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()));
+        assertEqual(rows.map(([id]) => id).join(','), expected.join(','), 'Corrigenda stable audit IDs');
+        for (const [id, clauses, disposition, evidence] of rows) {
+          assertEqual(Boolean(clauses), true, `${id} clause/amendment cluster`);
+          assertEqual(['covered', 'editorial', 'superseded'].includes(disposition), true, `${id} disposition`);
+          assertEqual(Boolean(evidence), true, `${id} evidence`);
+          if (disposition === 'covered') {
+            assertEqual(/test|WG17|strict|case/i.test(evidence), true, `${id} executable evidence`);
+          }
+        }
+        assertIncludes(compliance, '[ISO-CORRIGENDA-MATRIX.md](ISO-CORRIGENDA-MATRIX.md)', 'Corrigenda matrix link');
+        for (const corrigendum of ['Corrigendum 1', 'Corrigendum 2', 'Corrigendum 3']) {
+          assertIncludes(compliance, `| ${corrigendum} | covered |`, `${corrigendum} covered row`);
+        }
+      },
+    },
+    {
       name: 'ISO 7.4-7.8 execution matrix is closed',
       run: () => {
         const compliance = fs.readFileSync(path.join(testRoot, 'conformance', 'ISO-COMPLIANCE.md'), 'utf8');
@@ -5313,6 +5341,16 @@ ${profile}`;
         ]) assertIncludes(compliance, row, row);
         assertIncludes(processor, '## Clause 6 syntax-preservation closure', 'Clause 6 closure map');
         assertIncludes(processor, '| 5.5.1 syntax extensions preserve standard token/text meaning | covered |', '5.5.1 covered');
+
+        const boundary = compliance.slice(
+          compliance.indexOf('## Strict-core boundary'),
+          compliance.indexOf('## Release gate'),
+        );
+        assertIncludes(boundary, '`wfs_truth/2`', 'strict boundary includes wfs_truth/2');
+        assertIncludes(boundary, 'integer digit separators', 'strict boundary includes digit separators');
+        assertIncludes(boundary, '`"text"||Tail`', 'strict boundary includes double-bar list splicing');
+        assertEqual((boundary.match(/`tnot\/1`/g) ?? []).length, 1, 'strict boundary lists tnot/1 once');
+        assertEqual(compliance.includes('`stringTerm/1` term type'), false, 'JavaScript stringTerm uses call notation');
       },
     },
     {
@@ -5325,7 +5363,7 @@ ${profile}`;
           '| Clause 7 semantic requirements have explicit dispositions | covered |',
           '| Clause 8 built-in modes/errors have explicit dispositions | covered |',
           '| Clause 9 evaluable-functor requirements have explicit dispositions | covered |',
-          '| Independent external syntax corpus is an offline release gate | covered |',
+          '| Externally sourced syntax corpus is an offline release gate | covered |',
           '| No unexplained deviation remains in the release-facing ledger | covered |',
         ]) assertIncludes(exit, item, item);
         assertNotIncludes(exit, '| audit |', 'no release-facing audit rows remain');

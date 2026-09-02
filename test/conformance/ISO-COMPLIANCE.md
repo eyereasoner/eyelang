@@ -5,12 +5,16 @@ EyeProlog's ISO/IEC 13211-1 core. The normative baseline is ISO/IEC 13211-1:1995
 together with Technical Corrigenda 1:2007, 2:2012, and 3:2017. Detailed
 row-level evidence lives only where it adds information: the built-in, processor,
 term-semantics, Prolog-text/execution, evaluable-functor, implementation-defined,
-WG17-syntax, and STC draft ledgers in this directory. The generated
+published-Corrigenda, WG17-syntax, and STC draft ledgers in this directory. The generated
 [`conformance-report.md`](../../conformance-report.md) gives the current executable WG17 syntax result together with file-based case totals.
 
 The ledger deliberately does **not** claim independent certification. A row
 marked `covered` means EyeProlog has implementation and executable tests for
-that family and no known open defect in the listed behavior. A row marked
+that family, an explicit disposition for every requirement accounted for by
+the linked audit rows, and no known open defect in the listed behavior. An
+audit row may group closely related modes or error conditions, but it must name
+each grouped condition and its evidence; `covered` does not imply one Markdown
+row per occurrence of the word `shall`. A row marked
 `audit` means the family is implemented and tested, but the project has not yet
 mapped every normative `shall`, option combination, prescribed error, and
 relevant implementation-dependent overlap choice to an explicit audit outcome.
@@ -23,7 +27,7 @@ relevant implementation-dependent overlap choice to an explicit audit outcome.
 | 5.1(b) execute conforming Prolog goals | covered | Clause 7 term/control/execution semantics, the higher-level 7.10 stream model, 7.11 flags, the 7.12 error envelope, all 8.2-8.17 built-in rows, and Clause 9 arithmetic have explicit executable dispositions. |
 | 5.1(c) reject nonconforming text/read-terms | covered | WG17 negative syntax cases, focused malformed-production/escape/comment/operator cases, read-term syntax errors, and strict rejection of implementation-specific syntax provide explicit rejection evidence across the Clause 6 families. |
 | 5.1(d) document permitted variations | covered | The clause-by-clause [ISO 5.4 decision index](ISO-IMPLEMENTATION-DEFINED.md) records every explicit implementation-defined decision found in the Part 1 + Corrigenda baseline and separately inventories implementation-specific extension families. The index retains an `audit gap` category for future discoveries; no current release-facing row depends on one. |
-| 5.1(e) offer a strictly conforming mode | covered | `--iso-strict` and API option `isoStrict: true` restrict the processor to the Part 1 + Corrigenda 1-3 core language surface, remove EyeProlog-only registry/flag/operator features, reject explicit tabling and other normal-profile extensions, and reject the normal-profile host `stringTerm/1` term type at strict program/goal entry. |
+| 5.1(e) offer a strictly conforming mode | covered | `--iso-strict` and API option `isoStrict: true` restrict the processor to the Part 1 + Corrigenda 1-3 core language surface, remove EyeProlog-only registry/flag/operator features, reject explicit tabling and other normal-profile extensions, and reject the normal-profile host `stringTerm(Text)` term type at strict program/goal entry. |
 | 5.4 accompanying documentation | covered | *The Art of EyeProlog* remains the implementation reference; [ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.md) is the closed clause-by-clause 5.4 decision index and points each decision to implementation evidence. |
 | 5.5 extension boundaries | covered | [ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREMENTS.md) gives an explicit disposition for every 5.5 extension hook. The Clause 6 cross-profile gate verifies that normal-mode syntax extensions do not reinterpret standard text accepted by the strict reader. |
 
@@ -31,7 +35,7 @@ relevant implementation-dependent overlap choice to an explicit audit outcome.
 
 | Standard area | Status | Current evidence |
 | --- | --- | --- |
-| Clause 6 — tokens, terms, lists, operators, quoted text | covered | The strict Clause 6 gate maps atomic/variable/compound/operator/list/curly/double-quoted term forms, layout/comments, quoted escapes, integer bases/character codes, floating tokens, and solo/meta token boundaries, with malformed counterparts rejected. The complete 366-case WG17 syntax matrix provides independent production-level coverage, and a cross-profile gate verifies that normal syntax extensions preserve every strict-accepted standard observation. The implementation-defined 6.5/6.6 PCS/collation choices are documented separately. |
+| Clause 6 — tokens, terms, lists, operators, quoted text | covered | The strict Clause 6 gate maps atomic/variable/compound/operator/list/curly/double-quoted term forms, layout/comments, quoted escapes, integer bases/character codes, floating tokens, and solo/meta token boundaries, with malformed counterparts rejected. The complete 366-case WG17 syntax matrix provides externally sourced production-level expectations, and a cross-profile gate verifies that normal syntax extensions preserve every strict-accepted standard observation. The implementation-defined 6.5/6.6 PCS/collation choices are documented separately. |
 | 7.1-7.3 — term types, term order, unification | covered | [ISO-TERM-SEMANTICS-MATRIX.md](ISO-TERM-SEMANTICS-MATRIX.md) records the five mutually exclusive strict term types, derived variable/compound/list notions, the complete standard-order classes and implementation-dependent variable-order choice, NSTO MGU/failure behavior, and EyeProlog's permitted consistent occurs-check failure for Part 1's undefined STO ordinary-unification cases. The normal JavaScript API string term is documented as a 5.5.4 extension and rejected at strict program/goal entry. |
 | 7.4 — Prolog text and directives | covered | [ISO-PROLOG-TEXT-EXECUTION-MATRIX.md](ISO-PROLOG-TEXT-EXECUTION-MATRIX.md) closes the preparation/directive rows: declaration semantics, source clauses, cross-text operators/character conversion/flags, initialization order/lifetime, `include/1`, and one-time `ensure_loaded/1`, with implementation-defined cross-text choices indexed under 5.4. |
 | 7.5-7.6 — database and term/clause conversion | covered | [ISO-PROLOG-TEXT-EXECUTION-MATRIX.md](ISO-PROLOG-TEXT-EXECUTION-MATRIX.md) closes static/dynamic and private/public procedure semantics, clause order, logical-update visibility, empty/unknown lifetime, and term/body/clause conversion. Source and runtime assertion conversion recurse through `,/2`, `;/2`, and `->/2`, preserve variable identity, and protect standardized static/control procedures. |
@@ -41,11 +45,11 @@ relevant implementation-dependent overlap choice to an explicit audit outcome.
 | 7.10 — input/output concepts | covered | Higher-level stream semantics are pinned for non-atom ground stream terms, alias lifetime, current/target stream selection and fallback, write truncation, append positioning, contradictory stream options, exact binary round-tripping, flushing, standard-stream close behavior, and repositioned overwrite. Term-output spelling is also checked lexically where ISO distinguishes token forms: Corrigendum 2 bar operators are written with bare `|`, ordinary atom/functor `|` remains quoted, and the semicolon name token is emitted bare by canonical output. The complete 8.11-8.14 built-in mode/error family remains row-audited in [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md), while all implementation-defined stream choices are indexed in [ISO-IMPLEMENTATION-DEFINED.md](ISO-IMPLEMENTATION-DEFINED.md). |
 | 7.11 — flags | covered | The complete Part 1 flag set, selected defaults, standard value domains, changeability, `current_prolog_flag/2`, and `set_prolog_flag/2` error behavior have dedicated strict tests. EyeProlog selects `bounded=false` and `integer_rounding_function=toward_zero`; valid alternative values of those fixed flags reach `permission_error(modify,flag,...)`, while `max_integer` and `min_integer` have no current value. STC #70 is recorded explicitly: EyeProlog has no separate finite procedure-arity ceiling, so the optional `max_procedure_arity` flag is absent while `max_arity` remains `unbounded`. Strict mode excludes the EyeProlog `occurs_check` extension. |
 | 7.12 — errors | covered | The strict error-envelope gate exercises instantiation, type, domain, existence, permission, representation, evaluation, resource, syntax, and system errors through `error(Error, Context)`. Built-in rows provide the individual prescribed conditions, implementation-defined representation/context choices are documented, and simultaneous-error regressions pin deterministic EyeProlog choices without treating textual table order as normative. |
-| 8.2-8.17 — built-in predicates | covered | [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) now records the complete Part 1 + Corrigenda built-in family at one row per prescribed mode, success/failure behavior, individual error condition, and conditional/not-applicable branch. The row audit exposed and fixed source/runtime 7.6.2 body conversion/variable sharing, strict host-string leakage, input-code error timing, `close/2` force handling, and closed-stream `stream_property/2` behavior. Simultaneous-error choices are documented as implementation dependent under 7.12 unless separately constrained. |
+| 8.2-8.17 — built-in predicates | covered | [ISO-BUILTIN-MODE-ERROR-MATRIX.md](ISO-BUILTIN-MODE-ERROR-MATRIX.md) accounts for the complete Part 1 + Corrigenda built-in family across prescribed modes, success/failure behavior, individual error conditions, and conditional/not-applicable branches. Closely related conditions may share a row when every condition and its executable evidence are named. The audit exposed and fixed source/runtime 7.6.2 body conversion/variable sharing, strict host-string leakage, input-code error timing, `close/2` force handling, and closed-stream `stream_property/2` behavior. Simultaneous-error choices are documented as implementation dependent under 7.12 unless separately constrained. |
 | Clause 9 — evaluable functors | covered | [ISO-EVALUABLE-FUNCTOR-MATRIX.md](ISO-EVALUABLE-FUNCTOR-MATRIX.md) records the published Part 1 + Corrigenda arithmetic templates and exceptional branches across 9.1, 9.3, and 9.4. It pins the unbounded integer model, `rndI`/`rndF`/`resultF` choices, float-only conversion rules, I->F overflow, explicit `exp/1` and power underflow, Corrigendum 2 additions and mixed-type `max/2`/`min/2` implementation-dependent choice, Corrigendum 3 negative-power correction, signed bitwise/shift choices, and resource-error translation. Post-N289 STC #75 remains a separately tracked draft proposal rather than a silent change to the published baseline. |
-| Corrigendum 1 | covered | Double-quoted atom/operator-priority corrections have dedicated cases. |
-| Corrigendum 2 | covered | Added predicates/functors, catch corrections, bar/operator and uninstantiation corrections have dedicated cases, including the distinct bare `|` operator token required for term output. |
-| Corrigendum 3 | covered | Writer options, `variable_names/1`, canonical list output and negative-power corrections have dedicated cases. |
+| Corrigendum 1 | covered | [ISO-CORRIGENDA-MATRIX.md](ISO-CORRIGENDA-MATRIX.md) dispositions every amendment cluster, including the square-root boundary, double-quoted operator atoms, typed expression errors, clause/operator enumeration, and atomic-conversion corrections; editorial items and the later-superseded set-order example are identified explicitly. |
+| Corrigendum 2 | covered | [ISO-CORRIGENDA-MATRIX.md](ISO-CORRIGENDA-MATRIX.md) tracks the bar/operator changes, new predicates and evaluable functors, catch and uninstantiation corrections, atomic-conversion errors, and every other amendment cluster to executable evidence or an explicit editorial disposition. |
+| Corrigendum 3 | covered | [ISO-CORRIGENDA-MATRIX.md](ISO-CORRIGENDA-MATRIX.md) tracks option-extension/error rules, final layout, term-to-body conversion, metadata traversal, writing rules, stream/built-in corrections, and negative integer powers; editorial changes are dispositioned separately. |
 
 ## Conformance corrections and audit closure
 
@@ -248,8 +252,10 @@ not interpret the following as core-language features:
 - the implementation-specific `occurs_check` Prolog flag;
 - Part 2 module directives (`module/2`, `use_module/1-2`, `meta_predicate/1`);
 - Part 3 grammar-rule expansion and `phrase/2-3`;
-- explicit tabling, `tnot/1` well-founded evaluation, and recursive numeric execution shortcuts;
-- EyeProlog well-founded negation via `tnot/1` and its WFS runtime statistics;
+- explicit tabling, EyeProlog well-founded evaluation via `tnot/1` and
+  `wfs_truth/2`, WFS runtime statistics, and recursive numeric execution shortcuts;
+- normal-profile integer digit separators and Trealla-compatible
+  `"text"||Tail` double-quoted-list splicing;
 - the JavaScript API `stringTerm(Text)` additional term type (normal mode only).
 
 The predefined Part 1 `1200 fx` `?-` operator and `1200 xfx` `-->` operator
@@ -288,13 +294,13 @@ post-N289 STC drafts remain review input until standardized.
 | Clause 5 processor obligations have explicit dispositions | covered | `ISO-PROCESSOR-REQUIREMENTS.md` gives explicit outcomes for 5.1-5.5, including the strict/normal extension boundary. |
 | Clause 6 lexical/syntactic requirements have explicit dispositions | covered | the strict Clause 6 production/rejection gate and the 366-case vendored WG17 matrix cover the standard families; cross-profile preservation verifies that normal extensions do not reinterpret strict-accepted text. |
 | Clause 7 semantic requirements have explicit dispositions | covered | 7.1-7.12 now have explicit semantic, implementation-defined, or error-envelope dispositions backed by strict tests and the specialized matrices. |
-| Clause 8 built-in modes/errors have explicit dispositions | covered | `ISO-BUILTIN-MODE-ERROR-MATRIX.md` closes 8.2-8.17 row by row |
+| Clause 8 built-in modes/errors have explicit dispositions | covered | `ISO-BUILTIN-MODE-ERROR-MATRIX.md` accounts for 8.2-8.17 condition by condition, using grouped rows only where every grouped condition and its evidence are named |
 | Clause 9 evaluable-functor requirements have explicit dispositions | covered | `ISO-EVALUABLE-FUNCTOR-MATRIX.md` plus the strict arithmetic regression closes the published Part 1 + Corrigenda arithmetic rows |
 | Implementation-defined choices are documented | covered | `ISO-IMPLEMENTATION-DEFINED.md` is the Clause 5.4 decision index and strict tests pin execution-visible choices |
 | Implementation-specific strict/normal boundary is documented and tested | covered | all 5.5 hooks have explicit dispositions; the WG17 cross-profile gate verifies syntax-preservation for standard text accepted by the strict reader. |
-| Published Corrigenda 1-3 are incorporated | covered | dedicated conformance/strict tests and this ledger track all three published Corrigenda |
+| Published Corrigenda 1-3 are incorporated | covered | `ISO-CORRIGENDA-MATRIX.md` inventories every published amendment cluster with executable, editorial, or superseded disposition |
 | Current post-N289 draft is tracked without silently changing the published baseline | covered | `STC-DRAFT-STATUS.md` tracks reviewed draft items separately from normative requirements |
-| Independent external syntax corpus is an offline release gate | covered | the vendored WG17 syntax matrix has 366 executable dispositions checked against its upstream expectations |
+| Externally sourced syntax corpus is an offline release gate | covered | the vendored WG17 syntax matrix has 366 executable dispositions checked against its upstream expectations; this is external review evidence, not certification |
 | Third-party standard-core regression provenance is retained | covered | adapted Logtalk, Scryer, Trealla, and SWI-Prolog cases retain source identifiers and licenses in `THIRD_PARTY.md` |
 | No unexplained deviation remains in the release-facing ledger | covered | the release-facing ledger contains no remaining `audit` rows; documented variation points are implementation-defined/specific or draft-only rather than unexplained deviations. |
 

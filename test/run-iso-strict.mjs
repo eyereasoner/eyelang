@@ -28,6 +28,50 @@ export function runIsoStrict(reporter = new TestReporter()) {
     equal(result.stdout, 'p(1).\n', 'stdout');
   });
 
+  reporter.test('pins behavior-changing Technical Corrigendum 1 corrections', () => {
+    equal(run('', { isoStrict: true, goal: 'X is sqrt(0), X =:= 0.0' }).stats.completed_goal_lists,
+      1, 'non-negative square-root boundary');
+    equal(run('', {
+      isoStrict: true,
+      goal: "atom_chars('North',['N'|Tail]), Tail == [o,r,t,h]",
+    }).stats.completed_goal_lists, 1, 'atom_chars/2 accepts a supplied list prefix');
+    equal(run('', {
+      isoStrict: true,
+      goal: "atom_codes('North',[78|Tail]), Tail == [111,114,116,104]",
+    }).stats.completed_goal_lists, 1, 'atom_codes/2 accepts a supplied list prefix');
+
+    const source = [
+      ':- dynamic(p/1).',
+      'p(a).',
+      'p(b).',
+      ':- op(500, xfy, likes).',
+      ':- set_prolog_flag(double_quotes, atom).',
+      'double_quote_operator :- (alice "likes" bob) = likes(alice,bob).',
+      '',
+    ].join('\n');
+    equal(run(source, { isoStrict: true, goal: 'clause(p(X),true), X == a' }).stats.completed_goal_lists,
+      1, 'clause/2 unifies the selected clause');
+    equal(run(source, { isoStrict: true, goal: 'current_op(500,xfy,likes)' }).stats.completed_goal_lists,
+      1, 'current_op/3 unifies the selected operator');
+    equal(run(source, { isoStrict: true, goal: 'double_quote_operator' }).stats.completed_goal_lists,
+      1, 'double-quoted atom receives its operator priority');
+  });
+
+  reporter.test('pins behavior-changing Technical Corrigendum 3 corrections', () => {
+    const trailingLayout = Program.parse('p.\n  % trailing layout is a complete Prolog text\n', {
+      isoStrict: true,
+    });
+    equal(Boolean(trailingLayout.findGroup('p', 0)), true, 'optional final layout text');
+
+    const written = run('', {
+      isoStrict: true,
+      goal: "write_term(pair(X,X),[variable_names(['Named'=X])])",
+    });
+    includes(written.stdout, 'pair(Named,Named)', 'write variable_names/1');
+    equal(capture(() => run('', { isoStrict: true, goal: 'X is 2^(-1)' })).formal,
+      'type_error(float)', 'negative integer exponent correction');
+  });
+
   reporter.test('keeps Corrigendum 2 core predicates and excludes Part 3 phrase', () => {
     const registry = createStrictIsoRegistry();
     equal(Boolean(registry.get('subsumes_term', 2)), true, 'subsumes_term/2');

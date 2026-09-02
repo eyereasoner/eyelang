@@ -50,7 +50,7 @@ certification claim.
 
 The production audit is kept here rather than in another status file. The strict
 regression gate covers the following families directly, while the complete WG17
-matrix supplies the detailed independent syntax cases.
+matrix supplies detailed externally sourced syntax expectations.
 
 | Clause family | Disposition | Executable evidence |
 | --- | --- | --- |
