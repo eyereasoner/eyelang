@@ -115,7 +115,11 @@ export class Solver {
       reservationBytes: 0,
       checks: 0,
     };
-    this.nextMemoryCheck = 0;
+    // Nested meta-call solvers contribute to one execution and inspect the
+    // same process heap. Share their sampling deadline so each short-lived
+    // child does not repeat an expensive host memory query before the parent
+    // has advanced the guard interval.
+    this.memoryCheckState = options.memoryCheckState ?? { nextObservation: 0 };
     // Do not impose an implicit answer cap. Infinite and very large searches are
     // part of normal Prolog semantics; callers that need a resource bound can
     // still supply solutionLimit explicitly.
@@ -215,6 +219,7 @@ export class Solver {
       maxInferences: this.maxInferences,
       maxMemoryBytes: this.maxMemoryBytes,
       memoryRecovery: this.memoryRecovery,
+      memoryCheckState: this.memoryCheckState,
       solutionLimit,
       isoStrict: this.isoStrict,
       prologFlags: this.prologFlags,
@@ -1005,8 +1010,9 @@ export class Solver {
   }
 
   checkMemoryLimit(force = false) {
-    if (!force && this.inferences < this.nextMemoryCheck) return;
-    this.nextMemoryCheck = this.inferences + 256;
+    const observation = this.inferenceObservation.value;
+    if (!force && observation < this.memoryCheckState.nextObservation) return;
+    this.memoryCheckState.nextObservation = observation + 256;
     if (!Number.isFinite(this.maxMemoryBytes)) return;
     const used = usedHeapSize();
     if (used != null && used < this.maxMemoryBytes) this.finishMemoryRecovery();

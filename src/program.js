@@ -36,6 +36,11 @@ const DEFER_PROGRAM_BUILD = Symbol('deferProgramBuild');
 const FAST_PARSE_ABORT = Symbol('fastParseAbort');
 const PROGRAM_BUILD_BATCH_SIZE = 16384;
 const preparedBundledLibraryCache = new Map();
+const NORMAL_OPERATOR_DEFINITIONS = [
+  ...ISO_OPERATOR_DEFINITIONS,
+  ...PART3_OPERATOR_DEFINITIONS,
+  ...QUAD_OPERATOR_DEFINITIONS,
+];
 
 function collectMultiplicitySensitiveDependencies(goal, out = []) {
   if (goal?.type !== COMPOUND) return out;
@@ -151,13 +156,12 @@ export class Program {
     // recursive predicates retain standard depth-first Prolog control.
     this.tabledPredicates = new Set();
     this.operators = new Map();
-    const predefinedOperatorSets = this.strictIso
-      ? [ISO_OPERATOR_DEFINITIONS]
-      : [ISO_OPERATOR_DEFINITIONS, PART3_OPERATOR_DEFINITIONS, QUAD_OPERATOR_DEFINITIONS];
-    for (const definitions of predefinedOperatorSets) {
-      for (const [priority, specifier, name] of definitions) {
-        this.defineOperator(priority, specifier, name);
-      }
+    const predefinedOperators = this.strictIso ? ISO_OPERATOR_DEFINITIONS : NORMAL_OPERATOR_DEFINITIONS;
+    // The predefined lists contain no competing declarations in the same
+    // prefix, infix, or postfix class. Populate them directly; defineOperator
+    // still performs replacement semantics for source-level op/3 directives.
+    for (const [priority, specifier, name] of predefinedOperators) {
+      this.operators.set(`${specifier}\u0000${name}`, { priority, specifier, name });
     }
     this.initializations = [];
     // Track how many initialization/1 directives have run so a REPL can
@@ -251,12 +255,15 @@ export class Program {
   }
   findGroup(name, arity, module = 'user') {
     const indicator = `${name}/${arity}`;
-    const visited = new Set();
-    let current = module;
+    const direct = this.groups.get(module === 'user' ? indicator : `${module}:${indicator}`);
+    if (direct) return direct;
+    let current = this.moduleImports.get(module)?.get(indicator);
+    if (current == null) return null;
+    const visited = new Set([module]);
     while (!visited.has(current)) {
       visited.add(current);
-      const direct = this.groups.get(modulePredicateKey(current, name, arity));
-      if (direct) return direct;
+      const imported = this.groups.get(current === 'user' ? indicator : `${current}:${indicator}`);
+      if (imported) return imported;
       const importedModule = this.moduleImports.get(current)?.get(indicator);
       if (importedModule == null) return null;
       current = importedModule;

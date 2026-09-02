@@ -1382,10 +1382,14 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     return atom(text);
   };
 
-  const trimRange = (text, start, end) => {
+  const trimRangeStart = (text, start, end) => {
     while (start < end && isWhitespaceCode(text.charCodeAt(start))) start++;
+    return start;
+  };
+
+  const trimRangeEnd = (text, start, end) => {
     while (end > start && isWhitespaceCode(text.charCodeAt(end - 1))) end--;
-    return [start, end];
+    return end;
   };
 
   const tokenKindInRange = (text, start, end) => {
@@ -1427,7 +1431,8 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
   };
 
   const scalarOrVariableRange = (text, start, end) => {
-    [start, end] = trimRange(text, start, end);
+    start = trimRangeStart(text, start, end);
+    end = trimRangeEnd(text, start, end);
     const kind = tokenKindInRange(text, start, end);
     const value = text.slice(start, end);
     if (kind === 'var') {
@@ -1447,20 +1452,27 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
   const rawBody = {};
 
   const scalarTokenRange = (text, start, end, out, slot) => {
-    [start, end] = trimRange(text, start, end);
+    start = trimRangeStart(text, start, end);
+    end = trimRangeEnd(text, start, end);
     const kind = tokenKindInRange(text, start, end);
     let type = kind;
     if (kind == null && simpleNumberInRange(text, start, end)) type = 'number';
     if (type == null) return false;
     let name = text.slice(start, end);
     if (type === 'var' && name === '_') name = `__anon${anonymous++}`;
-    out[`arg${slot}Type`] = type;
-    out[`arg${slot}Name`] = name;
+    if (slot === 0) {
+      out.arg0Type = type;
+      out.arg0Name = name;
+    } else {
+      out.arg1Type = type;
+      out.arg1Name = name;
+    }
     return true;
   };
 
   const parseBinaryRawRange = (text, start, end, out) => {
-    [start, end] = trimRange(text, start, end);
+    start = trimRangeStart(text, start, end);
+    end = trimRangeEnd(text, start, end);
     let i = start;
     const first = text.charCodeAt(i);
     if (!(first >= 97 && first <= 122)) return false;
@@ -1487,7 +1499,8 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
   };
 
   const parseBinaryCompoundRange = (text, start = 0, end = text.length) => {
-    [start, end] = trimRange(text, start, end);
+    start = trimRangeStart(text, start, end);
+    end = trimRangeEnd(text, start, end);
     let i = start;
     const first = text.charCodeAt(i);
     if (!(first >= 97 && first <= 122)) return null;
@@ -1680,7 +1693,8 @@ function parseClausesFastNoSource(source, emit = null, emitBinary = null, option
     let contentStart = lineStart;
     let contentEnd = lineEnd;
     if (contentEnd > contentStart && source.charCodeAt(contentEnd - 1) === 13) contentEnd--;
-    [contentStart, contentEnd] = trimRange(source, contentStart, contentEnd);
+    contentStart = trimRangeStart(source, contentStart, contentEnd);
+    contentEnd = trimRangeEnd(source, contentStart, contentEnd);
     if (contentStart < contentEnd && source.charCodeAt(contentStart) !== 37) {
       if (!chunk && source.charCodeAt(contentEnd - 1) === 46 && !preparationConversionActive()) {
         if (emitFastBinaryRange(source, contentStart, contentEnd, lineNumber)) {
