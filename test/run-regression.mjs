@@ -7224,11 +7224,15 @@ function whiteBoxCases() {
         assertEqual(env.get('V31').name, '31', 'binding before flatten');
         assertEqual(env.get('V39').name, '39', 'latest binding');
         assertEqual(env.has('missing'), false, 'missing binding');
+        assertEqual(env.has('missing'), false, 'cached missing binding');
 
         const clone = env.clone();
         clone.bind('OnlyClone', atom('yes'));
+        clone.bind('missing', atom('now_present'));
         assertEqual(clone.get('OnlyClone').name, 'yes', 'clone write');
+        assertEqual(clone.get('missing').name, 'now_present', 'clone write supersedes cached miss');
         assertEqual(env.has('OnlyClone'), false, 'clone remains isolated');
+        assertEqual(env.has('missing'), false, 'parent retains cached miss');
       },
     },
     {

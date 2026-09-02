@@ -15,6 +15,10 @@ const EMPTY_ARGS = Object.freeze([]);
 // propagation uses 256 because its repeated negative lookups dominate sooner.
 const ENV_FLATTEN_DEPTH = 256;
 const ATTRIBUTED_ENV_FLATTEN_DEPTH = 256;
+// Environment states are immutable once published to a branch, so an absent
+// binding is just as safe to cache as a present one. Negative lookups are
+// especially common while tabling and constraint code probes fresh variables.
+const ENV_UNBOUND = Symbol('environment-unbound');
 // Runtime terms are structurally immutable: environments hold bindings beside
 // them rather than rewriting their argument arrays. Cache only the syntactic
 // variable names; binding reachability is still checked against each Env.
@@ -292,9 +296,11 @@ export class Env {
   }
   get(name) {
     const root = this._state;
-    if (root.cacheName === name) return root.cacheValue;
+    if (root.cacheName === name) {
+      return root.cacheValue === ENV_UNBOUND ? undefined : root.cacheValue;
+    }
     const cached = root.cache?.get(name);
-    if (cached !== undefined) return cached;
+    if (cached !== undefined) return cached === ENV_UNBOUND ? undefined : cached;
     for (let state = root; state != null; state = state.parent) {
       let value;
       let found = false;
@@ -315,6 +321,14 @@ export class Env {
           }
         }
         return value;
+      }
+    }
+    if (root.depth >= 4) {
+      if (root.cacheName == null) {
+        root.cacheName = name;
+        root.cacheValue = ENV_UNBOUND;
+      } else {
+        (root.cache ??= new Map([[root.cacheName, root.cacheValue]])).set(name, ENV_UNBOUND);
       }
     }
     return undefined;
