@@ -848,15 +848,15 @@ export class Solver {
             if (!entry.computing) {
               if (!this.tableCoordinator) {
                 this.tableCoordinator = { entry, cycleSeen: false, entries: new Set([entry]) };
-                scheduleTableFixpointRound(stack, this, { entry, group, goal, rest, env, depth, active });
+                scheduleTableFixpointRound(stack, this, { entry, group, goal, rest, env, depth, active, mapKey });
               } else {
                 entry.computing = true;
                 stack.push({ kind: 'completeMemo', entry, revision: this.programRevision });
-                pushUserGoalUncachedFrames(stack, this, group, goal, [{ kind: 'memoStore', entry, goal, revision: this.programRevision }, ...rest], env, depth, active);
+                pushUserGoalUncachedFrames(stack, this, group, goal, [{ kind: 'memoStore', entry, goal, revision: this.programRevision }, ...rest], env, depth, active, mapKey);
               }
               break;
             }
-            if (this.tableCoordinator && (usingBroadTable || activeVariantIn(goal, env, active))) {
+            if (this.tableCoordinator && (usingBroadTable || activeTableKeyIn(mapKey, active))) {
               this.tableCoordinator.cycleSeen = true;
             }
             pushMemoAnswerFrames(stack, entry, goal, rest, env, depth, active, this);
@@ -1252,6 +1252,7 @@ function scheduleTableFixpointRound(stack, solver, frame) {
     frame.env,
     frame.depth,
     frame.active,
+    frame.mapKey,
   );
 }
 
@@ -1289,13 +1290,13 @@ function pushMemoAnswerFrames(stack, entry, goal, rest, env, depth, active, solv
   for (let answerIndex = entry.answers.length - 1; answerIndex >= 0; answerIndex--) pushReplay(answerIndex);
 }
 
-function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth, active) {
+function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth, active, tableMapKey = null) {
   if (group.fastPi && pushFastPiFrames(stack, goal, rest, env, depth, active)) return;
   if (tryPushGroundScalarRuleFrame(stack, solver, group, goal, rest, env, depth, active)) return;
   if (tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, active)) return;
   const candidates = selectClauseCandidates(group, goal, env);
   const frames = [];
-  const invocation = { goal, env: env._snapshotForSolverRead() };
+  const invocation = { goal, env: env._snapshotForSolverRead(), tableMapKey };
   // Active frames serve two purposes: they delimit cut and detect variants in
   // recursive user predicates. Cut-free, non-recursive library helpers need
   // neither. Copying their full active stack at every recursive step made
@@ -3013,6 +3014,13 @@ function rememberMemoAnswer(entry, goal, env) {
       entry.answerVariableFallbacks[position].push(answerIndex);
     }
   }
+}
+
+function activeTableKeyIn(mapKey, active) {
+  for (let index = active.length - 1; index >= 0; index--) {
+    if (active[index]?.tableMapKey === mapKey) return true;
+  }
+  return false;
 }
 
 function activeVariantIn(goal, env, active) {
