@@ -860,7 +860,7 @@ function* retractSolutions({ solver, goal, env }, state) {
     if (!unify(parts.head, copied.args[0], next)) continue;
     if (parts.rule && !unify(parts.body, copied.args[1], next)) continue;
     if (!parts.rule && !(copied.args[1].type === ATOM && copied.args[1].name === 'true')) continue;
-    matches.push({ clause, next });
+    matches.push({ clause, next: next._toPersistentEnv?.() ?? next });
   }
   for (let index = 0; index < matches.length; index++) {
     const { clause, next } = matches[index];

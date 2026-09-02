@@ -392,6 +392,8 @@ export class Solver {
 
   *solve(goals, env = new Env(), depth = 0) {
     if (!Array.isArray(goals)) goals = [goals];
+    const ownsSolverBindings = env._isSolverEnv?.() !== true;
+    if (ownsSolverBindings) env = env._asSolverEnv();
     env.setOccursCheckHandler(this.occursCheckHandler);
     env.setAttributeHookRunner(this.attributeHookRunner);
     if (this.isoStrict) rejectStrictIsoStringTerms(goals, env);
@@ -432,6 +434,42 @@ export class Solver {
           kind: 'goals',
           goals: frame.goals,
           env: result.value,
+          depth: frame.depth,
+          active: frame.active,
+        });
+        continue;
+      }
+      if (frame.kind === 'unifyArgsBranch') {
+        if (this.solutionsSeen >= this.solutionLimit) continue;
+        const next = frame.env.clone();
+        const sourceArgs = frame.freshNonGround && !frame.args.every((arg) => termIsGround(arg))
+          ? freshTerm(compound('$branch_args', frame.args), nextFreshId()).args
+          : frame.args;
+        let ok = true;
+        for (let i = 0; i < frame.goal.arity; i++) {
+          this.stats.unify_calls++;
+          if (!unify(frame.goal.args[i], sourceArgs[i], next)) { ok = false; break; }
+        }
+        if (ok) {
+          stack.push({
+            kind: 'goals',
+            goals: frame.goals,
+            env: next,
+            depth: frame.depth,
+            active: frame.active,
+          });
+        }
+        continue;
+      }
+      if (frame.kind === 'bindBranch') {
+        if (this.solutionsSeen >= this.solutionLimit) continue;
+        const next = frame.env.clone();
+        for (let i = 0; i < frame.names.length; i++) next.bind(frame.names[i], frame.values[i]);
+        if (next._variableConstraints != null && !next.validateVariableConstraints()) continue;
+        stack.push({
+          kind: 'goals',
+          goals: frame.goals,
+          env: next,
           depth: frame.depth,
           active: frame.active,
         });
@@ -585,7 +623,7 @@ export class Solver {
           this.solutionsSeen++;
           this.stats.completed_goal_lists++;
           this.active = active;
-          yield env;
+          yield ownsSolverBindings && env._isSolverEnv?.() === true ? env._toPersistentEnv() : env;
           break;
         }
 
@@ -673,7 +711,7 @@ export class Solver {
           // pending exactly as they do for a direct call. A fresh active marker
           // keeps cut opaque at the call/N boundary.
           const expanded = def.expandGoal({ solver: this, goal, env });
-          const invocation = { goal, env };
+          const invocation = { goal, env: env._snapshotForSolverRead() };
           active = [...active, invocation];
           goals = [expanded, { kind: 'releaseActive' }, ...rest];
           depth++;
@@ -1096,12 +1134,12 @@ export class Solver {
     // expansion of the current rule body, but it must be released before
     // the caller's remaining goals are solved. Keeping the goal active
     // through rest goals over-prunes valid transitive/recursive derivations.
-    this.active.push({ goal, env: goalEnv });
+    this.active.push({ goal, env: goalEnv._snapshotForSolverRead() });
     for (const bodyEnv of this.solve(body, env, depth + 1)) {
       if (this.solutionsSeen > 0) this.solutionsSeen--;
       this.active.pop();
       yield* this.solve(rest, bodyEnv, depth + 1);
-      this.active.push({ goal, env: goalEnv });
+      this.active.push({ goal, env: goalEnv._snapshotForSolverRead() });
       if (this.solutionsSeen >= this.solutionLimit) break;
     }
     this.active.pop();
@@ -1231,25 +1269,24 @@ function pushMemoAnswerFrames(stack, entry, goal, rest, env, depth, active, solv
       selected = { bucket, fallback, length: candidateLength };
     }
   }
-  const replay = (answerIndex) => {
-    const storedArgs = entry.answers[answerIndex];
-    const answerArgs = storedArgs.every((arg) => termIsGround(arg))
-      ? storedArgs
-      : freshTerm(compound('$memo_answer', storedArgs), nextFreshId()).args;
-    const next = env.clone();
-    let ok = true;
-    for (let i = 0; i < goal.arity; i++) {
-      solver.stats.unify_calls++;
-      if (!unify(goal.args[i], answerArgs[i], next)) { ok = false; break; }
-    }
-    if (ok) stack.push({ kind: 'goals', goals: rest, env: next, depth: depth + 1, active });
+  const pushReplay = (answerIndex) => {
+    stack.push({
+      kind: 'unifyArgsBranch',
+      goal,
+      args: entry.answers[answerIndex],
+      freshNonGround: true,
+      goals: rest,
+      env,
+      depth: depth + 1,
+      active,
+    });
   };
   if (selected != null) {
-    for (let i = selected.fallback.length - 1; i >= 0; i--) replay(selected.fallback[i]);
-    for (let i = selected.bucket.length - 1; i >= 0; i--) replay(selected.bucket[i]);
+    for (let i = selected.fallback.length - 1; i >= 0; i--) pushReplay(selected.fallback[i]);
+    for (let i = selected.bucket.length - 1; i >= 0; i--) pushReplay(selected.bucket[i]);
     return;
   }
-  for (let answerIndex = entry.answers.length - 1; answerIndex >= 0; answerIndex--) replay(answerIndex);
+  for (let answerIndex = entry.answers.length - 1; answerIndex >= 0; answerIndex--) pushReplay(answerIndex);
 }
 
 function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth, active) {
@@ -1258,7 +1295,7 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   if (tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, active)) return;
   const candidates = selectClauseCandidates(group, goal, env);
   const frames = [];
-  const invocation = { goal, env };
+  const invocation = { goal, env: env._snapshotForSolverRead() };
   // Active frames serve two purposes: they delimit cut and detect variants in
   // recursive user predicates. Cut-free, non-recursive library helpers need
   // neither. Copying their full active stack at every recursive step made
@@ -1535,18 +1572,20 @@ function pushWfsAnswerFrames(stack, model, group, goal, rest, env, depth, active
   if (!relation) return;
   for (let rowIndex = relation.rows.length - 1; rowIndex >= 0; rowIndex--) {
     const row = relation.rows[rowIndex];
-    const next = env.clone();
-    let ok = true;
-    for (let i = 0; i < goal.arity; i++) {
-      solver.stats.unify_calls++;
-      if (!unify(goal.args[i], row[i], next)) { ok = false; break; }
-    }
-    if (!ok) continue;
     if (!lower?.has(row)) {
       solver.stats.wfs_undefined_answers++;
       continue;
     }
-    stack.push({ kind: 'goals', goals: rest, env: next, depth: depth + 1, active });
+    stack.push({
+      kind: 'unifyArgsBranch',
+      goal,
+      args: row,
+      freshNonGround: false,
+      goals: rest,
+      env,
+      depth: depth + 1,
+      active,
+    });
   }
 }
 
@@ -2030,14 +2069,8 @@ function termReferencesResolvedVariable(term, variableName, env) {
 }
 
 function envHasObservableAliasTo(variableName, env) {
-  for (let state = env?._state; state != null; state = state.parent) {
-    if (state.bindingName != null && state.bindingName !== variableName &&
-        termReferencesResolvedVariable(state.bindingValue, variableName, env)) return true;
-    if (state.bindings) {
-      for (const [name, value] of state.bindings) {
-        if (name !== variableName && termReferencesResolvedVariable(value, variableName, env)) return true;
-      }
-    }
+  for (const [name, value] of env?._bindingEntries?.() ?? []) {
+    if (name !== variableName && termReferencesResolvedVariable(value, variableName, env)) return true;
   }
   return false;
 }
@@ -2315,10 +2348,15 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
     const state = localStack.pop();
     solver.stats.max_depth = Math.max(solver.stats.max_depth, state.depth);
     if (state.index === runLength) {
-      const next = env.clone();
-      for (let i = 0; i < state.names.length; i++) next.bind(state.names[i], state.values[i]);
-      if (next._variableConstraints != null && !next.validateVariableConstraints()) continue;
-      frames.push({ kind: 'goals', goals: rest, env: next, depth: state.depth, active });
+      frames.push({
+        kind: 'bindBranch',
+        names: state.names,
+        values: state.values,
+        goals: rest,
+        env,
+        depth: state.depth,
+        active,
+      });
       if (frames.length > frameLimit) {
         // Do not repeat the old bug of abandoning the optimization and then
         // re-solving through the generic engine.  Restart this rare oversized

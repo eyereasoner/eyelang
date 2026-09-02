@@ -167,6 +167,15 @@ export class Env {
     this._attributeHookRunner = typeof handler === 'function' ? handler : null;
     return this;
   }
+  _asSolverEnv() {
+    return SolverEnv.from(this);
+  }
+  _isSolverEnv() {
+    return false;
+  }
+  _snapshotForSolverRead() {
+    return this.clone();
+  }
   adopt(other) {
     if (!(other instanceof Env)) throw new TypeError('Env.adopt expects Env');
     this._state = other._state;
@@ -332,6 +341,22 @@ export class Env {
       }
     }
     return undefined;
+  }
+  *_bindingEntries() {
+    const seen = new Set();
+    for (let state = this._state; state != null; state = state.parent) {
+      if (state.bindingName != null && !seen.has(state.bindingName)) {
+        seen.add(state.bindingName);
+        yield [state.bindingName, state.bindingValue];
+      }
+      if (state.bindings) {
+        for (const [name, value] of state.bindings) {
+          if (seen.has(name)) continue;
+          seen.add(name);
+          yield [name, value];
+        }
+      }
+    }
   }
   compactForDeepContinuation(segmentLimit = 16) {
     if ((this._state.segmentCount ?? 0) < segmentLimit) return false;
@@ -645,6 +670,227 @@ export class Env {
       }
     }
     this._variableAnnotations = annotations.size === 0 ? null : annotations;
+  }
+}
+
+
+class SolverBindingStore {
+  constructor(bindings) {
+    this.slots = new Map();
+    this.names = [];
+    this.values = [];
+    this.baseValues = [];
+    this.slotLastTrail = [];
+    this.freeSlots = [];
+    this.trailNames = [];
+    this.trailSlots = [];
+    this.trailOldValues = [];
+    this.trailNewValues = [];
+    this.trailPreviousForSlot = [];
+    this.trailCreated = [];
+    if (bindings != null) {
+      for (const [name, value] of bindings) {
+        const slot = this.names.length;
+        this.slots.set(name, slot);
+        this.names.push(name);
+        this.values.push(value);
+        this.baseValues.push(value);
+        this.slotLastTrail.push(-1);
+      }
+    }
+  }
+
+  mark() {
+    return this.trailSlots.length;
+  }
+
+  rollback(mark) {
+    if (mark > this.trailSlots.length) {
+      throw new Error('stale solver binding mark');
+    }
+    while (this.trailSlots.length > mark) {
+      const created = this.trailCreated.pop();
+      const previousForSlot = this.trailPreviousForSlot.pop();
+      this.trailNewValues.pop();
+      const oldValue = this.trailOldValues.pop();
+      const slot = this.trailSlots.pop();
+      const name = this.trailNames.pop();
+      this.slotLastTrail[slot] = previousForSlot;
+      if (created) {
+        this.slots.delete(name);
+        this.values[slot] = ENV_UNBOUND;
+        this.baseValues[slot] = ENV_UNBOUND;
+        this.names[slot] = null;
+        this.freeSlots.push(slot);
+      } else {
+        this.values[slot] = oldValue;
+      }
+    }
+  }
+
+  bind(name, value) {
+    let slot = this.slots.get(name);
+    const created = slot === undefined;
+    if (created) {
+      slot = this.freeSlots.length === 0 ? this.values.length : this.freeSlots.pop();
+      this.slots.set(name, slot);
+      this.names[slot] = name;
+      this.values[slot] = ENV_UNBOUND;
+      this.baseValues[slot] = ENV_UNBOUND;
+      this.slotLastTrail[slot] = -1;
+    }
+    const entry = this.trailSlots.length;
+    this.trailNames.push(name);
+    this.trailSlots.push(slot);
+    this.trailOldValues.push(this.values[slot]);
+    this.trailNewValues.push(value);
+    this.trailPreviousForSlot.push(this.slotLastTrail[slot] ?? -1);
+    this.trailCreated.push(created);
+    this.slotLastTrail[slot] = entry;
+    this.values[slot] = value;
+  }
+
+  getAtMark(name, mark) {
+    if (mark > this.trailSlots.length) throw new Error('stale solver binding mark');
+    const slot = this.slots.get(name);
+    if (slot === undefined) return undefined;
+    let entry = this.slotLastTrail[slot] ?? -1;
+    while (entry >= mark) entry = this.trailPreviousForSlot[entry] ?? -1;
+    const value = entry >= 0 ? this.trailNewValues[entry] : this.baseValues[slot];
+    return value === ENV_UNBOUND ? undefined : value;
+  }
+}
+
+function copyEnvBranchState(source, target) {
+  target._delays = source._delays;
+  target._variableConstraints = source._variableConstraints;
+  target._variableAnnotations = source._variableAnnotations;
+  target._prologAttributes = source._prologAttributes;
+  target._attributeHookRunner = source._attributeHookRunner;
+  target._pendingAttributeGoals = source._pendingAttributeGoals;
+  target._backtrackableBlackboard = source._backtrackableBlackboard;
+  target._occursCheckHandler = source._occursCheckHandler;
+  target._localVariables = source._localVariables;
+  target._compactVariableOrigins = source._compactVariableOrigins;
+  target._compactVariableRisks = source._compactVariableRisks;
+  return target;
+}
+
+class SolverEnvReadView {
+  constructor(source) {
+    this._solverBindings = source._solverBindings;
+    this._solverBindingMark = source._solverBindingMark;
+    this._localVariables = source._localVariables;
+  }
+  get(name) {
+    return this._solverBindings.getAtMark(name, this._solverBindingMark);
+  }
+  has(name) {
+    return this.get(name) !== undefined;
+  }
+  isLocalVariable(name) {
+    return this._localVariables?.has(name) === true;
+  }
+}
+
+// SolverEnv replaces persistent binding layers with one solver-owned mutable
+// slot store and a linear trail. Clones are just trail marks plus the existing
+// copy-on-write logical side stores. The solver explores these marks in depth-
+// first order, so rollback can discard unreachable branch history immediately.
+// Public Env remains persistent and is used for stable API snapshots.
+class SolverEnv extends Env {
+  constructor() {
+    super();
+    this._solverBindings = new SolverBindingStore();
+    this._solverBindingMark = 0;
+    this._state = null;
+  }
+
+  static from(env) {
+    if (env instanceof SolverEnv) return env;
+    const solverEnv = Object.create(SolverEnv.prototype);
+    solverEnv._state = null;
+    solverEnv._solverBindings = new SolverBindingStore(env?._bindingEntries?.() ?? []);
+    solverEnv._solverBindingMark = 0;
+    copyEnvBranchState(env ?? new Env(), solverEnv);
+    return solverEnv;
+  }
+
+  _asSolverEnv() {
+    return this;
+  }
+
+  _isSolverEnv() {
+    return true;
+  }
+
+  _snapshotForSolverRead() {
+    return new SolverEnvReadView(this);
+  }
+
+  _activateBindings() {
+    if (this._solverBindingMark !== this._solverBindings.trailSlots.length) {
+      this._solverBindings.rollback(this._solverBindingMark);
+    }
+  }
+
+  clone() {
+    this._activateBindings();
+    const clone = Object.create(SolverEnv.prototype);
+    clone._state = null;
+    clone._solverBindings = this._solverBindings;
+    clone._solverBindingMark = this._solverBindingMark;
+    return copyEnvBranchState(this, clone);
+  }
+
+  adopt(other) {
+    if (!(other instanceof Env)) throw new TypeError('Env.adopt expects Env');
+    if (other instanceof SolverEnv && other._solverBindings === this._solverBindings) {
+      other._activateBindings();
+      this._solverBindingMark = other._solverBindingMark;
+    } else {
+      const replacement = SolverEnv.from(other);
+      this._solverBindings = replacement._solverBindings;
+      this._solverBindingMark = replacement._solverBindingMark;
+    }
+    copyEnvBranchState(other, this);
+    return this;
+  }
+
+  has(name) {
+    return this.get(name) !== undefined;
+  }
+
+  get(name) {
+    this._activateBindings();
+    const slot = this._solverBindings.slots.get(name);
+    if (slot === undefined) return undefined;
+    const value = this._solverBindings.values[slot];
+    return value === ENV_UNBOUND ? undefined : value;
+  }
+
+  *_bindingEntries() {
+    this._activateBindings();
+    for (const [name, slot] of this._solverBindings.slots) {
+      const value = this._solverBindings.values[slot];
+      if (value !== ENV_UNBOUND) yield [name, value];
+    }
+  }
+
+  bind(name, term) {
+    this._activateBindings();
+    this._solverBindings.bind(name, term);
+    this._solverBindingMark = this._solverBindings.mark();
+  }
+
+  compactForDeepContinuation() {
+    return false;
+  }
+
+  _toPersistentEnv() {
+    const stable = new Env(this._bindingEntries());
+    copyEnvBranchState(this, stable);
+    return stable;
   }
 }
 
