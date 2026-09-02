@@ -9743,7 +9743,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **224 self-contained runnable programs**. Every
+top-level directory contains **225 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic lists link every top-level program and open the program
@@ -10173,9 +10173,10 @@ and fast:
 ```sh
 npm run benchmark
 npm run benchmark:baseline
+npm run benchmark:lips
 ```
 
-The benchmark suite contains 20 representative workloads and stores their
+The benchmark suite contains 21 representative workloads and stores their
 semantic output digests in the repository, while wall-clock baselines remain
 machine-local under `.benchmarks/` because absolute timings are machine-specific.
 Each benchmark runs in its own fresh Node worker. Inside that worker, one untimed
@@ -10183,6 +10184,15 @@ execution primes parser, module, and JIT state; short workloads are then repeate
 with independent `run()` calls until a batch is roughly 400 ms long. After one
 warm-up batch, five measured batches are reported as milliseconds per workload
 execution. Naturally long workloads keep a batch size of one.
+
+The classic `examples/bench.pl` workload also has a dedicated LIPS harness.
+`npm run benchmark:lips` follows the 1984 Quintus method more closely than the
+generic runner: `dobench/1` and `dodummy/1` execute failure-driven loops inside
+Prolog, the dummy CPU time is subtracted, and the remaining time is converted
+using 496 procedure calls for one reversal of the 30-element list. Node's
+process CPU clock is used for the primary figure, with wall-clock LIPS printed
+as a cross-check. Because LIPS measures a deliberately small recursive kernel,
+it is useful for engine tuning but is not a complete application benchmark.
 
 The report shows the median, per-operation range, chosen batch size, saved
 baseline median, and the percentage change between the current median and baseline

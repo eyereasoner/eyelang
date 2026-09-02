@@ -1,7 +1,7 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  ATOM, COMPOUND, NUMBER, STRING, VAR, Env, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
+  ATOM, COMPOUND, NUMBER, STRING, VAR, Env, Term, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
   flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
   numberTerm, numberTextFromDouble, properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
@@ -18,6 +18,7 @@ import { evaluatePositiveDatalog, relationForDatalogGroup, datalogCandidateIndex
 let freshCounter = 0;
 const DEFAULT_INNER_TABLE_SCOPE_LIMIT = 1024;
 const GOAL_CONTINUATION_THRESHOLD = 64;
+const NO_CALL_TARGET = Symbol('no-call-target');
 // Conservative live-storage estimate for one generated length/2 list cell
 // (cons object, argument vector, fresh variable, and its generated name).
 const GENERATED_LENGTH_CELL_RESERVE_BYTES = 256;
@@ -90,6 +91,9 @@ export class Solver {
     // implementation-specific predicates.  Use the Part 1 + corrigenda
     // registry even when an embedder supplied the normal EyeProlog registry.
     this.registry = this.isoStrict ? getStrictIsoRegistry() : (options.registry ?? getEyePrologRegistry());
+    this.userGroupCache = Object.create(null);
+    this.moduleGroupCache = new Map();
+    this.builtinCache = Object.create(null);
     this.mutableProgram = program.mutable === true;
     this.programRevision = this.program.revision ?? 0;
     // Normal Prolog execution must not silently acquire a semantic depth
@@ -295,6 +299,37 @@ export class Solver {
     }
   }
 
+  lookupGroup(name, arity, module = 'user') {
+    if (module === 'user') {
+      let slots = this.userGroupCache[name];
+      if (slots === undefined) this.userGroupCache[name] = slots = [];
+      const cached = slots[arity];
+      if (cached !== undefined) return cached === NO_CALL_TARGET ? null : cached;
+      const group = this.program.findGroup(name, arity, module);
+      slots[arity] = group ?? NO_CALL_TARGET;
+      return group;
+    }
+    let byName = this.moduleGroupCache.get(module);
+    if (byName == null) this.moduleGroupCache.set(module, byName = new Map());
+    let byArity = byName.get(name);
+    if (byArity == null) byName.set(name, byArity = []);
+    const cached = byArity[arity];
+    if (cached !== undefined) return cached === NO_CALL_TARGET ? null : cached;
+    const group = this.program.findGroup(name, arity, module);
+    byArity[arity] = group ?? NO_CALL_TARGET;
+    return group;
+  }
+
+  lookupBuiltin(name, arity) {
+    let slots = this.builtinCache[name];
+    if (slots === undefined) this.builtinCache[name] = slots = [];
+    const cached = slots[arity];
+    if (cached !== undefined) return cached === NO_CALL_TARGET ? null : cached;
+    const def = this.registry.get(name, arity);
+    slots[arity] = def ?? NO_CALL_TARGET;
+    return def;
+  }
+
   syncProgramRevision() {
     if (!this.mutableProgram) {
       if (this.program.mutable !== true) return;
@@ -303,6 +338,9 @@ export class Solver {
     const revision = this.program.revision ?? 0;
     if (revision === this.programRevision) return;
     this.programRevision = revision;
+    this.userGroupCache = Object.create(null);
+    this.moduleGroupCache.clear();
+    this.builtinCache = Object.create(null);
     this.memo.clear();
     this.subsumptiveMemo.clear();
     this.wfsModels.clear();
@@ -512,13 +550,7 @@ export class Solver {
           });
           continue;
         }
-        const id = nextFreshId();
-        const freshVariables = new Map();
-        const freshHead = freshTerm(clause.head, id, freshVariables);
-        const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
-        const localFreshPlan = clauseLocalFreshPlan(clause);
-        const headLocalFresh = freshVariableSet(localFreshPlan.head, freshVariables);
-        attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
+        const { freshHead, freshBody, headLocalFresh } = instantiateClause(clause, nextFreshId());
         next = clauseEnv.clone();
         this.stats.unify_calls++;
         if (!unify(clauseGoal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) continue;
@@ -654,7 +686,7 @@ export class Solver {
         // EyeProlog normally solves left-to-right, but ready deterministic builtins can
         // be run early as pure filters. Stop at internal sentinels so rule-body
         // active guards are released before the caller's remaining goals are seen.
-        const selectedIndex = selectReadyDeterministicBuiltin(goals, env, this.registry);
+        const selectedIndex = 0;
         const goal = deref(goals[selectedIndex], env);
         const rest = selectedIndex === 0 ? goals.slice(1) : [...goals.slice(0, selectedIndex), ...goals.slice(selectedIndex + 1)];
         prepareLocalVariablesForGoal(goal, env);
@@ -706,7 +738,7 @@ export class Solver {
           }
         }
 
-        const def = callable ? this.registry.get(goal.name, goal.arity) : null;
+        const def = callable ? this.lookupBuiltin(goal.name, goal.arity) : null;
         this.active = active;
         const builtinReady = def && builtinIsReadyOrAuthoritative(def, this, goal, env);
         if (builtinReady && typeof def.expandGoal === 'function') {
@@ -740,7 +772,7 @@ export class Solver {
         }
 
         this.stats.solve_one_goal_calls++;
-        const group = this.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
+        const group = this.lookupGroup(goal.name, goal.arity, goal.module ?? 'user');
         if (!group) {
           if (goal.name === '-->' && goal.arity === 2) {
             throw new PrologError(
@@ -870,6 +902,35 @@ export class Solver {
         }
 
         if (!group.tabled && tryPushScalarFactRunFrames(stack, this, [goal, ...rest], env, depth, active)) break;
+        // When indexing leaves exactly one cut-free clause, enter it directly
+        // instead of allocating a resumable clause-choice frame. This keeps
+        // ordinary deterministic recursion on the interpreter's tight loop.
+        if (!group.tabled && groupNeedsActiveFrame(group) === false) {
+          const candidates = selectClauseCandidates(group, goal, env);
+          const candidateCount = clauseCandidateLength(candidates.primary) +
+            clauseCandidateLength(candidates.fallback);
+          if (candidateCount === 1) {
+            const clause = clauseCandidateLength(candidates.primary) === 1
+              ? clauseCandidateAt(candidates.primary, 0)
+              : clauseCandidateAt(candidates.fallback, 0);
+            const { freshHead, freshBody, headLocalFresh } = instantiateClause(clause, nextFreshId());
+            const next = env.clone();
+            this.stats.unify_calls++;
+            if (!unify(goal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) break;
+            if (freshBody.length === 0) {
+              goals = rest;
+            } else if (rest.length >= GOAL_CONTINUATION_THRESHOLD ||
+                rest.some((pending) => pending?.kind === 'continueGoals')) {
+              next.compactForDeepContinuation?.();
+              goals = [...freshBody, { kind: 'continueGoals', goals: rest, depth, releaseActive: false }];
+            } else {
+              goals = [...freshBody, ...rest];
+            }
+            env = next;
+            depth++;
+            continue;
+          }
+        }
         pushUserGoalUncachedFrames(stack, this, group, goal, rest, env, depth, active);
         break;
       }
@@ -1110,13 +1171,7 @@ export class Solver {
           continue;
         }
         if (headCannotMatch(goal, clause.head, env)) continue;
-        const id = nextFreshId();
-        const freshVariables = new Map();
-        const freshHead = freshTerm(clause.head, id, freshVariables);
-        const freshBody = clause.body.map((term) => freshTerm(term, id, freshVariables));
-        const localFreshPlan = clauseLocalFreshPlan(clause);
-        const headLocalFresh = freshVariableSet(localFreshPlan.head, freshVariables);
-        attachBodyLocalFreshVariables(freshBody, localFreshPlan.body, freshVariables);
+        const { freshHead, freshBody, headLocalFresh } = instantiateClause(clause, nextFreshId());
         const next = env.clone();
         this.stats.unify_calls++;
         if (!unify(goal, freshHead, next, { knownNonoccurringVariables: headLocalFresh })) continue;
@@ -1301,16 +1356,15 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   if (tryPushGroundScalarRuleFrame(stack, solver, group, goal, rest, env, depth, active)) return;
   if (tryPushGroundChainFrames(stack, solver, group, goal, rest, env, depth, active)) return;
   const candidates = selectClauseCandidates(group, goal, env);
+  const candidateCount = clauseCandidateLength(candidates.primary) + clauseCandidateLength(candidates.fallback);
   const frames = [];
-  const invocation = { goal, env: env._snapshotForSolverRead(), tableMapKey };
   // Active frames serve two purposes: they delimit cut and detect variants in
-  // recursive user predicates. Cut-free, non-recursive library helpers need
-  // neither. Copying their full active stack at every recursive step made
-  // otherwise linear relations such as length/2 retain O(depth^2) references.
+  // recursive user predicates. Delay the invocation snapshot until a reachable
+  // cut/guard actually needs one; ordinary cut-free recursion avoids it.
   for (const pass of [candidates.primary, candidates.fallback]) {
     for (let candidateIndex = 0; candidateIndex < clauseCandidateLength(pass); candidateIndex++) {
       const clause = clauseCandidateAt(pass, candidateIndex);
-      if (headCannotMatch(goal, clause.head, env)) continue;
+      if (candidateCount > 1 && headCannotMatch(goal, clause.head, env)) continue;
       // Do not speculatively unify alternative heads. With attributed variables,
       // head unification can run verify_attributes/3, queue wakeups, fail, or
       // throw. Those effects are observable and must occur only if Prolog search
@@ -1331,10 +1385,12 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   // recursive clause; do not copy the whole active path at every such layer.
   const traditionalDepthFirst = !group.tabled;
   const guarded = traditionalDepthFirst
-    ? frames.some((frame) => clauseHasCutForTailRelease(frame.clause))
+    ? (group.hasCut === true && frames.some((frame) => clauseHasCutForTailRelease(frame.clause)))
     : groupNeedsActiveFrame(group);
   const release = guarded ? [{ kind: 'releaseActive' }] : [];
-  const nextActive = guarded ? [...active, invocation] : active;
+  const nextActive = guarded
+    ? [...active, { goal, env: env._snapshotForSolverRead(), tableMapKey }]
+    : active;
   for (const frame of frames) {
     frame.active = nextActive;
     frame.release = release;
@@ -1346,6 +1402,104 @@ function pushUserGoalUncachedFrames(stack, solver, group, goal, rest, env, depth
   for (let i = frames.length - 1; i >= 0; i--) stack.push(frames[i]);
 }
 
+
+function instantiatePlanNode(node, variables) {
+  if (node.variableSlot != null) return variables[node.variableSlot];
+  const args = new Array(node.args.length);
+  for (let index = 0; index < args.length; index++) {
+    args[index] = instantiatePlanNode(node.args[index], variables);
+  }
+  const term = new Term(node.type, node.name, args);
+  if (node.module != null) term.module = node.module;
+  return term;
+}
+
+function freshSetForVariableSlots(slots, variables) {
+  if (slots.length === 0) return null;
+  const names = new Array(slots.length);
+  for (let index = 0; index < slots.length; index++) names[index] = variables[slots[index]].name;
+  return names.length <= 4 ? new SmallFreshVariableSet(names) : new Set(names);
+}
+
+function instantiateClause(clause, id) {
+  let plan = clause._instantiationPlan;
+  if (plan == null) {
+    const variableSlots = new Map();
+    const variableNames = [];
+    const compile = (term) => {
+      if (term.type === VAR) {
+        let slot = variableSlots.get(term.name);
+        if (slot == null) {
+          slot = variableNames.length;
+          variableSlots.set(term.name, slot);
+          variableNames.push(term.name);
+        }
+        return { variableSlot: slot };
+      }
+      return {
+        type: term.type,
+        name: term.name,
+        module: term.module,
+        args: term.args.map(compile),
+      };
+    };
+    const localFreshPlan = clauseLocalFreshPlan(clause);
+    const head = compile(clause.head);
+    const body = clause.body.map(compile);
+    const slotsFor = (names) => names.map((name) => variableSlots.get(name)).filter((slot) => slot != null);
+    const bodyProofIndexes = [];
+    for (let index = 0; index < clause.body.length; index++) {
+      if (goalUsesFirstUseProof(clause.body[index])) bodyProofIndexes.push(index);
+    }
+    plan = clause._instantiationPlan = {
+      head,
+      body,
+      variableNames,
+      headLocalSlots: slotsFor(localFreshPlan.head),
+      bodyLocalSlots: localFreshPlan.body.map(slotsFor),
+      bodyProofIndexes,
+    };
+  }
+
+  const variables = new Array(plan.variableNames.length);
+  for (let index = 0; index < variables.length; index++) {
+    variables[index] = variable(`${plan.variableNames[index]}#${id}`);
+  }
+  const freshHead = instantiatePlanNode(plan.head, variables);
+  const freshBody = new Array(plan.body.length);
+  for (let index = 0; index < freshBody.length; index++) {
+    freshBody[index] = instantiatePlanNode(plan.body[index], variables);
+  }
+  const headLocalFresh = freshSetForVariableSlots(plan.headLocalSlots, variables);
+  for (let proofIndex = 0; proofIndex < plan.bodyProofIndexes.length; proofIndex++) {
+    const index = plan.bodyProofIndexes[proofIndex];
+    const goal = freshBody[index];
+    const knownNonoccurringVariables = freshSetForVariableSlots(plan.bodyLocalSlots[index] ?? [], variables);
+    if (knownNonoccurringVariables == null || goal?.type !== COMPOUND) continue;
+    attachKnownNonoccurringVariables(goal, knownNonoccurringVariables);
+  }
+  return { freshHead, freshBody, headLocalFresh };
+}
+
+function attachKnownNonoccurringVariables(term, knownNonoccurringVariables) {
+  if (term?.type !== COMPOUND) return;
+  if (term.name === '=' && term.arity === 2) {
+    term._knownNonoccurringVariables = knownNonoccurringVariables;
+  } else if ((term.name === 'get_atts' && term.arity === 2)
+    || (term.name === 'get_attr' && term.arity === 3)
+    || (term.name === '$get_attr_list' && term.arity === 2)
+    || (term.name === '$get_from_attr_list' && term.arity === 3)) {
+    term._firstUseVariables = knownNonoccurringVariables;
+  }
+  if ((term.name === ',' || term.name === ';' || term.name === '->') && term.arity === 2) {
+    attachKnownNonoccurringVariables(term.args[0], knownNonoccurringVariables);
+    attachKnownNonoccurringVariables(term.args[1], knownNonoccurringVariables);
+  } else if (term.name === '\\+' && term.arity === 1) {
+    attachKnownNonoccurringVariables(term.args[0], knownNonoccurringVariables);
+  } else if (term.name === ':' && term.arity === 2) {
+    attachKnownNonoccurringVariables(term.args[1], knownNonoccurringVariables);
+  }
+}
 
 function clauseLocalFreshPlan(clause) {
   if (clause._localFreshPlan != null) return clause._localFreshPlan;
@@ -2332,9 +2486,9 @@ function tryPushScalarFactRunFrames(stack, solver, goals, env, depth, active) {
     const goal = goals[runLength];
     if (!goal || goal.kind === 'releaseActive' || goal.kind === 'memoStore' || goal.kind === 'continueGoals') break;
     if (goal.type !== COMPOUND) break;
-    const def = solver.registry.get(goal.name, goal.arity);
+    const def = solver.lookupBuiltin(goal.name, goal.arity);
     if (def) break;
-    const group = solver.program.findGroup(goal.name, goal.arity, goal.module ?? 'user');
+    const group = solver.lookupGroup(goal.name, goal.arity, goal.module ?? 'user');
     if (!group || group.tabled || !group.scalarFactsOnly) break;
     groups.push(group);
     runLength++;

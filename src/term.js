@@ -682,12 +682,10 @@ class SolverBindingStore {
     this.baseValues = [];
     this.slotLastTrail = [];
     this.freeSlots = [];
-    this.trailNames = [];
     this.trailSlots = [];
     this.trailOldValues = [];
     this.trailNewValues = [];
     this.trailPreviousForSlot = [];
-    this.trailCreated = [];
     if (bindings != null) {
       for (const [name, value] of bindings) {
         const slot = this.names.length;
@@ -709,15 +707,13 @@ class SolverBindingStore {
       throw new Error('stale solver binding mark');
     }
     while (this.trailSlots.length > mark) {
-      const created = this.trailCreated.pop();
       const previousForSlot = this.trailPreviousForSlot.pop();
       this.trailNewValues.pop();
       const oldValue = this.trailOldValues.pop();
       const slot = this.trailSlots.pop();
-      const name = this.trailNames.pop();
       this.slotLastTrail[slot] = previousForSlot;
-      if (created) {
-        this.slots.delete(name);
+      if (oldValue === ENV_UNBOUND) {
+        this.slots.delete(this.names[slot]);
         this.values[slot] = ENV_UNBOUND;
         this.baseValues[slot] = ENV_UNBOUND;
         this.names[slot] = null;
@@ -740,12 +736,10 @@ class SolverBindingStore {
       this.slotLastTrail[slot] = -1;
     }
     const entry = this.trailSlots.length;
-    this.trailNames.push(name);
     this.trailSlots.push(slot);
     this.trailOldValues.push(this.values[slot]);
     this.trailNewValues.push(value);
     this.trailPreviousForSlot.push(this.slotLastTrail[slot] ?? -1);
-    this.trailCreated.push(created);
     this.slotLastTrail[slot] = entry;
     this.values[slot] = value;
   }
@@ -862,7 +856,9 @@ class SolverEnv extends Env {
   }
 
   get(name) {
-    this._activateBindings();
+    if (this._solverBindingMark !== this._solverBindings.trailSlots.length) {
+      this._solverBindings.rollback(this._solverBindingMark);
+    }
     const slot = this._solverBindings.slots.get(name);
     if (slot === undefined) return undefined;
     const value = this._solverBindings.values[slot];
@@ -878,9 +874,11 @@ class SolverEnv extends Env {
   }
 
   bind(name, term) {
-    this._activateBindings();
+    if (this._solverBindingMark !== this._solverBindings.trailSlots.length) {
+      this._solverBindings.rollback(this._solverBindingMark);
+    }
     this._solverBindings.bind(name, term);
-    this._solverBindingMark = this._solverBindings.mark();
+    this._solverBindingMark = this._solverBindings.trailSlots.length;
   }
 
   compactForDeepContinuation() {
@@ -932,6 +930,21 @@ function structuralVariableNames(term) {
   if (isScalar(term)) return EMPTY_ARGS;
   if (term?.type === VAR) return [term.name];
   if (term?.type !== COMPOUND) return EMPTY_ARGS;
+
+  if (!isCompactList(term) && term.arity === 2) {
+    const left = term.args[0];
+    const right = term.args[1];
+    const leftSimple = left?.type === VAR || isScalar(left);
+    const rightSimple = right?.type === VAR || isScalar(right);
+    if (leftSimple && rightSimple) {
+      if (left?.type === VAR) {
+        if (right?.type === VAR) return left.name === right.name ? [left.name] : [left.name, right.name];
+        return [left.name];
+      }
+      if (right?.type === VAR) return [right.name];
+      return EMPTY_ARGS;
+    }
+  }
 
   const cached = structuralVariableCache.get(term);
   if (cached !== undefined) return cached;
@@ -1013,12 +1026,17 @@ function occurs(variableName, term, env) {
   }
 
   const pending = initial.slice();
-  const seenVariables = new Set();
+  const seenSmall = [];
+  let seenLarge = null;
   for (let index = 0; index < pending.length; index++) {
     const name = pending[index];
     if (name === variableName) return true;
-    if (seenVariables.has(name)) continue;
-    seenVariables.add(name);
+    let alreadySeen = false;
+    if (seenLarge != null) alreadySeen = seenLarge.has(name);
+    else for (let j = 0; j < seenSmall.length; j++) { if (seenSmall[j] === name) { alreadySeen = true; break; } }
+    if (alreadySeen) continue;
+    if (seenLarge != null) seenLarge.add(name);
+    else { seenSmall.push(name); if (seenSmall.length === 8) seenLarge = new Set(seenSmall); }
     const binding = env?.get(name);
     if (binding === undefined) continue;
     const names = structuralVariableNames(binding);
@@ -1040,9 +1058,10 @@ export function unify(left, right, env, options = {}) {
   // construction fast paths share this internal proof; ordinary unification
   // remains fully occurs-checked.
   const knownNonoccurringVariables = options.knownNonoccurringVariables ?? null;
-  const stack = [[left, right]];
+  const stack = [left, right];
   while (stack.length) {
-    let [a, b] = stack.pop();
+    let b = stack.pop();
+    let a = stack.pop();
     a = deref(a, env);
     b = deref(b, env);
 
@@ -1053,7 +1072,7 @@ export function unify(left, right, env, options = {}) {
         a = deref(a, env);
         b = deref(b, env);
         if (a.type !== VAR || b.type !== VAR || a.name === b.name) {
-          stack.push([a, b]);
+          stack.push(a, b);
           continue;
         }
       }
@@ -1083,7 +1102,7 @@ export function unify(left, right, env, options = {}) {
         if (!env.preparePrologAttributeUnification(a, b)) return false;
         a = deref(a, env);
         b = deref(b, env);
-        if (a.type !== VAR) { stack.push([a, b]); continue; }
+        if (a.type !== VAR) { stack.push(a, b); continue; }
       }
       markCompactVariableBound(a, b, env);
       env?.dropPrologAttributes?.(a.name);
@@ -1101,7 +1120,7 @@ export function unify(left, right, env, options = {}) {
         if (!env.preparePrologAttributeUnification(b, a)) return false;
         b = deref(b, env);
         a = deref(a, env);
-        if (b.type !== VAR) { stack.push([a, b]); continue; }
+        if (b.type !== VAR) { stack.push(a, b); continue; }
       }
       markCompactVariableBound(b, a, env);
       env?.dropPrologAttributes?.(b.name);
@@ -1121,7 +1140,7 @@ export function unify(left, right, env, options = {}) {
 
     if (a.type === COMPOUND) {
       if (a.name !== b.name || a.arity !== b.arity) return false;
-      for (let i = a.arity - 1; i >= 0; i--) stack.push([a.args[i], b.args[i]]);
+      for (let i = a.arity - 1; i >= 0; i--) stack.push(a.args[i], b.args[i]);
       continue;
     }
 

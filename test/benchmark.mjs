@@ -69,6 +69,9 @@ for (const item of manifest) {
   if (!/^[0-9a-f]{64}$/.test(item.expectedSha256)) {
     throw new Error(`invalid expectedSha256 for benchmark ${item.name}`);
   }
+  if (item.logicalInferences != null && (!Number.isInteger(item.logicalInferences) || item.logicalInferences <= 0)) {
+    throw new Error(`invalid logicalInferences for benchmark ${item.name}`);
+  }
 }
 
 const selected = manifest.filter((item) => {
@@ -113,6 +116,16 @@ function median(values) {
 function formatMs(value) {
   if (value == null) return '—';
   return `${value.toFixed(1)} ms`;
+}
+
+function lipsFor(logicalInferences, medianMs) {
+  if (!Number.isFinite(logicalInferences) || !Number.isFinite(medianMs) || medianMs <= 0) return null;
+  return logicalInferences * 1000 / medianMs;
+}
+
+function formatLips(value) {
+  if (value == null) return '—';
+  return Math.round(value).toLocaleString('en-US');
 }
 
 function changePercent(medianMs, baselineMs) {
@@ -213,6 +226,8 @@ for (const item of selected) {
     answerLines: worker.answerLines,
     outputBytes: worker.outputBytes,
     sha256: worker.digest,
+    logicalInferences: item.logicalInferences ?? null,
+    lips: lipsFor(item.logicalInferences, medianMs),
     baselineMs: baselineItem?.medianMs ?? null,
     changePercent: changePercent(medianMs, baselineItem?.medianMs ?? null),
   });
@@ -250,10 +265,11 @@ if (options.json) {
     results,
   }, null, 2)}\n`);
 } else {
-  const headers = ['Benchmark', 'Median/op', 'Range/op', 'Batch', 'Baseline', 'Change', 'Answers'];
+  const headers = ['Benchmark', 'Median/op', 'LIPS', 'Range/op', 'Batch', 'Baseline', 'Change', 'Answers'];
   const rows = results.map((item) => [
     item.name,
     formatMs(item.medianMs),
+    formatLips(item.lips),
     `${formatMs(item.minMs)}–${formatMs(item.maxMs)}`,
     String(item.batchSize),
     formatMs(item.baselineMs),
@@ -283,6 +299,7 @@ if (options.json) {
   if (baselinePath == null && !baselineWarning) process.stdout.write('No timing baseline found; run npm run benchmark:baseline to create .benchmarks/baseline.json.\n');
   if (options.save != null) process.stdout.write(`Saved timing baseline: ${path.relative(root, options.save)}\n`);
   process.stdout.write('Change compares the current median/op directly with the saved baseline median/op; the measured range is shown separately.\n');
+  process.stdout.write('The classic-nrev LIPS column is a quick wall-clock estimate. Use npm run benchmark:lips for the Quintus-style dummy-subtracted CPU measurement.\n');
   if (summary.comparable > 0) {
     process.stdout.write('Suite score is the geometric mean of current/baseline ratios, so every benchmark has equal relative weight; Time-weighted total compares summed medians and is dominated by longer workloads.\n');
   }

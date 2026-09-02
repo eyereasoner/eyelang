@@ -254,7 +254,7 @@ not interpret the following as core-language features:
 - Part 3 grammar-rule expansion and `phrase/2-3`;
 - explicit tabling, EyeProlog well-founded evaluation via `tnot/1` and
   `wfs_truth/2`, WFS runtime statistics, and recursive numeric execution shortcuts;
-- normal-profile integer digit separators and Trealla-compatible
+- normal-profile integer digit separators (the accepted WG17 single-underscore/layout form documented at <https://www.complang.tuwien.ac.at/ulrich/iso-prolog/digit_separators>) and Trealla-compatible
   `"text"||Tail` double-quoted-list splicing;
 - the JavaScript API `stringTerm(Text)` additional term type (normal mode only).
 

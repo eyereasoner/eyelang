@@ -9,6 +9,16 @@
     "expectedSha256": "a0aa24fcbc87c394a4da789ac861b8e18cabad5e0d73b25ddc02df5dd4376c1b"
   },
   {
+    "name": "classic-nrev",
+    "group": "recursion/lips",
+    "file": "examples/bench.pl",
+    "goals": [
+      "bench_result(X0)"
+    ],
+    "expectedSha256": "8045dc0730e4996a7b01fb2348311fb175ed53f4c49d14f82e01a3d470602255",
+    "logicalInferences": 496
+  },
+  {
     "name": "clpz-sudoku",
     "group": "clpz",
     "file": "examples/clpz-sudoku-9x9.pl",

@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.5.31",
+  "version": "1.5.32",
   "description": "EyeProlog turns facts and rules into answers and proofs.",
   "type": "module",
   "main": "./index.js",
@@ -70,6 +70,7 @@
     "benchmark": "node test/benchmark.mjs",
     "benchmark:baseline": "node test/benchmark.mjs --save .benchmarks/baseline.json",
     "test:benchmark": "node test/run-benchmark-tests.mjs",
-    "generate:reference": "node tools/generate-predicate-reference.mjs"
+    "generate:reference": "node tools/generate-predicate-reference.mjs",
+    "benchmark:lips": "node test/lips-benchmark.mjs"
   }
 }

@@ -7330,10 +7330,18 @@ function whiteBoxCases() {
           'program radix literal');
         assertEqual(parseNumberTokenText('1_ /* group */ 000').name, '1000',
           'number-token conversion with layout');
+        assertEqual(parseNumberTokenText('0b1010_0101').name, '165', 'binary number-token conversion');
+        assertEqual(parseNumberTokenText('0o7_% group\n7').name, '63', 'octal number-token conversion with line comment');
+        assertEqual(parseNumberTokenText('0xCA_/* group */FE').name, '51966', 'hex number-token conversion with block comment');
         assertEqual(
           run('', { goal: 'number_chars(N,"1_000")' }).stdout,
           'number_chars(1000, "1_000").\n',
           'normal number_chars input',
+        );
+        assertEqual(
+          run('', { goal: 'number_codes(N,[48,120,67,65,95,70,69])' }).stdout,
+          'number_codes(51966, [48, 120, 67, 65, 95, 70, 69]).\n',
+          'normal number_codes radix input',
         );
         assertEqual(
           run('', { goal: 'read_term(N, [])', ioOptions: { input: '1_ /* group */ 000. ' } }).stdout,
