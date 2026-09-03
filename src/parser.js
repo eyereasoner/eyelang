@@ -811,6 +811,14 @@ class Parser {
     let left = this.parsePrefixTerm(minPrecedence, allowBar, allowOperatorAtom);
     const leftIsBareOperatorAtom = initialWasCurrentOperator &&
       left.type === ATOM && left.name === initialOperatorName;
+    // Neumerkel syntax #379 (2026-09-03) pins a strict-ISO distinction for
+    // the processor-defined grammar-rule operator: `(-->)/2` is not an ISO
+    // predicate-indicator spelling.  Keep the ordinary profile permissive for
+    // existing DCG/module code; the moving ISO conformity gate runs strict.
+    if (this.strictIso && left.type === ATOM && left.name === '-->' &&
+        this.operatorTokenName() === '/') {
+      throw new Error(`parse line ${this.token.line}: operator atom --> is not permitted in a strict ISO predicate indicator`);
+    }
     let strictPostfixPrecedence = null;
     while (true) {
       const op = this.token.type === TOK.COMMA && allowComma

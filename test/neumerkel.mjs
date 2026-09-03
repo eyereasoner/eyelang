@@ -337,22 +337,36 @@ export async function executeNeumerkel({ reporter, mode = 'live', cacheDir = def
   reporter.section(`Neumerkel conformity (${mode === 'live' && sourceDir == null ? 'live upstream' : sourceDir != null ? 'source fixtures' : 'cached'})`);
 
   const syntaxCases = materializeSyntaxCases(sources.get('syntax').text);
+  const syntaxFailures = [];
+  let syntaxPassed = 0;
   for (const item of syntaxCases) {
-    reporter.test(`syntax ${wg17TestDescription(item)}`, () => {
-      const actual = executeWg17Item(item);
-      if (!matchesUpstreamExpectation(item.expected, actual, item)) {
-        throw new Error(`syntax #${item.id} expected ${item.expected}; actual ${JSON.stringify(actual)}`);
-      }
-    });
+    try {
+      reporter.test(`syntax ${wg17TestDescription(item)}`, () => {
+        const actual = executeWg17Item(item);
+        if (!matchesUpstreamExpectation(item.expected, actual, item)) {
+          throw new Error(`syntax #${item.id} expected ${item.expected}; actual ${JSON.stringify(actual)}`);
+        }
+      });
+      syntaxPassed++;
+    } catch (error) {
+      // Upstream changes often arrive in small clusters. Keep running the
+      // syntax inventory so one live test run exposes every new mismatch
+      // instead of forcing a fix/rerun cycle for each row.
+      syntaxFailures.push(error);
+    }
   }
-  summary.syntax = { passed: syntaxCases.length, total: syntaxCases.length };
+  summary.syntax = { passed: syntaxPassed, total: syntaxCases.length };
+  if (syntaxFailures.length > 0) {
+    throw new AggregateError(
+      syntaxFailures,
+      `${syntaxFailures.length} live Neumerkel syntax case${syntaxFailures.length === 1 ? '' : 's'} failed`,
+    );
+  }
 
   for (const key of ['number_chars', 'variable_names', 'length', 'phrase']) {
-    let result;
-    reporter.test(`${key.replace('_', ' ')} live corpus`, () => {
-      result = ensureQuadSuccess(key, sources.get(key));
-    });
-    summary[key] = { passed: result.total, total: result.total };
+    const result = reporter.batch(`${key.replace('_', ' ')} live corpus`, () =>
+      ensureQuadSuccess(key, sources.get(key)));
+    summary[key] = { passed: result.passed, total: result.total };
   }
 
   const difCases = parseDifCases(sources.get('dif').text);
@@ -440,8 +454,9 @@ export function formatNeumerkelMarkdown({ summary }) {
     `Status: **${passed === total ? 'PASS' : 'FAIL'}** — **${passed}/${total}** discovered upstream cases passed.`,
     '',
     'This tracked report records the latest upstream inventory successfully checked by EyeProlog.',
-    '`npm test` fetches the seven TU Wien sources again and verifies that these discovered counts',
-    'still match the live suites. Counts are output from upstream, not hard-coded test constants.',
+    '`npm test` fetches the seven TU Wien sources again and executes the discovered cases.',
+    'Release/report checks can additionally require these tracked counts to match the live suites.',
+    'Counts are output from upstream, not hard-coded test constants.',
     '',
     '| Suite | Passed | Total |',
     '|---|---:|---:|',
@@ -460,8 +475,11 @@ export function formatNeumerkelMarkdown({ summary }) {
     '',
     'Exact fetched bytes, SHA-256 hashes, fetch timestamps, and HTTP validators remain under',
     'Git-ignored `.cache/neumerkel/` for local audit/reproduction and are intentionally not committed.',
-    'Refresh this tracked report with `npm run conformance:update:neumerkel` and commit it whenever',
-    'the live upstream inventory changes.',
+    'A normal test run warns when this tracked report is stale. Refresh directly from live',
+    'upstream with `npm run conformance:update:neumerkel`, or sync the exact successful',
+    'snapshot already fetched by `npm test` with `npm run conformance:sync:neumerkel`.',
+    '`npm run conformance:check:neumerkel` verifies the tracked report against that last',
+    'successful live snapshot without fetching upstream a second time.',
     '',
   );
   return `${lines.join('\n')}\n`;

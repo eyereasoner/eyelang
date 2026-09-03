@@ -58,6 +58,28 @@ function deletedRow(rowHtml, idCellHtml) {
     /class\s*=\s*["'][^"']*\b(?:deleted|obsolete|removed)\b/i.test(rowHtml);
 }
 
+function cellsFromChunk(body) {
+  const cellStarts = [...body.matchAll(/<t[dh]\b[^>]*>/gi)];
+  const cells = [];
+  for (let cellIndex = 0; cellIndex < cellStarts.length; cellIndex++) {
+    const cellStart = cellStarts[cellIndex];
+    const cellBodyStart = cellStart.index + cellStart[0].length;
+    const cellEnd = cellStarts[cellIndex + 1]?.index ?? body.length;
+    cells.push({
+      openTag: cellStart[0],
+      body: body.slice(cellBodyStart, cellEnd),
+    });
+  }
+  return cells;
+}
+
+function cellHasClass(cell, className) {
+  const escaped = className.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const quoted = new RegExp(`\\bclass\\s*=\\s*[\"']([^\"']*)[\"']`, 'i').exec(cell.openTag)?.[1] ?? '';
+  if (quoted.split(/\s+/).some((part) => part.toLowerCase() === className.toLowerCase())) return true;
+  return new RegExp(`\\bclass\\s*=\\s*${escaped}(?:\\s|>|$)`, 'i').test(cell.openTag);
+}
+
 function htmlTableRows(html) {
   // TU Wien intentionally serves very small, old-style HTML. In valid HTML,
   // </td> and </tr> are optional, and the conformity page currently relies
@@ -73,38 +95,82 @@ function htmlTableRows(html) {
     const rowEnd = explicitEnd < 0 ? nextRow : bodyStart + explicitEnd;
     const rowHtml = html.slice(rowStart.index, rowEnd);
     const body = html.slice(bodyStart, rowEnd);
-    const cellStarts = [...body.matchAll(/<t[dh]\b[^>]*>/gi)];
-    const cells = [];
-    for (let cellIndex = 0; cellIndex < cellStarts.length; cellIndex++) {
-      const cellStart = cellStarts[cellIndex];
-      const cellBodyStart = cellStart.index + cellStart[0].length;
-      const cellEnd = cellStarts[cellIndex + 1]?.index ?? body.length;
-      cells.push(body.slice(cellBodyStart, cellEnd));
-    }
-    rows.push({ rowHtml, cells });
+    rows.push({ start: rowStart.index, rowHtml, cells: cellsFromChunk(body) });
   }
   return rows;
+}
+
+function htmlAnchoredSyntaxRows(html) {
+  // The conformity page is hand-edited old-style HTML. New rows are sometimes
+  // appended as bare `<td><a name=N>` anchors without a surrounding `<tr>`.
+  // Treat every numbered first-cell anchor as a row boundary so new upstream
+  // cases cannot be silently glued to the previous row.
+  const anchors = [...html.matchAll(/<td\b[^>]*>\s*<a\b[^>]*\bname\s*=\s*["']?\d+["']?[^>]*>/gi)];
+  const rows = [];
+  for (let index = 0; index < anchors.length; index++) {
+    const start = anchors[index].index;
+    const end = anchors[index + 1]?.index ?? html.length;
+    const rowHtml = html.slice(start, end);
+    rows.push({ start, rowHtml, cells: cellsFromChunk(rowHtml) });
+  }
+  return rows;
+}
+
+function declaredSyntaxTotal(html) {
+  const marker = html.search(/number of conforming queries/i);
+  if (marker < 0) return null;
+  const text = decodeHtmlEntities(html.slice(marker, marker + 2000).replace(/<[^>]+>/g, ' '));
+  const match = text.match(/(\d+)\s*\/\s*(\d+)/);
+  return match == null ? null : Number(match[2]);
 }
 
 export function parseWg17SyntaxTable(html) {
   const cases = [];
   const seen = new Set();
-  for (const { rowHtml, cells } of htmlTableRows(html)) {
-    if (cells.length < 3 || deletedRow(rowHtml, cells[0])) continue;
+  // Real TU Wien conformity rows label the standards/Codex expectation. If
+  // the page uses that label anywhere, require it for every numbered test
+  // row instead of silently falling back to a physical column position.
+  const labelledCodexPage = /<t[dh]\b[^>]*\bclass\s*=\s*(?:["'][^"']*\bcodx\b[^"']*["']|codx(?:\s|>|$))/i.test(html);
+  // Merge ordinary `<tr>` rows with numbered first-cell anchors in document
+  // order. The anchor view supplies hand-appended rows that omit `<tr>`; the
+  // normal view still handles fixtures/pages without named anchors.
+  const rows = [...htmlTableRows(html), ...htmlAnchoredSyntaxRows(html)]
+    .sort((a, b) => a.start - b.start);
+  const byId = new Map();
+  for (const { rowHtml, cells } of rows) {
+    if (cells.length < 3 || deletedRow(rowHtml, cells[0].body)) continue;
 
-    const idText = htmlCellText(cells[0]).replace(/^#\s*/, '');
+    const idText = htmlCellText(cells[0].body).replace(/^#\s*/, '');
     const idMatch = idText.match(/^(\d+)$/);
     if (idMatch == null) continue;
     const id = Number(idMatch[1]);
-    if (seen.has(id)) throw new Error(`duplicate active WG17 syntax id #${id} in upstream table`);
 
     // TU Wien uses non-breaking spaces for table presentation/indentation.
     // They are not part of the Prolog source being specified, so normalize
     // them to ordinary spaces before snapshotting/comparing rows.
-    const query = htmlCellText(cells[1]).replace(/\u00a0/g, ' ');
-    const expected = htmlCellText(cells[2]).replace(/\u00a0/g, ' ').replace(/[²³°]/g, '').replace(/[ \t\n]+/g, ' ').trim();
+    const query = htmlCellText(cells[1].body).replace(/\u00a0/g, ' ');
+    // Do not assume the Codex/expected result is physically the third cell.
+    // The live TU Wien page is hand-edited old-style HTML and newly appended
+    // rows can have malformed/extra cells.  The semantic column is explicitly
+    // marked class=codx upstream, so prefer that marker and only fall back to
+    // position 3 for small synthetic fixtures/older snapshots without classes.
+    const codexCell = cells.find((cell) => cellHasClass(cell, 'codx'));
+    if (labelledCodexPage && codexCell == null) {
+      throw new Error(`WG17 syntax row #${id} has no labelled Codex cell; upstream HTML format may have changed`);
+    }
+    const expectedCell = codexCell ?? cells[2];
+    const expected = htmlCellText(expectedCell.body).replace(/\u00a0/g, ' ').replace(/[²³°]/g, '').replace(/[ \t\n]+/g, ' ').trim();
     if (query.length === 0 || expected.length === 0) continue;
-    cases.push({ id, query, expected });
+    if (seen.has(id)) {
+      const previous = byId.get(id);
+      if (previous.query !== query || previous.expected !== expected) {
+        throw new Error(`duplicate active WG17 syntax id #${id} in upstream table`);
+      }
+      continue;
+    }
+    const item = { id, query, expected };
+    cases.push(item);
+    byId.set(id, item);
     seen.add(id);
   }
   if (cases.length < 100) {
@@ -113,6 +179,13 @@ export function parseWg17SyntaxTable(html) {
     throw new Error(
       `only ${cases.length} WG17 syntax rows were found ` +
       `(saw ${trCount} row starts and ${tdCount} cell starts); upstream HTML format may have changed`,
+    );
+  }
+  const declared = declaredSyntaxTotal(html);
+  if (declared != null && cases.length !== declared) {
+    throw new Error(
+      `WG17 syntax inventory mismatch: upstream declares ${declared} active queries but parser discovered ${cases.length}; ` +
+      'upstream HTML format may have changed',
     );
   }
   return cases;

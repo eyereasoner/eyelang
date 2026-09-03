@@ -7,8 +7,9 @@ when this report is generated; it is not inferred from fixture counts.
 ## Latest Neumerkel evidence
 
 See the tracked [latest Neumerkel conformity report](test/conformance/NEUMERKEL-LATEST.md).
-The live release gate fetches all seven TU Wien sources again and verifies that tracked
-report still matches the discovered upstream inventory.
+`npm test` fetches all seven TU Wien sources once and executes the discovered inventory.
+The release workflow then synchronizes this tracked report from those exact successful
+cached source bytes, avoiding a second live fetch and its race window.
 
 ## Executable conformance status
 

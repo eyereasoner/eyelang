@@ -1,21 +1,22 @@
 # EyeProlog — latest Neumerkel conformity
 
-Status: **PASS** — **665/665** discovered upstream cases passed.
+Status: **PASS** — **686/686** discovered upstream cases passed.
 
 This tracked report records the latest upstream inventory successfully checked by EyeProlog.
-`npm test` fetches the seven TU Wien sources again and verifies that these discovered counts
-still match the live suites. Counts are output from upstream, not hard-coded test constants.
+`npm test` fetches the seven TU Wien sources again and executes the discovered cases.
+Release/report checks can additionally require these tracked counts to match the live suites.
+Counts are output from upstream, not hard-coded test constants.
 
 | Suite | Passed | Total |
 |---|---:|---:|
-| syntax | 366 | 366 |
-| number_chars/2 | 78 | 78 |
+| syntax | 379 | 379 |
+| number_chars/2 | 86 | 86 |
 | variable_names/1 | 75 | 75 |
 | dif/2 | 26 | 26 |
 | length/2 | 37 | 37 |
 | phrase/2,3 | 58 | 58 |
 | setup_call_cleanup/3 | 25 | 25 |
-| **Total** | **665** | **665** |
+| **Total** | **686** | **686** |
 
 ## Upstream sources
 
@@ -29,6 +30,9 @@ still match the live suites. Counts are output from upstream, not hard-coded tes
 
 Exact fetched bytes, SHA-256 hashes, fetch timestamps, and HTTP validators remain under
 Git-ignored `.cache/neumerkel/` for local audit/reproduction and are intentionally not committed.
-Refresh this tracked report with `npm run conformance:update:neumerkel` and commit it whenever
-the live upstream inventory changes.
+A normal test run warns when this tracked report is stale. Refresh directly from live
+upstream with `npm run conformance:update:neumerkel`, or sync the exact successful
+snapshot already fetched by `npm test` with `npm run conformance:sync:neumerkel`.
+`npm run conformance:check:neumerkel` verifies the tracked report against that last
+successful live snapshot without fetching upstream a second time.
 

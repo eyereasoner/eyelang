@@ -1956,6 +1956,33 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'ISO predicate indicators require parentheses around operator atoms',
+      run: () => {
+        let caught = null;
+        try {
+          parseGoalText('writeq(--> /2)');
+        } catch (error) {
+          caught = error;
+        }
+        if (!caught) throw new Error('bare operator predicate indicator unexpectedly parsed');
+        assertIncludes(caught.message, 'operator atom', 'bare indicator syntax rejection');
+        parseGoalText('writeq((-->)/2)');
+        assertEqual(
+          run('', { goal: 'writeq((-->)/2)' }).stdout,
+          '(-->)/2writeq((-->) / 2).\n',
+          'parenthesized operator indicator stays legal outside strict ISO',
+        );
+        caught = null;
+        try {
+          parseGoalText('writeq((-->)/2)', { isoStrict: true });
+        } catch (error) {
+          caught = error;
+        }
+        if (!caught) throw new Error('Neumerkel #379 strict indicator unexpectedly parsed');
+        assertIncludes(caught.message, 'strict ISO predicate indicator', 'Neumerkel #379 strict syntax rejection');
+      },
+    },
+    {
       name: 'CLP(Z) operator declarations avoid unnecessary quoted atoms',
       run: () => {
         const filename = path.join(packageRoot, 'src', 'lib', 'clpz.pl');

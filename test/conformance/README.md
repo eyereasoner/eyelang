@@ -89,18 +89,20 @@ npm run test:conformance          # live Neumerkel + local ISO/conformance layer
 npm run test:conformance:offline  # same local layers, no network
 npm run test:neumerkel            # the seven live upstream suites only
 npm run test:neumerkel:cached     # exact last fetched bytes; reproduction only
+npm run conformance:check:neumerkel # verify tracked report against last successful live snapshot
 npm run test:iso                  # Part 1 + Corrigenda strict-core processor gate
 npm run test:wg17                 # vendored reviewed WG17 syntax regression
 ```
 
 `test:neumerkel` always fetches the current TU Wien sources. It does not skip a
-fetch because a cache exists. The runner discovers the number of active tests from those sources and fails on any newly introduced case EyeProlog does not pass. It verifies the stable, tracked [NEUMERKEL-LATEST.md](NEUMERKEL-LATEST.md), which is the GitHub-facing result to cite. Exact bytes, SHA-256 hashes, timestamps, and HTTP validators stay under Git-ignored `.cache/neumerkel/` for audit/reproduction only. Refresh the tracked report with `npm run conformance:update:neumerkel` when the live inventory changes. See [NEUMERKEL-LIVE.md](NEUMERKEL-LIVE.md).
+fetch because a cache exists. The runner discovers the number of active tests from those sources and fails on any newly introduced case EyeProlog does not pass. If the stable, tracked [NEUMERKEL-LATEST.md](NEUMERKEL-LATEST.md) is stale, normal tests warn rather than turning a passing engine run into a failure. `npm run conformance:update:neumerkel` performs a fresh live run and refreshes the report; after `npm test`, `npm run conformance:sync:neumerkel` refreshes it from the exact successful cached snapshot; and `npm run conformance:check:neumerkel` verifies that snapshot without a second network fetch. Exact bytes, SHA-256 hashes, timestamps, and HTTP validators stay under Git-ignored `.cache/neumerkel/` for audit/reproduction only. See [NEUMERKEL-LIVE.md](NEUMERKEL-LIVE.md).
 
 The vendored WG17 syntax snapshot is intentionally secondary. Update all upstream conformance evidence with `npm run conformance:update`, or use the focused commands:
 
 ```sh
 npm run conformance:update:wg17
 npm run conformance:update:neumerkel
+npm run conformance:sync:neumerkel
 npm run test:wg17
 ```
 
@@ -134,7 +136,7 @@ Selected cases are adapted from the ISO and standard-core suites of Logtalk,
 Scryer Prolog, Trealla Prolog, and SWI-Prolog. Their upstream identifiers and licenses
 are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 
-The corpus has 386 cases in `iso/` and 802 file-based conformance cases in total. Of those, 11 cases in `stc/` are explicitly labelled working-draft review evidence rather than normative ISO claims. The separate vendored strict-reader WG17 matrix is a deterministic regression snapshot; the live Neumerkel gate discovers the current upstream inventory at run time and verifies the tracked `NEUMERKEL-LATEST.md`. The generated `conformance-report.md` records local corpus totals and links to that live evidence. Together with regression, documentation-sync, API, example, and book-example checks, `npm test` is the release gate.
+The corpus has 386 cases in `iso/` and 802 file-based conformance cases in total. Of those, 11 cases in `stc/` are explicitly labelled working-draft review evidence rather than normative ISO claims. The separate vendored strict-reader WG17 matrix is a deterministic regression snapshot; the live Neumerkel gate discovers the current upstream inventory at run time; release/report checks separately verify the tracked `NEUMERKEL-LATEST.md`. The generated `conformance-report.md` records local corpus totals and links to that live evidence. Together with regression, documentation-sync, API, example, and book-example checks, `npm test` is the release gate.
 
 ## Updating expected output
 

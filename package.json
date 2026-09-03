@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.5.33",
+  "version": "1.5.34",
   "description": "EyeProlog turns facts and rules into answers and proofs.",
   "type": "module",
   "main": "./index.js",
@@ -50,7 +50,7 @@
     "test:conformance": "node test/run-conformance-all.mjs",
     "test:conformance:offline": "node test/run-conformance-all.mjs --offline",
     "test:neumerkel": "node test/run-neumerkel.mjs",
-    "test:neumerkel:cached": "node test/run-neumerkel.mjs --cached --no-verify-report",
+    "test:neumerkel:cached": "node test/run-neumerkel.mjs --cached",
     "test:neumerkel:harness": "node test/run-neumerkel-tests.mjs",
     "test:iso": "node test/run-iso-strict.mjs",
     "test:wg17": "node test/run-wg17.mjs",
@@ -69,9 +69,11 @@
     "generate": "node tools/generate-library-autoload-index.mjs && node tools/generate-predicate-reference.mjs && node tools/extract-book-examples.mjs",
     "generate:autoload": "node tools/generate-library-autoload-index.mjs",
     "generate:reference": "node tools/generate-predicate-reference.mjs",
-    "preversion": "npm test && npm run conformance:report",
+    "preversion": "npm test && npm run conformance:sync:neumerkel && npm run conformance:report && git add test/conformance/NEUMERKEL-LATEST.md conformance-report.md",
     "postversion": "git push origin HEAD --follow-tags",
     "conformance:update:wg17": "node tools/upgrade-wg17.mjs",
-    "conformance:update:neumerkel": "node test/run-neumerkel.mjs --update-report"
+    "conformance:update:neumerkel": "node test/run-neumerkel.mjs --update-report",
+    "conformance:check:neumerkel": "node test/run-neumerkel.mjs --cached --verify-report",
+    "conformance:sync:neumerkel": "node test/run-neumerkel.mjs --cached --update-report"
   }
 }

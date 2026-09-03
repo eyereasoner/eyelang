@@ -10,12 +10,13 @@ function parseArgs(argv) {
     mode: 'live',
     sourceDir: process.env.EYEPROLOG_NEUMERKEL_SOURCE_DIR ?? null,
     updateReport: false,
-    verifyReport: true,
+    verifyReport: false,
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
     if (arg === '--cached') options.mode = 'cached';
     else if (arg === '--update-report') options.updateReport = true;
+    else if (arg === '--verify-report') options.verifyReport = true;
     else if (arg === '--no-verify-report') options.verifyReport = false;
     else if (arg === '--source-dir') {
       if (argv[index + 1] == null) throw new Error('--source-dir requires a directory');
@@ -28,16 +29,16 @@ function parseArgs(argv) {
 
 function printHelp() {
   process.stdout.write(
-    'Usage: npm run test:neumerkel -- [--cached] [--source-dir DIR] [--update-report] [--no-verify-report]\n\n' +
-    'Default: fetch all seven current Neumerkel conformity sources live, run the\n' +
-    'discovered cases, and verify test/conformance/NEUMERKEL-LATEST.md matches\n' +
-    'the successful upstream result. --update-report refreshes that tracked file.\n' +
-    '--cached is for offline reproduction only; it is never the release gate.\n',
+    'Usage: npm run test:neumerkel -- [--cached] [--source-dir DIR] [--verify-report] [--update-report]\n\n' +
+    'Default: fetch all seven current Neumerkel conformity sources live and run\n' +
+    'every discovered case. A stale tracked report is reported as a warning, not\n' +
+    'an engine-test failure. --verify-report makes report freshness mandatory;\n' +
+    '--update-report refreshes the tracked Markdown. --cached is reproduction only.\n',
   );
 }
 
 export async function runNeumerkel(reporter, options = {}) {
-  const effective = { verifyReport: true, updateReport: false, ...options };
+  const effective = { verifyReport: false, updateReport: false, ...options };
   if (effective.sourceDir == null && process.env.EYEPROLOG_NEUMERKEL_SOURCE_DIR) {
     effective.sourceDir = path.resolve(process.env.EYEPROLOG_NEUMERKEL_SOURCE_DIR);
   }
@@ -48,17 +49,17 @@ export async function runNeumerkel(reporter, options = {}) {
     fs.mkdirSync(path.dirname(result.reportPath), { recursive: true });
     fs.writeFileSync(result.reportPath, result.reportText);
     reporter.stdout.write(`Updated Neumerkel report: ${relativeReportPath}\n`);
-  } else if (effective.verifyReport !== false) {
+  } else {
     const committed = fs.existsSync(result.reportPath) ? fs.readFileSync(result.reportPath, 'utf8') : null;
     if (committed !== result.reportText) {
-      throw new Error(
+      const message =
         `tracked Neumerkel report is stale: ${relativeReportPath}\n` +
-        'Run npm run conformance:update:neumerkel and commit the updated report.',
-      );
+        'Run npm run conformance:update:neumerkel and commit the updated report.';
+      if (effective.verifyReport) throw new Error(message);
+      reporter.stdout.write(`WARN ${message}\n`);
+    } else {
+      reporter.stdout.write(`Neumerkel report: ${relativeReportPath}\n`);
     }
-    reporter.stdout.write(`Neumerkel report: ${relativeReportPath}\n`);
-  } else {
-    reporter.stdout.write(`Neumerkel report verification skipped (${relativeReportPath})\n`);
   }
   return result;
 }
@@ -81,6 +82,20 @@ function quietNeumerkelReporter(reporter) {
       } catch (error) {
         const ms = nowMs() - startedAt;
         reporter.stderr.write(`FAIL ${nr} ${name} (${ms} ms)\n`);
+        reporter.stderr.write(`${error?.stack ?? String(error)}\n`);
+        throw error;
+      }
+    },
+    batch(name, run) {
+      const startedAt = nowMs();
+      try {
+        const result = run();
+        reporter.total += result.total;
+        reporter.ok += result.passed;
+        return result;
+      } catch (error) {
+        const ms = nowMs() - startedAt;
+        reporter.stderr.write(`FAIL ${name} (${ms} ms)\n`);
         reporter.stderr.write(`${error?.stack ?? String(error)}\n`);
         throw error;
       }

@@ -15,7 +15,11 @@ counts.
 7. `cleanup` — `setup_call_cleanup/3` examples.
 
 The runner discovers the inventory at run time. A new upstream row is therefore
-executed automatically and a removed row disappears automatically.
+executed automatically and a removed row disappears automatically. The syntax
+extractor keys the expected result from TU Wien's labelled `Codex` column rather
+than assuming a fixed cell position, and cross-checks the discovered inventory
+against the total declared by the live page so hand-edited HTML cannot silently
+reduce coverage.
 
 ## Tracked GitHub evidence
 
@@ -23,18 +27,22 @@ The latest successful discovered inventory is committed as
 [`NEUMERKEL-LATEST.md`](NEUMERKEL-LATEST.md). This is the stable report to link
 from GitHub, releases, or other documentation.
 
-A normal live run verifies that the tracked Markdown still matches the current
-upstream suite counts. If the upstream inventory changed, the gate fails with an
-instruction to refresh it:
+A normal live run always executes the current upstream inventory. If the tracked
+Markdown no longer matches, the test still reflects engine conformance and prints a
+warning with the refresh command:
 
 ```sh
 npm run conformance:update:neumerkel
 ```
 
 Commit the resulting `test/conformance/NEUMERKEL-LATEST.md` after reviewing the
-change. The tracked report intentionally omits fetch timestamps and HTTP
-validators, so repeated runs against unchanged upstream suites do not dirty the
-checkout.
+change. After a successful `npm test`, `npm run conformance:sync:neumerkel` writes
+the tracked report from the exact cached source bytes that just passed, avoiding a
+second network fetch. `npm run conformance:check:neumerkel` verifies the tracked
+report against that same last successful snapshot. The npm version lifecycle
+uses this race-free sync path and stages the generated reports into the release
+commit. The tracked report intentionally omits fetch timestamps and HTTP validators,
+so repeated runs against unchanged upstream suites do not dirty the checkout.
 
 ## Local audit cache
 
@@ -55,8 +63,10 @@ fetch, use:
 npm run test:neumerkel:cached
 ```
 
-The cached command never claims to check the latest upstream suites and is not
-used by the release gate.
+The cached command never claims to check the latest upstream suites by itself.
+The release flow first performs the canonical live `npm test`, then uses those exact
+just-fetched bytes only to synchronize and verify the tracked evidence without
+contacting upstream twice.
 
 The vendored WG17 syntax matrix remains useful as a deterministic reviewed
 regression snapshot, but it is secondary to this live gate: passing the snapshot
