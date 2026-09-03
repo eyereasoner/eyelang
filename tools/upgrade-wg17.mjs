@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Refresh the vendored WG17 conformity fixtures from their public upstream
-// tables. Normal test runs remain fully offline and deterministic.
+// tables. The vendored snapshot remains an offline deterministic regression layer; the release gate also runs live upstream suites.
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -381,7 +381,7 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  process.stdout.write(`Usage: npm run wg17:upgrade -- [--check] [--source URL_OR_FILE]\n\n` +
+  process.stdout.write(`Usage: npm run conformance:update -- [--check] [--source URL_OR_FILE]\n\n` +
     `Refreshes the vendored WG17 conformity tests from the TU Wien table.\n` +
     `New or changed rows are executable immediately against the upstream\n` +
     `Codex expectation; existing reviewed exact outcomes remain pinned only as additional regression checks.\n`);
@@ -401,7 +401,7 @@ export async function upgradeWg17({ check = false, source = syntaxSource } = {})
 
   if (check) {
     if (semanticChanges > 0) {
-      process.stderr.write('WG17 snapshot is stale; run npm run wg17:upgrade.\n');
+      process.stderr.write('WG17 snapshot is stale; run npm run conformance:update.\n');
       process.exitCode = 1;
       return { changed: true, ...reconciliation };
     }

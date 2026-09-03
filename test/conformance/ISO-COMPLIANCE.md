@@ -270,17 +270,30 @@ requirement of ISO/IEC 13211-2:2000 or ISO/IEC TS 13211-3.
 
 ## Release gate
 
-A release intended to advance ISO conformance must pass all of:
+A release intended to advance ISO conformance uses one canonical command:
 
 ```sh
 npm test
-npm run test:iso-strict
-npm run test:conformance
-npm run test:wg17
 ```
 
-The unified `npm test` gate includes the strict-core suite. Expected conformance
-outputs are never auto-accepted.
+That command first fetches and runs the **latest seven Neumerkel conformity
+sources**, then executes the deterministic local conformance, strict ISO,
+vendored WG17 regression, regression/API, examples, documentation and
+architecture gates. The upstream case counts are discovered dynamically.
+
+Useful focused commands are:
+
+```sh
+npm run test:conformance
+npm run test:neumerkel
+npm run test:iso
+npm run test:wg17
+npm run test:offline
+```
+
+`test:offline` is a development/reproduction aid; it is not sufficient for a
+release claim that says EyeProlog passes the latest Neumerkel suites. Expected
+conformance outputs are never auto-accepted.
 
 ## Exit criteria for a full conformance claim
 
@@ -300,7 +313,7 @@ post-N289 STC drafts remain review input until standardized.
 | Implementation-specific strict/normal boundary is documented and tested | covered | all 5.5 hooks have explicit dispositions; the WG17 cross-profile gate verifies syntax-preservation for standard text accepted by the strict reader. |
 | Published Corrigenda 1-3 are incorporated | covered | `ISO-CORRIGENDA-MATRIX.md` inventories every published amendment cluster with executable, editorial, or superseded disposition |
 | Current post-N289 draft is tracked without silently changing the published baseline | covered | `STC-DRAFT-STATUS.md` tracks reviewed draft items separately from normative requirements |
-| Externally sourced syntax corpus is an offline release gate | covered | the vendored WG17 syntax matrix has 366 executable dispositions checked against its upstream expectations; this is external review evidence, not certification |
+| Latest Neumerkel conformity is a live release gate | covered | `npm test` fetches and executes the seven current TU Wien conformity sources with dynamic inventories; the vendored WG17 matrix remains an offline reviewed-outcome regression layer |
 | Third-party standard-core regression provenance is retained | covered | adapted Logtalk, Scryer, Trealla, and SWI-Prolog cases retain source identifiers and licenses in `THIRD_PARTY.md` |
 | No unexplained deviation remains in the release-facing ledger | covered | the release-facing ledger contains no remaining `audit` rows; documented variation points are implementation-defined/specific or draft-only rather than unexplained deviations. |
 

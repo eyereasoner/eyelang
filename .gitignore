@@ -3,3 +3,4 @@ node_modules/
 .codex/
 .agents/
 .benchmarks/
+.cache/

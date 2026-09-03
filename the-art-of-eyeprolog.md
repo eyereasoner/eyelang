@@ -10228,7 +10228,7 @@ syntax. Separate corpora cover expected errors, warnings, and proofs:
 
 ```sh
 npm run test:conformance
-npm run test:iso-strict
+npm run test:iso
 npm run test:wg17
 node test/run-conformance-report.mjs
 ```

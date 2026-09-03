@@ -11,7 +11,7 @@ import { goalsFromSource } from './goal-metadata.mjs';
 import { listPrologFiles, withStandardModules } from './test-support.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
-const filterArg = process.argv[2] ?? null;
+const filterArg = process.argv[2]?.startsWith('--') ? null : process.argv[2] ?? null;
 
 export function runConformance(reporter = new TestReporter(), requestedFilter = null) {
   const filter = requestedFilter ?? filterArg;

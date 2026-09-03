@@ -5363,7 +5363,7 @@ ${profile}`;
           '| Clause 7 semantic requirements have explicit dispositions | covered |',
           '| Clause 8 built-in modes/errors have explicit dispositions | covered |',
           '| Clause 9 evaluable-functor requirements have explicit dispositions | covered |',
-          '| Externally sourced syntax corpus is an offline release gate | covered |',
+          '| Latest Neumerkel conformity is a live release gate | covered |',
           '| No unexplained deviation remains in the release-facing ledger | covered |',
         ]) assertIncludes(exit, item, item);
         assertNotIncludes(exit, '| audit |', 'no release-facing audit rows remain');
@@ -5468,7 +5468,9 @@ ${profile}`;
       run: () => {
         const reportFile = path.join(packageRoot, 'conformance-report.md');
         assertEqual(fs.existsSync(reportFile), true, 'conformance-report.md exists');
-        assertEqual(fs.readFileSync(reportFile, 'utf8'), formatConformanceReport(buildConformanceReport()), 'conformance-report.md');
+        const actual = fs.readFileSync(reportFile, 'utf8');
+        const expected = formatConformanceReport(buildConformanceReport());
+        assertEqual(actual, expected, 'conformance-report.md');
       },
     },
     {
@@ -8557,7 +8559,10 @@ function documentedConformanceMetricIssues() {
       ...[...text.matchAll(/\b(\d+)-case[^\n|]*WG17/g)].map((match) => Number(match[1])),
       ...[...text.matchAll(/WG17[^\n|]*?\b(\d+) executable/g)].map((match) => Number(match[1])),
     ];
-    if (claims.length === 0) issues.push(`${relative}: WG17 total not found`);
+    if (claims.length === 0) {
+      const dynamicPolicy = /live Neumerkel|current upstream inventory|discovered dynamically/i.test(text);
+      if (!dynamicPolicy) issues.push(`${relative}: WG17 total or dynamic-upstream policy not found`);
+    }
     for (const claim of claims) {
       if (claim !== wg17) issues.push(`${relative}: WG17 count ${claim} != ${wg17}`);
     }

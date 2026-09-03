@@ -69,67 +69,54 @@ Case names may be nested in category directories such as `arithmetic/`, `strings
 
 ## Running the suite
 
-Run all tests, including conformance, regression, documentation sync, API,
-examples, and book examples:
+The release gate is network-aware by design: it checks the current upstream
+Neumerkel conformity material before the deterministic local corpus.
 
 ```sh
 npm test
 ```
 
-Run only the conformance suite:
+For an offline-only development pass:
 
 ```sh
-node test/run-conformance.mjs
+npm run test:offline
 ```
 
-Run the Part 1 + Corrigenda strict-core processor gate:
+The conformance commands are:
 
 ```sh
-npm run test:iso-strict
+npm run test:conformance          # live Neumerkel + local ISO/conformance layers
+npm run test:conformance:offline  # same local layers, no network
+npm run test:neumerkel            # the seven live upstream suites only
+npm run test:neumerkel:cached     # exact last fetched bytes; reproduction only
+npm run test:iso                  # Part 1 + Corrigenda strict-core processor gate
+npm run test:wg17                 # vendored reviewed WG17 syntax regression
 ```
 
-Run the vendored WG17 conformity matrix independently:
+`test:neumerkel` always fetches the current TU Wien sources. It does not skip a
+fetch because a cache exists. The runner discovers the number of active tests from those sources and fails on any newly introduced case EyeProlog does not pass. It verifies the stable, tracked [NEUMERKEL-LATEST.md](NEUMERKEL-LATEST.md), which is the GitHub-facing result to cite. Exact bytes, SHA-256 hashes, timestamps, and HTTP validators stay under Git-ignored `.cache/neumerkel/` for audit/reproduction only. Refresh the tracked report with `npm run conformance:update:neumerkel` when the live inventory changes. See [NEUMERKEL-LIVE.md](NEUMERKEL-LIVE.md).
+
+The vendored WG17 syntax snapshot is intentionally secondary. Update all upstream conformance evidence with `npm run conformance:update`, or use the focused commands:
 
 ```sh
+npm run conformance:update:wg17
+npm run conformance:update:neumerkel
 npm run test:wg17
 ```
 
-Refresh the WG17 snapshot from the TU Wien conformity tables before a release
-or whenever upstream changes:
+Every vendored syntax case is still checked against its upstream Codex
+expectation; reviewed exact outcomes are an additional regression lock rather
+than an alternative acceptance rule.
 
-```sh
-npm run wg17:upgrade
-npm run test:wg17
-```
+Regenerate the top-level local-corpus report with `npm run conformance:report`. It links to [NEUMERKEL-LATEST.md](NEUMERKEL-LATEST.md) rather than duplicating live evidence. Counts in the tracked Neumerkel report are generated evidence, not permanent constants in project policy.
 
-`wg17:upgrade` reconciles the upstream inventory by identifier: unchanged cases
-may keep their reviewed exact outcomes as an additional regression lock,
-removed cases disappear, and new or semantically changed cases initially have
-no local snapshot. **Every case is always checked independently against the
-upstream Codex expectation**, so a reviewed EyeProlog outcome can never make a
-non-conforming result pass (the failure mode that previously hid WG17 #227).
-The runner follows the upstream `read(G), G` input protocol, including the
-terminating newline, so stream-sensitive cases such as #270 and #271 exercise
-the characters left after `read/1`. Normal `npm test` remains offline and uses
-only the committed upstream snapshot.
-
-Regenerate the public conformance report, including the executable WG17 syntax status and the file-based category inventory:
-
-```sh
-node test/run-conformance-report.mjs
-node test/run-conformance-report.mjs conformance-report.md
-```
-
-Run matching conformance cases by passing a filename or directory fragment:
+Run a matching local file-based conformance subset directly with:
 
 ```sh
 node test/run-conformance.mjs reusable
-node test/run-conformance.mjs 092_scalar_string_conversions
 node test/run-conformance.mjs variables/
 node test/run-conformance.mjs error/variables
 ```
-
-The runner executes normal programs with queries in-process through the public JavaScript API so small conformance cases avoid measuring Node startup overhead. Warning and proof cases intentionally use the CLI because warning output and `why/2` proof output are host-interface contracts.
 
 ## Scope
 
@@ -147,12 +134,7 @@ Selected cases are adapted from the ISO and standard-core suites of Logtalk,
 Scryer Prolog, Trealla Prolog, and SWI-Prolog. Their upstream identifiers and licenses
 are recorded in [THIRD_PARTY.md](THIRD_PARTY.md).
 
-The corpus has 386 cases in `iso/` and 802 file-based conformance cases in
-total. Of those, 11 cases in `stc/` are explicitly labelled working-draft
-review evidence rather than normative ISO claims. The separate strict-reader WG17 matrix has 366 executable dispositions.
-The generated `conformance-report.md` is the authoritative source for the current
-executable WG17 syntax result and file-based category totals. Together with regression, documentation-sync, API, example,
-and book-example checks, `npm test` is the release gate.
+The corpus has 386 cases in `iso/` and 802 file-based conformance cases in total. Of those, 11 cases in `stc/` are explicitly labelled working-draft review evidence rather than normative ISO claims. The separate vendored strict-reader WG17 matrix is a deterministic regression snapshot; the live Neumerkel gate discovers the current upstream inventory at run time and verifies the tracked `NEUMERKEL-LATEST.md`. The generated `conformance-report.md` records local corpus totals and links to that live evidence. Together with regression, documentation-sync, API, example, and book-example checks, `npm test` is the release gate.
 
 ## Updating expected output
 

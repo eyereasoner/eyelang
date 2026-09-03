@@ -134,7 +134,7 @@ ${untracedIds.length === 0 ? 'None.' : `${formatRanges(untracedIds)}.`}
 
 ## Maintenance
 
-1. Run \`npm run wg17:upgrade\` to reconcile the dated fixture with upstream.
+1. Run \`npm run conformance:update\` to reconcile the dated fixture with upstream.
 2. Review every new or changed ISO expectation before adding its expected outcome.
 3. Run \`npm run test:wg17\` and keep this generated status page synchronized.
 `;
@@ -158,7 +158,7 @@ if (process.argv[1] != null && path.resolve(process.argv[1]) === fileURLToPath(i
   if (process.argv.includes('--check')) {
     const current = fs.readFileSync(statusPath, 'utf8');
     if (current !== rendered) {
-      process.stderr.write('WG17 syntax status is stale; run npm run report:wg17 and update the file.\n');
+      process.stderr.write('WG17 syntax status is stale; run npm run conformance:update and update the file.\n');
       process.exitCode = 1;
     }
   } else {

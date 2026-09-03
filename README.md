@@ -74,9 +74,9 @@ All 33 bundled modules that overlap Scryer's current `src/lib/` surface cover Sc
 - [Symbiotic Knowledge Graphs](https://eyereasoner.github.io/eyeprolog/examples/deck/symbiotic-knowledge-graphs) — RDF ↔ Prolog heatwave-response demo for human/AI/KG co-evolution
 - [rdf-prolog-roundtrip](https://github.com/eyereasoner/rdf-prolog-roundtrip) — standalone RDF 1.2 ↔ ISO Prolog bridge used by the RDF examples
 - [ISO conformance audit](test/conformance/ISO-COMPLIANCE.md) — supported Part 1 profile
-- [Conformance report](conformance-report.md) — generated executable conformance status and corpus summary
+- [Latest Neumerkel conformity](test/conformance/NEUMERKEL-LATEST.md) — tracked result from the current live upstream inventory
+- [Conformance report](conformance-report.md) — generated executable conformance status and local corpus summary
 - [OpenRuleBench](openrulebench/README.md) — portable benchmark profile
-
 ## RDF, Prolog, and symbiotic knowledge graphs
 
 EyeProlog can sit behind an RDF knowledge graph without inventing a private graph representation. [`rdf-prolog-roundtrip`](https://github.com/eyereasoner/rdf-prolog-roundtrip) converts RDF 1.2 datasets to ordinary `rdf(Subject, Predicate, Object, Graph)` facts, EyeProlog applies portable rules, and ground `rdf/4` results can be converted back to RDF.
@@ -95,5 +95,5 @@ cd eyeprolog
 npm install
 npm test
 ```
-
+`npm test` is the release gate and fetches the latest seven Neumerkel conformity sources before the local gates; use `npm run test:offline` for a network-free pass, `npm run test:conformance` for all conformance layers, `npm run test:neumerkel` for live upstream only, and `npm run test:neumerkel:cached` only to reproduce the last fetch. Upstream counts are discovered dynamically and verified against the tracked [latest Neumerkel report](test/conformance/NEUMERKEL-LATEST.md). Exact bytes/hashes stay under Git-ignored `.cache/neumerkel/`; refresh the tracked report with `npm run conformance:update:neumerkel` when upstream changes. Benchmarks remain `npm run benchmark` and `npm run benchmark:lips`.
 EyeProlog is released under the [MIT License](LICENSE.md).

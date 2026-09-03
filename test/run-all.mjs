@@ -13,8 +13,14 @@ import { runWg17 } from './run-wg17.mjs';
 import { runOpenRuleBenchChecks } from './run-openrulebench.mjs';
 import { runArchitecture } from './run-architecture.mjs';
 import { runCleanup } from './run-cleanup.mjs';
+import { runNeumerkel } from './run-neumerkel.mjs';
+import { runNeumerkelHarnessTests } from './run-neumerkel-tests.mjs';
+
+const offline = process.argv.includes('--offline');
 
 await runStandalone(async (reporter) => {
+  runNeumerkelHarnessTests(reporter);
+  if (!offline) await runNeumerkel(reporter);
   runConformance(reporter);
   runIsoStrict(reporter);
   runWg17(reporter);

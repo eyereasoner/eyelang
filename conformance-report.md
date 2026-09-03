@@ -4,6 +4,12 @@ This report combines an executable external conformance gate with the file-based
 conformance corpus under `test/conformance/`. The executable result is measured
 when this report is generated; it is not inferred from fixture counts.
 
+## Latest Neumerkel evidence
+
+See the tracked [latest Neumerkel conformity report](test/conformance/NEUMERKEL-LATEST.md).
+The live release gate fetches all seven TU Wien sources again and verifies that tracked
+report still matches the discovered upstream inventory.
+
 ## Executable conformance status
 
 | Gate | Passed | Total | Status |
