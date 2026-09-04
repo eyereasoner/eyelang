@@ -66,14 +66,13 @@ dates__date_not_before(EY, _, _, SY, _, _) :- EY > SY.
 dates__date_not_before(Y, EM, _, Y, SM, _) :- EM > SM.
 dates__date_not_before(Y, M, ED, Y, M, SD) :- ED >= SD.
 
-dates__borrow_days(EY, EM, ED, SD, EY, EM, ED) :- ED >= SD.
+dates__borrow_days(EY, EM, ED, SD, EY, EM, ED) :- ED >= SD, !.
 dates__borrow_days(EY0, EM0, ED0, SD, EY, EM, ED) :-
     ED0 < SD,
     dates__previous_month(EY0, EM0, PY, PM),
     dates__days_in_month(PY, PM, Days),
-    ED is ED0 + Days,
-    EY = PY,
-    EM = PM.
+    ED1 is ED0 + Days,
+    dates__borrow_days(PY, PM, ED1, SD, EY, EM, ED).
 
 dates__borrow_months(EY, EM, SM, EY, EM) :- EM >= SM.
 dates__borrow_months(EY0, EM0, SM, EY, EM) :-
