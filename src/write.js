@@ -5,7 +5,6 @@ import {
 } from './term.js';
 
 const graphicAtomCharacters = new Set('!#$&*+-./<=>?@^~\\'.split(''));
-const dottedGraphicAtomCharacters = graphicAtomCharacters;
 const compactInfixOperators = new Set([':', '..']);
 
 function quotedControlEscape(ch) {
@@ -60,7 +59,7 @@ function writeAtom(name) {
 
 function isDottedGraphicAtom(name) {
   return name.includes('.') && [...name].some((ch) => ch !== '.') && !name.startsWith('/*') &&
-    [...name].every((ch) => dottedGraphicAtomCharacters.has(ch));
+    [...name].every((ch) => graphicAtomCharacters.has(ch));
 }
 
 function compactBoundaryNeedsSpace(left, right) {

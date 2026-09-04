@@ -811,11 +811,14 @@ class Parser {
     let left = this.parsePrefixTerm(minPrecedence, allowBar, allowOperatorAtom);
     const leftIsBareOperatorAtom = initialWasCurrentOperator &&
       left.type === ATOM && left.name === initialOperatorName;
-    // Neumerkel syntax #379 (2026-09-03) pins a strict-ISO distinction for
-    // the processor-defined grammar-rule operator: `(-->)/2` is not an ISO
-    // predicate-indicator spelling.  Keep the ordinary profile permissive for
-    // existing DCG/module code; the moving ISO conformity gate runs strict.
-    if (this.strictIso && left.type === ATOM && left.name === '-->' &&
+    // Neumerkel syntax #379: the DCG rule operator `-->` is processor-defined
+    // and not an ISO predicate-indicator name.  A bare `-->` (not parenthesized)
+    // followed by `/` would be an invalid strict-ISO predicate indicator.
+    // However, `(-->)/2` is valid: the parentheses make `-->` an ordinary atom
+    // argument, and ISO 7.10.3 does not restrict which atoms may appear as the
+    // name in a Name/Arity indicator — only the write-term rules govern spelling.
+    // Only reject the bare-operator form so (-->)/2 succeeds per #379.
+    if (this.strictIso && leftIsBareOperatorAtom && left.name === '-->' &&
         this.operatorTokenName() === '/') {
       throw new Error(`parse line ${this.token.line}: operator atom --> is not permitted in a strict ISO predicate indicator`);
     }

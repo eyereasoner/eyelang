@@ -8,7 +8,11 @@ import {
 
 export function componentHasNegativeEdge(start, deps, negativeEdges) {
   const forward = reachableIndexes(start, deps);
-  const component = new Set([...forward].filter((index) => reachableIndexes(index, deps).has(start)));
+  // A node is in the same SCC as `start` iff it can also reach `start`.
+  // Rather than calling reachableIndexes() per-node (O(n^2)), compute the
+  // reverse-reachability set from `start` over the transposed graph once.
+  const backward = reachableIndexesTransposed(start, deps, forward);
+  const component = new Set([...forward].filter((index) => backward.has(index)));
   return negativeEdges.some(([from, to]) => component.has(from) && component.has(to));
 }
 
@@ -27,7 +31,8 @@ export function clauseIsDirectRecursive(clause, group) {
 
 export function componentHasCut(start, deps, groups) {
   const forward = reachableIndexes(start, deps);
-  const component = [...forward].filter((index) => reachableIndexes(index, deps).has(start));
+  const backward = reachableIndexesTransposed(start, deps, forward);
+  const component = [...forward].filter((index) => backward.has(index));
   return component.some((index) => {
     const group = groups[index];
     const directRecursive = group.clauses.some((clause) => clauseIsDirectRecursive(clause, group));
@@ -46,6 +51,34 @@ export function reachableIndexes(start, deps) {
     if (seen.has(current)) continue;
     seen.add(current);
     for (const next of deps[current]) if (!seen.has(next)) stack.push(next);
+  }
+  return seen;
+}
+
+// Returns the set of nodes in `candidates` that can reach `target` by
+// traversing `deps` in reverse.  This is equivalent to asking which nodes
+// in the forward-reachable set from `target` also have `target` in their
+// own forward-reachable set, but computed in a single BFS over the
+// transposed graph rather than one BFS per candidate node.
+function reachableIndexesTransposed(target, deps, candidates) {
+  // Build a transposed adjacency list restricted to the candidate set.
+  const reverse = new Map();
+  for (const from of candidates) {
+    if (!reverse.has(from)) reverse.set(from, []);
+    for (const to of deps[from]) {
+      if (!candidates.has(to)) continue;
+      let bucket = reverse.get(to);
+      if (bucket == null) { bucket = []; reverse.set(to, bucket); }
+      bucket.push(from);
+    }
+  }
+  const seen = new Set();
+  const stack = [target];
+  while (stack.length) {
+    const current = stack.pop();
+    if (seen.has(current)) continue;
+    seen.add(current);
+    for (const prev of reverse.get(current) ?? []) if (!seen.has(prev)) stack.push(prev);
   }
   return seen;
 }

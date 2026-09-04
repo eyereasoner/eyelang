@@ -1956,8 +1956,10 @@ c4 ?- call((!;1)).
       },
     },
     {
-      name: 'ISO predicate indicators require parentheses around operator atoms',
+      name: 'ISO predicate indicators require parentheses around bare operator atoms',
       run: () => {
+        // Bare --> /2 (without parens) is still rejected in all modes because
+        // --> is an infix/prefix operator atom that cannot appear as a bare operand.
         let caught = null;
         try {
           parseGoalText('writeq(--> /2)');
@@ -1966,20 +1968,22 @@ c4 ?- call((!;1)).
         }
         if (!caught) throw new Error('bare operator predicate indicator unexpectedly parsed');
         assertIncludes(caught.message, 'operator atom', 'bare indicator syntax rejection');
+        // (-->)/2 with parentheses is legal in both normal and strict ISO modes.
+        // Neumerkel #379: upstream Codex expectation is (-->)/2 -> (-->)/2 (success).
+        // Parentheses make --> an ordinary atom argument; ISO 7.10.3 does not
+        // restrict which atoms may appear as the name in a Name/Arity indicator.
         parseGoalText('writeq((-->)/2)');
         assertEqual(
           run('', { goal: 'writeq((-->)/2)' }).stdout,
           '(-->)/2writeq((-->) / 2).\n',
           'parenthesized operator indicator stays legal outside strict ISO',
         );
-        caught = null;
-        try {
-          parseGoalText('writeq((-->)/2)', { isoStrict: true });
-        } catch (error) {
-          caught = error;
-        }
-        if (!caught) throw new Error('Neumerkel #379 strict indicator unexpectedly parsed');
-        assertIncludes(caught.message, 'strict ISO predicate indicator', 'Neumerkel #379 strict syntax rejection');
+        parseGoalText('writeq((-->)/2)', { isoStrict: true });
+        assertEqual(
+          run('', { isoStrict: true, goal: 'writeq((-->)/2)' }).stdout,
+          '(-->)/2writeq((-->) / 2).\n',
+          'Neumerkel #379: parenthesized --> is legal in strict ISO',
+        );
       },
     },
     {

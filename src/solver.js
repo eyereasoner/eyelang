@@ -2,7 +2,7 @@
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
   ATOM, COMPOUND, NUMBER, STRING, VAR, Env, Term, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
-  flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList,
+  flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList, isScalar,
   numberTerm, numberTextFromDouble, properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
 import { numberValueKey, sameNumberValue } from './number-value.js';
@@ -2692,11 +2692,14 @@ function matchScalarFact(goal, head, env) {
 
 function derefScalarMatch(term, env, names, values) {
   let current = term;
-  for (let guard = 0; current?.type === 'var' && guard < 128; guard++) {
+  const seen = new Set();
+  while (current?.type === 'var') {
+    if (seen.has(current.name)) break;
+    seen.add(current.name);
     const localIndex = names.indexOf(current.name);
-    if (localIndex >= 0) current = values[localIndex];
-    else if (env.has(current.name)) current = env.get(current.name);
-    else break;
+    if (localIndex >= 0) { current = values[localIndex]; continue; }
+    if (env.has(current.name)) { current = env.get(current.name); continue; }
+    break;
   }
   return current;
 }
@@ -3092,12 +3095,11 @@ function matchGroundBinaryClause(goal, clause) {
   return { nextGoal: compound(bodyGoal.name, bodyArgs) };
 }
 
-function isScalarTerm(term) {
-  return term && (term.type === 'atom' || term.type === 'string' || term.type === 'number');
-}
+// isScalar is imported from term.js; use it as the canonical scalar test.
+const isScalarTerm = isScalar;
 
 function sameScalarTerm(left, right) {
-  return isScalarTerm(left) && isScalarTerm(right) && left.type === right.type &&
+  return isScalar(left) && isScalar(right) && left.type === right.type &&
     (left.type === 'number' ? sameNumberValue(left.name, right.name) : left.name === right.name);
 }
 
@@ -3131,9 +3133,9 @@ function sameResolvedGroundTerm(left, right, env) {
 
 function groundChainKey(term) {
   if (term?.type === COMPOUND) {
-    let out = `${term.name}/${term.arity}`;
-    for (let i = 0; i < term.arity; i++) out += `${groundChainKey(term.args[i])}`;
-    return out;
+    const parts = [`${term.name}/${term.arity}`];
+    for (let i = 0; i < term.arity; i++) parts.push(groundChainKey(term.args[i]));
+    return parts.join('');
   }
   return `${term?.type ?? ''}:${term?.name ?? ''}`;
 }

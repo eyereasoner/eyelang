@@ -59,13 +59,16 @@ export function runNeumerkelHarnessTests(reporter = new TestReporter()) {
     }
   });
 
-  reporter.test('latest strict syntax rejects Neumerkel #379 operator indicator', () => {
+  reporter.test('latest strict syntax allows Neumerkel #379 parenthesized --> atom', () => {
+    // Upstream Codex expectation for #379: writeq((-->)/2). -> (-->)/2
+    // (-->)/2 is valid: parentheses make --> an ordinary atom; only bare
+    // --> followed by / in a predicate indicator is processor-defined syntax.
     const item = {
       id: 379,
       query: 'writeq((-->)/2).',
       input: 'writeq((-->)/2).',
       readCount: 1,
-      expected: 'syntax err.',
+      expected: '(-->)/2',
     };
     const actual = executeWg17Item(item);
     if (!matchesUpstreamExpectation(item.expected, actual, item)) {
