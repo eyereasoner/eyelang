@@ -13,12 +13,20 @@ Normal mode implements a procedure-oriented module compatibility layer:
 qualification, exports/imports, nonterminal indicators, and module-aware meta
 calls are covered by the regression and conformance corpora.
 
-This overlap is intentionally described as a compatibility profile rather than
-a complete Part 2 conformance claim. In particular, the Part 1 strict registry
-does not enable module directives, and the project does not infer full Part 2
-coverage from interoperability with Scryer, Trealla, or Logtalk. A future Part 2
-claim would require a clause-by-clause Part 2 processor and module-semantics
-ledger comparable to the existing Part 1 matrices.
+The requirements clarified by the 2013 ISO/IEC 13211-2 module amendment draft
+(WG17 N251) now have a dedicated executable ledger in
+`ISO-PART2-AMENDMENT-2013.md`: module/2 exports, selective and full imports, the
+module-source behavior of ensure_loaded/1, the amendment's meta_predicate
+directive spelling, and visible caller-module qualification of `:`
+meta-arguments. The focused runner is part of the release gate.
+
+This amendment coverage is intentionally narrower than a complete Part 2
+conformance claim. In particular, the Part 1 strict registry does not enable
+module directives or the Part 2 `:` operator, and the project does not infer
+full Part 2 coverage from interoperability with Scryer, Trealla, or Logtalk. A
+future complete Part 2 claim would require a clause-by-clause audit of the
+unchanged ISO/IEC 13211-2:2000 module-interface and re-export facilities as well
+as the amendment.
 
 ## Part 3 definite clause grammars
 
@@ -45,7 +53,7 @@ rather than silently changing the compatibility profile.
 ## Release boundary
 
 - Part 1 + Corrigenda 1-3: release-facing strict-core conformance target.
-- Part 2: normal-mode compatibility profile, tested but not certified complete.
+- Part 2: 2013 amendment requirements release-gated; broader Part 2 remains a normal-mode compatibility profile, not a complete certification.
 - Part 3: normal-mode compatibility profile, tested but not certified complete.
 
 This separation keeps Part 1 conformance evidence independent of useful module

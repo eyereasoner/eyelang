@@ -2708,9 +2708,12 @@ whose conclusions remain auditable.
 
 EyeProlog supplies the Part 1 control, dynamic-database, operator, and I/O
 facilities together with its normal-profile module forms `module/2`,
-`use_module/1`, `use_module/2`, and `Module:Goal`. These forms are treated as a
-module compatibility surface, not as a claim of complete ISO/IEC 13211-2:2000
-conformance. Definite-clause grammar notation remains
+`use_module/1`, `use_module/2`, `meta_predicate/1`, and `Module:Goal`. The
+requirements clarified by the 2013 ISO/IEC 13211-2 module amendment are covered
+by a dedicated release-gated suite, including public imports through
+`ensure_loaded/1` and caller-module qualification of `:` meta-arguments. The
+unchanged remainder of Part 2 is still treated as a compatibility surface, not
+as a claim of complete ISO/IEC 13211-2:2000 conformance. Definite-clause grammar notation remains
 outside this profile. The examples still prefer explicit domain
 relations, state, and syntax trees where that makes assumptions easier to
 inspect.
@@ -5653,10 +5656,11 @@ semantics, such as #75's conditional power-underflow proposal, strict mode keeps
 the licensed baseline until the change is standardized or explicitly adopted as
 a compatibility extension. Normal EyeProlog additionally provides a practical
 module interface aligned with later WG17 module amendment work and a
-definite-clause-grammar profile following ISO/IEC TS 13211-3. Those
-normal-mode profiles are documented and tested compatibility surfaces; they are
-not currently claimed as complete clause-by-clause certifications of Part 2 or
-Part 3.
+definite-clause-grammar profile following ISO/IEC TS 13211-3. The requirements
+clarified by the 2013 Part 2 amendment have a dedicated executable coverage
+ledger; the unchanged remainder of Part 2 and the Part 3 profile are documented
+and tested compatibility surfaces rather than complete clause-by-clause
+certifications.
 
 Normal-mode Prolog source accepted by EyeProlog is UTF-8. `%` starts a line
 comment and `/* ... */` delimits a block comment. Plain atoms begin with a
@@ -5710,8 +5714,9 @@ denotes one literal double quote character.
 
 Graphic tokens use the characters `#$&*+-./<=>?@^~\`; `!` and `;` are solo
 atoms. A colon is the Part 2 module qualification operator in `Module:Goal`;
-quote an atom whose name itself contains a colon. Unquoted angle-bracket IRIs
-are not syntax.
+normal mode predeclares it, while `--iso-strict` does not include it in the
+Part 1 initial operator table. Quote an atom whose name itself contains a colon.
+Unquoted angle-bracket IRIs are not syntax.
 
 A `/*` sequence opens a block comment only when it begins a token; inside a
 maximal graphic token the slash and star remain atom characters. Graphic tokens
@@ -5756,6 +5761,10 @@ lowered to ordinary compound terms:
 
 - prefix: ISO `?-`, `\+`, unary `+`, unary `-`, and `\`;
 - control: `,`, `;`, and `->`;
+- normal Part 2 module profile: `:` at priority 600 (`xfy`) and
+  `meta_predicate` at priority 1150 (`fx`) so the amendment's directive spelling
+  such as `:- meta_predicate run(:).` parses directly; these are not predeclared
+  by `--iso-strict`;
 - quad syntax extension: `?-` is also a priority-1200 `xfx` operator so a
   label may precede a quad query;
 - grammar rules: `-->` and the Part 3 alternative `|`;

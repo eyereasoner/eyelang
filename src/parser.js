@@ -112,7 +112,6 @@ const INFIX_OPERATORS = new Map([
   ['=<', { precedence: 501, associativity: 'none' }],
   ['>', { precedence: 501, associativity: 'none' }],
   ['>=', { precedence: 501, associativity: 'none' }],
-  [':', { precedence: 601, associativity: 'right' }],
   ['+', { precedence: 701, associativity: 'left' }],
   ['-', { precedence: 701, associativity: 'left' }],
   ['/\\', { precedence: 701, associativity: 'left' }],
@@ -142,11 +141,19 @@ export const ISO_OPERATOR_DEFINITIONS = [
   [900, 'fy', '\\+'],
   ...['=', '=..', '\\=', '==', '\\==', '@<', '@=<', '@>', '@>=', 'is',
     '=:=', '=\\=', '<', '=<', '>', '>='].map((name) => [700, 'xfx', name]),
-  [600, 'xfy', ':'],
   ...['+', '-', '/\\', '\\/'].map((name) => [500, 'yfx', name]),
   ...['*', '/', '//', 'div', 'mod', 'rem', '<<', '>>'].map((name) => [400, 'yfx', name]),
   [200, 'xfx', '**'], [200, 'xfy', '^'],
   [200, 'fy', '+'], [200, 'fy', '-'], [200, 'fy', '\\'],
+];
+
+// ISO/IEC 13211-2 adds module qualification to the Part 1 operator table.
+// The 2013 amendment also writes meta_predicate/1 in directive operator form,
+// so normal module mode accepts that standard spelling while strict Part 1
+// keeps both additions out of its initial operator table.
+export const PART2_OPERATOR_DEFINITIONS = [
+  [600, 'xfy', ':'],
+  [1150, 'fx', 'meta_predicate'],
 ];
 
 // The alternative operator belongs to the Part 3 grammar-rule profile. Part 1
@@ -226,7 +233,7 @@ export function createParserOperatorState(definitions = [], includeDefaults = tr
     postfixOperators: new Map(),
   };
   if (includeDefaults && options.isoStrict !== true) {
-    for (const [priority, specifier, name] of [...PART3_OPERATOR_DEFINITIONS, ...QUAD_OPERATOR_DEFINITIONS]) {
+    for (const [priority, specifier, name] of [...PART2_OPERATOR_DEFINITIONS, ...PART3_OPERATOR_DEFINITIONS, ...QUAD_OPERATOR_DEFINITIONS]) {
       defineParserOperator(state, priority, specifier, name);
     }
   }

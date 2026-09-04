@@ -6,6 +6,7 @@ import { runStandalone } from './test-style.mjs';
 import { runConformance } from './run-conformance.mjs';
 import { runRegression } from './run-regression.mjs';
 import { runIsoStrict } from './run-iso-strict.mjs';
+import { runIsoPart2Amendment } from './run-iso-part2-amendment.mjs';
 import { runPlayground } from './run-playground.mjs';
 import { runExamples } from './run-examples.mjs';
 import { runBookExamples } from './run-book-examples.mjs';
@@ -24,6 +25,7 @@ await runStandalone(async (reporter) => {
   if (!offline) await runNeumerkel(reporter);
   runConformance(reporter);
   runIsoStrict(reporter);
+  runIsoPart2Amendment(reporter);
   runWg17(reporter);
   runOpenRuleBenchChecks(reporter);
   runArchitecture(reporter);

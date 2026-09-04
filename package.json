@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.5.40",
+  "version": "1.5.41",
   "description": "EyeProlog turns facts and rules into answers and proofs.",
   "type": "module",
   "main": "./index.js",
@@ -75,6 +75,7 @@
     "conformance:update:neumerkel": "node test/run-neumerkel.mjs --update-report",
     "conformance:check:neumerkel": "node test/run-neumerkel.mjs --cached --verify-report",
     "conformance:sync:neumerkel": "node test/run-neumerkel.mjs --cached --update-report",
-    "test:http-json": "node test/run-http-json.mjs"
+    "test:http-json": "node test/run-http-json.mjs",
+    "test:iso-part2-amendment": "node test/run-iso-part2-amendment.mjs"
   }
 }

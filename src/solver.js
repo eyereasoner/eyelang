@@ -1,7 +1,7 @@
 // Depth-first EyeProlog solver with builtin dispatch, memoization, and guarded recursion handling.
 // Most semantic decisions still flow through unification; optimizations only select candidates earlier.
 import {
-  ATOM, COMPOUND, NUMBER, STRING, VAR, Env, Term, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
+  ATOM, COMPOUND, NUMBER, STRING, VAR, Env, Term, atom, compactListLength, compactVariableList, compound, cons, copyResolved, deref, emptyList,
   flattenConjunction, freshTerm, isCons, isDecimalInteger, isEmptyList, isScalar,
   numberTerm, numberTextFromDouble, properListItems, termIsGround, termToString, unify, variable, variantTerms,
 } from './term.js';
@@ -708,7 +708,7 @@ export class Solver {
           depth++;
           continue;
         }
-        if (goal.type === COMPOUND && goal.name === ':' && goal.arity === 2) {
+        if (!this.isoStrict && goal.type === COMPOUND && goal.name === ':' && goal.arity === 2) {
           const module = deref(goal.args[0], env);
           if (module.type === 'var') throw new PrologError('instantiation_error');
           if (module.type !== 'atom') throw new PrologError('type_error(atom)', module);
@@ -1224,9 +1224,21 @@ function normalizeHostResourceError(error) {
 
 function qualifyMetaArguments(goal, group) {
   const callerModule = goal.module ?? 'user';
-  for (const index of group.metaArgumentPositions ?? []) {
-    const argument = goal.args[index];
-    if (argument && (argument.type === COMPOUND || argument.type === 'atom')) {
+  for (const mode of group.metaArgumentModes ?? []) {
+    const argument = goal.args[mode.index];
+    if (argument == null) continue;
+    if (mode.kind === 'context') {
+      // ISO/IEC 13211-2 amendment (2013), 6.2.5.7: ':' arguments are
+      // visibly prefixed with the current source/calling module. Preserve an
+      // already explicit qualification, otherwise wrap even a variable so a
+      // later binding retains the caller context and Module:Goal inspection
+      // observes the standardized term shape.
+      if (!(argument.type === COMPOUND && argument.name === ':' && argument.arity === 2)) {
+        goal.args[mode.index] = compound(':', [atom(callerModule), argument]);
+      }
+      continue;
+    }
+    if (mode.kind === 'closure' && (argument.type === COMPOUND || argument.type === ATOM)) {
       qualifyTerm(argument, callerModule);
     }
   }

@@ -4,6 +4,7 @@ import { ATOM, COMPOUND, NUMBER, STRING, VAR, Env, atom, compound, deref, flatte
 import { formatTermForWrite } from './write.js';
 import {
   ISO_OPERATOR_DEFINITIONS,
+  PART2_OPERATOR_DEFINITIONS,
   PART3_OPERATOR_DEFINITIONS,
   QUAD_OPERATOR_DEFINITIONS,
   createParserOperatorState,
@@ -41,6 +42,7 @@ const PROGRAM_BUILD_BATCH_SIZE = 16384;
 const preparedBundledLibraryCache = new Map();
 const NORMAL_OPERATOR_DEFINITIONS = [
   ...ISO_OPERATOR_DEFINITIONS,
+  ...PART2_OPERATOR_DEFINITIONS,
   ...PART3_OPERATOR_DEFINITIONS,
   ...QUAD_OPERATOR_DEFINITIONS,
 ];
@@ -206,7 +208,7 @@ export class Program {
       name,
       arity,
       module,
-      metaArgumentPositions: this.moduleMetaPredicates.get(module)?.get(`${name}/${arity}`) ?? [],
+      metaArgumentModes: this.moduleMetaPredicates.get(module)?.get(`${name}/${arity}`) ?? [],
       clauses: [],
       argIndexes: Array.from({ length: arity }, makeArgumentIndex),
       demandIndexes: new Map(),
@@ -303,17 +305,23 @@ export class Program {
   }
   defineMetaPredicate(module, template) {
     if (template.type !== COMPOUND) return;
-    const positions = [];
+    const modes = [];
     for (let index = 0; index < template.args.length; index++) {
       const spec = template.args[index];
-      if ((spec.type === 'number' && RE_DECIMAL_INT.test(spec.name)) ||
-          (spec.type === ATOM && spec.name === ':')) positions.push(index);
+      if (spec.type === ATOM && spec.name === ':') {
+        modes.push({ index, kind: 'context' });
+      } else if (spec.type === NUMBER && RE_DECIMAL_INT.test(spec.name)) {
+        // Numeric closure modes are a widely implemented compatibility
+        // extension. Keep their existing hidden lexical qualification while
+        // reserving explicit Module:Goal wrapping for ISO Part 2 ':' modes.
+        modes.push({ index, kind: 'closure' });
+      }
     }
     const definitions = this.moduleMetaPredicates.get(module) ?? new Map();
-    definitions.set(`${template.name}/${template.arity}`, positions);
+    definitions.set(`${template.name}/${template.arity}`, modes);
     this.moduleMetaPredicates.set(module, definitions);
     const group = this.groups.get(modulePredicateKey(module, template.name, template.arity));
-    if (group) group.metaArgumentPositions = positions;
+    if (group) group.metaArgumentModes = modes;
   }
   ensureDynamicGroup(name, arity, module = 'user') {
     assertPredicateIsDefinable(name, arity, this.strictIso);
@@ -1401,6 +1409,12 @@ function sourcePath(options) {
 function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules, fast, context) {
   const batch = [];
   const deferredGoalExpansions = [];
+  // ISO/IEC 13211-2 amendment (2013), 6.2.5: a module body is one
+  // Prolog text whose first term is module/2 and whose body continues to the
+  // end of that text. Track prepared source terms per load so a later module/2
+  // cannot silently switch the owning module mid-text. A recursive load gets
+  // its own counter, so a distinct Prolog text may begin a distinct module.
+  let sourceTermCount = 0;
   const preparedCacheKey = preparedBundledLibraryCacheKey(builder.program, options);
   const preparedForCache = preparedCacheKey == null ? null : [];
   const flush = () => {
@@ -1436,6 +1450,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
   };
 
   const acceptPreparedClause = (clause, lexicalModule, record = true) => {
+    const sourceTermIndex = sourceTermCount++;
     const remember = () => {
       if (record && preparedForCache != null) {
         preparedForCache.push({ clause: cachedClauseCopy(clause), lexicalModule });
@@ -1444,6 +1459,9 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
 
     const moduleDeclaration = moduleDirective(clause);
     if (moduleDeclaration) {
+      if (sourceTermIndex !== 0) {
+        throw new PrologError('permission_error(redefine, module)', atom(moduleDeclaration.name));
+      }
       flush();
       clause.module = moduleDeclaration.name;
       clause.textUnit = context.textUnit;
@@ -1507,7 +1525,27 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
       builder.lastPredicateByText.set(context.textUnit ?? '<input>', '@directive');
     }
     const child = readIncludedSource(include, options, ensured);
-    if (!child) return;
+    if (include.name === 'ensure_loaded') {
+      const declaration = sourceModuleDeclaration(child.text, child.options);
+      if (declaration) {
+        // ISO/IEC 13211-2 amendment (2013), 6.2.5.6 notes that the public
+        // predicates of a module loaded with ensure_loaded/1 are imported in
+        // the same sense as use_module/1. Loading remains idempotent, but each
+        // importing module still receives its own import mapping.
+        if (!loadedModules.has(declaration.name)) {
+          const childContext = {
+            module: declaration.name,
+            textUnit: sourcePath(child.options) ?? context.textUnit,
+          };
+          if (!loadSourceIntoBuilder(builder, child.text, child.options, ensured, loadedModules, fast, childContext)) {
+            throw FAST_PARSE_ABORT;
+          }
+        }
+        builder.program.importModule(context.module, declaration.name, null);
+        return;
+      }
+      if (child.alreadyLoaded) return;
+    }
     const childContext = include.name === 'include'
       ? context
       : { module: context.module, textUnit: sourcePath(child.options) ?? context.textUnit };
@@ -1530,7 +1568,7 @@ function loadSourceIntoBuilder(builder, source, options, ensured, loadedModules,
     // while unqualified calls in the body retain the lexical module of the
     // source text. This distinction is essential for conventional hooks such
     // as user:term_expansion/2 defined from library modules.
-    clause = normalizeQualifiedClauseHead(clause, lexicalModule);
+    if (!builder.program.strictIso) clause = normalizeQualifiedClauseHead(clause, lexicalModule);
 
     if (!builder.program.strictIso && !isDirectiveClause(clause)) {
       try {
@@ -1674,6 +1712,11 @@ function moduleExportIndicators(term) {
   return indicators;
 }
 
+function sourceModuleDeclaration(text, options = {}) {
+  const clauses = parseClauses(text, { ...options, sourceMetadata: false });
+  return clauses.length > 0 ? moduleDirective(clauses[0]) : null;
+}
+
 function readModuleSource(designation, options) {
   if (designation.type === COMPOUND && designation.name === 'library' && designation.arity === 1 &&
       designation.args[0].type === ATOM) {
@@ -1696,7 +1739,7 @@ function readModuleSource(designation, options) {
   } catch (_) {
     throw new PrologError('existence_error(source_sink)', designation);
   }
-  const declaration = parseClauses(text, { filename, sourceMetadata: false }).map(moduleDirective).find(Boolean);
+  const declaration = sourceModuleDeclaration(text, { filename });
   if (!declaration) throw new PrologError('existence_error(module)', designation);
   return { name: declaration.name, text, options: { ...options, filename, baseDir: path.dirname(filename) } };
 }
@@ -1727,8 +1770,8 @@ function readIncludedSource(directive, options, ensured) {
       : currentWorkingDirectory()
   );
   const filename = path.resolve(base, designation.name);
-  if (directive.name === 'ensure_loaded' && ensured.has(filename)) return null;
-  if (directive.name === 'ensure_loaded') ensured.add(filename);
+  const alreadyLoaded = directive.name === 'ensure_loaded' && ensured.has(filename);
+  if (directive.name === 'ensure_loaded' && !alreadyLoaded) ensured.add(filename);
 
   let text;
   try {
@@ -1739,6 +1782,7 @@ function readIncludedSource(directive, options, ensured) {
   return {
     text,
     options: { ...options, filename, baseDir: path.dirname(filename) },
+    alreadyLoaded,
   };
 }
 

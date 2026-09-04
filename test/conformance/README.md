@@ -16,8 +16,10 @@ closes 7.9/Clause 9, and [ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREME
 decomposes the Clause 5 processor obligations.
 [ISO-CORRIGENDA-MATRIX.md](ISO-CORRIGENDA-MATRIX.md) gives every published
 Corrigenda amendment cluster an executable, editorial, or superseded
-disposition. [ISO-PART2-PART3-SCOPE.md](ISO-PART2-PART3-SCOPE.md) records the
-separate normal-profile module/DCG compatibility boundary and known non-claims. Built-in rows may group closely related conditions only when the
+disposition. [ISO-PART2-AMENDMENT-2013.md](ISO-PART2-AMENDMENT-2013.md) maps the
+2013 module-amendment requirements to executable evidence, while
+[ISO-PART2-PART3-SCOPE.md](ISO-PART2-PART3-SCOPE.md) records the broader
+normal-profile module/DCG compatibility boundary and known non-claims. Built-in rows may group closely related conditions only when the
 row names every grouped condition and its executable evidence.
 The exit checklist is embedded in [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md). [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
 complete one-to-one trace for the vendored active upstream WG17 syntax cases.
@@ -92,6 +94,7 @@ npm run test:neumerkel            # the seven live upstream suites only
 npm run test:neumerkel:cached     # exact last fetched bytes; reproduction only
 npm run conformance:check:neumerkel # verify tracked report against last successful live snapshot
 npm run test:iso                  # Part 1 + Corrigenda strict-core processor gate
+npm run test:iso-part2-amendment  # 2013 Part 2 amendment module requirements
 npm run test:wg17                 # vendored reviewed WG17 syntax regression
 ```
 
