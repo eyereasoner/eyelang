@@ -65,7 +65,9 @@ function reachableIndexesTransposed(target, deps, candidates) {
   const reverse = new Map();
   for (const from of candidates) {
     if (!reverse.has(from)) reverse.set(from, []);
-    for (const to of deps[from]) {
+    const edges = deps[from];
+    if (edges == null) continue;
+    for (const to of edges) {
       if (!candidates.has(to)) continue;
       let bucket = reverse.get(to);
       if (bucket == null) { bucket = []; reverse.set(to, bucket); }

@@ -29,8 +29,11 @@ import {
 } from './program-indexing.js';
 export { selectClauseCandidates, selectClauseCandidatesForValues, selectGroundClauseCandidates } from './program-indexing.js';
 import {
+
   componentHasNegativeEdge, componentHasCut, reachableIndexes, datalogDependencyClauseCount, isFiniteDatalogGroup, isRangeRestrictedFiniteDatalogGroup, isFiniteWfsDatalogGroup, inferStructuralInputPositions, hasStrictListTailRecursion, hasLinearNumericRecursion, isPiAccumulator, isPortableBetweenGenerator, directGoalDependencyKey, collectGoalDependencies, stronglyConnectedComponents, computeNegationStrata,
 } from './program-analysis.js';
+
+const RE_DECIMAL_INT = /^\d+$/;
 
 const DEFER_PROGRAM_BUILD = Symbol('deferProgramBuild');
 const FAST_PARSE_ABORT = Symbol('fastParseAbort');
@@ -303,7 +306,7 @@ export class Program {
     const positions = [];
     for (let index = 0; index < template.args.length; index++) {
       const spec = template.args[index];
-      if ((spec.type === 'number' && /^\d+$/.test(spec.name)) ||
+      if ((spec.type === 'number' && RE_DECIMAL_INT.test(spec.name)) ||
           (spec.type === ATOM && spec.name === ':')) positions.push(index);
     }
     const definitions = this.moduleMetaPredicates.get(module) ?? new Map();
@@ -1653,7 +1656,7 @@ function moduleExportIndicators(term) {
     if (item.type === COMPOUND && item.name === 'op' && item.arity === 3) {
       const [priority, specifier, names] = item.args;
       const operatorNames = names.type === ATOM ? [names] : properListItems(names, new Env());
-      if (priority.type !== NUMBER || !/^\d+$/.test(priority.name) || Number(priority.name) > 1200 ||
+      if (priority.type !== NUMBER || !RE_DECIMAL_INT.test(priority.name) || Number(priority.name) > 1200 ||
           specifier.type !== ATOM || !['fx', 'fy', 'xf', 'yf', 'xfx', 'xfy', 'yfx'].includes(specifier.name) ||
           operatorNames == null || operatorNames.some((name) => name.type !== ATOM)) return null;
       continue;
@@ -1832,7 +1835,7 @@ function staticProcedureModificationError(name, arity) {
 
 function predicateIndicator(name, arity) {
   if (name?.type !== ATOM || arity?.type !== 'number') return null;
-  if (!/^\d+$/.test(arity.name)) return null;
+  if (!RE_DECIMAL_INT.test(arity.name)) return null;
   const arityNumber = Number(arity.name);
   return { name: name.name, arity: arityNumber, key: `${name.name}/${arityNumber}` };
 }

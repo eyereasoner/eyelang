@@ -6,6 +6,13 @@ import {
 
 const graphicAtomCharacters = new Set('!#$&*+-./<=>?@^~\\'.split(''));
 const compactInfixOperators = new Set([':', '..']);
+const RE_LOWER_WORD = /^[a-z][A-Za-z0-9_]*$/;
+const RE_ALNUM_IDENT = /^[A-Za-z0-9_]$/;
+const RE_DIGITS_ONLY = /^\d+$/;
+const RE_LEGACY_VAR_W = /^\?(?:[A-Za-z_][A-Za-z0-9_]*)?$/;
+const RE_UPPER_IDENT_W = /^(?:_|[A-Z_][A-Za-z0-9_]*)$/;
+const RE_SANITIZE_W = /[^A-Za-z0-9_]/g;
+const RE_UPPER_START_W = /^[A-Z_]/;
 
 function quotedControlEscape(ch) {
   if (ch === '\x00') return '\\0\\';
@@ -38,7 +45,7 @@ function atomNeedsQuotes(name) {
   // be read as a bracketed comment and therefore still requires quoting.
   if (name === '.') return true;
   if (name.startsWith('/*')) return true;
-  if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return false;
+  if (RE_LOWER_WORD.test(name)) return false;
   for (const ch of name) if (!graphicAtomCharacters.has(ch)) return true;
   return false;
 }
@@ -80,12 +87,12 @@ function compactBoundaryNeedsSpace(left, right) {
   // neighbouring identifier/number token.  Most predefined word operators
   // are handled explicitly below; this also protects quoted/custom cases that
   // render without punctuation.
-  if (/^[A-Za-z0-9_]$/.test(a) && /^[A-Za-z0-9_]$/.test(b)) return true;
+  if (RE_ALNUM_IDENT.test(a) && RE_ALNUM_IDENT.test(b)) return true;
   return false;
 }
 
 function isWordOperatorToken(token) {
-  return /^[a-z][A-Za-z0-9_]*$/.test(token);
+  return RE_LOWER_WORD.test(token);
 }
 
 function compactPrefixOperator(token, argument) {
@@ -99,7 +106,7 @@ function compactPrefixOperator(token, argument) {
 }
 
 function quotedOperatorAfterNumericNeedsSpace(left, token) {
-  if (!token.startsWith("'") || !/^[0-9]+$/.test(left)) return false;
+  if (!token.startsWith("'") || !RE_DIGITS_ONLY.test(left)) return false;
   const value = Number(left);
   // `0'X` starts character-code notation and bases 2..36 start based-number
   // notation. Base 1 and values above 36 do not, so they need no layout
@@ -135,11 +142,11 @@ function legacyVariableToIso(name) {
 
 function writeVariable(name) {
   name = String(name ?? '');
-  if (/^\?(?:[A-Za-z_][A-Za-z0-9_]*)?$/.test(name)) return legacyVariableToIso(name);
-  if (/^(?:_|[A-Z_][A-Za-z0-9_]*)$/.test(name)) return name;
-  const sanitized = name.replace(/[^A-Za-z0-9_]/g, '_');
+  if (RE_LEGACY_VAR_W.test(name)) return legacyVariableToIso(name);
+  if (RE_UPPER_IDENT_W.test(name)) return name;
+  const sanitized = name.replace(RE_SANITIZE_W, '_');
   if (!sanitized) return '_';
-  return /^[A-Z_]/.test(sanitized) ? sanitized : `_${sanitized}`;
+  return RE_UPPER_START_W.test(sanitized) ? sanitized : `_${sanitized}`;
 }
 
 function writeString(value) {
@@ -157,7 +164,7 @@ function quotedListCharacter(item, doubleQuotes) {
     return item.name;
   }
   if (doubleQuotes === 'codes') {
-    if (item.type !== NUMBER || !/^\d+$/.test(item.name)) return null;
+    if (item.type !== NUMBER || !RE_DIGITS_ONLY.test(item.name)) return null;
     const code = BigInt(item.name);
     if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) return null;
     return String.fromCodePoint(Number(code));
@@ -197,7 +204,7 @@ function operatorName(name) {
   // output must use the unquoted `|` token (WG17 #181/#290).
   if (name === '|') return '|';
   if (name === '.' || name.startsWith('/*')) return quoteAtom(name);
-  if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return name;
+  if (RE_LOWER_WORD.test(name)) return name;
   if (/^[!#$&*+\-./<=>?@^~\\;:]+$/.test(name)) return name;
   return quoteAtom(name);
 }
@@ -334,7 +341,7 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
 
   if (options.numbervars && resolved.type === COMPOUND && resolved.name === '$VAR' && resolved.arity === 1) {
     const index = deref(resolved.args[0], env);
-    if (index.type === NUMBER && /^\d+$/.test(index.name)) {
+    if (index.type === NUMBER && RE_DIGITS_ONLY.test(index.name)) {
       const name = writeNumberedVariable(Number(index.name));
       if (name != null) return name;
     }
@@ -404,7 +411,7 @@ function format(term, env, options, table, maxPriority = 1200, context = 'term')
         const childNumbervar = options.numbervars && child.type === COMPOUND &&
           child.name === '$VAR' && child.arity === 1 && (() => {
             const index = deref(child.args[0], env);
-            return index.type === NUMBER && /^\d+$/.test(index.name) &&
+            return index.type === NUMBER && RE_DIGITS_ONLY.test(index.name) &&
               writeNumberedVariable(Number(index.name)) != null;
           })();
         const childUsesSpecialNotation = isCons(child) ||

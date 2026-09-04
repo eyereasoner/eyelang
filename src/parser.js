@@ -238,6 +238,12 @@ export function createParserOperatorState(definitions = [], includeDefaults = tr
   }
   return state;
 }
+// Pre-compiled character-class regexes used in the lexer hot path.
+const RE_OCTAL_DIGIT = /^[0-7]$/;
+const RE_HEX_DIGIT = /^[0-9A-Fa-f]$/;
+const RE_DECIMAL_DIGIT = /^[0-9]$/;
+const RE_BINARY_DIGIT = /^[01]$/;
+
 
 class Parser {
   constructor(source, options = {}) {
@@ -480,7 +486,7 @@ class Parser {
 
     if (escaped === 'x') {
       let digits = '';
-      while (/^[0-9A-Fa-f]$/.test(peekChar())) digits += takeChar();
+      while (RE_HEX_DIGIT.test(peekChar())) digits += takeChar();
       if (!digits || takeChar() !== '\\') throw new Error(`parse line ${line}: bad hexadecimal escape`);
       const code = Number.parseInt(digits, 16);
       if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
@@ -489,9 +495,9 @@ class Parser {
       if (this.strictIso && !isStrictIsoPcsCodePoint(code)) throw new CharacterRepresentationError();
       return String.fromCodePoint(code);
     }
-    if (/^[0-7]$/.test(escaped)) {
+    if (RE_OCTAL_DIGIT.test(escaped)) {
       let digits = escaped;
-      while (/^[0-7]$/.test(peekChar())) digits += takeChar();
+      while (RE_OCTAL_DIGIT.test(peekChar())) digits += takeChar();
       if (takeChar() !== '\\') throw new Error(`parse line ${line}: bad octal escape`);
       const code = Number.parseInt(digits, 8);
       if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) {
@@ -503,7 +509,7 @@ class Parser {
     // A backslash followed by a decimal digit is numeric-escape syntax, but
     // ISO octal digits are limited to 0..7.  Do not reinterpret \8 or \9 as
     // implementation-specific one-character escapes.
-    if (/^[0-9]$/.test(escaped)) throw new Error(`parse line ${line}: bad octal escape`);
+    if (RE_DECIMAL_DIGIT.test(escaped)) throw new Error(`parse line ${line}: bad octal escape`);
 
     // The only remaining ISO meta escapes are the four meta characters from
     // 6.5.5.  Forms such as \c, \d, \e, \u or \. are not quoted
@@ -652,9 +658,9 @@ class Parser {
         return { type: TOK.NUMBER, text: String(negative ? -code : code), line };
       }
       const radixKind = this.peek() === '0' ? this.peek(1) : '';
-      const radixHasDigit = radixKind === 'b' ? /^[01]$/.test(this.peek(2))
-        : radixKind === 'o' ? /^[0-7]$/.test(this.peek(2))
-        : radixKind === 'x' ? /^[0-9A-Fa-f]$/.test(this.peek(2))
+      const radixHasDigit = radixKind === 'b' ? RE_BINARY_DIGIT.test(this.peek(2))
+        : radixKind === 'o' ? RE_OCTAL_DIGIT.test(this.peek(2))
+        : radixKind === 'x' ? RE_HEX_DIGIT.test(this.peek(2))
         : false;
       if (radixHasDigit) {
         this.take();
@@ -1816,14 +1822,14 @@ export function parseNumberTokenText(text, options = {}) {
         value = controls[escaped];
       } else if (escaped === 'x') {
         let digits = '';
-        while (/^[0-9A-Fa-f]$/.test(source[position] ?? '')) digits += source[position++];
+        while (RE_HEX_DIGIT.test(source[position] ?? '')) digits += source[position++];
         if (!digits || source[position++] !== '\\') throw invalidNumberTokenError;
         const code = Number.parseInt(digits, 16);
         if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw invalidNumberTokenError;
         value = String.fromCodePoint(code);
-      } else if (/^[0-7]$/.test(escaped)) {
+      } else if (RE_OCTAL_DIGIT.test(escaped)) {
         let digits = escaped;
-        while (/^[0-7]$/.test(source[position] ?? '')) digits += source[position++];
+        while (RE_OCTAL_DIGIT.test(source[position] ?? '')) digits += source[position++];
         if (source[position++] !== '\\') throw invalidNumberTokenError;
         const code = Number.parseInt(digits, 8);
         if (code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff)) throw invalidNumberTokenError;

@@ -21,9 +21,15 @@ import {
   resolvePatternTerm,
 } from './datalog-common.js';
 
+const _wfsScalarKeyCache = new WeakMap();
 function scalarKey(term) {
-  if (term.type === 'number') return `number\u0000${numberValueKey(term.name)}`;
-  return `${term.type}\u0000${term.name}`;
+  const cached = _wfsScalarKeyCache.get(term);
+  if (cached != null) return cached;
+  const key = term.type === 'number'
+    ? `number\u0000${numberValueKey(term.name)}`
+    : `${term.type}\u0000${term.name}`;
+  _wfsScalarKeyCache.set(term, key);
+  return key;
 }
 
 function sameScalar(left, right) {

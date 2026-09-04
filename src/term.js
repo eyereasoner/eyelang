@@ -72,7 +72,7 @@ export class CompactListTerm {
   mayContainVariable(name, env = null) {
     if (String(name).startsWith(this._variablePrefix)) {
       const indexText = String(name).slice(this._variablePrefix.length);
-      if (/^\d+$/.test(indexText)) {
+      if (RE_DIGIT_STR.test(indexText)) {
         const index = BigInt(indexText);
         if (index >= this._offset && index < this._offset + this._compactLength) return true;
       }
@@ -1268,17 +1268,22 @@ export function copyResolved(term, env) {
 }
 
 export function termIsGround(term, env = new Env()) {
+  // Defer the cycle-guard Set until we encounter a compound term, since
+  // the overwhelming majority of ground checks are on acyclic clause data.
   const pending = [term];
-  const seen = new Set();
+  let seen = null;
   while (pending.length > 0) {
     const resolved = deref(pending.pop(), env);
     if (resolved.type === VAR) return false;
+    const arity = resolved.args.length;
+    if (arity === 0) continue;
+    if (seen == null) seen = new Set();
     if (seen.has(resolved)) continue;
     seen.add(resolved);
     // Visit leftmost arguments first. Lists and other recursive structures
     // commonly carry their first unbound variable there, allowing a
     // non-ground check to finish without walking the complete tail.
-    for (let index = resolved.args.length - 1; index >= 0; index--) {
+    for (let index = arity - 1; index >= 0; index--) {
       pending.push(resolved.args[index]);
     }
   }
@@ -1287,11 +1292,18 @@ export function termIsGround(term, env = new Env()) {
 
 const graphicAtomChars = new Set('!#$&*+-/<=>@^~\\'.split(''));
 
+const RE_LOWER_IDENT = /^[a-z][A-Za-z0-9_]*$/;
+const RE_UPPER_IDENT = /^(?:_|[A-Z_][A-Za-z0-9_]*)$/;
+const RE_LEGACY_VAR = /^\?(?:[A-Za-z_][A-Za-z0-9_]*)?$/;
+const RE_FLOAT = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+const RE_DIGIT_STR = /^\d+$/;
+const RE_SANITIZE_VAR = /[^A-Za-z0-9_]/g;
+const RE_UPPER_START = /^[A-Z_]/;
 function atomNeedsQuotes(name) {
   if (!name) return true;
   if (name === '[]' || name === '{}') return false;
   if (name === '\\+' || name === '+' || name === '-' || name === '\\') return true;
-  if (/^[a-z][A-Za-z0-9_]*$/.test(name)) return false;
+  if (RE_LOWER_IDENT.test(name)) return false;
   for (const ch of name) if (!graphicAtomChars.has(ch)) return true;
   return false;
 }
@@ -1322,11 +1334,11 @@ function legacyVariableToIso(name) {
 
 function writeVariable(name) {
   name = String(name ?? '');
-  if (/^\?(?:[A-Za-z_][A-Za-z0-9_]*)?$/.test(name)) return legacyVariableToIso(name);
-  if (/^(?:_|[A-Z_][A-Za-z0-9_]*)$/.test(name)) return name;
-  const sanitized = name.replace(/[^A-Za-z0-9_]/g, '_');
+  if (RE_LEGACY_VAR.test(name)) return legacyVariableToIso(name);
+  if (RE_UPPER_IDENT.test(name)) return name;
+  const sanitized = name.replace(RE_SANITIZE_VAR, '_');
   if (!sanitized) return '_';
-  return /^[A-Z_]/.test(sanitized) ? sanitized : `_${sanitized}`;
+  return RE_UPPER_START.test(sanitized) ? sanitized : `_${sanitized}`;
 }
 
 function writeString(value, quoteStrings) {
@@ -1363,7 +1375,7 @@ function quotedListSplice(term, env, doubleQuotes) {
       if (item.type !== ATOM || Array.from(item.name).length !== 1) return null;
       characters.push(item.name);
     } else {
-      if (item.type !== NUMBER || !/^\d+$/.test(item.name)) return null;
+      if (item.type !== NUMBER || !RE_DIGIT_STR.test(item.name)) return null;
       const code = BigInt(item.name);
       if (code < 0n || code > 0x10ffffn || (code >= 0xd800n && code <= 0xdfffn)) return null;
       characters.push(String.fromCodePoint(Number(code)));
@@ -1558,12 +1570,16 @@ function variableRank(name, ranks) {
   return rank;
 }
 
+// ISO standard order: variables < numbers < atoms < strings < compound.
+// Defined once to avoid allocating a fresh object literal on every comparison.
+const TYPE_ORDER = { [VAR]: 0, [NUMBER]: 1, [ATOM]: 2, [STRING]: 3, [COMPOUND]: 4 };
+const EMPTY_ENV = new Env();
+
 function compareTermsWithRanks(left, right, variableRanks) {
-  const rank = (term) => ({ [VAR]: 0, [NUMBER]: 1, [ATOM]: 2, [STRING]: 3, [COMPOUND]: 4 })[term.type];
-  left = deref(left, new Env());
-  right = deref(right, new Env());
-  const lr = rank(left);
-  const rr = rank(right);
+  left = deref(left, EMPTY_ENV);
+  right = deref(right, EMPTY_ENV);
+  const lr = TYPE_ORDER[left.type] ?? 0;
+  const rr = TYPE_ORDER[right.type] ?? 0;
   if (lr !== rr) return lr < rr ? -1 : 1;
   if (left.type === NUMBER) {
     const leftInteger = isDecimalInteger(left.name);
@@ -1587,8 +1603,9 @@ function compareTermsWithRanks(left, right, variableRanks) {
   return 0;
 }
 
+const RE_DECIMAL_INTEGER = /^-?\d+$/;
 export function isDecimalInteger(text) {
-  return /^-?\d+$/.test(text ?? '');
+  return RE_DECIMAL_INTEGER.test(text ?? '');
 }
 
 export function compareIntegerText(left, right) {
@@ -1599,7 +1616,7 @@ export function compareIntegerText(left, right) {
 
 export function parseFiniteNumber(text) {
   if (text == null || text === '') return null;
-  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)) return null;
+  if (!RE_FLOAT.test(text)) return null;
   const n = Number(text);
   return Number.isFinite(n) ? n : null;
 }
