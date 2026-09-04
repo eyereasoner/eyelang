@@ -4,8 +4,8 @@
 // A `maybe` annotation denotes a successful answer with residual constraints;
 // it does not relax the ordinary answer-substitution comparison.
 import {
-  ATOM, COMPOUND, VAR, Env, atom, compound, copyResolved, deref,
-  flattenConjunction, listFromItems, properListItems, termIsGround,
+  ATOM, COMPOUND, NUMBER, VAR, Env, atom, compound, copyResolved, deref,
+  flattenConjunction, isDecimalInteger, listFromItems, properListItems, termIsGround,
   unify, variable,
 } from './term.js';
 import { parseGoalText } from './parser.js';
@@ -191,13 +191,14 @@ function malformedAlternative(query, alternative) {
   for (const leaf of splitOperator(alternative, ';').map(describeLeaf)) {
     if (leaf.malformed != null) return leaf.malformed;
     const names = new Set();
-    for (const binding of leaf.bindings) {
+    const substitutions = [...leaf.bindings, ...leaf.approximations];
+    for (const binding of substitutions) {
       const name = binding.args[0].name;
       if (!queryNames.has(name) || names.has(name)) return binding;
       names.add(name);
     }
     if (!leaf.sto) {
-      for (const binding of leaf.bindings) {
+      for (const binding of substitutions) {
         if (namedVariables(binding.args[1]).some((variable) => names.has(variable.name))) return binding;
       }
     }
@@ -208,6 +209,7 @@ function malformedAlternative(query, alternative) {
 function describeLeaf(term) {
   const leaf = {
     bindings: [],
+    approximations: [],
     unexpected: false,
     more: false,
     sto: false,
@@ -245,6 +247,11 @@ function describeLeaf(term) {
       else leaf.bindings.push(item);
       continue;
     }
+    if (item.type === COMPOUND && item.name === '~' && item.arity === 2) {
+      if (item.args[0].type !== VAR || approximateDecimalInterval(item.args[1]) == null) leaf.malformed ??= item;
+      else leaf.approximations.push(item);
+      continue;
+    }
     if (item.type === COMPOUND && item.name === 'inputs' && item.arity === 1) {
       const text = characterText(item.args[0]);
       if (text == null || leaf.input != null) leaf.malformed ??= item;
@@ -265,7 +272,8 @@ function describeLeaf(term) {
     if (isErrorDescription(item)) leaf.error = item;
     else leaf.malformed ??= item;
   }
-  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.truth || leaf.false || leaf.maybe || leaf.loops || leaf.waits ||
+  leaf.hasExpectation = leaf.bindings.length > 0 || leaf.approximations.length > 0 ||
+    leaf.truth || leaf.false || leaf.maybe || leaf.loops || leaf.waits ||
     leaf.error != null || leaf.output != null;
   if (!leaf.hasExpectation && !leaf.more && !leaf.sto && leaf.unsupported == null) leaf.malformed ??= term;
   if ([leaf.false, leaf.truth, leaf.error != null].filter(Boolean).length > 1) leaf.malformed ??= term;
@@ -404,7 +412,7 @@ function matchLeaf(program, query, leaf, actual, position) {
   // its absence requires an unconstrained answer. In either case the stated
   // substitutions remain exact and are checked below.
   if (leaf.maybe !== hasPendingConstraints(solution.env)) return false;
-  return substitutionMatches(query, leaf.bindings, solution.env);
+  return substitutionMatches(query, leaf.bindings, leaf.approximations, solution.env);
 }
 
 function hasPendingConstraints(env) {
@@ -428,20 +436,71 @@ function alternativeDescribesLoop(alternative) {
   return splitOperator(alternative, ';').some((term) => describeLeaf(term).loops);
 }
 
-function substitutionMatches(query, bindings, actualEnv) {
+function substitutionMatches(query, bindings, approximations, actualEnv) {
   const queryVariables = namedVariables(query);
   const queryNames = new Set(queryVariables.map((variable) => variable.name));
+  const queryVariablesByName = new Map(queryVariables.map((variable) => [variable.name, variable]));
   const expectedEnv = new Env();
   const rebound = new Set();
-  for (const binding of bindings) {
+  for (const binding of [...bindings, ...approximations]) {
     const variable = binding.args[0];
     if (!queryNames.has(variable.name) || rebound.has(variable.name)) return false;
     rebound.add(variable.name);
-    if (!unify(variable, binding.args[1], expectedEnv)) return false;
+    if (binding.name === '=') {
+      if (!unify(variable, binding.args[1], expectedEnv)) return false;
+      continue;
+    }
+    const actualVariable = queryVariablesByName.get(variable.name);
+    const actualValue = deref(actualVariable, actualEnv);
+    if (!approximatelyMatches(actualValue, binding.args[1])) return false;
+    // Once the approximate predicate has accepted the actual float, bind the
+    // expected-side variable to that exact observed term. This lets the
+    // ordinary variant matcher continue to check the rest of the answer,
+    // including variable sharing, without turning `~` into a fuzzy unifier.
+    if (!unify(variable, copyResolved(actualValue, actualEnv), expectedEnv)) return false;
   }
   const expected = compound('$quad_answer', queryVariables.map((variable) => copyResolved(variable, expectedEnv)));
   const actual = compound('$quad_answer', queryVariables.map((variable) => copyResolved(variable, actualEnv)));
   return patternVariant(expected, new Env(), actual, new Env());
+}
+
+// Parse a quoted decimal spelling as the interval represented by rounding to
+// its final written mantissa digit.  For example, '14.2000' denotes
+// [14.19995, 14.20005], and '1.42000e1' denotes the same interval.  Construct
+// the exact decimal endpoints before converting them to binary floats instead
+// of adding a tiny tolerance to an already-rounded Number.
+function approximateDecimalInterval(term) {
+  if (term?.type !== ATOM) return null;
+  const text = term.name;
+  const match = /^([+-]?)(\d+)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/.exec(text);
+  if (match == null) return null;
+
+  const [, sign, integerDigits, fraction = '', exponentText = '0'] = match;
+  const digits = `${integerDigits}${fraction}`;
+  const unsignedMantissa = BigInt(digits || '0');
+  const mantissa = sign === '-' ? -unsignedMantissa : unsignedMantissa;
+  const exponent = Number(exponentText);
+  if (!Number.isSafeInteger(exponent)) return null;
+  const scale = exponent - fraction.length;
+
+  // center = mantissa * 10^scale; half an ulp of the written decimal is
+  // 5 * 10^(scale-1). Keeping the coefficient integral preserves every
+  // significant trailing zero in the expected spelling.
+  const lowerCoefficient = mantissa * 10n - 5n;
+  const upperCoefficient = mantissa * 10n + 5n;
+  const boundExponent = scale - 1;
+  const lower = Number(`${lowerCoefficient}e${boundExponent}`);
+  const upper = Number(`${upperCoefficient}e${boundExponent}`);
+  if (!Number.isFinite(lower) || !Number.isFinite(upper)) return null;
+  return { lower: Math.min(lower, upper), upper: Math.max(lower, upper) };
+}
+
+function approximatelyMatches(actual, expectedAtom) {
+  if (actual?.type !== NUMBER || isDecimalInteger(actual.name)) return false;
+  const actualValue = Number(actual.name);
+  if (!Number.isFinite(actualValue)) return false;
+  const interval = approximateDecimalInterval(expectedAtom);
+  return interval != null && actualValue >= interval.lower && actualValue <= interval.upper;
 }
 
 function namedVariables(term) {
@@ -727,8 +786,12 @@ function formatFailure(program, quad, result, description = quad.answers[0]) {
 }
 
 function formatQuadTerm(program, term) {
+  const operators = [...program.operators.values()];
+  if (!operators.some(({ name, specifier }) => name === '~' && ['xfx', 'xfy', 'yfx'].includes(specifier))) {
+    operators.push({ priority: 700, specifier: 'xfx', name: '~' });
+  }
   return formatTermForWrite(term, new Env(), {
     quoted: true,
-    operators: [...program.operators.values()],
+    operators,
   });
 }

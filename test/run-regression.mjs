@@ -995,6 +995,88 @@ why(
       },
     },
     {
+      name: 'runQuads supports decimal-precision approximate float descriptions (issue #90)',
+      run: () => {
+        const source = `?- V is 0+(3.2+11).
+` +
+          `   V ~ '14.2000'.
+
+` +
+          `?- V is 0+(3.2+11).
+` +
+          `   V ~ '1.42000e1'.
+
+` +
+          `?- V is -14.2.
+` +
+          `   V ~ '-14.2000'.
+
+` +
+          `?- V is 1.0e-3.
+` +
+          `   V ~ '1.000e-3'.
+
+` +
+          `?- V is 14.19995.
+` +
+          `   V ~ '14.2000'.
+
+` +
+          `?- V is 14.20005.
+` +
+          `   V ~ '14.2000'.
+
+` +
+          `?- V is 14.2.
+` +
+          `   V ~ '14.1999', unexpected.
+
+` +
+          `?- V is 14.
+` +
+          `   V ~ '14.0', unexpected.
+
+` +
+          `?- V is float(14).
+` +
+          `   V ~ '14.0'.
+`;
+        const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'approx-quad.pl' }]));
+        assertEqual(result.total, 9, 'approximate answer-description total');
+        assertEqual(result.passed, 9, 'approximate answer-description passed');
+        assertEqual(result.failed, 0, 'approximate answer-description failed');
+        assertEqual(result.stdout, 'quads: 9 run, 9 passed, 0 failed.\n', 'approximate quad report');
+
+        const malformed = publicApi.runQuads(`?- V is 14.2.
+   V ~ 14.2000.
+`);
+        assertEqual(malformed.total, 1, 'numeric approximation total');
+        assertEqual(malformed.failed, 1, 'numeric RHS is rejected');
+        assertIncludes(malformed.stdout, 'MALFORMED', 'numeric RHS diagnostic');
+
+        const malformedAtom = publicApi.runQuads(`?- V is 14.2.
+   V ~ 'fourteen'.
+`);
+        assertEqual(malformedAtom.failed, 1, 'non-decimal atom is rejected');
+        assertIncludes(malformedAtom.stdout, 'MALFORMED', 'non-decimal atom diagnostic');
+
+        const duplicate = publicApi.runQuads(`?- V is 14.2.
+   V = 14.2, V ~ '14.2000'.
+`);
+        assertEqual(duplicate.failed, 1, 'duplicate exact/approximate binding is rejected');
+        assertIncludes(duplicate.stdout, 'MALFORMED', 'duplicate binding diagnostic');
+
+        let ordinaryApproximateParsed = false;
+        try {
+          Program.parse(`p(X,Y) :- X ~ Y.\n`);
+          ordinaryApproximateParsed = true;
+        } catch (_) {
+          // `~` is answer-description syntax, not a normal-profile operator.
+        }
+        assertEqual(ordinaryApproximateParsed, false, 'quad approximate operator stays scoped to answer descriptions');
+      },
+    },
+    {
       name: 'runQuads treats unexpected as a negative assertion on the next leaf (issue #83)',
       run: () => {
         const source = `:- use_module(library(prologue)).

@@ -1051,10 +1051,21 @@ class Parser {
     this.advance();
 
     const answers = [];
-    while (this.token.type !== TOK.EOF && this.sourceLineIsIndented(this.token.line)) {
-      answers.push(this.parseTerm(0, true));
-      this.expect(TOK.DOT, '.');
-      this.advance();
+    // Issue #90 extends only the embedded answer-description grammar with
+    // decimal-precision approximate equality. Do not leak `~` into ordinary
+    // EyeProlog source syntax: temporarily parse it like the standard 700 xfx
+    // comparison operators while consuming the indented quad answers.
+    const previousApproximateOperator = this.infixOperators.get('~');
+    this.infixOperators.set('~', { precedence: operatorStrength(700), associativity: 'none' });
+    try {
+      while (this.token.type !== TOK.EOF && this.sourceLineIsIndented(this.token.line)) {
+        answers.push(this.parseTerm(0, true));
+        this.expect(TOK.DOT, '.');
+        this.advance();
+      }
+    } finally {
+      if (previousApproximateOperator == null) this.infixOperators.delete('~');
+      else this.infixOperators.set('~', previousApproximateOperator);
     }
     if (answers.length === 0) throw new Error(`parse line ${line}: quad requires an indented answer description`);
 

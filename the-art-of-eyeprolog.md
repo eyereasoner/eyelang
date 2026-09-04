@@ -9597,6 +9597,26 @@ constraint remain. For example, a pending `dif/2` constraint can be checked as:
    maybe, unexpected.
 ```
 
+ISO arithmetic examples sometimes describe a floating result only as
+"approximately equal" to a written decimal. Quad answer descriptions preserve
+the precision of that spelling with `~`: the right-hand side is a decimal atom,
+so trailing zeroes remain significant. `V ~ '14.2000'` accepts a **float** in
+the closed interval `14.19995` through `14.20005`; it does not accept an integer
+term, even when that integer has the same mathematical value. Exponent notation
+uses the last written mantissa digit in the same way, so `'1.42000e1'` denotes
+the same interval. For example:
+
+```eyeprolog
+?- V is 0+(3.2+11).
+   V ~ '14.2000'.
+```
+
+This `~` notation belongs only to indented quad answer descriptions. It does
+not install an approximate-equality predicate or operator in ordinary Prolog
+source. A numeric right-hand side such as `V ~ 14.2000` is deliberately
+rejected because parsing it as a float would discard the written decimal
+precision that the check is intended to retain.
+
 EyeProlog treats native variable constraints, attributed-variable residue, and
 delayed goals as pending residue for this purpose. Multiple
 indented descriptions after one query are independent checks: each re-runs the
