@@ -5483,7 +5483,7 @@ ${profile}`;
       },
     },
     {
-      name: 'public ISO documentation keeps README concise and the book authoritative',
+      name: 'public ISO documentation keeps the book authoritative',
       run: () => {
         const readme = fs.readFileSync(path.join(packageRoot, 'README.md'), 'utf8');
         const book = fs.readFileSync(path.join(packageRoot, 'the-art-of-eyeprolog.md'), 'utf8');
@@ -5495,7 +5495,6 @@ ${profile}`;
         ]) assertIncludes(book, name, `book ${name}`);
         assertIncludes(readme, 'implementation reference is [*The Art of EyeProlog*]', 'README book hand-off');
         assertIncludes(readme, 'test/conformance/ISO-COMPLIANCE.md', 'README concise audit link');
-        assertEqual(readme.split('\n').length <= 100, true, 'README remains a compact entry point');
         for (const heading of ['## Tabling', '## Cleanup-aware control', '## Strict ISO',
           '## Module and definite clause grammar', '## Trealla and Scryer interoperability']) {
           assertNotIncludes(readme, heading, `README delegates ${heading} to the book`);

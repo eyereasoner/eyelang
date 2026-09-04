@@ -12,7 +12,11 @@ EyeProlog turns portable ISO Prolog programs into answers and inspectable proofs
   <strong>Click the cover to read <em>The Art of EyeProlog</em>.</strong>
 </p>
 
-The single implementation reference is [*The Art of EyeProlog*](the-art-of-eyeprolog.md). It documents the language, built-ins, libraries, command line, JavaScript API, examples, proofs, conformance profile, and implementation.
+The single implementation reference is [*The Art of EyeProlog*](the-art-of-eyeprolog.md).
+It documents the language, built-ins, libraries, command line, JavaScript API,
+examples, proofs, conformance profile, and implementation.
+
+## Twenty years of EYE, and the next twenty years
 
 The Euler project began in 2001 and became EYE, a Prolog-based reasoner, in 2006; it is still alive in 2026. In a symbolic way, EYE remembers Leonhard Euler, who lost sight in one eye. The Retina project began in 2021 and became EyeProlog in 2026; we hope to keep it growing for the next twenty years. That continuation offers a second quiet remembrance of Euler, who later lost sight in his other eye—while the project keeps trying to see farther through logic, proof, and reasoning.
 
