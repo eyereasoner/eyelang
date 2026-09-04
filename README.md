@@ -16,10 +16,6 @@ The single implementation reference is [*The Art of EyeProlog*](the-art-of-eyepr
 It documents the language, built-ins, libraries, command line, JavaScript API,
 examples, proofs, conformance profile, and implementation.
 
-## Twenty years of EYE, and the next twenty years
-
-The Euler project began in 2001 and became EYE, a Prolog-based reasoner, in 2006; it is still alive in 2026. In a symbolic way, EYE remembers Leonhard Euler, who lost sight in one eye. The Retina project began in 2021 and became EyeProlog in 2026; we hope to keep it growing for the next twenty years. That continuation offers a second quiet remembrance of Euler, who later lost sight in his other eye—while the project keeps trying to see farther through logic, proof, and reasoning.
-
 ## Quick start
 
 EyeProlog requires Node.js 18 or newer:
@@ -64,9 +60,7 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
 Normal mode executes top-level `Conclusion :+ Premise` rules through the bundled Prolog `library(eyelet)` driver when no explicit `-g/--goal` is supplied. `true :+ Goal` prints answers and `false :+ Goal` emits a `fuse/1`; JavaScript `run()` follows the same rule. The module exports `:+`, `stable/1`, and `becomes/2`, and implements rule selection, fixed-point rounds, skolemization, state replacement, and duplicate suppression in Prolog. JavaScript retains only syntax recognition, static dependency/autoload planning, driver bootstrap, and private mutability/output adapters; it does not implement the fixed-point semantics. Strict ISO mode disables this extension.
 Bundled `src/lib/` predicates autoload in files, CLI/API goals, and the REPL; use `--no-autoload` to require explicit imports, and explicitly import libraries that introduce operators before using their syntax. See [*The Art of EyeProlog*](the-art-of-eyeprolog.md) for the full semantics.
 All 34 bundled modules that overlap Scryer's current library surface cover Scryer's exported predicates, and all 28 bundled modules with public-module counterparts in Trealla's current `library/` surface cover those Trealla exports as well. The stricter Trealla/Scryer intersection remains a separate portability profile. Runtime-dependent library primitives follow one ownership rule: `src/lib/<module>.pl` calls private adapters from `src/<module>-host.js`; pure Prolog libraries need no host file. This includes the full Scryer `library(files)` surface, Scryer character-list paths in `library(pio)` with atom-path compatibility, chars/UTF-8/term/Base64 helpers, the completed arithmetic/time/`iso_ext` surfaces, the full Scryer `library(crypto)`, Scryer-compatible TCP `library(sockets)`, the shared Scryer/Trealla `library(json)` DCG, and a merged Scryer/Trealla `library(http)` client/server facade. Filesystem, OS, TCP socket, and HTTP/HTTPS client side effects require Node; crypto uses Node's backend where needed, with Web Crypto also used for secure random bytes when available. Non-integral rational conversions remain structural `rdiv(Numerator,Denominator)` terms until rational numbers become processor numeric values.
-## HTTP and JSON
-`library(http)` merges Scryer-style `http_open/3` options with Trealla's request helpers (`http_get/3`, `http_post/4`, `http_patch/4`, `http_put/4`, `http_delete/3`, `http_server/2`, `http_request/5`). HTTP/HTTPS clients use the Node-owned `src/http-host.js` bridge, follow up to five redirects, preserve repeated request-header values, accept Trealla `header(Name,Value)` and `host/path` address-list forms, and expose response bodies as UTF-8 character lists or streams. `http_open/3` reads response bodies lazily in bounded chunks rather than buffering the whole response through the host RPC bridge; request metadata and `data/1` still pass through that bounded bridge.
-`library(json)` provides the shared bidirectional `json_chars//1` DCG with `pairs/1`, `list/1`, `string/1`, `number/1`, `boolean/1`, and `null`. JSON `\u` escapes combine and generate UTF-16 surrogate pairs for supplementary Unicode scalar values, while unpaired surrogates are rejected. See `examples/json.pl`, `examples/http-client.pl`, `test/run-http-json.mjs`, and the full contracts in [*The Art of EyeProlog*](the-art-of-eyeprolog.md).
+
 ## Links
 
 - [The Art of EyeProlog](https://eyereasoner.github.io/eyeprolog/the-art-of-eyeprolog) — complete reference
