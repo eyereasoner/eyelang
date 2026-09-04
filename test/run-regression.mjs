@@ -5055,9 +5055,9 @@ ${profile}`;
         assertIncludes(book, 'Residual constraints are part of the displayed answer even when', 'top-level hidden residuals');
         assertIncludes(book, 'EyeProlog normal mode also accepts `:+`', 'Eyelet forward-rule extension');
         assertIncludes(book, '`library(eyelet)`', 'Eyelet library surface');
-        assertIncludes(readme, '`library(eyelet)`', 'README Eyelet library surface');
+        assertNotIncludes(readme, '## Eyelet forward rules', 'README delegates Eyelet details to the book');
+        assertNotIncludes(readme, '## HTTP and JSON', 'README delegates HTTP/JSON details to the book');
         assertIncludes(profile, 'an unresolved unqualified predicate may autoload its unique provider', 'Why EyeProlog autoload policy');
-        assertIncludes(readme, 'Bundled `src/lib/` predicates autoload in files, CLI/API goals,', 'README autoload summary');
       },
     },
     {
