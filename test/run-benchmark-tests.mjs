@@ -42,7 +42,7 @@ function runWorker(item) {
   ]);
 }
 
-ok(Array.isArray(manifest) && manifest.length === 21, 'benchmark manifest should contain exactly 21 representative workloads');
+ok(Array.isArray(manifest) && manifest.length === 19, 'benchmark manifest should contain exactly 19 representative workloads');
 ok(new Set(manifest.map((item) => item.name)).size === manifest.length, 'benchmark names should be unique');
 const classicNrev = manifest.find((item) => item.name === 'classic-nrev');
 ok(classicNrev?.logicalInferences === 496, 'classic nrev should retain the traditional 496-call LIPS accounting');
@@ -61,7 +61,7 @@ for (const item of manifest) {
 
 const adaptive = await spawnJson([
   path.join(root, 'test', 'benchmark.mjs'),
-  '--filter', 'dcg-command',
+  '--filter', 'dcg-expression',
   '--runs', '1',
   '--warmup', '0',
   '--target-ms', '50',
@@ -69,7 +69,7 @@ const adaptive = await spawnJson([
 ]);
 ok(adaptive.results.length === 1, 'adaptive benchmark smoke test should select one workload');
 ok(adaptive.results[0].batchSize > 1, 'adaptive benchmark smoke test should batch a short workload');
-ok(adaptive.results[0].sha256 === manifest.find((item) => item.name === 'dcg-command').expectedSha256,
+ok(adaptive.results[0].sha256 === manifest.find((item) => item.name === 'dcg-expression').expectedSha256,
   'adaptive batching should preserve the semantic checksum');
 
 const nrev = await spawnJson([

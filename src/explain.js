@@ -218,7 +218,12 @@ function builtinIsUsedForGoal(def, solver, goal, env) {
 function selectReadyDeterministicBuiltin(goals, env, registry) {
   for (let i = 0; i < goals.length; i++) {
     const goal = goals[i];
-    if (goal.type !== COMPOUND) continue;
+    // Match solver.js's goal-type check: a 0-arity builtin (ATOM) is just as
+    // eligible for this fast path as a COMPOUND one. No bundled builtin
+    // currently pairs arity 0 with a custom ready() gate, so this has no
+    // observable effect today, but it keeps the proof-explanation path from
+    // silently diverging from actual execution if one is added later.
+    if (goal.type !== COMPOUND && goal.type !== ATOM) continue;
     const def = registry.get(goal.name, goal.arity);
     if (!def?.deterministic || typeof def.ready !== 'function') continue;
     if (typeof def.shouldUse === 'function') continue;

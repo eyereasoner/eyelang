@@ -5867,9 +5867,9 @@ and reports the portable ISO `type_error(list)` error term.
 #### A bidirectional expression grammar
 
 DCGs become more useful when the grammar produces a structured term rather than
-merely accepting a token list.  The checked
+merely accepting a token list. The checked
 [`dcg-expression-language.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/dcg-expression-language.pl)
-example implements a small arithmetic language in both directions.  Its parser
+example implements a small arithmetic language in both directions. Its parser
 respects precedence and left associativity while constructing an abstract syntax
 tree:
 
@@ -5887,17 +5887,17 @@ additive_tail(AST, AST) --> [].
 
 The accumulator removes left recursion without moving parsing into JavaScript.
 A second DCG walks the AST in the other direction and emits only the parentheses
-needed to preserve its structure.  The example therefore exercises parsing,
+needed to preserve its structure. The example therefore exercises parsing,
 semantic actions, nonterminal-to-nonterminal state hand-off, generation,
 backtracking, `phrase/3` remainder handling, and AST-to-token-to-AST
-round-tripping.  The checked answers are in
+round-tripping. The checked answers are in
 [`examples/output/dcg-expression-language.pl`](https://github.com/eyereasoner/eyeprolog/blob/main/examples/output/dcg-expression-language.pl).
 
 #### Deep sequence hand-off
 
 `library(iso_ext)` provides the common `... //0` helper, which describes an
-arbitrary number of input elements.  It is not part of ISO Part 3, but it is a
-useful interoperability and stress-test relation.  A compact hand-off test is:
+arbitrary number of input elements. It is not part of ISO Part 3, but it is a
+useful interoperability and stress-test relation. A compact hand-off test is:
 
 ```text
 a --> ..., epsilon.
@@ -5905,11 +5905,11 @@ epsilon --> [].
 ```
 
 Here the remaining sequence is repeatedly passed from `... //0` to another
-nonterminal.  For a finite compact list, EyeProlog can scan the arbitrary
+nonterminal. For a finite compact list, EyeProlog can scan the arbitrary
 sequence iteratively instead of consuming one ordinary solver depth level per
-list cell.  If the continuation is structurally proven to be a zero-width
+list cell. If the continuation is structurally proven to be a zero-width
 identity grammar such as `epsilon//0`, the hand-off can be continued without
-constructing a fresh general clause-resolution frame at every suffix.  The list
+constructing a fresh general clause-resolution frame at every suffix. The list
 spine is still traversed; this is a control/allocation optimization rather than
 an O(1) semantic shortcut.
 
@@ -6062,7 +6062,8 @@ contains 129 name/arity entries across 100 names.
 `;/2` recognizes an `->/2` term on its left and implements the ISO
 if-then-else commitment described above. Cuts and committed conditions are
 operational controls; use ordinary relations when all alternatives should
-remain observable. 
+remain observable.
+
 #### Definite clause grammar processing
 
 - **`phrase(+Body,?Sequence)`** — Parses or generates `Sequence` with a Part 3 grammar body and requires complete consumption.
@@ -9743,7 +9744,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **225 self-contained runnable programs**. Every
+top-level directory contains **226 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic lists link every top-level program and open the program
@@ -10176,7 +10177,7 @@ npm run benchmark:baseline
 npm run benchmark:lips
 ```
 
-The benchmark suite contains 21 representative workloads and stores their
+The benchmark suite contains 19 representative workloads and stores their
 semantic output digests in the repository, while wall-clock baselines remain
 machine-local under `.benchmarks/` because absolute timings are machine-specific.
 Each benchmark runs in its own fresh Node worker. Inside that worker, one untimed
@@ -10368,7 +10369,7 @@ specifications.
 
 - Kurt Gödel,
   [“Über formal unentscheidbare Sätze der *Principia Mathematica* und
-  verwandter Systeme I”](https://doi.org/10.1007/BF01700686),
+  verwandter Systeme I”](https://doi.org/10.1007/BF01700692),
   *Monatshefte für Mathematik und Physik* 38, 1931, pp. 173–198. The
   incompleteness theorems establish intrinsic limits for sufficiently
   expressive effectively axiomatized formal systems. Chapter 30 treats such

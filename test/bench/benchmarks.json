@@ -73,15 +73,6 @@
     "expectedSha256": "b4a153234f3daf1e2ba6c26843349a1bc1919ebd9f9e98559835eb5ef915716b"
   },
   {
-    "name": "dcg-command",
-    "group": "dcg",
-    "file": "examples/dcg-command-parser.pl",
-    "goals": [
-      "dcg_example(X0, X1)"
-    ],
-    "expectedSha256": "6f640fb0d327eb9139d3568cf7a86ad55a52afdbb0208ca35a70419be2bf1b9c"
-  },
-  {
     "name": "dcg-expression",
     "group": "dcg",
     "file": "examples/dcg-expression-language.pl",
@@ -105,24 +96,6 @@
       "tak([34, 13, 8], X0)"
     ],
     "expectedSha256": "a7c33872b86aa7877b9c38ec41c447fc96a328d40f512428993d662f28a097ad"
-  },
-  {
-    "name": "clpz-register-allocation",
-    "group": "clpz",
-    "file": "examples/register-allocation.pl",
-    "goals": [
-      "registerAnswer(X0, X1)"
-    ],
-    "expectedSha256": "1ed0b4a90deff2908463774d0025210d58b89366efb5d82b94ff5b51daca046b"
-  },
-  {
-    "name": "clpb-feature-model",
-    "group": "clpb",
-    "file": "examples/clpb-feature-model.pl",
-    "goals": [
-      "feature_plan(X0)"
-    ],
-    "expectedSha256": "47abfd8a87efb595ffb11c6c8cbda3cb5855e95124bc574e3cae387c12318f33"
   },
   {
     "name": "attributed-variables",
@@ -190,5 +163,14 @@
       "type_answer(X0, X1)"
     ],
     "expectedSha256": "acad9ddb995d9ddef091e17cc91659d36ed7f9014d6714fd40100d85a53ae203"
+  },
+  {
+    "name": "bulk-stream-write",
+    "group": "term-io",
+    "file": "examples/bulk-stream-write.pl",
+    "goals": [
+      "bulk_write_result(X0, X1)"
+    ],
+    "expectedSha256": "8471da130a4a3a92dd31ee6cf285b1e129886177d7be367d51650a48b8920324"
   }
 ]

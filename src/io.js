@@ -186,6 +186,21 @@ export class StreamManager {
     }
     const text = String(value);
     const content = String(stream.content);
+    // The overwhelming majority of text-stream writes append at the current
+    // end of the sink: bulk write/1 calls and repeated put_char/put_code
+    // loops alike. Handling that case as a plain concatenation, separate
+    // from the general reposition rebuild below, keeps the two ISO-distinct
+    // cases self-documenting instead of folding them into one three-part
+    // slice expression that always pays for the overwrite case's shape.
+    // This split is for clarity, not raw throughput: measured end to end,
+    // the general expression already performs comparably for this pattern.
+    if (stream.position === content.length) {
+      stream.content = content + text;
+      stream.position += text.length;
+      return;
+    }
+    // 7.10.2.8: output after repositioning overwrites the existing sink
+    // contents at the selected stream position rather than always appending.
     const end = Math.min(content.length, stream.position + text.length);
     stream.content = `${content.slice(0, stream.position)}${text}${content.slice(end)}`;
     stream.position += text.length;
