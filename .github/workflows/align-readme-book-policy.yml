@@ -1,0 +1,53 @@
+name: Align README book policy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/align-readme-book-policy.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Align documentation assertions with README policy
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('test/run-regression.mjs')
+          text = path.read_text()
+
+          stale = [
+              "        assertIncludes(readme, '`library(eyelet)`', 'README Eyelet library surface');\n",
+              "        assertIncludes(readme, 'Bundled `src/lib/` predicates autoload in files, CLI/API goals,', 'README autoload summary');\n",
+          ]
+          for line in stale:
+              assert line in text, line
+              text = text.replace(line, '', 1)
+
+          anchor = "        assertIncludes(book, '`library(eyelet)`', 'Eyelet library surface');\n"
+          replacement = anchor + (
+              "        assertNotIncludes(readme, '## Eyelet forward rules', 'README delegates Eyelet details to the book');\n"
+              "        assertNotIncludes(readme, '## HTTP and JSON', 'README delegates HTTP/JSON details to the book');\n"
+          )
+          assert anchor in text
+          text = text.replace(anchor, replacement, 1)
+          path.write_text(text)
+
+      - name: Verify documentation suite
+        run: node test/run-regression.mjs docs
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/run-regression.mjs
+          git commit -m "Keep feature details in the EyeProlog book"
+          git push origin HEAD:main
