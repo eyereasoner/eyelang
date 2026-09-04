@@ -16,7 +16,8 @@ closes 7.9/Clause 9, and [ISO-PROCESSOR-REQUIREMENTS.md](ISO-PROCESSOR-REQUIREME
 decomposes the Clause 5 processor obligations.
 [ISO-CORRIGENDA-MATRIX.md](ISO-CORRIGENDA-MATRIX.md) gives every published
 Corrigenda amendment cluster an executable, editorial, or superseded
-disposition. Built-in rows may group closely related conditions only when the
+disposition. [ISO-PART2-PART3-SCOPE.md](ISO-PART2-PART3-SCOPE.md) records the
+separate normal-profile module/DCG compatibility boundary and known non-claims. Built-in rows may group closely related conditions only when the
 row names every grouped condition and its executable evidence.
 The exit checklist is embedded in [ISO-COMPLIANCE.md](ISO-COMPLIANCE.md). [WG17-SYNTAX-STATUS.md](WG17-SYNTAX-STATUS.md) records the
 complete one-to-one trace for the vendored active upstream WG17 syntax cases.

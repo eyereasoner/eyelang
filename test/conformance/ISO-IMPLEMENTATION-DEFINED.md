@@ -129,7 +129,9 @@ families; `--iso-strict` is intended to remove their Part 1 interpretation.
 Normal mode provides documented module and DCG compatibility profiles whose
 features overlap standardized Part 2 and Part 3 facilities. They are extensions
 relative to the Part 1 strict-core boundary and are tested separately; this
-ledger does not assert complete Part 2 or Part 3 conformance.
+ledger does not assert complete Part 2 or Part 3 conformance. The concrete
+compatibility boundary, including the normal-profile `phrase/2-3` terminal-sequence
+error choice, is recorded in `ISO-PART2-PART3-SCOPE.md`.
 
 ## Important implementation-dependent behavior (not the 5.4 mandatory table)
 

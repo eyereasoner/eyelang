@@ -7,6 +7,8 @@ const header = new Int32Array(workerData.shared, 0, HEADER_WORDS);
 const bytes = new Uint8Array(workerData.shared, HEADER_WORDS * Int32Array.BYTES_PER_ELEMENT);
 const decoder = new TextDecoder();
 const encoder = new TextEncoder();
+const bodies = new Map();
+let nextBodyId = 1;
 
 function errorRecord(error) {
   return { code: String(error?.code ?? 'EUNKNOWN'), message: String(error?.message ?? error ?? 'http error') };
@@ -15,7 +17,7 @@ function errorRecord(error) {
 function writeResponse(response) {
   const encoded = encoder.encode(JSON.stringify(response));
   if (encoded.length > bytes.length) {
-    const fallback = encoder.encode(JSON.stringify({ ok: false, error: { code: 'EMSGSIZE', message: 'HTTP response too large for bridge' } }));
+    const fallback = encoder.encode(JSON.stringify({ ok: false, error: { code: 'EMSGSIZE', message: 'HTTP bridge message too large' } }));
     bytes.set(fallback.subarray(0, bytes.length), 0);
     Atomics.store(header, 2, Math.min(fallback.length, bytes.length));
   } else {
@@ -24,6 +26,27 @@ function writeResponse(response) {
   }
   Atomics.store(header, 0, 2);
   Atomics.notify(header, 0, 1);
+}
+
+function headerObject(requestHeaders) {
+  const headers = Object.create(null);
+  for (const [rawName, rawValue] of requestHeaders) {
+    const name = String(rawName).toLowerCase();
+    const value = String(rawValue);
+    const previous = headers[name];
+    if (previous == null) headers[name] = value;
+    else if (Array.isArray(previous)) previous.push(value);
+    else headers[name] = [previous, value];
+  }
+  return headers;
+}
+
+function responseHeaders(res) {
+  const rawHeaders = [];
+  for (let i = 0; i < res.rawHeaders.length; i += 2) {
+    rawHeaders.push([String(res.rawHeaders[i]).toLowerCase(), String(res.rawHeaders[i + 1] ?? '')]);
+  }
+  return rawHeaders;
 }
 
 function requestOnce(url, method, data, requestHeaders) {
@@ -35,24 +58,14 @@ function requestOnce(url, method, data, requestHeaders) {
       return;
     }
     const body = data == null ? null : Buffer.from(data, 'utf8');
-    const headers = Object.fromEntries(requestHeaders);
-    if (body != null && !Object.keys(headers).some((name) => name.toLowerCase() === 'content-length')) {
-      headers['content-length'] = String(body.length);
-    }
+    const headers = headerObject(requestHeaders);
+    if (body != null && headers['content-length'] == null) headers['content-length'] = String(body.length);
     const req = transport.request(target, { method: method.toUpperCase(), headers }, (res) => {
-      const chunks = [];
-      res.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-      res.on('end', () => {
-        const rawHeaders = [];
-        for (let i = 0; i < res.rawHeaders.length; i += 2) {
-          rawHeaders.push([String(res.rawHeaders[i]).toLowerCase(), String(res.rawHeaders[i + 1] ?? '')]);
-        }
-        resolve({
-          statusCode: Number(res.statusCode ?? 0),
-          headers: rawHeaders,
-          body: Buffer.concat(chunks).toString('utf8'),
-          location: res.headers.location == null ? null : String(res.headers.location),
-        });
+      resolve({
+        response: res,
+        statusCode: Number(res.statusCode ?? 0),
+        headers: responseHeaders(res),
+        location: res.headers.location == null ? null : String(res.headers.location),
       });
     });
     req.on('error', reject);
@@ -61,20 +74,83 @@ function requestOnce(url, method, data, requestHeaders) {
   });
 }
 
+function discardResponse(response) {
+  return new Promise((resolve) => {
+    response.on('error', resolve);
+    response.on('end', resolve);
+    response.resume();
+  });
+}
+
+function withoutContentLength(headers) {
+  return headers.filter(([name]) => String(name).toLowerCase() !== 'content-length');
+}
+
 async function requestFollowingRedirects(url, method, data, headers, redirects = 5) {
   let current = url;
   let currentMethod = method;
   let currentData = data;
+  let currentHeaders = headers;
   for (let count = 0; ; count++) {
-    const response = await requestOnce(current, currentMethod, currentData, headers);
-    if (![301, 302, 303, 307, 308].includes(response.statusCode) || response.location == null || count >= redirects) {
-      return { ...response, finalUrl: current };
+    const result = await requestOnce(current, currentMethod, currentData, currentHeaders);
+    if (![301, 302, 303, 307, 308].includes(result.statusCode) || result.location == null || count >= redirects) {
+      const bodyId = nextBodyId++;
+      bodies.set(bodyId, { response: result.response, iterator: result.response[Symbol.asyncIterator](), remainder: null });
+      return { statusCode: result.statusCode, headers: result.headers, bodyId, finalUrl: current };
     }
-    current = new URL(response.location, current).toString();
-    if (response.statusCode === 303 || ((response.statusCode === 301 || response.statusCode === 302) && currentMethod.toLowerCase() === 'post')) {
+    await discardResponse(result.response);
+    current = new URL(result.location, current).toString();
+    if (result.statusCode === 303 || ((result.statusCode === 301 || result.statusCode === 302) && currentMethod.toLowerCase() === 'post')) {
       currentMethod = 'get';
-      currentData = '';
+      currentData = null;
+      currentHeaders = withoutContentLength(currentHeaders);
     }
+  }
+}
+
+function encodeBodyChunk(state, chunk, maxBytes) {
+  const data = Buffer.from(chunk);
+  if (data.length <= maxBytes) return { data, remainder: null };
+  return { data: data.subarray(0, maxBytes), remainder: data.subarray(maxBytes) };
+}
+
+async function readBody(bodyId, maxBytes) {
+  const state = bodies.get(bodyId);
+  if (state == null) return { eof: true, data: '' };
+  const limit = Math.max(1, Math.min(Number(maxBytes) || 65536, 1024 * 1024));
+  if (state.remainder?.length) {
+    const { data, remainder } = encodeBodyChunk(state, state.remainder, limit);
+    state.remainder = remainder;
+    return { eof: false, data: data.toString('base64') };
+  }
+  const next = await state.iterator.next();
+  if (next.done) {
+    bodies.delete(bodyId);
+    return { eof: true, data: '' };
+  }
+  const { data, remainder } = encodeBodyChunk(state, next.value, limit);
+  state.remainder = remainder;
+  return { eof: false, data: data.toString('base64') };
+}
+
+function closeBody(bodyId) {
+  const state = bodies.get(bodyId);
+  if (state == null) return { closed: false };
+  bodies.delete(bodyId);
+  state.response.destroy();
+  return { closed: true };
+}
+
+async function dispatch(request) {
+  switch (request.op) {
+    case 'request':
+      return requestFollowingRedirects(request.url, request.method, request.data, request.headers, request.redirects ?? 5);
+    case 'body_read':
+      return readBody(request.bodyId, request.maxBytes);
+    case 'body_close':
+      return closeBody(request.bodyId);
+    default:
+      throw Object.assign(new Error(`unknown HTTP operation: ${request.op}`), { code: 'EINVAL' });
   }
 }
 
@@ -83,8 +159,7 @@ parentPort.on('message', async () => {
   try {
     const length = Atomics.load(header, 1);
     const request = JSON.parse(decoder.decode(bytes.subarray(0, length)));
-    if (request.op !== 'request') throw Object.assign(new Error(`unknown HTTP operation: ${request.op}`), { code: 'EINVAL' });
-    const result = await requestFollowingRedirects(request.url, request.method, request.data, request.headers, request.redirects ?? 5);
+    const result = await dispatch(request);
     writeResponse({ ok: true, result });
   } catch (error) {
     writeResponse({ ok: false, error: errorRecord(error) });

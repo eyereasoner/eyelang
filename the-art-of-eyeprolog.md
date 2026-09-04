@@ -5861,8 +5861,11 @@ look_ahead(X), [X] --> [X].
 `phrase(+Body,?Sequence)` accepts or generates a complete sequence.
 `phrase(+Body,?Sequence,?Rest)` leaves `Rest` unconsumed and is steadfast in
 that argument. A variable body raises `instantiation_error`; a non-callable
-body raises `type_error(callable)`. EyeProlog performs terminal-sequence checks
-and reports the portable ISO `type_error(list)` error term.
+body raises `type_error(callable)`. EyeProlog performs terminal-sequence checks and currently reports
+`type_error(list)` for a rejected non-list. This is a normal-profile
+interoperability choice, not a Part 3 conformance claim; Part 3 defines a
+dedicated terminal-sequence error category. See
+[`ISO-PART2-PART3-SCOPE.md`](test/conformance/ISO-PART2-PART3-SCOPE.md).
 
 #### A bidirectional expression grammar
 
@@ -6811,9 +6814,9 @@ library. Scryer uses `library(builtins)` as its fundamental system module, while
 Trealla's file is implementation support; EyeProlog keeps those procedures in
 the core registry instead of creating a second authority for them.
 
-`library(http)` combines the Scryer `http_open/3` option surface with Trealla's `http_get/3`, `http_post/4`, `http_patch/4`, `http_put/4`, `http_delete/3`, `http_server/2`, and `http_request/5`. HTTP and HTTPS client requests are performed by the module-owned Node adapter in `src/http-host.js`; response bodies are exposed as ordinary text streams for `http_open/3` and as complete character lists for the convenience predicates. The client follows redirects, supports Scryer request/response metadata options, Trealla `header(Name,Value)` request options, and Trealla's `host/path` address-list form. `http_request/5` parses a request line and headers from a stream. The compact `http_server/2` facade accepts one connection per call because EyeProlog does not provide Trealla's `fork` task primitive.
+`library(http)` combines the Scryer `http_open/3` option surface with Trealla's `http_get/3`, `http_post/4`, `http_patch/4`, `http_put/4`, `http_delete/3`, `http_server/2`, and `http_request/5`. HTTP and HTTPS client requests are performed by the module-owned Node adapter in `src/http-host.js`; response bodies are exposed as ordinary text streams for `http_open/3` and as complete character lists for the convenience predicates. The host stream pulls response bytes lazily in bounded chunks, so opening a large response no longer buffers the entire body through the fixed-size RPC message. An ordinary GET or HEAD has no request entity unless `data/1` is explicit, repeated request-header values are preserved, and an explicitly empty entity gets `Content-Length: 0`. The client follows redirects, supports Scryer request/response metadata options, Trealla `header(Name,Value)` request options, and Trealla's `host/path` address-list form. `http_request/5` parses a request line and headers from a stream. The compact `http_server/2` facade accepts one connection per call because EyeProlog does not provide Trealla's `fork` task primitive.
 
-`library(json)` is the BSD-licensed Scryer JSON DCG also distributed by Trealla. `json_chars//1` is bidirectional and represents JSON objects as `pairs/1`, arrays as `list/1`, strings as `string/1`, numbers as `number/1`, booleans as `boolean/1`, and JSON null as `null`. See `examples/json.pl` and `examples/http-client.pl`.
+`library(json)` is the BSD-licensed Scryer JSON DCG also distributed by Trealla. `json_chars//1` is bidirectional and represents JSON objects as `pairs/1`, arrays as `list/1`, strings as `string/1`, numbers as `number/1`, booleans as `boolean/1`, and JSON null as `null`. JSON `\u` escapes are UTF-16 code units: valid surrogate pairs are combined into one supplementary Unicode scalar while parsing and emitted as a pair when that escaped representation is requested during generation; unpaired surrogates are rejected. See `examples/json.pl` and `examples/http-client.pl`.
 
 `library(sockets)` follows Scryer's TCP stream interface. `socket_client_open/3`
 connects to `Host:Port`; `socket_server_open/2` accepts either a port or

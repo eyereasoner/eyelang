@@ -1,6 +1,6 @@
 // Term model, environments, unification, readback, and ordering helpers.
 // Keep dependencies minimal because nearly every other module imports this file.
-import { sameNumberValue } from './number-value.js';
+import { compareIntegerValueText, sameNumberValue } from './number-value.js';
 
 export const VAR = 'var';
 export const ATOM = 'atom';
@@ -1009,13 +1009,22 @@ function occurs(variableName, term, env) {
   // as soon as a binding fans out.
   if (initial.length === 1) {
     let name = initial[0];
-    const seen = [];
+    const seenSmall = [];
+    let seenLarge = null;
     while (true) {
       if (name === variableName) return true;
-      for (let index = 0; index < seen.length; index++) {
-        if (seen[index] === name) return false;
+      let alreadySeen = seenLarge?.has(name) === true;
+      if (seenLarge == null) {
+        for (let index = 0; index < seenSmall.length; index++) {
+          if (seenSmall[index] === name) { alreadySeen = true; break; }
+        }
       }
-      seen.push(name);
+      if (alreadySeen) return false;
+      if (seenLarge != null) seenLarge.add(name);
+      else {
+        seenSmall.push(name);
+        if (seenSmall.length === 8) seenLarge = new Set(seenSmall);
+      }
       const binding = env?.get(name);
       if (binding === undefined) return false;
       const names = structuralVariableNames(binding);
@@ -1539,15 +1548,16 @@ export function variantTerms(left, leftEnv, right, rightEnv, pairs = new Map(), 
 
 
 function compareCharacterText(left, right) {
-  const a = Array.from(left);
-  const b = Array.from(right);
-  const length = Math.min(a.length, b.length);
-  for (let i = 0; i < length; i++) {
-    const ac = a[i].codePointAt(0);
-    const bc = b[i].codePointAt(0);
+  let li = 0;
+  let ri = 0;
+  while (li < left.length && ri < right.length) {
+    const ac = left.codePointAt(li);
+    const bc = right.codePointAt(ri);
     if (ac !== bc) return ac < bc ? -1 : 1;
+    li += ac > 0xffff ? 2 : 1;
+    ri += bc > 0xffff ? 2 : 1;
   }
-  return a.length < b.length ? -1 : a.length > b.length ? 1 : 0;
+  return li < left.length ? 1 : ri < right.length ? -1 : 0;
 }
 
 export function compareTerms(left, right, variableRanks = null) {
@@ -1609,6 +1619,9 @@ export function isDecimalInteger(text) {
 }
 
 export function compareIntegerText(left, right) {
+  if (isDecimalInteger(left) && isDecimalInteger(right)) return compareIntegerValueText(left, right);
+  // Preserve the public helper's historical acceptance/error behavior for host
+  // BigInt spellings outside EyeProlog's decimal integer term syntax.
   const a = BigInt(left);
   const b = BigInt(right);
   return a < b ? -1 : a > b ? 1 : 0;

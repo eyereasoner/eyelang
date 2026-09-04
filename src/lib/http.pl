@@ -28,9 +28,9 @@ http_open(Address0, Response, Options0) :-
     must_be(list, Options0),
     http__normalize_address(Address0, Options0, Address, Options),
     http__method(Options, Method),
-    http__data(Options, Data),
+    http__data_spec(Options, DataSpec),
     http__request_headers(Options, RequestHeaders),
-    eyeprolog__http_open(Address, Response, Method, Data, Code, RequestHeaders, RawHeaders, FinalUrl),
+    eyeprolog__http_open(Address, Response, Method, DataSpec, Code, RequestHeaders, RawHeaders, FinalUrl),
     http__scryer_headers(RawHeaders, Headers),
     http__bind_option(status_code, Code, Options),
     http__bind_option(headers, Headers, Options),
@@ -70,26 +70,29 @@ http__ensure_slash(['/'|Rest], ['/'|Rest]) :- !.
 http__ensure_slash(Path, ['/'|Path]).
 
 http_get(Address, Data, Options) :-
-    http__request_data(Address, get, [], Data, Options).
+    http__request_data(Address, get, no_data, Data, Options).
 
 http_post(Address, PostData, Reply, Options) :-
-    http__request_data(Address, post, PostData, Reply, Options).
+    http__checked_data(PostData, DataSpec),
+    http__request_data(Address, post, DataSpec, Reply, Options).
 
 http_patch(Address, PostData, Reply, Options) :-
-    http__request_data(Address, patch, PostData, Reply, Options).
+    http__checked_data(PostData, DataSpec),
+    http__request_data(Address, patch, DataSpec, Reply, Options).
 
 http_put(Address, PostData, Reply, Options) :-
-    http__request_data(Address, put, PostData, Reply, Options).
+    http__checked_data(PostData, DataSpec),
+    http__request_data(Address, put, DataSpec, Reply, Options).
 
 http_delete(Address, Data, Options) :-
-    http__request_data(Address, delete, [], Data, Options).
+    http__request_data(Address, delete, no_data, Data, Options).
 
 http__request_data(Address, DefaultMethod, Payload, Data, Options) :-
     must_be(list, Options),
     ( memberchk(method(Method0), Options) -> http__valid_method(Method0), Method = Method0 ; Method = DefaultMethod ),
-    ( memberchk(data(Data0), Options) -> Payload0 = Data0 ; Payload0 = Payload ),
+    ( memberchk(data(Data0), Options) -> http__checked_data(Data0, DataSpec) ; DataSpec = Payload ),
     http__request_headers(Options, RequestHeaders),
-    eyeprolog__http_open(Address, Stream, Method, Payload0, Code, RequestHeaders, RawHeaders, FinalUrl),
+    eyeprolog__http_open(Address, Stream, Method, DataSpec, Code, RequestHeaders, RawHeaders, FinalUrl),
     get_n_chars(Stream, _, Data),
     close(Stream),
     http__trealla_headers(RawHeaders, Headers),
@@ -107,11 +110,13 @@ http__valid_method(Method) :-
     ; throw(error(domain_error(http_option, method(Method)), http_open/3))
     ).
 
-http__data(Options, Data) :-
-    ( memberchk(data(Data0), Options) ->
-        ( var(Data0) -> throw(error(instantiation_error, http_open/3)) ; Data = Data0 )
-    ; Data = []
+http__data_spec(Options, DataSpec) :-
+    ( memberchk(data(Data0), Options) -> http__checked_data(Data0, DataSpec)
+    ; DataSpec = no_data
     ).
+
+http__checked_data(Data, data(Data)) :-
+    ( var(Data) -> throw(error(instantiation_error, http_open/3)) ; true ).
 
 http__request_headers(Options, Headers) :-
     ( memberchk(request_headers(Input), Options) ->

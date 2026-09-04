@@ -30,6 +30,29 @@ answer(Cs) :- once(phrase(json_chars(pairs([string("a")-number(2),string("ok")-b
       'answer("{\\"a\\":2,\\"ok\\":true}").\n', 'JSON generation');
   });
 
+  reporter.test('library(json) combines supplementary Unicode surrogate escapes', () => {
+    const source = String.raw`:- use_module(library(json)).
+:- use_module(library(dcgs)).
+answer(X) :- phrase(json_chars(X), "\"\\uD83D\\uDE00\"").`;
+    assertEqual(run(source, { goal: 'answer(X)' }).stdout,
+      'answer(string("😀")).\n', 'JSON surrogate-pair parse');
+  });
+
+  reporter.test('library(json) generates and validates supplementary Unicode escapes relationally', () => {
+    const source = String.raw`:- use_module(library(json)).
+:- use_module(library(dcgs)).
+answer :- phrase(json_chars(string("😀")), "\"\\uD83D\\uDE00\"").`;
+    assertEqual(run(source, { goal: 'answer' }).stdout, 'answer.\n', 'JSON surrogate-pair generation');
+  });
+
+  reporter.test('library(json) rejects unpaired UTF-16 surrogates', () => {
+    const source = String.raw`:- use_module(library(json)).
+:- use_module(library(dcgs)).
+answer :- \+ phrase(json_chars(_), "\"\\uD83D\""),
+          \+ phrase(json_chars(_), "\"\\uDE00\"").`;
+    assertEqual(run(source, { goal: 'answer' }).stdout, 'answer.\n', 'unpaired JSON surrogate rejection');
+  });
+
   reporter.test('http_request/5 parses request lines and lower-cases header names', () => {
     const source = `:- use_module(library(http)).
 answer(M,P,V,H) :- http_request(user_input,M,P,V,H).`;
@@ -78,6 +101,39 @@ answer(Data,Code,Size) :-
       const output = run(source, { goal: 'answer(Data,Code,Size)' }).stdout;
       assertIncludes(output, '\\"path\\":\\"/open\\"', 'http_open body');
       assertIncludes(output, ', 200, ', 'http_open status and size');
+    });
+
+    reporter.test('GET omits an entity Content-Length unless data/1 is explicit', () => {
+      const source = `:- use_module(library(http)).
+answer(Data) :- http_get("http://127.0.0.1:${port}/headers", Data, []).`;
+      const output = run(source, { goal: 'answer(Data)' }).stdout;
+      assertIncludes(output, '\\"contentLength\\":null', 'GET content-length omission');
+    });
+
+    reporter.test('explicit empty POST data sends Content-Length zero', () => {
+      const source = `:- use_module(library(http)).
+answer(Data) :- http_post("http://127.0.0.1:${port}/post-empty", "", Data, []).`;
+      const output = run(source, { goal: 'answer(Data)' }).stdout;
+      assertIncludes(output, '\\"contentLength\\":\\"0\\"', 'empty POST content-length');
+    });
+
+    reporter.test('request_headers/1 preserves repeated header values', () => {
+      const source = `:- use_module(library(http)).
+answer(Data) :-
+  http_get("http://127.0.0.1:${port}/headers", Data,
+           [request_headers(['x-repeat'("one"),'x-repeat'("two")])]).`;
+      const output = run(source, { goal: 'answer(Data)' }).stdout;
+      assertIncludes(output, '\\"repeated\\":\\"one, two\\"', 'repeated request headers');
+    });
+
+    reporter.test('http_open/3 streams bodies larger than the host RPC buffer', () => {
+      const source = `:- use_module(library(http)).
+:- use_module(library(charsio)).
+answer(Prefix) :-
+  http_open("http://127.0.0.1:${port}/large", S, []),
+  get_n_chars(S,16,Prefix), close(S).`;
+      assertEqual(run(source, { goal: 'answer(Prefix)' }).stdout,
+        'answer("xxxxxxxxxxxxxxxx").\n', 'large HTTP response streaming');
     });
   } finally {
     worker.postMessage('close');

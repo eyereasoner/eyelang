@@ -88,12 +88,45 @@ json_character(PrintChar) -->
     [PrintChar],
     { dif(PrintChar, '\\'), dif(PrintChar, '"'), char_code(PrintChar, Code), Code >= 32 }.
 json_character(EscapeChar) -->
-    "\\u", json_hex(H1), json_hex(H2), json_hex(H3), json_hex(H4),
+    "\\u",
+    ( parsing ->
+        json_hex4(Code),
+        json_unicode_parsed(Code, EscapeChar)
+    ; { char_code(EscapeChar, Code) },
+      json_unicode_generated(Code)
+    ).
+
+% JSON's \u escape syntax encodes UTF-16 code units. Combine a valid surrogate
+% pair while parsing and split supplementary Unicode scalar values while
+% generating. Lone surrogate code units are not Unicode scalar values and are
+% therefore rejected instead of being passed to char_code/2.
+json_unicode_parsed(Code, Char) -->
+    { Code >= 55296, Code =< 56319 }, !,
+    "\\u", json_hex4(Low),
+    { Low >= 56320, Low =< 57343,
+      Scalar is 65536 + (Code - 55296) * 1024 + (Low - 56320),
+      char_code(Char, Scalar) }.
+json_unicode_parsed(Code, _) -->
+    { Code >= 56320, Code =< 57343 }, !,
+    { fail }.
+json_unicode_parsed(Code, Char) -->
+    { char_code(Char, Code) }.
+
+json_unicode_generated(Code) -->
+    { Code > 65535 }, !,
+    { Scalar is Code - 65536,
+      High is 55296 + Scalar // 1024,
+      Low is 56320 + Scalar mod 1024 },
+    json_hex4(High), "\\u", json_hex4(Low).
+json_unicode_generated(Code) -->
+    { ( Code < 55296 ; Code > 57343 ) },
+    json_hex4(Code).
+
+json_hex4(Code) -->
+    json_hex(H1), json_hex(H2), json_hex(H3), json_hex(H4),
     { ( nonvar(H1) ->
-          Code is H1*4096 + H2*256 + H3*16 + H4,
-          char_code(EscapeChar, Code)
-      ; char_code(EscapeChar, Code),
-        H1 is (Code // 4096) mod 16,
+          Code is H1*4096 + H2*256 + H3*16 + H4
+      ; H1 is (Code // 4096) mod 16,
         H2 is (Code // 256) mod 16,
         H3 is (Code // 16) mod 16,
         H4 is Code mod 16

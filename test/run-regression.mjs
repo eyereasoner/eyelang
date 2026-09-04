@@ -7218,6 +7218,30 @@ function whiteBoxCases() {
       },
     },
     {
+      name: 'numeric identity and term order handle noncanonical unbounded integers without host BigInts',
+      run: () => {
+        const env = new Env();
+        assertEqual(unify(numberTerm('000123'), numberTerm('123'), env), true, 'leading-zero integer identity');
+        assertEqual(unify(numberTerm('-000'), numberTerm('0'), env), true, 'negative-zero integer identity');
+        assertEqual(compareTerms(numberTerm('99999999999999999999999999999999999999'),
+          numberTerm('100000000000000000000000000000000000000')), -1, 'large positive integer order');
+        assertEqual(compareTerms(numberTerm('-100000000000000000000000000000000000000'),
+          numberTerm('-99999999999999999999999999999999999999')), -1, 'large negative integer order');
+        assertEqual(publicApi.compareIntegerText('+1', '1'), 0, 'public helper retains host BigInt spelling compatibility');
+        let invalidIntegerError = null;
+        try { publicApi.compareIntegerText('not-an-integer', '1'); } catch (error) { invalidIntegerError = error; }
+        assertEqual(invalidIntegerError?.name, 'SyntaxError', 'public helper retains invalid-spelling error');
+      },
+    },
+    {
+      name: 'character term order compares Unicode scalar values without materializing code-point arrays',
+      run: () => {
+        assertEqual(compareTerms(atom('a😀'), atom('a😁')), -1, 'supplementary scalar order');
+        assertEqual(compareTerms(atom('a😀'), atom('a😀x')), -1, 'supplementary prefix order');
+        assertEqual(compareTerms(atom('a😀x'), atom('a😀')), 1, 'supplementary reverse prefix order');
+      },
+    },
+    {
       name: 'unification rejects direct and indirect cyclic bindings',
       run: () => {
         const direct = new Env();
