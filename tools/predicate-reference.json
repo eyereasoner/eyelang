@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "surface_count": 523,
+  "surface_count": 532,
   "generated_from": {
     "core_registry": "src/iso.js createDefaultRegistry()",
     "library_index": "src/library-autoload-index.js"
@@ -2311,6 +2311,78 @@
       "profile": "library"
     },
     {
+      "indicator": "http_delete/3",
+      "origin": "library(http)",
+      "call": "http_delete(+URL,-Body,+Options)",
+      "solutions": "semidet",
+      "contract": "Performs an HTTP DELETE request, returning the UTF-8 response body and requested response metadata.",
+      "source": "src/lib/http.pl; src/http-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "http_get/3",
+      "origin": "library(http)",
+      "call": "http_get(+URL,-Body,+Options)",
+      "solutions": "semidet",
+      "contract": "Performs an HTTP GET request, returning the UTF-8 response body and requested response metadata.",
+      "source": "src/lib/http.pl; src/http-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "http_open/3",
+      "origin": "library(http)",
+      "call": "http_open(+URL,-Stream,+Options)",
+      "solutions": "semidet",
+      "contract": "Performs an HTTP or HTTPS request and returns a readable text stream for the response body with Scryer-compatible metadata options.",
+      "source": "src/lib/http.pl; src/http-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "http_patch/4",
+      "origin": "library(http)",
+      "call": "http_patch(+URL,+Data,-Body,+Options)",
+      "solutions": "semidet",
+      "contract": "Performs an HTTP PATCH request with Data and returns the UTF-8 response body and requested metadata.",
+      "source": "src/lib/http.pl; src/http-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "http_post/4",
+      "origin": "library(http)",
+      "call": "http_post(+URL,+Data,-Body,+Options)",
+      "solutions": "semidet",
+      "contract": "Performs an HTTP POST request with Data and returns the UTF-8 response body and requested metadata.",
+      "source": "src/lib/http.pl; src/http-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "http_put/4",
+      "origin": "library(http)",
+      "call": "http_put(+URL,+Data,-Body,+Options)",
+      "solutions": "semidet",
+      "contract": "Performs an HTTP PUT request with Data and returns the UTF-8 response body and requested metadata.",
+      "source": "src/lib/http.pl; src/http-host.js",
+      "profile": "library"
+    },
+    {
+      "indicator": "http_request/5",
+      "origin": "library(http)",
+      "call": "http_request(+Stream,-Method,-Path,-Version,-Headers)",
+      "solutions": "semidet",
+      "contract": "Parses one HTTP request line and its headers from Stream into Trealla-compatible character-list fields.",
+      "source": "src/lib/http.pl",
+      "profile": "library"
+    },
+    {
+      "indicator": "http_server/2",
+      "origin": "library(http)",
+      "call": "http_server(+Handler,+Options)",
+      "solutions": "meta",
+      "contract": "Accepts one TCP connection and calls Handler with its stream using the requested server port.",
+      "source": "src/lib/http.pl",
+      "profile": "library"
+    },
+    {
       "indicator": "if_/3",
       "origin": "library(reif)",
       "call": "if_(+Condition,+Then,+Else)",
@@ -2443,6 +2515,15 @@
       "solutions": "det",
       "contract": "Joins lexical Parts with literal Separator to produce Text.",
       "source": "src/lib/strings.pl",
+      "profile": "library"
+    },
+    {
+      "indicator": "json_chars/3",
+      "origin": "library(json)",
+      "call": "phrase(json_chars(?JSON),?Chars,?Rest)",
+      "solutions": "nondet",
+      "contract": "Parses or generates JSON characters using pairs, list, string, number, boolean, and null wrapper terms.",
+      "source": "src/lib/json.pl",
       "profile": "library"
     },
     {

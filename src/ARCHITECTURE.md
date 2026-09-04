@@ -101,3 +101,8 @@ runs in its own Node process, warms the engine before measured parse+execute
 runs, reports the median, and verifies a committed output SHA-256 before its
 timing is accepted. Machine-specific timing baselines live under `.benchmarks/`
 and are intentionally not versioned.
+
+
+## HTTP and JSON library ownership
+
+`src/lib/json.pl` is a pure Prolog DCG adapted from the BSD-licensed Scryer/Trealla JSON library. `src/lib/http.pl` owns HTTP option normalization, convenience predicates, request parsing, and the small server facade. Node HTTP/HTTPS client I/O is isolated in `src/http-host.js` and `src/http-worker.js`, following the same module-owned host-adapter convention as sockets, files, crypto, and other runtime-dependent libraries.

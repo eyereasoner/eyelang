@@ -394,5 +394,8 @@
   ],
   "when": [
     "when/2"
+  ],
+  "json": [
+    "json_chars/3"
   ]
 }

@@ -12,6 +12,7 @@ import { charsioHostBuiltins } from './charsio-host.js';
 import { filesHostBuiltins } from './files-host.js';
 import { difHostBuiltins } from './dif-host.js';
 import { formatHostBuiltins } from './format-host.js';
+import { httpHostBuiltins } from './http-host.js';
 import { isoExtHostBuiltins } from './iso_ext-host.js';
 import { listsHostBuiltins } from './lists-host.js';
 import { eyeletHostBuiltins } from './eyelet-host.js';
@@ -45,10 +46,12 @@ const moduleFiles = Object.freeze({
   error: 'error.pl',
   eyelet: 'eyelet.pl',
   format: 'format.pl',
+  http: 'http.pl',
   files: 'files.pl',
   freeze: 'freeze.pl',
   gensym: 'gensym.pl',
   iso_ext: 'iso_ext.pl',
+  json: 'json.pl',
   lambda: 'lambda.pl',
   lists: 'lists.pl',
   ordsets: 'ordsets.pl',
@@ -100,6 +103,7 @@ export const eyePrologNativeLibraryIndicators = Object.freeze([
   'number_to_rational/2', 'number_to_rational/3', 'rational_numerator_denominator/3',
   'read_from_chars/2', 'read_term_from_chars/3', 'write_term_to_chars/3', 'chars_base64/3',
   'sleep/1',
+  'http_open/3', 'http_get/3', 'http_post/4', 'http_patch/4', 'http_put/4', 'http_delete/3', 'http_server/2', 'http_request/5',
   'socket_client_open/3', 'socket_server_open/2', 'socket_server_accept/4', 'socket_server_close/1', 'current_hostname/1',
   'directory_files/2', 'file_size/2', 'file_exists/1', 'directory_exists/1',
   'delete_file/1', 'rename_file/2', 'file_copy/2', 'delete_directory/1',
@@ -187,6 +191,7 @@ export const eyePrologPortableLibraryIndicators = Object.freeze([
   'transpose_ugraph/2', 'ugraph_union/3', 'vertices/2', 'vertices_edges_to_ugraph/3',
   'uuid/3', 'uuid_string/2', 'uuidv4/1', 'uuidv4_string/1',
   'when/2',
+  'json_chars/3',
 ]);
 export const eyePrologLibraryIndicators = Object.freeze([
   ...eyePrologPortableLibraryIndicators,
@@ -376,6 +381,7 @@ export function createEyePrologRegistry() {
   filesHostBuiltins.register(registry);
   difHostBuiltins.register(registry);
   formatHostBuiltins.register(registry);
+  httpHostBuiltins.register(registry);
   isoExtHostBuiltins.register(registry);
   listsHostBuiltins.register(registry);
   eyeletHostBuiltins.register(registry);

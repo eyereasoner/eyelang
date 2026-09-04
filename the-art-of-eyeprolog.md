@@ -17,7 +17,7 @@ the two.
 This book is also the reference for the EyeProlog implementation. EyeProlog is a
 standards-based reasoning system: programs use the documented and tested ISO
 Prolog profile.
-Chapters 38–40 define the supported ISO Prolog profile, predicate surface, libraries, and execution interface. Chapter 39 describes every supported built-in and library predicate, with compact contracts for all **523 distinct predicate indicators** in the normal EyeProlog surface; Chapter 40 documents command-line execution. The explanatory chapters give the reasoning and operational context needed to use those details correctly.
+Chapters 38–40 define the supported ISO Prolog profile, predicate surface, libraries, and execution interface. Chapter 39 describes every supported built-in and library predicate, with compact contracts for all **532 distinct predicate indicators** in the normal EyeProlog surface; Chapter 40 documents command-line execution. The explanatory chapters give the reasoning and operational context needed to use those details correctly.
 
 Its subject is not syntax alone. A logic program has two inseparable aspects:
 the relation described by its clauses and the procedure induced when goals are
@@ -5989,7 +5989,7 @@ Queries for predicates with no group follow the known groups.
 
 ## 39. Predicate reference
 
-EyeProlog's normal predicate surface has two layers: **129 core registry indicators** and **394 distinct non-ISO library or normal-extension indicators**. Because `phrase/2` and `phrase/3` occur in both layers, their union contains **523 distinct predicate indicators**.
+EyeProlog's normal predicate surface has two layers: **129 core registry indicators** and **403 distinct non-ISO library or normal-extension indicators**. Because `phrase/2` and `phrase/3` occur in both layers, their union contains **532 distinct predicate indicators**.
 
 Core predicates are available without a library import. Bundled libraries add reusable relations for collections, constraints, graphs, text, time, cryptography, files, and other domains. Interoperability notes identify the subset shared with Trealla and Scryer, and the complete alphabetical reference gives one compact contract for every indicator.
 
@@ -6362,12 +6362,12 @@ boundary remains visible.
 
 ### Bundled libraries
 
-EyeProlog exposes **394 distinct non-ISO library and normal-extension predicate
+EyeProlog exposes **403 distinct non-ISO library and normal-extension predicate
 indicators** in addition to the 129 indicators in its isolated ISO profile.
-**280 are defined entirely as ordinary Prolog clauses** in focused modules under
-`src/lib/`; **114 use host support** for control, attributed variables,
+**281 are defined entirely as ordinary Prolog clauses** in focused modules under
+`src/lib/`; **122 use host support** for control, attributed variables,
 constraints, character conversion, filesystem/OS access, timing, cryptography,
-or observability. The ISO and library catalogs therefore cover **523 distinct predicate indicators**. A normal-runtime predicate that is intentionally
+or observability. The ISO and library catalogs therefore cover **532 distinct predicate indicators**. A normal-runtime predicate that is intentionally
 re-exported by a compatibility module is counted once in this library surface:
 for example `call_cleanup/2` and `setup_call_cleanup/3` are exported by
 `library(iso_ext)`, while `time/1` and `statistics/2` are available from
@@ -6380,8 +6380,8 @@ The sources are `src/lib/aggregate.pl`, `src/lib/arithmetic.pl`,
 `src/lib/charsio.pl`, `src/lib/clpb.pl`, `src/lib/clpz.pl`,
 `src/lib/comparison.pl`, `src/lib/crypto.pl`, `src/lib/dates.pl`, `src/lib/dcgs.pl`,
 `src/lib/debug.pl`, `src/lib/dif.pl`, `src/lib/error.pl`,
-`src/lib/eyelet.pl`, `src/lib/files.pl`, `src/lib/format.pl`,
-`src/lib/freeze.pl`, `src/lib/gensym.pl`, `src/lib/iso_ext.pl`,
+`src/lib/eyelet.pl`, `src/lib/files.pl`, `src/lib/format.pl`, `src/lib/http.pl`,
+`src/lib/freeze.pl`, `src/lib/gensym.pl`, `src/lib/iso_ext.pl`, `src/lib/json.pl`,
 `src/lib/lambda.pl`, `src/lib/lists.pl`, `src/lib/ordsets.pl`,
 `src/lib/os.pl`, `src/lib/pairs.pl`, `src/lib/pio.pl`, `src/lib/primes.pl`,
 `src/lib/prologue.pl`, `src/lib/random.pl`, `src/lib/reif.pl`, `src/lib/si.pl`,
@@ -6447,12 +6447,16 @@ private helpers and same-named predicates in different modules separate.
   **Exports:** `delete_directory/1`, `delete_file/1`, `directory_exists/1`, `directory_files/2`, `file_access_time/2`, `file_copy/2`, `file_creation_time/2`, `file_exists/1`, `file_modification_time/2`, `file_size/2`, `make_directory/1`, `make_directory_path/1`, `path_canonical/2`, `path_segments/2`, `rename_file/2`, `working_directory/2`
 - **`library(format)`** — Formatted DCG text and output; `format_/4` and `portray_clause_/3` are the expanded nonterminals  
   **Exports:** `format_/4`, `format/2`, `format/3`, `listing/1`, `portray_clause_/3`, `portray_clause/1`, `portray_clause/2`
+- **`library(http)`** — Merged Scryer/Trealla HTTP(S) client helpers plus Trealla request/server predicates; Node-backed client I/O
+  **Exports:** `http_open/3`, `http_get/3`, `http_post/4`, `http_patch/4`, `http_put/4`, `http_delete/3`, `http_server/2`, `http_request/5`
 - **`library(freeze)`** — Delayed goals and residual suspension inspection  
   **Exports:** `freeze/2`, `frozen/2`
 - **`library(gensym)`** — Process-local generated atoms  
   **Exports:** `gensym/2`, `reset_gensym/1`
 - **`library(iso_ext)`** — Scryer ISO extensions plus EyeProlog compatibility helpers  
   **Exports:** `bb_b_put/2`, `bb_get/2`, `bb_put/2`, `call_cleanup/2`, `call_nth/2`, `call_residue_vars/2`, `call_with_inference_limit/3`, `cfor/3`, `copy_term/3`, `copy_term_nat/2`, `countall/2`, `findall/4`, `forall/2`, `partial_string/1`, `partial_string/3`, `partial_string_tail/2`, `setup_call_cleanup/3`, `succ/2`, `time/1`, `variant/2`
+- **`library(json)`** — Shared Scryer/Trealla bidirectional JSON DCG
+  **Exports:** `json_chars/3`
 - **`library(lambda)`** — Higher-order lambda notation  
   **Exports:** `^/3`, `^/4`, `^/5`, `^/6`, `^/7`, `^/8`, `^/9`, `^/10`, `\/1`, `\/2`, `\/3`, `\/4`, `\/5`, `\/6`, `\/7`, `\/8`, `+\/2`, `+\/3`, `+\/4`, `+\/5`, `+\/6`, `+\/7`, `+\/8`, `+\/9`
 - **`library(lists)`** — List relations and shared matrix/permutation helpers; `tasklist/*` is a sequential compatibility fallback  
@@ -6807,6 +6811,10 @@ library. Scryer uses `library(builtins)` as its fundamental system module, while
 Trealla's file is implementation support; EyeProlog keeps those procedures in
 the core registry instead of creating a second authority for them.
 
+`library(http)` combines the Scryer `http_open/3` option surface with Trealla's `http_get/3`, `http_post/4`, `http_patch/4`, `http_put/4`, `http_delete/3`, `http_server/2`, and `http_request/5`. HTTP and HTTPS client requests are performed by the module-owned Node adapter in `src/http-host.js`; response bodies are exposed as ordinary text streams for `http_open/3` and as complete character lists for the convenience predicates. The client follows redirects, supports Scryer request/response metadata options, Trealla `header(Name,Value)` request options, and Trealla's `host/path` address-list form. `http_request/5` parses a request line and headers from a stream. The compact `http_server/2` facade accepts one connection per call because EyeProlog does not provide Trealla's `fork` task primitive.
+
+`library(json)` is the BSD-licensed Scryer JSON DCG also distributed by Trealla. `json_chars//1` is bidirectional and represents JSON objects as `pairs/1`, arrays as `list/1`, strings as `string/1`, numbers as `number/1`, booleans as `boolean/1`, and JSON null as `null`. See `examples/json.pl` and `examples/http-client.pl`.
+
 `library(sockets)` follows Scryer's TCP stream interface. `socket_client_open/3`
 connects to `Host:Port`; `socket_server_open/2` accepts either a port or
 `Host:Port`, and an unbound port is unified with the selected ephemeral port.
@@ -7049,7 +7057,7 @@ the common stateful generator used by `uuidv4/1`.
 <!-- eyeprolog-predicate-reference:start -->
 ### Complete predicate indicator reference
 
-The normal EyeProlog surface contains **523 distinct predicate indicators**: 129 core registry indicators plus 396 bundled-library indicators, with `phrase/2` and `phrase/3` present in both layers and therefore counted once.
+The normal EyeProlog surface contains **532 distinct predicate indicators**: 129 core registry indicators plus 405 bundled-library indicators, with `phrase/2` and `phrase/3` present in both layers and therefore counted once.
 
 Each entry is a compact contract. `+` marks a principal input, `-` a principal output, and `?` an argument that may be supplied or produced. These are documented operating modes rather than parser-enforced mode declarations. **Solutions** uses `det`, `semidet`, `multi`, `nondet`, `delayed`, `meta`, `mode-dependent`, `declaration`, or `terminal`; `meta` means the solution behavior depends materially on a called goal.
 
@@ -7073,37 +7081,37 @@ Each indicator links directly to its contract.
 
 **G:** [`ge/2`](#predicate-reference-0230) · [`gen_assoc/3`](#predicate-reference-0231) · [`gen_int/1`](#predicate-reference-0232) · [`gen_nat/1`](#predicate-reference-0233) · [`gensym/2`](#predicate-reference-0234) · [`get_assoc/3`](#predicate-reference-0235) · [`get_assoc/5`](#predicate-reference-0236) · [`get_attr/3`](#predicate-reference-0237) · [`get_atts/2`](#predicate-reference-0238) · [`get_byte/1`](#predicate-reference-0239) · [`get_byte/2`](#predicate-reference-0240) · [`get_char/1`](#predicate-reference-0241) · [`get_char/2`](#predicate-reference-0242) · [`get_code/1`](#predicate-reference-0243) · [`get_code/2`](#predicate-reference-0244) · [`get_line_to_chars/3`](#predicate-reference-0245) · [`get_n_chars/3`](#predicate-reference-0246) · [`get_single_char/1`](#predicate-reference-0247) · [`getenv/2`](#predicate-reference-0248) · [`global_cardinality/2`](#predicate-reference-0249) · [`global_cardinality/3`](#predicate-reference-0250) · [`ground/1`](#predicate-reference-0251) · [`group_pairs_by_key/2`](#predicate-reference-0252) · [`gt/2`](#predicate-reference-0253)
 
-**H:** [`halt/0`](#predicate-reference-0254) · [`halt/1`](#predicate-reference-0255) · [`hex_bytes/2`](#predicate-reference-0256)
+**H:** [`halt/0`](#predicate-reference-0254) · [`halt/1`](#predicate-reference-0255) · [`hex_bytes/2`](#predicate-reference-0256) · [`http_delete/3`](#predicate-reference-0257) · [`http_get/3`](#predicate-reference-0258) · [`http_open/3`](#predicate-reference-0259) · [`http_patch/4`](#predicate-reference-0260) · [`http_post/4`](#predicate-reference-0261) · [`http_put/4`](#predicate-reference-0262) · [`http_request/5`](#predicate-reference-0263) · [`http_server/2`](#predicate-reference-0264)
 
-**I:** [`if_/3`](#predicate-reference-0257) · [`in/2`](#predicate-reference-0258) · [`include/3`](#predicate-reference-0259) · [`indomain/1`](#predicate-reference-0260) · [`ins/2`](#predicate-reference-0261) · [`instantiation_error/0`](#predicate-reference-0262) · [`instantiation_error/1`](#predicate-reference-0263) · [`integer_si/1`](#predicate-reference-0264) · [`integer/1`](#predicate-reference-0265) · [`intersection/3`](#predicate-reference-0266) · [`is_assoc/1`](#predicate-reference-0267) · [`is_ordset/1`](#predicate-reference-0268) · [`is_set/1`](#predicate-reference-0269) · [`is/2`](#predicate-reference-0270)
+**I:** [`if_/3`](#predicate-reference-0265) · [`in/2`](#predicate-reference-0266) · [`include/3`](#predicate-reference-0267) · [`indomain/1`](#predicate-reference-0268) · [`ins/2`](#predicate-reference-0269) · [`instantiation_error/0`](#predicate-reference-0270) · [`instantiation_error/1`](#predicate-reference-0271) · [`integer_si/1`](#predicate-reference-0272) · [`integer/1`](#predicate-reference-0273) · [`intersection/3`](#predicate-reference-0274) · [`is_assoc/1`](#predicate-reference-0275) · [`is_ordset/1`](#predicate-reference-0276) · [`is_set/1`](#predicate-reference-0277) · [`is/2`](#predicate-reference-0278)
 
-**J:** [`join/3`](#predicate-reference-0271)
+**J:** [`join/3`](#predicate-reference-0279) · [`json_chars/3`](#predicate-reference-0280)
 
-**K:** [`keysort/2`](#predicate-reference-0272)
+**K:** [`keysort/2`](#predicate-reference-0281)
 
-**L:** [`label/1`](#predicate-reference-0273) · [`labeling/1`](#predicate-reference-0274) · [`labeling/2`](#predicate-reference-0275) · [`last/2`](#predicate-reference-0276) · [`lcm/3`](#predicate-reference-0277) · [`le/2`](#predicate-reference-0278) · [`length/2`](#predicate-reference-0279) · [`lex_chain/1`](#predicate-reference-0280) · [`list_max/2`](#predicate-reference-0281) · [`list_min/2`](#predicate-reference-0282) · [`list_si/1`](#predicate-reference-0283) · [`list_to_assoc/2`](#predicate-reference-0284) · [`list_to_ord_set/2`](#predicate-reference-0285) · [`list_to_set/2`](#predicate-reference-0286) · [`listing/1`](#predicate-reference-0287) · [`lowercase/2`](#predicate-reference-0288) · [`lsb/2`](#predicate-reference-0289) · [`lt/2`](#predicate-reference-0290)
+**L:** [`label/1`](#predicate-reference-0282) · [`labeling/1`](#predicate-reference-0283) · [`labeling/2`](#predicate-reference-0284) · [`last/2`](#predicate-reference-0285) · [`lcm/3`](#predicate-reference-0286) · [`le/2`](#predicate-reference-0287) · [`length/2`](#predicate-reference-0288) · [`lex_chain/1`](#predicate-reference-0289) · [`list_max/2`](#predicate-reference-0290) · [`list_min/2`](#predicate-reference-0291) · [`list_si/1`](#predicate-reference-0292) · [`list_to_assoc/2`](#predicate-reference-0293) · [`list_to_ord_set/2`](#predicate-reference-0294) · [`list_to_set/2`](#predicate-reference-0295) · [`listing/1`](#predicate-reference-0296) · [`lowercase/2`](#predicate-reference-0297) · [`lsb/2`](#predicate-reference-0298) · [`lt/2`](#predicate-reference-0299)
 
-**M:** [`make_directory_path/1`](#predicate-reference-0291) · [`make_directory/1`](#predicate-reference-0292) · [`map_assoc/2`](#predicate-reference-0293) · [`map_assoc/3`](#predicate-reference-0294) · [`map_list_to_pairs/3`](#predicate-reference-0295) · [`maplist/2`](#predicate-reference-0296) · [`maplist/3`](#predicate-reference-0297) · [`maplist/4`](#predicate-reference-0298) · [`maplist/5`](#predicate-reference-0299) · [`maplist/6`](#predicate-reference-0300) · [`maplist/7`](#predicate-reference-0301) · [`maplist/8`](#predicate-reference-0302) · [`maplist/9`](#predicate-reference-0303) · [`matches/2`](#predicate-reference-0304) · [`matches/3`](#predicate-reference-0305) · [`max_assoc/3`](#predicate-reference-0306) · [`max_list/2`](#predicate-reference-0307) · [`max_sleep_time/1`](#predicate-reference-0308) · [`maybe/0`](#predicate-reference-0309) · [`maybe/1`](#predicate-reference-0310) · [`maybe/2`](#predicate-reference-0311) · [`member/2`](#predicate-reference-0312) · [`memberchk/2`](#predicate-reference-0313) · [`memberd_t/3`](#predicate-reference-0314) · [`min_assoc/3`](#predicate-reference-0315) · [`min_list/2`](#predicate-reference-0316) · [`msb/2`](#predicate-reference-0317) · [`must_be/2`](#predicate-reference-0318)
+**M:** [`make_directory_path/1`](#predicate-reference-0300) · [`make_directory/1`](#predicate-reference-0301) · [`map_assoc/2`](#predicate-reference-0302) · [`map_assoc/3`](#predicate-reference-0303) · [`map_list_to_pairs/3`](#predicate-reference-0304) · [`maplist/2`](#predicate-reference-0305) · [`maplist/3`](#predicate-reference-0306) · [`maplist/4`](#predicate-reference-0307) · [`maplist/5`](#predicate-reference-0308) · [`maplist/6`](#predicate-reference-0309) · [`maplist/7`](#predicate-reference-0310) · [`maplist/8`](#predicate-reference-0311) · [`maplist/9`](#predicate-reference-0312) · [`matches/2`](#predicate-reference-0313) · [`matches/3`](#predicate-reference-0314) · [`max_assoc/3`](#predicate-reference-0315) · [`max_list/2`](#predicate-reference-0316) · [`max_sleep_time/1`](#predicate-reference-0317) · [`maybe/0`](#predicate-reference-0318) · [`maybe/1`](#predicate-reference-0319) · [`maybe/2`](#predicate-reference-0320) · [`member/2`](#predicate-reference-0321) · [`memberchk/2`](#predicate-reference-0322) · [`memberd_t/3`](#predicate-reference-0323) · [`min_assoc/3`](#predicate-reference-0324) · [`min_list/2`](#predicate-reference-0325) · [`msb/2`](#predicate-reference-0326) · [`must_be/2`](#predicate-reference-0327)
 
-**N:** [`neighbors/3`](#predicate-reference-0319) · [`neighbours/3`](#predicate-reference-0320) · [`nl/0`](#predicate-reference-0321) · [`nl/1`](#predicate-reference-0322) · [`nodebug/1`](#predicate-reference-0323) · [`nonvar/1`](#predicate-reference-0324) · [`not_si/1`](#predicate-reference-0325) · [`nth0/3`](#predicate-reference-0326) · [`nth0/4`](#predicate-reference-0327) · [`nth1/3`](#predicate-reference-0328) · [`nth1/4`](#predicate-reference-0329) · [`number_chars/2`](#predicate-reference-0330) · [`number_codes/2`](#predicate-reference-0331) · [`number_string/2`](#predicate-reference-0332) · [`number_to_rational/2`](#predicate-reference-0333) · [`number_to_rational/3`](#predicate-reference-0334) · [`number/1`](#predicate-reference-0335) · [`numbervars/3`](#predicate-reference-0336) · [`numlist/2`](#predicate-reference-0337) · [`numlist/3`](#predicate-reference-0338) · [`nvalue/2`](#predicate-reference-0339)
+**N:** [`neighbors/3`](#predicate-reference-0328) · [`neighbours/3`](#predicate-reference-0329) · [`nl/0`](#predicate-reference-0330) · [`nl/1`](#predicate-reference-0331) · [`nodebug/1`](#predicate-reference-0332) · [`nonvar/1`](#predicate-reference-0333) · [`not_si/1`](#predicate-reference-0334) · [`nth0/3`](#predicate-reference-0335) · [`nth0/4`](#predicate-reference-0336) · [`nth1/3`](#predicate-reference-0337) · [`nth1/4`](#predicate-reference-0338) · [`number_chars/2`](#predicate-reference-0339) · [`number_codes/2`](#predicate-reference-0340) · [`number_string/2`](#predicate-reference-0341) · [`number_to_rational/2`](#predicate-reference-0342) · [`number_to_rational/3`](#predicate-reference-0343) · [`number/1`](#predicate-reference-0344) · [`numbervars/3`](#predicate-reference-0345) · [`numlist/2`](#predicate-reference-0346) · [`numlist/3`](#predicate-reference-0347) · [`nvalue/2`](#predicate-reference-0348)
 
-**O:** [`once/1`](#predicate-reference-0340) · [`op/3`](#predicate-reference-0341) · [`open/3`](#predicate-reference-0342) · [`open/4`](#predicate-reference-0343) · [`ord_add_element/3`](#predicate-reference-0344) · [`ord_del_element/3`](#predicate-reference-0345) · [`ord_disjoint/2`](#predicate-reference-0346) · [`ord_empty/1`](#predicate-reference-0347) · [`ord_intersect/2`](#predicate-reference-0348) · [`ord_intersect/3`](#predicate-reference-0349) · [`ord_intersection/2`](#predicate-reference-0350) · [`ord_intersection/3`](#predicate-reference-0351) · [`ord_intersection/4`](#predicate-reference-0352) · [`ord_list_to_assoc/2`](#predicate-reference-0353) · [`ord_memberchk/2`](#predicate-reference-0354) · [`ord_selectchk/3`](#predicate-reference-0355) · [`ord_seteq/2`](#predicate-reference-0356) · [`ord_subset/2`](#predicate-reference-0357) · [`ord_subtract/3`](#predicate-reference-0358) · [`ord_symdiff/3`](#predicate-reference-0359) · [`ord_union/2`](#predicate-reference-0360) · [`ord_union/3`](#predicate-reference-0361) · [`ord_union/4`](#predicate-reference-0362)
+**O:** [`once/1`](#predicate-reference-0349) · [`op/3`](#predicate-reference-0350) · [`open/3`](#predicate-reference-0351) · [`open/4`](#predicate-reference-0352) · [`ord_add_element/3`](#predicate-reference-0353) · [`ord_del_element/3`](#predicate-reference-0354) · [`ord_disjoint/2`](#predicate-reference-0355) · [`ord_empty/1`](#predicate-reference-0356) · [`ord_intersect/2`](#predicate-reference-0357) · [`ord_intersect/3`](#predicate-reference-0358) · [`ord_intersection/2`](#predicate-reference-0359) · [`ord_intersection/3`](#predicate-reference-0360) · [`ord_intersection/4`](#predicate-reference-0361) · [`ord_list_to_assoc/2`](#predicate-reference-0362) · [`ord_memberchk/2`](#predicate-reference-0363) · [`ord_selectchk/3`](#predicate-reference-0364) · [`ord_seteq/2`](#predicate-reference-0365) · [`ord_subset/2`](#predicate-reference-0366) · [`ord_subtract/3`](#predicate-reference-0367) · [`ord_symdiff/3`](#predicate-reference-0368) · [`ord_union/2`](#predicate-reference-0369) · [`ord_union/3`](#predicate-reference-0370) · [`ord_union/4`](#predicate-reference-0371)
 
-**P:** [`pairs_keys_values/3`](#predicate-reference-0363) · [`pairs_keys/2`](#predicate-reference-0364) · [`pairs_values/2`](#predicate-reference-0365) · [`partial_string_tail/2`](#predicate-reference-0366) · [`partial_string/1`](#predicate-reference-0367) · [`partial_string/3`](#predicate-reference-0368) · [`path_canonical/2`](#predicate-reference-0369) · [`path_segments/2`](#predicate-reference-0370) · [`peek_byte/1`](#predicate-reference-0371) · [`peek_byte/2`](#predicate-reference-0372) · [`peek_char/1`](#predicate-reference-0373) · [`peek_char/2`](#predicate-reference-0374) · [`peek_code/1`](#predicate-reference-0375) · [`peek_code/2`](#predicate-reference-0376) · [`permutation/2`](#predicate-reference-0377) · [`phrase_from_file/2`](#predicate-reference-0378) · [`phrase_from_file/3`](#predicate-reference-0379) · [`phrase_from_stream/2`](#predicate-reference-0380) · [`phrase_to_file/2`](#predicate-reference-0381) · [`phrase_to_file/3`](#predicate-reference-0382) · [`phrase_to_stream/2`](#predicate-reference-0383) · [`phrase/2`](#predicate-reference-0384) · [`phrase/3`](#predicate-reference-0385) · [`phrase/4`](#predicate-reference-0386) · [`phrase/5`](#predicate-reference-0387) · [`pid/1`](#predicate-reference-0388) · [`popcount/2`](#predicate-reference-0389) · [`portray_clause_/3`](#predicate-reference-0390) · [`portray_clause/1`](#predicate-reference-0391) · [`portray_clause/2`](#predicate-reference-0392) · [`put_assoc/4`](#predicate-reference-0393) · [`put_attr/3`](#predicate-reference-0394) · [`put_atts/2`](#predicate-reference-0395) · [`put_byte/1`](#predicate-reference-0396) · [`put_byte/2`](#predicate-reference-0397) · [`put_char/1`](#predicate-reference-0398) · [`put_char/2`](#predicate-reference-0399) · [`put_code/1`](#predicate-reference-0400) · [`put_code/2`](#predicate-reference-0401)
+**P:** [`pairs_keys_values/3`](#predicate-reference-0372) · [`pairs_keys/2`](#predicate-reference-0373) · [`pairs_values/2`](#predicate-reference-0374) · [`partial_string_tail/2`](#predicate-reference-0375) · [`partial_string/1`](#predicate-reference-0376) · [`partial_string/3`](#predicate-reference-0377) · [`path_canonical/2`](#predicate-reference-0378) · [`path_segments/2`](#predicate-reference-0379) · [`peek_byte/1`](#predicate-reference-0380) · [`peek_byte/2`](#predicate-reference-0381) · [`peek_char/1`](#predicate-reference-0382) · [`peek_char/2`](#predicate-reference-0383) · [`peek_code/1`](#predicate-reference-0384) · [`peek_code/2`](#predicate-reference-0385) · [`permutation/2`](#predicate-reference-0386) · [`phrase_from_file/2`](#predicate-reference-0387) · [`phrase_from_file/3`](#predicate-reference-0388) · [`phrase_from_stream/2`](#predicate-reference-0389) · [`phrase_to_file/2`](#predicate-reference-0390) · [`phrase_to_file/3`](#predicate-reference-0391) · [`phrase_to_stream/2`](#predicate-reference-0392) · [`phrase/2`](#predicate-reference-0393) · [`phrase/3`](#predicate-reference-0394) · [`phrase/4`](#predicate-reference-0395) · [`phrase/5`](#predicate-reference-0396) · [`pid/1`](#predicate-reference-0397) · [`popcount/2`](#predicate-reference-0398) · [`portray_clause_/3`](#predicate-reference-0399) · [`portray_clause/1`](#predicate-reference-0400) · [`portray_clause/2`](#predicate-reference-0401) · [`put_assoc/4`](#predicate-reference-0402) · [`put_attr/3`](#predicate-reference-0403) · [`put_atts/2`](#predicate-reference-0404) · [`put_byte/1`](#predicate-reference-0405) · [`put_byte/2`](#predicate-reference-0406) · [`put_char/1`](#predicate-reference-0407) · [`put_char/2`](#predicate-reference-0408) · [`put_code/1`](#predicate-reference-0409) · [`put_code/2`](#predicate-reference-0410)
 
-**R:** [`random_integer/3`](#predicate-reference-0402) · [`random_labeling/2`](#predicate-reference-0403) · [`random/1`](#predicate-reference-0404) · [`random/3`](#predicate-reference-0405) · [`rational_numerator_denominator/3`](#predicate-reference-0406) · [`raw_argv/1`](#predicate-reference-0407) · [`reachable/3`](#predicate-reference-0408) · [`read_from_chars/2`](#predicate-reference-0409) · [`read_term_from_chars/3`](#predicate-reference-0410) · [`read_term/2`](#predicate-reference-0411) · [`read_term/3`](#predicate-reference-0412) · [`read/1`](#predicate-reference-0413) · [`read/2`](#predicate-reference-0414) · [`rename_file/2`](#predicate-reference-0415) · [`repeat/0`](#predicate-reference-0416) · [`repeat/1`](#predicate-reference-0417) · [`replace/4`](#predicate-reference-0418) · [`representation_error/1`](#predicate-reference-0419) · [`reset_gensym/1`](#predicate-reference-0420) · [`resource_error/1`](#predicate-reference-0421) · [`resource_error/2`](#predicate-reference-0422) · [`retract/1`](#predicate-reference-0423) · [`retractall/1`](#predicate-reference-0424) · [`reverse/2`](#predicate-reference-0425)
+**R:** [`random_integer/3`](#predicate-reference-0411) · [`random_labeling/2`](#predicate-reference-0412) · [`random/1`](#predicate-reference-0413) · [`random/3`](#predicate-reference-0414) · [`rational_numerator_denominator/3`](#predicate-reference-0415) · [`raw_argv/1`](#predicate-reference-0416) · [`reachable/3`](#predicate-reference-0417) · [`read_from_chars/2`](#predicate-reference-0418) · [`read_term_from_chars/3`](#predicate-reference-0419) · [`read_term/2`](#predicate-reference-0420) · [`read_term/3`](#predicate-reference-0421) · [`read/1`](#predicate-reference-0422) · [`read/2`](#predicate-reference-0423) · [`rename_file/2`](#predicate-reference-0424) · [`repeat/0`](#predicate-reference-0425) · [`repeat/1`](#predicate-reference-0426) · [`replace/4`](#predicate-reference-0427) · [`representation_error/1`](#predicate-reference-0428) · [`reset_gensym/1`](#predicate-reference-0429) · [`resource_error/1`](#predicate-reference-0430) · [`resource_error/2`](#predicate-reference-0431) · [`retract/1`](#predicate-reference-0432) · [`retractall/1`](#predicate-reference-0433) · [`reverse/2`](#predicate-reference-0434)
 
-**S:** [`same_length/2`](#predicate-reference-0426) · [`sat_count/2`](#predicate-reference-0427) · [`sat/1`](#predicate-reference-0428) · [`scalar_product/4`](#predicate-reference-0429) · [`select/3`](#predicate-reference-0430) · [`selectchk/3`](#predicate-reference-0431) · [`seq/3`](#predicate-reference-0432) · [`seqq/3`](#predicate-reference-0433) · [`serialized/2`](#predicate-reference-0434) · [`set_input/1`](#predicate-reference-0435) · [`set_nth0/4`](#predicate-reference-0436) · [`set_output/1`](#predicate-reference-0437) · [`set_prolog_flag/2`](#predicate-reference-0438) · [`set_random/1`](#predicate-reference-0439) · [`set_stream_position/2`](#predicate-reference-0440) · [`setenv/2`](#predicate-reference-0441) · [`setof/3`](#predicate-reference-0442) · [`setup_call_cleanup/3`](#predicate-reference-0443) · [`shell/1`](#predicate-reference-0444) · [`shell/2`](#predicate-reference-0445) · [`sleep/1`](#predicate-reference-0446) · [`slice/4`](#predicate-reference-0447) · [`smallest_divisor_from/3`](#predicate-reference-0448) · [`socket_client_open/3`](#predicate-reference-0449) · [`socket_server_accept/4`](#predicate-reference-0450) · [`socket_server_close/1`](#predicate-reference-0451) · [`socket_server_open/2`](#predicate-reference-0452) · [`sort/2`](#predicate-reference-0453) · [`split/3`](#predicate-reference-0454) · [`stable/1`](#predicate-reference-0455) · [`start_tabling/2`](#predicate-reference-0456) · [`statistics/2`](#predicate-reference-0457) · [`stream_property/2`](#predicate-reference-0458) · [`string_concat/3`](#predicate-reference-0459) · [`sub_atom/5`](#predicate-reference-0460) · [`substring/4`](#predicate-reference-0461) · [`subsumes_term/2`](#predicate-reference-0462) · [`subtract/3`](#predicate-reference-0463) · [`succ/2`](#predicate-reference-0464) · [`sum_list/2`](#predicate-reference-0465) · [`sum/3`](#predicate-reference-0466) · [`sumall/3`](#predicate-reference-0467)
+**S:** [`same_length/2`](#predicate-reference-0435) · [`sat_count/2`](#predicate-reference-0436) · [`sat/1`](#predicate-reference-0437) · [`scalar_product/4`](#predicate-reference-0438) · [`select/3`](#predicate-reference-0439) · [`selectchk/3`](#predicate-reference-0440) · [`seq/3`](#predicate-reference-0441) · [`seqq/3`](#predicate-reference-0442) · [`serialized/2`](#predicate-reference-0443) · [`set_input/1`](#predicate-reference-0444) · [`set_nth0/4`](#predicate-reference-0445) · [`set_output/1`](#predicate-reference-0446) · [`set_prolog_flag/2`](#predicate-reference-0447) · [`set_random/1`](#predicate-reference-0448) · [`set_stream_position/2`](#predicate-reference-0449) · [`setenv/2`](#predicate-reference-0450) · [`setof/3`](#predicate-reference-0451) · [`setup_call_cleanup/3`](#predicate-reference-0452) · [`shell/1`](#predicate-reference-0453) · [`shell/2`](#predicate-reference-0454) · [`sleep/1`](#predicate-reference-0455) · [`slice/4`](#predicate-reference-0456) · [`smallest_divisor_from/3`](#predicate-reference-0457) · [`socket_client_open/3`](#predicate-reference-0458) · [`socket_server_accept/4`](#predicate-reference-0459) · [`socket_server_close/1`](#predicate-reference-0460) · [`socket_server_open/2`](#predicate-reference-0461) · [`sort/2`](#predicate-reference-0462) · [`split/3`](#predicate-reference-0463) · [`stable/1`](#predicate-reference-0464) · [`start_tabling/2`](#predicate-reference-0465) · [`statistics/2`](#predicate-reference-0466) · [`stream_property/2`](#predicate-reference-0467) · [`string_concat/3`](#predicate-reference-0468) · [`sub_atom/5`](#predicate-reference-0469) · [`substring/4`](#predicate-reference-0470) · [`subsumes_term/2`](#predicate-reference-0471) · [`subtract/3`](#predicate-reference-0472) · [`succ/2`](#predicate-reference-0473) · [`sum_list/2`](#predicate-reference-0474) · [`sum/3`](#predicate-reference-0475) · [`sumall/3`](#predicate-reference-0476)
 
-**T:** [`take/3`](#predicate-reference-0468) · [`tasklist/2`](#predicate-reference-0469) · [`tasklist/3`](#predicate-reference-0470) · [`tasklist/4`](#predicate-reference-0471) · [`tasklist/5`](#predicate-reference-0472) · [`tasklist/6`](#predicate-reference-0473) · [`tasklist/7`](#predicate-reference-0474) · [`tasklist/8`](#predicate-reference-0475) · [`taut/2`](#predicate-reference-0476) · [`term_attributed_variables/2`](#predicate-reference-0477) · [`term_si/1`](#predicate-reference-0478) · [`term_string/2`](#predicate-reference-0479) · [`term_variables/2`](#predicate-reference-0480) · [`tfilter/3`](#predicate-reference-0481) · [`throw/1`](#predicate-reference-0482) · [`time/1`](#predicate-reference-0483) · [`tmember_t/3`](#predicate-reference-0484) · [`tmember/2`](#predicate-reference-0485) · [`top_sort/2`](#predicate-reference-0486) · [`top_sort/3`](#predicate-reference-0487) · [`tpartition/4`](#predicate-reference-0488) · [`transitive_closure/2`](#predicate-reference-0489) · [`transpose_ugraph/2`](#predicate-reference-0490) · [`transpose/2`](#predicate-reference-0491) · [`trim/2`](#predicate-reference-0492) · [`true/0`](#predicate-reference-0493) · [`tuples_in/2`](#predicate-reference-0494) · [`type_error/2`](#predicate-reference-0495) · [`type_error/3`](#predicate-reference-0496)
+**T:** [`take/3`](#predicate-reference-0477) · [`tasklist/2`](#predicate-reference-0478) · [`tasklist/3`](#predicate-reference-0479) · [`tasklist/4`](#predicate-reference-0480) · [`tasklist/5`](#predicate-reference-0481) · [`tasklist/6`](#predicate-reference-0482) · [`tasklist/7`](#predicate-reference-0483) · [`tasklist/8`](#predicate-reference-0484) · [`taut/2`](#predicate-reference-0485) · [`term_attributed_variables/2`](#predicate-reference-0486) · [`term_si/1`](#predicate-reference-0487) · [`term_string/2`](#predicate-reference-0488) · [`term_variables/2`](#predicate-reference-0489) · [`tfilter/3`](#predicate-reference-0490) · [`throw/1`](#predicate-reference-0491) · [`time/1`](#predicate-reference-0492) · [`tmember_t/3`](#predicate-reference-0493) · [`tmember/2`](#predicate-reference-0494) · [`top_sort/2`](#predicate-reference-0495) · [`top_sort/3`](#predicate-reference-0496) · [`tpartition/4`](#predicate-reference-0497) · [`transitive_closure/2`](#predicate-reference-0498) · [`transpose_ugraph/2`](#predicate-reference-0499) · [`transpose/2`](#predicate-reference-0500) · [`trim/2`](#predicate-reference-0501) · [`true/0`](#predicate-reference-0502) · [`tuples_in/2`](#predicate-reference-0503) · [`type_error/2`](#predicate-reference-0504) · [`type_error/3`](#predicate-reference-0505)
 
-**U:** [`ugraph_union/3`](#predicate-reference-0497) · [`unify_with_occurs_check/2`](#predicate-reference-0498) · [`union/3`](#predicate-reference-0499) · [`unsetenv/1`](#predicate-reference-0500) · [`uppercase/2`](#predicate-reference-0501) · [`uuid_string/2`](#predicate-reference-0502) · [`uuid/3`](#predicate-reference-0503) · [`uuidv4_string/1`](#predicate-reference-0504) · [`uuidv4/1`](#predicate-reference-0505)
+**U:** [`ugraph_union/3`](#predicate-reference-0506) · [`unify_with_occurs_check/2`](#predicate-reference-0507) · [`union/3`](#predicate-reference-0508) · [`unsetenv/1`](#predicate-reference-0509) · [`uppercase/2`](#predicate-reference-0510) · [`uuid_string/2`](#predicate-reference-0511) · [`uuid/3`](#predicate-reference-0512) · [`uuidv4_string/1`](#predicate-reference-0513) · [`uuidv4/1`](#predicate-reference-0514)
 
-**V:** [`var/1`](#predicate-reference-0506) · [`variant/2`](#predicate-reference-0507) · [`vertices_edges_to_ugraph/3`](#predicate-reference-0508) · [`vertices/2`](#predicate-reference-0509)
+**V:** [`var/1`](#predicate-reference-0515) · [`variant/2`](#predicate-reference-0516) · [`vertices_edges_to_ugraph/3`](#predicate-reference-0517) · [`vertices/2`](#predicate-reference-0518)
 
-**W:** [`weighted_maximum/3`](#predicate-reference-0510) · [`when_si/2`](#predicate-reference-0511) · [`when/2`](#predicate-reference-0512) · [`working_directory/2`](#predicate-reference-0513) · [`write_canonical/1`](#predicate-reference-0514) · [`write_canonical/2`](#predicate-reference-0515) · [`write_term_to_chars/3`](#predicate-reference-0516) · [`write_term/2`](#predicate-reference-0517) · [`write_term/3`](#predicate-reference-0518) · [`write/1`](#predicate-reference-0519) · [`write/2`](#predicate-reference-0520) · [`writeq/1`](#predicate-reference-0521) · [`writeq/2`](#predicate-reference-0522)
+**W:** [`weighted_maximum/3`](#predicate-reference-0519) · [`when_si/2`](#predicate-reference-0520) · [`when/2`](#predicate-reference-0521) · [`working_directory/2`](#predicate-reference-0522) · [`write_canonical/1`](#predicate-reference-0523) · [`write_canonical/2`](#predicate-reference-0524) · [`write_term_to_chars/3`](#predicate-reference-0525) · [`write_term/2`](#predicate-reference-0526) · [`write_term/3`](#predicate-reference-0527) · [`write/1`](#predicate-reference-0528) · [`write/2`](#predicate-reference-0529) · [`writeq/1`](#predicate-reference-0530) · [`writeq/2`](#predicate-reference-0531)
 
-**Z:** [`zcompare/3`](#predicate-reference-0523)
+**Z:** [`zcompare/3`](#predicate-reference-0532)
 
 #### Predicate reference — Symbols
 
@@ -8155,1116 +8163,1152 @@ Each indicator links directly to its contract.
 - **`hex_bytes/2`** — `library(crypto)` · **`mode-dependent`**  
   **Call:** `hex_bytes(?Hex,?Bytes)`  
   **Contract:** Relates hexadecimal character data to the corresponding byte list.
+<a id="predicate-reference-0257"></a>
+- **`http_delete/3`** — `library(http)` · **`semidet`**  
+  **Call:** `http_delete(+URL,-Body,+Options)`  
+  **Contract:** Performs an HTTP DELETE request, returning the UTF-8 response body and requested response metadata.
+<a id="predicate-reference-0258"></a>
+- **`http_get/3`** — `library(http)` · **`semidet`**  
+  **Call:** `http_get(+URL,-Body,+Options)`  
+  **Contract:** Performs an HTTP GET request, returning the UTF-8 response body and requested response metadata.
+<a id="predicate-reference-0259"></a>
+- **`http_open/3`** — `library(http)` · **`semidet`**  
+  **Call:** `http_open(+URL,-Stream,+Options)`  
+  **Contract:** Performs an HTTP or HTTPS request and returns a readable text stream for the response body with Scryer-compatible metadata options.
+<a id="predicate-reference-0260"></a>
+- **`http_patch/4`** — `library(http)` · **`semidet`**  
+  **Call:** `http_patch(+URL,+Data,-Body,+Options)`  
+  **Contract:** Performs an HTTP PATCH request with Data and returns the UTF-8 response body and requested metadata.
+<a id="predicate-reference-0261"></a>
+- **`http_post/4`** — `library(http)` · **`semidet`**  
+  **Call:** `http_post(+URL,+Data,-Body,+Options)`  
+  **Contract:** Performs an HTTP POST request with Data and returns the UTF-8 response body and requested metadata.
+<a id="predicate-reference-0262"></a>
+- **`http_put/4`** — `library(http)` · **`semidet`**  
+  **Call:** `http_put(+URL,+Data,-Body,+Options)`  
+  **Contract:** Performs an HTTP PUT request with Data and returns the UTF-8 response body and requested metadata.
+<a id="predicate-reference-0263"></a>
+- **`http_request/5`** — `library(http)` · **`semidet`**  
+  **Call:** `http_request(+Stream,-Method,-Path,-Version,-Headers)`  
+  **Contract:** Parses one HTTP request line and its headers from Stream into Trealla-compatible character-list fields.
+<a id="predicate-reference-0264"></a>
+- **`http_server/2`** — `library(http)` · **`meta`**  
+  **Call:** `http_server(+Handler,+Options)`  
+  **Contract:** Accepts one TCP connection and calls Handler with its stream using the requested server port.
 
 #### Predicate reference — I
 
-<a id="predicate-reference-0257"></a>
+<a id="predicate-reference-0265"></a>
 - **`if_/3`** — `library(reif)` · **`meta`**  
   **Call:** `if_(+Condition,+Then,+Else)`  
   **Contract:** Calls reified Condition and commits to Then when it yields true or Else when it yields false.
-<a id="predicate-reference-0258"></a>
+<a id="predicate-reference-0266"></a>
 - **`in/2`** — `library(clpz)` · **`delayed`**  
   **Call:** `in(?Left,?Right)`  
   **Contract:** Constrains one integer variable/expression to the supplied finite-domain expression.
-<a id="predicate-reference-0259"></a>
+<a id="predicate-reference-0267"></a>
 - **`include/3`** — `library(lists)` · **`meta`**  
   **Call:** `include(+Pred,+List,-Included)`  
   **Contract:** Keeps exactly the elements of List for which Pred succeeds, preserving order.
-<a id="predicate-reference-0260"></a>
+<a id="predicate-reference-0268"></a>
 - **`indomain/1`** — `library(clpz)` · **`nondet`**  
   **Call:** `indomain(+Var)`  
   **Contract:** Enumerates the finite-domain values currently permitted for Var.
-<a id="predicate-reference-0261"></a>
+<a id="predicate-reference-0269"></a>
 - **`ins/2`** — `library(clpz)` · **`delayed`**  
   **Call:** `ins(?Left,?Right)`  
   **Contract:** Constrains every variable in a list to the supplied finite-domain expression.
-<a id="predicate-reference-0262"></a>
+<a id="predicate-reference-0270"></a>
 - **`instantiation_error/0`** — `library(error)` · **`terminal`**  
   **Call:** `instantiation_error`  
   **Contract:** Raises error(instantiation_error,[]).
-<a id="predicate-reference-0263"></a>
+<a id="predicate-reference-0271"></a>
 - **`instantiation_error/1`** — `library(error)` · **`terminal`**  
   **Call:** `instantiation_error(+Context)`  
   **Contract:** Raises an instantiation error carrying Context.
-<a id="predicate-reference-0264"></a>
+<a id="predicate-reference-0272"></a>
 - **`integer_si/1`** — `library(si)` · **`semidet`**  
   **Call:** `integer_si(?Term)`  
   **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as integer by dependent constraint code.
-<a id="predicate-reference-0265"></a>
+<a id="predicate-reference-0273"></a>
 - **`integer/1`** — `ISO core` · **`semidet`**  
   **Call:** `integer(?Term)`  
   **Contract:** Succeeds iff Term is an integer.
-<a id="predicate-reference-0266"></a>
+<a id="predicate-reference-0274"></a>
 - **`intersection/3`** — `library(lists)` · **`det`**  
   **Call:** `intersection(+A,+B,-Intersection)`  
   **Contract:** Keeps elements of A that unify with some member of B, preserving A order.
-<a id="predicate-reference-0267"></a>
+<a id="predicate-reference-0275"></a>
 - **`is_assoc/1`** — `library(assoc)` · **`semidet`**  
   **Call:** `is_assoc(+Assoc)`  
   **Contract:** Succeeds iff Assoc is a valid association tree.
-<a id="predicate-reference-0268"></a>
+<a id="predicate-reference-0276"></a>
 - **`is_ordset/1`** — `library(ordsets)` · **`semidet`**  
   **Call:** `is_ordset(+Set)`  
   **Contract:** Succeeds iff Set is a proper strictly ordered duplicate-free list under standard term order.
-<a id="predicate-reference-0269"></a>
+<a id="predicate-reference-0277"></a>
 - **`is_set/1`** — `library(lists)` · **`semidet`**  
   **Call:** `is_set(+List)`  
   **Contract:** Succeeds iff List is proper and contains no duplicate terms under the library's set equality test.
-<a id="predicate-reference-0270"></a>
+<a id="predicate-reference-0278"></a>
 - **`is/2`** — `ISO core` · **`semidet`**  
   **Call:** `(?Result is +Expression)`  
   **Contract:** Evaluates the arithmetic Expression and unifies Result with the resulting number.
 
 #### Predicate reference — J
 
-<a id="predicate-reference-0271"></a>
+<a id="predicate-reference-0279"></a>
 - **`join/3`** — `library(strings)` · **`det`**  
   **Call:** `join(+Parts,+Separator,-Text)`  
   **Contract:** Joins lexical Parts with literal Separator to produce Text.
+<a id="predicate-reference-0280"></a>
+- **`json_chars/3`** — `library(json)` · **`nondet`**  
+  **Call:** `phrase(json_chars(?JSON),?Chars,?Rest)`  
+  **Contract:** Parses or generates JSON characters using pairs, list, string, number, boolean, and null wrapper terms.
 
 #### Predicate reference — K
 
-<a id="predicate-reference-0272"></a>
+<a id="predicate-reference-0281"></a>
 - **`keysort/2`** — `ISO core` · **`det`**  
   **Call:** `keysort(+Pairs,?Sorted)`  
   **Contract:** Stably sorts Key-Value pairs by key without removing duplicates.
 
 #### Predicate reference — L
 
-<a id="predicate-reference-0273"></a>
+<a id="predicate-reference-0282"></a>
 - **`label/1`** — `library(clpz)` · **`nondet`**  
   **Call:** `label(+Vars)`  
   **Contract:** Labels Vars using default CLP(Z) enumeration options.
-<a id="predicate-reference-0274"></a>
+<a id="predicate-reference-0283"></a>
 - **`labeling/1`** — `library(clpb)` · **`nondet`**  
   **Call:** `labeling(+BooleanVariables)`  
   **Contract:** Enumerates truth assignments for constrained Boolean variables.
-<a id="predicate-reference-0275"></a>
+<a id="predicate-reference-0284"></a>
 - **`labeling/2`** — `library(clpz)` · **`nondet`**  
   **Call:** `labeling(+Options,+Vars)`  
   **Contract:** Enumerates integer assignments satisfying posted constraints using the requested labeling Options.
-<a id="predicate-reference-0276"></a>
+<a id="predicate-reference-0285"></a>
 - **`last/2`** — `library(lists)` · **`semidet`**  
   **Call:** `last(+List,?Last)`  
   **Contract:** Relates Last to the final element of a nonempty proper list.
-<a id="predicate-reference-0277"></a>
+<a id="predicate-reference-0286"></a>
 - **`lcm/3`** — `library(arithmetic)` · **`det`**  
   **Call:** `lcm(+A,+B,-LCM)`  
   **Contract:** Computes the least common multiple of integers A and B.
-<a id="predicate-reference-0278"></a>
+<a id="predicate-reference-0287"></a>
 - **`le/2`** — `library(comparison)` · **`semidet`**  
   **Call:** `le(+A,+B)`  
   **Contract:** Succeeds iff A is less than or equal to B under the library's portable comparison rules.
-<a id="predicate-reference-0279"></a>
+<a id="predicate-reference-0288"></a>
 - **`length/2`** — `library(lists)` · **`nondet`**  
   **Call:** `length(?List,?Length)`  
   **Contract:** Relates a list skeleton to its nonnegative length; with both arguments variable it enumerates increasing finite lengths.
-<a id="predicate-reference-0280"></a>
+<a id="predicate-reference-0289"></a>
 - **`lex_chain/1`** — `library(clpz)` · **`delayed`**  
   **Call:** `lex_chain(+Lists)`  
   **Contract:** Constrains successive lists to be lexicographically nondecreasing.
-<a id="predicate-reference-0281"></a>
+<a id="predicate-reference-0290"></a>
 - **`list_max/2`** — `library(lists)` · **`semidet`**  
   **Call:** `list_max(+List,-Max)`  
   **Contract:** Compatibility alias returning the greatest element of a nonempty list.
-<a id="predicate-reference-0282"></a>
+<a id="predicate-reference-0291"></a>
 - **`list_min/2`** — `library(lists)` · **`semidet`**  
   **Call:** `list_min(+List,-Min)`  
   **Contract:** Compatibility alias returning the least element of a nonempty list.
-<a id="predicate-reference-0283"></a>
+<a id="predicate-reference-0292"></a>
 - **`list_si/1`** — `library(si)` · **`semidet`**  
   **Call:** `list_si(?Term)`  
   **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as list by dependent constraint code.
-<a id="predicate-reference-0284"></a>
+<a id="predicate-reference-0293"></a>
 - **`list_to_assoc/2`** — `library(assoc)` · **`det`**  
   **Call:** `list_to_assoc(+Pairs,-Assoc)`  
   **Contract:** Builds an association tree from Key-Value pairs after key ordering/validation.
-<a id="predicate-reference-0285"></a>
+<a id="predicate-reference-0294"></a>
 - **`list_to_ord_set/2`** — `library(ordsets)` · **`det`**  
   **Call:** `list_to_ord_set(+List,-Set)`  
   **Contract:** Sorts List and removes duplicates to form an ordered set.
-<a id="predicate-reference-0286"></a>
+<a id="predicate-reference-0295"></a>
 - **`list_to_set/2`** — `library(lists)` · **`det`**  
   **Call:** `list_to_set(+List,-Set)`  
   **Contract:** Removes later structural duplicates while preserving first-occurrence order.
-<a id="predicate-reference-0287"></a>
+<a id="predicate-reference-0296"></a>
 - **`listing/1`** — `library(format)` · **`nondet`**  
   **Call:** `listing(+PredicateSpec)`  
   **Contract:** Writes accessible clauses selected by PredicateSpec in source-like form.
-<a id="predicate-reference-0288"></a>
+<a id="predicate-reference-0297"></a>
 - **`lowercase/2`** — `library(strings)` · **`det`**  
   **Call:** `lowercase(+Text,-Lower)`  
   **Contract:** Maps ASCII uppercase letters in Text to lowercase while preserving other characters.
-<a id="predicate-reference-0289"></a>
+<a id="predicate-reference-0298"></a>
 - **`lsb/2`** — `library(arithmetic)` · **`semidet`**  
   **Call:** `lsb(+Integer,-Index)`  
   **Contract:** Returns the zero-based index of the least significant set bit of a positive integer.
-<a id="predicate-reference-0290"></a>
+<a id="predicate-reference-0299"></a>
 - **`lt/2`** — `library(comparison)` · **`semidet`**  
   **Call:** `lt(+A,+B)`  
   **Contract:** Succeeds iff A is less than B under the library's portable comparison rules.
 
 #### Predicate reference — M
 
-<a id="predicate-reference-0291"></a>
+<a id="predicate-reference-0300"></a>
 - **`make_directory_path/1`** — `library(files)` · **`det`**  
   **Call:** `make_directory_path(+Path)`  
   **Contract:** Creates Path and any missing parent directories.
-<a id="predicate-reference-0292"></a>
+<a id="predicate-reference-0301"></a>
 - **`make_directory/1`** — `library(files)` · **`det`**  
   **Call:** `make_directory(+Path)`  
   **Contract:** Creates one directory at Path.
-<a id="predicate-reference-0293"></a>
+<a id="predicate-reference-0302"></a>
 - **`map_assoc/2`** — `library(assoc)` · **`meta`**  
   **Call:** `map_assoc(+Goal,+Assoc)`  
   **Contract:** Calls Goal for each value in Assoc in key order.
-<a id="predicate-reference-0294"></a>
+<a id="predicate-reference-0303"></a>
 - **`map_assoc/3`** — `library(assoc)` · **`meta`**  
   **Call:** `map_assoc(+Goal,+Assoc0,-Assoc)`  
   **Contract:** Maps Goal over corresponding values of Assoc0 to construct Assoc with the same keys.
-<a id="predicate-reference-0295"></a>
+<a id="predicate-reference-0304"></a>
 - **`map_list_to_pairs/3`** — `library(pairs)` · **`meta`**  
   **Call:** `map_list_to_pairs(+Goal,+List,-Pairs)`  
   **Contract:** Calls Goal(Element,Key) for each element and returns Key-Element pairs in input order.
-<a id="predicate-reference-0296"></a>
+<a id="predicate-reference-0305"></a>
 - **`maplist/2`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1)`  
   **Contract:** Calls Goal pointwise over 1 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0297"></a>
+<a id="predicate-reference-0306"></a>
 - **`maplist/3`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1,?List2)`  
   **Contract:** Calls Goal pointwise over 2 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0298"></a>
+<a id="predicate-reference-0307"></a>
 - **`maplist/4`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1,?List2,?List3)`  
   **Contract:** Calls Goal pointwise over 3 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0299"></a>
+<a id="predicate-reference-0308"></a>
 - **`maplist/5`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4)`  
   **Contract:** Calls Goal pointwise over 4 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0300"></a>
+<a id="predicate-reference-0309"></a>
 - **`maplist/6`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5)`  
   **Contract:** Calls Goal pointwise over 5 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0301"></a>
+<a id="predicate-reference-0310"></a>
 - **`maplist/7`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6)`  
   **Contract:** Calls Goal pointwise over 6 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0302"></a>
+<a id="predicate-reference-0311"></a>
 - **`maplist/8`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7)`  
   **Contract:** Calls Goal pointwise over 7 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0303"></a>
+<a id="predicate-reference-0312"></a>
 - **`maplist/9`** — `library(lists)` · **`meta`**  
   **Call:** `maplist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7,?List8)`  
   **Contract:** Calls Goal pointwise over 8 list(s); all lists must end together and Goal receives the corresponding elements.
-<a id="predicate-reference-0304"></a>
+<a id="predicate-reference-0313"></a>
 - **`matches/2`** — `library(strings)` · **`semidet`**  
   **Call:** `matches(+Text,+Pattern)`  
   **Contract:** Succeeds iff Text matches the library's portable pattern language described by Pattern.
-<a id="predicate-reference-0305"></a>
+<a id="predicate-reference-0314"></a>
 - **`matches/3`** — `library(strings)` · **`semidet`**  
   **Call:** `matches(+Text,+Pattern,-Context)`  
   **Contract:** Matches Text against the portable pattern language and returns named-capture Context.
-<a id="predicate-reference-0306"></a>
+<a id="predicate-reference-0315"></a>
 - **`max_assoc/3`** — `library(assoc)` · **`semidet`**  
   **Call:** `max_assoc(+Assoc,?Key,?Value)`  
   **Contract:** Relates Key and Value to the greatest-key entry; fails for an empty association.
-<a id="predicate-reference-0307"></a>
+<a id="predicate-reference-0316"></a>
 - **`max_list/2`** — `library(lists)` · **`semidet`**  
   **Call:** `max_list(+List,-Max)`  
   **Contract:** Returns the greatest element of a nonempty list under EyeProlog term order.
-<a id="predicate-reference-0308"></a>
+<a id="predicate-reference-0317"></a>
 - **`max_sleep_time/1`** — `library(time)` · **`det`**  
   **Call:** `max_sleep_time(-Seconds)`  
   **Contract:** Returns the implementation maximum supported sleep interval in seconds.
-<a id="predicate-reference-0309"></a>
+<a id="predicate-reference-0318"></a>
 - **`maybe/0`** — `library(random)` · **`semidet`**  
   **Call:** `maybe`  
   **Contract:** Succeeds with probability approximately 1/2 using the current pseudo-random generator state.
-<a id="predicate-reference-0310"></a>
+<a id="predicate-reference-0319"></a>
 - **`maybe/1`** — `library(random)` · **`semidet`**  
   **Call:** `maybe(+Probability)`  
   **Contract:** Succeeds with the supplied probability in the unit interval using the current pseudo-random state.
-<a id="predicate-reference-0311"></a>
+<a id="predicate-reference-0320"></a>
 - **`maybe/2`** — `library(random)` · **`semidet`**  
   **Call:** `maybe(+K,+N)`  
   **Contract:** Succeeds with probability K/N using the current pseudo-random state.
-<a id="predicate-reference-0312"></a>
+<a id="predicate-reference-0321"></a>
 - **`member/2`** — `library(lists)` · **`nondet`**  
   **Call:** `member(?Item,+List)`  
   **Contract:** Succeeds once for each list position whose element unifies with Item, preserving list order.
-<a id="predicate-reference-0313"></a>
+<a id="predicate-reference-0322"></a>
 - **`memberchk/2`** — `library(lists)` · **`semidet`**  
   **Call:** `memberchk(?Item,+List)`  
   **Contract:** Succeeds for the first member of List that unifies with Item and commits to that match.
-<a id="predicate-reference-0314"></a>
+<a id="predicate-reference-0323"></a>
 - **`memberd_t/3`** — `library(reif)` · **`delayed`**  
   **Call:** `memberd_t(?Item,+List,?Truth)`  
   **Contract:** Reifies membership of Item in List into Boolean Truth using dif/3-aware comparison.
-<a id="predicate-reference-0315"></a>
+<a id="predicate-reference-0324"></a>
 - **`min_assoc/3`** — `library(assoc)` · **`semidet`**  
   **Call:** `min_assoc(+Assoc,?Key,?Value)`  
   **Contract:** Relates Key and Value to the least-key entry; fails for an empty association.
-<a id="predicate-reference-0316"></a>
+<a id="predicate-reference-0325"></a>
 - **`min_list/2`** — `library(lists)` · **`semidet`**  
   **Call:** `min_list(+List,-Min)`  
   **Contract:** Returns the least element of a nonempty list under EyeProlog term order.
-<a id="predicate-reference-0317"></a>
+<a id="predicate-reference-0326"></a>
 - **`msb/2`** — `library(arithmetic)` · **`semidet`**  
   **Call:** `msb(+Integer,-Index)`  
   **Contract:** Returns the zero-based index of the most significant set bit of a positive integer.
-<a id="predicate-reference-0318"></a>
+<a id="predicate-reference-0327"></a>
 - **`must_be/2`** — `library(error)` · **`semidet`**  
   **Call:** `must_be(+Type,+Term)`  
   **Contract:** Succeeds when Term is instantiated and satisfies Type; otherwise raises the corresponding instantiation or type/domain error.
 
 #### Predicate reference — N
 
-<a id="predicate-reference-0319"></a>
+<a id="predicate-reference-0328"></a>
 - **`neighbors/3`** — `library(ugraphs)` · **`semidet`**  
   **Call:** `neighbors(+Vertex,+Graph,?Neighbors)`  
   **Contract:** Relates Vertex to its outgoing neighbor list in Graph.
-<a id="predicate-reference-0320"></a>
+<a id="predicate-reference-0329"></a>
 - **`neighbours/3`** — `library(ugraphs)` · **`semidet`**  
   **Call:** `neighbours(+Vertex,+Graph,?Neighbors)`  
   **Contract:** British-spelling alias of neighbors/3.
-<a id="predicate-reference-0321"></a>
+<a id="predicate-reference-0330"></a>
 - **`nl/0`** — `ISO core` · **`det`**  
   **Call:** `nl`  
   **Contract:** Writes one newline to the current output stream.
-<a id="predicate-reference-0322"></a>
+<a id="predicate-reference-0331"></a>
 - **`nl/1`** — `ISO core` · **`det`**  
   **Call:** `nl(+Stream)`  
   **Contract:** Writes one newline to Stream.
-<a id="predicate-reference-0323"></a>
+<a id="predicate-reference-0332"></a>
 - **`nodebug/1`** — `library(debug)` · **`det`**  
   **Call:** `nodebug(+Topic)`  
   **Contract:** Disables debugging messages for Topic.
-<a id="predicate-reference-0324"></a>
+<a id="predicate-reference-0333"></a>
 - **`nonvar/1`** — `ISO core` · **`semidet`**  
   **Call:** `nonvar(?Term)`  
   **Contract:** Succeeds iff Term is not an unbound variable.
-<a id="predicate-reference-0325"></a>
+<a id="predicate-reference-0334"></a>
 - **`not_si/1`** — `library(si)` · **`semidet`**  
   **Call:** `not_si(+Goal)`  
   **Contract:** Performs sufficient-instantiation-aware negation for the SI compatibility layer.
-<a id="predicate-reference-0326"></a>
+<a id="predicate-reference-0335"></a>
 - **`nth0/3`** — `library(lists)` · **`nondet`**  
   **Call:** `nth0(?Index,+List,?Item)`  
   **Contract:** Relates zero-based Index to Item at that position in List.
-<a id="predicate-reference-0327"></a>
+<a id="predicate-reference-0336"></a>
 - **`nth0/4`** — `library(lists)` · **`nondet`**  
   **Call:** `nth0(?Index,+List,?Item,?Rest)`  
   **Contract:** Relates zero-based Index and Item to List and the list Rest obtained by deleting that position.
-<a id="predicate-reference-0328"></a>
+<a id="predicate-reference-0337"></a>
 - **`nth1/3`** — `library(lists)` · **`nondet`**  
   **Call:** `nth1(?Index,+List,?Item)`  
   **Contract:** Relates one-based Index to Item at that position in List.
-<a id="predicate-reference-0329"></a>
+<a id="predicate-reference-0338"></a>
 - **`nth1/4`** — `library(lists)` · **`nondet`**  
   **Call:** `nth1(?Index,+List,?Item,?Rest)`  
   **Contract:** Relates one-based Index and Item to List and the list Rest obtained by deleting that position.
-<a id="predicate-reference-0330"></a>
+<a id="predicate-reference-0339"></a>
 - **`number_chars/2`** — `ISO core` · **`mode-dependent`**  
   **Call:** `number_chars(?Number,?Chars)`  
   **Contract:** Relates a finite number to its canonical character-list representation or parses such a list.
-<a id="predicate-reference-0331"></a>
+<a id="predicate-reference-0340"></a>
 - **`number_codes/2`** — `ISO core` · **`mode-dependent`**  
   **Call:** `number_codes(?Number,?Codes)`  
   **Contract:** Relates a finite number to its canonical character-code representation or parses such a list.
-<a id="predicate-reference-0332"></a>
+<a id="predicate-reference-0341"></a>
 - **`number_string/2`** — `library(strings)` · **`mode-dependent`**  
   **Call:** `number_string(?Number,?Text)`  
   **Contract:** Relates a number to atom/character-list text using the library lexical conversion rules.
-<a id="predicate-reference-0333"></a>
+<a id="predicate-reference-0342"></a>
 - **`number_to_rational/2`** — `library(arithmetic)` · **`det`**  
   **Call:** `number_to_rational(+Number,-Rational)`  
   **Contract:** Converts an EyeProlog number to the library rational representation, preserving integers exactly.
-<a id="predicate-reference-0334"></a>
+<a id="predicate-reference-0343"></a>
 - **`number_to_rational/3`** — `library(arithmetic)` · **`det`**  
   **Call:** `number_to_rational(+Number,-Numerator,-Denominator)`  
   **Contract:** Converts Number to a normalized numerator and positive denominator.
-<a id="predicate-reference-0335"></a>
+<a id="predicate-reference-0344"></a>
 - **`number/1`** — `ISO core` · **`semidet`**  
   **Call:** `number(?Term)`  
   **Contract:** Succeeds iff Term is an integer or float.
-<a id="predicate-reference-0336"></a>
+<a id="predicate-reference-0345"></a>
 - **`numbervars/3`** — `library(terms)` · **`det`**  
   **Call:** `numbervars(+Term,+Start,-End)`  
   **Contract:** Numbers unbound variables in Term using $VAR(N) terms beginning at Start and returns the next unused End index.
-<a id="predicate-reference-0337"></a>
+<a id="predicate-reference-0346"></a>
 - **`numlist/2`** — `library(between)` · **`det`**  
   **Call:** `numlist(+High,-List)`  
   **Contract:** Constructs the inclusive integer list from 1 through High, with the module's empty-range behavior.
-<a id="predicate-reference-0338"></a>
+<a id="predicate-reference-0347"></a>
 - **`numlist/3`** — `library(between)` · **`det`**  
   **Call:** `numlist(+Low,+High,-List)`  
   **Contract:** Constructs the inclusive ascending integer list from Low through High.
-<a id="predicate-reference-0339"></a>
+<a id="predicate-reference-0348"></a>
 - **`nvalue/2`** — `library(clpz)` · **`delayed`**  
   **Call:** `nvalue(?N,+Vars)`  
   **Contract:** Constrains N to the number of distinct values taken by Vars.
 
 #### Predicate reference — O
 
-<a id="predicate-reference-0340"></a>
+<a id="predicate-reference-0349"></a>
 - **`once/1`** — `ISO core` · **`semidet`**  
   **Call:** `once(+Goal)`  
   **Contract:** Runs Goal and returns at most its first solution.
-<a id="predicate-reference-0341"></a>
+<a id="predicate-reference-0350"></a>
 - **`op/3`** — `ISO core` · **`det`**  
   **Call:** `op(+Priority,+Specifier,+NameOrNames)`  
   **Contract:** Defines, replaces, or removes operator declarations in the current program.
-<a id="predicate-reference-0342"></a>
+<a id="predicate-reference-0351"></a>
 - **`open/3`** — `ISO core` · **`det`**  
   **Call:** `open(+SourceSink,+Mode,-Stream)`  
   **Contract:** Opens SourceSink in Mode and returns a stream handle.
-<a id="predicate-reference-0343"></a>
+<a id="predicate-reference-0352"></a>
 - **`open/4`** — `ISO core` · **`det`**  
   **Call:** `open(+SourceSink,+Mode,-Stream,+Options)`  
   **Contract:** Opens SourceSink in Mode with validated stream Options and returns a stream handle.
-<a id="predicate-reference-0344"></a>
+<a id="predicate-reference-0353"></a>
 - **`ord_add_element/3`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_add_element(+Set,+Element,-NewSet)`  
   **Contract:** Inserts Element into ordered Set if absent, preserving order.
-<a id="predicate-reference-0345"></a>
+<a id="predicate-reference-0354"></a>
 - **`ord_del_element/3`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_del_element(+Set,+Element,-NewSet)`  
   **Contract:** Removes Element from ordered Set if present, preserving order.
-<a id="predicate-reference-0346"></a>
+<a id="predicate-reference-0355"></a>
 - **`ord_disjoint/2`** — `library(ordsets)` · **`semidet`**  
   **Call:** `ord_disjoint(+A,+B)`  
   **Contract:** Succeeds iff ordered sets A and B have no common element.
-<a id="predicate-reference-0347"></a>
+<a id="predicate-reference-0356"></a>
 - **`ord_empty/1`** — `library(ordsets)` · **`semidet`**  
   **Call:** `ord_empty(?Set)`  
   **Contract:** Succeeds exactly when Set is the empty ordered set [].
-<a id="predicate-reference-0348"></a>
+<a id="predicate-reference-0357"></a>
 - **`ord_intersect/2`** — `library(ordsets)` · **`semidet`**  
   **Call:** `ord_intersect(+A,+B)`  
   **Contract:** Succeeds iff ordered sets A and B have a nonempty intersection.
-<a id="predicate-reference-0349"></a>
+<a id="predicate-reference-0358"></a>
 - **`ord_intersect/3`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_intersect(+A,+B,-Intersection)`  
   **Contract:** Computes the ordered-set intersection of A and B.
-<a id="predicate-reference-0350"></a>
+<a id="predicate-reference-0359"></a>
 - **`ord_intersection/2`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_intersection(+Sets,-Intersection)`  
   **Contract:** Computes the intersection of a list of ordered sets.
-<a id="predicate-reference-0351"></a>
+<a id="predicate-reference-0360"></a>
 - **`ord_intersection/3`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_intersection(+A,+B,-Intersection)`  
   **Contract:** Computes the ordered-set intersection of A and B.
-<a id="predicate-reference-0352"></a>
+<a id="predicate-reference-0361"></a>
 - **`ord_intersection/4`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_intersection(+A,+B,-Intersection,-Difference)`  
   **Contract:** Computes A intersect B and the elements of A outside B in one traversal.
-<a id="predicate-reference-0353"></a>
+<a id="predicate-reference-0362"></a>
 - **`ord_list_to_assoc/2`** — `library(assoc)` · **`det`**  
   **Call:** `ord_list_to_assoc(+Pairs,-Assoc)`  
   **Contract:** Builds an association tree from an already key-ordered pair list.
-<a id="predicate-reference-0354"></a>
+<a id="predicate-reference-0363"></a>
 - **`ord_memberchk/2`** — `library(ordsets)` · **`semidet`**  
   **Call:** `ord_memberchk(+Element,+Set)`  
   **Contract:** Tests Element membership using ordered-set comparison and early termination.
-<a id="predicate-reference-0355"></a>
+<a id="predicate-reference-0364"></a>
 - **`ord_selectchk/3`** — `library(ordsets)` · **`semidet`**  
   **Call:** `ord_selectchk(+Element,+Set,?Rest)`  
   **Contract:** Checks membership of Element in ordered Set and returns Rest with that element removed.
-<a id="predicate-reference-0356"></a>
+<a id="predicate-reference-0365"></a>
 - **`ord_seteq/2`** — `library(ordsets)` · **`semidet`**  
   **Call:** `ord_seteq(+A,+B)`  
   **Contract:** Succeeds iff ordered sets A and B contain exactly the same elements.
-<a id="predicate-reference-0357"></a>
+<a id="predicate-reference-0366"></a>
 - **`ord_subset/2`** — `library(ordsets)` · **`semidet`**  
   **Call:** `ord_subset(+Sub,+Super)`  
   **Contract:** Succeeds iff every element of ordered Sub is present in ordered Super.
-<a id="predicate-reference-0358"></a>
+<a id="predicate-reference-0367"></a>
 - **`ord_subtract/3`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_subtract(+Set,+Delete,-Remaining)`  
   **Contract:** Computes ordered Set minus every element of ordered Delete.
-<a id="predicate-reference-0359"></a>
+<a id="predicate-reference-0368"></a>
 - **`ord_symdiff/3`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_symdiff(+A,+B,-Difference)`  
   **Contract:** Computes the symmetric difference of ordered sets A and B.
-<a id="predicate-reference-0360"></a>
+<a id="predicate-reference-0369"></a>
 - **`ord_union/2`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_union(+Sets,-Union)`  
   **Contract:** Computes the union of a list of ordered sets.
-<a id="predicate-reference-0361"></a>
+<a id="predicate-reference-0370"></a>
 - **`ord_union/3`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_union(+A,+B,-Union)`  
   **Contract:** Computes the ordered-set union of A and B.
-<a id="predicate-reference-0362"></a>
+<a id="predicate-reference-0371"></a>
 - **`ord_union/4`** — `library(ordsets)` · **`det`**  
   **Call:** `ord_union(+A,+B,-Union,-New)`  
   **Contract:** Computes Union and the elements contributed by one side according to the library's four-argument contract.
 
 #### Predicate reference — P
 
-<a id="predicate-reference-0363"></a>
+<a id="predicate-reference-0372"></a>
 - **`pairs_keys_values/3`** — `library(pairs)` · **`mode-dependent`**  
   **Call:** `pairs_keys_values(?Pairs,?Keys,?Values)`  
   **Contract:** Relates a list of Key-Value pairs to the corresponding Keys and Values lists.
-<a id="predicate-reference-0364"></a>
+<a id="predicate-reference-0373"></a>
 - **`pairs_keys/2`** — `library(pairs)` · **`det`**  
   **Call:** `pairs_keys(+Pairs,-Keys)`  
   **Contract:** Projects the keys of Pairs in order.
-<a id="predicate-reference-0365"></a>
+<a id="predicate-reference-0374"></a>
 - **`pairs_values/2`** — `library(pairs)` · **`det`**  
   **Call:** `pairs_values(+Pairs,-Values)`  
   **Contract:** Projects the values of Pairs in order.
-<a id="predicate-reference-0366"></a>
+<a id="predicate-reference-0375"></a>
 - **`partial_string_tail/2`** — `library(iso_ext)` · **`semidet`**  
   **Call:** `partial_string_tail(+Term,?Tail)`  
   **Contract:** Relates a partial string to its open tail.
-<a id="predicate-reference-0367"></a>
+<a id="predicate-reference-0376"></a>
 - **`partial_string/1`** — `library(iso_ext)` · **`semidet`**  
   **Call:** `partial_string(?Term)`  
   **Contract:** Succeeds iff Term has the library's partial-string/list representation.
-<a id="predicate-reference-0368"></a>
+<a id="predicate-reference-0377"></a>
 - **`partial_string/3`** — `library(iso_ext)` · **`mode-dependent`**  
   **Call:** `partial_string(?Term,?Chars,?Tail)`  
   **Contract:** Relates a partial-string term to its character prefix Chars and open Tail.
-<a id="predicate-reference-0369"></a>
+<a id="predicate-reference-0378"></a>
 - **`path_canonical/2`** — `library(files)` · **`det`**  
   **Call:** `path_canonical(+Path,-Canonical)`  
   **Contract:** Returns the canonicalized host path corresponding to Path.
-<a id="predicate-reference-0370"></a>
+<a id="predicate-reference-0379"></a>
 - **`path_segments/2`** — `library(files)` · **`mode-dependent`**  
   **Call:** `path_segments(?Path,?Segments)`  
   **Contract:** Relates a filesystem path to its component segments.
-<a id="predicate-reference-0371"></a>
+<a id="predicate-reference-0380"></a>
 - **`peek_byte/1`** — `ISO core` · **`det`**  
   **Call:** `peek_byte(?Byte)`  
   **Contract:** Observes the next byte on the current binary input stream without consuming it.
-<a id="predicate-reference-0372"></a>
+<a id="predicate-reference-0381"></a>
 - **`peek_byte/2`** — `ISO core` · **`det`**  
   **Call:** `peek_byte(+Stream,?Byte)`  
   **Contract:** Observes the next byte on Stream without consuming it.
-<a id="predicate-reference-0373"></a>
+<a id="predicate-reference-0382"></a>
 - **`peek_char/1`** — `ISO core` · **`det`**  
   **Call:** `peek_char(?Char)`  
   **Contract:** Observes the next character on the current input stream without consuming it.
-<a id="predicate-reference-0374"></a>
+<a id="predicate-reference-0383"></a>
 - **`peek_char/2`** — `ISO core` · **`det`**  
   **Call:** `peek_char(+Stream,?Char)`  
   **Contract:** Observes the next character on Stream without consuming it.
-<a id="predicate-reference-0375"></a>
+<a id="predicate-reference-0384"></a>
 - **`peek_code/1`** — `ISO core` · **`det`**  
   **Call:** `peek_code(?Code)`  
   **Contract:** Observes the next character code on the current input stream without consuming it.
-<a id="predicate-reference-0376"></a>
+<a id="predicate-reference-0385"></a>
 - **`peek_code/2`** — `ISO core` · **`det`**  
   **Call:** `peek_code(+Stream,?Code)`  
   **Contract:** Observes the next character code on Stream without consuming it.
-<a id="predicate-reference-0377"></a>
+<a id="predicate-reference-0386"></a>
 - **`permutation/2`** — `library(lists)` · **`nondet`**  
   **Call:** `permutation(?List,?Permutation)`  
   **Contract:** Relates two proper lists that are permutations of one another, enumerating permutations in select/3 order.
-<a id="predicate-reference-0378"></a>
+<a id="predicate-reference-0387"></a>
 - **`phrase_from_file/2`** — `library(pio)` · **`semidet`**  
   **Call:** `phrase_from_file(+Grammar,+Path)`  
   **Contract:** Reads Path as characters and succeeds iff Grammar consumes the complete content.
-<a id="predicate-reference-0379"></a>
+<a id="predicate-reference-0388"></a>
 - **`phrase_from_file/3`** — `library(pio)` · **`semidet`**  
   **Call:** `phrase_from_file(+Grammar,+Path,+Options)`  
   **Contract:** Reads Path with Options and succeeds iff Grammar consumes the complete content.
-<a id="predicate-reference-0380"></a>
+<a id="predicate-reference-0389"></a>
 - **`phrase_from_stream/2`** — `library(pio)` · **`semidet`**  
   **Call:** `phrase_from_stream(+Grammar,+Stream)`  
   **Contract:** Reads Stream as characters and succeeds iff Grammar consumes the complete content.
-<a id="predicate-reference-0381"></a>
+<a id="predicate-reference-0390"></a>
 - **`phrase_to_file/2`** — `library(pio)` · **`semidet`**  
   **Call:** `phrase_to_file(+Grammar,+Path)`  
   **Contract:** Generates characters with Grammar and writes them to Path.
-<a id="predicate-reference-0382"></a>
+<a id="predicate-reference-0391"></a>
 - **`phrase_to_file/3`** — `library(pio)` · **`semidet`**  
   **Call:** `phrase_to_file(+Grammar,+Path,+Options)`  
   **Contract:** Generates characters with Grammar and writes them to Path according to Options.
-<a id="predicate-reference-0383"></a>
+<a id="predicate-reference-0392"></a>
 - **`phrase_to_stream/2`** — `library(pio)` · **`semidet`**  
   **Call:** `phrase_to_stream(+Grammar,+Stream)`  
   **Contract:** Generates characters with Grammar and writes them to Stream.
-<a id="predicate-reference-0384"></a>
+<a id="predicate-reference-0393"></a>
 - **`phrase/2`** — `ISO core + library(dcgs)` · **`mode-dependent`**  
   **Call:** `phrase(+Body,?Sequence)`  
   **Contract:** Runs a DCG Body over Sequence and requires complete consumption.
-<a id="predicate-reference-0385"></a>
+<a id="predicate-reference-0394"></a>
 - **`phrase/3`** — `ISO core + library(dcgs)` · **`mode-dependent`**  
   **Call:** `phrase(+Body,?Sequence,?Rest)`  
   **Contract:** Runs a DCG Body over Sequence and relates Rest to the unconsumed suffix.
-<a id="predicate-reference-0386"></a>
+<a id="predicate-reference-0395"></a>
 - **`phrase/4`** — `library(dcgs)` · **`mode-dependent`**  
   **Call:** `phrase(+Body,?S0,?S,?A1)`  
   **Contract:** Calls the parameterized DCG Body with one additional argument and the difference-list pair S0,S.
-<a id="predicate-reference-0387"></a>
+<a id="predicate-reference-0396"></a>
 - **`phrase/5`** — `library(dcgs)` · **`mode-dependent`**  
   **Call:** `phrase(+Body,?S0,?S,?A1,?A2)`  
   **Contract:** Calls the parameterized DCG Body with two additional arguments and the difference-list pair S0,S.
-<a id="predicate-reference-0388"></a>
+<a id="predicate-reference-0397"></a>
 - **`pid/1`** — `library(os)` · **`det`**  
   **Call:** `pid(-Pid)`  
   **Contract:** Returns the host process identifier.
-<a id="predicate-reference-0389"></a>
+<a id="predicate-reference-0398"></a>
 - **`popcount/2`** — `library(arithmetic)` · **`det`**  
   **Call:** `popcount(+Integer,-Count)`  
   **Contract:** Counts the set bits in the nonnegative integer representation.
-<a id="predicate-reference-0390"></a>
+<a id="predicate-reference-0399"></a>
 - **`portray_clause_/3`** — `library(format)` · **`det`**  
   **Call:** `portray_clause_(+Clause,?S0,?S)`  
   **Contract:** Expanded DCG form of portray_clause_//1 producing clause text between S0 and S.
-<a id="predicate-reference-0391"></a>
+<a id="predicate-reference-0400"></a>
 - **`portray_clause/1`** — `library(format)` · **`det`**  
   **Call:** `portray_clause(+Clause)`  
   **Contract:** Writes Clause in readable clause-oriented layout to the current output stream.
-<a id="predicate-reference-0392"></a>
+<a id="predicate-reference-0401"></a>
 - **`portray_clause/2`** — `library(format)` · **`det`**  
   **Call:** `portray_clause(+Stream,+Clause)`  
   **Contract:** Writes Clause in readable clause-oriented layout to Stream.
-<a id="predicate-reference-0393"></a>
+<a id="predicate-reference-0402"></a>
 - **`put_assoc/4`** — `library(assoc)` · **`det`**  
   **Call:** `put_assoc(+Key,+Assoc0,+Value,-Assoc)`  
   **Contract:** Returns Assoc equal to Assoc0 with Key inserted or replaced by Value.
-<a id="predicate-reference-0394"></a>
+<a id="predicate-reference-0403"></a>
 - **`put_attr/3`** — `library(atts)` · **`det`**  
   **Call:** `put_attr(+Var,+Module,+Value)`  
   **Contract:** Sets Module's attribute Value on Var in the current logical branch.
-<a id="predicate-reference-0395"></a>
+<a id="predicate-reference-0404"></a>
 - **`put_atts/2`** — `library(atts)` · **`det`**  
   **Call:** `put_atts(+Var,+AttributeSpec)`  
   **Contract:** Compatibility relation that adds, replaces, or removes attributes on Var according to AttributeSpec.
-<a id="predicate-reference-0396"></a>
+<a id="predicate-reference-0405"></a>
 - **`put_byte/1`** — `ISO core` · **`det`**  
   **Call:** `put_byte(+Byte)`  
   **Contract:** Writes one byte to the current binary output stream.
-<a id="predicate-reference-0397"></a>
+<a id="predicate-reference-0406"></a>
 - **`put_byte/2`** — `ISO core` · **`det`**  
   **Call:** `put_byte(+Stream,+Byte)`  
   **Contract:** Writes one byte to Stream.
-<a id="predicate-reference-0398"></a>
+<a id="predicate-reference-0407"></a>
 - **`put_char/1`** — `ISO core` · **`det`**  
   **Call:** `put_char(+Char)`  
   **Contract:** Writes one character to the current output stream.
-<a id="predicate-reference-0399"></a>
+<a id="predicate-reference-0408"></a>
 - **`put_char/2`** — `ISO core` · **`det`**  
   **Call:** `put_char(+Stream,+Char)`  
   **Contract:** Writes one character to Stream.
-<a id="predicate-reference-0400"></a>
+<a id="predicate-reference-0409"></a>
 - **`put_code/1`** — `ISO core` · **`det`**  
   **Call:** `put_code(+Code)`  
   **Contract:** Writes one character code to the current output stream.
-<a id="predicate-reference-0401"></a>
+<a id="predicate-reference-0410"></a>
 - **`put_code/2`** — `ISO core` · **`det`**  
   **Call:** `put_code(+Stream,+Code)`  
   **Contract:** Writes one character code to Stream.
 
 #### Predicate reference — R
 
-<a id="predicate-reference-0402"></a>
+<a id="predicate-reference-0411"></a>
 - **`random_integer/3`** — `library(random)` · **`det`**  
   **Call:** `random_integer(+Lower,+Upper,-Value)`  
   **Contract:** Returns a pseudo-random integer Value in the half-open interval [Lower,Upper).
-<a id="predicate-reference-0403"></a>
+<a id="predicate-reference-0412"></a>
 - **`random_labeling/2`** — `library(clpb)` · **`nondet`**  
   **Call:** `random_labeling(+Seed,+BooleanVariables)`  
   **Contract:** Labels constrained Boolean variables in pseudo-randomized order determined by Seed.
-<a id="predicate-reference-0404"></a>
+<a id="predicate-reference-0413"></a>
 - **`random/1`** — `library(random)` · **`det`**  
   **Call:** `random(-Value)`  
   **Contract:** Advances the current Park-Miller pseudo-random state and returns Value in [0,1).
-<a id="predicate-reference-0405"></a>
+<a id="predicate-reference-0414"></a>
 - **`random/3`** — `library(random)` · **`det`**  
   **Call:** `random(+Seed0,-Value,-Seed)`  
   **Contract:** Pure state-threaded Park-Miller step: Value is in [0,1) and Seed is the successor state.
-<a id="predicate-reference-0406"></a>
+<a id="predicate-reference-0415"></a>
 - **`rational_numerator_denominator/3`** — `library(arithmetic)` · **`det`**  
   **Call:** `rational_numerator_denominator(+Rational,-Numerator,-Denominator)`  
   **Contract:** Decomposes a supported rational representation into normalized numerator and denominator.
-<a id="predicate-reference-0407"></a>
+<a id="predicate-reference-0416"></a>
 - **`raw_argv/1`** — `library(os)` · **`det`**  
   **Call:** `raw_argv(-Args)`  
   **Contract:** Returns the raw host process argument vector.
-<a id="predicate-reference-0408"></a>
+<a id="predicate-reference-0417"></a>
 - **`reachable/3`** — `library(ugraphs)` · **`det`**  
   **Call:** `reachable(+Vertex,+Graph,-Reachable)`  
   **Contract:** Returns vertices reachable from Vertex by zero or more directed edges.
-<a id="predicate-reference-0409"></a>
+<a id="predicate-reference-0418"></a>
 - **`read_from_chars/2`** — `library(charsio)` · **`det`**  
   **Call:** `read_from_chars(+Chars,?Term)`  
   **Contract:** Parses one term from character-list source using default read options.
-<a id="predicate-reference-0410"></a>
+<a id="predicate-reference-0419"></a>
 - **`read_term_from_chars/3`** — `library(charsio)` · **`det`**  
   **Call:** `read_term_from_chars(+Chars,?Term,+Options)`  
   **Contract:** Parses one term from character-list source according to Options.
-<a id="predicate-reference-0411"></a>
+<a id="predicate-reference-0420"></a>
 - **`read_term/2`** — `ISO core` · **`det`**  
   **Call:** `read_term(?Term,+Options)`  
   **Contract:** Reads one Prolog term from the current input stream using Options.
-<a id="predicate-reference-0412"></a>
+<a id="predicate-reference-0421"></a>
 - **`read_term/3`** — `ISO core` · **`det`**  
   **Call:** `read_term(+Stream,?Term,+Options)`  
   **Contract:** Reads one Prolog term from Stream using Options.
-<a id="predicate-reference-0413"></a>
+<a id="predicate-reference-0422"></a>
 - **`read/1`** — `ISO core` · **`det`**  
   **Call:** `read(?Term)`  
   **Contract:** Reads one Prolog term from the current input stream using default read options.
-<a id="predicate-reference-0414"></a>
+<a id="predicate-reference-0423"></a>
 - **`read/2`** — `ISO core` · **`det`**  
   **Call:** `read(+Stream,?Term)`  
   **Contract:** Reads one Prolog term from Stream using default read options.
-<a id="predicate-reference-0415"></a>
+<a id="predicate-reference-0424"></a>
 - **`rename_file/2`** — `library(files)` · **`det`**  
   **Call:** `rename_file(+Source,+Target)`  
   **Contract:** Renames or moves Source to Target on the host filesystem.
-<a id="predicate-reference-0416"></a>
+<a id="predicate-reference-0425"></a>
 - **`repeat/0`** — `ISO core` · **`multi`**  
   **Call:** `repeat`  
   **Contract:** Succeeds repeatedly without end, producing another solution on every backtracking step.
-<a id="predicate-reference-0417"></a>
+<a id="predicate-reference-0426"></a>
 - **`repeat/1`** — `library(between)` · **`multi`**  
   **Call:** `repeat(+Count)`  
   **Contract:** Succeeds Count times on backtracking for a nonnegative integer Count.
-<a id="predicate-reference-0418"></a>
+<a id="predicate-reference-0427"></a>
 - **`replace/4`** — `library(strings)` · **`det`**  
   **Call:** `replace(+Text,+Search,+Replacement,-Result)`  
   **Contract:** Replaces every literal occurrence of Search in Text by Replacement.
-<a id="predicate-reference-0419"></a>
+<a id="predicate-reference-0428"></a>
 - **`representation_error/1`** — `library(error)` · **`terminal`**  
   **Call:** `representation_error(+Flag)`  
   **Contract:** Raises a representation_error(Flag) exception.
-<a id="predicate-reference-0420"></a>
+<a id="predicate-reference-0429"></a>
 - **`reset_gensym/1`** — `library(gensym)` · **`det`**  
   **Call:** `reset_gensym(+Base)`  
   **Contract:** Resets the generated-atom counter associated with Base.
-<a id="predicate-reference-0421"></a>
+<a id="predicate-reference-0430"></a>
 - **`resource_error/1`** — `library(error)` · **`terminal`**  
   **Call:** `resource_error(+Resource)`  
   **Contract:** Raises a resource_error(Resource) exception.
-<a id="predicate-reference-0422"></a>
+<a id="predicate-reference-0431"></a>
 - **`resource_error/2`** — `library(error)` · **`terminal`**  
   **Call:** `resource_error(+Resource,+Context)`  
   **Contract:** Raises a resource_error(Resource) exception carrying Context.
-<a id="predicate-reference-0423"></a>
+<a id="predicate-reference-0432"></a>
 - **`retract/1`** — `ISO core` · **`nondet`**  
   **Call:** `retract(+Clause)`  
   **Contract:** Removes matching clauses from a dynamic predicate one at a time under the logical update view.
-<a id="predicate-reference-0424"></a>
+<a id="predicate-reference-0433"></a>
 - **`retractall/1`** — `ISO core` · **`det`**  
   **Call:** `retractall(+Head)`  
   **Contract:** Removes every dynamic clause whose head matches Head while retaining the empty dynamic procedure.
-<a id="predicate-reference-0425"></a>
+<a id="predicate-reference-0434"></a>
 - **`reverse/2`** — `library(lists)` · **`mode-dependent`**  
   **Call:** `reverse(?List,?Reversed)`  
   **Contract:** Relates a proper list to the list containing the same elements in reverse order.
 
 #### Predicate reference — S
 
-<a id="predicate-reference-0426"></a>
+<a id="predicate-reference-0435"></a>
 - **`same_length/2`** — `library(lists)` · **`mode-dependent`**  
   **Call:** `same_length(?A,?B)`  
   **Contract:** Relates lists A and B when they have the same length, constructing a skeleton when one length is known.
-<a id="predicate-reference-0427"></a>
+<a id="predicate-reference-0436"></a>
 - **`sat_count/2`** — `library(clpb)` · **`det`**  
   **Call:** `sat_count(+BooleanExpression,-Count)`  
   **Contract:** Counts satisfying assignments of BooleanExpression.
-<a id="predicate-reference-0428"></a>
+<a id="predicate-reference-0437"></a>
 - **`sat/1`** — `library(clpb)` · **`delayed`**  
   **Call:** `sat(+BooleanExpression)`  
   **Contract:** Posts Boolean constraints represented by BooleanExpression and fails iff they are inconsistent.
-<a id="predicate-reference-0429"></a>
+<a id="predicate-reference-0438"></a>
 - **`scalar_product/4`** — `library(clpz)` · **`delayed`**  
   **Call:** `scalar_product(+Coefficients,+Vars,+Relation,+Expr)`  
   **Contract:** Constrains the scalar product of Coefficients and Vars by Relation to Expr.
-<a id="predicate-reference-0430"></a>
+<a id="predicate-reference-0439"></a>
 - **`select/3`** — `library(lists)` · **`nondet`**  
   **Call:** `select(?Item,+List,?Rest)`  
   **Contract:** Relates List to Rest after removing one occurrence that unifies with Item; alternatives remove later occurrences.
-<a id="predicate-reference-0431"></a>
+<a id="predicate-reference-0440"></a>
 - **`selectchk/3`** — `library(lists)` · **`semidet`**  
   **Call:** `selectchk(?Item,+List,?Rest)`  
   **Contract:** Like select/3 but commits to the first removable occurrence.
-<a id="predicate-reference-0432"></a>
+<a id="predicate-reference-0441"></a>
 - **`seq/3`** — `library(dcgs)` · **`mode-dependent`**  
   **Call:** `seq(?Sequence,?S0,?S)`  
   **Contract:** DCG relation that consumes or emits exactly Sequence between difference-list states S0 and S.
-<a id="predicate-reference-0433"></a>
+<a id="predicate-reference-0442"></a>
 - **`seqq/3`** — `library(dcgs)` · **`nondet`**  
   **Call:** `seqq(+Sequences,?S0,?S)`  
   **Contract:** DCG relation that chooses one sequence from Sequences and consumes or emits it between S0 and S.
-<a id="predicate-reference-0434"></a>
+<a id="predicate-reference-0443"></a>
 - **`serialized/2`** — `library(clpz)` · **`delayed`**  
   **Call:** `serialized(+Starts,+Durations)`  
   **Contract:** Constrains tasks with Starts and Durations not to overlap.
-<a id="predicate-reference-0435"></a>
+<a id="predicate-reference-0444"></a>
 - **`set_input/1`** — `ISO core` · **`det`**  
   **Call:** `set_input(+Stream)`  
   **Contract:** Makes Stream the current input stream.
-<a id="predicate-reference-0436"></a>
+<a id="predicate-reference-0445"></a>
 - **`set_nth0/4`** — `library(lists)` · **`semidet`**  
   **Call:** `set_nth0(+Index,+List,+Item,-NewList)`  
   **Contract:** Returns NewList with the existing zero-based Index replaced by Item.
-<a id="predicate-reference-0437"></a>
+<a id="predicate-reference-0446"></a>
 - **`set_output/1`** — `ISO core` · **`det`**  
   **Call:** `set_output(+Stream)`  
   **Contract:** Makes Stream the current output stream.
-<a id="predicate-reference-0438"></a>
+<a id="predicate-reference-0447"></a>
 - **`set_prolog_flag/2`** — `ISO core` · **`det`**  
   **Call:** `set_prolog_flag(+Flag,+Value)`  
   **Contract:** Sets a supported mutable Prolog flag after validating its value.
-<a id="predicate-reference-0439"></a>
+<a id="predicate-reference-0448"></a>
 - **`set_random/1`** — `library(random)` · **`det`**  
   **Call:** `set_random(+Option)`  
   **Contract:** Sets the mutable pseudo-random generator state; seed(random) chooses a time-derived seed.
-<a id="predicate-reference-0440"></a>
+<a id="predicate-reference-0449"></a>
 - **`set_stream_position/2`** — `ISO core` · **`det`**  
   **Call:** `set_stream_position(+Stream,+Position)`  
   **Contract:** Repositions a repositionable stream to Position.
-<a id="predicate-reference-0441"></a>
+<a id="predicate-reference-0450"></a>
 - **`setenv/2`** — `library(os)` · **`det`**  
   **Call:** `setenv(+Name,+Value)`  
   **Contract:** Sets the host process environment variable Name to Value.
-<a id="predicate-reference-0442"></a>
+<a id="predicate-reference-0451"></a>
 - **`setof/3`** — `ISO core` · **`nondet`**  
   **Call:** `setof(+Template,+Goal,?Set)`  
   **Contract:** Like bagof/3, but each witness group is sorted by term order with identical duplicates removed.
-<a id="predicate-reference-0443"></a>
+<a id="predicate-reference-0452"></a>
 - **`setup_call_cleanup/3`** — `library(iso_ext)` · **`meta`**  
   **Call:** `setup_call_cleanup(+Setup,+Goal,+Cleanup)`  
   **Contract:** Runs Setup once, calls Goal, and guarantees Cleanup after Goal terminates in any way.
-<a id="predicate-reference-0444"></a>
+<a id="predicate-reference-0453"></a>
 - **`shell/1`** — `library(os)` · **`semidet`**  
   **Call:** `shell(+Command)`  
   **Contract:** Runs Command in the host shell and succeeds iff it exits successfully.
-<a id="predicate-reference-0445"></a>
+<a id="predicate-reference-0454"></a>
 - **`shell/2`** — `library(os)` · **`det`**  
   **Call:** `shell(+Command,?Status)`  
   **Contract:** Runs Command in the host shell and returns its exit Status.
-<a id="predicate-reference-0446"></a>
+<a id="predicate-reference-0455"></a>
 - **`sleep/1`** — `library(time)` · **`det`**  
   **Call:** `sleep(+Seconds)`  
   **Contract:** Suspends execution for the requested finite nonnegative duration, subject to the implementation limit.
-<a id="predicate-reference-0447"></a>
+<a id="predicate-reference-0456"></a>
 - **`slice/4`** — `library(lists)` · **`semidet`**  
   **Call:** `slice(+Start,+Count,+List,-Slice)`  
   **Contract:** Returns exactly Count elements of List beginning at zero-based Start.
-<a id="predicate-reference-0448"></a>
+<a id="predicate-reference-0457"></a>
 - **`smallest_divisor_from/3`** — `library(primes)` · **`semidet`**  
   **Call:** `smallest_divisor_from(+N,+Start,-Divisor)`  
   **Contract:** Returns the least divisor of N not smaller than Start according to the module's integer primality search.
-<a id="predicate-reference-0449"></a>
+<a id="predicate-reference-0458"></a>
 - **`socket_client_open/3`** — `library(sockets)` · **`semidet`**  
   **Call:** `socket_client_open(+Address,-Stream,+Options)`  
   **Contract:** Opens a TCP connection to Address:Port and returns a bidirectional stream using the requested stream options.
-<a id="predicate-reference-0450"></a>
+<a id="predicate-reference-0459"></a>
 - **`socket_server_accept/4`** — `library(sockets)` · **`det`**  
   **Call:** `socket_server_accept(+ServerSocket,-Client,-Stream,+Options)`  
   **Contract:** Waits for the next TCP connection, returning the peer address and a bidirectional stream for that connection.
-<a id="predicate-reference-0451"></a>
+<a id="predicate-reference-0460"></a>
 - **`socket_server_close/1`** — `library(sockets)` · **`det`**  
   **Call:** `socket_server_close(+ServerSocket)`  
   **Contract:** Stops accepting new TCP connections on ServerSocket without closing streams already accepted from it.
-<a id="predicate-reference-0452"></a>
+<a id="predicate-reference-0461"></a>
 - **`socket_server_open/2`** — `library(sockets)` · **`semidet`**  
   **Call:** `socket_server_open(?Address,-ServerSocket)`  
   **Contract:** Opens a TCP listening socket; an unbound port requests an ephemeral port and is unified with the selected port.
-<a id="predicate-reference-0453"></a>
+<a id="predicate-reference-0462"></a>
 - **`sort/2`** — `ISO core` · **`det`**  
   **Call:** `sort(+List,?Sorted)`  
   **Contract:** Sorts List by standard term order and removes identical duplicates.
-<a id="predicate-reference-0454"></a>
+<a id="predicate-reference-0463"></a>
 - **`split/3`** — `library(strings)` · **`det`**  
   **Call:** `split(+Text,+Separator,-Parts)`  
   **Contract:** Splits Text at literal Separator occurrences into a proper list of atom parts.
-<a id="predicate-reference-0455"></a>
+<a id="predicate-reference-0464"></a>
 - **`stable/1`** — `library(eyelet)` · **`meta`**  
   **Call:** `stable(+Goal)`  
   **Contract:** Runs Goal to Eyelet fixed-point stability.
-<a id="predicate-reference-0456"></a>
+<a id="predicate-reference-0465"></a>
 - **`start_tabling/2`** — `library(tabling)` · **`meta`**  
   **Call:** `start_tabling(+Wrapper,+Worker)`  
   **Contract:** Compatibility entry point that executes Worker through EyeProlog's table-aware evaluation for Wrapper.
-<a id="predicate-reference-0457"></a>
+<a id="predicate-reference-0466"></a>
 - **`statistics/2`** — `library(time)` · **`det`**  
   **Call:** `statistics(+Key,?Value)`  
   **Contract:** Returns the supported runtime statistic selected by Key.
-<a id="predicate-reference-0458"></a>
+<a id="predicate-reference-0467"></a>
 - **`stream_property/2`** — `ISO core` · **`nondet`**  
   **Call:** `stream_property(?Stream,?Property)`  
   **Contract:** Enumerates supported properties of open streams, optionally filtering Stream or Property.
-<a id="predicate-reference-0459"></a>
+<a id="predicate-reference-0468"></a>
 - **`string_concat/3`** — `library(strings)` · **`nondet`**  
   **Call:** `string_concat(?Left,?Right,?Text)`  
   **Contract:** Relates Text to literal concatenation of Left and Right; with Text fixed it can enumerate splits.
-<a id="predicate-reference-0460"></a>
+<a id="predicate-reference-0469"></a>
 - **`sub_atom/5`** — `ISO core` · **`nondet`**  
   **Call:** `sub_atom(+Atom,?Before,?Length,?After,?SubAtom)`  
   **Contract:** Relates Atom to a substring, its Unicode-scalar offset, length, and remaining suffix length.
-<a id="predicate-reference-0461"></a>
+<a id="predicate-reference-0470"></a>
 - **`substring/4`** — `library(strings)` · **`semidet`**  
   **Call:** `substring(+Text,+Start,+Count,-Part)`  
   **Contract:** Extracts exactly Count characters beginning at zero-based Start from Text.
-<a id="predicate-reference-0462"></a>
+<a id="predicate-reference-0471"></a>
 - **`subsumes_term/2`** — `ISO core` · **`semidet`**  
   **Call:** `subsumes_term(+General,+Specific)`  
   **Contract:** Succeeds iff General subsumes Specific without binding either argument.
-<a id="predicate-reference-0463"></a>
+<a id="predicate-reference-0472"></a>
 - **`subtract/3`** — `library(lists)` · **`det`**  
   **Call:** `subtract(+List,+Delete,-Rest)`  
   **Contract:** Removes from List every element that unifies with some element of Delete, preserving the remaining order.
-<a id="predicate-reference-0464"></a>
+<a id="predicate-reference-0473"></a>
 - **`succ/2`** — `library(iso_ext)` · **`mode-dependent`**  
   **Call:** `succ(?N,?S)`  
   **Contract:** Relates nonnegative integers N and S when S is exactly N+1.
-<a id="predicate-reference-0465"></a>
+<a id="predicate-reference-0474"></a>
 - **`sum_list/2`** — `library(lists)` · **`det`**  
   **Call:** `sum_list(+List,-Sum)`  
   **Contract:** Evaluates and sums the numeric elements of List; the empty sum is 0.
-<a id="predicate-reference-0466"></a>
+<a id="predicate-reference-0475"></a>
 - **`sum/3`** — `library(clpz)` · **`delayed`**  
   **Call:** `sum(+Exprs,+Relation,+Expr)`  
   **Contract:** Constrains the sum of Exprs to stand in Relation (#=, #=<, etc.) to Expr.
-<a id="predicate-reference-0467"></a>
+<a id="predicate-reference-0476"></a>
 - **`sumall/3`** — `library(aggregate)` · **`det`**  
   **Call:** `sumall(+Template,+Goal,-Sum)`  
   **Contract:** Sums the numeric Template value over every solution of Goal; the empty sum is 0.
 
 #### Predicate reference — T
 
-<a id="predicate-reference-0468"></a>
+<a id="predicate-reference-0477"></a>
 - **`take/3`** — `library(lists)` · **`semidet`**  
   **Call:** `take(+Count,+List,-Prefix)`  
   **Contract:** Returns exactly the first Count elements of List; fails when List is too short.
-<a id="predicate-reference-0469"></a>
+<a id="predicate-reference-0478"></a>
 - **`tasklist/2`** — `library(lists)` · **`meta`**  
   **Call:** `tasklist(+Goal,?List1)`  
   **Contract:** Compatibility relation applying Goal pointwise over 1 list(s); EyeProlog deliberately executes these tasks sequentially.
-<a id="predicate-reference-0470"></a>
+<a id="predicate-reference-0479"></a>
 - **`tasklist/3`** — `library(lists)` · **`meta`**  
   **Call:** `tasklist(+Goal,?List1,?List2)`  
   **Contract:** Compatibility relation applying Goal pointwise over 2 list(s); EyeProlog deliberately executes these tasks sequentially.
-<a id="predicate-reference-0471"></a>
+<a id="predicate-reference-0480"></a>
 - **`tasklist/4`** — `library(lists)` · **`meta`**  
   **Call:** `tasklist(+Goal,?List1,?List2,?List3)`  
   **Contract:** Compatibility relation applying Goal pointwise over 3 list(s); EyeProlog deliberately executes these tasks sequentially.
-<a id="predicate-reference-0472"></a>
+<a id="predicate-reference-0481"></a>
 - **`tasklist/5`** — `library(lists)` · **`meta`**  
   **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4)`  
   **Contract:** Compatibility relation applying Goal pointwise over 4 list(s); EyeProlog deliberately executes these tasks sequentially.
-<a id="predicate-reference-0473"></a>
+<a id="predicate-reference-0482"></a>
 - **`tasklist/6`** — `library(lists)` · **`meta`**  
   **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5)`  
   **Contract:** Compatibility relation applying Goal pointwise over 5 list(s); EyeProlog deliberately executes these tasks sequentially.
-<a id="predicate-reference-0474"></a>
+<a id="predicate-reference-0483"></a>
 - **`tasklist/7`** — `library(lists)` · **`meta`**  
   **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6)`  
   **Contract:** Compatibility relation applying Goal pointwise over 6 list(s); EyeProlog deliberately executes these tasks sequentially.
-<a id="predicate-reference-0475"></a>
+<a id="predicate-reference-0484"></a>
 - **`tasklist/8`** — `library(lists)` · **`meta`**  
   **Call:** `tasklist(+Goal,?List1,?List2,?List3,?List4,?List5,?List6,?List7)`  
   **Contract:** Compatibility relation applying Goal pointwise over 7 list(s); EyeProlog deliberately executes these tasks sequentially.
-<a id="predicate-reference-0476"></a>
+<a id="predicate-reference-0485"></a>
 - **`taut/2`** — `library(clpb)` · **`semidet`**  
   **Call:** `taut(+BooleanExpression,?Truth)`  
   **Contract:** Determines whether the Boolean expression is a tautology or contradiction and relates Truth to the result.
-<a id="predicate-reference-0477"></a>
+<a id="predicate-reference-0486"></a>
 - **`term_attributed_variables/2`** — `library(atts)` · **`det`**  
   **Call:** `term_attributed_variables(+Term,-Vars)`  
   **Contract:** Returns the distinct attributed variables reachable in Term.
-<a id="predicate-reference-0478"></a>
+<a id="predicate-reference-0487"></a>
 - **`term_si/1`** — `library(si)` · **`semidet`**  
   **Call:** `term_si(?Term)`  
   **Contract:** Succeeds iff Term is sufficiently instantiated to be treated as term by dependent constraint code.
-<a id="predicate-reference-0479"></a>
+<a id="predicate-reference-0488"></a>
 - **`term_string/2`** — `library(strings)` · **`det`**  
   **Call:** `term_string(+Term,-Text)`  
   **Contract:** Renders a nonvariable Term to portable atom/character-list text; this implementation does not parse Text back.
-<a id="predicate-reference-0480"></a>
+<a id="predicate-reference-0489"></a>
 - **`term_variables/2`** — `ISO core` · **`det`**  
   **Call:** `term_variables(+Term,?Variables)`  
   **Contract:** Returns the distinct variables of Term in first-occurrence traversal order.
-<a id="predicate-reference-0481"></a>
+<a id="predicate-reference-0490"></a>
 - **`tfilter/3`** — `library(reif)` · **`meta`**  
   **Call:** `tfilter(+ReifiedPred,+List,-Filtered)`  
   **Contract:** Filters List by a reified predicate whose final argument is true or false.
-<a id="predicate-reference-0482"></a>
+<a id="predicate-reference-0491"></a>
 - **`throw/1`** — `ISO core` · **`terminal`**  
   **Call:** `throw(+Ball)`  
   **Contract:** Raises Ball as the current Prolog exception; Ball must be instantiated.
-<a id="predicate-reference-0483"></a>
+<a id="predicate-reference-0492"></a>
 - **`time/1`** — `library(iso_ext)` · **`meta`**  
   **Call:** `time(+Goal)`  
   **Contract:** Runs Goal and reports elapsed time, inference count, and MLips for each solution.
-<a id="predicate-reference-0484"></a>
+<a id="predicate-reference-0493"></a>
 - **`tmember_t/3`** — `library(reif)` · **`delayed`**  
   **Call:** `tmember_t(?Item,+List,?Truth)`  
   **Contract:** Reifies tmember/2 membership into Truth.
-<a id="predicate-reference-0485"></a>
+<a id="predicate-reference-0494"></a>
 - **`tmember/2`** — `library(reif)` · **`nondet`**  
   **Call:** `tmember(?Item,+List)`  
   **Contract:** Membership relation implemented through reified disequality so duplicate/unbound cases remain declarative.
-<a id="predicate-reference-0486"></a>
+<a id="predicate-reference-0495"></a>
 - **`top_sort/2`** — `library(ugraphs)` · **`semidet`**  
   **Call:** `top_sort(+Graph,-Order)`  
   **Contract:** Returns a topological ordering of an acyclic directed graph; fails when a cycle prevents one.
-<a id="predicate-reference-0487"></a>
+<a id="predicate-reference-0496"></a>
 - **`top_sort/3`** — `library(ugraphs)` · **`mode-dependent`**  
   **Call:** `top_sort(+Graph,-Order,-Rest)`  
   **Contract:** Extended topological-sort relation returning the ordered portion and the library-defined residual/cyclic portion.
-<a id="predicate-reference-0488"></a>
+<a id="predicate-reference-0497"></a>
 - **`tpartition/4`** — `library(reif)` · **`meta`**  
   **Call:** `tpartition(+ReifiedPred,+List,-True,-False)`  
   **Contract:** Partitions List into elements for which ReifiedPred yields true and false, preserving order.
-<a id="predicate-reference-0489"></a>
+<a id="predicate-reference-0498"></a>
 - **`transitive_closure/2`** — `library(ugraphs)` · **`det`**  
   **Call:** `transitive_closure(+Graph,-Closure)`  
   **Contract:** Computes the graph whose adjacency lists contain all reachable vertices.
-<a id="predicate-reference-0490"></a>
+<a id="predicate-reference-0499"></a>
 - **`transpose_ugraph/2`** — `library(ugraphs)` · **`det`**  
   **Call:** `transpose_ugraph(+Graph,-Transpose)`  
   **Contract:** Reverses every directed edge of Graph.
-<a id="predicate-reference-0491"></a>
+<a id="predicate-reference-0500"></a>
 - **`transpose/2`** — `library(lists)` · **`det`**  
   **Call:** `transpose(+Rows,?Columns)`  
   **Contract:** Transposes a rectangular list of equal-length row lists into columns.
-<a id="predicate-reference-0492"></a>
+<a id="predicate-reference-0501"></a>
 - **`trim/2`** — `library(strings)` · **`det`**  
   **Call:** `trim(+Text,-Trimmed)`  
   **Contract:** Removes portable ASCII whitespace from both ends of Text.
-<a id="predicate-reference-0493"></a>
+<a id="predicate-reference-0502"></a>
 - **`true/0`** — `ISO core` · **`det`**  
   **Call:** `true`  
   **Contract:** Succeeds exactly once without changing the substitution.
-<a id="predicate-reference-0494"></a>
+<a id="predicate-reference-0503"></a>
 - **`tuples_in/2`** — `library(clpz)` · **`delayed`**  
   **Call:** `tuples_in(+Tuples,+RelationTuples)`  
   **Contract:** Constrains each tuple in Tuples to be a member of the extensional relation RelationTuples.
-<a id="predicate-reference-0495"></a>
+<a id="predicate-reference-0504"></a>
 - **`type_error/2`** — `library(error)` · **`terminal`**  
   **Call:** `type_error(+Type,+Term)`  
   **Contract:** Raises a type_error(Type,Term) exception.
-<a id="predicate-reference-0496"></a>
+<a id="predicate-reference-0505"></a>
 - **`type_error/3`** — `library(error)` · **`terminal`**  
   **Call:** `type_error(+Type,+Term,+Context)`  
   **Contract:** Raises a type_error(Type,Term) exception carrying Context.
 
 #### Predicate reference — U
 
-<a id="predicate-reference-0497"></a>
+<a id="predicate-reference-0506"></a>
 - **`ugraph_union/3`** — `library(ugraphs)` · **`det`**  
   **Call:** `ugraph_union(+A,+B,-Union)`  
   **Contract:** Computes the union of two canonical directed graphs.
-<a id="predicate-reference-0498"></a>
+<a id="predicate-reference-0507"></a>
 - **`unify_with_occurs_check/2`** — `ISO core` · **`semidet`**  
   **Call:** `unify_with_occurs_check(?Left,?Right)`  
   **Contract:** Unifies Left and Right while rejecting bindings that would create a cyclic term.
-<a id="predicate-reference-0499"></a>
+<a id="predicate-reference-0508"></a>
 - **`union/3`** — `library(lists)` · **`det`**  
   **Call:** `union(+A,+B,-Union)`  
   **Contract:** Constructs the list-set union by adding elements of A not already unifiable with members of B.
-<a id="predicate-reference-0500"></a>
+<a id="predicate-reference-0509"></a>
 - **`unsetenv/1`** — `library(os)` · **`det`**  
   **Call:** `unsetenv(+Name)`  
   **Contract:** Removes Name from the host process environment.
-<a id="predicate-reference-0501"></a>
+<a id="predicate-reference-0510"></a>
 - **`uppercase/2`** — `library(strings)` · **`det`**  
   **Call:** `uppercase(+Text,-Upper)`  
   **Contract:** Maps ASCII lowercase letters in Text to uppercase while preserving other characters.
-<a id="predicate-reference-0502"></a>
+<a id="predicate-reference-0511"></a>
 - **`uuid_string/2`** — `library(uuid)` · **`mode-dependent`**  
   **Call:** `uuid_string(?UUID,?Chars)`  
   **Contract:** Relates a UUID byte/term representation to its canonical textual character-list form.
-<a id="predicate-reference-0503"></a>
+<a id="predicate-reference-0512"></a>
 - **`uuid/3`** — `library(uuid)` · **`det`**  
   **Call:** `uuid(+Seed0,-UUID,-Seed)`  
   **Contract:** Pure state-threaded generation of a version-4 UUID atom from Seed0, returning successor Seed.
-<a id="predicate-reference-0504"></a>
+<a id="predicate-reference-0513"></a>
 - **`uuidv4_string/1`** — `library(uuid)` · **`det`**  
   **Call:** `uuidv4_string(-Chars)`  
   **Contract:** Generates a version-4 UUID directly in canonical textual character-list form.
-<a id="predicate-reference-0505"></a>
+<a id="predicate-reference-0514"></a>
 - **`uuidv4/1`** — `library(uuid)` · **`det`**  
   **Call:** `uuidv4(-UUID)`  
   **Contract:** Generates a version-4 UUID byte/term representation using the current pseudo-random generator.
 
 #### Predicate reference — V
 
-<a id="predicate-reference-0506"></a>
+<a id="predicate-reference-0515"></a>
 - **`var/1`** — `ISO core` · **`semidet`**  
   **Call:** `var(?Term)`  
   **Contract:** Succeeds iff Term is an unbound variable.
-<a id="predicate-reference-0507"></a>
+<a id="predicate-reference-0516"></a>
 - **`variant/2`** — `library(iso_ext)` · **`semidet`**  
   **Call:** `variant(+A,+B)`  
   **Contract:** Succeeds iff A and B are structurally identical up to a bijective renaming of variables.
-<a id="predicate-reference-0508"></a>
+<a id="predicate-reference-0517"></a>
 - **`vertices_edges_to_ugraph/3`** — `library(ugraphs)` · **`det`**  
   **Call:** `vertices_edges_to_ugraph(+Vertices,+Edges,-Graph)`  
   **Contract:** Builds the canonical ordered adjacency-list graph from Vertices and directed Edges.
-<a id="predicate-reference-0509"></a>
+<a id="predicate-reference-0518"></a>
 - **`vertices/2`** — `library(ugraphs)` · **`det`**  
   **Call:** `vertices(+Graph,-Vertices)`  
   **Contract:** Returns the vertices of Graph in graph order.
 
 #### Predicate reference — W
 
-<a id="predicate-reference-0510"></a>
+<a id="predicate-reference-0519"></a>
 - **`weighted_maximum/3`** — `library(clpb)` · **`nondet`**  
   **Call:** `weighted_maximum(+Weights,+BooleanVariables,-Maximum)`  
   **Contract:** Finds Boolean assignments maximizing the weighted objective and returns its maximum.
-<a id="predicate-reference-0511"></a>
+<a id="predicate-reference-0520"></a>
 - **`when_si/2`** — `library(si)` · **`delayed`**  
   **Call:** `when_si(+Condition,+Goal)`  
   **Contract:** Runs Goal once Condition is sufficiently instantiated according to the SI condition language.
-<a id="predicate-reference-0512"></a>
+<a id="predicate-reference-0521"></a>
 - **`when/2`** — `library(when)` · **`delayed`**  
   **Call:** `when(+Condition,+Goal)`  
   **Contract:** Calls Goal as soon as Condition over attributed variables becomes true; otherwise suspends it.
-<a id="predicate-reference-0513"></a>
+<a id="predicate-reference-0522"></a>
 - **`working_directory/2`** — `library(files)` · **`det`**  
   **Call:** `working_directory(?Old,+New)`  
   **Contract:** Returns the current working directory in Old and, when New differs, changes the process working directory.
-<a id="predicate-reference-0514"></a>
+<a id="predicate-reference-0523"></a>
 - **`write_canonical/1`** — `ISO core` · **`det`**  
   **Call:** `write_canonical(+Term)`  
   **Contract:** Writes Term to the current output stream in canonical syntax without operator abbreviations.
-<a id="predicate-reference-0515"></a>
+<a id="predicate-reference-0524"></a>
 - **`write_canonical/2`** — `ISO core` · **`det`**  
   **Call:** `write_canonical(+Stream,+Term)`  
   **Contract:** Writes Term to Stream in canonical syntax without operator abbreviations.
-<a id="predicate-reference-0516"></a>
+<a id="predicate-reference-0525"></a>
 - **`write_term_to_chars/3`** — `library(charsio)` · **`det`**  
   **Call:** `write_term_to_chars(+Term,-Chars,+Options)`  
   **Contract:** Renders Term as a character list according to write Options.
-<a id="predicate-reference-0517"></a>
+<a id="predicate-reference-0526"></a>
 - **`write_term/2`** — `ISO core` · **`det`**  
   **Call:** `write_term(+Term,+Options)`  
   **Contract:** Writes Term to the current output stream according to Options.
-<a id="predicate-reference-0518"></a>
+<a id="predicate-reference-0527"></a>
 - **`write_term/3`** — `ISO core` · **`det`**  
   **Call:** `write_term(+Stream,+Term,+Options)`  
   **Contract:** Writes Term to Stream according to Options.
-<a id="predicate-reference-0519"></a>
+<a id="predicate-reference-0528"></a>
 - **`write/1`** — `ISO core` · **`det`**  
   **Call:** `write(+Term)`  
   **Contract:** Writes Term to the current output stream using ordinary operator notation.
-<a id="predicate-reference-0520"></a>
+<a id="predicate-reference-0529"></a>
 - **`write/2`** — `ISO core` · **`det`**  
   **Call:** `write(+Stream,+Term)`  
   **Contract:** Writes Term to Stream using ordinary operator notation.
-<a id="predicate-reference-0521"></a>
+<a id="predicate-reference-0530"></a>
 - **`writeq/1`** — `ISO core` · **`det`**  
   **Call:** `writeq(+Term)`  
   **Contract:** Writes Term to the current output stream with quoting sufficient for readback.
-<a id="predicate-reference-0522"></a>
+<a id="predicate-reference-0531"></a>
 - **`writeq/2`** — `ISO core` · **`det`**  
   **Call:** `writeq(+Stream,+Term)`  
   **Contract:** Writes Term to Stream with quoting sufficient for readback.
 
 #### Predicate reference — Z
 
-<a id="predicate-reference-0523"></a>
+<a id="predicate-reference-0532"></a>
 - **`zcompare/3`** — `library(clpz)` · **`delayed`**  
   **Call:** `zcompare(?Order,?A,?B)`  
   **Contract:** Relates Order (<,=,>) to the constrained integer comparison between A and B.
@@ -9744,7 +9788,7 @@ Review questions:
 </figure>
 
 The [examples directory](https://github.com/eyereasoner/eyeprolog/tree/main/examples/) is the book's executable companion. The
-top-level directory contains **226 self-contained runnable programs**. Every
+top-level directory contains **228 self-contained runnable programs**. Every
 source program has an exact answer file under
 [examples/output](https://github.com/eyereasoner/eyeprolog/tree/main/examples/output/), and **61 selected programs** have a checked
 explanation under [examples/proof](https://github.com/eyereasoner/eyeprolog/tree/main/examples/proof/). The thematic lists link every top-level program and open the program
