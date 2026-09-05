@@ -72,6 +72,29 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'type_error(float)', 'negative integer exponent correction');
   });
 
+  reporter.test('round-trips ISO floats through number_chars/2 and quoted write_term/2', () => {
+  for (const literal of ['1.0000000000000001', '0.10000000000000002']) {
+    const converted = run('', {
+      isoStrict: true,
+      goal: `N=${literal}, number_chars(N,Chars), number_chars(M,Chars), M == N`,
+    });
+    equal(converted.stats.completed_goal_lists, 1, `number_chars/2 float round-trip ${literal}`);
+
+    let written = '';
+    run('', {
+      isoStrict: true,
+      goal: `write_term(${literal},[quoted(true)])`,
+      ioOptions: { write: (text) => { written += text; } },
+    });
+    const reread = run('', {
+      isoStrict: true,
+      goal: `read_term(X,[]), X == ${literal}`,
+      ioOptions: { input: `${written}.` },
+    });
+    equal(reread.stats.completed_goal_lists, 1, `quoted write_term/2 float round-trip ${literal}`);
+  }
+});
+
   reporter.test('keeps Corrigendum 2 core predicates and excludes Part 3 phrase', () => {
     const registry = createStrictIsoRegistry();
     equal(Boolean(registry.get('subsumes_term', 2)), true, 'subsumes_term/2');
