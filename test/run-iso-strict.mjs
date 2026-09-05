@@ -1273,6 +1273,16 @@ export function runIsoStrict(reporter = new TestReporter()) {
       'if-then-else commits after a successful condition');
     equal(capture(() => run('', { isoStrict: true, goal: 'call((write(a),3))' })).formal,
       'type_error(callable)', 'nested non-callable control term is rejected');
+    let issue93Output = '';
+    const issue93Error = capture(() => run('', {
+      isoStrict: true,
+      goal: 'X=3,Y=(write(X),X),call(Y)',
+      ioOptions: { write: (chunk) => { issue93Output += chunk; } },
+    }));
+    equal(issue93Error.formal, 'type_error(callable)', 'issue #93 raises the ISO callability error');
+    equal(issue93Error.message, 'error(type_error(callable), (write(3), 3))',
+      'issue #93 reports the fully instantiated control-term culprit');
+    equal(issue93Output, '', 'issue #93 validates the complete body before executing write/1');
     equal(run('', {
       isoStrict: true,
       goal: 'catch(X,error(instantiation_error,_),true)',

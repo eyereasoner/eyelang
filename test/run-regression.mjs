@@ -1619,6 +1619,20 @@ c4 ?- call((!;1)).
       },
     },
     {
+      name: 'call/1 reports the instantiated complete control-term culprit (issue #93)',
+      run: () => {
+        const result = runCli([], {
+          input: 'X = 3, Y = (write(X), X), call(Y).\nhalt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    error(type_error(callable, (write(3), 3)), eyeprolog).\n' +
+          '?- ',
+          'fully instantiated call/1 culprit');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
       name: 'number_chars and number_codes keep exponent floats syntactically readable (issue #50)',
       run: () => {
         const source = `

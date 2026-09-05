@@ -2688,7 +2688,7 @@ function validateControlCallable(term, culprit, env) {
       // eagerly and reports the whole control term as the culprit.
       if (argument.type === VAR) continue;
       if (argument.type !== ATOM && argument.type !== COMPOUND) {
-        throw new PrologError('type_error(callable)', culprit);
+        throw new PrologError('type_error(callable)', copyResolved(culprit, env));
       }
       pending.push(argument);
     }
