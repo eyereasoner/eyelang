@@ -33,10 +33,12 @@ jobs:
               });
               equal(converted.stats.completed_goal_lists, 1, `number_chars/2 float round-trip ${literal}`);
 
-              const written = run('', {
+              let written = '';
+              run('', {
                 isoStrict: true,
                 goal: `write_term(${literal},[quoted(true)])`,
-              }).stdout.trim();
+                ioOptions: { write: (text) => { written += text; } },
+              });
               const reread = run('', {
                 isoStrict: true,
                 goal: `read_term(X,[]), X == ${literal}`,
