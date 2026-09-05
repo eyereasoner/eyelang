@@ -46,7 +46,7 @@ jobs:
             }
           });
 
-'''
+          '''
           text = text.replace(anchor, test + anchor, 1)
           path.write_text(text)
 
