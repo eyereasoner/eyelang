@@ -176,6 +176,12 @@ export const PART3_OPERATOR_DEFINITIONS = [
 // ISO 1200 fx definition.
 export const QUAD_OPERATOR_DEFINITIONS = [
   [1200, 'xfx', '?-'],
+  // Quad approximate-answer notation. Keep this visible through current_op/3
+  // at the same priority/specifier as the ISO comparison operators. There is
+  // deliberately no built-in predicate behind it: ordinary source may define
+  // or call ~~ / 2 in the usual way, while quads interpret it specially only
+  // inside answer descriptions.
+  [700, 'xfx', '~~'],
 ];
 
 const CLPZ_OPERATOR_DEFINITIONS = [
@@ -1053,21 +1059,10 @@ class Parser {
     this.advance();
 
     const answers = [];
-    // Issue #90 extends only the embedded answer-description grammar with
-    // decimal-precision approximate equality. Do not leak `~` into ordinary
-    // EyeProlog source syntax: temporarily parse it like the standard 700 xfx
-    // comparison operators while consuming the indented quad answers.
-    const previousApproximateOperator = this.infixOperators.get('~');
-    this.infixOperators.set('~', { precedence: operatorStrength(700), associativity: 'none' });
-    try {
-      while (this.token.type !== TOK.EOF && this.sourceLineIsIndented(this.token.line)) {
-        answers.push(this.parseTerm(0, true));
-        this.expect(TOK.DOT, '.');
-        this.advance();
-      }
-    } finally {
-      if (previousApproximateOperator == null) this.infixOperators.delete('~');
-      else this.infixOperators.set('~', previousApproximateOperator);
+    while (this.token.type !== TOK.EOF && this.sourceLineIsIndented(this.token.line)) {
+      answers.push(this.parseTerm(0, true));
+      this.expect(TOK.DOT, '.');
+      this.advance();
     }
     if (answers.length === 0) throw new Error(`parse line ${line}: quad requires an indented answer description`);
 

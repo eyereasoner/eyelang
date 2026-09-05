@@ -5,7 +5,7 @@
 // it does not relax the ordinary answer-substitution comparison.
 import {
   ATOM, COMPOUND, NUMBER, VAR, Env, atom, compound, copyResolved, deref,
-  flattenConjunction, isDecimalInteger, listFromItems, properListItems, termIsGround,
+  flattenConjunction, isDecimalInteger, listFromItems, numberTextFromDouble, properListItems, termIsGround,
   unify, variable,
 } from './term.js';
 import { parseGoalText } from './parser.js';
@@ -247,7 +247,7 @@ function describeLeaf(term) {
       else leaf.bindings.push(item);
       continue;
     }
-    if (item.type === COMPOUND && item.name === '~' && item.arity === 2) {
+    if (item.type === COMPOUND && item.name === '~~' && item.arity === 2) {
       if (item.args[0].type !== VAR || approximateDecimalInterval(item.args[1]) == null) leaf.malformed ??= item;
       else leaf.approximations.push(item);
       continue;
@@ -456,7 +456,7 @@ function substitutionMatches(query, bindings, approximations, actualEnv) {
     // Once the approximate predicate has accepted the actual float, bind the
     // expected-side variable to that exact observed term. This lets the
     // ordinary variant matcher continue to check the rest of the answer,
-    // including variable sharing, without turning `~` into a fuzzy unifier.
+    // including variable sharing, without turning `~~` into a fuzzy unifier.
     if (!unify(variable, copyResolved(actualValue, actualEnv), expectedEnv)) return false;
   }
   const expected = compound('$quad_answer', queryVariables.map((variable) => copyResolved(variable, expectedEnv)));
@@ -464,11 +464,18 @@ function substitutionMatches(query, bindings, approximations, actualEnv) {
   return patternVariant(expected, new Env(), actual, new Env());
 }
 
-// Parse a quoted decimal spelling as the interval represented by rounding to
-// its final written mantissa digit.  For example, '14.2000' denotes
-// [14.19995, 14.20005], and '1.42000e1' denotes the same interval.  Construct
-// the exact decimal endpoints before converting them to binary floats instead
-// of adding a tiny tolerance to an already-rounded Number.
+// A quad approximation atom denotes the closed decimal interval obtained by
+// rounding to its final written mantissa digit. For example, '14.2000' denotes
+// [14.19995, 14.20005], and '1.42000e1' denotes the same interval.
+//
+// The description is useful only if that exact decimal interval has meaningful
+// resolution in EyeProlog's finite float set. Convert the lower endpoint,
+// written midpoint, and upper endpoint to actual representable floats, using
+// directed adjustment at the endpoints so the selected minimum/maximum remain
+// inside the exact decimal interval. Require all three to be finite and
+// strictly ascending. This rejects over-precise "fake float" descriptions whose
+// decimal distinctions collapse to one implementation float, as well as
+// overflow/continuation-value ranges.
 function approximateDecimalInterval(term) {
   if (term?.type !== ATOM) return null;
   const text = term.name;
@@ -483,16 +490,112 @@ function approximateDecimalInterval(term) {
   if (!Number.isSafeInteger(exponent)) return null;
   const scale = exponent - fraction.length;
 
-  // center = mantissa * 10^scale; half an ulp of the written decimal is
-  // 5 * 10^(scale-1). Keeping the coefficient integral preserves every
-  // significant trailing zero in the expected spelling.
-  const lowerCoefficient = mantissa * 10n - 5n;
-  const upperCoefficient = mantissa * 10n + 5n;
-  const boundExponent = scale - 1;
-  const lower = Number(`${lowerCoefficient}e${boundExponent}`);
-  const upper = Number(`${upperCoefficient}e${boundExponent}`);
-  if (!Number.isFinite(lower) || !Number.isFinite(upper)) return null;
-  return { lower: Math.min(lower, upper), upper: Math.max(lower, upper) };
+  // center = mantissa * 10^scale; half a unit in the final written decimal
+  // place is 5 * 10^(scale-1). Keep the decimal coefficients exact until the
+  // representable-float selection below.
+  const lowerDecimal = { coefficient: mantissa * 10n - 5n, exponent: scale - 1 };
+  const middleDecimal = { coefficient: mantissa, exponent: scale };
+  const upperDecimal = { coefficient: mantissa * 10n + 5n, exponent: scale - 1 };
+
+  const rawLower = decimalToFiniteFloat(lowerDecimal);
+  const middle = decimalToFiniteFloat(middleDecimal);
+  const rawUpper = decimalToFiniteFloat(upperDecimal);
+  if (rawLower == null || middle == null || rawUpper == null) return null;
+  // If nearest rounding already collapses any two of the three points, no
+  // directed endpoint adjustment can create three floats inside the interval.
+  // Reject here before exact decimal comparison, which also keeps absurdly
+  // over-precise exponents from constructing enormous BigInt powers.
+  if (!(rawLower.value < middle.value && middle.value < rawUpper.value)) return null;
+
+  // Number() rounds to nearest. If an endpoint rounded outside the closed
+  // decimal interval, move one representable float inward. This avoids
+  // accepting a float that is merely close to a decimal boundary but lies
+  // mathematically outside it.
+  let minimum = rawLower;
+  if (compareFiniteFloatToDecimal(minimum.value, lowerDecimal) < 0) {
+    minimum = canonicalFiniteFloat(nextUp(minimum.value));
+  }
+  let maximum = rawUpper;
+  if (compareFiniteFloatToDecimal(maximum.value, upperDecimal) > 0) {
+    maximum = canonicalFiniteFloat(nextDown(maximum.value));
+  }
+  if (minimum == null || maximum == null) return null;
+
+  if (!(minimum.value < middle.value && middle.value < maximum.value)) return null;
+  return { minimum, middle, maximum };
+}
+
+function decimalToFiniteFloat(decimal) {
+  const value = Number(`${decimal.coefficient}e${decimal.exponent}`);
+  return canonicalFiniteFloat(value);
+}
+
+function canonicalFiniteFloat(value) {
+  if (!Number.isFinite(value)) return null;
+  const text = numberTextFromDouble(value);
+  if (text == null || isDecimalInteger(text) || Number(text) !== value) return null;
+  return { value, text };
+}
+
+// Compare an IEEE-754 binary64 value with coefficient * 10^exponent exactly.
+// The float is converted to an integer over a power-of-two denominator, so no
+// second floating rounding is involved in deciding whether a rounded boundary
+// candidate lies inside or outside the decimal interval.
+const FLOAT_BITS = new DataView(new ArrayBuffer(8));
+function finiteFloatRatio(value) {
+  FLOAT_BITS.setFloat64(0, value, false);
+  const bits = FLOAT_BITS.getBigUint64(0, false);
+  const negative = (bits >> 63n) !== 0n;
+  const exponentBits = Number((bits >> 52n) & 0x7ffn);
+  const fraction = bits & 0xfffffffffffffn;
+  if (exponentBits === 0 && fraction === 0n) return { numerator: 0n, denominatorPower: 0 };
+
+  let significand;
+  let exponent2;
+  if (exponentBits === 0) {
+    significand = fraction;
+    exponent2 = -1074;
+  } else {
+    significand = (1n << 52n) | fraction;
+    exponent2 = exponentBits - 1023 - 52;
+  }
+  if (negative) significand = -significand;
+  if (exponent2 >= 0) {
+    return { numerator: significand << BigInt(exponent2), denominatorPower: 0 };
+  }
+  return { numerator: significand, denominatorPower: -exponent2 };
+}
+
+function compareFiniteFloatToDecimal(value, decimal) {
+  const { numerator, denominatorPower } = finiteFloatRatio(value);
+  let left;
+  let right;
+  if (decimal.exponent >= 0) {
+    left = numerator;
+    right = decimal.coefficient * (10n ** BigInt(decimal.exponent));
+    right <<= BigInt(denominatorPower);
+  } else {
+    const decimalDenominator = 10n ** BigInt(-decimal.exponent);
+    left = numerator * decimalDenominator;
+    right = decimal.coefficient << BigInt(denominatorPower);
+  }
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+const NEXT_FLOAT_BITS = new DataView(new ArrayBuffer(8));
+function nextUp(value) {
+  if (Number.isNaN(value) || value === Infinity) return value;
+  if (value === -Infinity) return -Number.MAX_VALUE;
+  if (value === 0) return Number.MIN_VALUE;
+  NEXT_FLOAT_BITS.setFloat64(0, value, false);
+  let bits = NEXT_FLOAT_BITS.getBigUint64(0, false);
+  bits += value > 0 ? 1n : -1n;
+  NEXT_FLOAT_BITS.setBigUint64(0, bits, false);
+  return NEXT_FLOAT_BITS.getFloat64(0, false);
+}
+
+function nextDown(value) {
+  return -nextUp(-value);
 }
 
 function approximatelyMatches(actual, expectedAtom) {
@@ -500,7 +603,8 @@ function approximatelyMatches(actual, expectedAtom) {
   const actualValue = Number(actual.name);
   if (!Number.isFinite(actualValue)) return false;
   const interval = approximateDecimalInterval(expectedAtom);
-  return interval != null && actualValue >= interval.lower && actualValue <= interval.upper;
+  return interval != null &&
+    actualValue >= interval.minimum.value && actualValue <= interval.maximum.value;
 }
 
 function namedVariables(term) {

@@ -9608,23 +9608,37 @@ constraint remain. For example, a pending `dif/2` constraint can be checked as:
 
 ISO arithmetic examples sometimes describe a floating result only as
 "approximately equal" to a written decimal. Quad answer descriptions preserve
-the precision of that spelling with `~`: the right-hand side is a decimal atom,
-so trailing zeroes remain significant. `V ~ '14.2000'` accepts a **float** in
-the closed interval `14.19995` through `14.20005`; it does not accept an integer
-term, even when that integer has the same mathematical value. Exponent notation
-uses the last written mantissa digit in the same way, so `'1.42000e1'` denotes
-the same interval. For example:
+the precision of that spelling with `~~`: the right-hand side is a decimal atom,
+so trailing zeroes remain significant. `V ~~ '14.2000'` accepts a **float** in
+the closed decimal interval `14.19995` through `14.20005`; it does not accept an
+integer term, even when that integer has the same mathematical value. Exponent
+notation uses the last written mantissa digit in the same way, so `'1.42000e1'`
+denotes the same interval. For example:
 
 ```eyeprolog
 ?- V is 0+(3.2+11).
-   V ~ '14.2000'.
+   V ~~ '14.2000'.
 ```
 
-This `~` notation belongs only to indented quad answer descriptions. It does
-not install an approximate-equality predicate or operator in ordinary Prolog
-source. A numeric right-hand side such as `V ~ 14.2000` is deliberately
-rejected because parsing it as a float would discard the written decimal
-precision that the check is intended to retain.
+`~~` is an EyeProlog normal-profile operator at priority 700 with specifier
+`xfx`, matching the priority/specifier of ISO comparison operators such as `=`;
+there is no built-in `~~/2` predicate. Quad answer descriptions interpret the
+operator specially as approximate float matching.
+
+An approximation is accepted as well-formed only when its exact decimal
+interval contains at least three distinct, strictly ascending finite EyeProlog
+floats: the minimum representable float in the interval, the float denoted by
+the written midpoint, and the maximum representable float in the interval. This
+prevents a decimal spelling from claiming precision finer than the
+implementation can represent, including decimal spellings whose apparent
+precision collapses to the same implementation float, and rejects ranges that
+would require non-finite continuation values. Endpoint
+selection is directed inward, so a binary rounding of a decimal bound cannot
+admit a float that lies mathematically outside the closed decimal interval.
+
+A numeric right-hand side such as `V ~~ 14.2000` is deliberately rejected
+because parsing it as a float would discard the written decimal precision that
+the check is intended to retain.
 
 EyeProlog treats native variable constraints, attributed-variable residue, and
 delayed goals as pending residue for this purpose. Multiple

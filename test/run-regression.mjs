@@ -995,51 +995,51 @@ why(
       },
     },
     {
-      name: 'runQuads supports decimal-precision approximate float descriptions (issue #90)',
+      name: 'runQuads supports realistic decimal-precision float descriptions with ~~ (issue #90)',
       run: () => {
         const source = `?- V is 0+(3.2+11).
 ` +
-          `   V ~ '14.2000'.
+          `   V ~~ '14.2000'.
 
 ` +
           `?- V is 0+(3.2+11).
 ` +
-          `   V ~ '1.42000e1'.
+          `   V ~~ '1.42000e1'.
 
 ` +
           `?- V is -14.2.
 ` +
-          `   V ~ '-14.2000'.
+          `   V ~~ '-14.2000'.
 
 ` +
           `?- V is 1.0e-3.
 ` +
-          `   V ~ '1.000e-3'.
+          `   V ~~ '1.000e-3'.
 
 ` +
-          `?- V is 14.19995.
+          `?- V is 14.199950000000001.
 ` +
-          `   V ~ '14.2000'.
+          `   V ~~ '14.2000'.
 
 ` +
           `?- V is 14.20005.
 ` +
-          `   V ~ '14.2000'.
+          `   V ~~ '14.2000'.
 
 ` +
           `?- V is 14.2.
 ` +
-          `   V ~ '14.1999', unexpected.
+          `   V ~~ '14.1999', unexpected.
 
 ` +
           `?- V is 14.
 ` +
-          `   V ~ '14.0', unexpected.
+          `   V ~~ '14.0', unexpected.
 
 ` +
           `?- V is float(14).
 ` +
-          `   V ~ '14.0'.
+          `   V ~~ '14.0'.
 `;
         const result = publicApi.runQuads(Program.parseSources([{ text: source, filename: 'approx-quad.pl' }]));
         assertEqual(result.total, 9, 'approximate answer-description total');
@@ -1048,32 +1048,70 @@ why(
         assertEqual(result.stdout, 'quads: 9 run, 9 passed, 0 failed.\n', 'approximate quad report');
 
         const malformed = publicApi.runQuads(`?- V is 14.2.
-   V ~ 14.2000.
+   V ~~ 14.2000.
 `);
         assertEqual(malformed.total, 1, 'numeric approximation total');
         assertEqual(malformed.failed, 1, 'numeric RHS is rejected');
         assertIncludes(malformed.stdout, 'MALFORMED', 'numeric RHS diagnostic');
 
         const malformedAtom = publicApi.runQuads(`?- V is 14.2.
-   V ~ 'fourteen'.
+   V ~~ 'fourteen'.
 `);
         assertEqual(malformedAtom.failed, 1, 'non-decimal atom is rejected');
         assertIncludes(malformedAtom.stdout, 'MALFORMED', 'non-decimal atom diagnostic');
 
         const duplicate = publicApi.runQuads(`?- V is 14.2.
-   V = 14.2, V ~ '14.2000'.
+   V = 14.2, V ~~ '14.2000'.
 `);
         assertEqual(duplicate.failed, 1, 'duplicate exact/approximate binding is rejected');
         assertIncludes(duplicate.stdout, 'MALFORMED', 'duplicate binding diagnostic');
 
-        let ordinaryApproximateParsed = false;
-        try {
-          Program.parse(`p(X,Y) :- X ~ Y.\n`);
-          ordinaryApproximateParsed = true;
-        } catch (_) {
-          // `~` is answer-description syntax, not a normal-profile operator.
-        }
-        assertEqual(ordinaryApproximateParsed, false, 'quad approximate operator stays scoped to answer descriptions');
+        const fakeFloat = publicApi.runQuads(`?- V is 1.0.
+   V ~~ '1.0000000000000001'.
+`);
+        assertEqual(fakeFloat.failed, 1, 'fake-float midpoint spelling is malformed');
+        assertIncludes(fakeFloat.stdout, 'MALFORMED', 'fake-float midpoint diagnostic');
+
+        const overPrecise = publicApi.runQuads(`?- V is 1.0000000000000002.
+   V ~~ '1.0000000000000002'.
+`);
+        assertEqual(overPrecise.failed, 1, 'interval without three distinct floats is malformed');
+        assertIncludes(overPrecise.stdout, 'MALFORMED', 'over-precise interval diagnostic');
+
+        const continuationRange = publicApi.runQuads(`?- V is 1.0e308.
+   V ~~ '1.0e309'.
+`);
+        assertEqual(continuationRange.failed, 1, 'non-finite continuation-value interval is malformed');
+        assertIncludes(continuationRange.stdout, 'MALFORMED', 'continuation-value diagnostic');
+
+        assertEqual(
+          run('', { goal: 'current_op(Pri,Fix,=), current_op(Pri,Fix,~~)' }).stdout,
+          'current_op(700, xfx, =), current_op(700, xfx, ~~).\n',
+          '~~ shares the ISO equality operator priority and specifier',
+        );
+        assertEqual(
+          run('', { goal: 'current_op(700,xfx,~~)' }).stats.completed_goal_lists,
+          1,
+          '~~ is visible through current_op/3 in the normal profile',
+        );
+        assertEqual(
+          run('', { goal: 'current_op(_,_,~)' }).stats.completed_goal_lists,
+          0,
+          '~ is not installed by the quad approximation feature',
+        );
+        assertEqual(
+          run('', { isoStrict: true, goal: "current_op(700,xfx,'~~')" }).stats.completed_goal_lists,
+          0,
+          'strict ISO Part 1 does not predefine the ~~ extension',
+        );
+
+        const ordinaryApproximate = Program.parse(`approx(X,Y) :- X ~~ Y.\n`);
+        assertEqual(ordinaryApproximate.groups.has('user:~~/2'), false, '~~ has no built-in or implicit predicate definition');
+        assertEqual(
+          run(`~~(my,definition).\n`, { goal: 'my ~~ definition' }).stats.completed_goal_lists,
+          1,
+          '~~ remains available as an ordinary user-defined predicate',
+        );
       },
     },
     {
