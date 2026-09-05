@@ -60,7 +60,7 @@ why(
       proof(
         goal(cutoff_frequency(filter1, 15.915494309189533)),
         by(rule("electrical-rc-filter.pl", clause(5))),
-        bindings([binding("Filter", filter1), binding("Frequency", 15.915494309189533), binding("Tau", 0.01), binding("Pi", 3.141592653589793), binding("Twopi", 6.2831853071795862), binding("Denominator", 0.062831853071795868)]),
+        bindings([binding("Filter", filter1), binding("Frequency", 15.915494309189533), binding("Tau", 0.01), binding("Pi", 3.141592653589793), binding("Twopi", 6.283185307179586), binding("Denominator", 0.06283185307179587)]),
         uses([
           proof(
             goal(time_constant(filter1, 0.01)),
@@ -86,15 +86,15 @@ why(
             by(fact("electrical-rc-filter.pl", clause(3)))
           ),
           proof(
-            goal(is(6.2831853071795862, *(2.0, 3.141592653589793))),
+            goal(is(6.283185307179586, *(2.0, 3.141592653589793))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.062831853071795868, *(6.2831853071795862, 0.01))),
+            goal(is(0.06283185307179587, *(6.283185307179586, 0.01))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(15.915494309189533, /(1.0, 0.062831853071795868))),
+            goal(is(15.915494309189533, /(1.0, 0.06283185307179587))),
             by(builtin(is, 2))
           )
         ])

@@ -1,13 +1,13 @@
 weightKg(case, 72.0).
 heightM(case, 1.78).
 units(reason, "Inputs were already metric, so kilograms stay kilograms and centimeters are divided by 100 to obtain meters.").
-heightSquared(case, 3.1684000000000001).
+heightSquared(case, 3.1684).
 bmi(case, 22.724403484408533).
 bmi(answer, 22.72).
 bmiRoundedInt(case, 2272).
-healthyMinKg(case, 58.615400000000001).
+healthyMinKg(case, 58.6154).
 healthyMinKg(answer, 58.6).
-healthyMaxKg(case, 78.893159999999995).
+healthyMaxKg(case, 78.89316).
 healthyMaxKg(answer, 78.9).
 healthyMinKgRoundedInt(case, 586).
 healthyMaxKgRoundedInt(case, 789).

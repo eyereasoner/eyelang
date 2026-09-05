@@ -1,7 +1,7 @@
-ppvPlanetGivenDetection(rare_wide_orbit, 0.090163934426229442).
-ppvPlanetGivenDetection(mstar_short_period, 0.96116504854368934).
-ppvPlanetGivenDetection(common_hot_neptune_good, 0.91346153846153844).
-ppvPlanetGivenDetection(common_hot_neptune_low_spec, 0.76000000000000001).
+ppvPlanetGivenDetection(rare_wide_orbit, 0.09016393442622944).
+ppvPlanetGivenDetection(mstar_short_period, 0.9611650485436893).
+ppvPlanetGivenDetection(common_hot_neptune_good, 0.9134615384615384).
+ppvPlanetGivenDetection(common_hot_neptune_low_spec, 0.76).
 confirmsInWorld(mstar_short_period, w0).
 confirmsInWorld(common_hot_neptune_good, w0).
 confirmsInWorld(rare_wide_orbit, w1).

@@ -1,4 +1,4 @@
-answer(17, 'small world', acada, "ant", [97, 110, 116], c, -25, 4.2000000000000002).
+answer(17, 'small world', acada, "ant", [97, 110, 116], c, -25, 4.2).
 split('', ab).
 split(a, b).
 split(ab, '').

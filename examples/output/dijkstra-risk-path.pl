@@ -10,8 +10,8 @@ rawCost(pathDirectC, 14.0).
 rawCost(pathViaC, 7.5).
 riskSum(pathB, 0.5).
 riskSum(pathC, 1.2).
-riskSum(pathRelay, 0.40000000000000002).
-riskSum(pathDirectC, 0.050000000000000003).
+riskSum(pathRelay, 0.4).
+riskSum(pathDirectC, 0.05).
 riskSum(pathViaC, 1.7000000000000002).
 score(pathB, 13.0).
 score(pathC, 21.0).

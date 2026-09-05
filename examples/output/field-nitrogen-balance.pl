@@ -14,7 +14,7 @@ surplusN_kg_ha(sandy_high, 12.0).
 surplusN_kg_ha(clay_surplus, 27.200000000000017).
 surplusN_kg_ha(low_input, 0.0).
 surplusN_kg_ha(balanced_loam, 0.0).
-leachingIndex(sandy_high, 4.1999999999999993).
+leachingIndex(sandy_high, 4.199999999999999).
 leachingIndex(clay_surplus, 2.1760000000000015).
 leachingIndex(low_input, 0.0).
 leachingIndex(balanced_loam, 0.0).

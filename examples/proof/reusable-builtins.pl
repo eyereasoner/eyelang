@@ -74,13 +74,13 @@ why(
   )
 ).
 
-report(score_summary, summary(42, 21, 6.4807406984078604)).
+report(score_summary, summary(42, 21, 6.48074069840786)).
 why(
-  report(score_summary, summary(42, 21, 6.4807406984078604)),
+  report(score_summary, summary(42, 21, 6.48074069840786)),
   proof(
-    goal(report(score_summary, summary(42, 21, 6.4807406984078604))),
+    goal(report(score_summary, summary(42, 21, 6.48074069840786))),
     by(rule("reusable-builtins.pl", clause(7))),
-    bindings([binding("Total", 42), binding("Peak", 21), binding("Roottotal", 6.4807406984078604), binding("Scores", [8, 13, 21])]),
+    bindings([binding("Total", 42), binding("Peak", 21), binding("Roottotal", 6.48074069840786), binding("Scores", [8, 13, 21])]),
     uses([
       proof(
         goal(scores([8, 13, 21])),
@@ -95,7 +95,7 @@ why(
         by(library(max_list, 2))
       ),
       proof(
-        goal(is(6.4807406984078604, sqrt(42))),
+        goal(is(6.48074069840786, sqrt(42))),
         by(builtin(is, 2))
       )
     ])

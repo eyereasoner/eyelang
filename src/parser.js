@@ -1,6 +1,8 @@
 // Tokenizer and recursive-descent parser for the EyeProlog source language.
 // It preserves the compact Prolog-like syntax while producing Term objects for the solver.
-import { ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, variable } from './term.js';
+import {
+  ATOM, COMPOUND, atom, compound, cons, emptyList, numberTerm, numberTextFromDouble, variable,
+} from './term.js';
 import { continuesGraphicToken, isTerminatingFullStop } from './syntax-scan.js';
 import { CharacterRepresentationError, isStrictIsoPcsCodePoint } from './iso-character.js';
 import { ISO_MAX_ARITY } from './iso-limits.js';
@@ -25,7 +27,7 @@ function finiteFloatTokenText(text) {
   if (!Number.isFinite(value)) {
     throw new NumberRepresentationError(floatRepresentationErrorFormal(text));
   }
-  return value === 0 ? '0.0' : text;
+  return numberTextFromDouble(value);
 }
 
 const TOK = {

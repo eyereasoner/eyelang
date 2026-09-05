@@ -1030,7 +1030,7 @@
         "type": "success",
         "stages": [
           {
-            "output": "1.0e100",
+            "output": "1.0e+100",
             "variables": "[]"
           }
         ]
@@ -3794,8 +3794,8 @@
         "type": "success",
         "stages": [
           {
-            "output": "9.8813129168249309e-324",
-            "variables": "['X'=9.8813129168249309e-324]"
+            "output": "1.0e-323",
+            "variables": "['X'=1.0e-323]"
           }
         ]
       }

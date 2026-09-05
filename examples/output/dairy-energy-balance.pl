@@ -6,8 +6,8 @@ energyBalance_Mcal(early_lactation, -101.19999999999999).
 energyBalance_Mcal(mid_lactation, 0.19999999999998863).
 energyBalance_Mcal(late_lactation, 41.099999999999994).
 energyBalance_Mcal(grazing, -11.399999999999991).
-rationSupportedMilk_kg(early_lactation, 17.760000000000002).
-rationSupportedMilk_kg(mid_lactation, 24.039999999999999).
-rationSupportedMilk_kg(late_lactation, 24.219999999999999).
+rationSupportedMilk_kg(early_lactation, 17.76).
+rationSupportedMilk_kg(mid_lactation, 24.04).
+rationSupportedMilk_kg(late_lactation, 24.22).
 rationSupportedMilk_kg(grazing, 15.719999999999999).
 strongestDeficit(dairy_energy_balance, early_lactation).

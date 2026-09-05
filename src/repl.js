@@ -59,7 +59,9 @@ export async function runRepl(engine, options = {}) {
         const consultFiles = options.isoStrict ? null : consultDesignations(engine, goal);
         if (consultFiles != null) {
           for (const filename of consultFiles) {
-            const source = await readSource(filename);
+            const source = filename === 'user'
+              ? await readUserSource(reader, state.solver)
+              : await readSource(filename);
             replaceConsultedSource(sources, source);
           }
           state = makeState(engine, sources, output, options, state, reader);
@@ -576,6 +578,28 @@ async function readSource(designation) {
     // Keep host-only provenance so consulting the same resolved file again
     // replaces its previous source instead of accumulating stale clauses.
     consultPath: filename,
+  };
+}
+
+async function readUserSource(reader, solver) {
+  let text = '';
+  while (true) {
+    const term = await readInteractiveTerm(reader, solver);
+    if (term == null) break;
+    const end = terminalFullStop(term, solver);
+    const body = end < 0 ? term : term.slice(0, end);
+    // `user` is the traditional interactive consult pseudo-file. Stop at an
+    // unquoted end_of_file term, just as a physical input stream would. The
+    // source accumulated before it is then prepared as one ordinary Prolog
+    // text so directives and operator declarations retain normal file order.
+    if (body.replace(/\s|%[^\n]*(?:\n|$)|\/\*[\s\S]*?\*\//g, '') === 'end_of_file') break;
+    text += term;
+  }
+  return {
+    text,
+    filename: '<user>',
+    baseDir: process.cwd(),
+    consultPath: '<user>',
   };
 }
 

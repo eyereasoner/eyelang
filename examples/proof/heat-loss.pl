@@ -56,7 +56,7 @@ why(
       proof(
         goal(thermal_resistance(wall1, 0.020833333333333332)),
         by(rule("heat-loss.pl", clause(7))),
-        bindings([binding("Wall", wall1), binding("Resistance", 0.020833333333333332), binding("Thickness", 0.2), binding("Conductivity", 0.8), binding("Area", 12.0), binding("Conductance", 9.6000000000000014)]),
+        bindings([binding("Wall", wall1), binding("Resistance", 0.020833333333333332), binding("Thickness", 0.2), binding("Conductivity", 0.8), binding("Area", 12.0), binding("Conductance", 9.600000000000001)]),
         uses([
           proof(
             goal(wall(wall1, thickness_m, 0.2)),
@@ -71,11 +71,11 @@ why(
             by(fact("heat-loss.pl", clause(2)))
           ),
           proof(
-            goal(is(9.6000000000000014, *(0.8, 12.0))),
+            goal(is(9.600000000000001, *(0.8, 12.0))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.020833333333333332, /(0.2, 9.6000000000000014))),
+            goal(is(0.020833333333333332, /(0.2, 9.600000000000001))),
             by(builtin(is, 2))
           )
         ])
@@ -119,7 +119,7 @@ why(
           proof(
             goal(thermal_resistance(wall1, 0.020833333333333332)),
             by(rule("heat-loss.pl", clause(7))),
-            bindings([binding("Wall", wall1), binding("Resistance", 0.020833333333333332), binding("Thickness", 0.2), binding("Conductivity", 0.8), binding("Area", 12.0), binding("Conductance", 9.6000000000000014)]),
+            bindings([binding("Wall", wall1), binding("Resistance", 0.020833333333333332), binding("Thickness", 0.2), binding("Conductivity", 0.8), binding("Area", 12.0), binding("Conductance", 9.600000000000001)]),
             uses([
               proof(
                 goal(wall(wall1, thickness_m, 0.2)),
@@ -134,11 +134,11 @@ why(
                 by(fact("heat-loss.pl", clause(2)))
               ),
               proof(
-                goal(is(9.6000000000000014, *(0.8, 12.0))),
+                goal(is(9.600000000000001, *(0.8, 12.0))),
                 by(builtin(is, 2))
               ),
               proof(
-                goal(is(0.020833333333333332, /(0.2, 9.6000000000000014))),
+                goal(is(0.020833333333333332, /(0.2, 9.600000000000001))),
                 by(builtin(is, 2))
               )
             ])
@@ -188,7 +188,7 @@ why(
           proof(
             goal(thermal_resistance(wall1, 0.020833333333333332)),
             by(rule("heat-loss.pl", clause(7))),
-            bindings([binding("Wall", wall1), binding("Resistance", 0.020833333333333332), binding("Thickness", 0.2), binding("Conductivity", 0.8), binding("Area", 12.0), binding("Conductance", 9.6000000000000014)]),
+            bindings([binding("Wall", wall1), binding("Resistance", 0.020833333333333332), binding("Thickness", 0.2), binding("Conductivity", 0.8), binding("Area", 12.0), binding("Conductance", 9.600000000000001)]),
             uses([
               proof(
                 goal(wall(wall1, thickness_m, 0.2)),
@@ -203,11 +203,11 @@ why(
                 by(fact("heat-loss.pl", clause(2)))
               ),
               proof(
-                goal(is(9.6000000000000014, *(0.8, 12.0))),
+                goal(is(9.600000000000001, *(0.8, 12.0))),
                 by(builtin(is, 2))
               ),
               proof(
-                goal(is(0.020833333333333332, /(0.2, 9.6000000000000014))),
+                goal(is(0.020833333333333332, /(0.2, 9.600000000000001))),
                 by(builtin(is, 2))
               )
             ])

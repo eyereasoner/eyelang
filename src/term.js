@@ -1637,19 +1637,18 @@ export function parseFiniteNumber(text) {
 export function numberTextFromDouble(value) {
   if (!Number.isFinite(value)) return null;
   if (Object.is(value, -0)) value = 0;
-  let text = Number(value).toPrecision(17);
-  if (text.includes('e') || text.includes('E')) {
-    text = text
-      .replace(/(\.\d*?[1-9])0+(e[+-]?\d+)$/i, '$1$2')
-      // ISO floating-point syntax requires a fractional part before the
-      // exponent. Keep one zero when the fraction is otherwise all zeros so
-      // generated text remains readable by EyeProlog itself (for example
-      // 1.0e-8 rather than JavaScript's 1e-8).
-      .replace(/\.0+(e[+-]?\d+)$/i, '.0$1');
-  } else if (text.includes('.')) {
-    text = text.replace(/0+$/, '').replace(/\.$/, '');
+  // Number#toString returns the shortest decimal spelling that round-trips to
+  // the same IEEE-754 double. Keep that value identity while adapting the text
+  // to ISO float syntax, which requires an explicit fractional part.
+  let text = Number(value).toString();
+  const exponent = text.search(/[eE]/);
+  if (exponent >= 0) {
+    if (!text.slice(0, exponent).includes('.')) {
+      text = `${text.slice(0, exponent)}.0${text.slice(exponent)}`;
+    }
+  } else if (!text.includes('.')) {
+    text += '.0';
   }
-  if (!/[.eE]/.test(text)) text += '.0';
   return text;
 }
 

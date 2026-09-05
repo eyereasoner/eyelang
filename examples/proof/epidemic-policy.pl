@@ -4,41 +4,41 @@ why(
   proof(
     goal(status(no_mandate, insufficient_control)),
     by(rule("epidemic-policy.pl", clause(20))),
-    bindings([binding("P", no_mandate), binding("R", 1.3999999999999999)]),
+    bindings([binding("P", no_mandate), binding("R", 1.4)]),
     uses([
       proof(
         goal(policy(no_mandate)),
         by(fact("epidemic-policy.pl", clause(1)))
       ),
       proof(
-        goal(risk_score(no_mandate, 1.3999999999999999)),
+        goal(risk_score(no_mandate, 1.4)),
         by(rule("epidemic-policy.pl", clause(18))),
-        bindings([binding("P", no_mandate), binding("R", 1.3999999999999999), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 1.00), binding("A", 1.3999999999999999)]),
+        bindings([binding("P", no_mandate), binding("R", 1.4), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 1.0), binding("A", 1.4)]),
         uses([
           proof(
-            goal(base_risk(1.40)),
+            goal(base_risk(1.4)),
             by(fact("epidemic-policy.pl", clause(5)))
           ),
           proof(
-            goal(vaccination_factor(no_mandate, 1.00)),
+            goal(vaccination_factor(no_mandate, 1.0)),
             by(fact("epidemic-policy.pl", clause(6)))
           ),
           proof(
-            goal(mask_factor(no_mandate, 1.00)),
+            goal(mask_factor(no_mandate, 1.0)),
             by(fact("epidemic-policy.pl", clause(10)))
           ),
           proof(
-            goal(is(1.3999999999999999, *(1.40, 1.00))),
+            goal(is(1.4, *(1.4, 1.0))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(1.3999999999999999, *(1.3999999999999999, 1.00))),
+            goal(is(1.4, *(1.4, 1.0))),
             by(builtin(is, 2))
           )
         ])
       ),
       proof(
-        goal(>(1.3999999999999999, 0.75)),
+        goal(>(1.4, 0.75)),
         by(builtin(>, 2))
       )
     ])
@@ -51,19 +51,19 @@ why(
   proof(
     goal(status(vaccination_campaign, insufficient_control)),
     by(rule("epidemic-policy.pl", clause(20))),
-    bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002)]),
+    bindings([binding("P", vaccination_campaign), binding("R", 0.77)]),
     uses([
       proof(
         goal(policy(vaccination_campaign)),
         by(fact("epidemic-policy.pl", clause(2)))
       ),
       proof(
-        goal(risk_score(vaccination_campaign, 0.77000000000000002)),
+        goal(risk_score(vaccination_campaign, 0.77)),
         by(rule("epidemic-policy.pl", clause(18))),
-        bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 1.00), binding("A", 0.77000000000000002)]),
+        bindings([binding("P", vaccination_campaign), binding("R", 0.77), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 1.0), binding("A", 0.77)]),
         uses([
           proof(
-            goal(base_risk(1.40)),
+            goal(base_risk(1.4)),
             by(fact("epidemic-policy.pl", clause(5)))
           ),
           proof(
@@ -71,21 +71,21 @@ why(
             by(fact("epidemic-policy.pl", clause(7)))
           ),
           proof(
-            goal(mask_factor(vaccination_campaign, 1.00)),
+            goal(mask_factor(vaccination_campaign, 1.0)),
             by(fact("epidemic-policy.pl", clause(11)))
           ),
           proof(
-            goal(is(0.77000000000000002, *(1.40, 0.55))),
+            goal(is(0.77, *(1.4, 0.55))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.77000000000000002, *(0.77000000000000002, 1.00))),
+            goal(is(0.77, *(0.77, 1.0))),
             by(builtin(is, 2))
           )
         ])
       ),
       proof(
-        goal(>(0.77000000000000002, 0.75)),
+        goal(>(0.77, 0.75)),
         by(builtin(>, 2))
       )
     ])
@@ -98,23 +98,23 @@ why(
   proof(
     goal(status(indoor_masks, insufficient_control)),
     by(rule("epidemic-policy.pl", clause(20))),
-    bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992)]),
+    bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999)]),
     uses([
       proof(
         goal(policy(indoor_masks)),
         by(fact("epidemic-policy.pl", clause(3)))
       ),
       proof(
-        goal(risk_score(indoor_masks, 0.90999999999999992)),
+        goal(risk_score(indoor_masks, 0.9099999999999999)),
         by(rule("epidemic-policy.pl", clause(18))),
-        bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 0.65), binding("A", 1.3999999999999999)]),
+        bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 0.65), binding("A", 1.4)]),
         uses([
           proof(
-            goal(base_risk(1.40)),
+            goal(base_risk(1.4)),
             by(fact("epidemic-policy.pl", clause(5)))
           ),
           proof(
-            goal(vaccination_factor(indoor_masks, 1.00)),
+            goal(vaccination_factor(indoor_masks, 1.0)),
             by(fact("epidemic-policy.pl", clause(8)))
           ),
           proof(
@@ -122,17 +122,17 @@ why(
             by(fact("epidemic-policy.pl", clause(12)))
           ),
           proof(
-            goal(is(1.3999999999999999, *(1.40, 1.00))),
+            goal(is(1.4, *(1.4, 1.0))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.90999999999999992, *(1.3999999999999999, 0.65))),
+            goal(is(0.9099999999999999, *(1.4, 0.65))),
             by(builtin(is, 2))
           )
         ])
       ),
       proof(
-        goal(>(0.90999999999999992, 0.75)),
+        goal(>(0.9099999999999999, 0.75)),
         by(builtin(>, 2))
       )
     ])
@@ -150,15 +150,15 @@ why(
       proof(
         goal(acceptable(vaccination_and_masks)),
         by(rule("epidemic-policy.pl", clause(19))),
-        bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006)]),
+        bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001)]),
         uses([
           proof(
-            goal(risk_score(vaccination_and_masks, 0.50050000000000006)),
+            goal(risk_score(vaccination_and_masks, 0.5005000000000001)),
             by(rule("epidemic-policy.pl", clause(18))),
-            bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77000000000000002)]),
+            bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77)]),
             uses([
               proof(
-                goal(base_risk(1.40)),
+                goal(base_risk(1.4)),
                 by(fact("epidemic-policy.pl", clause(5)))
               ),
               proof(
@@ -170,17 +170,17 @@ why(
                 by(fact("epidemic-policy.pl", clause(13)))
               ),
               proof(
-                goal(is(0.77000000000000002, *(1.40, 0.55))),
+                goal(is(0.77, *(1.4, 0.55))),
                 by(builtin(is, 2))
               ),
               proof(
-                goal(is(0.50050000000000006, *(0.77000000000000002, 0.65))),
+                goal(is(0.5005000000000001, *(0.77, 0.65))),
                 by(builtin(is, 2))
               )
             ])
           ),
           proof(
-            goal(=<(0.50050000000000006, 0.75)),
+            goal(=<(0.5005000000000001, 0.75)),
             by(builtin(=<, 2))
           )
         ])
@@ -189,37 +189,37 @@ why(
   )
 ).
 
-riskScore(no_mandate, 1.3999999999999999).
+riskScore(no_mandate, 1.4).
 why(
-  riskScore(no_mandate, 1.3999999999999999),
+  riskScore(no_mandate, 1.4),
   proof(
-    goal(riskScore(no_mandate, 1.3999999999999999)),
+    goal(riskScore(no_mandate, 1.4)),
     by(rule("epidemic-policy.pl", clause(23))),
-    bindings([binding("P", no_mandate), binding("R", 1.3999999999999999)]),
+    bindings([binding("P", no_mandate), binding("R", 1.4)]),
     uses([
       proof(
-        goal(risk_score(no_mandate, 1.3999999999999999)),
+        goal(risk_score(no_mandate, 1.4)),
         by(rule("epidemic-policy.pl", clause(18))),
-        bindings([binding("P", no_mandate), binding("R", 1.3999999999999999), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 1.00), binding("A", 1.3999999999999999)]),
+        bindings([binding("P", no_mandate), binding("R", 1.4), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 1.0), binding("A", 1.4)]),
         uses([
           proof(
-            goal(base_risk(1.40)),
+            goal(base_risk(1.4)),
             by(fact("epidemic-policy.pl", clause(5)))
           ),
           proof(
-            goal(vaccination_factor(no_mandate, 1.00)),
+            goal(vaccination_factor(no_mandate, 1.0)),
             by(fact("epidemic-policy.pl", clause(6)))
           ),
           proof(
-            goal(mask_factor(no_mandate, 1.00)),
+            goal(mask_factor(no_mandate, 1.0)),
             by(fact("epidemic-policy.pl", clause(10)))
           ),
           proof(
-            goal(is(1.3999999999999999, *(1.40, 1.00))),
+            goal(is(1.4, *(1.4, 1.0))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(1.3999999999999999, *(1.3999999999999999, 1.00))),
+            goal(is(1.4, *(1.4, 1.0))),
             by(builtin(is, 2))
           )
         ])
@@ -228,21 +228,21 @@ why(
   )
 ).
 
-riskScore(vaccination_campaign, 0.77000000000000002).
+riskScore(vaccination_campaign, 0.77).
 why(
-  riskScore(vaccination_campaign, 0.77000000000000002),
+  riskScore(vaccination_campaign, 0.77),
   proof(
-    goal(riskScore(vaccination_campaign, 0.77000000000000002)),
+    goal(riskScore(vaccination_campaign, 0.77)),
     by(rule("epidemic-policy.pl", clause(23))),
-    bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002)]),
+    bindings([binding("P", vaccination_campaign), binding("R", 0.77)]),
     uses([
       proof(
-        goal(risk_score(vaccination_campaign, 0.77000000000000002)),
+        goal(risk_score(vaccination_campaign, 0.77)),
         by(rule("epidemic-policy.pl", clause(18))),
-        bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 1.00), binding("A", 0.77000000000000002)]),
+        bindings([binding("P", vaccination_campaign), binding("R", 0.77), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 1.0), binding("A", 0.77)]),
         uses([
           proof(
-            goal(base_risk(1.40)),
+            goal(base_risk(1.4)),
             by(fact("epidemic-policy.pl", clause(5)))
           ),
           proof(
@@ -250,15 +250,15 @@ why(
             by(fact("epidemic-policy.pl", clause(7)))
           ),
           proof(
-            goal(mask_factor(vaccination_campaign, 1.00)),
+            goal(mask_factor(vaccination_campaign, 1.0)),
             by(fact("epidemic-policy.pl", clause(11)))
           ),
           proof(
-            goal(is(0.77000000000000002, *(1.40, 0.55))),
+            goal(is(0.77, *(1.4, 0.55))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.77000000000000002, *(0.77000000000000002, 1.00))),
+            goal(is(0.77, *(0.77, 1.0))),
             by(builtin(is, 2))
           )
         ])
@@ -267,25 +267,25 @@ why(
   )
 ).
 
-riskScore(indoor_masks, 0.90999999999999992).
+riskScore(indoor_masks, 0.9099999999999999).
 why(
-  riskScore(indoor_masks, 0.90999999999999992),
+  riskScore(indoor_masks, 0.9099999999999999),
   proof(
-    goal(riskScore(indoor_masks, 0.90999999999999992)),
+    goal(riskScore(indoor_masks, 0.9099999999999999)),
     by(rule("epidemic-policy.pl", clause(23))),
-    bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992)]),
+    bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999)]),
     uses([
       proof(
-        goal(risk_score(indoor_masks, 0.90999999999999992)),
+        goal(risk_score(indoor_masks, 0.9099999999999999)),
         by(rule("epidemic-policy.pl", clause(18))),
-        bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 0.65), binding("A", 1.3999999999999999)]),
+        bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 0.65), binding("A", 1.4)]),
         uses([
           proof(
-            goal(base_risk(1.40)),
+            goal(base_risk(1.4)),
             by(fact("epidemic-policy.pl", clause(5)))
           ),
           proof(
-            goal(vaccination_factor(indoor_masks, 1.00)),
+            goal(vaccination_factor(indoor_masks, 1.0)),
             by(fact("epidemic-policy.pl", clause(8)))
           ),
           proof(
@@ -293,11 +293,11 @@ why(
             by(fact("epidemic-policy.pl", clause(12)))
           ),
           proof(
-            goal(is(1.3999999999999999, *(1.40, 1.00))),
+            goal(is(1.4, *(1.4, 1.0))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.90999999999999992, *(1.3999999999999999, 0.65))),
+            goal(is(0.9099999999999999, *(1.4, 0.65))),
             by(builtin(is, 2))
           )
         ])
@@ -306,21 +306,21 @@ why(
   )
 ).
 
-riskScore(vaccination_and_masks, 0.50050000000000006).
+riskScore(vaccination_and_masks, 0.5005000000000001).
 why(
-  riskScore(vaccination_and_masks, 0.50050000000000006),
+  riskScore(vaccination_and_masks, 0.5005000000000001),
   proof(
-    goal(riskScore(vaccination_and_masks, 0.50050000000000006)),
+    goal(riskScore(vaccination_and_masks, 0.5005000000000001)),
     by(rule("epidemic-policy.pl", clause(23))),
-    bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006)]),
+    bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001)]),
     uses([
       proof(
-        goal(risk_score(vaccination_and_masks, 0.50050000000000006)),
+        goal(risk_score(vaccination_and_masks, 0.5005000000000001)),
         by(rule("epidemic-policy.pl", clause(18))),
-        bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77000000000000002)]),
+        bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77)]),
         uses([
           proof(
-            goal(base_risk(1.40)),
+            goal(base_risk(1.4)),
             by(fact("epidemic-policy.pl", clause(5)))
           ),
           proof(
@@ -332,11 +332,11 @@ why(
             by(fact("epidemic-policy.pl", clause(13)))
           ),
           proof(
-            goal(is(0.77000000000000002, *(1.40, 0.55))),
+            goal(is(0.77, *(1.4, 0.55))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.50050000000000006, *(0.77000000000000002, 0.65))),
+            goal(is(0.5005000000000001, *(0.77, 0.65))),
             by(builtin(is, 2))
           )
         ])
@@ -424,15 +424,15 @@ why(
           proof(
             goal(acceptable(vaccination_and_masks)),
             by(rule("epidemic-policy.pl", clause(19))),
-            bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006)]),
+            bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001)]),
             uses([
               proof(
-                goal(risk_score(vaccination_and_masks, 0.50050000000000006)),
+                goal(risk_score(vaccination_and_masks, 0.5005000000000001)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77000000000000002)]),
+                bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
@@ -444,17 +444,17 @@ why(
                     by(fact("epidemic-policy.pl", clause(13)))
                   ),
                   proof(
-                    goal(is(0.77000000000000002, *(1.40, 0.55))),
+                    goal(is(0.77, *(1.4, 0.55))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(0.50050000000000006, *(0.77000000000000002, 0.65))),
+                    goal(is(0.5005000000000001, *(0.77, 0.65))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(=<(0.50050000000000006, 0.75)),
+                goal(=<(0.5005000000000001, 0.75)),
                 by(builtin(=<, 2))
               )
             ])
@@ -462,41 +462,41 @@ why(
           proof(
             goal(status(no_mandate, insufficient_control)),
             by(rule("epidemic-policy.pl", clause(20))),
-            bindings([binding("P", no_mandate), binding("R", 1.3999999999999999)]),
+            bindings([binding("P", no_mandate), binding("R", 1.4)]),
             uses([
               proof(
                 goal(policy(no_mandate)),
                 by(fact("epidemic-policy.pl", clause(1)))
               ),
               proof(
-                goal(risk_score(no_mandate, 1.3999999999999999)),
+                goal(risk_score(no_mandate, 1.4)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", no_mandate), binding("R", 1.3999999999999999), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 1.00), binding("A", 1.3999999999999999)]),
+                bindings([binding("P", no_mandate), binding("R", 1.4), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 1.0), binding("A", 1.4)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
-                    goal(vaccination_factor(no_mandate, 1.00)),
+                    goal(vaccination_factor(no_mandate, 1.0)),
                     by(fact("epidemic-policy.pl", clause(6)))
                   ),
                   proof(
-                    goal(mask_factor(no_mandate, 1.00)),
+                    goal(mask_factor(no_mandate, 1.0)),
                     by(fact("epidemic-policy.pl", clause(10)))
                   ),
                   proof(
-                    goal(is(1.3999999999999999, *(1.40, 1.00))),
+                    goal(is(1.4, *(1.4, 1.0))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(1.3999999999999999, *(1.3999999999999999, 1.00))),
+                    goal(is(1.4, *(1.4, 1.0))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(>(1.3999999999999999, 0.75)),
+                goal(>(1.4, 0.75)),
                 by(builtin(>, 2))
               )
             ])
@@ -504,19 +504,19 @@ why(
           proof(
             goal(status(vaccination_campaign, insufficient_control)),
             by(rule("epidemic-policy.pl", clause(20))),
-            bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002)]),
+            bindings([binding("P", vaccination_campaign), binding("R", 0.77)]),
             uses([
               proof(
                 goal(policy(vaccination_campaign)),
                 by(fact("epidemic-policy.pl", clause(2)))
               ),
               proof(
-                goal(risk_score(vaccination_campaign, 0.77000000000000002)),
+                goal(risk_score(vaccination_campaign, 0.77)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 1.00), binding("A", 0.77000000000000002)]),
+                bindings([binding("P", vaccination_campaign), binding("R", 0.77), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 1.0), binding("A", 0.77)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
@@ -524,21 +524,21 @@ why(
                     by(fact("epidemic-policy.pl", clause(7)))
                   ),
                   proof(
-                    goal(mask_factor(vaccination_campaign, 1.00)),
+                    goal(mask_factor(vaccination_campaign, 1.0)),
                     by(fact("epidemic-policy.pl", clause(11)))
                   ),
                   proof(
-                    goal(is(0.77000000000000002, *(1.40, 0.55))),
+                    goal(is(0.77, *(1.4, 0.55))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(0.77000000000000002, *(0.77000000000000002, 1.00))),
+                    goal(is(0.77, *(0.77, 1.0))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(>(0.77000000000000002, 0.75)),
+                goal(>(0.77, 0.75)),
                 by(builtin(>, 2))
               )
             ])
@@ -546,23 +546,23 @@ why(
           proof(
             goal(status(indoor_masks, insufficient_control)),
             by(rule("epidemic-policy.pl", clause(20))),
-            bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992)]),
+            bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999)]),
             uses([
               proof(
                 goal(policy(indoor_masks)),
                 by(fact("epidemic-policy.pl", clause(3)))
               ),
               proof(
-                goal(risk_score(indoor_masks, 0.90999999999999992)),
+                goal(risk_score(indoor_masks, 0.9099999999999999)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 0.65), binding("A", 1.3999999999999999)]),
+                bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 0.65), binding("A", 1.4)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
-                    goal(vaccination_factor(indoor_masks, 1.00)),
+                    goal(vaccination_factor(indoor_masks, 1.0)),
                     by(fact("epidemic-policy.pl", clause(8)))
                   ),
                   proof(
@@ -570,17 +570,17 @@ why(
                     by(fact("epidemic-policy.pl", clause(12)))
                   ),
                   proof(
-                    goal(is(1.3999999999999999, *(1.40, 1.00))),
+                    goal(is(1.4, *(1.4, 1.0))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(0.90999999999999992, *(1.3999999999999999, 0.65))),
+                    goal(is(0.9099999999999999, *(1.4, 0.65))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(>(0.90999999999999992, 0.75)),
+                goal(>(0.9099999999999999, 0.75)),
                 by(builtin(>, 2))
               )
             ])
@@ -605,15 +605,15 @@ why(
           proof(
             goal(acceptable(vaccination_and_masks)),
             by(rule("epidemic-policy.pl", clause(19))),
-            bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006)]),
+            bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001)]),
             uses([
               proof(
-                goal(risk_score(vaccination_and_masks, 0.50050000000000006)),
+                goal(risk_score(vaccination_and_masks, 0.5005000000000001)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", vaccination_and_masks), binding("R", 0.50050000000000006), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77000000000000002)]),
+                bindings([binding("P", vaccination_and_masks), binding("R", 0.5005000000000001), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 0.65), binding("A", 0.77)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
@@ -625,17 +625,17 @@ why(
                     by(fact("epidemic-policy.pl", clause(13)))
                   ),
                   proof(
-                    goal(is(0.77000000000000002, *(1.40, 0.55))),
+                    goal(is(0.77, *(1.4, 0.55))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(0.50050000000000006, *(0.77000000000000002, 0.65))),
+                    goal(is(0.5005000000000001, *(0.77, 0.65))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(=<(0.50050000000000006, 0.75)),
+                goal(=<(0.5005000000000001, 0.75)),
                 by(builtin(=<, 2))
               )
             ])
@@ -643,41 +643,41 @@ why(
           proof(
             goal(status(no_mandate, insufficient_control)),
             by(rule("epidemic-policy.pl", clause(20))),
-            bindings([binding("P", no_mandate), binding("R", 1.3999999999999999)]),
+            bindings([binding("P", no_mandate), binding("R", 1.4)]),
             uses([
               proof(
                 goal(policy(no_mandate)),
                 by(fact("epidemic-policy.pl", clause(1)))
               ),
               proof(
-                goal(risk_score(no_mandate, 1.3999999999999999)),
+                goal(risk_score(no_mandate, 1.4)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", no_mandate), binding("R", 1.3999999999999999), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 1.00), binding("A", 1.3999999999999999)]),
+                bindings([binding("P", no_mandate), binding("R", 1.4), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 1.0), binding("A", 1.4)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
-                    goal(vaccination_factor(no_mandate, 1.00)),
+                    goal(vaccination_factor(no_mandate, 1.0)),
                     by(fact("epidemic-policy.pl", clause(6)))
                   ),
                   proof(
-                    goal(mask_factor(no_mandate, 1.00)),
+                    goal(mask_factor(no_mandate, 1.0)),
                     by(fact("epidemic-policy.pl", clause(10)))
                   ),
                   proof(
-                    goal(is(1.3999999999999999, *(1.40, 1.00))),
+                    goal(is(1.4, *(1.4, 1.0))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(1.3999999999999999, *(1.3999999999999999, 1.00))),
+                    goal(is(1.4, *(1.4, 1.0))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(>(1.3999999999999999, 0.75)),
+                goal(>(1.4, 0.75)),
                 by(builtin(>, 2))
               )
             ])
@@ -685,19 +685,19 @@ why(
           proof(
             goal(status(vaccination_campaign, insufficient_control)),
             by(rule("epidemic-policy.pl", clause(20))),
-            bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002)]),
+            bindings([binding("P", vaccination_campaign), binding("R", 0.77)]),
             uses([
               proof(
                 goal(policy(vaccination_campaign)),
                 by(fact("epidemic-policy.pl", clause(2)))
               ),
               proof(
-                goal(risk_score(vaccination_campaign, 0.77000000000000002)),
+                goal(risk_score(vaccination_campaign, 0.77)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", vaccination_campaign), binding("R", 0.77000000000000002), binding("Base", 1.40), binding("Vf", 0.55), binding("Mf", 1.00), binding("A", 0.77000000000000002)]),
+                bindings([binding("P", vaccination_campaign), binding("R", 0.77), binding("Base", 1.4), binding("Vf", 0.55), binding("Mf", 1.0), binding("A", 0.77)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
@@ -705,21 +705,21 @@ why(
                     by(fact("epidemic-policy.pl", clause(7)))
                   ),
                   proof(
-                    goal(mask_factor(vaccination_campaign, 1.00)),
+                    goal(mask_factor(vaccination_campaign, 1.0)),
                     by(fact("epidemic-policy.pl", clause(11)))
                   ),
                   proof(
-                    goal(is(0.77000000000000002, *(1.40, 0.55))),
+                    goal(is(0.77, *(1.4, 0.55))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(0.77000000000000002, *(0.77000000000000002, 1.00))),
+                    goal(is(0.77, *(0.77, 1.0))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(>(0.77000000000000002, 0.75)),
+                goal(>(0.77, 0.75)),
                 by(builtin(>, 2))
               )
             ])
@@ -727,23 +727,23 @@ why(
           proof(
             goal(status(indoor_masks, insufficient_control)),
             by(rule("epidemic-policy.pl", clause(20))),
-            bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992)]),
+            bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999)]),
             uses([
               proof(
                 goal(policy(indoor_masks)),
                 by(fact("epidemic-policy.pl", clause(3)))
               ),
               proof(
-                goal(risk_score(indoor_masks, 0.90999999999999992)),
+                goal(risk_score(indoor_masks, 0.9099999999999999)),
                 by(rule("epidemic-policy.pl", clause(18))),
-                bindings([binding("P", indoor_masks), binding("R", 0.90999999999999992), binding("Base", 1.40), binding("Vf", 1.00), binding("Mf", 0.65), binding("A", 1.3999999999999999)]),
+                bindings([binding("P", indoor_masks), binding("R", 0.9099999999999999), binding("Base", 1.4), binding("Vf", 1.0), binding("Mf", 0.65), binding("A", 1.4)]),
                 uses([
                   proof(
-                    goal(base_risk(1.40)),
+                    goal(base_risk(1.4)),
                     by(fact("epidemic-policy.pl", clause(5)))
                   ),
                   proof(
-                    goal(vaccination_factor(indoor_masks, 1.00)),
+                    goal(vaccination_factor(indoor_masks, 1.0)),
                     by(fact("epidemic-policy.pl", clause(8)))
                   ),
                   proof(
@@ -751,17 +751,17 @@ why(
                     by(fact("epidemic-policy.pl", clause(12)))
                   ),
                   proof(
-                    goal(is(1.3999999999999999, *(1.40, 1.00))),
+                    goal(is(1.4, *(1.4, 1.0))),
                     by(builtin(is, 2))
                   ),
                   proof(
-                    goal(is(0.90999999999999992, *(1.3999999999999999, 0.65))),
+                    goal(is(0.9099999999999999, *(1.4, 0.65))),
                     by(builtin(is, 2))
                   )
                 ])
               ),
               proof(
-                goal(>(0.90999999999999992, 0.75)),
+                goal(>(0.9099999999999999, 0.75)),
                 by(builtin(>, 2))
               )
             ])

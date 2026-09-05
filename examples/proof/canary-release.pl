@@ -1,22 +1,22 @@
-errorRate(canary42, 0.014999999999999999).
+errorRate(canary42, 0.015).
 why(
-  errorRate(canary42, 0.014999999999999999),
+  errorRate(canary42, 0.015),
   proof(
-    goal(errorRate(canary42, 0.014999999999999999)),
+    goal(errorRate(canary42, 0.015)),
     by(rule("canary-release.pl", clause(8))),
-    bindings([binding("Release", canary42), binding("Rate", 0.014999999999999999)]),
+    bindings([binding("Release", canary42), binding("Rate", 0.015)]),
     uses([
       proof(
-        goal(error_rate(canary42, 0.014999999999999999)),
+        goal(error_rate(canary42, 0.015)),
         by(rule("canary-release.pl", clause(4))),
-        bindings([binding("Release", canary42), binding("Rate", 0.014999999999999999), binding("Requests", 5000.0), binding("Errors", 75.0), binding("_p95latency", 180.0)]),
+        bindings([binding("Release", canary42), binding("Rate", 0.015), binding("Requests", 5000.0), binding("Errors", 75.0), binding("_p95latency", 180.0)]),
         uses([
           proof(
             goal(canary(canary42, 5000.0, 75.0, 180.0)),
             by(fact("canary-release.pl", clause(1)))
           ),
           proof(
-            goal(is(0.014999999999999999, /(75.0, 5000.0))),
+            goal(is(0.015, /(75.0, 5000.0))),
             by(builtin(is, 2))
           )
         ])
@@ -88,19 +88,19 @@ why(
           proof(
             goal(error_budget_exceeded(canary42)),
             by(rule("canary-release.pl", clause(6))),
-            bindings([binding("Release", canary42), binding("Rate", 0.014999999999999999), binding("Maximum", 0.01)]),
+            bindings([binding("Release", canary42), binding("Rate", 0.015), binding("Maximum", 0.01)]),
             uses([
               proof(
-                goal(error_rate(canary42, 0.014999999999999999)),
+                goal(error_rate(canary42, 0.015)),
                 by(rule("canary-release.pl", clause(4))),
-                bindings([binding("Release", canary42), binding("Rate", 0.014999999999999999), binding("Requests", 5000.0), binding("Errors", 75.0), binding("_p95latency", 180.0)]),
+                bindings([binding("Release", canary42), binding("Rate", 0.015), binding("Requests", 5000.0), binding("Errors", 75.0), binding("_p95latency", 180.0)]),
                 uses([
                   proof(
                     goal(canary(canary42, 5000.0, 75.0, 180.0)),
                     by(fact("canary-release.pl", clause(1)))
                   ),
                   proof(
-                    goal(is(0.014999999999999999, /(75.0, 5000.0))),
+                    goal(is(0.015, /(75.0, 5000.0))),
                     by(builtin(is, 2))
                   )
                 ])
@@ -110,7 +110,7 @@ why(
                 by(fact("canary-release.pl", clause(2)))
               ),
               proof(
-                goal(>(0.014999999999999999, 0.01)),
+                goal(>(0.015, 0.01)),
                 by(builtin(>, 2))
               )
             ])
@@ -137,19 +137,19 @@ why(
           proof(
             goal(error_budget_exceeded(canary42)),
             by(rule("canary-release.pl", clause(6))),
-            bindings([binding("Release", canary42), binding("Rate", 0.014999999999999999), binding("Maximum", 0.01)]),
+            bindings([binding("Release", canary42), binding("Rate", 0.015), binding("Maximum", 0.01)]),
             uses([
               proof(
-                goal(error_rate(canary42, 0.014999999999999999)),
+                goal(error_rate(canary42, 0.015)),
                 by(rule("canary-release.pl", clause(4))),
-                bindings([binding("Release", canary42), binding("Rate", 0.014999999999999999), binding("Requests", 5000.0), binding("Errors", 75.0), binding("_p95latency", 180.0)]),
+                bindings([binding("Release", canary42), binding("Rate", 0.015), binding("Requests", 5000.0), binding("Errors", 75.0), binding("_p95latency", 180.0)]),
                 uses([
                   proof(
                     goal(canary(canary42, 5000.0, 75.0, 180.0)),
                     by(fact("canary-release.pl", clause(1)))
                   ),
                   proof(
-                    goal(is(0.014999999999999999, /(75.0, 5000.0))),
+                    goal(is(0.015, /(75.0, 5000.0))),
                     by(builtin(is, 2))
                   )
                 ])
@@ -159,7 +159,7 @@ why(
                 by(fact("canary-release.pl", clause(2)))
               ),
               proof(
-                goal(>(0.014999999999999999, 0.01)),
+                goal(>(0.015, 0.01)),
                 by(builtin(>, 2))
               )
             ])

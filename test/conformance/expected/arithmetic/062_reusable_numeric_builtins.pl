@@ -5,4 +5,4 @@ answer(ceiling, 4).
 answer(trunc, -3).
 answer(exp, 1.0).
 answer(tan, 0.0).
-answer(atan2, 3.1415926535897931).
+answer(atan2, 3.141592653589793).

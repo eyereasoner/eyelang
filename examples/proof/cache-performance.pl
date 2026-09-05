@@ -1,15 +1,15 @@
-hitRate(api_cache, 0.85999999999999999).
+hitRate(api_cache, 0.86).
 why(
-  hitRate(api_cache, 0.85999999999999999),
+  hitRate(api_cache, 0.86),
   proof(
-    goal(hitRate(api_cache, 0.85999999999999999)),
+    goal(hitRate(api_cache, 0.86)),
     by(rule("cache-performance.pl", clause(8))),
-    bindings([binding("Cache", api_cache), binding("Rate", 0.85999999999999999)]),
+    bindings([binding("Cache", api_cache), binding("Rate", 0.86)]),
     uses([
       proof(
-        goal(hit_rate(api_cache, 0.85999999999999999)),
+        goal(hit_rate(api_cache, 0.86)),
         by(rule("cache-performance.pl", clause(5))),
-        bindings([binding("Cache", api_cache), binding("Rate", 0.85999999999999999), binding("Hits", 8600.0), binding("_misses", 1400.0), binding("_hitlatency", 5.0), binding("_misslatency", 80.0), binding("Total", 10000.0)]),
+        bindings([binding("Cache", api_cache), binding("Rate", 0.86), binding("Hits", 8600.0), binding("_misses", 1400.0), binding("_hitlatency", 5.0), binding("_misslatency", 80.0), binding("Total", 10000.0)]),
         uses([
           proof(
             goal(cache_sample(api_cache, 8600.0, 1400.0, 5.0, 80.0)),
@@ -31,7 +31,7 @@ why(
             ])
           ),
           proof(
-            goal(is(0.85999999999999999, /(8600.0, 10000.0))),
+            goal(is(0.86, /(8600.0, 10000.0))),
             by(builtin(is, 2))
           )
         ])
@@ -105,12 +105,12 @@ why(
       proof(
         goal(cache_effective(api_cache)),
         by(rule("cache-performance.pl", clause(7))),
-        bindings([binding("Cache", api_cache), binding("Rate", 0.85999999999999999), binding("Minimumrate", 0.80), binding("Average", 15.5), binding("Maximumlatency", 20.0)]),
+        bindings([binding("Cache", api_cache), binding("Rate", 0.86), binding("Minimumrate", 0.8), binding("Average", 15.5), binding("Maximumlatency", 20.0)]),
         uses([
           proof(
-            goal(hit_rate(api_cache, 0.85999999999999999)),
+            goal(hit_rate(api_cache, 0.86)),
             by(rule("cache-performance.pl", clause(5))),
-            bindings([binding("Cache", api_cache), binding("Rate", 0.85999999999999999), binding("Hits", 8600.0), binding("_misses", 1400.0), binding("_hitlatency", 5.0), binding("_misslatency", 80.0), binding("Total", 10000.0)]),
+            bindings([binding("Cache", api_cache), binding("Rate", 0.86), binding("Hits", 8600.0), binding("_misses", 1400.0), binding("_hitlatency", 5.0), binding("_misslatency", 80.0), binding("Total", 10000.0)]),
             uses([
               proof(
                 goal(cache_sample(api_cache, 8600.0, 1400.0, 5.0, 80.0)),
@@ -132,17 +132,17 @@ why(
                 ])
               ),
               proof(
-                goal(is(0.85999999999999999, /(8600.0, 10000.0))),
+                goal(is(0.86, /(8600.0, 10000.0))),
                 by(builtin(is, 2))
               )
             ])
           ),
           proof(
-            goal(threshold(api_cache, minimum_hit_rate, 0.80)),
+            goal(threshold(api_cache, minimum_hit_rate, 0.8)),
             by(fact("cache-performance.pl", clause(2)))
           ),
           proof(
-            goal(>(0.85999999999999999, 0.80)),
+            goal(>(0.86, 0.8)),
             by(builtin(>, 2))
           ),
           proof(
@@ -212,12 +212,12 @@ why(
       proof(
         goal(cache_effective(api_cache)),
         by(rule("cache-performance.pl", clause(7))),
-        bindings([binding("Cache", api_cache), binding("Rate", 0.85999999999999999), binding("Minimumrate", 0.80), binding("Average", 15.5), binding("Maximumlatency", 20.0)]),
+        bindings([binding("Cache", api_cache), binding("Rate", 0.86), binding("Minimumrate", 0.8), binding("Average", 15.5), binding("Maximumlatency", 20.0)]),
         uses([
           proof(
-            goal(hit_rate(api_cache, 0.85999999999999999)),
+            goal(hit_rate(api_cache, 0.86)),
             by(rule("cache-performance.pl", clause(5))),
-            bindings([binding("Cache", api_cache), binding("Rate", 0.85999999999999999), binding("Hits", 8600.0), binding("_misses", 1400.0), binding("_hitlatency", 5.0), binding("_misslatency", 80.0), binding("Total", 10000.0)]),
+            bindings([binding("Cache", api_cache), binding("Rate", 0.86), binding("Hits", 8600.0), binding("_misses", 1400.0), binding("_hitlatency", 5.0), binding("_misslatency", 80.0), binding("Total", 10000.0)]),
             uses([
               proof(
                 goal(cache_sample(api_cache, 8600.0, 1400.0, 5.0, 80.0)),
@@ -239,17 +239,17 @@ why(
                 ])
               ),
               proof(
-                goal(is(0.85999999999999999, /(8600.0, 10000.0))),
+                goal(is(0.86, /(8600.0, 10000.0))),
                 by(builtin(is, 2))
               )
             ])
           ),
           proof(
-            goal(threshold(api_cache, minimum_hit_rate, 0.80)),
+            goal(threshold(api_cache, minimum_hit_rate, 0.8)),
             by(fact("cache-performance.pl", clause(2)))
           ),
           proof(
-            goal(>(0.85999999999999999, 0.80)),
+            goal(>(0.86, 0.8)),
             by(builtin(>, 2))
           ),
           proof(

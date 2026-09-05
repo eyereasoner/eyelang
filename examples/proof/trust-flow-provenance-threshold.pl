@@ -1,10 +1,10 @@
-confidence(message_a, 0.89375999999999989).
+confidence(message_a, 0.8937599999999999).
 why(
-  confidence(message_a, 0.89375999999999989),
+  confidence(message_a, 0.8937599999999999),
   proof(
-    goal(confidence(message_a, 0.89375999999999989)),
+    goal(confidence(message_a, 0.8937599999999999)),
     by(rule("trust-flow-provenance-threshold.pl", clause(10))),
-    bindings([binding("Message", message_a), binding("Confidence", 0.89375999999999989), binding("Publisher", publisher_a), binding("Transform", transform_a), binding("Signature", signature_a), binding("_receiver", receiver_app), binding("Publishertrust", 0.95), binding("Signaturetrust", 0.98), binding("Quality", 0.96), binding("A", 0.93099999999999994)]),
+    bindings([binding("Message", message_a), binding("Confidence", 0.8937599999999999), binding("Publisher", publisher_a), binding("Transform", transform_a), binding("Signature", signature_a), binding("_receiver", receiver_app), binding("Publishertrust", 0.95), binding("Signaturetrust", 0.98), binding("Quality", 0.96), binding("A", 0.9309999999999999)]),
     uses([
       proof(
         goal(message(message_a, publisher_a, transform_a, signature_a, receiver_app)),
@@ -23,11 +23,11 @@ why(
         by(fact("trust-flow-provenance-threshold.pl", clause(7)))
       ),
       proof(
-        goal(is(0.93099999999999994, *(0.95, 0.98))),
+        goal(is(0.9309999999999999, *(0.95, 0.98))),
         by(builtin(is, 2))
       ),
       proof(
-        goal(is(0.89375999999999989, *(0.93099999999999994, 0.96))),
+        goal(is(0.8937599999999999, *(0.9309999999999999, 0.96))),
         by(builtin(is, 2))
       )
     ])
@@ -40,14 +40,14 @@ why(
   proof(
     goal(confidence(message_b, 0.41999999999999993)),
     by(rule("trust-flow-provenance-threshold.pl", clause(10))),
-    bindings([binding("Message", message_b), binding("Confidence", 0.41999999999999993), binding("Publisher", publisher_b), binding("Transform", transform_b), binding("Signature", signature_b), binding("_receiver", receiver_app), binding("Publishertrust", 0.70), binding("Signaturetrust", 0.75), binding("Quality", 0.80), binding("A", 0.52499999999999991)]),
+    bindings([binding("Message", message_b), binding("Confidence", 0.41999999999999993), binding("Publisher", publisher_b), binding("Transform", transform_b), binding("Signature", signature_b), binding("_receiver", receiver_app), binding("Publishertrust", 0.7), binding("Signaturetrust", 0.75), binding("Quality", 0.8), binding("A", 0.5249999999999999)]),
     uses([
       proof(
         goal(message(message_b, publisher_b, transform_b, signature_b, receiver_app)),
         by(fact("trust-flow-provenance-threshold.pl", clause(2)))
       ),
       proof(
-        goal(publisher_trust(publisher_b, 0.70)),
+        goal(publisher_trust(publisher_b, 0.7)),
         by(fact("trust-flow-provenance-threshold.pl", clause(4)))
       ),
       proof(
@@ -55,15 +55,15 @@ why(
         by(fact("trust-flow-provenance-threshold.pl", clause(6)))
       ),
       proof(
-        goal(quality_score(transform_b, 0.80)),
+        goal(quality_score(transform_b, 0.8)),
         by(fact("trust-flow-provenance-threshold.pl", clause(8)))
       ),
       proof(
-        goal(is(0.52499999999999991, *(0.70, 0.75))),
+        goal(is(0.5249999999999999, *(0.7, 0.75))),
         by(builtin(is, 2))
       ),
       proof(
-        goal(is(0.41999999999999993, *(0.52499999999999991, 0.80))),
+        goal(is(0.41999999999999993, *(0.5249999999999999, 0.8))),
         by(builtin(is, 2))
       )
     ])
@@ -76,16 +76,16 @@ why(
   proof(
     goal(trust_flow_state(message_a, fpv_accepted)),
     by(rule("trust-flow-provenance-threshold.pl", clause(11))),
-    bindings([binding("Message", message_a), binding("_publisher", publisher_a), binding("_transform", transform_a), binding("_signature", signature_a), binding("Receiver", receiver_app), binding("Confidence", 0.89375999999999989), binding("Threshold", 0.85)]),
+    bindings([binding("Message", message_a), binding("_publisher", publisher_a), binding("_transform", transform_a), binding("_signature", signature_a), binding("Receiver", receiver_app), binding("Confidence", 0.8937599999999999), binding("Threshold", 0.85)]),
     uses([
       proof(
         goal(message(message_a, publisher_a, transform_a, signature_a, receiver_app)),
         by(fact("trust-flow-provenance-threshold.pl", clause(1)))
       ),
       proof(
-        goal(confidence(message_a, 0.89375999999999989)),
+        goal(confidence(message_a, 0.8937599999999999)),
         by(rule("trust-flow-provenance-threshold.pl", clause(10))),
-        bindings([binding("Message", message_a), binding("Confidence", 0.89375999999999989), binding("Publisher", publisher_a), binding("Transform", transform_a), binding("Signature", signature_a), binding("_receiver", receiver_app), binding("Publishertrust", 0.95), binding("Signaturetrust", 0.98), binding("Quality", 0.96), binding("A", 0.93099999999999994)]),
+        bindings([binding("Message", message_a), binding("Confidence", 0.8937599999999999), binding("Publisher", publisher_a), binding("Transform", transform_a), binding("Signature", signature_a), binding("_receiver", receiver_app), binding("Publishertrust", 0.95), binding("Signaturetrust", 0.98), binding("Quality", 0.96), binding("A", 0.9309999999999999)]),
         uses([
           proof(
             goal(message(message_a, publisher_a, transform_a, signature_a, receiver_app)),
@@ -104,11 +104,11 @@ why(
             by(fact("trust-flow-provenance-threshold.pl", clause(7)))
           ),
           proof(
-            goal(is(0.93099999999999994, *(0.95, 0.98))),
+            goal(is(0.9309999999999999, *(0.95, 0.98))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.89375999999999989, *(0.93099999999999994, 0.96))),
+            goal(is(0.8937599999999999, *(0.9309999999999999, 0.96))),
             by(builtin(is, 2))
           )
         ])
@@ -118,7 +118,7 @@ why(
         by(fact("trust-flow-provenance-threshold.pl", clause(9)))
       ),
       proof(
-        goal(>=(0.89375999999999989, 0.85)),
+        goal(>=(0.8937599999999999, 0.85)),
         by(builtin(>=, 2))
       )
     ])
@@ -140,14 +140,14 @@ why(
       proof(
         goal(confidence(message_b, 0.41999999999999993)),
         by(rule("trust-flow-provenance-threshold.pl", clause(10))),
-        bindings([binding("Message", message_b), binding("Confidence", 0.41999999999999993), binding("Publisher", publisher_b), binding("Transform", transform_b), binding("Signature", signature_b), binding("_receiver", receiver_app), binding("Publishertrust", 0.70), binding("Signaturetrust", 0.75), binding("Quality", 0.80), binding("A", 0.52499999999999991)]),
+        bindings([binding("Message", message_b), binding("Confidence", 0.41999999999999993), binding("Publisher", publisher_b), binding("Transform", transform_b), binding("Signature", signature_b), binding("_receiver", receiver_app), binding("Publishertrust", 0.7), binding("Signaturetrust", 0.75), binding("Quality", 0.8), binding("A", 0.5249999999999999)]),
         uses([
           proof(
             goal(message(message_b, publisher_b, transform_b, signature_b, receiver_app)),
             by(fact("trust-flow-provenance-threshold.pl", clause(2)))
           ),
           proof(
-            goal(publisher_trust(publisher_b, 0.70)),
+            goal(publisher_trust(publisher_b, 0.7)),
             by(fact("trust-flow-provenance-threshold.pl", clause(4)))
           ),
           proof(
@@ -155,15 +155,15 @@ why(
             by(fact("trust-flow-provenance-threshold.pl", clause(6)))
           ),
           proof(
-            goal(quality_score(transform_b, 0.80)),
+            goal(quality_score(transform_b, 0.8)),
             by(fact("trust-flow-provenance-threshold.pl", clause(8)))
           ),
           proof(
-            goal(is(0.52499999999999991, *(0.70, 0.75))),
+            goal(is(0.5249999999999999, *(0.7, 0.75))),
             by(builtin(is, 2))
           ),
           proof(
-            goal(is(0.41999999999999993, *(0.52499999999999991, 0.80))),
+            goal(is(0.41999999999999993, *(0.5249999999999999, 0.8))),
             by(builtin(is, 2))
           )
         ])
@@ -191,16 +191,16 @@ why(
       proof(
         goal(trust_flow_state(message_a, fpv_accepted)),
         by(rule("trust-flow-provenance-threshold.pl", clause(11))),
-        bindings([binding("Message", message_a), binding("_publisher", publisher_a), binding("_transform", transform_a), binding("_signature", signature_a), binding("Receiver", receiver_app), binding("Confidence", 0.89375999999999989), binding("Threshold", 0.85)]),
+        bindings([binding("Message", message_a), binding("_publisher", publisher_a), binding("_transform", transform_a), binding("_signature", signature_a), binding("Receiver", receiver_app), binding("Confidence", 0.8937599999999999), binding("Threshold", 0.85)]),
         uses([
           proof(
             goal(message(message_a, publisher_a, transform_a, signature_a, receiver_app)),
             by(fact("trust-flow-provenance-threshold.pl", clause(1)))
           ),
           proof(
-            goal(confidence(message_a, 0.89375999999999989)),
+            goal(confidence(message_a, 0.8937599999999999)),
             by(rule("trust-flow-provenance-threshold.pl", clause(10))),
-            bindings([binding("Message", message_a), binding("Confidence", 0.89375999999999989), binding("Publisher", publisher_a), binding("Transform", transform_a), binding("Signature", signature_a), binding("_receiver", receiver_app), binding("Publishertrust", 0.95), binding("Signaturetrust", 0.98), binding("Quality", 0.96), binding("A", 0.93099999999999994)]),
+            bindings([binding("Message", message_a), binding("Confidence", 0.8937599999999999), binding("Publisher", publisher_a), binding("Transform", transform_a), binding("Signature", signature_a), binding("_receiver", receiver_app), binding("Publishertrust", 0.95), binding("Signaturetrust", 0.98), binding("Quality", 0.96), binding("A", 0.9309999999999999)]),
             uses([
               proof(
                 goal(message(message_a, publisher_a, transform_a, signature_a, receiver_app)),
@@ -219,11 +219,11 @@ why(
                 by(fact("trust-flow-provenance-threshold.pl", clause(7)))
               ),
               proof(
-                goal(is(0.93099999999999994, *(0.95, 0.98))),
+                goal(is(0.9309999999999999, *(0.95, 0.98))),
                 by(builtin(is, 2))
               ),
               proof(
-                goal(is(0.89375999999999989, *(0.93099999999999994, 0.96))),
+                goal(is(0.8937599999999999, *(0.9309999999999999, 0.96))),
                 by(builtin(is, 2))
               )
             ])
@@ -233,7 +233,7 @@ why(
             by(fact("trust-flow-provenance-threshold.pl", clause(9)))
           ),
           proof(
-            goal(>=(0.89375999999999989, 0.85)),
+            goal(>=(0.8937599999999999, 0.85)),
             by(builtin(>=, 2))
           )
         ])
@@ -262,14 +262,14 @@ why(
           proof(
             goal(confidence(message_b, 0.41999999999999993)),
             by(rule("trust-flow-provenance-threshold.pl", clause(10))),
-            bindings([binding("Message", message_b), binding("Confidence", 0.41999999999999993), binding("Publisher", publisher_b), binding("Transform", transform_b), binding("Signature", signature_b), binding("_receiver", receiver_app), binding("Publishertrust", 0.70), binding("Signaturetrust", 0.75), binding("Quality", 0.80), binding("A", 0.52499999999999991)]),
+            bindings([binding("Message", message_b), binding("Confidence", 0.41999999999999993), binding("Publisher", publisher_b), binding("Transform", transform_b), binding("Signature", signature_b), binding("_receiver", receiver_app), binding("Publishertrust", 0.7), binding("Signaturetrust", 0.75), binding("Quality", 0.8), binding("A", 0.5249999999999999)]),
             uses([
               proof(
                 goal(message(message_b, publisher_b, transform_b, signature_b, receiver_app)),
                 by(fact("trust-flow-provenance-threshold.pl", clause(2)))
               ),
               proof(
-                goal(publisher_trust(publisher_b, 0.70)),
+                goal(publisher_trust(publisher_b, 0.7)),
                 by(fact("trust-flow-provenance-threshold.pl", clause(4)))
               ),
               proof(
@@ -277,15 +277,15 @@ why(
                 by(fact("trust-flow-provenance-threshold.pl", clause(6)))
               ),
               proof(
-                goal(quality_score(transform_b, 0.80)),
+                goal(quality_score(transform_b, 0.8)),
                 by(fact("trust-flow-provenance-threshold.pl", clause(8)))
               ),
               proof(
-                goal(is(0.52499999999999991, *(0.70, 0.75))),
+                goal(is(0.5249999999999999, *(0.7, 0.75))),
                 by(builtin(is, 2))
               ),
               proof(
-                goal(is(0.41999999999999993, *(0.52499999999999991, 0.80))),
+                goal(is(0.41999999999999993, *(0.5249999999999999, 0.8))),
                 by(builtin(is, 2))
               )
             ])

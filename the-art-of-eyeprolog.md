@@ -6236,9 +6236,15 @@ and has value 39, while a literal space character code is `0' ` and has value
 32. Character-code constants consume one Unicode scalar, including a
 non-BMP character. Trailing layout, comments, and other material are rejected;
 bound integers are converted to their canonical decimal spelling, and
-non-finite values are rejected. Equivalent spellings of the same numeric type
-compare by value, preserving the standard conversion round trip, while integer
-and floating-point terms remain distinct. The numeric conversion behavior follows the 74 numbered cases in Ulrich Neumerkel's contemporary `number_chars/2` comparison, including the Corrigendum 2 error-precedence cases; `number_codes/2` uses the same numeric parser.
+non-finite values are rejected. Finite floats use the shortest decimal spelling
+that round-trips to the same host floating-point value, with an explicit
+fractional part so the result remains a Prolog float; for example,
+`1.0000000000000001` is represented as `1.0`. Equivalent spellings of the same
+numeric type compare by value, preserving the standard conversion round trip,
+while integer and floating-point terms remain distinct. The numeric conversion
+behavior follows the 74 numbered cases in Ulrich Neumerkel's contemporary
+`number_chars/2` comparison, including the Corrigendum 2 error-precedence cases;
+`number_codes/2` uses the same numeric parser.
 
 #### Streams and unit I/O
 
@@ -9409,7 +9415,10 @@ For an extensionless designation such as `[file].` or `consult(file).`, the
 top level tries `file.pl` before the unsuffixed `file`. Both the shorthand and
 `consult/1` have modern reconsult semantics: consulting the same resolved file
 again replaces its previous source, so clauses removed from the file do not
-remain active.
+remain active. The traditional `[user].` form consults source directly from the
+top-level input until `end_of_file.` or input EOF, rather than resolving `user`
+as a filesystem path; `consult(user).` and `reconsult(user).` use the same
+interactive source.
 When `read/1-2` or `read_term/2-3` actually reaches interactive
 `user_input`, the top level requests the next full-stop-terminated Prolog term
 with a `|: ` input prompt instead of treating the terminal stream as already

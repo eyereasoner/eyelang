@@ -1405,7 +1405,7 @@ c4 ?- call((!;1)).
 ?- 1 = 1.0.
    false.
 ?- number_chars(1.20,C), number_chars(Y,C), 1.20 == Y.
-   C = "1.20", Y = 1.2.
+   C = "1.2", Y = 1.2.
 `;
         const result = publicApi.runQuads(source);
         assertEqual(result.total, 15, 'quad total');
@@ -1433,7 +1433,7 @@ c4 ?- call((!;1)).
       name: 'number conversion uses a bounded number-only scanner',
       run: () => {
         for (const [source, expected] of [
-          ['123', '123'], ['-1.25e+3', '-1.25e+3'], ['0xff', '255'],
+          ['123', '123'], ['-1.25e+3', '-1250.0'], ['0xff', '255'],
           ["0'.", '46'], ["0'😀", '128512'], ["0'\\x21\\", '33'],
         ]) {
           assertEqual(parseNumberTokenText(source).name, expected, source);
@@ -1556,6 +1556,28 @@ c4 ?- call((!;1)).
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
         assertEqual(result.stdout, '250000', 'number_chars/read cross-check count');
+      },
+    },
+    {
+      name: 'float literals canonicalize to their represented value and mix with generated floats (issue #92)',
+      run: () => {
+        const result = runCli([], {
+          input:
+            'N=1.0000000000000001, number_chars(N,Chs), number_chars(M,Chs).\n' +
+            'N=1.0000000000000001, M is N*1.0, M == N.\n' +
+            'X=3.2, Y is 3.2, X == Y.\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertEqual(result.stdout,
+          '?-    N = 1.0, Chs = "1.0", M = 1.0.\n' +
+          '?-    N = 1.0, M = 1.0.\n' +
+          '?-    X = 3.2, Y = 3.2.\n' +
+          '?- ',
+          'canonical float answers');
+        assertEqual(parseNumberTokenText('1.0000000000000001').name, '1.0', 'rounded literal spelling');
+        assertEqual(numberTextFromDouble(3.2), '3.2', 'canonical generated spelling');
+        assertEqual(result.stderr, '', 'stderr');
       },
     },
     {
@@ -2494,7 +2516,7 @@ c4 ?- call((!;1)).
           'seeded(A, B, C, Seeds) :- random(1, A, S1), random(S1, B, S2), random(1, C, S3), Seeds = [S1, S2, S3].\n',
           { goal: 'seeded(A, B, C, Seeds)' },
         );
-        assertEqual(result.stdout, 'seeded(0.00002247747035927835, 0.085032448717423201, 0.00002247747035927835, [48271, 182605794, 48271]).\n', 'stdout');
+        assertEqual(result.stdout, 'seeded(0.00002247747035927835, 0.0850324487174232, 0.00002247747035927835, [48271, 182605794, 48271]).\n', 'stdout');
       },
     },
     {
@@ -3590,6 +3612,25 @@ c4 ?- call((!;1)).
         const result = runCli([], { input: '(X =\n  one).\nhalt.\n' });
         assertEqual(result.status, 0, 'exit status');
         assertEqual(result.stdout, '?- |       X = one.\n?- ', 'stdout');
+        assertEqual(result.stderr, '', 'stderr');
+      },
+    },
+    {
+      name: 'REPL [user] consults interactive source until end_of_file (issue #91)',
+      run: () => {
+        const result = runCli([], {
+          input:
+            '[user].\n' +
+            'color(red).\n' +
+            'color(blue).\n' +
+            'end_of_file.\n' +
+            'color(X).\n' +
+            ';\n' +
+            'halt.\n',
+        });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, '|: |: |:  true.\n?-    X = red\n;  X = blue.', 'interactive consult and answers');
+        assertNotIncludes(result.stdout, 'ENOENT', 'user is not treated as a filesystem path');
         assertEqual(result.stderr, '', 'stderr');
       },
     },
