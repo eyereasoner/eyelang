@@ -3022,12 +3022,10 @@ function* phraseSolutions({ solver, goal, env }, state) {
   const input = goal.args[1];
   const requestedOutput = goal.arity === 2 ? emptyTerminalSequence() : goal.args[2];
   validateDcgEmbeddedGoals(grammarBody, input, requestedOutput);
-  // ISO/IEC TS 13211-3:2023, 8.18.1.4 c and d require
-  // type_error(terminal_sequence, S) here.  EyeProlog still reports
-  // type_error(list, S): Ulrich Neumerkel's phrase_quad corpus, which the
-  // release gate fetches live, accepts only `false` or type_error(list, S)
-  // for quads 41-42, so the two cannot currently both be satisfied.  See
-  // conformance-report.md, "Known deviations".
+  // ISO/IEC TS 13211-3:2025, 8.18.1.3 g and h permit these checks
+  // and specify type_error(list, S) for invalid terminal-sequence arguments.
+  // Keep both diagnostics and the unmodified upstream phrase quad gate.
+  // See conformance-report.md and issue #94.
   if (!isListOrPartialList(input, env)) {
     throw new PrologError('type_error(list)', deref(input, env));
   }

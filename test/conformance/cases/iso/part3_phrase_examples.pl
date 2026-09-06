@@ -1,5 +1,4 @@
-% ISO/IEC TS 13211-3:2023, 8.18.1.5 - the worked phrase/2 and phrase/3
-% examples, using the grammar given verbatim in that subclause.
+% ISO/IEC TS 13211-3:2025 phrase/2 and phrase/3 regression examples.
 determiner --> [the].
 determiner --> [a].
 

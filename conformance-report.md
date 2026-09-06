@@ -47,27 +47,21 @@ spelling therefore changes this report even when no corpus file is added or remo
 | variables | 16 | 7 | 0 | 0 | 23 |
 | **Total** | **493** | **272** | **19** | **21** | **805** |
 
-## Known deviations
+## DCG conformance clarification
 
-These are conscious departures from a standards clause, not open defects.
+EyeProlog checks the input and remainder of `phrase/2-3` and reports
+`type_error(list, S)` when an argument is neither a list nor a partial list.
+These implementation-defined checks follow ISO/IEC TS 13211-3:2025,
+8.18.1.3 g and h; this behavior is not a known deviation.
 
-### phrase/2-3 terminal-sequence type errors
+The Part 3 implementation target is
+[ISO/IEC TS 13211-3:2025](https://www.iso.org/standard/83635.html).
+The public [error subclause](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/draft-8.18.1.3)
+also specifies `list` for these checks.
 
-ISO/IEC TS 13211-3:2023, 8.18.1.4 c and d specify that a processor which
-checks the terminal-sequence arguments of `phrase/2-3` shall report
-`type_error(terminal_sequence, S)`. Error clause c is required for
-`phrase/2` and implementation defined for `phrase/3`.
-
-EyeProlog checks both arguments but reports `type_error(list, S)`.
-Ulrich Neumerkel's `phrase_quad.pl` corpus, which the release gate fetches
-live from TU Wien, accepts only `false` or `type_error(list, S)` for quads
-41 and 42, so the published TS and that corpus cannot both be satisfied.
-The corpus predates the TS. Changing the error term is a one-line edit in
-`phraseSolutions` (`src/iso.js`); it additionally requires relaxing quads
-41-42 of the Neumerkel gate.
-
-Note that TS 13211-3, 7.14.7.2 gives `phrase({true}, nonlist, S)` as an
-example which succeeds with `S = nonlist`, which is consistent with the TS
-permitting `phrase/3` to omit the check entirely. EyeProlog prefers the
-stricter diagnostic that the TS also explicitly allows.
+The [phrase comparison](https://www.complang.tuwien.ac.at/ulrich/iso-prolog/phrase)
+links the machine-readable `phrase_quad.pl` corpus. `npm test` fetches and
+runs that corpus live through the Neumerkel gate; the offline regression
+suite runs all 58 vendored quads. Neither expectations nor error matching
+are relaxed for quads 41-44.
 
