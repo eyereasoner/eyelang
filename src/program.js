@@ -1136,6 +1136,18 @@ function collectForwardRulePremiseDependencies(term, collect, out) {
 // intentionally looks through those wrappers; the autoloader must see both the
 // wrapper and any statically visible nested calls so a bundled library can be
 // loaded before execution reaches it.
+// ISO 13211-1, 7.1.6.3: the iterated goal of `V1^V2^...^Goal` is Goal.  The
+// qualifiers only mark witness variables as existentially quantified, so every
+// static analysis of a bagof/3 or setof/3 goal argument has to look through
+// them before it reaches the callable term.
+function iteratedGoalTerm(goal) {
+  let current = goal;
+  while (current?.type === COMPOUND && current.name === '^' && current.arity === 2) {
+    current = current.args[1];
+  }
+  return current;
+}
+
 function collectAutoloadGoalDependencies(goal, out = []) {
   if (goal?.type === ATOM) {
     out.push({ key: `${goal.name}/0`, name: goal.name, arity: 0, module: goal.module });
@@ -1167,7 +1179,12 @@ function collectAutoloadGoalDependencies(goal, out = []) {
     collectAutoloadGoalDependencies(goal.args[0], out);
     collectAutoloadGoalDependencies(goal.args[1], out);
   } else if ((goal.name === 'findall' || goal.name === 'bagof' || goal.name === 'setof' || goal.name === 'sumall') && goal.arity === 3) {
-    collectAutoloadGoalDependencies(goal.args[1], out);
+    // bagof/3 and setof/3 take an iterated-goal term (ISO 13211-1, 7.1.6.3):
+    // any number of `Witness^Goal` qualifiers wrap the goal that is actually
+    // executed.  Autoloading has to see through them, otherwise
+    // setof(X, Y^member(X,L), S) raises existence_error(member/2) while the
+    // unqualified setof(X, member(X,L), S) resolves normally.
+    collectAutoloadGoalDependencies(iteratedGoalTerm(goal.args[1]), out);
   } else if (goal.name === 'countall' && goal.arity === 2) {
     collectAutoloadGoalDependencies(goal.args[0], out);
   } else if ((goal.name === 'aggregate_min' || goal.name === 'aggregate_max') && goal.arity === 5) {

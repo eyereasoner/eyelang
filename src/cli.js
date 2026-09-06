@@ -9,6 +9,15 @@ import { memoryStatistics } from './platform.js';
 let engineModule = null;
 let explanationModule = null;
 
+// The usage text documents the input file as optional, and `--goal` is
+// meaningful on its own.  Only fall back to stdin when it is actually
+// redirected: on an interactive terminal there is nothing to read, and
+// blocking on it makes `eyeprolog --goal G` look like it does nothing.
+// An explicit `-` argument still selects stdin in either case.
+export function defaultsToStdin(fileCount, stdinIsTty) {
+  return fileCount === 0 && !stdinIsTty;
+}
+
 export async function main(argv) {
   if (argv.length === 0) {
     const engine = await loadEngine();
@@ -132,7 +141,7 @@ export async function main(argv) {
     return;
   }
 
-  if (options.files.length === 0) {
+  if (defaultsToStdin(options.files.length, process.stdin.isTTY)) {
     options.files.push('-');
   }
 
@@ -155,6 +164,12 @@ export async function main(argv) {
         baseDir: path.dirname(path.resolve(file)),
       });
     }
+  }
+
+  if (sourceParts.length === 0) {
+    // No file and no redirected stdin: run the requested goals against an
+    // empty database rather than against nothing at all.
+    sourceParts.push({ text: '', filename: '<empty>' });
   }
 
   if (options.goals.length === 0 && !options.quads && options.verifyProof == null) {

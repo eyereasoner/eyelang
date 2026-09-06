@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.5.45",
+  "version": "1.5.46",
   "description": "EyeProlog turns facts and rules into answers and proofs.",
   "type": "module",
   "main": "./index.js",
@@ -28,6 +28,7 @@
   "files": [
     "LICENSE.md",
     "README.md",
+    "ACKNOWLEDGEMENTS.md",
     "index.js",
     "index.d.ts",
     "playground.html",

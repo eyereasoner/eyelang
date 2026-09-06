@@ -445,6 +445,15 @@ export function directGoalDependencyKey(goal) {
   return `${goal.name}/${goal.arity}`;
 }
 
+// ISO 13211-1, 7.1.6.3: `V1^V2^...^Goal` has the iterated goal Goal.
+export function iteratedGoal(goal) {
+  let current = goal;
+  while (current?.type === COMPOUND && current.name === '^' && current.arity === 2) {
+    current = current.args[1];
+  }
+  return current;
+}
+
 export function collectGoalDependencies(goal, negated, traverseConditionals = false, wfs = false) {
   if (goal.type === ATOM) return [{ key: `${goal.name}/0`, name: goal.name, arity: 0, module: goal.module, negative: negated, wfs }];
   if (goal.type !== COMPOUND) return [];
@@ -477,6 +486,11 @@ export function collectGoalDependencies(goal, negated, traverseConditionals = fa
   }
   if ((goal.name === 'findall' || goal.name === 'sumall') && goal.arity === 3) {
     return collectGoalDependencies(goal.args[1], negated, traverseConditionals, wfs);
+  }
+  if ((goal.name === 'bagof' || goal.name === 'setof') && goal.arity === 3) {
+    // The goal argument is an iterated-goal term (ISO 13211-1, 7.1.6.3), so
+    // strip its `^` qualifiers before recording the call it really performs.
+    return collectGoalDependencies(iteratedGoal(goal.args[1]), negated, traverseConditionals, wfs);
   }
   if (goal.name === 'countall' && goal.arity === 2) {
     return collectGoalDependencies(goal.args[0], negated, traverseConditionals, wfs);

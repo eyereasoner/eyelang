@@ -1,0 +1,13 @@
+answer(empty_sequence, "ab").
+answer(concatenation, "c").
+answer(alternative, "c").
+answer(ite_13, yes).
+answer(ite_23, yes).
+answer(ite_4, yes).
+answer(ite_single, no).
+answer(grammar_body_goal, "a").
+answer(phrase_nonterminal, "b").
+answer(cut_identity, "ab").
+answer(negation_identity, "bc").
+answer(negation_blocks, no).
+answer(terminal_split, b).

@@ -54,6 +54,7 @@ import {
 import { ISO_OPERATOR_DEFINITIONS, parseGoalText, parseNumberTokenText, tryParseClausesFastInto } from '../src/parser.js';
 import { PrologError, formalErrorTerm } from '../src/iso.js';
 import { compareTerms } from '../src/term.js';
+import { defaultsToStdin } from '../src/cli.js';
 import { formatTermForWrite } from '../src/write.js';
 import { selectClauseCandidates } from '../src/program.js';
 import {
@@ -1594,6 +1595,25 @@ c4 ?- call((!;1)).
         if (result.error) throw result.error;
         assertEqual(result.status, 0, `bounded-heap child status; stderr=${result.stderr}`);
         assertEqual(result.stdout, '250000', 'number_chars/read cross-check count');
+      },
+    },
+    {
+      name: '--goal without an input file does not block on an interactive stdin',
+      run: () => {
+        // Usage documents the input file as optional.  The CLI used to append
+        // '-' unconditionally, so `eyeprolog --goal G` on a terminal waited for
+        // an EOF that never came and appeared to do nothing.  stdin is only a
+        // default source when it is actually redirected.
+        assertEqual(defaultsToStdin(0, true), false, 'tty stdin, no file');
+        assertEqual(defaultsToStdin(0, false), true, 'redirected stdin, no file');
+        assertEqual(defaultsToStdin(0, undefined), true, 'non-tty stdin reported as undefined');
+        assertEqual(defaultsToStdin(1, true), false, 'tty stdin, one file');
+        assertEqual(defaultsToStdin(1, false), false, 'redirected stdin, one file');
+
+        // An empty database is still a usable program for --goal.
+        const result = runCli(['--goal', 'X = 1, write(X), nl'], { input: '' });
+        assertEqual(result.status, 0, 'exit status');
+        assertIncludes(result.stdout, '1\n', 'goal output without an input file');
       },
     },
     {

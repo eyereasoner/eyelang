@@ -72,7 +72,8 @@ printf 'human(socrates).\nmortal(X) :- human(X).\n' |
 - [rdf-prolog-roundtrip](https://github.com/eyereasoner/rdf-prolog-roundtrip) — standalone RDF 1.2 ↔ ISO Prolog bridge used by the RDF examples
 - [ISO conformance audit](test/conformance/ISO-COMPLIANCE.md) — supported Part 1 profile
 - [Latest Neumerkel conformity](test/conformance/NEUMERKEL-LATEST.md) — tracked result from the current live upstream inventory
-- [Conformance report](conformance-report.md) — generated executable conformance status and local corpus summary
+- [Conformance report](conformance-report.md) — generated executable conformance status, local corpus summary, and known deviations
+- [Acknowledgements](ACKNOWLEDGEMENTS.md) — funding, standards consulted, and credits for vendored conformance corpora
 - [OpenRuleBench](openrulebench/README.md) — portable benchmark profile
 ## RDF, Prolog, and symbiotic knowledge graphs
 
