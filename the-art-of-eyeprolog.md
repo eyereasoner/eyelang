@@ -9663,8 +9663,16 @@ error, including output produced before a later exception. Its argument may be
 an exact character list/string or a DCG body: terminal sequences,
 conjunction/disjunction, `...`/`ad_infinitum` sequence wildcards, and
 user-defined DCG nonterminals are matched against the captured characters.
-The `waits` and unordered `other_answer_sequence` annotations are not executed
-by the current runner.
+Appending `| other_answer_sequence` accepts any permutation of the preceding
+complete answer sequence. Substitutions, residual constraints, per-answer output,
+and duplicate counts must still match; missing or extra answers are failures.
+A final failure or exception stays at the end. Overlapping wildcard or approximate
+answer descriptions are matched one-to-one rather than greedily. Search-budget
+exhaustion remains undecided. Prefix (`...`), negative (`unexpected`), STO, and
+input/wait annotations are not supported in a permuted sequence.
+
+For `setof(1, (Y=2 ; Y=1), L)`, the description
+`Y=2, L=[1] ; Y=1, L=[1] | other_answer_sequence` accepts either group order.
 
 #### STO, loops, and undecided quad results
 

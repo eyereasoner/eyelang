@@ -68,7 +68,18 @@ function checkQuadDescription(program, quad, description, options, context) {
 }
 
 function checkDescription(program, quad, description, options, context) {
-  const alternatives = splitOperator(description, '|');
+  const parts = splitOperator(description, '|');
+  const alternatives = [];
+  const unordered = new Set();
+  for (const part of parts) {
+    if (part.type === ATOM && part.name === 'other_answer_sequence') {
+      const previous = alternatives.at(-1);
+      if (previous == null || unordered.has(previous)) {
+        return { ok: false, kind: 'malformed', expected: part };
+      }
+      unordered.add(previous);
+    } else alternatives.push(part);
+  }
   // Probe an explicitly accepted nontermination outcome before alternatives
   // that would run the same query without a bound.
   const ordered = [...alternatives].sort((left, right) =>
@@ -80,7 +91,7 @@ function checkDescription(program, quad, description, options, context) {
   let unsupported = null;
   let undecided = null;
   for (const alternative of ordered) {
-    const checked = checkAlternative(program, quad, alternative, options, context);
+    const checked = checkAlternative(program, quad, alternative, options, context, unordered.has(alternative));
     if (checked.ok) return checked;
     if (checked.kind === 'unsupported') unsupported ??= checked;
     if (checked.kind === 'undecided') undecided ??= checked;
@@ -88,12 +99,19 @@ function checkDescription(program, quad, description, options, context) {
   return unsupported ?? undecided ?? { ok: false, kind: 'failed', expected: description };
 }
 
-function checkAlternative(program, quad, alternative, options, context) {
+function checkAlternative(program, quad, alternative, options, context, unordered = false) {
   const leaves = splitOperator(alternative, ';').map(describeLeaf);
   const requiresSto = leaves.some((leaf) => leaf.sto);
   const unsupported = leaves.find((leaf) => leaf.unsupported != null)?.unsupported;
   if (unsupported != null) {
     return { ok: false, kind: 'unsupported', expected: unsupported };
+  }
+
+  // A permutation describes a complete sequence, not an arbitrary prefix or
+  // a negative assertion. Do not silently weaken those annotations.
+  if (unordered && leaves.some((leaf) => leaf.more || leaf.unexpected || leaf.sto ||
+      leaf.waits || leaf.input != null || leaf.peek != null)) {
+    return { ok: false, kind: 'unsupported', expected: alternative };
   }
 
   const ioLeaves = leaves.filter((leaf) => leaf.input != null || leaf.peek != null);
@@ -143,6 +161,8 @@ function checkAlternative(program, quad, alternative, options, context) {
     return { ok: leaf.unexpected ? !matches : matches };
   }
 
+  if (unordered) return checkAnswerPermutation(program, quad.query, leaves, actual, alternative);
+
   let position = 0;
   for (const leaf of leaves) {
     if (leaf.more && !leaf.hasExpectation) return { ok: true };
@@ -184,6 +204,37 @@ function checkAlternative(program, quad, alternative, options, context) {
     return undecidedResult(actual, alternative);
   }
   return { ok: ended };
+}
+
+// Match a multiset, preserving duplicate counts. A greedy match is insufficient:
+// wildcard and approximate descriptions may overlap more specific descriptions.
+// Augmenting paths find a one-to-one assignment without enumerating permutations.
+function checkAnswerPermutation(program, query, leaves, actual, alternative) {
+  const terminalAt = leaves.findIndex((leaf) => leaf.false || leaf.loops || leaf.error != null);
+  if (terminalAt >= 0 && terminalAt !== leaves.length - 1) return { ok: false };
+  const answers = terminalAt < 0 ? leaves : leaves.slice(0, -1);
+  if (actual.solutions.length > answers.length) return { ok: false };
+  if (actual.undecided) return undecidedResult(actual, alternative);
+  if (actual.solutions.length !== answers.length) return { ok: false };
+  if (terminalAt >= 0) {
+    if (!matchLeaf(program, query, leaves[terminalAt], actual, answers.length)) return { ok: false };
+  } else if (!actual.complete || actual.error != null || actual.loopObserved) return { ok: false };
+
+  const edges = answers.map((leaf) => actual.solutions.flatMap((_, position) =>
+    matchLeaf(program, query, leaf, actual, position) ? [position] : []));
+  const owners = Array(answers.length).fill(-1);
+  const assign = (index, seen) => {
+    for (const position of edges[index]) {
+      if (seen.has(position)) continue;
+      seen.add(position);
+      if (owners[position] < 0 || assign(owners[position], seen)) {
+        owners[position] = index;
+        return true;
+      }
+    }
+    return false;
+  };
+  return { ok: answers.every((_, index) => assign(index, new Set())) };
 }
 
 function malformedAlternative(query, alternative) {

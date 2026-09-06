@@ -996,6 +996,45 @@ why(
       },
     },
     {
+      name: 'runQuads matches other_answer_sequence permutations exactly (issue #95)',
+      run: () => {
+        const cases = [
+          ['setof groups', 'setof(1, (Y=2 ; Y=1), L)', 'Y=2,L=[1];Y=1,L=[1]', true],
+          ['reverse', '(X=1;X=2;X=3)', 'X=3;X=2;X=1', true],
+          ['duplicates', '(X=1;X=1;X=2)', 'X=2;X=1;X=1', true],
+          ['wrong multiplicity', '(X=1;X=1;X=2)', 'X=2;X=2;X=1', false],
+          ['missing', '(X=1;X=2)', 'X=3;X=2;X=1', false],
+          ['extra', '(X=1;X=2;X=3)', 'X=2;X=1', false],
+          ['wrong value', '(X=1;X=2)', 'X=3;X=1', false],
+          ['overlapping patterns', '(X=f(a);X=f(b))', "X=f('...');X=f(a)", true],
+          ['variable sharing', '(X=Y;true)', 'true;X=Y', true],
+          ['wrong sharing', '(X=Y;true)', 'X=Y;X=Y', false],
+          ['per-answer output', '(X=1,write(a);X=2,write(b))', 'X=2,outputs("b");X=1,outputs("a")', true],
+          ['wrong output', '(X=1,write(a);X=2,write(b))', 'X=2,outputs("a");X=1,outputs("b")', false],
+          ['unlisted exception', '(X=1;throw(ball))', 'X=1', false],
+          ['terminal exception', '(X=1;X=2;throw(ball))', 'X=2;X=1;throw(ball)', true],
+          ['terminal failure', '(X=1;X=2)', 'X=2;X=1;false', true],
+          ['empty sequence', 'fail', 'false', true],
+          ['ordinary order retained', '(X=1;X=2)', 'X=2;X=1', false, false],
+        ];
+        for (const [name, query, answers, passes, unordered = true] of cases) {
+          const result = publicApi.runQuads(`?- ${query}.\n   ${answers}${unordered ? ' | other_answer_sequence' : ''}.\n`);
+          assertEqual(result.passed, passes ? 1 : 0, name);
+          assertEqual(result.undecided, 0, `${name} decided`);
+        }
+        for (const answers of ['other_answer_sequence', 'other_answer_sequence | X=1',
+          'X=1 | other_answer_sequence | other_answer_sequence']) {
+          const result = publicApi.runQuads(`?- X=1.\n   ${answers}.\n`);
+          assertEqual(result.results[0].kind, 'malformed', 'orphan or repeated marker');
+        }
+        const bounded = publicApi.runQuads(
+          'p(0). p(X) :- p(Y), X is Y+1.\n?- p(X).\n   X=1;X=0 | other_answer_sequence.\n',
+          { quadMaxInferences: 1 },
+        );
+        assertEqual(bounded.undecided, 1, 'bounded execution is not proof of a permutation');
+      },
+    },
+    {
       name: 'runQuads supports realistic decimal-precision float descriptions with ~~ (issue #90)',
       run: () => {
         const source = `?- V is 0+(3.2+11).
