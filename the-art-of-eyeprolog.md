@@ -6146,7 +6146,7 @@ partial list.
 
 #### Dynamic database and procedure information
 
-- **`clause(+Head,?Body)`** — Enumerates fresh copies of source clauses matching the callable `Head`; facts have body `true`. Access to built-ins raises *permission_error(access,private_procedure)*.
+- **`clause(+Head,?Body)`** — Enumerates fresh copies of source clauses matching the callable `Head`; facts have body `true`. Only *public* procedures can be inspected: a procedure defined by a Prolog text is static unless a *dynamic/1* directive declares it, and a procedure first created by *assertz/1* or *asserta/1* is dynamic. Access to a static user procedure, or to a built-in, raises *permission_error(access,private_procedure)*. This applies in every execution mode, not only under `--iso-strict`, and matches the *permission_error(modify,static_procedure)* that *assertz/1* and *retract/1* already raise for the same procedures.
 - **`asserta(+Clause)`, `assertz(+Clause)`** — Insert a copied fact or rule at the beginning or end of a predicate declared *dynamic/1*. Static and built-in procedures cannot be modified.
 - **`retract(+Clause)`** — Removes matching dynamic clauses one at a time on backtracking. A call sees the logical update view captured when it began. A fact pattern matches facts only.
 - **`retractall(+Head)`** — Removes every matching clause from a dynamic procedure, succeeds when none match, and keeps the empty dynamic procedure known.
@@ -10365,7 +10365,7 @@ must preserve the same observable outcome. Additional normal-mode syntax may
 accept texts outside the strict grammar, but it may not reinterpret an accepted
 standard case.
 
-The file-based conformance corpus contains 805 cases, including 388 focused ISO cases derived from the success, failure, mode, and error behavior in ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
+The file-based conformance corpus contains 808 cases, including 391 focused ISO cases derived from the success, failure, mode, and error behavior in ISO/IEC 13211-1 clauses 7 and 8, Part 2 modules, and Part 3 grammar rules.
 Separate exact-output suites check 210 normal examples and 61 proof examples; all executable chapter programs are parsed and their declared goals are executed. The eight-case
 playground contract suite imports the production worker, sends real reasoning
 requests through its message protocol, and crawls the served module graph for

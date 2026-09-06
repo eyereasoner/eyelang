@@ -4852,6 +4852,132 @@ answer(Result) :- countdown(2048, Result), Result = 2048.
       },
     },
     {
+      // ISO 7.6.2 a/b, checked against the 8.8.1.4 worked example for legs/2.
+      name: 'preparing a Prolog text converts variable body goals to call/1',
+      run: () => {
+        const program = Program.parse(':- dynamic(legs/2).\nlegs(A, 7) :- A, call(A).\n');
+        const solver = new Solver(program, {});
+        const goal = parseGoalText('clause(legs(c, 7), Body)');
+        const answers = [...solver.solve([goal], new Env(), 0)];
+        assertEqual(answers.length, 1, 'clause answer count');
+        assertEqual(termToString(copyResolved(goal.args[1], answers[0])), '(call(c), call(c))', 'converted body');
+      },
+    },
+    {
+      name: 'preparation and assertz/1 agree on clause body conversion',
+      run: () => {
+        const fromText = Program.parse(':- dynamic(p/1).\np(G) :- G.\n');
+        const textGoal = parseGoalText('clause(p(true), B)');
+        const textAnswers = [...new Solver(fromText, {}).solve([textGoal], new Env(), 0)];
+        const asserted = Program.parse('run(B) :- assertz((q(G) :- G)), clause(q(true), B).\n');
+        const assertGoal = parseGoalText('run(B)');
+        const assertAnswers = [...new Solver(asserted, {}).solve([assertGoal], new Env(), 0)];
+        assertEqual(textAnswers.length, 1, 'text clause answer count');
+        assertEqual(assertAnswers.length, 1, 'asserted clause answer count');
+        assertEqual(
+          termToString(copyResolved(textGoal.args[1], textAnswers[0])),
+          termToString(copyResolved(assertGoal.args[0], assertAnswers[0])),
+          'converted bodies agree',
+        );
+      },
+    },
+    {
+      // 7.6.2 b converts the arguments of ;/2 and ->/2 recursively.
+      name: 'body conversion recurses through disjunction and if-then',
+      run: () => {
+        const program = Program.parse(':- dynamic(r/3).\nr(A, B, C) :- (A ; B), (C -> true ; true).\n');
+        const solver = new Solver(program, {});
+        const goal = parseGoalText('clause(r(a, b, c), Body)');
+        const answers = [...solver.solve([goal], new Env(), 0)];
+        assertEqual(answers.length, 1, 'clause answer count');
+        assertEqual(
+          termToString(copyResolved(goal.args[1], answers[0])),
+          "(';'(call(a), call(b)), ';'(->(call(c), true), true))",
+          'recursively converted body',
+        );
+      },
+    },
+    {
+      // 7.8.3: a cut inside call/1 is local, so the remaining clauses survive.
+      name: 'a variable body goal from a Prolog text keeps cut local',
+      run: () => {
+        const program = Program.parse('s(G) :- G.\ns(_) :- true.\n');
+        const solver = new Solver(program, {});
+        const answers = [...solver.solve([parseGoalText('s(!)')], new Env(), 0)];
+        assertEqual(answers.length, 2, 'cut did not prune the second clause');
+      },
+    },
+    {
+      // https://github.com/eyereasoner/eyeprolog/issues/96
+      name: 'clause/2 keeps static procedures private in the default mode',
+      run: () => {
+        const program = Program.parse('elk(X) :- moose(X).\nmoose(bertha).\n');
+        const solver = new Solver(program, {});
+        let caught = null;
+        try {
+          [...solver.solve([parseGoalText('clause(elk(N), Body)')], new Env(), 0)];
+        } catch (error) {
+          caught = error;
+        }
+        if (!caught) throw new Error('clause/2 unexpectedly inspected a static procedure');
+        assertEqual(caught.formal, 'permission_error(access, private_procedure)', 'formal error');
+        assertEqual(termToString(caught.culprit), '/(elk, 1)', 'culprit predicate indicator');
+      },
+    },
+    {
+      name: 'clause/2 inspects a procedure declared dynamic in the default mode',
+      run: () => {
+        const program = Program.parse(':- dynamic(elk/1).\nelk(X) :- moose(X).\nmoose(bertha).\n');
+        const solver = new Solver(program, {});
+        const answers = [...solver.solve([parseGoalText('clause(elk(N), Body)')], new Env(), 0)];
+        assertEqual(answers.length, 1, 'dynamic clause answer count');
+      },
+    },
+    {
+      name: 'clause/2 inspects procedures created by assertz/1 in the default mode',
+      run: () => {
+        const program = Program.parse('run(Body) :- assertz(elk(bertha)), clause(elk(_), Body).\n');
+        const solver = new Solver(program, {});
+        const answers = [...solver.solve([parseGoalText('run(Body)')], new Env(), 0)];
+        assertEqual(answers.length, 1, 'asserted clause answer count');
+      },
+    },
+    {
+      name: 'clause/2 and assertz/1 agree on which procedures are static',
+      run: () => {
+        const program = Program.parse('elk(bertha).\n');
+        const solver = new Solver(program, {});
+        const formals = [];
+        for (const goal of ['clause(elk(_), Body)', 'assertz(elk(clara))', 'retract(elk(bertha))']) {
+          try {
+            [...solver.solve([parseGoalText(goal)], new Env(), 0)];
+            formals.push(null);
+          } catch (error) {
+            formals.push(error.formal);
+          }
+        }
+        assertEqual(formals[0], 'permission_error(access, private_procedure)', 'clause/2 access');
+        assertEqual(formals[1], 'permission_error(modify, static_procedure)', 'assertz/1 modification');
+        assertEqual(formals[2], 'permission_error(modify, static_procedure)', 'retract/1 modification');
+      },
+    },
+    {
+      // A static procedure stays private even when clause/2 is also given a
+      // non-callable body, matching the existing strict-mode error ordering.
+      name: 'clause/2 reports private access before body callability',
+      run: () => {
+        const program = Program.parse('elk(bertha).\n');
+        const solver = new Solver(program, {});
+        let caught = null;
+        try {
+          [...solver.solve([parseGoalText('clause(elk(_), 4)')], new Env(), 0)];
+        } catch (error) {
+          caught = error;
+        }
+        assertEqual(caught?.formal, 'permission_error(access, private_procedure)', 'formal error');
+      },
+    },
+    {
       name: 'strict ISO core mode disables normal-profile recursion planning',
       run: () => {
         const strict = Program.parse('p :- p.\n', { isoStrict: true });

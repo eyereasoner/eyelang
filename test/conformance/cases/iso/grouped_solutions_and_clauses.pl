@@ -1,3 +1,8 @@
+% clause/2 may only inspect public (dynamic) procedures. Predicates that are
+% read back with clause/2 below are declared dynamic; the rest stay static.
+:- dynamic(parent/2).
+:- dynamic(same/1).
+
 b(2, two).
 b(1, one).
 b(1, one).

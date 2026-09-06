@@ -733,8 +733,14 @@ function* clauseSolutions({ solver, goal, env }, state) {
   // EyeProlog selects private-procedure access before Body callability when both
   // conditions hold. ISO 7.12 permits an implementation-dependent choice when
   // more than one error condition is simultaneously satisfied.
-  if (isProcessorStaticProcedure(solver, head) ||
-      (solver.isoStrict && group && !group.dynamic)) {
+  //
+  // A procedure defined by a Prolog text is static unless a dynamic/1
+  // directive says otherwise (ISO 7.5.2 and 8.9), and clause/2 may only
+  // inspect a public (dynamic) procedure (ISO 8.8.1.3). Static is therefore
+  // the default in every mode, not only under --iso-strict: assert/1,
+  // retract/1, and abolish/1 already reject static procedures unconditionally,
+  // and clause/2 now agrees with them.
+  if (isProcessorStaticProcedure(solver, head) || (group && !group.dynamic)) {
     throw new PrologError('permission_error(access, private_procedure)', indicator);
   }
   callableOrVariable(goal.args[1], env);

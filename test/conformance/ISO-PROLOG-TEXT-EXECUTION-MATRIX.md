@@ -37,7 +37,7 @@ and preparation error cases.
 | --- | --- | --- |
 | 7.5.1 initial database and clause order | covered | Prepared clauses retain textual preparation order. The implementation-defined initial database/standard-procedure choices are documented separately. |
 | 7.5.2 static and dynamic procedures | covered | Source procedures are static unless declared dynamic; asserting a previously absent predicate creates a dynamic procedure; modification of protected/static procedures is rejected. |
-| 7.5.3 private and public procedures | covered | User static procedures are private to `clause/2`; dynamic procedures are public; standardized built-ins/control forms remain static/private. |
+| 7.5.3 private and public procedures | covered | User static procedures are private to `clause/2` in every execution mode, not only under `--iso-strict`; dynamic procedures are public; standardized built-ins/control forms remain static/private. Corpus: `iso/clause_static_and_dynamic_access`, `error/iso/clause_static_user_procedure`. |
 | 7.5.4 database update visibility | covered | Dynamic calls use the logical-update view: an activation continues over the clause set visible when it began, while later activations see successful assertions/retractions. `retractall/1` retains an empty dynamic procedure and `abolish/1` removes it. |
 
 The strict test `closes ISO 7.5-7.7 database, conversion, and execution rows`
@@ -51,7 +51,7 @@ The complete 8.8-8.9 database built-in modes/errors remain covered by
 | Row | Status | EyeProlog disposition / executable evidence |
 | --- | --- | --- |
 | 7.6.1 term-to-goal/body boundary | covered | Callable terms enter execution as goals; variables are deferred through `call/1`; non-callable numeric/body terms are rejected rather than silently coerced. |
-| 7.6.2 term-to-body conversion | covered | Variables become `call/1`; conjunction, disjunction, and if-then bodies are converted recursively; non-control callable terms retain their predication; variable identity is preserved across the converted clause. |
+| 7.6.2 term-to-body conversion | covered | Variables become `call/1`; conjunction, disjunction, and if-then bodies are converted recursively; non-control callable terms retain their predication; variable identity is preserved across the converted clause. The conversion runs in every execution mode, for clauses prepared from a Prolog text as well as for `assert`ed clauses, so both paths yield the same body term. Corpus: `iso/clause_body_conversion`. |
 | 7.6.3 clause-to-term observation | covered | `clause/2` returns fresh renamed clause observations with the required sharing between head and body. |
 | 7.6.4 update conversion | covered | `asserta/1`, `assertz/1`, `retract/1`, and prepared source clauses use the same strict body-conversion rules and reject malformed bodies before database mutation. |
 

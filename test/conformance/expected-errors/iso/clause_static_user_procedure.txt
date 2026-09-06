@@ -1,0 +1,1 @@
+error(permission_error(access, private_procedure), /(elk, 1))

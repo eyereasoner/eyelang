@@ -5,6 +5,9 @@
 %% goal: report(X0, X1)
 
 
+% clause/2 may only inspect a public procedure, so sale/3 is declared dynamic.
+:- dynamic(sale/3).
+
 sale(north, ada, 7).
 sale(north, ada, 7).
 sale(north, ben, 5).

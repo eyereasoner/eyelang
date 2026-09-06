@@ -778,12 +778,19 @@ class ProgramBuilder {
       }
 
       if (!isDirectiveClause(clause)) {
-        if (program.strictIso && Array.isArray(clause.body) && clause.body.length > 0) {
+        if (Array.isArray(clause.body) && clause.body.length > 0) {
           // ISO 7.6.2 applies when source text is prepared as well as when a
           // clause term is asserted dynamically. Keep the original variable
           // objects while wrapping variable goals in call/1 so sharing with
           // the head (and recursively through ;/2 and ->/2) is preserved for
           // later clause/2 and retract/1 conversion back to terms.
+          //
+          // 7.5.1 prepares the read-terms of a Prolog text into database
+          // clauses by this same conversion, so it is not conditional on the
+          // strict profile. Skipping it left a bare variable goal where the
+          // standard requires call/1, which both reports the wrong body term
+          // through clause/2 (8.8.1.4, legs/2) and makes a cut in that goal
+          // transparent instead of local to the call (7.8.3).
           clause.body = clause.body.map((goal) => convertClauseBodyTerm(goal));
         }
         assertHeadIsDefinable(clause.head, program.strictIso);

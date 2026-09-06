@@ -141,7 +141,7 @@ The Corrigendum 2 additions have the same shape.
 
 | Clause / predicate | Prescribed row | Status | Executable evidence |
 | --- | --- | --- | --- |
-| 8.8.1 `clause/2` | enumerate clauses of a public user-defined procedure | covered | dynamic-clause tests and grouped-solutions/clause corpus |
+| 8.8.1 `clause/2` | enumerate clauses of a public user-defined procedure | covered | dynamic-clause tests and grouped-solutions/clause corpus; `iso/clause_static_and_dynamic_access` and `error/iso/clause_static_user_procedure` pin the static/private default in all modes |
 | 8.8.1 error (a) | variable head -> instantiation error | covered | strict `clause(X,_)` |
 | 8.8.1 error (b) | non-callable head -> callable type error | covered | strict `clause(4,_)` |
 | 8.8.1 error (c) | private procedure -> access/private-procedure permission error | covered | strict static/private tests |
