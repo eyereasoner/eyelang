@@ -1231,6 +1231,44 @@ why(
       },
     },
     {
+      name: 'phrase terminal-sequence checks are consistent across arities and list shapes (issue #94)',
+      run: () => {
+        // The upstream quads allow both checking and non-checking processors.
+        // Require EyeProlog's chosen diagnostic, not either portable outcome.
+        const bodies = ['[]', '[a]', '{true}', '{fail}', '{write(reached)}', '!', 'p'];
+        const invalid = ['non_list', '0', 'f(a)', '[a|non_list]', '[a,b|0]', '[a,b,c|f(t)]'];
+        for (const body of bodies) {
+          for (const bad of invalid) {
+            for (const call of [`phrase(${body}, Bad)`, `phrase(${body}, Bad, [])`,
+              `phrase(${body}, [], Bad)`]) {
+              let output = '';
+              runEyeProlog('p --> [a].', {
+                ioOptions: { write: (text) => { output += text; } },
+                goal: `Bad=${bad}, catch((${call}, write(missed)), error(type_error(list, Bad), _), write(ok))`,
+              });
+              assertEqual(output, 'ok', `${call} with ${bad}`);
+            }
+          }
+        }
+        for (const goal of [
+          'phrase([], [])',
+          'phrase([a], [a])',
+          'phrase([a], L), L == [a]',
+          'phrase([a], [a|T]), T == []',
+          'phrase([], S, S), var(S)',
+          'phrase([], [a|T], [a|T]), var(T)',
+          'phrase([], L, [a|T]), L == [a|T], var(T)',
+          'phrase([a], [a|T], T), var(T)',
+          'phrase([f(a),1], [f(a),1])',
+        ]) {
+          let output = '';
+          runEyeProlog('', { goal: `(${goal}), write(ok)`,
+            ioOptions: { write: (text) => { output += text; } } });
+          assertEqual(output, 'ok', goal);
+        }
+      },
+    },
+    {
       name: 'runQuads matches the corrected ISO phrase quad boundaries',
       run: () => {
         const source = String.raw`c2 ?- call((1,fail)).

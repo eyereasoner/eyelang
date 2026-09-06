@@ -37,12 +37,23 @@ implementation-dependent negation/if-then choices documented in the reference.
 `--iso-strict` leaves `-->/2` as ordinary Part 1 operator syntax and excludes
 Part 3 grammar expansion and `phrase/2-3` from the strict registry.
 
-One compatibility difference is explicit: EyeProlog currently reports
-`type_error(list)` when its `phrase/2-3` terminal-sequence validation rejects a
-non-list. The Part 3 terminal-sequence specification uses its own terminal
-sequence error category. EyeProlog retains the list-shaped error for its normal
-interoperability profile, so this behavior must not be presented as evidence of
-complete Part 3 conformance.
+EyeProlog elects to perform both implementation-defined terminal-sequence
+checks in ISO/IEC TS 13211-3:2025, 8.18.1.3 g and h. The checks are optional;
+when performed, their specified error type is `list`. EyeProlog consistently
+raises `type_error(list, Culprit)` for a non-list input to `phrase/2` or
+`phrase/3`, and for a non-list remainder to `phrase/3`. The culprit is the
+whole invalid argument, including an improper list, not just its tail.
+Variables, proper lists, and partial lists are accepted by these checks.
+For otherwise valid grammar bodies, validation precedes execution, even when
+the grammar would fail or produce a side effect.
+
+The upstream phrase quads permit both checking and non-checking outcomes and
+therefore do not establish this consistency. A dedicated regression matrix in
+`test/run-regression.mjs` requires the exact diagnostic across both arities,
+both sequence positions, atomic and compound non-lists, improper lists at
+several depths, and several grammar bodies. Positive cases protect variables,
+proper lists, and partial lists. These are policy checks, not a relaxation of
+the unmodified upstream corpus.
 
 The Part 3 implementation otherwise keeps sequence validation, grammar-body
 callability, variable-body instantiation errors, `phrase/3` steadfastness, and

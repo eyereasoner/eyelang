@@ -3024,7 +3024,9 @@ function* phraseSolutions({ solver, goal, env }, state) {
   validateDcgEmbeddedGoals(grammarBody, input, requestedOutput);
   // ISO/IEC TS 13211-3:2025, 8.18.1.3 g and h permit these checks
   // and specify type_error(list, S) for invalid terminal-sequence arguments.
-  // Keep both diagnostics and the unmodified upstream phrase quad gate.
+  // EyeProlog elects to perform both optional checks consistently, including
+  // improper lists. The upstream quads allow non-checking outcomes too; the
+  // dedicated regression matrix requires our exact diagnostics.
   // See conformance-report.md and issue #94.
   if (!isListOrPartialList(input, env)) {
     throw new PrologError('type_error(list)', deref(input, env));

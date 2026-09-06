@@ -5870,10 +5870,14 @@ look_ahead(X), [X] --> [X].
 `phrase(+Body,?Sequence)` accepts or generates a complete sequence.
 `phrase(+Body,?Sequence,?Rest)` leaves `Rest` unconsumed and is steadfast in
 that argument. A variable body raises `instantiation_error`; a non-callable
-body raises `type_error(callable)`. EyeProlog performs terminal-sequence checks and currently reports
-`type_error(list)` for a rejected non-list. This is a normal-profile
-interoperability choice, not a Part 3 conformance claim; Part 3 defines a
-dedicated terminal-sequence error category. See
+body raises `type_error(callable)`. EyeProlog elects to perform the optional
+terminal-sequence checks of ISO/IEC TS 13211-3:2025, 8.18.1.3 g and h.
+It consistently reports `type_error(list, Culprit)` for invalid input in both
+arities and invalid remainder in `phrase/3`, including improper lists.
+Variables, proper lists, and partial lists pass these checks. Validation
+precedes grammar execution; an otherwise valid failing grammar does not
+suppress the diagnostic. Dedicated regressions enforce this policy separately
+from the portable quads, which accept both checking and non-checking outcomes. See
 [`ISO-PART2-PART3-SCOPE.md`](test/conformance/ISO-PART2-PART3-SCOPE.md).
 
 #### A bidirectional expression grammar
