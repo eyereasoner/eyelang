@@ -86,6 +86,9 @@ test('collection projects distinct values after a completed recursive query', ()
     ask collect ?xs = ?y where { path(a,?y) }, let ?n = count(?xs).`), [[{ xs: '[a, b, c]', n: '3' }]]);
   assert.deepEqual(rows('p(10). p(10). p(2). ask collect ?xs = ?x where { p(?x) }, sort(?xs,?sorted).'), [[{ xs: '[10, 2]', sorted: '[2, 10]' }]]);
   assert.deepEqual(rows('p(a). ask collect ?xs = ?x where { p(b), ?x = c }, let ?n = count(?xs).'), [[{ xs: '[]', n: '0' }]]);
+  assert.deepEqual(rows('ask collect ?xs = item where {}.'), [[{ xs: '[item]' }]]);
+  assert.throws(() => parse('ask { p(a) }.'), /Expected a value or variable/);
+  assert.throws(() => parse('p if { q }.'), /Expected a value or variable/);
 });
 
 test('collection correlates outer bound variables and keeps local bindings private', () => {
