@@ -37,6 +37,31 @@ proof-audit program demonstrates that exported explanations can be inputs to
 further logic programs, including another round of proof generation. This adds
 no claim of independent proof verification or source-language compatibility.
 
+## Third round: twelve attributed sister-project ports
+
+There are now 26 top-level examples. The new round adds four ports per project:
+
+- **EyeProlog:** Hanoi, wolf/goat/cabbage, critical-path scheduling, Peano arithmetic.
+- **Eyeling:** modular exponentiation, Gray-code counter, good cobbler, context association.
+- **Eyeleng:** dog licensing, property paths, Bayesian-style scoring, reification/annotations.
+
+[The example guide](../examples/README.md) describes each port and links to its
+source. [The source catalog](../examples/sources.json) pins repository revisions,
+source files, reference outputs where applicable, and adaptation decisions.
+Tests and examples remain self-contained; they do not require the sister projects
+to be installed or invoke those projects during the normal suite.
+
+These ports preserve source data and selected results rather than introducing
+new fixtures under familiar names. The scheduling algorithm is explicitly
+reformulated to avoid recursive aggregation. The graph/formula examples use
+explicit data representations and do not claim full RDF or N3 semantics. The
+scoring example checks numerical results with relative tolerance `1e-12`; discrete
+decisions, puzzle solutions, graph joins, and integer results are checked exactly.
+
+Expected values were taken from the inspected reference outputs or source
+problem definitions, with independent semantic checks for selected algorithms.
+The suite is not yet an automated cross-engine differential runner.
+
 ## How to expand coverage
 
 For each original program, record its source path and revision, required inputs,

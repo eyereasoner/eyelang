@@ -132,11 +132,18 @@ Input modes, types, and arithmetic function names are currently checked at runti
 - Ground negation and distinct collection over completed lower dependencies.
 - General finite search using `range`; list `length` and `sort` built-ins.
 - Explanation graphs with rule locations and explicit built-in/negation steps.
-- Fourteen runnable examples, including proof analysis written in Eyelit itself.
+- 26 runnable examples, including twelve attributed ports from the three sister
+  projects and proof analysis written in Eyelit itself.
 - Automated semantic, CLI, saved-output, and parse/print/parse closure checks.
 
 See [the language specification](docs/language.md), [implementation design](docs/implementation.md),
 [output format](docs/output.md), and [migration plan](docs/migration.md).
+
+The [example guide](examples/README.md) groups the new ports by source project
+and explains their scope. They cover planning, scheduling, symbolic arithmetic,
+large modular powers, a logic circuit, graph contexts, cardinality policies,
+numeric scoring, and statement annotations. Source revisions and adaptation
+notes are recorded in [examples/sources.json](examples/sources.json).
 
 ## Boundaries of this prototype
 
