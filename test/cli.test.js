@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
-import { parse, check } from '../index.js';
+import { parse, check, parseNQuads } from '../index.js';
 
 const cli = (args, input) => {
   const result = spawnSync(process.execPath, [fileURLToPath(new URL('../bin/eyelang.js', import.meta.url)), ...args], {
@@ -71,4 +71,21 @@ test('CLI proof auditing reads exported proofs and emits proofs of the audit', (
   assert.equal(second.status, 0, second.stderr);
   check(second.stdout);
   assert.match(second.stdout, /binding\("fact", human\(socrates\)\)/);
+});
+
+test('CLI imports and exports RDF 1.2 N-Quads', () => {
+  const rules = fileURLToPath(new URL('../examples/rdf12-interoperability.eye', import.meta.url));
+  const data = fileURLToPath(new URL('../examples/rdf12-interoperability.nq', import.meta.url));
+  const imported = cli(['--rdf-input', data, rules]);
+  assert.equal(imported.status, 0, imported.stderr);
+  assert.match(imported.stdout, /binding\("text", "Alice"\)/);
+  assert.match(imported.stdout, /binding\("source", iri\("https:\/\/example\/chat"\)\)/);
+  assert.match(imported.stdout, /language\("ar", rtl\)/);
+
+  const exported = cli(['--rdf-input', data, '--rdf-output', rules]);
+  assert.equal(exported.status, 0, exported.stderr);
+  assert.match(exported.stdout, /^VERSION "1\.2"/);
+  assert.match(exported.stdout, /<https:\/\/example\/displayName> "Bonjour"@fr/);
+  assert.match(exported.stdout, /<<\( <https:\/\/example\/alice> <https:\/\/example\/knows> <https:\/\/example\/bob> \)>>/);
+  assert.doesNotThrow(() => parseNQuads(exported.stdout));
 });

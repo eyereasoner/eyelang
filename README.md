@@ -24,6 +24,7 @@ Eyelang requires Node.js 18 or newer and has no runtime dependencies.
 ```sh
 node bin/eyelang.js examples/ancestor.eye
 node bin/eyelang.js --proof examples/socrates.eye
+node bin/eyelang.js --rdf-input examples/rdf12-interoperability.nq examples/rdf12-interoperability.eye
 npm test
 ```
 

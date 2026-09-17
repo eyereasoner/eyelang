@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { run, formatResult } from '../index.js';
+import { run, formatResult, nquadsToEyelang } from '../index.js';
 
 export const examplesDirectory = new URL('../examples/', import.meta.url);
 export const allExampleNames = () => fs.readdirSync(examplesDirectory).filter(name => name.endsWith('.eye')).sort();
@@ -20,6 +20,10 @@ export function exampleSource(name) {
   // engine. Derive its input afresh instead of trusting the saved golden file.
   if (name === 'proof-audit.eye') {
     return `${formatResult(run(exampleSource('socrates.eye')), { proof: true })}\n${source}`;
+  }
+  if (name === 'rdf12-interoperability.eye') {
+    const data = fs.readFileSync(new URL('rdf12-interoperability.nq', examplesDirectory), 'utf8');
+    return `${nquadsToEyelang(data, { blankNodePrefix: 'd0_' })}\n${source}`;
   }
   return source;
 }

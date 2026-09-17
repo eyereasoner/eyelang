@@ -389,6 +389,39 @@ Result serialization MUST occur only after complete evaluation. Syntax,
 validation, runtime, and resource-limit errors MUST NOT be serialized as empty
 or complete answer documents.
 
+## 13. RDF 1.2 N-Quads adapter
+
+The reference implementation provides a lossless boundary mapping between an
+RDF 1.2 dataset in N-Quads syntax and ground Eyelang `rdf/4` terms. This adapter
+is not part of core goal evaluation and does not imply an entailment regime.
+
+An RDF quad `(S, P, O, G)` maps to `rdf(S, P, O, G)`. Terms map as follows:
+
+| RDF value | Eyelang term |
+| --- | --- |
+| IRI `u` | `iri("u")` |
+| blank node with document-local label `b` | `blank("b")` |
+| simple or typed literal `(lexical, datatype)` | `literal("lexical", datatype(iri("datatype")))` |
+| language-tagged literal `(lexical, language)` | `literal("lexical", language("language"))` |
+| directional literal `(lexical, language, direction)` | `literal("lexical", language("language", direction))` |
+| triple term `(S, P, O)` | `triple(S, P, O)` |
+| default graph | `default_graph` |
+| named graph | its mapped IRI or blank node |
+
+Language tags MUST be normalized to lowercase. A simple literal MUST map to the
+`http://www.w3.org/2001/XMLSchema#string` datatype. Lexical forms MUST otherwise
+be preserved. Blank-node identity MUST be preserved within one input document
+and kept distinct between documents loaded by one CLI invocation.
+
+`--rdf-input FILE` MUST parse RDF 1.2 N-Quads and prepend the resulting ground
+facts to the Eyelang program. It may be repeated. `--rdf-output` MUST query the
+complete `rdf/4` relation after evaluation and serialize its distinct ground
+answers as deterministic N-Quads with a `VERSION "1.2"` announcement. Invalid
+RDF positions, malformed terms, non-ground output, and unsupported version
+announcements MUST be errors. The adapter follows [RDF 1.2 Concepts and Abstract
+Data Model](https://www.w3.org/TR/rdf12-concepts/) and [RDF 1.2
+N-Quads](https://www.w3.org/TR/rdf12-n-quads/).
+
 ## Appendix A. Complete collection example
 
 ```text

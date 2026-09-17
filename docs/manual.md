@@ -214,6 +214,36 @@ of the [specification](specification.md).
 `--check` emits `checked/2` and `stratum/2` facts without evaluating questions.
 `--json` selects a tagged JavaScript-oriented representation instead of `.eye`.
 
+## RDF 1.2 interoperability
+
+The N-Quads adapter turns an RDF 1.2 dataset into ordinary `rdf/4` facts. That
+keeps RDF at the boundary: rules can inspect, join, and derive RDF statements
+without adding a second evaluation model.
+
+```sh
+node bin/eyelang.js \
+  --rdf-input examples/rdf12-interoperability.nq \
+  examples/rdf12-interoperability.eye
+
+node bin/eyelang.js \
+  --rdf-input examples/rdf12-interoperability.nq \
+  --rdf-output examples/rdf12-interoperability.eye
+```
+
+The first command produces normal `.eye` answers. The second emits RDF 1.2
+N-Quads containing imported and inferred `rdf/4` statements. The mapping is
+visible in the example itself: IRIs use `iri(Text)`, blank nodes use
+`blank(Label)`, literals retain datatype or language and direction, triple
+terms use `triple(Subject, Predicate, Object)`, and the fourth argument is
+`default_graph` or a graph IRI/blank node. Blank-node labels from separate input
+files are scoped independently. Import does not silently apply an RDF or RDFS
+entailment regime; any intended entailment is expressed by Eyelang rules.
+
+The public JavaScript functions are `parseNQuads`, `nquadsToEyelang`,
+`formatNQuads`, and `rdfAnswersToNQuads`. The concrete syntax follows
+[RDF 1.2 N-Quads](https://www.w3.org/TR/rdf12-n-quads/), including `VERSION
+"1.2"`, triple terms, and directional language-tagged strings.
+
 ## JavaScript API
 
 ```js
@@ -251,10 +281,11 @@ node tools/update-examples.js
 npm test
 ```
 
-Eyelang does not currently provide constraint propagation, RDF concrete syntax,
-quoted executable formulas, generated rules, mutable databases, existential
-witness generation, or static type and mode inference. Constructor values can
-represent graph-shaped data but do not acquire RDF semantics automatically.
+Eyelang does not currently provide constraint propagation, Turtle or TriG
+concrete syntax, quoted executable formulas, generated rules, mutable databases,
+existential witness generation, or static type and mode inference. Constructor values can
+represent graph-shaped data but do not acquire RDF semantics automatically;
+RDF interoperability is explicitly selected through the N-Quads adapter.
 
 General constructor recursion and value-generating arithmetic may not terminate.
 The reference engine is a replay-based, demand-driven fixed-point evaluator; it

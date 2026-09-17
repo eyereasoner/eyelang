@@ -98,6 +98,17 @@ test('closed graph terms derive social classification and mentioned resources', 
   ]);
 });
 
+test('RDF example derives a new RDF statement from imported N-Quads', () => {
+  const source = exampleSource('rdf12-interoperability.eye');
+  const result = run(`${source}\nask rdf(iri("https://example/alice"), iri("https://example/displayName"), ?label, default_graph).`);
+  assert.equal(result.queries.at(-1).answers.length, 1);
+  const label = result.queries.at(-1).answers[0].bindings.label;
+  assert.equal(label.name, 'literal');
+  assert.equal(label.args[0].value, 'Bonjour');
+  assert.equal(label.args[1].name, 'language');
+  assert.equal(label.args[1].args[0].value, 'fr');
+});
+
 test('Dijkstra example derives the minimum path from weighted edges', () => {
   const source = exampleSource('dijkstra.eye');
   const answer = run(source).queries[0].answers[0].bindings;

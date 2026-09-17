@@ -56,6 +56,15 @@ const expectations = {
   'dog-license.eye': [[{ person: 'alice', license: 'dogLicense' }], [{ person: 'alice', count: '5' }, { person: 'bob', count: '2' }]],
   'property-paths.eye': [[{ person: 'alice', grandchild: 'carol' }], [{ child: 'bob', parent: 'alice' }, { child: 'carol', parent: 'bob' }]],
   'reification-and-annotations.eye': [[{ speaker: 'alice', source: 'chat' }, { speaker: 'bob', source: 'email' }], [], [{ certainty: '0.9' }]],
+  'rdf12-interoperability.eye': [
+    [{ person: 'iri("https://example/alice")', text: '"Alice"' }],
+    [{
+      subject: 'iri("https://example/alice")', predicate: 'iri("https://example/knows")',
+      object: 'iri("https://example/bob")', source: 'iri("https://example/chat")',
+      graph: 'iri("https://example/graph")',
+    }],
+    [{ title: 'literal("HTML و CSS", language("ar", rtl))', graph: 'iri("https://example/graph")' }],
+  ],
 };
 
 const canonical = answers => answers.map(answer => JSON.stringify(answer)).sort();

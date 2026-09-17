@@ -5,6 +5,7 @@ export { parse } from './src/parser.js';
 export { LimitError } from './src/engine.js';
 export { format, atom, struct, scalar, variable, list } from './src/terms.js';
 export { formatResult, formatCheck } from './src/output.js';
+export { parseNQuads, formatNQuads, nquadsToEyelang, rdfAnswersToNQuads } from './src/rdf.js';
 
 /** Run embedded ask statements. Values retain their tagged term representation. */
 export function run(source, options = {}) {

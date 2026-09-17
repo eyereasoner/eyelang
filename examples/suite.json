@@ -160,6 +160,9 @@
       "file": "rdf-messages.eye"
     },
     {
+      "file": "rdf12-interoperability.eye"
+    },
+    {
       "file": "reification-and-annotations.eye"
     },
     {

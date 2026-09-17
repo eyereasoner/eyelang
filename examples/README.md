@@ -1,6 +1,6 @@
 # Eyelang examples
 
-The flat suite contains 76 native Eyelang programs. Seventy-three complete
+The flat suite contains 77 native Eyelang programs. Seventy-four complete
 normally; three deliberately exercise static or runtime rejection. Successful
 examples have answer documents in [output](output) and explanation documents in
 [proof](proof), both written as ordinary `.eye` syntax.
@@ -12,6 +12,8 @@ node bin/eyelang.js examples/ancestor.eye
 node bin/eyelang.js examples/sudoku.eye
 node bin/eyelang.js --proof examples/modular-exponentiation.eye
 node bin/eyelang.js examples/proof/socrates.eye examples/proof-audit.eye
+node bin/eyelang.js --rdf-input examples/rdf12-interoperability.nq examples/rdf12-interoperability.eye
+node bin/eyelang.js --rdf-input examples/rdf12-interoperability.nq --rdf-output examples/rdf12-interoperability.eye
 npm test
 ```
 
@@ -29,7 +31,8 @@ and complete with at least one successful question.
 - Closed reasoning: stratified negation, collections, policy decisions, and
   proof auditing.
 - Structured knowledge: graph-shaped data, quoted triples, reification,
-  annotations, collections, and property-path expansions.
+  annotations, collections, property-path expansions, and RDF 1.2 N-Quads
+  round trips.
 - Scale: parameterized deep taxonomies and relational cube lookup.
 
 The deep-taxonomy programs retain the `N` superclass spine, terminal and
