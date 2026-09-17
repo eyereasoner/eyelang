@@ -1,0 +1,21 @@
+{
+  "projects": {
+    "eyeprolog": { "repository": "https://github.com/eyereasoner/eyeprolog", "revision": "1468906b4e2b3af8035dfdcbbeb99bd4b77367df" },
+    "eyeling": { "repository": "https://github.com/eyereasoner/eyeling", "revision": "835cb3555c8b56c41838a53002760b3f918b49c9" },
+    "eyeleng": { "repository": "https://github.com/eyereasoner/eyeleng", "revision": "b7c7e46f82974682974a342a7fa65e6b8a229d48" }
+  },
+  "examples": [
+    { "example": "hanoi.eye", "project": "eyeprolog", "sources": ["examples/hanoi.pl"], "reference": "examples/output/hanoi.pl", "adaptation": "Direct relation and three-disk move-list port." },
+    { "example": "wolf-goat-cabbage.eye", "project": "eyeprolog", "sources": ["examples/wolf-goat-cabbage.pl"], "reference": "examples/output/wolf-goat-cabbage.pl", "adaptation": "Direct safe-state search and seven-crossing answer port." },
+    { "example": "critical-path-schedule.eye", "project": "eyeprolog", "sources": ["examples/critical-path-schedule.pl"], "reference": "examples/output/critical-path-schedule.pl", "adaptation": "Same DAG and answers; dependency-path enumeration followed by stratified aggregation replaces recursive aggregation." },
+    { "example": "peano-arithmetic.eye", "project": "eyeprolog", "sources": ["examples/peano-arithmetic.pl"], "reference": "examples/output/peano-arithmetic.pl", "adaptation": "Direct successor-term arithmetic and factorial of five. Also corresponds to Eyeling peano.n3." },
+    { "example": "modular-exponentiation.eye", "project": "eyeling", "sources": ["examples/modexp.n3"], "reference": "examples/output/modexp.n3", "adaptation": "Same repeated squaring and four showcase values; ordinary rules calculate exponent powers instead of math:exponentiation." },
+    { "example": "gray-code-counter.eye", "project": "eyeling", "sources": ["examples/gray-code-counter.n3"], "reference": "examples/output/gray-code-counter.n3", "adaptation": "Direct relational circuit, clock-list, and state-sequence port; adds a clock-low check." },
+    { "example": "good-cobbler.eye", "project": "eyeling", "sources": ["examples/good-cobbler.n3"], "reference": "examples/output/good-cobbler.n3", "adaptation": "Preserves compound property and selected statement as quoted constructor data; no general N3 formula semantics." },
+    { "example": "context-association.eye", "project": "eyeling", "sources": ["examples/context-association.n3", "examples/input/context-association.trig"], "adaptation": "Projects the triples consumed by the source rule into graph-scoped quad relations, preserving graph and blank-node distinctions. Does not verify cryptography or validity dates." },
+    { "example": "dog-license.eye", "project": "eyeleng", "sources": ["examples/dog-license.srl"], "reference": "examples/output/dog-license.trig", "adaptation": "Same seven dogs and threshold; distinct identity collection replaces a five-way inequality join. Also corresponds to Eyeling dog.n3." },
+    { "example": "property-paths.eye", "project": "eyeleng", "sources": ["examples/property-paths.srl"], "reference": "examples/output/property-paths.trig", "adaptation": "Direct sequence/inverse path expansion into ordinary relations; namespace-local names become symbols." },
+    { "example": "bayes-diagnosis.eye", "project": "eyeleng", "sources": ["examples/bayes-diagnosis.srl"], "reference": "examples/output/bayes-diagnosis.trig", "adaptation": "Same four numeric models, calculated unnormalized scores, screening threshold, and ranks. Score tests allow relative floating-point error of 1e-12." },
+    { "example": "reification-and-annotations.eye", "project": "eyeleng", "sources": ["examples/reification-and-annotations.srl"], "reference": "examples/output/reification-and-annotations.trig", "adaptation": "Parsed RDF-shaped data represented by ordinary constructors and relations; distinguishes asserted and merely reified statements, with a local renamed blank node." }
+  ]
+}

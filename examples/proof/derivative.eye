@@ -1,0 +1,8 @@
+# Eyelit result format 1
+query(1, at(8, 1), [call(d(mul(var(x), var(x)), x, ?v0))], [binding("derivative", ?v0)]).
+result(1, complete, 1).
+answer(1, [binding("derivative", add(mul(const(1), var(x)), mul(var(x), const(1))))]).
+why(1, [binding("derivative", add(mul(const(1), var(x)), mul(var(x), const(1))))], 3).
+proof(1, d(var(x), x, const(1)), rule(2, at(3, 1)), []).
+proof(2, d(mul(var(x), var(x)), x, add(mul(const(1), var(x)), mul(var(x), const(1)))), rule(5, at(6, 1)), [uses(1, d(var(x), x, const(1))), uses(1, d(var(x), x, const(1)))]).
+proof(3, solution([add(mul(const(1), var(x)), mul(var(x), const(1)))]), query, [uses(2, d(mul(var(x), var(x)), x, add(mul(const(1), var(x)), mul(var(x), const(1)))))]).
