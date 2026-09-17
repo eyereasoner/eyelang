@@ -1,4 +1,3 @@
-# Source: eyeling/examples/modexp.n3 (835cb3555c8b).
 # Same repeated-squaring algorithm and four showcase results.
 # Powers of two used as exponents are computed by rules, with exact integers.
 

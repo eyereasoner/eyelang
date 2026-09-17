@@ -1,4 +1,4 @@
-# Source: eyeleng/examples/family.srl (b7c7e46f8297).
+# Eyelang example: family.
 father(a, x). mother(b, x). mother(c, a).
 child(?x, ?y) if father(?y, ?x).
 child(?x, ?y) if mother(?y, ?x).

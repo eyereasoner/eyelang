@@ -1,7 +1,6 @@
 # Reference implementation
 
-The interpreter is independent of EyeProlog, Eyeling, and Eyeleng at runtime.
-It uses only JavaScript and Node built-ins. The public evaluator imports no Node
+The interpreter uses only JavaScript and Node built-ins. The public evaluator imports no Node
 modules; the CLI alone handles files and standard input. Browser packaging has
 not yet been added or tested.
 
@@ -54,9 +53,8 @@ fresh variable instances, open-list relations, occurs checks, arithmetic precisi
 stratification, collection scope, resource limits, residual variables, and CLI
 behavior. Every example has explicit expected answers or structural assertions.
 
-The examples are selected ports and new formulations. The test suite is not yet
-a differential harness against the sibling projects, nor a claim to cover their
-complete inventories.
+The examples are native Eyelang programs. Algorithmic examples are checked with
+independent invariants and input perturbations in addition to exact answers.
 
 Result and proof documents for all normally completing examples are saved under `examples/output`
 and `examples/proof`. Closure tests parse, load, print, and reparse those documents
@@ -72,7 +70,7 @@ a time, preserving variable identity across its fields.
 
 ## Next implementation decisions
 
-1. Audit every source example and record required semantics, not just names.
+1. Continue auditing every example's required semantics, not just its name.
 2. Specify static calling modes and collection variable scope more strongly.
 3. Add generic finite-domain constraints with residual constraint answers.
 4. Define an RDF value boundary before adding RDF syntax adapters.

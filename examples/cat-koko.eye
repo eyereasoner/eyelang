@@ -1,4 +1,4 @@
-# Source: eyeleng/examples/cat-koko.srl (b7c7e46f8297).
+# Eyelang example: cat-koko.
 animal(koko).
 cat(generated_cat) if animal(koko).
 british_short_hair(generated_bsh) if animal(koko).

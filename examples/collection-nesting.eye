@@ -1,4 +1,4 @@
-# Source: eyeleng/examples/collection-nesting.srl (b7c7e46f8297).
+# Eyelang example: collection-nesting.
 nested(root, [1, node(q), [2]]).
 first(?first) if nested(root, [?first, ?second, ?third]).
 second_property(?value) if nested(root, [?first, node(?value), ?third]).

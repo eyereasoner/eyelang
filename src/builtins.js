@@ -1,6 +1,6 @@
 import { array, scalar, list, ground, instantiate, unify, termKey, format } from './terms.js';
 
-export const builtinRelations = new Set(['range/3', 'length/2', 'sort/2']);
+export const builtinRelations = new Set(['range/3', 'length/2', 'sort/2', 'sudoku/2']);
 
 export function requireGround(value, context) {
   if (!ground(value)) throw new Error(`${context} needs bound inputs; got ${format(value)}`);
@@ -80,6 +80,71 @@ export function compare(op, left, right, env) {
   return op === '<' ? a < b : op === '>' ? a > b : op === '<=' ? a <= b : a >= b;
 }
 
+function sudokuState(term) {
+  const rows = array(requireGround(term, 'sudoku puzzle'));
+  if (rows.length !== 9) throw new Error('sudoku needs exactly 9 rows');
+  const grid = [];
+  for (const row of rows) {
+    const cells = array(row);
+    if (cells.length !== 9) throw new Error('each sudoku row needs exactly 9 cells');
+    for (const cell of cells) {
+      if (cell.kind !== 'bigint' || cell.value < 0n || cell.value > 9n) {
+        throw new Error('sudoku cells must be integers from 0 through 9');
+      }
+      grid.push(Number(cell.value));
+    }
+  }
+  const rowMasks = Array(9).fill(0), columnMasks = Array(9).fill(0), boxMasks = Array(9).fill(0);
+  for (let index = 0; index < 81; index++) {
+    const digit = grid[index];
+    if (!digit) continue;
+    const row = Math.floor(index / 9), column = index % 9, box = Math.floor(row / 3) * 3 + Math.floor(column / 3);
+    const bit = 1 << digit;
+    if ((rowMasks[row] | columnMasks[column] | boxMasks[box]) & bit) return null;
+    rowMasks[row] |= bit; columnMasks[column] |= bit; boxMasks[box] |= bit;
+  }
+  return { grid, rowMasks, columnMasks, boxMasks };
+}
+
+function bitCount(bits) {
+  let count = 0;
+  while (bits) { bits &= bits - 1; count++; }
+  return count;
+}
+
+function* sudokuSolutions(state, tick) {
+  const { grid, rowMasks, columnMasks, boxMasks } = state;
+  let best = -1, choices = 0, smallest = 10;
+  for (let index = 0; index < 81; index++) {
+    if (grid[index]) continue;
+    const row = Math.floor(index / 9), column = index % 9, box = Math.floor(row / 3) * 3 + Math.floor(column / 3);
+    const available = 0x3fe & ~(rowMasks[row] | columnMasks[column] | boxMasks[box]);
+    const count = bitCount(available);
+    if (!count) return;
+    if (count < smallest) { best = index; choices = available; smallest = count; }
+  }
+  if (best < 0) { yield [...grid]; return; }
+  const row = Math.floor(best / 9), column = best % 9, box = Math.floor(row / 3) * 3 + Math.floor(column / 3);
+  for (let digit = 1; digit <= 9; digit++) {
+    const bit = 1 << digit;
+    if (!(choices & bit)) continue;
+    tick();
+    grid[best] = digit;
+    rowMasks[row] |= bit; columnMasks[column] |= bit; boxMasks[box] |= bit;
+    yield* sudokuSolutions(state, tick);
+    rowMasks[row] ^= bit; columnMasks[column] ^= bit; boxMasks[box] ^= bit;
+    grid[best] = 0;
+  }
+}
+
+function sudokuTerm(grid) {
+  const rows = [];
+  for (let row = 0; row < 9; row++) {
+    rows.push(list(grid.slice(row * 9, row * 9 + 9).map(value => scalar(BigInt(value)))));
+  }
+  return list(rows);
+}
+
 export function* builtin(call, env, tick) {
   const args = call.args.map(x => instantiate(x, env));
   if (call.name === 'range') {
@@ -110,5 +175,12 @@ export function* builtin(call, env, tick) {
     });
     const branch = new Map(env);
     if (unify(call.args[1], list(unique), branch)) yield branch;
+  } else if (call.name === 'sudoku') {
+    const state = sudokuState(args[0]);
+    if (!state) return;
+    for (const solution of sudokuSolutions(state, tick)) {
+      const branch = new Map(env);
+      if (unify(call.args[1], sudokuTerm(solution), branch)) yield branch;
+    }
   }
 }

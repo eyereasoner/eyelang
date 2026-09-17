@@ -1,4 +1,3 @@
-# Source: eyeleng/examples/reification-and-annotations.srl (b7c7e46f8297).
 # Explicit relational expansion of the same RDF-shaped data and join.
 # Alice's statement is asserted and annotated. Bob's is only reified:
 # describing his statement must not assert it. claim1 is a local blank-node ID.

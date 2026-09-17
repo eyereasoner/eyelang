@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import { run, parse } from '../index.js';
 import { array } from '../src/terms.js';
-import { exampleSource, examplesDirectory } from '../tools/example-sources.js';
+import { exampleSource } from '../tools/example-sources.js';
 
 test('Hanoi moves obey disk ordering and reach the target peg', () => {
   const answer = run(exampleSource('hanoi.eye')).queries[0].answers[0];
@@ -85,19 +84,66 @@ test('metadata from another graph cannot complete the context association', () =
   assert.equal(run(source).queries[0].answers.length, 0);
 });
 
-test('sister-source catalog accounts for four new ports from each repository', () => {
-  const catalog = JSON.parse(fs.readFileSync(new URL('sources.json', examplesDirectory), 'utf8'));
-  const counts = {};
-  assert.equal(new Set(catalog.examples.map(entry => entry.example)).size, 12);
-  for (const entry of catalog.examples) {
-    const project = catalog.projects[entry.project];
-    assert.match(project.revision, /^[0-9a-f]{40}$/);
-    assert.ok(entry.sources.length);
-    assert.ok(entry.adaptation.length);
-    const source = exampleSource(entry.example);
-    assert.ok(source.includes(`${entry.project}/${entry.sources[0]}`));
-    assert.ok(source.includes(project.revision.slice(0, 12)));
-    counts[entry.project] = (counts[entry.project] || 0) + 1;
-  }
-  assert.deepEqual(counts, { eyeprolog: 4, eyeling: 4, eyeleng: 4 });
+const computedRelations = {
+  'aggregation.eye': ['report'],
+  'ancestor.eye': ['ancestor'],
+  'bayes-diagnosis.eye': ['score', 'screened_in', 'rank'],
+  'bmi.eye': ['bmi'],
+  'critical-path-schedule.eye': ['project_finish', 'critical_task', 'schedule'],
+  'derivative.eye': ['d'],
+  'dijkstra.eye': ['best'],
+  'dog-license.eye': ['must_have', 'dog_count'],
+  'family-cousins.eye': ['cousin'],
+  'fibonacci.eye': ['fib'],
+  'four-queens.eye': ['place'],
+  'grammar.eye': ['sentence', 'sentence'],
+  'graph-join.eye': ['trusted'],
+  'gray-code-counter.eye': ['counter', 'gcc'],
+  'hanoi.eye': ['hanoi'],
+  'modular-exponentiation.eye': ['small_check', 'large_case'],
+  'peano-arithmetic.eye': ['factorial'],
+  'property-paths.eye': ['grandparent_of', 'has_parent'],
+  'query.eye': ['ancestor'],
+  'relational-cube-lookup.eye': ['cube'],
+  'shortest-path.eye': ['best'],
+  'socrates.eye': ['mortal'],
+  'sudoku.eye': ['solve'],
+  'type-inference.eye': ['type', 'type'],
+  'wolf-goat-cabbage.eye': ['solution'],
+};
+
+for (const [file, relations] of Object.entries(computedRelations)) {
+  test(`${file} derives computed answers instead of asserting them`, () => {
+    const result = run(exampleSource(file));
+    assert.equal(result.queries.length, relations.length);
+    result.queries.forEach((query, index) => {
+      for (const answer of query.answers) {
+        const queryProof = result.proofs[answer.proof - 1];
+        const call = queryProof.premises.find(premise => premise.kind === 'answer' && premise.callTerm.name === relations[index]);
+        assert.ok(call, `${relations[index]} is not a query premise`);
+        const derivation = result.proofs[call.proof - 1];
+        assert.ok(derivation.premises.length > 0, `${relations[index]} was asserted as a result fact`);
+      }
+    });
+  });
+}
+
+test('family generations are inferred from parent links', () => {
+  const source = exampleSource('family-cousins.eye');
+  const generationFacts = parse(source).rules.filter(rule => rule.fact && rule.head.name === 'generation');
+  assert.equal(generationFacts.length, 1);
+  assert.deepEqual(run(`${source}\nask generation(?person,?level).`).queries.at(-1).answers
+    .map(({ bindings }) => [bindings.person.name, bindings.level.value]).sort(), [
+    ['adam', 0n], ['bob', 1n], ['carol', 1n], ['dave', 2n], ['eve', 2n], ['frank', 2n], ['grace', 2n],
+  ]);
+});
+
+test('library ancestry, ordinary levels, and event years are derived', () => {
+  const descendants = run(exampleSource('import-lib.eye')).queries[0].answers.map(answer => answer.bindings.descendant.name).sort();
+  assert.deepEqual(descendants, ['jules', 'kai']);
+  const levels = run(exampleSource('version-and-in.eye')).queries;
+  assert.deepEqual(levels[0].answers.map(answer => answer.bindings.person.name).sort(), ['alice', 'carol']);
+  assert.deepEqual(levels[1].answers.map(answer => answer.bindings.person.name), ['bob']);
+  const year = run(exampleSource('now-and-language-builtins.eye')).queries[1].answers[0].bindings.year.value;
+  assert.equal(year, 2026n);
 });

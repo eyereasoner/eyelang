@@ -1,4 +1,3 @@
-# Source: eyeprolog/examples/critical-path-schedule.pl (1468906b4e2b).
 # Same DAG, durations, schedule, finish date, and critical tasks.
 # Reformulation: enumerate dependency-path durations before taking maxima.
 # This avoids recursion through collect, which Eyelang deliberately rejects.

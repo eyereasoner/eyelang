@@ -139,6 +139,14 @@ test('sort has a consistent order across numeric and nonnumeric kinds', () => {
   assert.deepEqual(rows('ask sort([100,true,0.0,a,100],?xs).'), [[{ xs: '[0.0, 100, a, true]' }]]);
 });
 
+test('sudoku solves a ground grid and rejects inconsistent givens', () => {
+  const almostComplete = '[[0,2,3,4,5,6,7,8,9],[4,5,6,7,8,9,1,2,3],[7,8,9,1,2,3,4,5,6],[2,3,4,5,6,7,8,9,1],[5,6,7,8,9,1,2,3,4],[8,9,1,2,3,4,5,6,7],[3,4,5,6,7,8,9,1,2],[6,7,8,9,1,2,3,4,5],[9,1,2,3,4,5,6,7,8]]';
+  assert.deepEqual(rows(`ask sudoku(${almostComplete},?grid).`), [[{
+    grid: '[[1, 2, 3, 4, 5, 6, 7, 8, 9], [4, 5, 6, 7, 8, 9, 1, 2, 3], [7, 8, 9, 1, 2, 3, 4, 5, 6], [2, 3, 4, 5, 6, 7, 8, 9, 1], [5, 6, 7, 8, 9, 1, 2, 3, 4], [8, 9, 1, 2, 3, 4, 5, 6, 7], [3, 4, 5, 6, 7, 8, 9, 1, 2], [6, 7, 8, 9, 1, 2, 3, 4, 5], [9, 1, 2, 3, 4, 5, 6, 7, 8]]',
+  }]]);
+  assert.deepEqual(rows('ask sudoku([[1,1,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]],?grid).'), [[]]);
+});
+
 test('graph closures agree with an independent traversal across clause orders', () => {
   let seed = 391;
   const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };

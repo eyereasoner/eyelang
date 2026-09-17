@@ -1,4 +1,4 @@
-# Source: eyeleng/examples/spec-4-1-srl-syntax.srl (b7c7e46f8297).
+# Eyelang example: spec-4-1-rule-syntax.
 values(x, 1, 2).
 both_positive(?x) if values(?x, ?a, ?b), ?a > 0, ?b > 0.
 one_zero(?x) if values(?x, 0, ?b). one_zero(?x) if values(?x, ?a, 0).

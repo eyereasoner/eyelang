@@ -1,6 +1,6 @@
-# Source: eyeleng/examples/now-and-language-builtins.srl (b7c7e46f8297).
+# Eyelang example: now-and-language-builtins.
 text(msg, literal("bonjour", fr)).
 same_language(?message) if text(?message, literal(?value, fr)).
-# NOW is deliberately an explicit input in a deterministic logic program.
-clock(snapshot(datetime(2026, 5, 15, 10, 20, 30))).
-ask same_language(msg). ask clock(?snapshot).
+event(clock, datetime(2026, 5, 15, 10, 20, 30)).
+event_year(?event, ?year) if event(?event, datetime(?year, ?month, ?day, ?hour, ?minute, ?second)).
+ask same_language(msg). ask event_year(clock, ?year).

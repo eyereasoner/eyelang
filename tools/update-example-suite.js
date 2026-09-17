@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 
-const revision = 'b7c7e46f82974682974a342a7fa65e6b8a229d48';
 const directory = new URL('../examples/', import.meta.url);
-const source = name => `# Source: eyeleng/examples/${name}.srl (${revision.slice(0, 12)}).\n`;
+const heading = name => `# Eyelang example: ${name}.\n`;
 
 const family = `
 father(a, x). mother(b, x). mother(c, a).
@@ -14,7 +13,7 @@ descended(?x, ?y) if child(?x, ?z), descended(?z, ?y).
 ask descended(?person, ?ancestor).
 `;
 
-const ports = {
+const examples = {
   'alignment-demo': `
 concept(car). concept(tel_car). concept(heavy_vehicle). concept(plate_vehicle). concept(passenger_car).
 broad_match(tel_car, car). broad_match(heavy_vehicle, car). broad_match(plate_vehicle, car).
@@ -128,7 +127,8 @@ ask must_have(?person, ?license).
 parent(adam, bob). parent(adam, carol). parent(bob, dave). parent(bob, eve). parent(carol, frank). parent(carol, grace).
 branch(dave, b). branch(eve, b). branch(frank, c). branch(grace, c).
 different(b, c). different(c, b).
-generation(bob, 1). generation(carol, 1). generation(dave, 2). generation(eve, 2). generation(frank, 2). generation(grace, 2).
+generation(adam, 0).
+generation(?child, ?next) if parent(?parent, ?child), generation(?parent, ?current), let ?next = ?current + 1.
 cousin(?x, ?y) if generation(?x, ?g), generation(?y, ?g), branch(?x, ?bx), branch(?y, ?by), different(?bx, ?by).
 ask cousin(?person, ?cousin).
 `,
@@ -155,11 +155,10 @@ ask social(?graph).
 `,
   'if-then': `man(socrates). mortal(?x) if man(?x). ask mortal(socrates).`,
   'import-lib': `
-# Standalone form of the imported library; the sentinel keeps parent/2 defined.
-parent(none, none).
+parent(iris, jules). parent(jules, kai).
 ancestor(?x, ?y) if parent(?x, ?y).
 ancestor(?x, ?z) if parent(?x, ?y), ancestor(?y, ?z).
-ask ancestor(none, none).
+ask ancestor(iris, ?descendant).
 `,
   'import-main': `
 parent(alice, bob). parent(bob, carol).
@@ -175,9 +174,9 @@ ask eligible(?person).
   'now-and-language-builtins': `
 text(msg, literal("bonjour", fr)).
 same_language(?message) if text(?message, literal(?value, fr)).
-# NOW is deliberately an explicit input in a deterministic logic program.
-clock(snapshot(datetime(2026, 5, 15, 10, 20, 30))).
-ask same_language(msg). ask clock(?snapshot).
+event(clock, datetime(2026, 5, 15, 10, 20, 30)).
+event_year(?event, ?year) if event(?event, datetime(?year, ?month, ?day, ?hour, ?minute, ?second)).
+ask same_language(msg). ask event_year(clock, ?year).
 `,
   'odrl-dpv-risk-ranked': `
 need(data_cannot_be_removed, 20). need(prior_notice, 15). need(no_sharing, 12). need(portability, 10).
@@ -251,7 +250,7 @@ distance_miles(route1, 10). distance_miles(route2, 5).
 distance_km(?route, ?km) if distance_miles(?route, ?miles), let ?km = ?miles * 1.60934.
 ask distance_km(?route, ?kilometers).
 `,
-  'spec-4-1-srl-syntax': `
+  'spec-4-1-rule-syntax': `
 values(x, 1, 2).
 both_positive(?x) if values(?x, ?a, ?b), ?a > 0, ?b > 0.
 one_zero(?x) if values(?x, 0, ?b). one_zero(?x) if values(?x, ?a, 0).
@@ -271,9 +270,22 @@ eligible(?x) if person(?x), not blocked(?x).
 ask eligible(?person).
 `,
   sudoku: `
-# The source delegates solving to a sudoku built-in. This port stores its checked solution as a value.
-solution([1,6,2,8,5,7,4,9,3,5,3,4,1,2,9,6,7,8,7,8,9,6,4,3,5,2,1,4,7,5,3,1,2,9,8,6,9,1,3,5,8,6,7,4,2,6,2,8,7,9,4,1,3,5,3,5,6,4,7,8,2,1,9,2,4,1,9,3,5,8,6,7,8,9,7,2,6,1,3,5,4]).
-ask solution(?cells), length(?cells, 81).
+# AI Escargot. Zero denotes an empty cell in the original puzzle.
+puzzle([
+    [1,0,0,0,0,7,0,9,0],
+    [0,3,0,0,2,0,0,0,8],
+    [0,0,9,6,0,0,5,0,0],
+    [0,0,5,3,0,0,9,0,0],
+    [0,1,0,0,8,0,0,0,2],
+    [6,0,0,0,0,4,0,0,0],
+    [3,0,0,0,0,0,0,1,0],
+    [0,4,0,0,0,0,0,0,7],
+    [0,0,7,0,0,0,3,0,0]
+]).
+
+solve(?grid) if puzzle(?givens), sudoku(?givens, ?grid).
+
+ask puzzle(?givens), solve(?grid).
 `,
   'turtle-shortcuts': `
 knows(alice, bob). knows(alice, carol). score(alice, 8). score(bob, 3).
@@ -288,7 +300,7 @@ ask unicode_decoded. ask below_zero.
   'version-and-in': `
 level(alice, gold). level(bob, bronze). level(carol, platinum).
 priority(?x) if level(?x, gold). priority(?x) if level(?x, platinum).
-ordinary(?x) if level(?x, bronze).
+ordinary(?x) if level(?x, ?level), not priority(?x).
 ask priority(?person). ask ordinary(?person).
 `,
   'unstratified-negation': `
@@ -304,10 +316,44 @@ score(alice, 10). bad if ?score > 5, score(alice, ?score). ask bad.
 };
 
 for (const depth of [10, 100, 1000, 10000, 100000]) {
-  ports[`deep-taxonomy-${depth}`] = `
-# A compact parameterized form of the generated source chain.
-level(?n) if range(0, ${depth}, ?n).
-ask level(${depth}).
+  const middle = Math.floor(depth / 2);
+  examples[`deep-taxonomy-${depth}`] = `
+# Classes are terms so the generated hierarchy remains compact without losing
+# its shape. At every step N(level) has three direct superclasses: the next
+# spine class N(next), and the terminal, incomparable side classes I(next) and
+# J(next). The final spine class is directly below A2.
+direct_subclass(n(?level), n(?next)) if ?level >= 0, ?level < ${depth}, let ?next = ?level + 1.
+direct_subclass(n(?level), i(?next)) if ?level >= 0, ?level < ${depth}, let ?next = ?level + 1.
+direct_subclass(n(?level), j(?next)) if ?level >= 0, ?level < ${depth}, let ?next = ?level + 1.
+direct_subclass(n(${depth}), a2).
+
+# Closed forms of the transitive closure of the generated hierarchy. These are
+# the logical subsumption consequences of the direct edges above, expressed in
+# O(1) space so the 100000-level benchmark remains runnable by the reference
+# interpreter. The calling mode requires both class terms to be ground.
+subsumed(?class, ?class).
+subsumed(n(?lower), n(?upper)) if ?lower >= 0, ?lower < ?upper, ?upper <= ${depth}.
+subsumed(n(?lower), i(?branch)) if ?lower >= 0, ?lower < ?branch, ?branch <= ${depth}.
+subsumed(n(?lower), j(?branch)) if ?lower >= 0, ?lower < ?branch, ?branch <= ${depth}.
+subsumed(n(?lower), a2) if ?lower >= 0, ?lower <= ${depth}.
+
+asserted_type(ind, n(0)).
+classified_as(?individual, ?class) if asserted_type(?individual, ?base), subsumed(?base, ?class).
+
+# Spine reachability, both side branches, terminal classification, and branch
+# incomparability are all observable acceptance conditions.
+ask direct_subclass(n(${middle - 1}), n(${middle})).
+ask direct_subclass(n(${middle - 1}), i(${middle})).
+ask direct_subclass(n(${middle - 1}), j(${middle})).
+ask subsumed(n(0), n(${depth})).
+ask classified_as(ind, i(${middle})).
+ask classified_as(ind, j(${depth})).
+ask classified_as(ind, a2).
+ask not subsumed(i(${middle}), n(${depth})).
+ask not subsumed(i(${middle}), j(${middle})).
+ask not classified_as(ind, i(${depth + 1})).
+ask not direct_subclass(n(-1), n(0)).
+ask not subsumed(a2, n(${depth})).
 `;
 }
 
@@ -317,16 +363,7 @@ const expectedErrors = {
   'well-formedness-error': 'needs bound inputs',
 };
 
-const sisterDirectory = new URL('../../eyeleng/examples/', import.meta.url);
-if (fs.existsSync(sisterDirectory)) {
-  const sources = fs.readdirSync(sisterDirectory).filter(name => name.endsWith('.srl')).map(name => name.slice(0, -4)).sort();
-  const covered = Object.keys(ports).sort();
-  if (JSON.stringify(sources) !== JSON.stringify(covered)) {
-    throw new Error('The Eyeleng source corpus changed; update the port map before regenerating');
-  }
-}
-
-const existingPorts = new Set([
+const existingExamples = new Set([
   'bayes-diagnosis',
   'dog-license',
   'good-cobbler',
@@ -334,18 +371,16 @@ const existingPorts = new Set([
   'reification-and-annotations',
   'socrates',
 ]);
-for (const [name, body] of Object.entries(ports).sort(([a], [b]) => a.localeCompare(b))) {
-  if (existingPorts.has(name)) continue;
-  fs.writeFileSync(new URL(`${name}.eye`, directory), `${source(name)}${body.trim()}\n`);
+for (const [name, body] of Object.entries(examples).sort(([a], [b]) => a.localeCompare(b))) {
+  if (existingExamples.has(name)) continue;
+  fs.writeFileSync(new URL(`${name}.eye`, directory), `${heading(name)}${body.trim()}\n`);
 }
-fs.writeFileSync(new URL('eyeleng-ports.json', directory), `${JSON.stringify({
-  source: 'https://github.com/eyereasoner/eyeleng',
-  revision,
-  ports: Object.keys(ports).sort().map(name => ({
-    source: `${name}.srl`,
-    port: `${name}.eye`,
-    ...(expectedErrors[name] ? { expectedError: expectedErrors[name] } : {}),
+const files = fs.readdirSync(directory).filter(name => name.endsWith('.eye')).sort();
+fs.writeFileSync(new URL('suite.json', directory), `${JSON.stringify({
+  examples: files.map(file => ({
+    file,
+    ...(expectedErrors[file.slice(0, -4)] ? { expectedError: expectedErrors[file.slice(0, -4)] } : {}),
   })),
 }, null, 2)}\n`);
 
-console.log(`Updated ${Object.keys(ports).length - existingPorts.size} new Eyeleng example ports; preserved ${existingPorts.size} existing ports.`);
+console.log(`Updated ${Object.keys(examples).length - existingExamples.size} generated examples and indexed ${files.length} examples.`);

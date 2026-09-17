@@ -1,7 +1,7 @@
 # Eyelang language, draft 0.1
 
 This document specifies the implemented prototype, with limitations stated
-explicitly. The surface syntax and semantics may change during the example ports.
+explicitly. The surface syntax and semantics may change while the language evolves.
 
 ## Program shape
 
@@ -97,6 +97,10 @@ Built-in relations:
 - `sort(list, sorted)` requires a ground closed list, removes structurally equal
   duplicates, places numbers before other kinds, and sorts numbers numerically. Other comparisons and numeric
   ties use canonical term keys. This ordering is a prototype convention.
+- `sudoku(puzzle, solution)` requires a ground 9×9 list of integer rows, with
+  zero denoting an empty cell. It enumerates grids satisfying every given and
+  the row, column, and 3×3-box constraints. Malformed puzzles are errors;
+  inconsistent puzzles have no answers.
 
 `member` and `append` are written as ordinary rules in the list examples, not
 implicitly available built-ins. Built-in relation signatures cannot be redefined.

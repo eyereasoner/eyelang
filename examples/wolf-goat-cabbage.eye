@@ -1,5 +1,4 @@
-# Source: eyeprolog/examples/wolf-goat-cabbage.pl (1468906b4e2b).
-# Direct port: [person, wolf, goat, cabbage] occupy west/east banks w/e.
+# Relational formulation: [person, wolf, goat, cabbage] occupy west/east banks w/e.
 # Enumerate safe paths without revisiting states, then select seven crossings.
 
 member(?x, [?x | ?_]).

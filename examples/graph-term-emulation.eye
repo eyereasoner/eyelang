@@ -1,4 +1,4 @@
-# Source: eyeleng/examples/graph-term-emulation.srl (b7c7e46f8297).
+# Eyelang example: graph-term-emulation.
 graph_term(g1, graph([triple(alice, knows, bob), triple(bob, knows, carol)])).
 graph_term(g2, graph([triple(alice, likes, tea)])).
 contains(?graph, ?statement) if graph_term(?graph, graph([?statement | ?rest])).

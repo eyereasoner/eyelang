@@ -1,8 +1,8 @@
 # Eyelang result format 1
-query(1, at(57, 1), [call(project_finish(?v0))], [binding("finish", ?v0)]).
+query(1, at(56, 1), [call(project_finish(?v0))], [binding("finish", ?v0)]).
 result(1, complete, 1).
 answer(1, [binding("finish", 23)]).
-query(2, at(58, 1), [call(critical_task(?v0))], [binding("task", ?v0)]).
+query(2, at(57, 1), [call(critical_task(?v0))], [binding("task", ?v0)]).
 result(2, complete, 7).
 answer(2, [binding("task", launch)]).
 answer(2, [binding("task", security_review)]).
@@ -11,7 +11,7 @@ answer(2, [binding("task", backend)]).
 answer(2, [binding("task", database)]).
 answer(2, [binding("task", architecture)]).
 answer(2, [binding("task", requirements)]).
-query(3, at(59, 1), [call(schedule(?v0, ?v1, ?v2))], [binding("task", ?v0), binding("start", ?v1), binding("finish", ?v2)]).
+query(3, at(58, 1), [call(schedule(?v0, ?v1, ?v2))], [binding("task", ?v0), binding("start", ?v1), binding("finish", ?v2)]).
 result(3, complete, 11).
 answer(3, [binding("task", requirements), binding("start", 0), binding("finish", 2)]).
 answer(3, [binding("task", architecture), binding("start", 2), binding("finish", 5)]).

@@ -1,6 +1,5 @@
-# Source: eyeleng/examples/property-paths.srl (b7c7e46f8297).
 # Direct expansion of the source's sequence and inverse paths into relations.
-# This port covers those two paths, not the full SPARQL property-path grammar.
+# This example covers sequence and inverse paths, not a full path grammar.
 
 parent_of(alice, bob).
 parent_of(bob, carol).

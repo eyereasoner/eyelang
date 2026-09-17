@@ -1,5 +1,3 @@
-# Sources: eyeling/examples/context-association.n3 and
-# eyeling/examples/input/context-association.trig (835cb3555c8b).
 # Project the triples consumed by the original rule, preserving graph scope and
 # the distinct blank nodes. Prefix-qualified predicates become named symbols.
 # This checks linked metadata; it does not verify signatures or their validity.

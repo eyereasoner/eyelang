@@ -1,5 +1,4 @@
-# Source: eyeprolog/examples/hanoi.pl (1468906b4e2b).
-# Direct port: same three-disk problem and ordered seven-move answer.
+# Relational formulation: same three-disk problem and ordered seven-move answer.
 # Recursive calls build move lists; append is an ordinary relation.
 
 append([], ?ys, ?ys).

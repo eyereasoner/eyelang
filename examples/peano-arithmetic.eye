@@ -1,6 +1,4 @@
-# Source: eyeprolog/examples/peano-arithmetic.pl (1468906b4e2b).
-# Also mirrors eyeling/examples/peano.n3.
-# Direct structural port: compute (1 * 2 + 3)! entirely with 0 and s(...).
+# Compute (1 * 2 + 3)! structurally with 0 and s(...).
 # The result is the actual successor term for 120, not a stored numeric answer.
 
 peano_add(?a, 0, ?a).

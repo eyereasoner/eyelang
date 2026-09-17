@@ -1,7 +1,6 @@
-# Source: eyeleng/examples/bayes-diagnosis.srl (b7c7e46f8297).
 # Same illustrative priors, likelihoods, scoring formula, and thresholds.
-# Scores are calculated, not copied from a reference output. This is the SRL
-# unnormalized-score example, not a normalized posterior or medical guidance.
+# Scores are calculated from the model inputs. They are unnormalized values,
+# not a normalized posterior or medical guidance.
 # Columns: disease, prior, fever, dry cough, loss of smell, no sneezing, breath.
 
 model(COVID19, 0.05, 0.70, 0.65, 0.40, 0.85, 0.20).

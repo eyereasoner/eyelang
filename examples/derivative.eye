@@ -1,4 +1,4 @@
-# Symbolic differentiation over constructor terms, adapted from EyeProlog.
+# Symbolic differentiation over constructor terms.
 d(const(?_), ?_, const(0)).
 d(var(?x), ?x, const(1)).
 d(var(?y), ?x, const(0)) if ?x != ?y.

@@ -4,8 +4,7 @@
 
 Eyelang is an experimental logic programming language and a standalone JavaScript
 reference interpreter. It combines facts, rules, questions, structured terms,
-and explanations in a fixed syntax. It draws on problems explored in EyeProlog,
-Eyeling, and Eyeleng; it does not parse their languages or claim their conformance.
+finite search, and explanations in a fixed syntax.
 
 This first prototype has no runtime dependencies. It runs on Node.js 18 or newer.
 The package is private while the language is being designed.
@@ -133,17 +132,14 @@ Input modes, types, and arithmetic function names are currently checked at runti
 - Ground negation and distinct collection over completed lower dependencies.
 - General finite search using `range`; list `length` and `sort` built-ins.
 - Explanation graphs with rule locations and explicit built-in/negation steps.
-- 76 examples: 73 successful programs plus three expected-error programs. They
-  include a flat, one-to-one port of all 56 `eyeleng/examples/*.srl` basenames.
+- 76 examples: 73 successful programs plus three expected-error programs.
 - Automated semantic, CLI, saved-output, and parse/print/parse closure checks.
 
 See [the language specification](docs/language.md), [implementation design](docs/implementation.md),
-[output format](docs/output.md), and [migration plan](docs/migration.md).
+[output format](docs/output.md), and [example design](docs/examples.md).
 
-The [example guide](examples/README.md) explains the ports and their scope.
-Source revisions and adaptation notes for the curated cross-project set are in
-[examples/sources.json](examples/sources.json); the complete Eyeleng corpus is
-indexed by [examples/eyeleng-ports.json](examples/eyeleng-ports.json).
+The [example guide](examples/README.md) explains the suite and its verification.
+The complete flat collection is indexed by [examples/suite.json](examples/suite.json).
 
 ## Boundaries of this prototype
 
@@ -155,7 +151,8 @@ Explanations record derivations; they are not independently verified proof certi
 The interpreter favors a small, inspectable implementation. It replays dependent
 clauses as answers arrive. The generated taxonomy and relational-cube stress
 fixtures therefore use compact parameterized Eyelang formulations rather than
-copying hundreds of thousands of expanded SRL rules. It is not yet a replacement
-for the three existing implementations.
+copying hundreds of thousands of expanded rules. The taxonomy formulation
+retains its spine, side branches, and subsumption consequences. Eyelang is not
+presented as a compatibility layer for another language.
 
 Released under the [MIT License](LICENSE.md).

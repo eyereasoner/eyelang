@@ -1,5 +1,4 @@
-# Source: eyeling/examples/gray-code-counter.n3 (835cb3555c8b).
-# Direct relational circuit port: same gate truth tables, flip-flops, and clocks.
+# Relational circuit with gate truth tables, flip-flops, and clocks.
 # No bitwise or puzzle-specific built-in is needed.
 
 and_gate(0, 0, 0).

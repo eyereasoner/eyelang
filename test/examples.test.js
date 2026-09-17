@@ -92,7 +92,7 @@ test('example peano-arithmetic.eye constructs the factorial of five', () => {
 
 test('example bayes-diagnosis.eye computes source scores and threshold decisions', () => {
   const result = run(exampleSource('bayes-diagnosis.eye'));
-  // Reference values from eyeleng/examples/output/bayes-diagnosis.trig.
+  // Independently calculated values for the model inputs.
   // Relative tolerance allows insignificant floating-point evaluation differences.
   const expected = new Map([
     ['COVID19', 0.0015470000000000002], ['Influenza', 0.00004800000000000001],
@@ -116,8 +116,8 @@ test('example bayes-diagnosis.eye computes source scores and threshold decisions
 
 test('every example has an explicit acceptance check', () => {
   const files = fs.readdirSync(new URL('../examples/', import.meta.url)).filter(file => file.endsWith('.eye')).sort();
-  const manifest = JSON.parse(fs.readFileSync(new URL('../examples/eyeleng-ports.json', import.meta.url), 'utf8'));
+  const manifest = JSON.parse(fs.readFileSync(new URL('../examples/suite.json', import.meta.url), 'utf8'));
   const checked = new Set([...Object.keys(expectations), 'type-inference.eye', 'peano-arithmetic.eye', 'bayes-diagnosis.eye']);
-  const expected = [...new Set([...checked, ...manifest.ports.map(entry => entry.port)])].sort();
+  const expected = [...new Set([...checked, ...manifest.examples.map(entry => entry.file)])].sort();
   assert.deepEqual(files, expected);
 });

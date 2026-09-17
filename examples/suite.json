@@ -1,0 +1,235 @@
+{
+  "examples": [
+    {
+      "file": "aggregation.eye"
+    },
+    {
+      "file": "alignment-demo.eye"
+    },
+    {
+      "file": "ancestor.eye"
+    },
+    {
+      "file": "annotation-evidence.eye"
+    },
+    {
+      "file": "assignment.eye"
+    },
+    {
+      "file": "backward-recursion.eye"
+    },
+    {
+      "file": "backward.eye"
+    },
+    {
+      "file": "base-and-literals.eye"
+    },
+    {
+      "file": "bayes-diagnosis.eye"
+    },
+    {
+      "file": "bmi.eye"
+    },
+    {
+      "file": "builtin-call-complete.eye"
+    },
+    {
+      "file": "cat-koko.eye"
+    },
+    {
+      "file": "check-unsafe.eye"
+    },
+    {
+      "file": "collection-nesting.eye"
+    },
+    {
+      "file": "collection.eye"
+    },
+    {
+      "file": "collections-and-blank-nodes.eye"
+    },
+    {
+      "file": "context-association.eye"
+    },
+    {
+      "file": "critical-path-schedule.eye"
+    },
+    {
+      "file": "cyclic-reachability.eye"
+    },
+    {
+      "file": "deep-taxonomy-10.eye"
+    },
+    {
+      "file": "deep-taxonomy-100.eye"
+    },
+    {
+      "file": "deep-taxonomy-1000.eye"
+    },
+    {
+      "file": "deep-taxonomy-10000.eye"
+    },
+    {
+      "file": "deep-taxonomy-100000.eye"
+    },
+    {
+      "file": "derivative.eye"
+    },
+    {
+      "file": "dijkstra.eye"
+    },
+    {
+      "file": "dog-license.eye"
+    },
+    {
+      "file": "equals-same-as.eye"
+    },
+    {
+      "file": "family-cousins.eye"
+    },
+    {
+      "file": "family.eye"
+    },
+    {
+      "file": "fibonacci.eye"
+    },
+    {
+      "file": "filter-function-and-langdir.eye"
+    },
+    {
+      "file": "four-queens.eye"
+    },
+    {
+      "file": "good-cobbler.eye"
+    },
+    {
+      "file": "grammar.eye"
+    },
+    {
+      "file": "graph-join.eye"
+    },
+    {
+      "file": "graph-term-emulation.eye"
+    },
+    {
+      "file": "gray-code-counter.eye"
+    },
+    {
+      "file": "hanoi.eye"
+    },
+    {
+      "file": "if-then.eye"
+    },
+    {
+      "file": "import-lib.eye"
+    },
+    {
+      "file": "import-main.eye"
+    },
+    {
+      "file": "lists.eye"
+    },
+    {
+      "file": "modular-exponentiation.eye"
+    },
+    {
+      "file": "negation.eye"
+    },
+    {
+      "file": "now-and-language-builtins.eye"
+    },
+    {
+      "file": "odrl-dpv-risk-ranked.eye"
+    },
+    {
+      "file": "peano-arithmetic.eye"
+    },
+    {
+      "file": "policy.eye"
+    },
+    {
+      "file": "proof-audit.eye"
+    },
+    {
+      "file": "property-paths.eye"
+    },
+    {
+      "file": "query.eye"
+    },
+    {
+      "file": "rdf-messages.eye"
+    },
+    {
+      "file": "reification-and-annotations.eye"
+    },
+    {
+      "file": "reifiers.eye"
+    },
+    {
+      "file": "relational-cube-lookup.eye"
+    },
+    {
+      "file": "shortest-path.eye"
+    },
+    {
+      "file": "socrates.eye"
+    },
+    {
+      "file": "spec-2-1-basic-usage.eye"
+    },
+    {
+      "file": "spec-2-1-descended-from.eye"
+    },
+    {
+      "file": "spec-2-2-recursion.eye"
+    },
+    {
+      "file": "spec-2-3-filtering.eye"
+    },
+    {
+      "file": "spec-2-4-negation.eye"
+    },
+    {
+      "file": "spec-2-5-assignment.eye"
+    },
+    {
+      "file": "spec-4-1-rule-syntax.eye"
+    },
+    {
+      "file": "spec-builtins.eye"
+    },
+    {
+      "file": "stratified-negation.eye"
+    },
+    {
+      "file": "sudoku.eye"
+    },
+    {
+      "file": "turtle-shortcuts.eye"
+    },
+    {
+      "file": "type-inference.eye"
+    },
+    {
+      "file": "unicode-and-signed-numbers.eye"
+    },
+    {
+      "file": "unstratified-negation.eye",
+      "expectedError": "Recursion through not or collect is not stratified"
+    },
+    {
+      "file": "variable-predicate-dependency.eye",
+      "expectedError": "Recursion through not or collect is not stratified"
+    },
+    {
+      "file": "version-and-in.eye"
+    },
+    {
+      "file": "well-formedness-error.eye",
+      "expectedError": "needs bound inputs"
+    },
+    {
+      "file": "wolf-goat-cabbage.eye"
+    }
+  ]
+}

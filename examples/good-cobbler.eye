@@ -1,4 +1,3 @@
-# Source: eyeling/examples/good-cobbler.n3 (835cb3555c8b).
 # Keep the compound property: being a good cobbler does not imply being good.
 # quoted([...]) represents the selected statement as data. It does not implement
 # N3 formula entailment, quantifier scopes, or rule activation.

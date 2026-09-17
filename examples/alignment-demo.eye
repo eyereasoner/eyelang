@@ -1,4 +1,4 @@
-# Source: eyeleng/examples/alignment-demo.srl (b7c7e46f8297).
+# Eyelang example: alignment-demo.
 concept(car). concept(tel_car). concept(heavy_vehicle). concept(plate_vehicle). concept(passenger_car).
 broad_match(tel_car, car). broad_match(heavy_vehicle, car). broad_match(plate_vehicle, car).
 broader(passenger_car, plate_vehicle).

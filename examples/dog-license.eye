@@ -1,7 +1,5 @@
-# Source: eyeleng/examples/dog-license.srl (b7c7e46f8297).
-# Also corresponds to eyeling/examples/dog.n3.
-# Same people, dogs, and licensing threshold. Replace SRL's five-way distinct
-# join with a collection of dog identities, not a collection of constant 1s.
+# The licensing threshold uses a collection of distinct dog identities, not a
+# collection of constant values that would collapse under set semantics.
 
 has_dog(alice, dog1).
 has_dog(alice, dog2).

@@ -5,8 +5,8 @@ export const examplesDirectory = new URL('../examples/', import.meta.url);
 export const allExampleNames = () => fs.readdirSync(examplesDirectory).filter(name => name.endsWith('.eye')).sort();
 
 export function expectedExampleErrors() {
-  const manifest = JSON.parse(fs.readFileSync(new URL('eyeleng-ports.json', examplesDirectory), 'utf8'));
-  return new Map(manifest.ports.filter(entry => entry.expectedError).map(entry => [entry.port, entry.expectedError]));
+  const manifest = JSON.parse(fs.readFileSync(new URL('suite.json', examplesDirectory), 'utf8'));
+  return new Map(manifest.examples.filter(entry => entry.expectedError).map(entry => [entry.file, entry.expectedError]));
 }
 
 export const exampleNames = () => {
