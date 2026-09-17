@@ -76,8 +76,9 @@ reloaded. `answer` records bindings, `result` distinguishes completion with no
 answers, and `why` links an answer to a proof. Proof conclusions and premises
 are structured terms that Eyelang rules can inspect directly.
 
-Checked documents for every example live in [examples/output](examples/output)
-and [examples/proof](examples/proof). Regenerate them after an intentional change
+Checked documents for every normally completing example live in
+[examples/output](examples/output) and [examples/proof](examples/proof).
+Regenerate them after an intentional change
 with `node tools/update-examples.js`, then review the diff and run `npm test`.
 
 `--query` appends a question to embedded `ask` statements. Multiple source files
@@ -132,18 +133,17 @@ Input modes, types, and arithmetic function names are currently checked at runti
 - Ground negation and distinct collection over completed lower dependencies.
 - General finite search using `range`; list `length` and `sort` built-ins.
 - Explanation graphs with rule locations and explicit built-in/negation steps.
-- 26 runnable examples, including twelve attributed ports from the three sister
-  projects and proof analysis written in Eyelang itself.
+- 76 examples: 73 successful programs plus three expected-error programs. They
+  include a flat, one-to-one port of all 56 `eyeleng/examples/*.srl` basenames.
 - Automated semantic, CLI, saved-output, and parse/print/parse closure checks.
 
 See [the language specification](docs/language.md), [implementation design](docs/implementation.md),
 [output format](docs/output.md), and [migration plan](docs/migration.md).
 
-The [example guide](examples/README.md) groups the new ports by source project
-and explains their scope. They cover planning, scheduling, symbolic arithmetic,
-large modular powers, a logic circuit, graph contexts, cardinality policies,
-numeric scoring, and statement annotations. Source revisions and adaptation
-notes are recorded in [examples/sources.json](examples/sources.json).
+The [example guide](examples/README.md) explains the ports and their scope.
+Source revisions and adaptation notes for the curated cross-project set are in
+[examples/sources.json](examples/sources.json); the complete Eyeleng corpus is
+indexed by [examples/eyeleng-ports.json](examples/eyeleng-ports.json).
 
 ## Boundaries of this prototype
 
@@ -153,7 +153,9 @@ not implemented. The graph example uses RDF-shaped constructor values only.
 Explanations record derivations; they are not independently verified proof certificates.
 
 The interpreter favors a small, inspectable implementation. It replays dependent
-clauses as answers arrive and has not been optimized for the 100,000-level taxonomy
-examples. It is not yet a replacement for the three existing implementations.
+clauses as answers arrive. The generated taxonomy and relational-cube stress
+fixtures therefore use compact parameterized Eyelang formulations rather than
+copying hundreds of thousands of expanded SRL rules. It is not yet a replacement
+for the three existing implementations.
 
 Released under the [MIT License](LICENSE.md).

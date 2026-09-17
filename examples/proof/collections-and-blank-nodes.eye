@@ -1,0 +1,16 @@
+# Eyelang result format 1
+query(1, at(6, 1), [call(knows_named(?v0, ?v1))], [binding("person", ?v0), binding("name", ?v1)]).
+result(1, complete, 1).
+answer(1, [binding("person", alice), binding("name", "Bob")]).
+why(1, [binding("person", alice), binding("name", "Bob")], 4).
+query(2, at(6, 34), [call(first_member(?v0))], [binding("first", ?v0)]).
+result(2, complete, 1).
+answer(2, [binding("first", alice)]).
+why(2, [binding("first", alice)], 7).
+proof(1, knows(alice, blank(person1)), rule(1, at(2, 1)), []).
+proof(2, name(blank(person1), "Bob"), rule(2, at(2, 31)), []).
+proof(3, knows_named(alice, "Bob"), rule(5, at(4, 1)), [uses(1, knows(alice, blank(person1))), uses(2, name(blank(person1), "Bob"))]).
+proof(4, solution([alice, "Bob"]), query, [uses(3, knows_named(alice, "Bob"))]).
+proof(5, members(team, [alice, bob, carol]), rule(4, at(3, 1)), []).
+proof(6, first_member(alice), rule(6, at(5, 1)), [uses(5, members(team, [alice, bob, carol]))]).
+proof(7, solution([alice]), query, [uses(6, first_member(alice))]).

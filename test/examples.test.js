@@ -116,5 +116,8 @@ test('example bayes-diagnosis.eye computes source scores and threshold decisions
 
 test('every example has an explicit acceptance check', () => {
   const files = fs.readdirSync(new URL('../examples/', import.meta.url)).filter(file => file.endsWith('.eye')).sort();
-  assert.deepEqual(files, [...Object.keys(expectations), 'type-inference.eye', 'peano-arithmetic.eye', 'bayes-diagnosis.eye'].sort());
+  const manifest = JSON.parse(fs.readFileSync(new URL('../examples/eyeleng-ports.json', import.meta.url), 'utf8'));
+  const checked = new Set([...Object.keys(expectations), 'type-inference.eye', 'peano-arithmetic.eye', 'bayes-diagnosis.eye']);
+  const expected = [...new Set([...checked, ...manifest.ports.map(entry => entry.port)])].sort();
+  assert.deepEqual(files, expected);
 });

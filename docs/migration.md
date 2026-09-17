@@ -39,11 +39,18 @@ no claim of independent proof verification or source-language compatibility.
 
 ## Third round: twelve attributed sister-project ports
 
-There are now 26 top-level examples. The new round adds four ports per project:
+There are now 76 top-level examples. The first representative round added four
+ports per project:
 
 - **EyeProlog:** Hanoi, wolf/goat/cabbage, critical-path scheduling, Peano arithmetic.
 - **Eyeling:** modular exponentiation, Gray-code counter, good cobbler, context association.
 - **Eyeleng:** dog licensing, property paths, Bayesian-style scoring, reification/annotations.
+
+A subsequent corpus round added flat `.eye` counterparts for every one of the
+56 `eyeleng/examples/*.srl` basenames. Fifty-three complete normally; the three
+invalid source cases retain their expected failures. Large generated stress
+inputs use compact parameterized formulations rather than expanded rule copies.
+See `examples/eyeleng-ports.json` for the pinned one-to-one inventory.
 
 [The example guide](../examples/README.md) describes each port and links to its
 source. [The source catalog](../examples/sources.json) pins repository revisions,

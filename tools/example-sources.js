@@ -2,7 +2,17 @@ import fs from 'node:fs';
 import { run, formatResult } from '../index.js';
 
 export const examplesDirectory = new URL('../examples/', import.meta.url);
-export const exampleNames = () => fs.readdirSync(examplesDirectory).filter(name => name.endsWith('.eye')).sort();
+export const allExampleNames = () => fs.readdirSync(examplesDirectory).filter(name => name.endsWith('.eye')).sort();
+
+export function expectedExampleErrors() {
+  const manifest = JSON.parse(fs.readFileSync(new URL('eyeleng-ports.json', examplesDirectory), 'utf8'));
+  return new Map(manifest.ports.filter(entry => entry.expectedError).map(entry => [entry.port, entry.expectedError]));
+}
+
+export const exampleNames = () => {
+  const failures = expectedExampleErrors();
+  return allExampleNames().filter(name => !failures.has(name));
+};
 
 export function exampleSource(name) {
   const source = fs.readFileSync(new URL(name, examplesDirectory), 'utf8');

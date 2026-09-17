@@ -1,6 +1,7 @@
 # Eyelang examples
 
-There are 26 runnable examples. Each has checked answers in [output](output)
+There are 76 top-level examples: 73 complete normally and three are deliberate
+negative examples. Each successful example has checked answers in [output](output)
 and checked explanations in [proof](proof), both written in ordinary `.eye`
 syntax. Run from the project root:
 
@@ -14,6 +15,30 @@ npm test
 `proof-audit.eye` consumes the separate proof document shown above. All other
 top-level examples are self-contained. No sister checkout or runtime dependency
 is required to execute these ports or their tests.
+
+## Complete Eyeleng example corpus
+
+All 56 `.srl` basenames from `eyeleng/examples/` at revision
+`b7c7e46f82974682974a342a7fa65e6b8a229d48` have a corresponding `.eye` file
+directly in this directory. [eyeleng-ports.json](eyeleng-ports.json) is the
+one-to-one manifest. The conformance test runs every port and checks that the
+three intentionally invalid sources—`unstratified-negation`,
+`variable-predicate-dependency`, and `well-formedness-error`—are rejected for
+the expected reason.
+
+```sh
+node bin/eyelang.js examples/alignment-demo.eye
+node bin/eyelang.js examples/deep-taxonomy-100000.eye
+node --test test/eyeleng-examples.test.js
+```
+
+These are Eyelang ports, not an SRL parser. RDF surface constructs become
+ordinary relations and constructors. Generated stress fixtures use compact
+parameterized rules, and examples relying on host-specific functions use stable,
+explicit logical values. The examples retain the logical scenario and an
+acceptance query while staying inside the deliberately small Eyelang language.
+When the sister checkout is present, `node tools/update-eyeleng-ports.js` first
+checks that its complete `.srl` filename set is still covered.
 
 ## Twelve ports from the sister projects
 
@@ -86,6 +111,7 @@ parsed again by the closure tests.
 Regenerate artifacts only after an intentional change:
 
 ```sh
+node tools/update-eyeleng-ports.js
 node tools/update-examples.js
 npm test
 ```

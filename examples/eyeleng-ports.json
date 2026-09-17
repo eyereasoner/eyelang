@@ -1,0 +1,233 @@
+{
+  "source": "https://github.com/eyereasoner/eyeleng",
+  "revision": "b7c7e46f82974682974a342a7fa65e6b8a229d48",
+  "ports": [
+    {
+      "source": "alignment-demo.srl",
+      "port": "alignment-demo.eye"
+    },
+    {
+      "source": "annotation-evidence.srl",
+      "port": "annotation-evidence.eye"
+    },
+    {
+      "source": "assignment.srl",
+      "port": "assignment.eye"
+    },
+    {
+      "source": "backward.srl",
+      "port": "backward.eye"
+    },
+    {
+      "source": "backward-recursion.srl",
+      "port": "backward-recursion.eye"
+    },
+    {
+      "source": "base-and-literals.srl",
+      "port": "base-and-literals.eye"
+    },
+    {
+      "source": "bayes-diagnosis.srl",
+      "port": "bayes-diagnosis.eye"
+    },
+    {
+      "source": "bmi.srl",
+      "port": "bmi.eye"
+    },
+    {
+      "source": "builtin-call-complete.srl",
+      "port": "builtin-call-complete.eye"
+    },
+    {
+      "source": "cat-koko.srl",
+      "port": "cat-koko.eye"
+    },
+    {
+      "source": "check-unsafe.srl",
+      "port": "check-unsafe.eye"
+    },
+    {
+      "source": "collection.srl",
+      "port": "collection.eye"
+    },
+    {
+      "source": "collection-nesting.srl",
+      "port": "collection-nesting.eye"
+    },
+    {
+      "source": "collections-and-blank-nodes.srl",
+      "port": "collections-and-blank-nodes.eye"
+    },
+    {
+      "source": "deep-taxonomy-10.srl",
+      "port": "deep-taxonomy-10.eye"
+    },
+    {
+      "source": "deep-taxonomy-100.srl",
+      "port": "deep-taxonomy-100.eye"
+    },
+    {
+      "source": "deep-taxonomy-1000.srl",
+      "port": "deep-taxonomy-1000.eye"
+    },
+    {
+      "source": "deep-taxonomy-10000.srl",
+      "port": "deep-taxonomy-10000.eye"
+    },
+    {
+      "source": "deep-taxonomy-100000.srl",
+      "port": "deep-taxonomy-100000.eye"
+    },
+    {
+      "source": "dijkstra.srl",
+      "port": "dijkstra.eye"
+    },
+    {
+      "source": "dog-license.srl",
+      "port": "dog-license.eye"
+    },
+    {
+      "source": "equals-same-as.srl",
+      "port": "equals-same-as.eye"
+    },
+    {
+      "source": "family.srl",
+      "port": "family.eye"
+    },
+    {
+      "source": "family-cousins.srl",
+      "port": "family-cousins.eye"
+    },
+    {
+      "source": "filter-function-and-langdir.srl",
+      "port": "filter-function-and-langdir.eye"
+    },
+    {
+      "source": "good-cobbler.srl",
+      "port": "good-cobbler.eye"
+    },
+    {
+      "source": "graph-term-emulation.srl",
+      "port": "graph-term-emulation.eye"
+    },
+    {
+      "source": "if-then.srl",
+      "port": "if-then.eye"
+    },
+    {
+      "source": "import-lib.srl",
+      "port": "import-lib.eye"
+    },
+    {
+      "source": "import-main.srl",
+      "port": "import-main.eye"
+    },
+    {
+      "source": "negation.srl",
+      "port": "negation.eye"
+    },
+    {
+      "source": "now-and-language-builtins.srl",
+      "port": "now-and-language-builtins.eye"
+    },
+    {
+      "source": "odrl-dpv-risk-ranked.srl",
+      "port": "odrl-dpv-risk-ranked.eye"
+    },
+    {
+      "source": "property-paths.srl",
+      "port": "property-paths.eye"
+    },
+    {
+      "source": "query.srl",
+      "port": "query.eye"
+    },
+    {
+      "source": "rdf-messages.srl",
+      "port": "rdf-messages.eye"
+    },
+    {
+      "source": "reification-and-annotations.srl",
+      "port": "reification-and-annotations.eye"
+    },
+    {
+      "source": "reifiers.srl",
+      "port": "reifiers.eye"
+    },
+    {
+      "source": "relational-cube-lookup.srl",
+      "port": "relational-cube-lookup.eye"
+    },
+    {
+      "source": "socrates.srl",
+      "port": "socrates.eye"
+    },
+    {
+      "source": "spec-2-1-basic-usage.srl",
+      "port": "spec-2-1-basic-usage.eye"
+    },
+    {
+      "source": "spec-2-1-descended-from.srl",
+      "port": "spec-2-1-descended-from.eye"
+    },
+    {
+      "source": "spec-2-2-recursion.srl",
+      "port": "spec-2-2-recursion.eye"
+    },
+    {
+      "source": "spec-2-3-filtering.srl",
+      "port": "spec-2-3-filtering.eye"
+    },
+    {
+      "source": "spec-2-4-negation.srl",
+      "port": "spec-2-4-negation.eye"
+    },
+    {
+      "source": "spec-2-5-assignment.srl",
+      "port": "spec-2-5-assignment.eye"
+    },
+    {
+      "source": "spec-4-1-srl-syntax.srl",
+      "port": "spec-4-1-srl-syntax.eye"
+    },
+    {
+      "source": "spec-builtins.srl",
+      "port": "spec-builtins.eye"
+    },
+    {
+      "source": "stratified-negation.srl",
+      "port": "stratified-negation.eye"
+    },
+    {
+      "source": "sudoku.srl",
+      "port": "sudoku.eye"
+    },
+    {
+      "source": "turtle-shortcuts.srl",
+      "port": "turtle-shortcuts.eye"
+    },
+    {
+      "source": "unicode-and-signed-numbers.srl",
+      "port": "unicode-and-signed-numbers.eye"
+    },
+    {
+      "source": "unstratified-negation.srl",
+      "port": "unstratified-negation.eye",
+      "expectedError": "Recursion through not or collect is not stratified"
+    },
+    {
+      "source": "variable-predicate-dependency.srl",
+      "port": "variable-predicate-dependency.eye",
+      "expectedError": "Recursion through not or collect is not stratified"
+    },
+    {
+      "source": "version-and-in.srl",
+      "port": "version-and-in.eye"
+    },
+    {
+      "source": "well-formedness-error.srl",
+      "port": "well-formedness-error.eye",
+      "expectedError": "needs bound inputs"
+    }
+  ]
+}

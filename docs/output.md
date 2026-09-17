@@ -110,7 +110,7 @@ such as `conclusionTerm` and `callTerm`; integers have tagged decimal strings.
 serializers to JavaScript callers. Formatting covers results returned by the
 current API; hand-constructed arbitrary objects are not an import format.
 
-Saved outputs and tests cover every example, including variable identity,
+Saved outputs and tests cover every normally completing example, including variable identity,
 integer precision, empty results, positive/negative/collection premises, repeated
 serialization, and proofs of proof queries. Resource-limit failures still produce
 no partial answer document and exit with status 2.

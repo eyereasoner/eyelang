@@ -1,0 +1,22 @@
+# Eyelang result format 1
+query(1, at(6, 1), [call(first(?v0))], [binding("value", ?v0)]).
+result(1, complete, 1).
+answer(1, [binding("value", 1)]).
+why(1, [binding("value", 1)], 3).
+query(2, at(6, 20), [call(second_property(?v0))], [binding("value", ?v0)]).
+result(2, complete, 1).
+answer(2, [binding("value", q)]).
+why(2, [binding("value", q)], 6).
+query(3, at(6, 49), [call(third_first(?v0))], [binding("value", ?v0)]).
+result(3, complete, 1).
+answer(3, [binding("value", 2)]).
+why(3, [binding("value", 2)], 9).
+proof(1, nested(root, [1, node(q), [2]]), rule(1, at(2, 1)), []).
+proof(2, first(1), rule(2, at(3, 1)), [uses(1, nested(root, [1, node(q), [2]]))]).
+proof(3, solution([1]), query, [uses(2, first(1))]).
+proof(4, nested(root, [1, node(q), [2]]), rule(1, at(2, 1)), []).
+proof(5, second_property(q), rule(3, at(4, 1)), [uses(4, nested(root, [1, node(q), [2]]))]).
+proof(6, solution([q]), query, [uses(5, second_property(q))]).
+proof(7, nested(root, [1, node(q), [2]]), rule(1, at(2, 1)), []).
+proof(8, third_first(2), rule(4, at(5, 1)), [uses(7, nested(root, [1, node(q), [2]]))]).
+proof(9, solution([2]), query, [uses(8, third_first(2))]).

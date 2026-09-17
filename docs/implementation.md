@@ -58,7 +58,7 @@ The examples are selected ports and new formulations. The test suite is not yet
 a differential harness against the sibling projects, nor a claim to cover their
 complete inventories.
 
-Result and proof documents for all examples are saved under `examples/output`
+Result and proof documents for all normally completing examples are saved under `examples/output`
 and `examples/proof`. Closure tests parse, load, print, and reparse those documents
 and compare terms modulo variable renaming. CLI tests pass exported data into a
 second invocation. The proof-audit example consumes a freshly generated Socrates
