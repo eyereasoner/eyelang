@@ -116,10 +116,11 @@ hypotenuse(?a, ?b, ?length) if
     let ?length = sqrt(?sum).
 ```
 
-The expression functions are `abs`, `sqrt`, `round`, `count`, `sum`, `min`, and
-`max`. Each takes one argument. `/` returns a float; `//` requires integers and
-truncates toward zero. Division by zero, invalid domains, and non-finite results
-are errors.
+The one-argument expression functions are `abs`, `sqrt`, `round`, `count`,
+`sum`, `min`, `max`, and `str`. `str` returns the lexical text of a value.
+`concat(...)` joins the lexical text of any number of values. `/` returns a
+float; `//` requires integers and truncates toward zero. Division by zero,
+invalid domains, and non-finite results are errors.
 
 ## Negation
 

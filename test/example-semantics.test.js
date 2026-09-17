@@ -130,20 +130,53 @@ test('BMI report derives its category and healthy-weight band from the input', (
 test('ODRL risks are derived from missing safeguards and ranked by normalized DPV score', () => {
   const source = exampleSource('odrl-dpv-risk-ranked.eye');
   const result = run(source);
-  const rows = array(result.queries[0].answers[0].bindings.risks).map(row => ({
-    inverse: row.args[0].value,
-    clause: row.args[1].value,
-    risk: row.args[2].name,
-    score: row.args[3].value,
-    level: row.args[4].name,
-  }));
+  const report = result.queries[0].answers[0].bindings;
+  assert.equal(report.agreement.value, 'Example Agreement');
+  assert.equal(report.profile.value, 'Example consumer profile');
+  const rows = array(report.risks).map(row => {
+    const clause = row.args[1], risk = row.args[2], mitigations = row.args[3];
+    return {
+      rank: row.args[0].value,
+      clause: clause.args[0].value,
+      clauseText: clause.args[1].value,
+      risk: risk.args[0].name,
+      score: risk.args[1].value,
+      level: risk.args[2].args[0].value,
+      severity: risk.args[3].args[0].value,
+      explanation: risk.args[4].value,
+      mitigations: array(mitigations.args[0]).map(item => item.args[2].value),
+    };
+  });
   assert.deepEqual(rows, [
-    { inverse: 900n, clause: 'C1', risk: 'risk_delete_without_safeguards', score: 100n, level: 'high_risk' },
-    { inverse: 903n, clause: 'C3', risk: 'risk_share_without_consent', score: 97n, level: 'high_risk' },
-    { inverse: 915n, clause: 'C2', risk: 'risk_notice_too_short', score: 85n, level: 'high_risk' },
-    { inverse: 930n, clause: 'C4', risk: 'risk_no_portability', score: 70n, level: 'moderate_risk' },
+    {
+      rank: 1n, clause: 'C1', clauseText: 'Provider may remove the user account and associated data at its discretion.',
+      risk: 'risk_delete_without_safeguards', score: 100n,
+      level: 'https://w3id.org/dpv/risk#HighRisk', severity: 'https://w3id.org/dpv/risk#HighSeverity',
+      explanation: 'Risk: account/data removal is permitted without notice safeguards (no notice constraint and no duty to inform). Clause C1: Provider may remove the user account and associated data at its discretion.',
+      mitigations: ['Add a notice constraint (minimum noticeDays) before account removal.', 'Add a duty to inform the consumer prior to account removal.'],
+    },
+    {
+      rank: 2n, clause: 'C3', clauseText: 'Provider may share user data with partners for business purposes.',
+      risk: 'risk_share_without_consent', score: 97n,
+      level: 'https://w3id.org/dpv/risk#HighRisk', severity: 'https://w3id.org/dpv/risk#HighSeverity',
+      explanation: 'Risk: user data sharing is permitted without an explicit consent constraint. Clause C3: Provider may share user data with partners for business purposes.',
+      mitigations: ['Add an explicit consent constraint before data sharing.'],
+    },
+    {
+      rank: 3n, clause: 'C2', clauseText: 'Provider may change terms by informing users at least 3 days in advance.',
+      risk: 'risk_notice_too_short', score: 85n,
+      level: 'https://w3id.org/dpv/risk#HighRisk', severity: 'https://w3id.org/dpv/risk#HighSeverity',
+      explanation: 'Risk: terms may change with notice (3 days) below consumer requirement (14 days). Clause C2: Provider may change terms by informing users at least 3 days in advance.',
+      mitigations: ['Increase minimum noticeDays in the inform duty to meet the consumer requirement.'],
+    },
+    {
+      rank: 4n, clause: 'C4', clauseText: 'Users are not permitted to export their data.',
+      risk: 'risk_no_portability', score: 70n,
+      level: 'https://w3id.org/dpv/risk#ModerateRisk', severity: 'https://w3id.org/dpv/risk#ModerateSeverity',
+      explanation: 'Risk: portability is restricted because exporting user data is prohibited. Clause C4: Users are not permitted to export their data.',
+      mitigations: ['Add a permission allowing data export (or remove the prohibition) to support portability.'],
+    },
   ]);
-  assert.equal(result.queries[1].answers.length, 5);
 
   const safeguarded = source.replace(
     'constraint(perm_change_terms, notice_days, gteq, 3).',
@@ -153,7 +186,7 @@ duty(perm_delete_account, inform).
 constraint(perm_share_data, consent, eq, true).`,
   );
   const remaining = array(run(safeguarded).queries[0].answers[0].bindings.risks);
-  assert.deepEqual(remaining.map(row => [row.args[1].value, row.args[2].name]), [['C4', 'risk_no_portability']]);
+  assert.deepEqual(remaining.map(row => [row.args[1].args[0].value, row.args[2].args[0].name]), [['C4', 'risk_no_portability']]);
 });
 
 const computedRelations = {
@@ -173,7 +206,7 @@ const computedRelations = {
   'gray-code-counter.eye': ['counter', 'gcc'],
   'hanoi.eye': ['hanoi'],
   'modular-exponentiation.eye': ['small_check', 'large_case'],
-  'odrl-dpv-risk-ranked.eye': ['ranked_report', 'mitigation'],
+  'odrl-dpv-risk-ranked.eye': ['ranked_report'],
   'peano-arithmetic.eye': ['factorial'],
   'property-paths.eye': ['grandparent_of', 'has_parent'],
   'query.eye': ['ancestor'],

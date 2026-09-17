@@ -234,9 +234,15 @@ The defined one-argument functions are:
 - `sqrt(Number)`: floating-point square root;
 - `round(Number)`: floating-point nearest integer, with ties toward positive
   infinity, returned as a float;
+- `str(Value)`: lexical text for a ground value, returned as a string;
 - `count(List)`: number of elements in a closed list, as an integer;
 - `sum(List)`: arithmetic sum, with `sum([]) = 0`;
 - `min(List)` and `max(List)`: numeric extrema of a nonempty closed list.
+
+`concat(Arguments...)` accepts zero or more ground values and returns the
+concatenation of their lexical text as a string. Strings contribute their
+contents without quotes, symbols contribute their names, scalars use their
+ordinary lexical forms, and structured terms use Eyelang term syntax.
 
 An unknown function, wrong arity, wrong kind, open list, or invalid domain is an
 evaluation error.

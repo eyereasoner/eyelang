@@ -52,6 +52,7 @@ test('arithmetic precedence, integers, floats, and expression functions', () => 
   assert.deepEqual(rows('ask let ?x = 2 + 3 * 4, let ?y = (2 + 3) * 4, let ?z = -7 // 2.'), [[{ x: '14', y: '20', z: '-3' }]]);
   assert.deepEqual(rows('ask let ?x = 9007199254740993 + 2.'), [[{ x: '9007199254740995' }]]);
   assert.deepEqual(rows('ask let ?x = 7 / 2, let ?y = sqrt(9), let ?z = abs(-3), let ?r = round(2.5).'), [[{ x: '3.5', y: '3.0', z: '3', r: '3.0' }]]);
+  assert.deepEqual(rows('ask let ?text = concat("score=", str(97), ", ", high_risk).'), [[{ text: '"score=97, high_risk"' }]]);
   assert.deepEqual(rows('ask 1 = 1.0.'), [[]]);
   assert.deepEqual(rows('ask 1 <= 1.0.'), [[{}]]);
   assert.throws(() => run('ask let ?x = 1 / 0.'), /Division by zero/);

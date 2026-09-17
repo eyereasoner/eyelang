@@ -25,6 +25,14 @@ function checked(value) {
   return scalar(value);
 }
 
+function lexical(term) {
+  requireGround(term, 'String conversion');
+  if (term.kind === 'string') return term.value;
+  if (term.kind === 'atom') return term.name;
+  if (['bigint', 'number', 'boolean'].includes(term.kind)) return String(term.value);
+  return format(term);
+}
+
 function binary(op, a, b) {
   let left = numeric(a), right = numeric(b);
   if ((op === '/' || op === '//' || op === '%') && (right === 0n || right === 0)) throw new Error('Division by zero');
@@ -51,7 +59,9 @@ export function evaluate(expression, env) {
     case 'function': {
       const args = expression.args.map(x => evaluate(x, env));
       const name = expression.name;
+      if (name === 'concat') return scalar(args.map(lexical).join(''));
       if (args.length !== 1) throw new Error(`${name} expects one argument`);
+      if (name === 'str') return scalar(lexical(args[0]));
       if (name === 'abs') {
         const value = numeric(args[0]);
         return checked(value < 0 ? -value : value);
