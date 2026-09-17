@@ -49,6 +49,37 @@ node bin/eyelit.js --query 'ancestor(bob, ?who)' examples/ancestor.eye
 node bin/eyelit.js --max-steps 100000 examples/shortest-path.eye
 ```
 
+Default output is an Eyelit program, including `--proof` and `--check` output.
+It can be saved as `.eye` and queried by another invocation. JSON remains an
+explicit alternative with `--json`.
+
+```sh
+node bin/eyelit.js --proof examples/socrates.eye
+node bin/eyelit.js examples/proof/socrates.eye examples/proof-audit.eye
+node bin/eyelit.js examples/output/ancestor.eye --query 'answer(1, [binding("who", ?person)])'
+```
+
+The Socrates proof output is:
+
+```text
+query(1, at(3, 1), [call(mortal(socrates))], []).
+result(1, complete, 1).
+answer(1, []).
+why(1, [], 3).
+proof(1, human(socrates), rule(1, at(1, 1)), []).
+proof(2, mortal(socrates), rule(2, at(2, 1)), [uses(1, human(socrates))]).
+proof(3, solution([]), query, [uses(2, mortal(socrates))]).
+```
+
+`query` records a question as data; it does not execute an `ask` statement when
+reloaded. `answer` records bindings, `result` distinguishes completion with no
+answers, and `why` links an answer to a proof. Proof conclusions and premises
+are structured terms that Eyelit rules can inspect directly.
+
+Checked documents for every example live in [examples/output](examples/output)
+and [examples/proof](examples/proof). Regenerate them after an intentional change
+with `node tools/update-examples.js`, then review the diff and run `npm test`.
+
 `--query` appends a question to embedded `ask` statements. Multiple source files
 are concatenated in argument order. Use `-` as a filename to read standard input.
 Locations currently refer to the combined source, not individual filenames.
@@ -81,6 +112,11 @@ Variable IDs are opaque; equal IDs within an answer denote the same variable.
 `format(term, variables?)` accepts an optional shared Map for displaying several
 bindings with consistent residual variable names.
 
+`formatResult(result, { proof: true })` serializes a completed run to `.eye`.
+Omit the option for answers without derivations. `formatCheck(check(source))`
+serializes a validation summary. See the [output format](docs/output.md) for the
+record vocabulary and variable/identifier scope.
+
 Options `maxSteps`, `maxTables`, and `maxAnswers` are positive integers. Defaults
 are 1,000,000, 100,000, and 100,000, respectively, shared across all questions and
 their nested evaluations. These are work counters, not time or memory guarantees.
@@ -96,10 +132,11 @@ Input modes, types, and arithmetic function names are currently checked at runti
 - Ground negation and distinct collection over completed lower dependencies.
 - General finite search using `range`; list `length` and `sort` built-ins.
 - Explanation graphs with rule locations and explicit built-in/negation steps.
-- Thirteen runnable examples and automated semantic, example, and CLI checks.
+- Fourteen runnable examples, including proof analysis written in Eyelit itself.
+- Automated semantic, CLI, saved-output, and parse/print/parse closure checks.
 
 See [the language specification](docs/language.md), [implementation design](docs/implementation.md),
-and [migration plan](docs/migration.md).
+[output format](docs/output.md), and [migration plan](docs/migration.md).
 
 ## Boundaries of this prototype
 

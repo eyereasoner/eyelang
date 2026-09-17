@@ -174,3 +174,8 @@ Built-ins and calculations are explicit trusted steps. Negation records that
 a lower query completed without an answer. Collection records its contributing
 answer IDs and completion basis. These records are provenance, not a portable
 proof calculus or an independently checked completeness certificate.
+
+Answers and explanations serialize as ordinary `.eye` relations. The result
+vocabulary and its scoping rules are specified in [output format 1](output.md).
+For example, `proof(2, mortal(socrates), rule(2, at(2, 1)),
+[uses(1, human(socrates))]).` can be matched and traversed by ordinary Eyelit rules.

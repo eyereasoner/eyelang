@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+import { parse, check } from '../index.js';
 
 const cli = (args, input) => {
   const result = spawnSync(process.execPath, [fileURLToPath(new URL('../bin/eyelit.js', import.meta.url)), ...args], {
@@ -19,8 +21,8 @@ test('CLI stdin and exact integer JSON', () => {
 test('CLI query flag and proof output', () => {
   const result = cli(['--proof', '--query', 'p(?x)', '-'], 'p(a).');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /\?x = a/);
-  assert.match(result.stdout, /"conclusion"/);
+  assert.match(result.stdout, /answer\(1, \[binding\("x", a\)\]\)\./);
+  assert.match(result.stdout, /proof\(1, p\(a\), rule\(/);
 });
 test('CLI check rejects invalid dependencies', () => {
   const result = cli(['--check', '-'], 'p(a) if not p(a).');
@@ -36,5 +38,37 @@ test('CLI exits 2 on incomplete evaluation and prints no false answer', () => {
 test('CLI distinguishes independent residual variables with the same source name', () => {
   const result = cli(['-'], 'any(?x). ask any(?a), any(?b).');
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /\?a = \?v0, \?b = \?v1/);
+  assert.match(result.stdout, /answer\(1, \[binding\("a", \?v0\), binding\("b", \?v1\)\]\)\./);
+});
+
+test('CLI answer and proof output can be piped into another invocation', () => {
+  for (const flags of [[], ['--proof']]) {
+    const first = cli([...flags, '-'], 'p(a). ask p(?x).');
+    assert.equal(first.status, 0, first.stderr);
+    check(first.stdout);
+    const second = cli(['--query', 'answer(1,[binding("x",?value)])', '-'], first.stdout);
+    assert.equal(second.status, 0, second.stderr);
+    assert.match(second.stdout, /answer\(1, \[binding\("value", a\)\]\)\./);
+    parse(second.stdout);
+  }
+});
+
+test('CLI --check uses Eyelit syntax unless JSON is explicitly requested', () => {
+  const checked = cli(['--check', '-'], 'p(a). ask p(?x).');
+  assert.equal(checked.status, 0, checked.stderr);
+  check(checked.stdout);
+  assert.match(checked.stdout, /checked\(rules\(1\), queries\(1\)\)\./);
+  const json = cli(['--check', '--json', '-'], 'p(a).');
+  assert.equal(json.status, 0, json.stderr);
+  assert.equal(JSON.parse(json.stdout).rules, 1);
+});
+
+test('CLI proof auditing reads exported proofs and emits proofs of the audit', () => {
+  const first = cli(['--proof', '-'], 'human(socrates). mortal(?x) if human(?x). ask mortal(socrates).');
+  assert.equal(first.status, 0, first.stderr);
+  const audit = fs.readFileSync(new URL('../examples/proof-audit.eye', import.meta.url), 'utf8');
+  const second = cli(['--proof', '-'], `${first.stdout}\n${audit}`);
+  assert.equal(second.status, 0, second.stderr);
+  check(second.stdout);
+  assert.match(second.stdout, /binding\("fact", human\(socrates\)\)/);
 });

@@ -25,10 +25,17 @@ inventory snapshot, not a measured compatibility percentage.
 | `four-queens.eye` | EyeProlog `clpz-n-queens.pl` | Both four-queens solutions through real finite search; no constraint propagation |
 | `graph-join.eye` | Named-graph and knowledge-graph examples | New reviewer/claim fixture using RDF-shaped terms; no RDF parser |
 | `grammar.eye` | EyeProlog DCG examples | Parsing and generating a small command grammar using explicit difference lists |
+| `proof-audit.eye` | Proof/provenance scenarios across the projects | Consumes Eyelit's own proof output; derives dependencies and supporting facts |
 
 The acceptance assertions are in `test/examples.test.js`. Tests also ensure
 that every `.eye` example has a corresponding check. The ports above are not
 byte-for-byte output comparisons against the old examples.
+
+The second round adds native `.eye` answer/proof documents for every seed and
+tests syntactic closure by feeding those documents back into Eyelit. The new
+proof-audit program demonstrates that exported explanations can be inputs to
+further logic programs, including another round of proof generation. This adds
+no claim of independent proof verification or source-language compatibility.
 
 ## How to expand coverage
 

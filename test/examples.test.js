@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { run, format } from '../index.js';
+import { exampleSource } from '../tools/example-sources.js';
 
 const expectations = {
   'ancestor.eye': [[{ who: 'bob' }, { who: 'carol' }, { who: 'dana' }]],
@@ -16,12 +17,13 @@ const expectations = {
   'graph-join.eye': [[{ claim: 'iri("https://example/claim1")' }]],
   'grammar.eye': [[{ ast: 'command(open, door)' }], [{ words: '[close, window]' }]],
   'socrates.eye': [[{}]],
+  'proof-audit.eye': [[{ ancestor: '1' }, { ancestor: '2' }], [{ fact: 'human(socrates)' }]],
 };
 
 const canonical = answers => answers.map(answer => JSON.stringify(answer)).sort();
 for (const [file, expected] of Object.entries(expectations)) {
   test(`example ${file}`, () => {
-    const result = run(fs.readFileSync(new URL(`../examples/${file}`, import.meta.url), 'utf8'));
+    const result = run(exampleSource(file));
     const actual = result.queries.map(query => query.answers.map(answer => Object.fromEntries(
       Object.entries(answer.bindings).map(([name, value]) => [name, format(value)]),
     )));

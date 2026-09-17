@@ -55,6 +55,16 @@ function bindGoals(body, env) {
   });
 }
 
+function bindPremise(premise, env) {
+  const result = { ...premise };
+  for (const field of ['callTerm', 'valueTerm', 'leftTerm', 'rightTerm', 'template']) {
+    if (result[field]) result[field] = instantiate(result[field], env);
+  }
+  if (result.expression) result.expression = bindExpression(result.expression, env);
+  if (result.body) result.body = bindGoals(result.body, env);
+  return result;
+}
+
 // Demand-driven fixed point. A call table subscribes to tables used by its
 // bodies. New answers put subscribers back on the work queue. Recursive calls
 // read currently known answers, never recursively invoke the JavaScript solver.
@@ -115,8 +125,8 @@ class Engine {
         if (++context.answers > context.limits.maxAnswers) throw new LimitError('answers');
         const proof = context.proofs.length + 1;
         context.proofs.push({
-          id: proof, conclusion: format(answer), rule: rule.id || 'query',
-          location: rule.location, premises: solution.premises,
+          id: proof, conclusion: format(answer), conclusionTerm: answer, rule: rule.id || 'query',
+          location: rule.location, premises: solution.premises.map(premise => bindPremise(premise, solution.env)),
         });
         table.answers.set(key, { term: answer, proof });
         for (const subscriber of table.subscribers) this.enqueue(subscriber);
@@ -139,7 +149,7 @@ class Engine {
       const call = instantiate(goal.term, env);
       if (builtinRelations.has(signature(call))) {
         for (const branch of builtin(call, env, () => context.tick())) {
-          yield { env: branch, premise: { kind: 'builtin', call: format(instantiate(goal.term, branch)) } };
+          yield { env: branch, premise: { kind: 'builtin', call: format(instantiate(goal.term, branch)), callTerm: goal.term } };
         }
         return;
       }
@@ -149,7 +159,7 @@ class Engine {
       for (const answer of [...dependency.answers.values()]) {
         context.tick();
         const branch = new Map(env);
-        if (unify(goal.term, fresh(answer.term), branch)) yield { env: branch, premise: { kind: 'answer', proof: answer.proof } };
+        if (unify(goal.term, fresh(answer.term), branch)) yield { env: branch, premise: { kind: 'answer', proof: answer.proof, callTerm: goal.term } };
       }
       return;
     }
@@ -161,12 +171,16 @@ class Engine {
         context.completed.set(key, answers.length !== 0);
       }
       if (!context.completed.get(key)) {
-        yield { env, premise: { kind: 'not', call: format(call), basis: 'completed lower-stratum query over immutable program' } };
+        yield { env, premise: { kind: 'not', call: format(call), callTerm: call, basis: 'completed lower-stratum query over immutable program' } };
       }
       return;
     }
     if (goal.type === 'collect') {
-      const body = bindGoals(goal.body, env), template = instantiate(goal.template, env);
+      // Capture bound inputs; remaining collection variables are local to this
+      // invocation and must not acquire later bindings from the enclosing body.
+      const locals = new Map();
+      const body = freshGoals(bindGoals(goal.body, env), locals);
+      const template = fresh(instantiate(goal.template, env), locals);
       const answers = solve(this.program, body, [template], context);
       const unique = new Map();
       for (const answer of answers) {
@@ -178,16 +192,16 @@ class Engine {
       const values = list([...unique.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([, value]) => value));
       const branch = new Map(env);
       if (unify(goal.target, values, branch)) {
-        yield { env: branch, premise: { kind: 'collect', value: format(values), proofs: answers.map(answer => answer.proof), basis: 'completed lower-stratum query' } };
+        yield { env: branch, premise: { kind: 'collect', value: format(values), valueTerm: values, template, body, proofs: answers.map(answer => answer.proof), basis: 'completed lower-stratum query' } };
       }
       return;
     }
     const branch = new Map(env);
     if (goal.type === 'let') {
       const value = evaluate(goal.expression, env);
-      if (unify(goal.target, value, branch)) yield { env: branch, premise: { kind: 'let', value: format(value) } };
+      if (unify(goal.target, value, branch)) yield { env: branch, premise: { kind: 'let', value: format(value), valueTerm: value, expression: goal.expression } };
     } else if (compare(goal.op, goal.left, goal.right, branch)) {
-      yield { env: branch, premise: { kind: 'compare', op: goal.op, left: format(instantiate(goal.left, branch)), right: format(instantiate(goal.right, branch)) } };
+      yield { env: branch, premise: { kind: 'compare', op: goal.op, left: format(instantiate(goal.left, branch)), right: format(instantiate(goal.right, branch)), leftTerm: goal.left, rightTerm: goal.right } };
     }
   }
 }
