@@ -1,5 +1,5 @@
-# Run with proof facts from another Eyelit invocation:
-# node bin/eyelit.js examples/proof/socrates.eye examples/proof-audit.eye
+# Run with proof facts from another Eyelang invocation:
+# node bin/eyelang.js examples/proof/socrates.eye examples/proof-audit.eye
 # Tests and the example generator supply that document automatically.
 
 member(?x, [?x | ?_]).

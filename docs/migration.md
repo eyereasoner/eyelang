@@ -10,7 +10,7 @@ inventory snapshot, not a measured compatibility percentage.
 
 ## Acceptance seeds implemented here
 
-| Eyelit example | Source inspiration | What is checked; limits of the port |
+| Eyelang example | Source inspiration | What is checked; limits of the port |
 | --- | --- | --- |
 | `socrates.eye` | All three projects' Socrates examples | Ground conclusion and rule provenance |
 | `ancestor.eye` | EyeProlog `ancestor.pl`; Eyeleng `family.srl` | Recursive family relation over a small new fixture |
@@ -25,14 +25,14 @@ inventory snapshot, not a measured compatibility percentage.
 | `four-queens.eye` | EyeProlog `clpz-n-queens.pl` | Both four-queens solutions through real finite search; no constraint propagation |
 | `graph-join.eye` | Named-graph and knowledge-graph examples | New reviewer/claim fixture using RDF-shaped terms; no RDF parser |
 | `grammar.eye` | EyeProlog DCG examples | Parsing and generating a small command grammar using explicit difference lists |
-| `proof-audit.eye` | Proof/provenance scenarios across the projects | Consumes Eyelit's own proof output; derives dependencies and supporting facts |
+| `proof-audit.eye` | Proof/provenance scenarios across the projects | Consumes Eyelang's own proof output; derives dependencies and supporting facts |
 
 The acceptance assertions are in `test/examples.test.js`. Tests also ensure
 that every `.eye` example has a corresponding check. The ports above are not
 byte-for-byte output comparisons against the old examples.
 
 The second round adds native `.eye` answer/proof documents for every seed and
-tests syntactic closure by feeding those documents back into Eyelit. The new
+tests syntactic closure by feeding those documents back into Eyelang. The new
 proof-audit program demonstrates that exported explanations can be inputs to
 further logic programs, including another round of proof generation. This adds
 no claim of independent proof verification or source-language compatibility.
@@ -101,7 +101,7 @@ state transitions or host operations. Preserve the application outcome where
 appropriate, and document the changed operational contract.
 
 **Compatibility behavior.** ISO operator declarations, stream APIs, exception
-shapes, reflection, and conformance edge cases are not core Eyelit requirements.
+shapes, reflection, and conformance edge cases are not core Eyelang requirements.
 DCG applications can initially use explicit input/remainder relations.
 
 **Scale.** Add original F(10000), deep-taxonomy, larger search, and collection

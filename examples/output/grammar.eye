@@ -1,4 +1,4 @@
-# Eyelit result format 1
+# Eyelang result format 1
 query(1, at(8, 1), [call(sentence(?v0, [open, door], []))], [binding("ast", ?v0)]).
 result(1, complete, 1).
 answer(1, [binding("ast", command(open, door))]).

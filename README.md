@@ -1,8 +1,8 @@
-# Eyelit
+# Eyelang
 
 *Small language. Clear reasoning.*
 
-Eyelit is an experimental logic programming language and a standalone JavaScript
+Eyelang is an experimental logic programming language and a standalone JavaScript
 reference interpreter. It combines facts, rules, questions, structured terms,
 and explanations in a fixed syntax. It draws on problems explored in EyeProlog,
 Eyeling, and Eyeleng; it does not parse their languages or claim their conformance.
@@ -26,13 +26,13 @@ This also handles left recursion and cycles when the demanded computation is fin
 
 ## Try it
 
-From the Eyelit directory, without installing anything:
+From the Eyelang directory, without installing anything:
 
 ```sh
-node bin/eyelit.js examples/ancestor.eye
-node bin/eyelit.js examples/fibonacci.eye
-node bin/eyelit.js examples/four-queens.eye
-node bin/eyelit.js --proof examples/socrates.eye
+node bin/eyelang.js examples/ancestor.eye
+node bin/eyelang.js examples/fibonacci.eye
+node bin/eyelang.js examples/four-queens.eye
+node bin/eyelang.js --proof examples/socrates.eye
 npm test
 ```
 
@@ -43,20 +43,20 @@ and a bounded range relation.
 More CLI options:
 
 ```sh
-node bin/eyelit.js --json examples/type-inference.eye
-node bin/eyelit.js --check examples/policy.eye
-node bin/eyelit.js --query 'ancestor(bob, ?who)' examples/ancestor.eye
-node bin/eyelit.js --max-steps 100000 examples/shortest-path.eye
+node bin/eyelang.js --json examples/type-inference.eye
+node bin/eyelang.js --check examples/policy.eye
+node bin/eyelang.js --query 'ancestor(bob, ?who)' examples/ancestor.eye
+node bin/eyelang.js --max-steps 100000 examples/shortest-path.eye
 ```
 
-Default output is an Eyelit program, including `--proof` and `--check` output.
+Default output is an Eyelang program, including `--proof` and `--check` output.
 It can be saved as `.eye` and queried by another invocation. JSON remains an
 explicit alternative with `--json`.
 
 ```sh
-node bin/eyelit.js --proof examples/socrates.eye
-node bin/eyelit.js examples/proof/socrates.eye examples/proof-audit.eye
-node bin/eyelit.js examples/output/ancestor.eye --query 'answer(1, [binding("who", ?person)])'
+node bin/eyelang.js --proof examples/socrates.eye
+node bin/eyelang.js examples/proof/socrates.eye examples/proof-audit.eye
+node bin/eyelang.js examples/output/ancestor.eye --query 'answer(1, [binding("who", ?person)])'
 ```
 
 The Socrates proof output is:
@@ -74,7 +74,7 @@ proof(3, solution([]), query, [uses(2, mortal(socrates))]).
 `query` records a question as data; it does not execute an `ask` statement when
 reloaded. `answer` records bindings, `result` distinguishes completion with no
 answers, and `why` links an answer to a proof. Proof conclusions and premises
-are structured terms that Eyelit rules can inspect directly.
+are structured terms that Eyelang rules can inspect directly.
 
 Checked documents for every example live in [examples/output](examples/output)
 and [examples/proof](examples/proof). Regenerate them after an intentional change
@@ -133,7 +133,7 @@ Input modes, types, and arithmetic function names are currently checked at runti
 - General finite search using `range`; list `length` and `sort` built-ins.
 - Explanation graphs with rule locations and explicit built-in/negation steps.
 - 26 runnable examples, including twelve attributed ports from the three sister
-  projects and proof analysis written in Eyelit itself.
+  projects and proof analysis written in Eyelang itself.
 - Automated semantic, CLI, saved-output, and parse/print/parse closure checks.
 
 See [the language specification](docs/language.md), [implementation design](docs/implementation.md),

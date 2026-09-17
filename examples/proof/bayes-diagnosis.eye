@@ -1,4 +1,4 @@
-# Eyelit result format 1
+# Eyelang result format 1
 query(1, at(20, 1), [call(score(?v0, ?v1))], [binding("disease", ?v0), binding("score", ?v1)]).
 result(1, complete, 4).
 answer(1, [binding("disease", COVID19), binding("score", 0.0015470000000000002)]).

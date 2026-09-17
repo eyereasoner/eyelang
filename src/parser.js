@@ -3,7 +3,7 @@ import { variable, atom, struct, scalar, nil, cons, ground, variablesIn } from '
 export class SyntaxError extends Error {
   constructor(message, token) {
     super(`${message} at ${token.line}:${token.column}`);
-    this.name = 'EyelitSyntaxError';
+    this.name = 'EyelangSyntaxError';
   }
 }
 

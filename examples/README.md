@@ -1,13 +1,13 @@
-# Eyelit examples
+# Eyelang examples
 
 There are 26 runnable examples. Each has checked answers in [output](output)
 and checked explanations in [proof](proof), both written in ordinary `.eye`
 syntax. Run from the project root:
 
 ```sh
-node bin/eyelit.js examples/wolf-goat-cabbage.eye
-node bin/eyelit.js --proof examples/modular-exponentiation.eye
-node bin/eyelit.js examples/proof/socrates.eye examples/proof-audit.eye
+node bin/eyelang.js examples/wolf-goat-cabbage.eye
+node bin/eyelang.js --proof examples/modular-exponentiation.eye
+node bin/eyelang.js examples/proof/socrates.eye examples/proof-audit.eye
 npm test
 ```
 
@@ -43,14 +43,14 @@ The source commits inspected were:
 
 ## What the ports preserve and change
 
-**Scheduling:** the source uses recursive maximum aggregation. Eyelit rejects
+**Scheduling:** the source uses recursive maximum aggregation. Eyelang rejects
 recursion through collection, so the port first enumerates dependency-path
 durations and then aggregates. The full schedule and critical-task answers match
 the reference, but the algorithm has different scaling behavior and assumes the
 given acyclic task graph.
 
 **Cardinality:** the dog-license port collects dog identities. Collecting constant
-`1` values would collapse them under Eyelit's set semantics. The source's five-way
+`1` values would collapse them under Eyelang's set semantics. The source's five-way
 distinct join and this collection formulation select the same owner.
 
 **RDF and quoted statements:** these ports operate on already represented data.

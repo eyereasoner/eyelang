@@ -1,4 +1,4 @@
-# Eyelit result format 1
+# Eyelang result format 1
 query(1, at(17, 1), [call(statement_source(?v0, ?v1))], [binding("speaker", ?v0), binding("source", ?v1)]).
 result(1, complete, 2).
 answer(1, [binding("speaker", alice), binding("source", chat)]).

@@ -1,4 +1,4 @@
-# Eyelit language, draft 0.1
+# Eyelang language, draft 0.1
 
 This document specifies the implemented prototype, with limitations stated
 explicitly. The surface syntax and semantics may change during the example ports.
@@ -178,4 +178,4 @@ proof calculus or an independently checked completeness certificate.
 Answers and explanations serialize as ordinary `.eye` relations. The result
 vocabulary and its scoping rules are specified in [output format 1](output.md).
 For example, `proof(2, mortal(socrates), rule(2, at(2, 1)),
-[uses(1, human(socrates))]).` can be matched and traversed by ordinary Eyelit rules.
+[uses(1, human(socrates))]).` can be matched and traversed by ordinary Eyelang rules.

@@ -1,4 +1,4 @@
-# Eyelit result format 1
+# Eyelang result format 1
 query(1, at(57, 1), [call(project_finish(?v0))], [binding("finish", ?v0)]).
 result(1, complete, 1).
 answer(1, [binding("finish", 23)]).

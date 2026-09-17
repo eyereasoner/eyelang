@@ -5,7 +5,7 @@ import { builtinRelations, builtin, compare, evaluate, requireGround } from './b
 export class LimitError extends Error {
   constructor(limit) {
     super(`Evaluation incomplete: ${limit} limit reached`);
-    this.name = 'EyelitLimitError';
+    this.name = 'EyelangLimitError';
   }
 }
 

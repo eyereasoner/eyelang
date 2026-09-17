@@ -1,7 +1,7 @@
-# Eyelit result format 1
+# Eyelang result format 1
 
-Answers and explanations are ordinary Eyelit relations. Default CLI output,
-`--proof`, and `--check` output can be parsed, loaded, and queried by Eyelit.
+Answers and explanations are ordinary Eyelang relations. Default CLI output,
+`--proof`, and `--check` output can be parsed, loaded, and queried by Eyelang.
 The only non-statement text is a `#` comment identifying the result format.
 Errors go to stderr and do not masquerade as complete output.
 
@@ -25,11 +25,11 @@ answer(1, [binding("who", carol)]).
   Count zero means that question has no answers. No `answer` record is emitted
   for it. A successful ground question has `answer(Id, []).`.
 - `answer(Id, Bindings)` records a solution as a list of `binding("name", Value)`.
-  Original variable names are strings; values are native Eyelit terms.
+  Original variable names are strings; values are native Eyelang terms.
 
 Conjunctions, calculation-only questions, collections, and ground questions all
 use the same representation. Exact integers remain integers, floats remain
-floats, and strings use the normal Eyelit/JSON escapes.
+floats, and strings use the normal Eyelang/JSON escapes.
 
 Residual variables remain actual variables. `fun(?v0, ?v0)` preserves sharing;
 `pair(?v0, ?v1)` preserves independence. Each fact is a separate scope. Repeated
@@ -82,11 +82,11 @@ variant answer. Proof IDs refer to earlier entries. Query and proof IDs are loca
 to one output document; independently generated documents must have their IDs
 remapped before merging. The current format provides no automatic merge scope.
 
-## Querying a proof with Eyelit
+## Querying a proof with Eyelang
 
 ```sh
-node bin/eyelit.js examples/proof/socrates.eye examples/proof-audit.eye
-node bin/eyelit.js --proof examples/proof/socrates.eye examples/proof-audit.eye
+node bin/eyelang.js examples/proof/socrates.eye examples/proof-audit.eye
+node bin/eyelang.js --proof examples/proof/socrates.eye examples/proof-audit.eye
 ```
 
 The audit example traverses `uses` and collection references, derives transitive
@@ -101,7 +101,7 @@ classical falsity from a closed-world absence record.
 ## Check and JSON output
 
 `--check` emits `checked(rules(N), queries(M)).` followed by
-`stratum("name/arity", Level).` facts. These can also be loaded by Eyelit.
+`stratum("name/arity", Level).` facts. These can also be loaded by Eyelang.
 `--json` explicitly selects the JavaScript API representation instead of `.eye`.
 JSON results retain the existing display strings plus structured proof fields
 such as `conclusionTerm` and `callTerm`; integers have tagged decimal strings.

@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import { parse, check } from '../index.js';
 
 const cli = (args, input) => {
-  const result = spawnSync(process.execPath, [fileURLToPath(new URL('../bin/eyelit.js', import.meta.url)), ...args], {
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL('../bin/eyelang.js', import.meta.url)), ...args], {
     input, encoding: 'utf8', timeout: 10_000,
   });
   assert.ifError(result.error);
@@ -53,7 +53,7 @@ test('CLI answer and proof output can be piped into another invocation', () => {
   }
 });
 
-test('CLI --check uses Eyelit syntax unless JSON is explicitly requested', () => {
+test('CLI --check uses Eyelang syntax unless JSON is explicitly requested', () => {
   const checked = cli(['--check', '-'], 'p(a). ask p(?x).');
   assert.equal(checked.status, 0, checked.stderr);
   check(checked.stdout);

@@ -47,13 +47,13 @@ function premise(value) {
   }
 }
 
-/** Serialize a completed run as an Eyelit program containing ordinary facts.
+/** Serialize a completed run as an Eyelang program containing ordinary facts.
  * Each statement has its own variable scope; format the entire fact at once
  * so shared and independent residual variables retain their identities.
  */
 export function formatResult(result, { proof = false } = {}) {
   if (result.status !== 'complete') throw new Error('Only complete results can be serialized');
-  const lines = ['# Eyelit result format 1'];
+  const lines = ['# Eyelang result format 1'];
   const emit = term => lines.push(`${format(term)}.`);
   result.queries.forEach((query, index) => {
     const id = integer(index + 1);

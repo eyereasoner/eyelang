@@ -1,13 +1,13 @@
 {
-  "name": "eyelit",
+  "name": "eyelang",
   "version": "0.1.1",
   "private": true,
   "description": "Small language. Clear reasoning.",
   "type": "module",
   "main": "./index.js",
   "exports": "./index.js",
-  "bin": { "eyelit": "./bin/eyelit.js" },
-  "scripts": { "test": "node --test", "start": "node bin/eyelit.js" },
+  "bin": { "eyelang": "./bin/eyelang.js" },
+  "scripts": { "test": "node --test", "start": "node bin/eyelang.js" },
   "engines": { "node": ">=18" },
   "license": "MIT"
 }

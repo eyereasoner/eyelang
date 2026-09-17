@@ -1,4 +1,4 @@
-# Eyelit result format 1
+# Eyelang result format 1
 query(1, at(6, 1), [call(append(?v0, ?v1, [a, b]))], [binding("left", ?v0), binding("right", ?v1)]).
 result(1, complete, 3).
 answer(1, [binding("left", []), binding("right", [a, b])]).

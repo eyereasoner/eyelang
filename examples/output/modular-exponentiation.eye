@@ -1,4 +1,4 @@
-# Eyelit result format 1
+# Eyelang result format 1
 query(1, at(30, 1), [call(small_check(?v0, ?v1))], [binding("naive", ?v0), binding("fast", ?v1)]).
 result(1, complete, 1).
 answer(1, [binding("naive", 38), binding("fast", 38)]).

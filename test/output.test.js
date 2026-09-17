@@ -9,7 +9,7 @@ const heads = source => parse(source).rules.map(rule => rule.head);
 const relation = (terms, name) => terms.filter(term => term.name === name);
 
 for (const name of exampleNames()) {
-  test(`answers and proofs close over Eyelit syntax: ${name}`, () => {
+  test(`answers and proofs close over Eyelang syntax: ${name}`, () => {
     const result = run(exampleSource(name));
     for (const proof of [false, true]) {
       const source = formatResult(result, { proof });
@@ -55,7 +55,7 @@ test('proof conclusions are real terms and linked source facts can be queried', 
   assert.doesNotMatch(source, /\$query/);
 });
 
-test('proofs of proof queries are also readable Eyelit programs', () => {
+test('proofs of proof queries are also readable Eyelang programs', () => {
   const source = formatResult(run(exampleSource('proof-audit.eye')), { proof: true });
   const next = run(`${source}\nask proof(?id, support(1, human(socrates)), ?source, ?premises).`);
   assert.equal(next.queries[0].answers.length, 1);

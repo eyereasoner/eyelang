@@ -12,9 +12,9 @@ not yet been added or tested.
 | `src/analyze.js` | Predicate definitions and positive/closed dependency analysis |
 | `src/builtins.js` | Ground computations and finite built-in relations |
 | `src/engine.js` | Demand tables, dependency queue, completed subqueries, explanations, limits |
-| `src/output.js` | Native Eyelit result/check records and structured proof serialization |
+| `src/output.js` | Native Eyelang result/check records and structured proof serialization |
 | `index.js` | `run`, `check`, and public term helpers |
-| `bin/eyelit.js` | Files, stdin, queries, output formats, exit status |
+| `bin/eyelang.js` | Files, stdin, queries, output formats, exit status |
 
 ## Positive evaluation
 
@@ -62,7 +62,7 @@ Result and proof documents for all examples are saved under `examples/output`
 and `examples/proof`. Closure tests parse, load, print, and reparse those documents
 and compare terms modulo variable renaming. CLI tests pass exported data into a
 second invocation. The proof-audit example consumes a freshly generated Socrates
-proof and performs dependency analysis using Eyelit rules.
+proof and performs dependency analysis using Eyelang rules.
 
 Proof records retain structured terms alongside the original human-readable API
 fields. Premise terms are instantiated with the final clause environment, while

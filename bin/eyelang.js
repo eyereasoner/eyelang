@@ -9,7 +9,7 @@ function main(args) {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === '--help' || arg === '-h') {
-      console.log('Usage: node bin/eyelit.js [--check] [--json] [--proof] [--query BODY] [--max-steps N] [--max-tables N] [--max-answers N] FILE...\nUse - to read standard input. Programs contain facts, rules, and ask statements.');
+      console.log('Usage: node bin/eyelang.js [--check] [--json] [--proof] [--query BODY] [--max-steps N] [--max-tables N] [--max-answers N] FILE...\nUse - to read standard input. Programs contain facts, rules, and ask statements.');
       return;
     }
     if (arg === '--json') json = true;
@@ -43,6 +43,6 @@ function main(args) {
 
 try { main(process.argv.slice(2)); }
 catch (error) {
-  console.error(`eyelit: ${error.message}`);
+  console.error(`eyelang: ${error.message}`);
   process.exitCode = error instanceof LimitError ? 2 : 1;
 }

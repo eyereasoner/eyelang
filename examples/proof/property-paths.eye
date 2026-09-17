@@ -1,4 +1,4 @@
-# Eyelit result format 1
+# Eyelang result format 1
 query(1, at(10, 1), [call(grandparent_of(?v0, ?v1))], [binding("person", ?v0), binding("grandchild", ?v1)]).
 result(1, complete, 1).
 answer(1, [binding("person", alice), binding("grandchild", carol)]).
