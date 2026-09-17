@@ -44,8 +44,13 @@ With `--proof`, the document also contains:
 
 ```text
 why(1, [], 3).
+clause(1, human(socrates), []).
+clause(2, mortal(var("who")), [call(human(var("who")))]).
+substitution(1, []).
 proof(1, human(socrates), rule(1, at(1, 1)), []).
+substitution(2, [binding("who", socrates)]).
 proof(2, mortal(socrates), rule(2, at(2, 1)), [uses(1, human(socrates))]).
+substitution(3, []).
 proof(3, solution([]), query, [uses(2, mortal(socrates))]).
 ```
 
@@ -54,6 +59,22 @@ proof(3, solution([]), query, [uses(2, mortal(socrates))]).
 `rule(ClauseNumber, Location)` or the symbol `query` for a projected query step.
 A query conclusion is `solution([ProjectedValue, ...])`; the internal `$query`
 implementation name never appears in `.eye` output.
+
+`clause(ClauseNumber, HeadTemplate, BodyTemplate)` records each source clause
+used by at least one proof step. Source variables are data constructors such as
+`var("who")`, so their identity survives across separate output statements.
+Repeated occurrences with the same name denote the same clause variable.
+Anonymous source variables are numbered locally as `anonymous(1)`,
+`anonymous(2)`, and so on; they never appear as substitution keys.
+
+`substitution(ProofId, Bindings)` records the instantiation used by every proof
+step. For a rule step, names belong to its `clause` template. For a query step,
+names belong to the corresponding `query` projection. Empty ground instances
+have `substitution(Id, []).`. Residual values remain ordinary output variables,
+and formatting the complete substitution fact preserves their sharing.
+Variables local to a collection can remain residual in the enclosing rule's
+substitution; the collection premise and its referenced proof steps record the
+individual contributing instances.
 
 The premise vocabulary is:
 
@@ -90,12 +111,14 @@ node bin/eyelang.js --proof examples/proof/socrates.eye examples/proof-audit.eye
 ```
 
 The audit example traverses `uses` and collection references, derives transitive
-proof dependencies, and finds supporting source facts. Its own output and proof
-output obey the same format. This demonstrates reasoning about explanations;
-it does not verify that an imported proof is truthful or complete.
+proof dependencies, finds supporting source facts, and queries an applied rule
+substitution. Its own output and proof output obey the same format. This
+demonstrates reasoning about explanations; a standalone checker that reapplies
+templates and validates every trusted operation is still future work.
 
 Built-ins, absence, and collection completion remain trusted explanation steps.
-The format is not an independently checked proof certificate. Do not infer
+Clause templates and substitutions make rule instantiation checkable, but the
+format is not yet a fully independently checked proof certificate. Do not infer
 classical falsity from a closed-world absence record.
 
 ## Check and JSON output
@@ -104,7 +127,8 @@ classical falsity from a closed-world absence record.
 `stratum("name/arity", Level).` facts. These can also be loaded by Eyelang.
 `--json` explicitly selects the JavaScript API representation instead of `.eye`.
 JSON results retain the existing display strings plus structured proof fields
-such as `conclusionTerm` and `callTerm`; integers have tagged decimal strings.
+such as `conclusionTerm`, `ruleHead`, `substitution`, and `callTerm`; integers
+have tagged decimal strings.
 
 `formatResult(result, { proof: false })` and `formatCheck(summary)` expose the
 serializers to JavaScript callers. Formatting covers results returned by the

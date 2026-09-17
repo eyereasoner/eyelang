@@ -84,11 +84,83 @@ test('metadata from another graph cannot complete the context association', () =
   assert.equal(run(source).queries[0].answers.length, 0);
 });
 
+test('alignment closure includes reflexive and side-scheme roll-ups', () => {
+  const answers = run(exampleSource('alignment-demo.eye')).queries[0].answers
+    .map(answer => answer.bindings.concept.name).sort();
+  assert.deepEqual(answers, ['car', 'heavy_vehicle', 'passenger_car', 'plate_vehicle', 'tel_car']);
+});
+
+test('closed graph terms derive social classification and mentioned resources', () => {
+  const queries = run(exampleSource('graph-term-emulation.eye')).queries;
+  assert.deepEqual(queries[0].answers.map(answer => answer.bindings.graph.name), ['g1']);
+  assert.deepEqual(queries[1].answers.map(({ bindings }) => [bindings.graph.name, bindings.resource.name]).sort(), [
+    ['g1', 'alice'], ['g1', 'bob'], ['g1', 'carol'], ['g2', 'alice'], ['g2', 'tea'],
+  ]);
+});
+
+test('Dijkstra example derives the minimum path from weighted edges', () => {
+  const source = exampleSource('dijkstra.eye');
+  const answer = run(source).queries[0].answers[0].bindings;
+  const path = array(answer.path).map(node => node.name);
+  const facts = parse(source).rules.filter(rule => rule.fact && rule.head.name === 'edge').map(rule => rule.head.args);
+  const weights = new Map();
+  for (const [left, right, weight] of facts) {
+    weights.set(`${left.name}:${right.name}`, weight.value);
+    weights.set(`${right.name}:${left.name}`, weight.value);
+  }
+  let cost = 0n;
+  for (let i = 1; i < path.length; i++) {
+    const weight = weights.get(`${path[i - 1]}:${path[i]}`);
+    assert.notEqual(weight, undefined);
+    cost += weight;
+  }
+  assert.deepEqual(path, ['a', 'c', 'b', 'd', 'e', 'f']);
+  assert.equal(answer.cost.value, 13n);
+  assert.equal(cost, answer.cost.value);
+});
+
+test('BMI report derives its category and healthy-weight band from the input', () => {
+  const report = run(exampleSource('bmi.eye')).queries[0].answers[0].bindings;
+  assert.equal(report.category.name, 'normal');
+  assert.ok(Math.abs(report.bmi.value - 22.72) < 1e-12);
+  assert.ok(Math.abs(report.healthy_min.value - 58.6) < 1e-12);
+  assert.ok(Math.abs(report.healthy_max.value - 78.9) < 1e-12);
+});
+
+test('ODRL risks are derived from missing safeguards and ranked by normalized DPV score', () => {
+  const source = exampleSource('odrl-dpv-risk-ranked.eye');
+  const result = run(source);
+  const rows = array(result.queries[0].answers[0].bindings.risks).map(row => ({
+    inverse: row.args[0].value,
+    clause: row.args[1].value,
+    risk: row.args[2].name,
+    score: row.args[3].value,
+    level: row.args[4].name,
+  }));
+  assert.deepEqual(rows, [
+    { inverse: 900n, clause: 'C1', risk: 'risk_delete_without_safeguards', score: 100n, level: 'high_risk' },
+    { inverse: 903n, clause: 'C3', risk: 'risk_share_without_consent', score: 97n, level: 'high_risk' },
+    { inverse: 915n, clause: 'C2', risk: 'risk_notice_too_short', score: 85n, level: 'high_risk' },
+    { inverse: 930n, clause: 'C4', risk: 'risk_no_portability', score: 70n, level: 'moderate_risk' },
+  ]);
+  assert.equal(result.queries[1].answers.length, 5);
+
+  const safeguarded = source.replace(
+    'constraint(perm_change_terms, notice_days, gteq, 3).',
+    `constraint(perm_change_terms, notice_days, gteq, 14).
+constraint(perm_delete_account, notice_days, gteq, 14).
+duty(perm_delete_account, inform).
+constraint(perm_share_data, consent, eq, true).`,
+  );
+  const remaining = array(run(safeguarded).queries[0].answers[0].bindings.risks);
+  assert.deepEqual(remaining.map(row => [row.args[1].value, row.args[2].name]), [['C4', 'risk_no_portability']]);
+});
+
 const computedRelations = {
   'aggregation.eye': ['report'],
   'ancestor.eye': ['ancestor'],
   'bayes-diagnosis.eye': ['score', 'screened_in', 'rank'],
-  'bmi.eye': ['bmi'],
+  'bmi.eye': ['report'],
   'critical-path-schedule.eye': ['project_finish', 'critical_task', 'schedule'],
   'derivative.eye': ['d'],
   'dijkstra.eye': ['best'],
@@ -101,12 +173,13 @@ const computedRelations = {
   'gray-code-counter.eye': ['counter', 'gcc'],
   'hanoi.eye': ['hanoi'],
   'modular-exponentiation.eye': ['small_check', 'large_case'],
+  'odrl-dpv-risk-ranked.eye': ['ranked_report', 'mitigation'],
   'peano-arithmetic.eye': ['factorial'],
   'property-paths.eye': ['grandparent_of', 'has_parent'],
   'query.eye': ['ancestor'],
   'relational-cube-lookup.eye': ['cube'],
   'shortest-path.eye': ['best'],
-  'socrates.eye': ['mortal'],
+  'socrates.eye': ['instance_of'],
   'sudoku.eye': ['solve'],
   'type-inference.eye': ['type', 'type'],
   'wolf-goat-cabbage.eye': ['solution'],
@@ -135,6 +208,7 @@ test('family generations are inferred from parent links', () => {
   assert.deepEqual(run(`${source}\nask generation(?person,?level).`).queries.at(-1).answers
     .map(({ bindings }) => [bindings.person.name, bindings.level.value]).sort(), [
     ['adam', 0n], ['bob', 1n], ['carol', 1n], ['dave', 2n], ['eve', 2n], ['frank', 2n], ['grace', 2n],
+    ['heidi', 3n], ['ivan', 3n], ['judy', 3n],
   ]);
 });
 

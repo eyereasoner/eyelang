@@ -83,7 +83,7 @@ Numeric equality can be expressed with `<=` and `>=`; `=` remains structural.
 
 Expression functions, each taking one argument:
 
-- `abs(number)`, `sqrt(number)`.
+- `abs(number)`, `sqrt(number)`, `round(number)`.
 - `count(list)`, `sum(list)`, `min(list)`, `max(list)`.
 
 `count([])` and `sum([])` return `0`. `min([])` and `max([])` are errors.
@@ -169,7 +169,8 @@ term nesting, wall-clock time, or total bytes allocated.
 ## Explanations
 
 Every new table answer records one derivation: its source rule number, combined
-source location, instantiated conclusion, and premises. Alternative derivations
+source location, clause template, explicit substitution, instantiated conclusion,
+and premises. Alternative derivations
 of the same answer are not enumerated. Positive premise references point to
 already recorded answers, forming an acyclic explanation graph even when the
 program is recursive.
@@ -181,5 +182,6 @@ proof calculus or an independently checked completeness certificate.
 
 Answers and explanations serialize as ordinary `.eye` relations. The result
 vocabulary and its scoping rules are specified in [output format 1](output.md).
-For example, `proof(2, mortal(socrates), rule(2, at(2, 1)),
+For example, `substitution(2, [binding("who", socrates)]).` and
+`proof(2, mortal(socrates), rule(2, at(2, 1)),
 [uses(1, human(socrates))]).` can be matched and traversed by ordinary Eyelang rules.

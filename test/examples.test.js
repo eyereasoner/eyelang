@@ -17,7 +17,15 @@ const expectations = {
   'graph-join.eye': [[{ claim: 'iri("https://example/claim1")' }]],
   'grammar.eye': [[{ ast: 'command(open, door)' }], [{ words: '[close, window]' }]],
   'socrates.eye': [[{}]],
-  'proof-audit.eye': [[{ ancestor: '1' }, { ancestor: '2' }], [{ fact: 'human(socrates)' }]],
+  'proof-audit.eye': [
+    [{ ancestor: '1' }, { ancestor: '3' }, { ancestor: '5' }],
+    [{ fact: 'instance_of(socrates, human)' }, { fact: 'subclass_of(human, mortal)' }],
+    [
+      { proof: '5', name: '"individual"', value: 'socrates' },
+      { proof: '5', name: '"class"', value: 'human' },
+      { proof: '5', name: '"superclass"', value: 'mortal' },
+    ],
+  ],
   'hanoi.eye': [[{ moves: '[[left, right], [left, center], [right, center], [left, right], [center, left], [center, right], [left, right]]' }]],
   'wolf-goat-cabbage.eye': [[
     { moves: '[goat, nothing, wolf, goat, cabbage, nothing, goat]' },

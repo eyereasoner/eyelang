@@ -1,4 +1,4 @@
-import { struct, fresh, instantiate, unify, termKey, format, ground, list } from './terms.js';
+import { struct, fresh, instantiate, unify, termKey, format, ground, list, variablesIn } from './terms.js';
 import { signature, checkQuery } from './analyze.js';
 import { builtinRelations, builtin, compare, evaluate, requireGround } from './builtins.js';
 
@@ -124,9 +124,16 @@ class Engine {
         if (table.answers.has(key)) continue;
         if (++context.answers > context.limits.maxAnswers) throw new LimitError('answers');
         const proof = context.proofs.length + 1;
+        const substitutionVariables = rule.id
+          ? [...variables.values()]
+          : [...variablesIn(rule.head).keys()].map(id => variables.get(id));
         context.proofs.push({
           id: proof, conclusion: format(answer), conclusionTerm: answer, rule: rule.id || 'query',
-          location: rule.location, premises: solution.premises.map(premise => bindPremise(premise, solution.env)),
+          location: rule.location, ruleHead: rule.id ? rule.head : null, ruleBody: rule.id ? rule.body : null,
+          substitution: substitutionVariables
+            .filter(variable => variable.name !== '_')
+            .map(variable => ({ name: variable.name, value: instantiate(variable, solution.env) })),
+          premises: solution.premises.map(premise => bindPremise(premise, solution.env)),
         });
         table.answers.set(key, { term: answer, proof });
         for (const subscriber of table.subscribers) this.enqueue(subscriber);

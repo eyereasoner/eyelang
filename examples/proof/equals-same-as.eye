@@ -3,6 +3,11 @@ query(1, at(2, 39), [call(test())], []).
 result(1, complete, 1).
 answer(1, []).
 why(1, [], 3).
+clause(1, same_as(x, y), []).
+clause(2, test(), [call(same_as(x, y))]).
+substitution(1, []).
 proof(1, same_as(x, y), rule(1, at(2, 1)), []).
+substitution(2, []).
 proof(2, test(), rule(2, at(2, 16)), [uses(1, same_as(x, y))]).
+substitution(3, []).
 proof(3, solution([]), query, [uses(2, test())]).

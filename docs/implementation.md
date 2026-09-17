@@ -68,6 +68,11 @@ collection-local variables are freshly scoped on entry and cannot be rebound by
 later goals in the enclosing clause. The writer formats a complete statement at
 a time, preserving variable identity across its fields.
 
+Each proof step also retains its source clause template and explicit substitution.
+The serializer writes used templates once as `clause/3` facts and writes one
+`substitution/2` fact per proof. Template variables are data constructors rather
+than live output variables, preventing accidental scope across statements.
+
 ## Next implementation decisions
 
 1. Continue auditing every example's required semantics, not just its name.

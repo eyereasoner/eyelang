@@ -57,6 +57,7 @@ export function evaluate(expression, env) {
         return checked(value < 0 ? -value : value);
       }
       if (name === 'sqrt') return checked(Math.sqrt(asFloat(numeric(args[0]))));
+      if (name === 'round') return checked(Math.round(asFloat(numeric(args[0]))));
       if (name === 'count') return scalar(BigInt(array(args[0]).length));
       if (['sum', 'min', 'max'].includes(name)) {
         const values = array(args[0]);

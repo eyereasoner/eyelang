@@ -4,6 +4,7 @@ const node = (name, ...args) => struct(name, args);
 const integer = value => scalar(BigInt(value));
 const location = value => value ? node('at', integer(value.line), integer(value.column)) : atom('internal');
 const bindings = values => list(Object.entries(values).map(([name, value]) => node('binding', scalar(name), value)));
+const substitution = values => list(values.map(({ name, value }) => node('binding', scalar(name), value)));
 
 /** Check-only output follows the same syntax contract as evaluated output. */
 export function formatCheck(result) {
@@ -33,6 +34,45 @@ function goals(body) {
       default: throw new Error(`Cannot serialize goal ${goal.type}`);
     }
   }));
+}
+
+function templateTerm(term, anonymous) {
+  if (term.kind === 'var') {
+    if (term.name !== '_') return node('var', scalar(term.name));
+    if (!anonymous.has(term.id)) anonymous.set(term.id, anonymous.size + 1);
+    return node('anonymous', integer(anonymous.get(term.id)));
+  }
+  return term.kind === 'struct'
+    ? struct(term.name, term.args.map(arg => templateTerm(arg, anonymous)))
+    : term;
+}
+
+function templateExpression(value, anonymous) {
+  switch (value.type) {
+    case 'value': return node('value', templateTerm(value.term, anonymous));
+    case 'unary': return node('unary', scalar('-'), templateExpression(value.arg, anonymous));
+    case 'binary': return node('binary', scalar(value.op), templateExpression(value.left, anonymous), templateExpression(value.right, anonymous));
+    case 'function': return node('function', scalar(value.name), list(value.args.map(arg => templateExpression(arg, anonymous))));
+    default: throw new Error(`Cannot serialize template expression ${value.type}`);
+  }
+}
+
+function templateGoals(body, anonymous) {
+  return list(body.map(goal => {
+    switch (goal.type) {
+      case 'call': return node('call', templateTerm(goal.term, anonymous));
+      case 'not': return node('absent', templateTerm(goal.term, anonymous));
+      case 'compare': return node('compare', scalar(goal.op), templateTerm(goal.left, anonymous), templateTerm(goal.right, anonymous));
+      case 'let': return node('calculate', templateTerm(goal.target, anonymous), templateExpression(goal.expression, anonymous));
+      case 'collect': return node('collect', templateTerm(goal.target, anonymous), templateTerm(goal.template, anonymous), templateGoals(goal.body, anonymous));
+      default: throw new Error(`Cannot serialize template goal ${goal.type}`);
+    }
+  }));
+}
+
+function clause(entry) {
+  const anonymous = new Map();
+  return node('clause', integer(entry.rule), templateTerm(entry.ruleHead, anonymous), templateGoals(entry.ruleBody, anonymous));
 }
 
 function premise(value) {
@@ -67,11 +107,17 @@ export function formatResult(result, { proof = false } = {}) {
     }
   });
   if (proof) {
+    const clauses = new Map();
+    for (const entry of result.proofs) {
+      if (entry.rule !== 'query' && !clauses.has(entry.rule)) clauses.set(entry.rule, clause(entry));
+    }
+    for (const term of [...clauses.entries()].sort(([a], [b]) => a - b).map(([, term]) => term)) emit(term);
     for (const entry of result.proofs) {
       // The internal $query symbol is not source syntax. Its result is a
       // projected tuple, represented explicitly as solution([...]) in data.
       const conclusion = entry.rule === 'query' ? node('solution', list(entry.conclusionTerm.args)) : entry.conclusionTerm;
       const source = entry.rule === 'query' ? atom('query') : node('rule', integer(entry.rule), location(entry.location));
+      emit(node('substitution', integer(entry.id), substitution(entry.substitution)));
       emit(node('proof', integer(entry.id), conclusion, source, list(entry.premises.map(premise))));
     }
   }

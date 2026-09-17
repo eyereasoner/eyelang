@@ -1,6 +1,4 @@
 # Eyelang result format 1
-query(1, at(7, 1), [call(best(?v0, ?v1))], [binding("path", ?v0), binding("cost", ?v1)]).
-result(1, complete, 3).
-answer(1, [binding("path", ab), binding("cost", 2)]).
-answer(1, [binding("path", abc), binding("cost", 3)]).
-answer(1, [binding("path", abcd), binding("cost", 5)]).
+query(1, at(23, 1), [call(best(a, f, ?v0, ?v1))], [binding("path", ?v0), binding("cost", ?v1)]).
+result(1, complete, 1).
+answer(1, [binding("path", [a, c, b, d, e, f]), binding("cost", 13)]).

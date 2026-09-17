@@ -65,15 +65,22 @@ query(1, at(3, 1), [call(mortal(socrates))], []).
 result(1, complete, 1).
 answer(1, []).
 why(1, [], 3).
+clause(1, human(socrates), []).
+clause(2, mortal(var("who")), [call(human(var("who")))]).
+substitution(1, []).
 proof(1, human(socrates), rule(1, at(1, 1)), []).
+substitution(2, [binding("who", socrates)]).
 proof(2, mortal(socrates), rule(2, at(2, 1)), [uses(1, human(socrates))]).
+substitution(3, []).
 proof(3, solution([]), query, [uses(2, mortal(socrates))]).
 ```
 
 `query` records a question as data; it does not execute an `ask` statement when
 reloaded. `answer` records bindings, `result` distinguishes completion with no
 answers, and `why` links an answer to a proof. Proof conclusions and premises
-are structured terms that Eyelang rules can inspect directly.
+are structured terms that Eyelang rules can inspect directly. `clause` records
+the applied rule template and `substitution` records each instantiated rule or
+query binding.
 
 Checked documents for every normally completing example live in
 [examples/output](examples/output) and [examples/proof](examples/proof).

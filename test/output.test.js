@@ -2,11 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { run, check, parse, format, formatResult } from '../index.js';
-import { termKey, ground } from '../src/terms.js';
+import { array, termKey, ground } from '../src/terms.js';
 import { exampleNames, exampleSource, examplesDirectory } from '../tools/example-sources.js';
 
 const heads = source => parse(source).rules.map(rule => rule.head);
 const relation = (terms, name) => terms.filter(term => term.name === name);
+
+function templateMatches(template, actual, values) {
+  if (template.kind === 'struct' && template.name === 'var' && template.args.length === 1 && template.args[0].kind === 'string') {
+    return values.has(template.args[0].value) && termKey(values.get(template.args[0].value)) === termKey(actual);
+  }
+  if (template.kind === 'struct' && template.name === 'anonymous' && template.args.length === 1) return true;
+  if (template.kind !== actual.kind) return false;
+  if (template.kind !== 'struct') return termKey(template) === termKey(actual);
+  return template.name === actual.name && template.args.length === actual.args.length
+    && template.args.every((arg, index) => templateMatches(arg, actual.args[index], values));
+}
 
 for (const name of exampleNames()) {
   test(`answers and proofs close over Eyelang syntax: ${name}`, () => {
@@ -55,9 +66,54 @@ test('proof conclusions are real terms and linked source facts can be queried', 
   assert.doesNotMatch(source, /\$query/);
 });
 
+test('proof output includes clause templates and explicit substitutions', () => {
+  const source = formatResult(run('source(a,b). pair(?x,?x) if source(?x,?_). ask pair(?left,?right).'), { proof: true });
+  assert.match(source, /clause\(2, pair\(var\("x"\), var\("x"\)\), \[call\(source\(var\("x"\), anonymous\(1\)\)\)\]\)\./);
+  assert.match(source, /substitution\(2, \[binding\("x", a\)\]\)\./);
+  assert.match(source, /substitution\(3, \[binding\("left", a\), binding\("right", a\)\]\)\./);
+  assert.doesNotMatch(source, /binding\("_"/);
+  check(source);
+});
+
+test('explicit substitutions preserve residual variable sharing', () => {
+  const source = formatResult(run('any(?x). ask any(?value).'), { proof: true });
+  const substitutions = relation(heads(source), 'substitution');
+  assert.equal(substitutions.length, 2);
+  const ruleValue = substitutions[0].args[1].args[0].args[1];
+  assert.equal(ruleValue.kind, 'var');
+  check(source);
+});
+
+test('query substitutions contain projected variables, not collection locals', () => {
+  const source = formatResult(run('item(a). ask collect ?items = ?local where { item(?local) }.'), { proof: true });
+  const substitutions = relation(heads(source), 'substitution');
+  const queryBindings = array(substitutions.at(-1).args[1]);
+  assert.deepEqual(queryBindings.map(binding => binding.args[0].value), ['items']);
+});
+
+test('every ground rule conclusion is an instance of its recorded clause and substitution', () => {
+  for (const name of exampleNames()) {
+    const terms = heads(formatResult(run(exampleSource(name)), { proof: true }));
+    const clauses = new Map(relation(terms, 'clause').map(term => [term.args[0].value, term]));
+    const substitutions = new Map(relation(terms, 'substitution').map(term => [term.args[0].value, term]));
+    const proofs = relation(terms, 'proof');
+    assert.equal(substitutions.size, proofs.length, name);
+    for (const proof of proofs) {
+      const [id, conclusion, source] = proof.args;
+      if (source.kind !== 'struct' || source.name !== 'rule' || !ground(conclusion)) continue;
+      const recordedClause = clauses.get(source.args[0].value);
+      assert.ok(recordedClause, `${name}: missing clause ${source.args[0].value}`);
+      const recordedSubstitution = substitutions.get(id.value);
+      assert.ok(recordedSubstitution, `${name}: missing substitution ${id.value}`);
+      const values = new Map(array(recordedSubstitution.args[1]).map(binding => [binding.args[0].value, binding.args[1]]));
+      assert.ok(templateMatches(recordedClause.args[1], conclusion, values), `${name}: proof ${id.value} is not a clause instance`);
+    }
+  }
+});
+
 test('proofs of proof queries are also readable Eyelang programs', () => {
   const source = formatResult(run(exampleSource('proof-audit.eye')), { proof: true });
-  const next = run(`${source}\nask proof(?id, support(1, human(socrates)), ?source, ?premises).`);
+  const next = run(`${source}\nask proof(?id, support(1, instance_of(socrates, human)), ?source, ?premises).`);
   assert.equal(next.queries[0].answers.length, 1);
   check(formatResult(next, { proof: true }));
 });
