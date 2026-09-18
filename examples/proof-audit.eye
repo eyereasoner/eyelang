@@ -16,6 +16,9 @@ parent_proof(?id, ?parent) if
 depends_on(?id, ?parent) if parent_proof(?id, ?parent).
 depends_on(?id, ?ancestor) if parent_proof(?id, ?parent), depends_on(?parent, ?ancestor).
 
+# Format 2 uses stable rule numbers without physical line coordinates. The
+# second clause keeps format 1 proof documents readable.
+source_fact(?id, ?fact) if proof(?id, ?fact, rule(?_), []).
 source_fact(?id, ?fact) if proof(?id, ?fact, rule(?_, ?_), []).
 supporting_fact(?id, ?fact) if source_fact(?id, ?fact).
 supporting_fact(?id, ?fact) if depends_on(?id, ?ancestor), source_fact(?ancestor, ?fact).

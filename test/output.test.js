@@ -147,3 +147,18 @@ test('serialization is independent of variable allocation in previous runs', () 
   run(exampleSource('type-inference.eye'));
   assert.equal(formatResult(run(source), { proof: true }), first);
 });
+
+test('serialized answers and proofs are independent of source layout', () => {
+  const compact = 'human(socrates). mortal(?who) if human(?who). ask mortal(socrates).';
+  const spaced = `
+# Empty lines, comments, and line wrapping are not proof identity.
+human(socrates).
+
+mortal(?who) if
+    human(?who).
+
+ask mortal(socrates).
+`;
+  assert.equal(formatResult(run(spaced)), formatResult(run(compact)));
+  assert.equal(formatResult(run(spaced), { proof: true }), formatResult(run(compact), { proof: true }));
+});

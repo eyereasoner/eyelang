@@ -309,15 +309,16 @@ known answer need not be retained.
 
 ### 12.1 Result documents
 
-A completed evaluation serializes as an Eyelang program. Apart from an optional
-format-identifying comment, every line is an ordinary fact and can be loaded and
-queried by another Eyelang invocation. Loading a result document asserts records;
-it does not execute the recorded questions or recreate the source program.
+A completed evaluation serializes as an Eyelang program. Format 2 starts with
+the comment `# Eyelang result format 2`. Every other line is an ordinary fact
+and can be loaded and queried by another Eyelang invocation. Loading a result
+document asserts records; it does not execute the recorded questions or
+recreate the source program. Format 1 documents remain valid Eyelang data.
 
 The answer vocabulary is:
 
-- `query(Id, Location, Goals, Projection)` records a question template. A source
-  location is `at(Line, Column)`. Goals use the encodings in section 12.3.
+- `query(Id, Goals, Projection)` records a question template. Goals use the
+  encodings in section 12.3.
   Projection is a list of `binding("name", Variable)` terms.
 - `result(Id, complete, Count)` states that evaluation completed and gives the
   number of distinct answers. Count zero is logical failure, not an error.
@@ -339,10 +340,12 @@ When proofs are requested, the document additionally contains:
 - `substitution(ProofId, Bindings)` for every proof step; and
 - `proof(Id, Conclusion, Source, Premises)` for every recorded derivation.
 
-`Source` is `rule(ClauseNumber, Location)` for a clause step and `query` for a
-query-projection step. A query conclusion is `solution(Values)`. Proof IDs are
-local to the document. Positive proof references MUST point to earlier proof
-records, making the recorded derivation graph acyclic.
+`Source` is `rule(ClauseNumber)` for a clause step and `query` for a
+query-projection step. Clause numbers identify the corresponding `clause/3`
+record and are independent of whitespace and physical source position. A query
+conclusion is `solution(Values)`. Proof IDs are local to the document. Positive
+proof references MUST point to earlier proof records, making the recorded
+derivation graph acyclic.
 
 Clause variables are reified as `var("name")` so their identity can be compared
 across separate facts. Repeated names in one clause template denote the same

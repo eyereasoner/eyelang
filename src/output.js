@@ -2,7 +2,6 @@ import { atom, struct, scalar, list, format } from './terms.js';
 
 const node = (name, ...args) => struct(name, args);
 const integer = value => scalar(BigInt(value));
-const location = value => value ? node('at', integer(value.line), integer(value.column)) : atom('internal');
 const bindings = values => list(Object.entries(values).map(([name, value]) => node('binding', scalar(name), value)));
 const substitution = values => list(values.map(({ name, value }) => node('binding', scalar(name), value)));
 
@@ -93,11 +92,11 @@ function premise(value) {
  */
 export function formatResult(result, { proof = false } = {}) {
   if (result.status !== 'complete') throw new Error('Only complete results can be serialized');
-  const lines = ['# Eyelang result format 1'];
+  const lines = ['# Eyelang result format 2'];
   const emit = term => lines.push(`${format(term)}.`);
   result.queries.forEach((query, index) => {
     const id = integer(index + 1);
-    emit(node('query', id, location(query.location), goals(query.body),
+    emit(node('query', id, goals(query.body),
       list(query.variables.map(variable => node('binding', scalar(variable.name), variable)))));
     emit(node('result', id, atom('complete'), integer(query.answers.length)));
     for (const answer of query.answers) {
@@ -116,7 +115,7 @@ export function formatResult(result, { proof = false } = {}) {
       // The internal $query symbol is not source syntax. Its result is a
       // projected tuple, represented explicitly as solution([...]) in data.
       const conclusion = entry.rule === 'query' ? node('solution', list(entry.conclusionTerm.args)) : entry.conclusionTerm;
-      const source = entry.rule === 'query' ? atom('query') : node('rule', integer(entry.rule), location(entry.location));
+      const source = entry.rule === 'query' ? atom('query') : node('rule', integer(entry.rule));
       emit(node('substitution', integer(entry.id), substitution(entry.substitution)));
       emit(node('proof', integer(entry.id), conclusion, source, list(entry.premises.map(premise))));
     }

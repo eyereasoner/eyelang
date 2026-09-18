@@ -183,7 +183,7 @@ relations are ordinary Eyelang definitions, not implicit built-ins.
 Default output is itself an Eyelang program:
 
 ```eye
-query(1, at(7, 1), [call(ancestor(alice, ?v0))], [binding("who", ?v0)]).
+query(1, [call(ancestor(alice, ?v0))], [binding("who", ?v0)]).
 result(1, complete, 2).
 answer(1, [binding("who", bob)]).
 answer(1, [binding("who", carol)]).
@@ -199,14 +199,17 @@ With `--proof`, additional facts describe the derivation:
 ```eye
 clause(2, mortal(var("who")), [call(human(var("who")))]).
 substitution(2, [binding("who", socrates)]).
-proof(2, mortal(socrates), rule(2, at(2, 1)),
+proof(2, mortal(socrates), rule(2),
       [uses(1, human(socrates))]).
 ```
 
 `clause/3` reifies the source template, `substitution/2` records its explicit
 instantiation, `proof/4` records the conclusion and premises, and `why/3` links
 an answer to its proof. These records can be inspected by ordinary Eyelang
-rules. Built-ins, calculations, absence, and collection completion remain
+rules. Rule numbers and proof links are stable when comments, whitespace, or
+line wrapping change; physical source locations remain available through the
+JavaScript API but are deliberately absent from portable proof documents.
+Built-ins, calculations, absence, and collection completion remain
 trusted steps, so the document is an explanation rather than a fully checked
 proof certificate. The complete record vocabulary is normative in section 12
 of the [specification](specification.md).

@@ -1,5 +1,5 @@
-# Eyelang result format 1
-query(1, at(4, 1), [call(child(?v0, ?v1))], [binding("child", ?v0), binding("parent", ?v1)]).
+# Eyelang result format 2
+query(1, [call(child(?v0, ?v1))], [binding("child", ?v0), binding("parent", ?v1)]).
 result(1, complete, 3).
 answer(1, [binding("child", x), binding("parent", a)]).
 why(1, [binding("child", x), binding("parent", a)], 7).
@@ -13,17 +13,17 @@ clause(3, mother(c, a), []).
 clause(4, child(var("x"), var("y")), [call(father(var("y"), var("x")))]).
 clause(5, child(var("x"), var("y")), [call(mother(var("y"), var("x")))]).
 substitution(1, []).
-proof(1, father(a, x), rule(1, at(2, 1)), []).
+proof(1, father(a, x), rule(1), []).
 substitution(2, []).
-proof(2, mother(b, x), rule(2, at(2, 15)), []).
+proof(2, mother(b, x), rule(2), []).
 substitution(3, []).
-proof(3, mother(c, a), rule(3, at(2, 29)), []).
+proof(3, mother(c, a), rule(3), []).
 substitution(4, [binding("x", x), binding("y", a)]).
-proof(4, child(x, a), rule(4, at(3, 1)), [uses(1, father(a, x))]).
+proof(4, child(x, a), rule(4), [uses(1, father(a, x))]).
 substitution(5, [binding("x", x), binding("y", b)]).
-proof(5, child(x, b), rule(5, at(3, 34)), [uses(2, mother(b, x))]).
+proof(5, child(x, b), rule(5), [uses(2, mother(b, x))]).
 substitution(6, [binding("x", a), binding("y", c)]).
-proof(6, child(a, c), rule(5, at(3, 34)), [uses(3, mother(c, a))]).
+proof(6, child(a, c), rule(5), [uses(3, mother(c, a))]).
 substitution(7, [binding("child", x), binding("parent", a)]).
 proof(7, solution([x, a]), query, [uses(4, child(x, a))]).
 substitution(8, [binding("child", x), binding("parent", b)]).
