@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>eyelang playground</title>
+  <style>
+    :root { color-scheme: light; --page: #f4f6f8; --card: #fff; --ink: #172936; --muted: #566874; --line: #d5dfe5; --accent: #096a67; --soft: #e7f4f1; --error: #ad283b; --editor: #fbfcfd; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+    main { max-width: 1480px; margin: auto; padding: 32px clamp(16px, 4vw, 56px); }
+    header, .heading, .actions, footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); letter-spacing: -.05em; font-weight: 750; }
+    h1 span { color: var(--accent); }
+    h1 small { color: var(--muted); font-size: 15px; letter-spacing: 0; font-weight: 500; margin-left: 14px; }
+    header p { margin: 6px 0 0; color: var(--muted); }
+    a { color: var(--accent); text-underline-offset: 3px; }
+    nav { display: flex; gap: 20px; font-size: 14px; }
+    .arc { display: flex; gap: 8px; margin: 26px 0 18px; flex-wrap: wrap; }
+    .arc span { border: 1px solid var(--line); border-radius: 7px; padding: 5px 12px; font-size: 13px; color: var(--muted); background: var(--card); }
+    .arc b { color: var(--accent); margin-right: 5px; }
+    .toolbar, .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+    .toolbar { padding: 18px 20px; margin-bottom: 18px; }
+    .load-row { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
+    .example-field { flex: 1 1 260px; }
+    label { display: block; font-size: 14px; font-weight: 650; margin-bottom: 6px; }
+    button, select, input, textarea { font: inherit; }
+    button, .file-button { border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--ink); min-height: 42px; padding: 8px 15px; cursor: pointer; font-size: 14px; font-weight: 600; }
+    button:hover:not(:disabled), .file-button:hover { border-color: var(--accent); background: var(--soft); }
+    button:disabled { opacity: .45; cursor: default; }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.primary:hover:not(:disabled) { filter: brightness(1.12); background: var(--accent); }
+    button.stop { color: var(--error); }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    select, input[type=url], input[type=text] { width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--editor); color: var(--ink); min-height: 42px; }
+    .file-button { display: inline-flex; align-items: center; margin: 0; }
+    input[type=file] { max-width: 100%; }
+    details { margin-top: 14px; font-size: 14px; }
+    summary { color: var(--muted); cursor: pointer; width: fit-content; }
+    .open-fields { display: grid; gap: 12px; padding-top: 14px; }
+    .url-field { flex: 1 1 260px; }
+    .message { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    .card { overflow: hidden; min-width: 0; }
+    .heading { padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    h2, .heading label { font-size: 16px; margin: 0; font-weight: 650; }
+    .heading span { font-size: 12px; color: var(--muted); }
+    #program, #output { display: block; width: 100%; height: clamp(360px, 53vh, 720px); margin: 0; padding: 20px; background: var(--editor); color: var(--ink); font: 14px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; overflow: auto; }
+    #program { border: 0; border-radius: 0; resize: vertical; white-space: pre; }
+    #program:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+    #output { white-space: pre-wrap; overflow-wrap: anywhere; }
+    #output.error { color: var(--error); }
+    .actions { padding: 14px 20px; border-top: 1px solid var(--line); min-height: 72px; justify-content: start; gap: 8px; }
+    .shortcut { margin-left: auto; font-size: 12px; color: var(--muted); }
+    kbd { font: inherit; border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; }
+    #run-status { margin: 0; font-size: 13px; color: var(--muted); flex: 1 1 180px; }
+    #run-status[data-state=success] { color: var(--accent); }
+    #run-status[data-state=error] { color: var(--error); }
+    #preview-note { padding: 12px 20px; border-top: 1px solid var(--line); margin: 0; background: var(--soft); font-size: 13px; }
+    #share-panel { margin-top: 16px; }
+    #serve-hint { padding: 16px 20px; margin: 20px 0; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+    #serve-hint code { white-space: nowrap; }
+    footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
+    footer p { margin: 0; }
+    @media (max-width: 800px) { .workspace { grid-template-columns: 1fr; } main { padding-top: 20px; } #program, #output { height: 380px; } .shortcut { display: none; } }
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme: dark; --page: #101c24; --card: #182832; --ink: #e1edf2; --muted: #a6b9c4; --line: #344954; --accent: #74d7bd; --soft: #233c3e; --error: #ff9aac; --editor: #14232c; }
+      button.primary { color: #112b27; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>eye<span>lang</span><small>playground</small></h1><p>Write a program. Ask a question. See why.</p></div>
+      <nav aria-label="Documentation"><a href="README.md">Getting started</a><a href="SPEC.md">Language specification</a></nav>
+    </header>
+    <div id="serve-hint" role="status">Start <code>node playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
+    <noscript><p>Turn on JavaScript to run programs in this playground.</p></noscript>
+    <div class="arc" aria-label="Answer, Reason, Check"><span><b>A</b> Ask a question</span><span><b>R</b> Follow it with why?</span><span><b>C</b> Check the answer</span></div>
+
+    <section class="toolbar" aria-label="Load and save programs">
+      <div class="load-row">
+        <div class="example-field">
+          <label for="example-select">Try an example</label>
+          <select id="example-select">
+            <option value="">Your program</option>
+            <optgroup label="Getting started">
+              <option value="socrates" selected>Socrates — hello world</option>
+              <option value="animals">Animals</option><option value="friends">Friends</option><option value="paths">Paths</option>
+              <option value="french-cities">French cities</option>
+            </optgroup>
+            <optgroup label="Numbers and lists">
+              <option value="fibonacci">Fibonacci 10000</option><option value="complex">Complex numbers</option><option value="turing">Turing machine</option>
+            </optgroup>
+            <optgroup label="Policies and queries">
+              <option value="delfour">Delfour</option><option value="negation">Negation</option><option value="aggregation">Aggregation</option>
+            </optgroup>
+            <optgroup label="Deep taxonomy">
+              <option value="deep-taxonomy-10">10 steps</option><option value="deep-taxonomy-100">100 steps</option>
+              <option value="deep-taxonomy-1000">1000 steps</option><option value="deep-taxonomy-10000">10000 steps</option>
+              <option value="deep-taxonomy-100000">100000 steps</option>
+            </optgroup>
+          </select>
+        </div>
+        <button id="reset" type="button">Reset edits</button><button id="save-program" type="button">Save program</button>
+        <button id="share" type="button">Share link</button>
+      </div>
+      <details>
+        <summary>Open a file or URL</summary>
+        <div class="open-fields">
+          <div><label for="open-file">Open a program from your computer</label><input id="open-file" type="file" accept=".eye,text/plain"></div>
+          <form id="url-form" class="load-row">
+            <div class="url-field"><label for="program-url">Program URL</label><input id="program-url" type="url" placeholder="https://example.org/program.eye" required></div>
+            <button id="load-url" type="submit">Load URL</button>
+          </form>
+        </div>
+      </details>
+      <p id="editor-status" class="message" role="status">Loading Socrates…</p>
+      <div id="share-panel" hidden><label for="share-url">Copy this link to share your program</label><input id="share-url" type="text" readonly></div>
+    </section>
+
+    <div class="workspace">
+      <section class="card" aria-labelledby="program-label">
+        <div class="heading"><label id="program-label" for="program">Your program</label><span id="source-name">socrates.eye</span></div>
+        <textarea id="program" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="editor-status" disabled></textarea>
+        <div class="actions"><button id="run" class="primary" type="button" disabled>Run program</button><button id="stop" class="stop" type="button" disabled>Stop</button><span class="shortcut"><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></span></div>
+      </section>
+      <section class="card" aria-labelledby="output-label">
+        <div class="heading"><h2 id="output-label">Answer, Reason, Check</h2><span id="output-size"></span></div>
+        <pre id="output" tabindex="0" aria-labelledby="output-label">Your answers will appear here.</pre>
+        <p id="preview-note" hidden></p>
+        <div class="actions"><p id="run-status" role="status" aria-live="polite">Ready when you are.</p><button id="copy-output" type="button" disabled>Copy output</button><button id="save-output" type="button" disabled>Save output</button></div>
+      </section>
+    </div>
+    <footer><p>Your program runs in your browser. Edits are saved on this device when space is available.</p><a href="https://josd.github.io/arc/">About ARC</a></footer>
+  </main>
+  <script type="module" src="playground.js"></script>
+</body>
+</html>

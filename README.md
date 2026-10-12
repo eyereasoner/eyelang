@@ -1,0 +1,97 @@
+# eyelang
+
+[Playground](https://eyereasoner.github.io/eyelang/playground) ·
+[Language specification](https://eyereasoner.github.io/eyelang/SPEC)
+
+A small, experimental logic programming language, written so kids can read it.
+Tell it facts and rules. Ask a question. See why the answer follows, and check it.
+
+## Hello, Socrates
+
+```text
+socrates is a human.
+human implies mortal.
+
+if someone is a first and first implies second then someone is a second.
+
+# Answer
+who is a mortal?
+# Reason
+why?
+# Check
+check that socrates is a mortal.
+check that there is 1 mortal.
+```
+
+Run it with Node.js 18 or later. No packages to install:
+
+```sh
+node eyelang.js examples/socrates.eye
+```
+
+The answer is `socrates is a mortal.`. The explanation shows the rule and its
+two clues. The checks confirm the answer and that there is exactly one mortal.
+This is [ARC: Answer, Reason, Check](https://josd.github.io/arc/).
+
+## Playground
+
+Open [the playground](https://eyereasoner.github.io/eyelang/playground), choose an example,
+and press **Run program** (or Ctrl/⌘ + Enter). **Stop** cancels a long run.
+You can open `.eye` files or URLs, save programs and full output, and share a
+program as a link. Your draft is saved on this device when storage is available.
+Large output has a labeled preview; copying or saving preserves the complete result.
+For local use, run `node playground-server.js` and open
+http://127.0.0.1:8000/playground.html.
+
+## The essentials
+
+- Facts end with `.`; questions end with `?`. Notes start with `#`.
+- Names are single words: `socrates`, `red-fox`. Capitalization does not matter.
+  Double quotes preserve text: `"Classic Tea Biscuits"`.
+- Rules use `if`, `and`, and `then`. The placeholders `someone`, `something`,
+  `number`, `first`, and `second` keep the same value within one rule.
+- Ask `who is a mortal?`, `is socrates a mortal?`, or `what does milo like?`.
+  Follow a question with `why?` to explain all its answers.
+- Properties look like `the score of milo is 7.`. Lists look like `[1, 0, 1]`.
+- Calculations include `plus`, `minus`, `times`, `divided by`, and powers.
+  Whole-number arithmetic is exact; real functions use approximate arithmetic.
+- `not` means there is no matching evidence in the completed program.
+  An ordinary unanswered question says “I don't know.”
+- `check that … .` tests an expectation. A failed check stops the run with a
+  line number and a failing exit status. Update expectations when you change inputs.
+
+These are fixed sentence shapes. The complete syntax and meaning are in
+[SPEC.md](SPEC.md).
+
+## Examples
+
+Every example includes answers, reasons, and executable checks.
+
+| Example | Try it for |
+| --- | --- |
+| [Socrates](examples/socrates.eye) | The hello world of reasoning |
+| [Animals](examples/animals.eye) | Facts, rules, and missing evidence |
+| [Friends](examples/friends.eye) | Combining clues |
+| [Paths](examples/paths.eye) | Rules with a loop |
+| [French cities](examples/french-cities.eye) | Routes through one-way roads |
+| [Fibonacci](examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
+| [Complex numbers](examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
+| [Turing machine](examples/turing.eye) | Running binary tapes with ordinary rules |
+| [Delfour](examples/delfour.eye) | A shopping policy and a lower-sugar recommendation |
+| [Negation](examples/negation.eye) | Reasoning from absent evidence |
+| [Aggregation](examples/aggregation.eye) | Counts, totals, and smallest/largest values |
+
+Deep taxonomy examples have [10](examples/deep-taxonomy-10.eye),
+[100](examples/deep-taxonomy-100.eye), [1000](examples/deep-taxonomy-1000.eye),
+[10000](examples/deep-taxonomy-10000.eye), and
+[100000](examples/deep-taxonomy-100000.eye) steps.
+
+Run any `.eye` file in the same way. Fibonacci and the larger taxonomies print
+long explanations; save their output to a file:
+
+```sh
+node eyelang.js examples/fibonacci.eye > fibonacci-arc.txt
+node eyelang.js my-program.eye
+node eyelang.js - < my-program.eye
+npm test
+```

@@ -1,0 +1,54 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Run tests
+        run: npm test
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Prepare website
+        run: node scripts/prepare-pages.js
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - name: Render documentation
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./_pages
+          destination: ./_site
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4

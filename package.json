@@ -1,0 +1,9 @@
+{
+  "name": "eyelang",
+  "version": "0.0.1",
+  "description": "A simple symbolic logic programming language.",
+  "type": "module",
+  "bin": { "eyelang": "./eyelang.js" },
+  "scripts": { "test": "node --test", "start": "node eyelang.js examples/socrates.eye" },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{{ page.title | escape }}</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { max-width: 960px; margin: auto; padding: 24px; font: 17px/1.65 system-ui, sans-serif; }
+    nav { display: flex; flex-wrap: wrap; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid #8799a5; }
+    a { color: light-dark(#096a67, #74d7bd); text-underline-offset: 3px; }
+    h1, h2, h3 { line-height: 1.25; margin-top: 1.5em; scroll-margin-top: 20px; }
+    pre { padding: 18px; border: 1px solid #8799a5; border-radius: 8px; overflow: auto; font-size: 14px; }
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
+    table { display: block; overflow-x: auto; border-collapse: collapse; }
+    th, td { padding: 8px 12px; border: 1px solid #8799a5; text-align: left; }
+    img { max-width: 100%; }
+  </style>
+</head>
+<body>
+  <nav aria-label="Documentation">
+    <a href="{{ '/' | relative_url }}">eyelang</a>
+    <a href="{{ '/playground/' | relative_url }}">Playground</a>
+    <a href="{{ '/SPEC/' | relative_url }}">Specification</a>
+  </nav>
+  <main>{{ content }}</main>
+</body>
+</html>

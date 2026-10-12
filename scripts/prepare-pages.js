@@ -1,0 +1,40 @@
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const root = fileURLToPath(new URL('../', import.meta.url));
+
+export async function preparePages(destination, basePath = '/eyelang') {
+  await mkdir(destination, { recursive: true });
+  for (const file of ['language.js', 'playground.js', 'playground-worker.js', 'README.md', 'SPEC.md', 'LICENSE.md', 'examples']) {
+    await cp(resolve(root, file), resolve(destination, file), { recursive: true });
+  }
+  const write = (file, text) => writeFile(resolve(destination, file), text);
+  await mkdir(resolve(destination, 'playground'), { recursive: true });
+  await mkdir(resolve(destination, 'SPEC'), { recursive: true });
+  await mkdir(resolve(destination, '_layouts'), { recursive: true });
+
+  const playground = (await readFile(resolve(root, 'playground.html'), 'utf8'))
+    .replace('href="README.md"', 'href="./"')
+    .replace('href="SPEC.md"', 'href="SPEC/"');
+  await write('playground.html', playground);
+  await write('playground/index.html', playground.replace('<head>', '<head>\n  <base href="../">'));
+
+  const readme = (await readFile(resolve(root, 'README.md'), 'utf8')).replaceAll('(SPEC.md)', '(SPEC/)');
+  const spec = (await readFile(resolve(root, 'SPEC.md'), 'utf8'))
+    .replaceAll('(README.md)', '(../)')
+    .replaceAll('(language.js)', '(../language.js)')
+    .replaceAll('(test/)', '(https://github.com/eyereasoner/eyelang/tree/main/test)');
+  await write('index.md', `---\nlayout: default\ntitle: eyelang\n---\n\n${readme}`);
+  await write('SPEC/index.md', `---\nlayout: default\ntitle: eyelang Language Specification\n---\n\n${spec}`);
+  await write('_config.yml', JSON.stringify({
+    title: 'eyelang', baseurl: basePath, markdown: 'kramdown',
+    kramdown: { input: 'GFM', auto_ids: true },
+  }, null, 2));
+  await cp(resolve(root, 'scripts/pages-layout.html'), resolve(destination, '_layouts/default.html'));
+}
+
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  await preparePages(resolve(root, '_pages'), process.env.PAGES_BASE_PATH ?? '/eyelang');
+  console.log('Website prepared in _pages. Render with Jekyll to produce _site.');
+}
