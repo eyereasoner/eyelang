@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { run } from '../language.js';
+import { run } from '../src/language.js';
 
 test('the scoreboard counts derived kinds and totals equal scores from different players', () => {
   const answers = run(readFileSync(new URL('../examples/aggregation.eye', import.meta.url), 'utf8'));

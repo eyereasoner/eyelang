@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { request } from 'node:http';
 import { readFileSync, readdirSync } from 'node:fs';
-import { createPlaygroundServer } from '../playground-server.js';
+import { createPlaygroundServer } from '../src/playground-server.js';
 
 async function withServer(t) {
   const server = createPlaygroundServer();
@@ -24,9 +24,9 @@ test('the playground serves its page, browser modules, examples, and documentati
   const get = await withServer(t);
   for (const [path, type, content] of [
     ['/', 'text/html', '<title>eyelang playground</title>'],
-    ['/playground.js', 'text/javascript', 'new Worker('],
-    ['/playground-worker.js', 'text/javascript', "import { run } from './language.js'"],
-    ['/language.js', 'text/javascript', 'export function run('],
+    ['/src/playground.js', 'text/javascript', 'new Worker('],
+    ['/src/playground-worker.js', 'text/javascript', "import { run } from './language.js'"],
+    ['/src/language.js', 'text/javascript', 'export function run('],
     ['/examples/socrates.eye', 'text/plain', 'human implies mortal.'],
     ['/SPEC.md', 'text/plain', '# eyelang Language Specification'],
   ]) {
@@ -42,7 +42,7 @@ test('the playground serves its page, browser modules, examples, and documentati
 
 test('the playground server handles missing assets, malformed URLs, and unsupported methods', async t => {
   const get = await withServer(t);
-  for (const path of ['/missing', '/examples/missing.eye', '/package.json', '/.git/config', '/%2e%2e%2fpackage.json']) {
+  for (const path of ['/missing', '/examples/missing.eye', '/package.json', '/src/playground-server.js', '/language.js', '/playground.js', '/.git/config', '/%2e%2e%2fpackage.json']) {
     assert.equal((await get(path)).status, 404, path);
   }
   assert.equal((await get('/%xx')).status, 400);

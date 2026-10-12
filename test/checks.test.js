@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { infer, parse, run } from '../language.js';
+import { infer, parse, run } from '../src/language.js';
 
 test('checks inspect the completed program without asserting facts', () => {
   const source = `

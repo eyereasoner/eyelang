@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { infer, parse, run } from '../language.js';
+import { infer, parse, run } from '../src/language.js';
 
 test('lists contain names, numbers, nested lists, and empty lists', () => {
   assert.deepEqual(run(`

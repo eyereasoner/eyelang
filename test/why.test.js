@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parse, run } from '../language.js';
+import { parse, run } from '../src/language.js';
 
 test('why explains the preceding answer, including repeated follow-ups', () => {
   const program = `milo is a cat. if someone is a cat then someone is an animal.`;

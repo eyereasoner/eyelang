@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parse, run } from '../language.js';
+import { parse, run } from '../src/language.js';
 
 function result(expression) {
   const [answer] = run(`

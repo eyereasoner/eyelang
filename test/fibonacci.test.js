@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { infer, parse, run } from '../language.js';
+import { infer, parse, run } from '../src/language.js';
 
 const rule = `
   if number is a step

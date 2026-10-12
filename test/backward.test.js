@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { infer, parse, run, say } from '../language.js';
+import { infer, parse, run, say } from '../src/language.js';
 
 const fibonacci = `
   the fibonacci of 0 is 0.

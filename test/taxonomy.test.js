@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { infer, parse, run } from '../language.js';
+import { infer, parse, run } from '../src/language.js';
 
 function example(depth) {
   return readFileSync(new URL(`../examples/deep-taxonomy-${depth}.eye`, import.meta.url), 'utf8');

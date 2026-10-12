@@ -61,42 +61,16 @@ the log-radius of someone is natural log of first if the radius of someone is fi
 # size = r to the power c, times exp of minus d times t.
 # phase = d times log of r, plus c times t.
 if someone is a power
-and the base of someone is something
-and the radius of something is first
-and the exponent of someone is number
-and the real of number is second
-then the radial-power of someone is first to the power of second.
+and the base of someone is first and the exponent of someone is second
+and the radius of first is third and the angle of first is fourth
+and the real of second is fifth and the imaginary of second is sixth
+then the size of someone is (third to the power of fifth) times exponential of (0 minus sixth times fourth).
 
 if someone is a power
-and the base of someone is something
-and the angle of something is first
-and the exponent of someone is number
-and the imaginary of number is second
-then the damping of someone is exponential of (0 minus second times first).
-
-if someone is a power
-and the base of someone is something
-and the log-radius of something is first
-and the exponent of someone is number
-and the imaginary of number is second
-then the phase-imaginary of someone is second times first.
-
-if someone is a power
-and the base of someone is something
-and the angle of something is first
-and the exponent of someone is number
-and the real of number is second
-then the phase-real of someone is second times first.
-
-if someone is a power
-and the radial-power of someone is first
-and the damping of someone is second
-then the size of someone is first times second.
-
-if someone is a power
-and the phase-imaginary of someone is first
-and the phase-real of someone is second
-then the phase of someone is first plus second.
+and the base of someone is first and the exponent of someone is second
+and the log-radius of first is third and the angle of first is fourth
+and the real of second is fifth and the imaginary of second is sixth
+then the phase of someone is sixth times third plus fifth times fourth.
 
 if someone is a power
 and the size of someone is first

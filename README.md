@@ -40,7 +40,7 @@ and press **Run program** (or Ctrl/⌘ + Enter). **Stop** cancels a long run.
 You can open `.eye` files or URLs, save programs and full output, and share a
 program as a link. Your draft is saved on this device when storage is available.
 Large output has a labeled preview; copying or saving preserves the complete result.
-For local use, run `node playground-server.js` and open
+For local use, run `node src/playground-server.js` and open
 http://127.0.0.1:8000/playground.html.
 
 ## The essentials
@@ -50,8 +50,8 @@ http://127.0.0.1:8000/playground.html.
   Double quotes preserve text: `"Classic Tea Biscuits"`.
 - `if clues then answer.` follows facts forward. `answer if clues.` works
   backwards from a question, remembering answers so recursive rules can reuse them.
-  Join clues with `and`. The placeholders `someone`, `something`, `number`,
-  `first`, and `second` keep the same value within one rule.
+  Join clues with `and`. Placeholders keep the same value within one rule:
+  `someone`, `something`, `number`, and `first` through `ninth`.
 - Ask `who is a mortal?`, `is socrates a mortal?`, or `what does milo like?`.
   Follow a question with `why?` to explain all its answers.
 - Properties look like `the score of milo is 7.`. Lists look like `[1, 0, 1]`.
@@ -93,6 +93,7 @@ Every example includes answers, reasons, and executable checks.
 | [Paths](examples/paths.eye) | Rules with a loop |
 | [French cities](examples/french-cities.eye) | Routes through one-way roads |
 | [GPS](examples/gps.eye) | Choosing a route by duration, cost, belief, and comfort |
+| [Age](examples/age.eye) | Checking an age against a supplied date |
 | [Fibonacci](examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
 | [Complex numbers](examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
 | [Turing machine](examples/turing.eye) | Running binary tapes with ordinary rules |
@@ -112,5 +113,10 @@ long explanations; save their output to a file:
 node eyelang.js examples/fibonacci.eye > fibonacci-arc.txt
 node eyelang.js my-program.eye
 node eyelang.js - < my-program.eye
+node eyelang.js --version
 npm test
 ```
+
+To release, commit your changes and run `./release patch "$(git log -1 --pretty=%B)"`.
+The version bump updates the specification and playground; pushing the tag
+runs the tests and creates a GitHub release with that message.

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { infer, parse, run, say } from '../language.js';
+import { infer, parse, run, say } from '../src/language.js';
 
 test('Socrates derives mortality through a generic kind implication and explains both clues', () => {
   const source = readFileSync(new URL('../examples/socrates.eye', import.meta.url), 'utf8');

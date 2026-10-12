@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { run } from '../language.js';
+import { run } from '../src/language.js';
 
 const source = readFileSync(new URL('../examples/gps.eye', import.meta.url), 'utf8');
 const direct = '[drive-gent-brugge, drive-brugge-oostende]';
@@ -33,7 +33,7 @@ test('GPS derives both routes, computes all four scores, recommends Brugge, and 
     'the recommended-route of trip is direct.',
     'the outcome of trip is "Gent → Brugge → Oostende".',
   ]);
-  assert.equal(answers.slice(13).length, 19);
+  assert.equal(answers.slice(13).length, 17);
   assert.ok(answers.slice(13).every(answer => answer.startsWith('check passed:')));
 });
 

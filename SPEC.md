@@ -116,9 +116,16 @@ The following words are reserved:
 if then and is a an why does plus minus not
 ```
 
-The five rule variables are `someone`, `something`, `number`, `first`, and
-`second`. Their scope is one rule. They can bind any value, and two different
-variables MAY bind the same value. Repeated occurrences MUST agree.
+The twelve rule variables are:
+
+```text
+someone something number
+first second third fourth fifth sixth seventh eighth ninth
+```
+
+Their scope is one rule. They can bind any value, and two different variables
+MAY bind the same value. Repeated occurrences MUST agree. All twelve names
+denote distinct variables; ordinal names do not imply numeric values.
 
 `who` and `what` are query variables. Rule variables MUST NOT occur in facts
 or questions. Query variables MUST NOT occur in facts or rules. Checks MUST
@@ -547,24 +554,25 @@ checks before writing their output; if any check fails, it prints no successful
 answer transcript. Successful output blocks are separated by blank lines.
 
 Programs with no questions or checks receive a prompt to add a question.
-`--help` and `-h` display usage. The reference implementation requires Node.js
-18 or later and no third-party packages.
+`--help` and `-h` display usage. `--version` and `-v` display `eyelang` followed
+by the package version. The reference implementation requires Node.js 18 or
+later and no third-party packages.
 
 ## 11. Reference implementation and examples
 
 This section is informative.
 
-`language.js` exports `parse`, `infer`, `say`, and `run`. Parsing produces
+`src/language.js` exports `parse`, `infer`, `say`, and `run`. Parsing produces
 facts, rules, questions, and checks; inference requests their goals and returns
 materialized facts with evidence (including requested backward answers);
 `run` returns rendered output blocks or throws an error. `eyelang.js` supplies
 the file/stdin interface. Importing the language module has no CLI side effects.
 
-`playground.html` and `playground.js` provide a browser editor, bundled examples,
+`playground.html` and `src/playground.js` provide a browser editor, bundled examples,
 draft storage, share links, file/URL loading, and output downloads. Each run
-uses `playground-worker.js`, which imports the same language module; Stop
+uses `src/playground-worker.js`, which imports the same language module; Stop
 terminates that worker. The displayed output preview is explicitly bounded,
-while copying and downloading retain the full result. `node playground-server.js`
+while copying and downloading retain the full result. `node src/playground-server.js`
 starts a local HTTP server; the browser assets also work on a static host.
 These UI facilities do not change language syntax or inference semantics.
 
@@ -586,6 +594,10 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
 - GPS builds action lists from Gent to Oostende, adds duration and cost, and
   multiplies belief and comfort. It recommends the route that strictly beats
   the alternative on all four scores in its two-route map.
+- Age checks whether a person is strictly older than a whole number of calendar
+  years, using supplied `[year, month, day]` lists. The comparison date is
+  explicit; on the birthday itself the person is exactly that age. This example
+  does not read a clock or implement general date/duration arithmetic.
 - Fibonacci works backwards from its requested indices by addition, including
   exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity. Its full explanation
   shares 20000 evidence records instead of expanding a recursive proof tree.
@@ -642,5 +654,5 @@ convention; no media type is registered by this memo.
 
 - [ARC: Answer, Reason, Check](https://josd.github.io/arc/).
 - [README.md](https://github.com/eyereasoner/eyelang/blob/main/README.md): introduction and example index.
-- [language.js](https://github.com/eyereasoner/eyelang/blob/main/language.js): reference implementation.
+- [src/language.js](https://github.com/eyereasoner/eyelang/blob/main/src/language.js): reference implementation.
 - [test/](https://github.com/eyereasoner/eyelang/tree/main/test): executable behavior and regression checks.

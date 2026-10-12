@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parse, run } from '../language.js';
+import { parse, run } from '../src/language.js';
 
 const source = readFileSync(new URL('../examples/turing.eye', import.meta.url), 'utf8');
 const program = parse(source);

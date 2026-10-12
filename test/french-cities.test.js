@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { run } from '../language.js';
+import { run } from '../src/language.js';
 
 const source = readFileSync(new URL('../examples/french-cities.eye', import.meta.url), 'utf8');
 

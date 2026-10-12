@@ -74,10 +74,10 @@
 <body>
   <main>
     <header>
-      <div><h1>eye<span>lang</span><small>playground</small></h1><p>Write a program. Ask a question. See why.</p></div>
+      <div><h1>eye<span>lang</span><small>playground <span id="version">v0.0.1</span></small></h1><p>Write a program. Ask a question. See why.</p></div>
       <nav aria-label="Documentation"><a href="README.md">Getting started</a><a href="SPEC.md">Language specification</a></nav>
     </header>
-    <div id="serve-hint" role="status">Start <code>node playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
+    <div id="serve-hint" role="status">Start <code>node src/playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
     <noscript><p>Turn on JavaScript to run programs in this playground.</p></noscript>
     <div class="arc" aria-label="Answer, Reason, Check"><span><b>A</b> Ask a question</span><span><b>R</b> Follow it with why?</span><span><b>C</b> Check the answer</span></div>
 
@@ -94,6 +94,7 @@
               <option value="gps">GPS — choosing a route</option>
             </optgroup>
             <optgroup label="Numbers and lists">
+              <option value="age">Age — checking a birthday</option>
               <option value="fibonacci">Fibonacci 10000</option><option value="complex">Complex numbers</option><option value="turing">Turing machine</option>
             </optgroup>
             <optgroup label="Policies and queries">
@@ -138,6 +139,6 @@
     </div>
     <footer><p>Your program runs in your browser. Edits are saved on this device when space is available.</p><a href="https://josd.github.io/arc/">About ARC</a></footer>
   </main>
-  <script type="module" src="playground.js"></script>
+  <script type="module" src="src/playground.js"></script>
 </body>
 </html>

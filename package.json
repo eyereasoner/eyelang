@@ -4,6 +4,10 @@
   "description": "A simple symbolic logic programming language.",
   "type": "module",
   "bin": { "eyelang": "./eyelang.js" },
-  "scripts": { "test": "node --test", "start": "node eyelang.js examples/socrates.eye" },
+  "scripts": {
+    "test": "node --test",
+    "start": "node eyelang.js examples/socrates.eye",
+    "version": "node scripts/sync-version.js"
+  },
   "engines": { "node": ">=18" }
 }

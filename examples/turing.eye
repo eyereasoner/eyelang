@@ -20,55 +20,43 @@ the machine of case4 is add-one.
 the input of case4 is [].
 
 # The rules below run any machine described by this transition-table shape.
-if the machine of someone is something
-and the start of something is first
-then the initial-state of someone is first.
-
-if the machine of someone is first
-and the transition of [first, second, number] is something
-then the instruction of [someone, second, number] is something.
-
 # A configuration is [state, reversed-left-tape, current-symbol, right-tape].
 # [first | second] separates the first item from the rest of a list.
-if the input of someone is [first | second]
-and the initial-state of someone is number
-then someone runs [number, [], first, second].
+if the machine of someone is first and the start of first is second
+and the input of someone is [third | fourth]
+then someone runs [second, [], third, fourth].
 
-if the input of someone is []
-and the initial-state of someone is first
-then someone runs [first, [], blank, []].
-
-# Find the instruction for this state and the symbol under the head.
-if someone runs [first, something, number, second]
-then the tape of [someone, first, number] is [something, second].
-
-if the tape of [someone, first, number] is second
-and the instruction of [someone, first, number] is something
-then someone moves [something, second].
+if the machine of someone is first and the start of first is second
+and the input of someone is []
+then someone runs [second, [], blank, []].
 
 # Write the symbol and move right, extending the tape with blank if needed.
-if someone moves [[first, number, right], [something, second]]
-then someone shifts [first, [number | something], second].
+if someone runs [first, second, third, [fourth | fifth]]
+and the machine of someone is sixth
+and the transition of [sixth, first, third] is [seventh, eighth, right]
+then someone runs [seventh, [eighth | second], fourth, fifth].
 
-if someone shifts [first, something, [number | second]]
-then someone runs [first, something, number, second].
-
-if someone shifts [first, something, []]
-then someone runs [first, something, blank, []].
+if someone runs [first, second, third, []]
+and the machine of someone is fourth
+and the transition of [fourth, first, third] is [fifth, sixth, right]
+then someone runs [fifth, [sixth | second], blank, []].
 
 # Write the symbol and move left, extending the tape with blank if needed.
-if someone moves [[first, number, left], [something, second]]
-then someone slides [first, something, [number | second]].
+if someone runs [first, [second | third], fourth, fifth]
+and the machine of someone is sixth
+and the transition of [sixth, first, fourth] is [seventh, eighth, left]
+then someone runs [seventh, third, second, [eighth | fifth]].
 
-if someone slides [first, [number | something], second]
-then someone runs [first, something, number, second].
-
-if someone slides [first, [], second]
-then someone runs [first, [], blank, second].
+if someone runs [first, [], second, third]
+and the machine of someone is fourth
+and the transition of [fourth, first, second] is [fifth, sixth, left]
+then someone runs [fifth, [], blank, [sixth | third]].
 
 # A stay instruction writes without moving the head.
-if someone moves [[first, number, stay], [something, second]]
-then someone runs [first, something, number, second].
+if someone runs [first, second, third, fourth]
+and the machine of someone is fifth
+and the transition of [fifth, first, third] is [sixth, seventh, stay]
+then someone runs [sixth, second, seventh, fourth].
 
 # On halt, turn the reversed left side around and join it to the rest.
 if someone runs [halt, first, number, second]

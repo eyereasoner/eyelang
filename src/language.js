@@ -3,7 +3,8 @@
 const word = /^[\p{L}][\p{L}\p{N}_-]*$/u;
 const integer = /^-?\d+$/;
 const numeric = /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/;
-const placeholders = new Set(['someone', 'something', 'number', 'first', 'second']);
+const placeholders = new Set(['someone', 'something', 'number',
+  'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth']);
 const questionWords = new Set(['who', 'what']);
 const reserved = new Set(['if', 'then', 'and', 'is', 'a', 'an', 'why', 'does', 'plus', 'minus', 'not']);
 
@@ -53,7 +54,7 @@ function simpleTerm(text, mode) {
     throw new Error(`Use one word for a name or kind, such as milo or animal; I found "${text}".`);
   }
   if (placeholders.has(text)) {
-    if (mode !== 'rule') throw new Error(`Use ${text} inside an if … then … rule.`);
+    if (mode !== 'rule') throw new Error(`Use ${text} inside an if … then … rule or an answer if … rule.`);
     return { variable: text };
   }
   if (questionWords.has(text)) {

@@ -19,7 +19,7 @@ test('Pages serves playground dependencies under the project path and prepares r
     assert.equal(new URL('.', base).pathname, '/eyelang/');
 
     const assets = [...html.matchAll(/src="([^"]+)"/g)].map(match => match[1]);
-    assets.push('playground-worker.js', 'language.js');
+    assets.push('src/playground-worker.js', 'src/language.js');
     for (const match of html.matchAll(/<option value="([a-z0-9-]+)"/g)) {
       assets.push(`examples/${match[1]}.eye`);
     }
@@ -38,7 +38,7 @@ test('Pages serves playground dependencies under the project path and prepares r
   assert.match(home, /\[SPEC.md\]\(SPEC\/\)/);
   assert.match(spec, /^---\nlayout: default\n/);
   assert.match(spec, /# eyelang Language Specification/);
-  for (const [label, path] of [['README.md', 'blob/main/README.md'], ['language.js', 'blob/main/language.js'], ['test/', 'tree/main/test']]) {
+  for (const [label, path] of [['README.md', 'blob/main/README.md'], ['src/language.js', 'blob/main/src/language.js'], ['test/', 'tree/main/test']]) {
     assert.ok(spec.includes(`[${label}](https://github.com/eyereasoner/eyelang/${path})`), label);
   }
   assert.equal(JSON.parse(await read('_config.yml')).baseurl, '/eyelang');

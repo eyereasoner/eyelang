@@ -75,24 +75,17 @@ if the actions of someone is first and the belief of first is second.
 the comfort of someone is second
 if the actions of someone is first and the comfort of first is second.
 
-someone is-faster-than something
-if the duration of someone is first and the duration of something is second
-and first is less than second.
-someone is-cheaper-than something
-if the cost of someone is first and the cost of something is second
-and first is less than second.
-someone is-more-reliable-than something
-if the belief of someone is first and the belief of something is second
-and first is greater than second.
-someone is-more-comfortable-than something
-if the comfort of someone is first and the comfort of something is second
-and first is greater than second.
-
 # In this two-route map, recommend the route that wins on all four scores.
 someone beats something
 if someone is an available-route and something is an available-route
-and someone is-faster-than something and someone is-cheaper-than something
-and someone is-more-reliable-than something and someone is-more-comfortable-than something.
+and the duration of someone is first and the duration of something is second
+and first is less than second
+and the cost of someone is third and the cost of something is fourth
+and third is less than fourth
+and the belief of someone is fifth and the belief of something is sixth
+and fifth is greater than sixth
+and the comfort of someone is seventh and the comfort of something is eighth
+and seventh is greater than eighth.
 
 the recommended-route of trip is someone if someone beats something.
 the outcome of trip is first
@@ -127,10 +120,8 @@ check that the duration of via-kortrijk is 4100.
 check that the cost of via-kortrijk is 0.018.
 check that the belief of via-kortrijk is 0.903168.
 check that the comfort of via-kortrijk is 0.9801.
-check that direct is-faster-than via-kortrijk.
-check that direct is-cheaper-than via-kortrijk.
-check that direct is-more-reliable-than via-kortrijk.
-check that direct is-more-comfortable-than via-kortrijk.
+check that direct beats via-kortrijk.
+check that not via-kortrijk beats direct.
 check that the recommended-route of trip is direct.
 check that not the recommended-route of trip is via-kortrijk.
 check that the outcome of trip is "Gent → Brugge → Oostende".

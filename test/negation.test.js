@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parse, run } from '../language.js';
+import { parse, run } from '../src/language.js';
 
 test('the negation program waits for later rest rules and explains missing evidence', () => {
   const answers = run(readFileSync(new URL('../examples/negation.eye', import.meta.url), 'utf8'));
