@@ -121,5 +121,6 @@ npm test
 ```
 
 To release, commit your changes and run `./release patch "$(git log -1 --pretty=%B)"`.
+Use `minor` or `major` instead of `patch` for a larger version bump.
 The version bump updates the specification and playground; pushing the tag
 runs the tests and creates a GitHub release with that message.
