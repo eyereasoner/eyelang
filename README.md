@@ -1,5 +1,6 @@
 # eyelang
 
+[Repository](https://github.com/eyereasoner/eyelang) ·
 [Playground](https://eyereasoner.github.io/eyelang/playground) ·
 [Language specification](https://eyereasoner.github.io/eyelang/SPEC)
 
@@ -87,24 +88,24 @@ Every example includes answers, reasons, and executable checks.
 
 | Example | Try it for |
 | --- | --- |
-| [Socrates](examples/socrates.eye) | The hello world of reasoning |
-| [Animals](examples/animals.eye) | Facts, rules, and missing evidence |
-| [Friends](examples/friends.eye) | Combining clues |
-| [Paths](examples/paths.eye) | Rules with a loop |
-| [French cities](examples/french-cities.eye) | Routes through one-way roads |
-| [GPS](examples/gps.eye) | Choosing a route by duration, cost, belief, and comfort |
-| [Age](examples/age.eye) | Checking an age against a supplied date |
-| [Fibonacci](examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
-| [Complex numbers](examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
-| [Turing machine](examples/turing.eye) | Running binary tapes with ordinary rules |
-| [Delfour](examples/delfour.eye) | A shopping policy and a lower-sugar recommendation |
-| [Negation](examples/negation.eye) | Reasoning from absent evidence |
-| [Aggregation](examples/aggregation.eye) | Counts, totals, and smallest/largest values |
+| [Socrates](https://github.com/eyereasoner/eyelang/blob/main/examples/socrates.eye) | The hello world of reasoning |
+| [Animals](https://github.com/eyereasoner/eyelang/blob/main/examples/animals.eye) | Facts, rules, and missing evidence |
+| [Friends](https://github.com/eyereasoner/eyelang/blob/main/examples/friends.eye) | Combining clues |
+| [Paths](https://github.com/eyereasoner/eyelang/blob/main/examples/paths.eye) | Rules with a loop |
+| [French cities](https://github.com/eyereasoner/eyelang/blob/main/examples/french-cities.eye) | Routes through one-way roads |
+| [GPS](https://github.com/eyereasoner/eyelang/blob/main/examples/gps.eye) | Choosing a route by duration, cost, belief, and comfort |
+| [Age](https://github.com/eyereasoner/eyelang/blob/main/examples/age.eye) | Checking an age against a supplied date |
+| [Fibonacci](https://github.com/eyereasoner/eyelang/blob/main/examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
+| [Complex numbers](https://github.com/eyereasoner/eyelang/blob/main/examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
+| [Turing machine](https://github.com/eyereasoner/eyelang/blob/main/examples/turing.eye) | Running binary tapes with ordinary rules |
+| [Delfour](https://github.com/eyereasoner/eyelang/blob/main/examples/delfour.eye) | A shopping policy and a lower-sugar recommendation |
+| [Negation](https://github.com/eyereasoner/eyelang/blob/main/examples/negation.eye) | Reasoning from absent evidence |
+| [Aggregation](https://github.com/eyereasoner/eyelang/blob/main/examples/aggregation.eye) | Counts, totals, and smallest/largest values |
 
-Deep taxonomy examples have [10](examples/deep-taxonomy-10.eye),
-[100](examples/deep-taxonomy-100.eye), [1000](examples/deep-taxonomy-1000.eye),
-[10000](examples/deep-taxonomy-10000.eye), and
-[100000](examples/deep-taxonomy-100000.eye) steps.
+Deep taxonomy examples have [10](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-10.eye),
+[100](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-100.eye), [1000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-1000.eye),
+[10000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-10000.eye), and
+[100000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-100000.eye) steps.
 
 Run any `.eye` file in the same way. Fibonacci and the larger taxonomies print
 long explanations; save their output to a file:
