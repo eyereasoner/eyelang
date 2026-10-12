@@ -40,6 +40,10 @@ Open [the playground](https://eyereasoner.github.io/eyelang/playground), choose 
 and press **Run program** (or Ctrl/⌘ + Enter). **Stop** cancels a long run.
 You can open `.eye` files or URLs, save programs and full output, and share a
 program as a link. Your draft is saved on this device when storage is available.
+Unchanged examples get short links such as `#example=socrates`; edited programs
+are included in the link. **Create Gist share** shares a program through GitHub
+with an optional token, or helps you create a Gist on GitHub's website. Programs
+too large for an inline link also offer Gist sharing.
 Large output has a labeled preview; copying or saving preserves the complete result.
 For local use, run `node src/playground-server.js` and open
 http://127.0.0.1:8000/playground.html.

@@ -116,6 +116,7 @@
         </div>
         <button id="reset" type="button">Reset edits</button><button id="save-program" type="button">Save program</button>
         <button id="share" type="button">Share link</button>
+        <button id="create-gist" type="button">Create Gist share</button>
       </div>
       <details>
         <summary>Open a file or URL</summary>
@@ -129,6 +130,13 @@
       </details>
       <p id="editor-status" class="message" role="status">Loading Socrates…</p>
       <div id="share-panel" hidden><label for="share-url">Copy this link to share your program</label><input id="share-url" type="text" readonly></div>
+      <div id="gist-panel" hidden>
+        <p class="message">On <a href="https://gist.github.com/" target="_blank" rel="noopener">GitHub Gist</a>, name the file <code>program.eye</code>, paste your program, and create the Gist. Anyone with its link can read it. Paste its URL here to get a playground link.</p>
+        <form id="gist-form" class="load-row">
+          <div class="url-field"><label for="gist-url">Gist URL or ID</label><input id="gist-url" type="text" placeholder="https://gist.github.com/you/…" required></div>
+          <button id="gist-link" type="submit">Make share link</button>
+        </form>
+      </div>
     </section>
 
     <div class="workspace">

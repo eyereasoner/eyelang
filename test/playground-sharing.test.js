@@ -1,0 +1,216 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile, readdir } from 'node:fs/promises';
+import { runInNewContext } from 'node:vm';
+
+const root = new URL('../', import.meta.url);
+const script = (await readFile(new URL('src/playground.js', root), 'utf8'))
+  .replaceAll('import.meta.url', JSON.stringify(new URL('src/playground.js', root).href));
+const exampleNames = (await readdir(new URL('examples/', root)))
+  .filter(name => name.endsWith('.eye')).map(name => name.slice(0, -4));
+const sample = 'milo is a cat. who is a cat?';
+const gist = 'abc123def456abc123def456abc123deff';
+
+// Exercise the real UI handlers with a small DOM and controlled network/storage.
+async function playground({ hash = '', draft, fetch: fetchOverride, token = null, clipboard = true } = {}) {
+  const elements = new Map();
+  const element = id => {
+    if (!elements.has(id)) elements.set(id, {
+      value: '', textContent: '', disabled: false, hidden: true, dataset: {}, options: [],
+      handlers: {}, classList: { toggle() {}, remove() {} },
+      addEventListener(name, handler) { this.handlers[name] = handler; },
+      setAttribute() {}, removeAttribute() {}, focus() {}, select() {}, setSelectionRange() {},
+    });
+    return elements.get(id);
+  };
+  element('example-select').options = [{ value: '' }, ...exampleNames.map(value => ({ value }))];
+  const storage = new Map(draft ? [['eyelang.playground.draft.v1', JSON.stringify(draft)]] : []);
+  const copied = [];
+  const opened = [];
+  const prompts = [];
+  const requests = [];
+  const runs = [];
+  const location = new URL(`https://example.org/eyelang/playground/${hash}`);
+  const context = {
+    document: { getElementById: element, documentElement: { dataset: {} } },
+    location, URL, URLSearchParams, AbortController,
+    history: { replaceState(_, __, url) { location.href = new URL(url, location).href; } },
+    localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) },
+    navigator: { clipboard: { async writeText(text) { if (!clipboard) throw new Error('Unavailable'); copied.push(text); } } },
+    setTimeout: () => 1, clearTimeout() {},
+    Worker: class { postMessage(data) { runs.push(data); } terminate() {} },
+    async fetch(url, options) {
+      requests.push({ url: String(url), options });
+      const response = await fetchOverride?.(String(url), options);
+      if (response) return response;
+      if (String(url).startsWith('examples/')) {
+        try { return new Response(await readFile(new URL(url, root), 'utf8')); }
+        catch { return new Response('', { status: 404 }); }
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    },
+  };
+  context.window = { Worker: context.Worker, addEventListener() {},
+    prompt(message) { prompts.push(message); return token; },
+    open(...args) { opened.push(args); },
+  };
+  await runInNewContext(script, context);
+  const dispatch = async (id, event = 'click') => {
+    await element(id).handlers[event]({ preventDefault() {}, target: element(id) });
+    // Some DOM handlers start a load without returning its promise.
+    for (let i = 0; i < 20 && element('program').disabled; i++) await new Promise(resolve => setTimeout(resolve, 5));
+  };
+  const edit = async source => { element('program').value = source; await dispatch('program', 'input'); };
+  return { element, dispatch, edit, storage, copied, opened, prompts, requests, runs, location };
+}
+
+const shared = app => app.element('share-url').value;
+const program = app => app.element('program').value;
+
+test('bundled examples use short references, including the largest taxonomy', async () => {
+  const app = await playground({ hash: '#example=deep-taxonomy-100000' });
+  assert.ok(program(app).length > 1000000);
+  assert.equal(app.runs.length, 0, 'shared examples wait for Run');
+  await app.dispatch('share');
+  assert.equal(shared(app), 'https://example.org/eyelang/playground/#example=deep-taxonomy-100000');
+  assert.equal(app.prompts.length, 0);
+  assert.equal(app.copied.at(-1), shared(app));
+});
+
+test('edits share their actual text; undo and reset restore short example links', async () => {
+  const app = await playground({ hash: '#example=socrates' });
+  const original = program(app);
+  await app.edit(sample);
+  assert.equal(app.location.hash, '');
+  await app.dispatch('share');
+  assert.equal(new URL(shared(app)).hash, '#program=' + encodeURIComponent(sample));
+  await app.edit(original);
+  await app.dispatch('share');
+  assert.ok(shared(app).endsWith('#example=socrates'));
+  await app.edit(sample);
+  await app.dispatch('reset');
+  await app.dispatch('share');
+  assert.equal(program(app), original);
+  assert.ok(shared(app).endsWith('#example=socrates'));
+});
+
+test('restored pristine drafts retain references; edited and legacy drafts embed text', async () => {
+  const original = await playground({ hash: '#example=socrates' });
+  const draft = JSON.parse(original.storage.get('eyelang.playground.draft.v1'));
+  const pristine = await playground({ draft });
+  await pristine.dispatch('share');
+  assert.ok(shared(pristine).endsWith('#example=socrates'));
+  for (const reference of [null, undefined]) {
+    const edited = await playground({ draft: { ...draft, source: sample, reference } });
+    await edited.dispatch('share');
+    assert.ok(shared(edited).endsWith('#program=' + encodeURIComponent(sample)));
+  }
+});
+
+test('existing inline links preserve Unicode, plus signs, and quoted punctuation', async () => {
+  const source = 'the text of café is "a+b & # ?". what is the text of café?';
+  const app = await playground({ hash: '#program=' + encodeURIComponent(source), draft: { source: sample } });
+  assert.equal(program(app), source);
+  assert.equal(app.runs.length, 0);
+  await app.dispatch('share');
+  assert.equal(decodeURIComponent(new URL(shared(app)).hash.slice(9)), source);
+});
+
+test('URL references load without running and stop being references after editing', async () => {
+  const url = 'https://example.net/program.eye?name=a%2Bb';
+  const app = await playground({ hash: '#url=' + encodeURIComponent(url), fetch: () => new Response(sample) });
+  assert.equal(program(app), sample);
+  assert.equal(app.runs.length, 0);
+  await app.dispatch('share');
+  assert.equal(shared(app), 'https://example.org/eyelang/playground/#url=' + encodeURIComponent(url));
+  await app.edit(sample + '\n# edited');
+  await app.dispatch('share');
+  assert.ok(shared(app).includes('#program='));
+});
+
+test('a URL opened through the form also gets a reference link', async () => {
+  const url = 'https://example.net/program.eye';
+  const app = await playground({ hash: '#program=' + encodeURIComponent(sample), fetch: address => address === url ? new Response(sample) : null });
+  app.element('program-url').value = url;
+  await app.dispatch('url-form', 'submit');
+  await app.dispatch('share');
+  assert.ok(shared(app).endsWith('#url=' + encodeURIComponent(url)));
+});
+
+test('gist links load .eye content without credentials or automatic execution', async () => {
+  const app = await playground({ hash: '#gist=' + gist, draft: { source: 'old draft' }, fetch: () => Response.json({ files: { 'hello.eye': { filename: 'hello.eye', content: sample } } }) });
+  assert.equal(program(app), sample);
+  assert.equal(app.requests[0].url, `https://api.github.com/gists/${gist}`);
+  assert.equal(app.requests[0].options.headers, undefined);
+  assert.equal(app.runs.length, 0);
+  await app.dispatch('share');
+  assert.ok(shared(app).endsWith('#gist=' + gist));
+});
+
+test('truncated gist files fetch the complete raw program', async () => {
+  const raw = `https://gist.githubusercontent.com/person/${gist}/raw/program.eye`;
+  const app = await playground({ hash: '#gist=' + gist, fetch: address => address === raw ? new Response(sample) : Response.json({ files: { 'program.eye': { truncated: true, content: 'partial', raw_url: raw } } }) });
+  assert.equal(program(app), sample);
+  assert.equal(app.requests.length, 2);
+});
+
+test('creating a gist sends the snapshot and token only to GitHub, then shares its ID', async () => {
+  const app = await playground({ hash: '#program=' + encodeURIComponent(sample), token: ' test-token ', fetch: () => Response.json({ id: gist }, { status: 201 }) });
+  await app.dispatch('create-gist');
+  const request = app.requests.at(-1);
+  assert.equal(request.url, 'https://api.github.com/gists');
+  assert.equal(request.options.method, 'POST');
+  assert.equal(request.options.headers.Authorization, 'Bearer test-token');
+  const body = JSON.parse(request.options.body);
+  assert.equal(body.public, false);
+  assert.equal(body.files['program.eye'].content, sample);
+  assert.ok(shared(app).endsWith('#gist=' + gist));
+  assert.equal([...app.storage.values()].join('').includes('test-token'), false);
+  await app.dispatch('share');
+  assert.equal(app.requests.length, 1, 'reuse the created gist without another upload');
+});
+
+test('blank token opens the manual Gist flow and converts a pasted URL to a short link', async () => {
+  const app = await playground({ hash: '#program=' + encodeURIComponent(sample), token: '' });
+  await app.dispatch('create-gist');
+  assert.equal(app.copied.at(-1), sample);
+  assert.equal(app.opened[0][0], 'https://gist.github.com/');
+  assert.equal(app.element('gist-panel').hidden, false);
+  assert.equal(app.requests.length, 0);
+  app.element('gist-url').value = `https://gist.github.com/person/${gist}`;
+  await app.dispatch('gist-form', 'submit');
+  assert.ok(shared(app).endsWith('#gist=' + gist));
+});
+
+test('oversized edited programs offer Gist sharing; cancellation uploads nothing', async () => {
+  const app = await playground({ hash: '#program=' + encodeURIComponent(sample) });
+  await app.edit('# large\n'.repeat(500));
+  await app.dispatch('share');
+  assert.match(app.prompts[0], /too large/);
+  assert.match(app.element('editor-status').textContent, /cancelled/);
+  assert.equal(app.requests.length, 0);
+  assert.equal(app.element('share-panel').hidden, true);
+});
+
+test('clipboard failures leave inline links visible and manual Gist instructions usable', async () => {
+  const app = await playground({ hash: '#program=' + encodeURIComponent(sample), clipboard: false, token: '' });
+  await app.dispatch('share');
+  assert.equal(app.element('share-panel').hidden, false);
+  assert.match(app.element('editor-status').textContent, /Copy the link below/);
+  await app.dispatch('create-gist');
+  assert.equal(app.element('gist-panel').hidden, false);
+  assert.match(app.element('editor-status').textContent, /Copy your program/);
+});
+
+test('invalid references and failed Gist creation produce readable errors', async () => {
+  const invalid = await playground({ hash: '#example=../outside' });
+  assert.equal(invalid.element('source-name').textContent, 'socrates.eye');
+  assert.match(invalid.element('editor-status').textContent, /Couldn't read/);
+  const denied = await playground({ hash: '#program=' + encodeURIComponent(sample), token: 'bad-token', fetch: () => new Response('', { status: 401 }) });
+  await denied.dispatch('create-gist');
+  assert.match(denied.element('editor-status').textContent, /HTTP 401/);
+  assert.equal(denied.element('create-gist').disabled, false);
+  denied.element('gist-url').value = 'https://example.org/not-a-gist';
+  await denied.dispatch('gist-form', 'submit');
+  assert.match(denied.element('editor-status').textContent, /GitHub Gist URL or ID/);
+});
