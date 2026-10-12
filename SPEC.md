@@ -583,6 +583,9 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
 - Animals, friends, and paths introduce facts, joins, and positive cycles.
 - French cities requests reachability through one-way roads. Explanations expose
   supporting routes; the example does not optimize route length.
+- GPS builds action lists from Gent to Oostende, adds duration and cost, and
+  multiplies belief and comfort. It recommends the route that strictly beats
+  the alternative on all four scores in its two-route map.
 - Fibonacci works backwards from its requested indices by addition, including
   exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity. Its full explanation
   shares 20000 evidence records instead of expanding a recursive proof tree.

@@ -92,6 +92,7 @@ Every example includes answers, reasons, and executable checks.
 | [Friends](examples/friends.eye) | Combining clues |
 | [Paths](examples/paths.eye) | Rules with a loop |
 | [French cities](examples/french-cities.eye) | Routes through one-way roads |
+| [GPS](examples/gps.eye) | Choosing a route by duration, cost, belief, and comfort |
 | [Fibonacci](examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
 | [Complex numbers](examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
 | [Turing machine](examples/turing.eye) | Running binary tapes with ordinary rules |
