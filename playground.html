@@ -17,7 +17,7 @@
     h1 small { color: var(--muted); font-size: 15px; letter-spacing: 0; font-weight: 500; margin-left: 14px; }
     header p { margin: 6px 0 0; color: var(--muted); }
     a { color: var(--accent); text-underline-offset: 3px; }
-    nav { display: flex; gap: 20px; font-size: 14px; }
+    nav { display: flex; flex-wrap: wrap; gap: 20px; padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
     .arc { display: flex; gap: 8px; margin: 26px 0 18px; flex-wrap: wrap; }
     .arc span { border: 1px solid var(--line); border-radius: 7px; padding: 5px 12px; font-size: 13px; color: var(--muted); background: var(--card); }
     .arc b { color: var(--accent); margin-right: 5px; }
@@ -73,9 +73,14 @@
 </head>
 <body>
   <main>
+    <nav aria-label="Documentation">
+      <a href="README.md">eyelang</a>
+      <a href="https://github.com/eyereasoner/eyelang">Repository</a>
+      <a href="playground.html">Playground</a>
+      <a href="SPEC.md">Language specification</a>
+    </nav>
     <header>
       <div><h1>eye<span>lang</span><small>playground <span id="version">v0.0.2</span></small></h1><p>Write a program. Ask a question. See why.</p></div>
-      <nav aria-label="Documentation"><a href="README.md">Getting started</a><a href="SPEC.md">Language specification</a></nav>
     </header>
     <div id="serve-hint" role="status">Start <code>node src/playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
     <noscript><p>Turn on JavaScript to run programs in this playground.</p></noscript>

@@ -17,6 +17,7 @@ export async function preparePages(destination, basePath = '/eyelang') {
 
   const playground = (await readFile(resolve(root, 'playground.html'), 'utf8'))
     .replace('href="README.md"', 'href="./"')
+    .replace('href="playground.html"', 'href="playground/"')
     .replace('href="SPEC.md"', 'href="SPEC/"');
   await write('playground.html', playground);
   await write('playground/index.html', playground.replace('<head>', '<head>\n  <base href="../">'));

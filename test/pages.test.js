@@ -28,7 +28,9 @@ test('Pages serves playground dependencies under the project path and prepares r
       assert.ok(deployed.pathname.startsWith('/eyelang/'), asset);
       assert.ok((await read(deployed.pathname.slice('/eyelang/'.length))).length > 0, asset);
     }
-    assert.match(html, /href="\.\/">Getting started/);
+    assert.match(html, /href="\.\/">eyelang/);
+    assert.match(html, /href="https:\/\/github.com\/eyereasoner\/eyelang">Repository/);
+    assert.match(html, /href="playground\/">Playground/);
     assert.match(html, /href="SPEC\/">Language specification/);
   }
 
