@@ -3,8 +3,8 @@ ada follows ben.
 ben follows cara.
 cara follows ada.
 
-if someone follows something then someone reaches something.
-if someone reaches something and something follows ada then someone reaches ada.
+if first follows second then first reaches second.
+if first reaches second and second follows ada then first reaches ada.
 
 # Answer: who can reach ada?
 who reaches ada?

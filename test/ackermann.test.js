@@ -76,7 +76,7 @@ test('explanations retain the exact large power and the recursive higher-operati
   assert.ok(large.includes(`2 to the power of 65536 makes ${1n << 65536n}.`));
   assert.ok(large.includes(`minus 3 makes ${samples[10][1]}.`));
   assert.match(large, /the ackermann of \[4, 4, 2\] is 65536\./);
-  assert.match(large, /because the ackermann of \[first, second, third\] is fifth/);
+  assert.match(large, /because the ackermann of \[first, second, third\] is fourth/);
   const higher = output[13];
   assert.match(higher, /the ackermann of \[5, 3, 2\] is 65536\./);
   assert.match(higher, /65536 minus 3 makes 65533\./);

@@ -22,53 +22,53 @@ the input of case4 is [].
 # The rules below run any machine described by this transition-table shape.
 # A configuration is [state, reversed-left-tape, current-symbol, right-tape].
 # [first | second] separates the first item from the rest of a list.
-if the machine of someone is first and the start of first is second
-and the input of someone is [third | fourth]
-then someone runs [second, [], third, fourth].
+if the machine of first is second and the start of second is third
+and the input of first is [fourth | fifth]
+then first runs [third, [], fourth, fifth].
 
-if the machine of someone is first and the start of first is second
-and the input of someone is []
-then someone runs [second, [], blank, []].
+if the machine of first is second and the start of second is third
+and the input of first is []
+then first runs [third, [], blank, []].
 
 # Write the symbol and move right, extending the tape with blank if needed.
-if someone runs [first, second, third, [fourth | fifth]]
-and the machine of someone is sixth
-and the transition of [sixth, first, third] is [seventh, eighth, right]
-then someone runs [seventh, [eighth | second], fourth, fifth].
+if first runs [second, third, fourth, [fifth | sixth]]
+and the machine of first is seventh
+and the transition of [seventh, second, fourth] is [eighth, ninth, right]
+then first runs [eighth, [ninth | third], fifth, sixth].
 
-if someone runs [first, second, third, []]
-and the machine of someone is fourth
-and the transition of [fourth, first, third] is [fifth, sixth, right]
-then someone runs [fifth, [sixth | second], blank, []].
+if first runs [second, third, fourth, []]
+and the machine of first is fifth
+and the transition of [fifth, second, fourth] is [sixth, seventh, right]
+then first runs [sixth, [seventh | third], blank, []].
 
 # Write the symbol and move left, extending the tape with blank if needed.
-if someone runs [first, [second | third], fourth, fifth]
-and the machine of someone is sixth
-and the transition of [sixth, first, fourth] is [seventh, eighth, left]
-then someone runs [seventh, third, second, [eighth | fifth]].
+if first runs [second, [third | fourth], fifth, sixth]
+and the machine of first is seventh
+and the transition of [seventh, second, fifth] is [eighth, ninth, left]
+then first runs [eighth, fourth, third, [ninth | sixth]].
 
-if someone runs [first, [], second, third]
-and the machine of someone is fourth
-and the transition of [fourth, first, second] is [fifth, sixth, left]
-then someone runs [fifth, [], blank, [sixth | third]].
+if first runs [second, [], third, fourth]
+and the machine of first is fifth
+and the transition of [fifth, second, third] is [sixth, seventh, left]
+then first runs [sixth, [], blank, [seventh | fourth]].
 
 # A stay instruction writes without moving the head.
-if someone runs [first, second, third, fourth]
-and the machine of someone is fifth
-and the transition of [fifth, first, third] is [sixth, seventh, stay]
-then someone runs [sixth, second, seventh, fourth].
+if first runs [second, third, fourth, fifth]
+and the machine of first is sixth
+and the transition of [sixth, second, fourth] is [seventh, eighth, stay]
+then first runs [seventh, third, eighth, fifth].
 
 # On halt, turn the reversed left side around and join it to the rest.
-if someone runs [halt, first, number, second]
-then the unfinished-output of someone is [first, [number | second]].
+if first runs [halt, second, third, fourth]
+then the unfinished-output of first is [second, [third | fourth]].
 
-if the unfinished-output of someone is [[first | second], something]
-then the unfinished-output of someone is [second, [first | something]].
+if the unfinished-output of first is [[second | third], fourth]
+then the unfinished-output of first is [third, [second | fourth]].
 
-if the unfinished-output of someone is [[], something]
-then the output of someone is something.
+if the unfinished-output of first is [[], second]
+then the output of first is second.
 
-if the output of someone is something then someone is a finished-case.
+if the output of first is second then first is a finished-case.
 
 # Answer: read each input and its computed output.
 what is the input of case1?

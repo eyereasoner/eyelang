@@ -5,8 +5,8 @@ import { infer, parse, run } from '../src/language.js';
 test('quoted text preserves case, spaces, punctuation, and grammar words', () => {
   assert.deepEqual(run(`
     the message of demo is "A and B then C is it? # OK.". # A real comment
-    if the message of someone is "A and B then C is it? # OK."
-    then the result of someone is "YES  and then.".
+    if the message of first is "A and B then C is it? # OK."
+    then the result of first is "YES  and then.".
     what is the result of demo?
     is the message of demo equal to "A and B then C is it? # OK."?
     is the result of demo equal to "YES  and then."?
@@ -24,7 +24,7 @@ test('quoted values work in lists, subjects, joins, and repeated variables', () 
   assert.deepEqual(run(`
     "Milo Jr." likes ["someone", "what"].
     the items of demo is ["Red", "Red", "blue"].
-    if the items of someone is [first, first | second] then the rest of someone is second.
+    if the items of first is [fourth, fourth | fifth] then the rest of first is fifth.
     who likes ["someone", "what"]?
     does "Milo Jr." like ["someone", "what"]?
     what is the rest of demo?
@@ -48,15 +48,15 @@ test('JSON escapes round trip through answers and explanations without changing 
   }
   assert.throws(() => run(`
     demo is a calculator.
-    if someone is a calculator then the result of someone is "3" plus 1.
+    if first is a calculator then the result of first is "3" plus 1.
   `), /I can only use numbers/);
 });
 
 test('numeric comparisons are exact across large integers and approximate real values', () => {
   assert.deepEqual(run(`
     the value of demo is 1000000000000000000001.
-    if the value of someone is first and first is greater than 1e21 then someone is a larger-number.
-    if the value of someone is first and first is at most 1e21 then someone is a smaller-number.
+    if the value of first is fourth and fourth is greater than 1e21 then first is a larger-number.
+    if the value of first is fourth and fourth is at most 1e21 then first is a smaller-number.
     if 1e21 is equal to 1000000000000000000000 then demo is an equal-number.
     if 12 is at least 12 and 3 is less than 12 then demo is a boundary-match.
     if 0.5 plus 0.25 is equal to 0.75 then demo is a decimal-match.
@@ -74,11 +74,11 @@ test('numeric comparisons are exact across large integers and approximate real v
 test('quoted texts compare in text order, and substring checks ignore letter case', () => {
   assert.deepEqual(run(`
     the time of demo is "2025-10-05T20:35:48.907163+00:00".
-    if the time of someone is first and first is at most "2025-10-05T22:33:48.907185+00:00"
-    then someone is an on-time-case.
+    if the time of first is fourth and fourth is at most "2025-10-05T22:33:48.907185+00:00"
+    then first is an on-time-case.
     the message of demo is "Private MEDICAL details".
-    if the message of someone is first and first contains the text "medical" then someone is a sensitive-case.
-    if the message of someone is first and not first contains the text "medical" then someone is a minimal-case.
+    if the message of first is fourth and fourth contains the text "medical" then first is a sensitive-case.
+    if the message of first is fourth and not fourth contains the text "medical" then first is a minimal-case.
     who is an on-time-case?
     who is a sensitive-case?
     who is a minimal-case?
@@ -91,9 +91,9 @@ test('quoted texts compare in text order, and substring checks ignore letter cas
 test('comparison explanations report computed evidence, including successful negated tests', () => {
   const answers = run(`
     the score of demo is 12. the message of demo is "shopping".
-    if the score of someone is first and first is at least 10
-    and the message of someone is second and not second contains the text "medical"
-    then someone is a match.
+    if the score of first is fourth and fourth is at least 10
+    and the message of first is fifth and not fifth contains the text "medical"
+    then first is a match.
     who is a match? why?
   `);
   assert.equal(answers[0], 'demo is a match.');
@@ -103,11 +103,11 @@ test('comparison explanations report computed evidence, including successful neg
 });
 
 test('comparisons require bound variables and compatible input types', () => {
-  assert.throws(() => parse('if first is less than 3 then demo is a match.'), /Find first in an earlier clue/);
-  assert.throws(() => parse('if not first contains the text "private" then demo is a match.'), /Find first in an earlier clue/);
-  assert.throws(() => parse('first is less than 3.'), /Line 1:/);
+  assert.throws(() => parse('if fourth is less than 3 then demo is a match.'), /Find fourth in an earlier clue/);
+  assert.throws(() => parse('if not fourth contains the text "private" then demo is a match.'), /Find fourth in an earlier clue/);
+  assert.throws(() => parse('fourth is less than 3.'), /Line 1:/);
   assert.throws(() => parse('if demo is a player then 3 is less than 4.'), /Line 1:/);
   assert.throws(() => run('if 3 is less than "4" then demo is a match.'), /Compare two numbers or two quoted texts/);
   assert.throws(() => run('if demo contains the text "d" then demo is a match.'), /Use quoted text/);
-  assert.throws(() => run('the kind of demo is "cat". if the kind of someone is first then someone is a first.'), /one word for a kind/);
+  assert.throws(() => run('the kind of demo is "cat". if the kind of first is fourth then first is a fourth.'), /one word for a kind/);
 });

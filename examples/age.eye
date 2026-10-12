@@ -10,29 +10,29 @@ the age-limit of test is 80.
 
 # Work backwards from the person and the number of years asked about.
 # A larger year difference is enough, even before this year's birthday.
-someone is-older-than number
-if the birthday of someone is [first, second, third]
-and the date of today is [fourth, fifth, sixth]
-and fourth minus first is greater than number.
+first is-older-than second
+if the birthday of first is [third, fourth, fifth]
+and the date of today is [sixth, seventh, eighth]
+and sixth minus third is greater than second.
 
 # With the same year difference, the birthday must have passed.
 # On the birthday itself, the person is exactly that old, not older.
-someone is-older-than number
-if the birthday of someone is [first, second, third]
-and the date of today is [fourth, fifth, sixth]
-and fourth minus first is equal to number
-and fifth is greater than second.
+first is-older-than second
+if the birthday of first is [third, fourth, fifth]
+and the date of today is [sixth, seventh, eighth]
+and sixth minus third is equal to second
+and seventh is greater than fourth.
 
-someone is-older-than number
-if the birthday of someone is [first, second, third]
-and the date of today is [fourth, fifth, sixth]
-and fourth minus first is equal to number
-and fifth is equal to second
-and sixth is greater than third.
+first is-older-than second
+if the birthday of first is [third, fourth, fifth]
+and the date of today is [sixth, seventh, eighth]
+and sixth minus third is equal to second
+and seventh is equal to fourth
+and eighth is greater than fifth.
 
-if the person of test is someone
-and the age-limit of test is number
-and someone is-older-than number
+if the person of test is first
+and the age-limit of test is second
+and first is-older-than second
 then test is a passed-check.
 
 # Answer and Reason: find who qualifies, then explain the test result.

@@ -23,10 +23,10 @@ if first is at least 0 and second is at least 0.
 the ackermann of [first, 0, second] is 1
 if first is greater than 3 and second is at least 0.
 
-the ackermann of [first, second, third] is fifth
+the ackermann of [first, second, third] is fourth
 if first is greater than 3 and second is greater than 0 and third is at least 0
-and the ackermann of [first, second minus 1, third] is fourth
-and the ackermann of [first minus 1, fourth, third] is fifth.
+and the ackermann of [first, second minus 1, third] is fifth
+and the ackermann of [first minus 1, fifth, third] is fourth.
 
 # Answer
 what is the ackermann of [0, 0]?

@@ -20,17 +20,17 @@ test('the negation program waits for later rest rules and explains missing evide
 test('positive recursive closure finishes before a negative clue is tested', () => {
   assert.deepEqual(run(`
     milo is a player. rex is a player. luna likes milo.
-    if someone is a player and someone does not like luna then someone is an outsider.
-    if someone likes something then something likes someone.
+    if first is a player and first does not like luna then first is an outsider.
+    if first likes second then second likes first.
     who is an outsider?
   `), ['rex is an outsider.']);
 });
 
 test('several negative layers have the same meaning in either rule order', () => {
   const rules = [
-    'if someone is a player and someone is not a blocked-player then someone is a ready-player.',
-    'if someone is a player and someone is not a resting-player then someone is a blocked-player.',
-    'if someone is a tired-player then someone is a resting-player.',
+    'if first is a player and first is not a blocked-player then first is a ready-player.',
+    'if first is a player and first is not a resting-player then first is a blocked-player.',
+    'if first is a tired-player then first is a resting-player.',
   ];
   const facts = 'milo is a player. luna is a player. luna is a tired-player.';
   for (const order of [rules, rules.slice().reverse()]) {
@@ -39,26 +39,26 @@ test('several negative layers have the same meaning in either rule order', () =>
 });
 
 test('a negative clue cannot introduce a variable or be used as a fact or conclusion', () => {
-  assert.throws(() => parse('if someone is not a cat then someone is a dog.'), /earlier positive clue/);
-  assert.throws(() => parse('if someone is a cat and someone does not like something then someone is a pet.'), /Find something/);
+  assert.throws(() => parse('if first is not a cat then first is a dog.'), /earlier positive clue/);
+  assert.throws(() => parse('if first is a cat and first does not like second then first is a pet.'), /Find second/);
   assert.throws(() => parse('milo is not a cat.'), /couldn't read/);
-  assert.throws(() => parse('if someone is a cat then someone is not a dog.'), /couldn't read/);
+  assert.throws(() => parse('if first is a cat then first is not a dog.'), /couldn't read/);
   assert.throws(() => parse('is who not a cat?'), /Name the things/);
 });
 
 test('negative recursion is rejected, including a cycle passing through positive rules', () => {
   for (const source of [
-    'milo is a player. if someone is a player and someone is not a ready-player then someone is a ready-player.',
+    'milo is a player. if first is a player and first is not a ready-player then first is a ready-player.',
     `milo is a player.
-     if someone is a player and someone is not a blocked-player then someone is a ready-player.
-     if someone is a ready-player then someone is a blocked-player.`,
+     if first is a player and first is not a blocked-player then first is a ready-player.
+     if first is a ready-player then first is a blocked-player.`,
   ]) assert.throws(() => run(source), /loop through not/);
 });
 
 test('ground not questions use completed evidence without changing ordinary unknown answers', () => {
   assert.deepEqual(run(`
     milo is a cat.
-    if someone is a cat then someone is an animal.
+    if first is a cat then first is an animal.
     is milo not an animal?
     is milo a dog?
     is milo not a dog?
@@ -73,7 +73,7 @@ test('ground not questions use completed evidence without changing ordinary unkn
 test('leading not and bound arithmetic properties work as negative clues', () => {
   assert.deepEqual(run(`
     2 is a step.
-    if number is a step and not the score of number minus 1 is 0 then number is a chosen-step.
+    if third is a step and not the score of third minus 1 is 0 then third is a chosen-step.
     who is a chosen-step?
   `), ['2 is a chosen-step.']);
 });
@@ -81,7 +81,7 @@ test('leading not and bound arithmetic properties work as negative clues', () =>
 test('why after a negative no answer shows the conflicting positive evidence', () => {
   const program = `
     luna is a tired-player.
-    if someone is a tired-player then someone needs rest.
+    if first is a tired-player then first needs rest.
   `;
   const answers = run(program + 'does luna not need rest? why?');
   assert.equal(answers[0], 'no, the program shows that luna needs rest.');

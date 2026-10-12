@@ -28,17 +28,17 @@ the belief of drive-brugge-oostende is 0.98.
 the comfort of drive-brugge-oostende is 1.
 
 # Work backwards: one road, or a road followed by the rest of a route.
-the route of [someone, something] is [first]
-if the road of [someone, something] is first.
+the route of [first, second] is [third]
+if the road of [first, second] is third.
 
-the route of [someone, something] is [first | second]
-if the road of [someone, number] is first
-and the route of [number, something] is second.
+the route of [first, second] is [third | fourth]
+if the road of [first, fifth] is third
+and the route of [fifth, second] is fourth.
 
 the route of trip is first
-if the location of traveller is someone
-and the destination of trip is something
-and the route of [someone, something] is first.
+if the location of traveller is second
+and the destination of trip is third
+and the route of [second, third] is first.
 
 # Give the two possible action lists friendly names, once their routes exist.
 the name of [drive-gent-brugge, drive-brugge-oostende] is direct.
@@ -46,9 +46,9 @@ the name of [drive-gent-kortrijk, drive-kortrijk-brugge, drive-brugge-oostende] 
 the label of direct is "Gent → Brugge → Oostende".
 the label of via-kortrijk is "Gent → Kortrijk → Brugge → Oostende".
 
-if the route of trip is someone and the name of someone is something
-then the actions of something is someone.
-if the actions of someone is something then someone is an available-route.
+if the route of trip is first and the name of first is second
+then the actions of second is first.
+if the actions of first is second then first is an available-route.
 
 # Add duration and cost along an action list. Multiply belief and comfort.
 the duration of [] is 0.
@@ -56,40 +56,40 @@ the cost of [] is 0.
 the belief of [] is 1.
 the comfort of [] is 1.
 
-the duration of [someone | something] is first plus second
-if the duration of someone is first and the duration of something is second.
-the cost of [someone | something] is first plus second
-if the cost of someone is first and the cost of something is second.
-the belief of [someone | something] is first times second
-if the belief of someone is first and the belief of something is second.
-the comfort of [someone | something] is first times second
-if the comfort of someone is first and the comfort of something is second.
+the duration of [first | second] is third plus fourth
+if the duration of first is third and the duration of second is fourth.
+the cost of [first | second] is third plus fourth
+if the cost of first is third and the cost of second is fourth.
+the belief of [first | second] is third times fourth
+if the belief of first is third and the belief of second is fourth.
+the comfort of [first | second] is third times fourth
+if the comfort of first is third and the comfort of second is fourth.
 
 # A named route has the scores calculated from its actions.
-the duration of someone is second
-if the actions of someone is first and the duration of first is second.
-the cost of someone is second
-if the actions of someone is first and the cost of first is second.
-the belief of someone is second
-if the actions of someone is first and the belief of first is second.
-the comfort of someone is second
-if the actions of someone is first and the comfort of first is second.
+the duration of first is second
+if the actions of first is third and the duration of third is second.
+the cost of first is second
+if the actions of first is third and the cost of third is second.
+the belief of first is second
+if the actions of first is third and the belief of third is second.
+the comfort of first is second
+if the actions of first is third and the comfort of third is second.
 
 # In this two-route map, recommend the route that wins on all four scores.
-someone beats something
-if someone is an available-route and something is an available-route
-and the duration of someone is first and the duration of something is second
-and first is less than second
-and the cost of someone is third and the cost of something is fourth
+first beats second
+if first is an available-route and second is an available-route
+and the duration of first is third and the duration of second is fourth
 and third is less than fourth
-and the belief of someone is fifth and the belief of something is sixth
-and fifth is greater than sixth
-and the comfort of someone is seventh and the comfort of something is eighth
-and seventh is greater than eighth.
+and the cost of first is fifth and the cost of second is sixth
+and fifth is less than sixth
+and the belief of first is seventh and the belief of second is eighth
+and seventh is greater than eighth
+and the comfort of first is ninth and the comfort of second is tenth
+and ninth is greater than tenth.
 
-the recommended-route of trip is someone if someone beats something.
+the recommended-route of trip is first if first beats second.
 the outcome of trip is first
-if the recommended-route of trip is someone and the label of someone is first.
+if the recommended-route of trip is second and the label of second is first.
 
 # Answer: the available routes, their scores, and our choice.
 what is the route of trip?

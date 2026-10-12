@@ -5,13 +5,13 @@ rex is a player.
 luna is a tired-player.
 
 # A player can join if the program does not show that they need rest.
-if someone is a player and someone does not need rest then someone is a ready-player.
+if first is a player and first does not need rest then first is a ready-player.
 
 # This rule is checked before the not clue, even though it comes later.
-if someone is a tired-player then someone needs rest.
+if first is a tired-player then first needs rest.
 
 # You can also use "is not" for a kind.
-if someone is a player and someone is not a tired-player then someone is an eager-player.
+if first is a player and first is not a tired-player then first is an eager-player.
 
 # Answer and Reason: who can join, and which clues explain that?
 who is a ready-player?

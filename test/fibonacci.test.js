@@ -5,10 +5,10 @@ import { spawnSync } from 'node:child_process';
 import { infer, parse, run } from '../src/language.js';
 
 const rule = `
-  if number is a step
-  and the fibonacci of number minus 1 is first
-  and the fibonacci of number minus 2 is second
-  then the fibonacci of number is first plus second.
+  if third is a step
+  and the fibonacci of third minus 1 is fourth
+  and the fibonacci of third minus 2 is fifth
+  then the fibonacci of third is fourth plus fifth.
 `;
 function fibonacci(steps, seeds = 'the fibonacci of 0 is 0. the fibonacci of 1 is 1.') {
   // Keep a separator between numeric sentences now that 1.2 is a decimal.
@@ -55,7 +55,7 @@ test('properties and arithmetic work independently of Fibonacci', () => {
   assert.deepEqual(run(`
     the color of milo is orange.
     10 is a step.
-    if number is a step then the total of number is number plus 2 minus 3.
+    if third is a step then the total of third is third plus 2 minus 3.
     what is the color of milo?
     what is the total of 5 plus 5?
     is the total of 10 equal to 9?
@@ -69,7 +69,7 @@ test('properties and arithmetic work independently of Fibonacci', () => {
 test('negative integers and leading zeros have one exact numeric meaning', () => {
   assert.deepEqual(run(`
     000 is a step.
-    if number is a step then the total of number is number minus 2.
+    if third is a step then the total of third is third minus 2.
     what is the total of -0?
     is the total of 0 equal to -2?
   `), ['the total of 0 is -2.', 'yes, the total of 0 is -2.']);
@@ -77,12 +77,12 @@ test('negative integers and leading zeros have one exact numeric meaning', () =>
 
 test('arithmetic requires numbers bound by earlier clues', () => {
   assert.throws(() => parse(`
-    if the fibonacci of number minus 1 is first then the fibonacci of number is first.
-  `), /Find number in an earlier clue/);
+    if the fibonacci of third minus 1 is fourth then the fibonacci of third is fourth.
+  `), /Find third in an earlier clue/);
   assert.throws(() => parse('what is the total of what plus 1?'), /Use known numbers/);
   assert.throws(() => run(`
     milo is a step.
-    if number is a step then the total of number is number plus 1.
+    if third is a step then the total of third is third plus 1.
   `), /I can only use numbers/);
   assert.throws(() => parse('the total of 0 is 1 plus 2.'), /Put calculations in a rule or question/);
 });
@@ -152,5 +152,5 @@ test('number ranges are inclusive, canonical and validate their endpoints and ki
   ]);
   assert.deepEqual(run('every number from 2 to 2 is a step. who is a step?'), ['2 is a step.']);
   assert.throws(() => parse('every number from 10 to 2 is a step.'), /smaller number/);
-  assert.throws(() => parse('every number from 1 to 2 is a something.'), /inside an if/);
+  assert.throws(() => parse('every number from 1 to 2 is a second.'), /inside an if/);
 });

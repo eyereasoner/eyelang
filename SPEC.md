@@ -116,15 +116,15 @@ The following words are reserved:
 if then and is a an why does plus minus not
 ```
 
-The twelve rule variables are:
+The sixteen rule variables are:
 
 ```text
-someone something number
-first second third fourth fifth sixth seventh eighth ninth
+first second third fourth fifth sixth seventh eighth
+ninth tenth eleventh twelfth thirteenth fourteenth fifteenth sixteenth
 ```
 
 Their scope is one rule. They can bind any value, and two different variables
-MAY bind the same value. Repeated occurrences MUST agree. All twelve names
+MAY bind the same value. Repeated occurrences MUST agree. All sixteen names
 denote distinct variables; ordinal names do not imply numeric values.
 
 `who` and `what` are query variables. Rule variables MUST NOT occur in facts
@@ -239,7 +239,7 @@ The hello world of reasoning uses an ordinary verb and variable kinds:
 ```text
 socrates is a human.
 human implies mortal.
-if someone is a first and first implies second then someone is a second.
+if first is a second and second implies third then first is a third.
 ```
 
 The rule derives `socrates is a mortal.`. Additional kinds and implication
@@ -250,16 +250,16 @@ A backward definition can use a supplied number without a range of input facts:
 ```text
 the fibonacci of 0 is 0.
 the fibonacci of 1 is 1.
-the fibonacci of number is first plus second
-if number is greater than 1
-and the fibonacci of number minus 1 is first
-and the fibonacci of number minus 2 is second.
+the fibonacci of first is second plus third
+if first is greater than 1
+and the fibonacci of first minus 1 is second
+and the fibonacci of first minus 2 is third.
 what is the fibonacci of 10000?
 ```
 
-The question binds `number`; recursive clues request its two predecessors.
+The question binds `first`; recursive clues request its two predecessors.
 An unrestricted `the fibonacci of who is what?` MUST fail because the comparison
-requires a known `number`. Supplying a result does not solve for its index.
+requires a known `first`. Supplying a result does not solve for its index.
 
 ## 5. Arithmetic and comparisons
 
@@ -359,8 +359,8 @@ change answer order or select a different valid first derivation.
 Rules accept these negative shapes:
 
 ```text
-someone is not a tired-player
-someone does not need rest
+first is not a tired-player
+first does not need rest
 not the score of milo is 7
 ```
 

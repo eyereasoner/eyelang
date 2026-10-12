@@ -3,8 +3,10 @@
 const word = /^[\p{L}][\p{L}\p{N}_-]*$/u;
 const integer = /^-?\d+$/;
 const numeric = /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/;
-const placeholders = new Set(['someone', 'something', 'number',
-  'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth']);
+const placeholders = new Set([
+  'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth',
+  'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth',
+]);
 const questionWords = new Set(['who', 'what']);
 const reserved = new Set(['if', 'then', 'and', 'is', 'a', 'an', 'why', 'does', 'plus', 'minus', 'not']);
 

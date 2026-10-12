@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { parse, run } from '../src/language.js';
 
 test('why explains the preceding answer, including repeated follow-ups', () => {
-  const program = `milo is a cat. if someone is a cat then someone is an animal.`;
+  const program = `milo is a cat. if first is a cat then first is an animal.`;
   const direct = run(program + 'why is milo an animal?')[0];
   assert.deepEqual(run(program + 'who is an animal? why? why?'), [
     'milo is an animal.', direct, direct,
@@ -22,9 +22,9 @@ test('a follow-up refers to the latest question and handles missing answers', ()
 test('shared reasons are shown once with references to earlier steps', () => {
   const answers = run(`
     milo is a kitten.
-    if someone is a kitten then someone is a cat.
-    if someone is a kitten then someone is a pet.
-    if someone is a cat and someone is a pet then someone is a friend.
+    if first is a kitten then first is a cat.
+    if first is a kitten then first is a pet.
+    if first is a cat and first is a pet then first is a friend.
     who is a friend?
     why?
   `);
@@ -44,8 +44,8 @@ test('shared reasons are shown once with references to earlier steps', () => {
 test('why explains all answers of a question together, sharing their common reasons', () => {
   const answers = run(`
     milo is a cat. milo is a pet.
-    if someone is a cat then someone is an animal.
-    if someone is an animal then someone is a creature.
+    if first is a cat then first is an animal.
+    if first is an animal then first is a creature.
     who is a creature?
     why?
   `);
@@ -60,7 +60,7 @@ test('why explains all answers of a question together, sharing their common reas
 test('deep explanations use numbered steps without recursive calls or growing indentation', () => {
   let program = 'milo is a kind0.';
   for (let index = 1; index <= 200; index++) {
-    program += `if someone is a kind${index - 1} then someone is a kind${index}.`;
+    program += `if first is a kind${index - 1} then first is a kind${index}.`;
   }
   const explanation = run(program + 'is milo a kind200? why?')[1];
   assert.equal((explanation.match(/^step \d+:/gm) ?? []).length, 201);

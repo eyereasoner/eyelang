@@ -3,7 +3,7 @@ socrates is a human.
 human implies mortal.
 
 # If one kind implies another, its members belong to the other kind too.
-if someone is a first and first implies second then someone is a second.
+if first is a second and second implies third then first is a third.
 
 # Answer
 who is a mortal?

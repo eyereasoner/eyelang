@@ -44,7 +44,7 @@ test('the short taxonomy example answers its question and explains the whole cha
 });
 
 test('a missing middle link prevents the terminal classification and later side labels', () => {
-  const source = example(10).replace('if someone is a n4 then someone is a n5.', '');
+  const source = example(10).replace('if first is a n4 then first is a n5.', '');
   assert.throws(() => run(source), /Check failed: ind is an a2/);
   const unchecked = source.replace(/^check that .+\.$/gm, '');
   assert.deepEqual(run(unchecked + '\nis ind a n5? is ind an i5? is ind a j6?'), [

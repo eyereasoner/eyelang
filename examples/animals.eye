@@ -3,7 +3,7 @@ milo is a cat.
 luna is a cat.
 
 # A rule works for anyone it fits.
-if someone is a cat then someone is an animal.
+if first is a cat then first is an animal.
 
 # Answer: which animals do our clues give us?
 who is an animal?

@@ -13,7 +13,7 @@ Tell it facts and rules. Ask a question. See why the answer follows, and check i
 socrates is a human.
 human implies mortal.
 
-if someone is a first and first implies second then someone is a second.
+if first is a second and second implies third then first is a third.
 
 # Answer
 who is a mortal?
@@ -52,7 +52,7 @@ http://127.0.0.1:8000/playground.html.
 - `if clues then answer.` follows facts forward. `answer if clues.` works
   backwards from a question, remembering answers so recursive rules can reuse them.
   Join clues with `and`. Placeholders keep the same value within one rule:
-  `someone`, `something`, `number`, and `first` through `ninth`.
+  `first` through `sixteenth`.
 - Ask `who is a mortal?`, `is socrates a mortal?`, or `what does milo like?`.
   Follow a question with `why?` to explain all its answers.
 - Properties look like `the score of milo is 7.`. Lists look like `[1, 0, 1]`.
@@ -71,10 +71,10 @@ For example, this calculates just the Fibonacci numbers needed for the question:
 ```text
 the fibonacci of 0 is 0.
 the fibonacci of 1 is 1.
-the fibonacci of number is first plus second
-if number is greater than 1
-and the fibonacci of number minus 1 is first
-and the fibonacci of number minus 2 is second.
+the fibonacci of first is second plus third
+if first is greater than 1
+and the fibonacci of first minus 1 is second
+and the fibonacci of first minus 2 is third.
 
 what is the fibonacci of 10000?
 ```

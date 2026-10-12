@@ -9,7 +9,7 @@ test('Socrates derives mortality through a generic kind implication and explains
   assert.deepEqual(run(source), [
     'socrates is a mortal.',
     'socrates is a mortal.\n' +
-      '  because if someone is a first and first implies second then someone is a second.\n' +
+      '  because if first is a second and second implies third then first is a third.\n' +
       '  socrates is a human.\n    you told me this.\n' +
       '  human implies mortal.\n    you told me this.',
     'check passed: socrates is a mortal.',
@@ -30,7 +30,7 @@ test('a program answers who, yes, why and unknown questions', () => {
   assert.deepEqual(run(source), [
     'milo is an animal.\nluna is an animal.',
     'yes, milo is an animal.',
-    'milo is an animal.\n  because if someone is a cat then someone is an animal.\n  milo is a cat.\n    you told me this.',
+    'milo is an animal.\n  because if first is a cat then first is an animal.\n  milo is a cat.\n    you told me this.',
     "I don't know whether milo is a dog.",
     'check passed: milo is an animal.',
     'check passed: luna is an animal.',
@@ -39,11 +39,11 @@ test('a program answers who, yes, why and unknown questions', () => {
   ]);
 });
 
-test('joining clues keeps the same something across both premises', () => {
+test('joining clues keeps repeated variables consistent across both premises', () => {
   const answers = run(`
     milo likes luna. milo likes rex. ada likes rex.
     luna is a cat. rex is a dog.
-    if someone likes something and something is a cat then someone is a friend.
+    if first likes second and second is a cat then first is a friend.
     who is a friend?
     why is milo a friend?
   `);
@@ -55,8 +55,8 @@ test('joining clues keeps the same something across both premises', () => {
 
 test('rules reach a fixed point even when declared in reverse dependency order', () => {
   assert.deepEqual(run(`
-    if someone is an animal then someone is a creature.
-    if someone is a cat then someone is an animal.
+    if first is an animal then first is a creature.
+    if first is a cat then first is an animal.
     milo is a cat.
     who is a creature?
     why is milo a creature?
@@ -65,8 +65,8 @@ test('rules reach a fixed point even when declared in reverse dependency order',
 
 test('cycles finish and retain explanations founded on supplied facts', () => {
   const source = `
-    if someone is a cat then someone is an animal.
-    if someone is an animal then someone is a cat.
+    if first is a cat then first is an animal.
+    if first is an animal then first is a cat.
     milo is a cat. milo is a cat.
     who is a cat?
     why is milo an animal?
@@ -75,8 +75,8 @@ test('cycles finish and retain explanations founded on supplied facts', () => {
   assert.equal(run(source)[0], 'milo is a cat.');
   assert.match(run(source)[1], /you told me this\./);
   assert.deepEqual(run(`
-    if someone is a cat then someone is an animal.
-    if someone is an animal then someone is a cat.
+    if first is a cat then first is an animal.
+    if first is an animal then first is a cat.
     is milo a cat?
   `), ["I don't know whether milo is a cat."]);
 });
@@ -84,7 +84,7 @@ test('cycles finish and retain explanations founded on supplied facts', () => {
 test('a repeated variable requires the same name in both places', () => {
   assert.deepEqual(run(`
     milo likes luna. luna likes luna.
-    if someone likes someone then someone is a self-admirer.
+    if first likes first then first is a self-admirer.
     who is a self-admirer?
   `), ['luna is a self-admirer.']);
 });
@@ -92,8 +92,8 @@ test('a repeated variable requires the same name in both places', () => {
 test('duplicates and alternate derivations produce one answer', () => {
   assert.deepEqual(run(`
     milo is a cat. milo is a cat. milo is a pet.
-    if someone is a cat then someone is an animal.
-    if someone is a pet then someone is an animal.
+    if first is a cat then first is an animal.
+    if first is a pet then first is an animal.
     who is an animal?
   `), ['milo is an animal.']);
 });
@@ -116,8 +116,8 @@ test('programs ignore letter case, accept multiline rules and retain error lines
   assert.deepEqual(run(`
     # My program
     Milo is a cat.
-    if someone is a cat
-      then someone is an animal.
+    if first is a cat
+      then first is an animal.
     Who is an animal?
   `), ['milo is an animal.']);
   assert.throws(() => parse('# first line\nmilo is a cat.\nthis is broken.'), /Line 3:/);
@@ -131,8 +131,8 @@ test('unknown questions are distinct from negative conclusions', () => {
 });
 
 test('rules cannot invent an unbound individual', () => {
-  assert.throws(() => parse('if someone is a cat then something is an animal.'), /Use something after if/);
-  assert.throws(() => parse('someone is a cat.'), /inside an if/);
+  assert.throws(() => parse('if first is a cat then second is an animal.'), /Use second after if/);
+  assert.throws(() => parse('first is a cat.'), /inside an if/);
 });
 
 test('unfinished programs and unsupported sentence shapes get useful errors', () => {
@@ -173,7 +173,7 @@ test('the command reads standard input and reports program errors with a failing
 test('all derived terms are concrete names', () => {
   const facts = infer(parse(`
     milo likes luna. luna is a cat.
-    if someone likes something and something is a cat then someone is a friend.
+    if first likes second and second is a cat then first is a friend.
   `));
   assert.ok(facts.every(record => record.goal.terms.every(term => typeof term === 'string')));
   assert.ok(facts.map(record => say(record.goal)).includes('milo is a friend'));
@@ -183,10 +183,10 @@ test('waiting joins consume facts added before and after a prefix becomes ready'
   const source = `
     milo likes luna. milo likes rex.
     luna is a kitten. rex is a puppy.
-    if someone likes something and something is a pet then someone helps something.
-    if someone is a kitten then someone is a pet.
-    if someone is a puppy then someone is a pet.
-    if someone helps something and something is a pet then someone knows something.
+    if first likes second and second is a pet then first helps second.
+    if first is a kitten then first is a pet.
+    if first is a puppy then first is a pet.
+    if first helps second and second is a pet then first knows second.
     who helps what?
     who knows what?
   `;
@@ -198,9 +198,9 @@ test('waiting joins consume facts added before and after a prefix becomes ready'
 test('recursive joins preserve all solutions and tolerate multiple property values', () => {
   const source = `
     milo likes luna. luna likes rex. rex likes milo.
-    if someone likes something then something likes someone.
+    if first likes second then second likes first.
     the color of milo is orange. the color of milo is black.
-    if someone likes milo and the color of milo is something then the favorite of someone is something.
+    if first likes milo and the color of milo is second then the favorite of first is second.
     who likes what?
     what is the favorite of luna?
   `;
