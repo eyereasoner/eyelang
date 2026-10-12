@@ -203,7 +203,10 @@ function hasCalculation(value) {
 function calculate(value, bindings, calculations = null) {
   if (typeof value === 'string') return value;
   if (value.text !== undefined) return value;
-  if (value.variable) return bindings.get(value.variable);
+  if (value.variable) {
+    const resolved = dereference(value, bindings);
+    return resolved.variable ? undefined : calculate(resolved, bindings, calculations);
+  }
   if (value.list) return list(value.list.map(t => calculate(t, bindings, calculations)),
     value.tail === undefined ? undefined : calculate(value.tail, bindings, calculations));
   const left = calculate(value.left, bindings, calculations);
@@ -354,12 +357,17 @@ export function parse(source) {
         const assertion = body.slice(11);
         program.checks.push({ ...check(assertion), text: assertion, line: text.slice(0, offset).split('\n').length });
       } else if (punctuation === '?') program.questions.push(question(body));
-      else if (body.startsWith('if ')) {
-        const sides = splitOutside(body.slice(3), ' then ');
-        if (sides.length !== 2) throw new Error('A rule needs one if and one then.');
-        const premises = splitOutside(sides[0], ' and ').map(clue);
-        const conclusion = sentence(sides[1], 'rule');
-        const bound = new Set();
+      else if (body.startsWith('if ') || splitOutside(body, ' if ').length > 1) {
+        const backward = !body.startsWith('if ');
+        const sides = splitOutside(backward ? body : body.slice(3), backward ? ' if ' : ' then ');
+        if (sides.length !== 2) throw new Error('Use if clues then answer, or answer if clues.');
+        const premises = splitOutside(sides[backward ? 1 : 0], ' and ').map(clue);
+        const conclusion = sentence(sides[backward ? 0 : 1], 'rule');
+        // A backward call can supply variables in ordinary head positions.
+        // Variables inside a calculation must still come from the clues.
+        const inputs = value => typeof value === 'string' || value.text !== undefined || value.operation ? []
+          : value.variable ? [value.variable] : [...value.list.flatMap(inputs), ...(value.tail ? inputs(value.tail) : [])];
+        const bound = new Set(backward ? conclusion.terms.flatMap(inputs) : []);
         for (const premise of premises) {
           for (const name of arithmeticVariables(premise)) {
             if (!bound.has(name)) throw new Error(`Find ${name} in an earlier clue before using it in a calculation.`);
@@ -371,9 +379,11 @@ export function parse(source) {
           }
         }
         for (const name of variables(conclusion)) {
-          if (!bound.has(name)) throw new Error(`Use ${name} after if before using it after then.`);
+          if (!bound.has(name)) throw new Error(backward
+            ? `Find ${name} in a clue before using it in the answer.`
+            : `Use ${name} after if before using it after then.`);
         }
-        program.rules.push({ premises, conclusion, text: `${body}.` });
+        program.rules.push({ premises, conclusion, text: `${body}.`, ...(backward ? { backward: true } : {}) });
       } else {
         const range = /^every number from (-?\d+) to (-?\d+) is (a|an) (\S+)$/.exec(body);
         if (range) {
@@ -406,11 +416,61 @@ function sameTerm(left, right) {
   return left === right || (typeof left !== 'string' && typeof right !== 'string' && JSON.stringify(left) === JSON.stringify(right));
 }
 
+function dereference(value, bindings) {
+  while (value?.variable && bindings.has(value.variable)) value = bindings.get(value.variable);
+  return value;
+}
+
+// Unify a backward head with a call, including open lists and shared variables.
+// Calculations constrain the eventual answer; they never solve inputs backwards.
+function unify(left, right, bindings) {
+  left = dereference(left, bindings);
+  right = dereference(right, bindings);
+  if (sameTerm(left, right)) return true;
+  if (left.operation || right.operation) return true;
+  if (left.variable || right.variable) {
+    const variable = left.variable ? left : right;
+    const value = left.variable ? right : left;
+    const pending = [value];
+    while (pending.length) {
+      const part = dereference(pending.pop(), bindings);
+      if (part.variable === variable.variable) return false;
+      if (part.list) pending.push(...part.list, ...(part.tail ? [part.tail] : []));
+    }
+    bindings.set(variable.variable, value);
+    return true;
+  }
+  if (!left.list || !right.list) return false;
+  const common = Math.min(left.list.length, right.list.length);
+  for (let index = 0; index < common; index++) {
+    if (!unify(left.list[index], right.list[index], bindings)) return false;
+  }
+  if (left.list.length > common) return right.tail !== undefined &&
+    unify(list(left.list.slice(common), left.tail), right.tail, bindings);
+  if (right.list.length > common) return left.tail !== undefined &&
+    unify(left.tail, list(right.list.slice(common), right.tail), bindings);
+  return unify(left.tail ?? { list: [] }, right.tail ?? { list: [] }, bindings);
+}
+
+function callKey(goal) {
+  const names = new Map();
+  function canonical(value) {
+    if (typeof value === 'string' || value.text !== undefined) return value;
+    if (value.variable) {
+      if (!names.has(value.variable)) names.set(value.variable, `?${names.size}`);
+      return { variable: names.get(value.variable) };
+    }
+    return list(value.list.map(canonical), value.tail === undefined ? undefined : canonical(value.tail));
+  }
+  return { relation: goal.relation, terms: goal.terms.map(canonical) };
+}
+
 function matchTerm(wanted, actual, bindings, calculations) {
   if (typeof wanted === 'string' || wanted.text !== undefined || wanted.operation) return sameTerm(calculate(wanted, bindings, calculations), actual);
   if (wanted.variable) {
-    if (bindings.has(wanted.variable)) return sameTerm(bindings.get(wanted.variable), actual);
-    bindings.set(wanted.variable, actual);
+    const resolved = dereference(wanted, bindings);
+    if (!resolved.variable) return matchTerm(resolved, actual, bindings, calculations);
+    bindings.set(resolved.variable, actual);
     return true;
   }
   if (!actual.list || wanted.list.length > actual.list.length) return false;
@@ -433,7 +493,10 @@ function match(pattern, fact, bindings, calculations = null) {
 function specialize(value, bindings, calculations) {
   if (typeof value === 'string') return value;
   if (value.text !== undefined) return value;
-  if (value.variable) return bindings.has(value.variable) ? bindings.get(value.variable) : value;
+  if (value.variable) {
+    const resolved = dereference(value, bindings);
+    return resolved.variable ? resolved : specialize(resolved, bindings, calculations);
+  }
   if (value.list) return list(value.list.map(t => specialize(t, bindings, calculations)),
     value.tail === undefined ? undefined : specialize(value.tail, bindings, calculations));
   return calculate(value, bindings, calculations);
@@ -512,13 +575,26 @@ function ruleLayers(rules) {
 
 export function infer(program) {
   const layers = ruleLayers(program.rules);
+  const levels = new Map(layers.flatMap((rules, level) => rules.map(rule => [rule, level])));
+  const definitions = new Map();
+  for (const rule of program.rules) if (rule.backward) {
+    if (!definitions.has(rule.conclusion.relation)) definitions.set(rule.conclusion.relation, []);
+    definitions.get(rule.conclusion.relation).push(rule);
+  }
+  const tables = new Map();
   const facts = new Map();
   const absences = new Map();
   // Each binary relation has four indexes: both arguments, either one, or none.
   // A rule prefix subscribes to its next clue and sees each matching fact once.
   const known = new Map();
   const waiting = new Map();
-  const queue = [];
+  const queues = layers.map(() => []);
+  const cursors = layers.map(() => 0);
+  let nextLevel = queues.length;
+  function enqueue(work, level) {
+    queues[level].push(work);
+    nextLevel = Math.min(nextLevel, level);
+  }
   function bucket(index, relation, pattern) {
     if (!index.has(relation)) index.set(relation, new Map());
     const keys = index.get(relation);
@@ -536,68 +612,134 @@ export function infer(program) {
     for (const pattern of [[left, right], [left, null], [null, right], [null, null]]) {
       bucket(known, goal.relation, pattern).push(record);
       for (const subscription of bucket(waiting, goal.relation, pattern)) {
-        queue.push({ subscription, record });
+        enqueue({ subscription, record }, levels.get(subscription.rule));
       }
     }
     return true;
   }
+  function demand(request) {
+    const rules = definitions.get(request.relation);
+    if (!rules) return;
+    const goal = callKey(request);
+    const id = key(goal);
+    if (tables.has(id)) return;
+    // Calls that differ only in placeholder spelling share this table. Their
+    // consumers suspend on the fact indexes and resume for each new answer.
+    const table = { goal };
+    tables.set(id, table);
+    for (const rule of rules) {
+      const bindings = new Map();
+      if (rule.conclusion.terms.every((head, index) => unify(head, goal.terms[index], bindings))) {
+        enqueue({ start: { rule, partial: { bindings, premises: [], calculations: [], table } } }, levels.get(rule));
+      }
+    }
+  }
+  function requireInputs(premise, bindings) {
+    const required = premise.negated || premise.relation.startsWith('compare:') ? variables(premise) : arithmeticVariables(premise);
+    for (const name of required) {
+      if (!ground(specialize({ variable: name }, bindings))) {
+        throw new Error(`Give ${name} a value in the question or an earlier clue before using this rule: ${premise.relation.startsWith('compare:') ? 'a comparison needs known values' : 'this clue needs known inputs'}.`);
+      }
+    }
+  }
   function advance(rule, position, partial) {
     if (position === rule.premises.length) {
       const calculations = [...partial.calculations];
+      for (const name of rule.backward ? variables(rule.conclusion) : []) {
+        if (!ground(specialize({ variable: name }, partial.bindings))) {
+          throw new Error(`Give ${name} a value in the question or an earlier clue; an answer must be ground.`);
+        }
+      }
       const conclusion = substitute(rule.conclusion, partial.bindings, calculations);
+      if (partial.table && !match(partial.table.goal, conclusion, new Map())) return;
       add(conclusion, { rule, premises: partial.premises, calculations });
       return;
     }
     const calculations = [...partial.calculations];
     const premise = rule.premises[position];
+    if (rule.backward) requireInputs(premise, partial.bindings);
     const goal = { relation: premise.relation,
       terms: premise.terms.map(t => specialize(t, partial.bindings, calculations)) };
     if (premise.relation.startsWith('compare:')) {
       if (compare(goal) !== Boolean(premise.negated)) {
         const evidence = { goal: { ...goal, ...(premise.negated ? { negated: true } : {}) },
           rule: null, premises: [], comparison: true };
-        queue.push({ resume: { rule, position: position + 1, partial: {
+        enqueue({ resume: { rule, position: position + 1, partial: {
           ...partial, calculations, premises: [...partial.premises, evidence],
-        } } });
+        } } }, levels.get(rule));
       }
       return;
     }
+    demand(goal);
     if (premise.negated) {
-      if (bucket(known, goal.relation, goal.terms).length === 0) {
-        const id = key(goal);
-        if (!absences.has(id)) absences.set(id, absence(goal));
-        queue.push({ resume: { rule, position: position + 1, partial: {
-          ...partial, calculations, premises: [...partial.premises, absences.get(id)],
-        } } });
-      }
+      // Backward producers may just have been requested. A lower-stratum
+      // queue must reach its fixed point before this absence is tested.
+      enqueue({ negative: { rule, position, partial: { ...partial, calculations }, goal } }, levels.get(rule));
       return;
     }
     const pattern = goal.terms.map(t => ground(t) ? t : null);
     const subscription = { rule, position, goal, partial: { ...partial, calculations } };
     bucket(waiting, goal.relation, pattern).push(subscription);
-    for (const record of bucket(known, goal.relation, pattern)) queue.push({ subscription, record });
+    for (const record of bucket(known, goal.relation, pattern)) enqueue({ subscription, record }, levels.get(rule));
   }
   for (const fact of program.facts) add(fact, { rule: null, premises: [] });
+  function requestAssertion(assertion) {
+    if (!definitions.size) return;
+    if (assertion.goal && !assertion.goal.relation.startsWith('compare:')) {
+      demand({ relation: assertion.goal.relation, terms: assertion.goal.terms.map(t => specialize(t, new Map())) });
+    }
+    if (!assertion.aggregate) return;
+    const { operation, label } = assertion.aggregate;
+    if (operation === 'count') {
+      const kinds = new Set([...program.facts, ...program.rules.map(rule => rule.conclusion)]
+        .filter(goal => goal.relation === 'is a' && typeof goal.terms[1] === 'string' && plural(goal.terms[1]) === label)
+        .map(goal => goal.terms[1]));
+      for (const kind of kinds) demand({ relation: 'is a', terms: [{ variable: 'who' }, kind] });
+      if (program.rules.some(rule => rule.backward && rule.conclusion.relation === 'is a' && typeof rule.conclusion.terms[1] !== 'string')) {
+        demand({ relation: 'is a', terms: [{ variable: 'who' }, { variable: 'what' }] });
+      }
+    } else {
+      for (const relation of definitions.keys()) if (relation.startsWith('property:') && plural(relation.slice(9)) === label) {
+        demand({ relation, terms: [{ variable: 'who' }, { variable: 'what' }] });
+      }
+    }
+  }
+  for (const assertion of [...program.questions, ...program.checks]) requestAssertion(assertion);
   // Arithmetic and list construction can create new values indefinitely.
   // Their rules must bound the work or reach a stopping configuration.
-  let cursor = 0;
   for (const layer of layers) {
-    for (const rule of layer) advance(rule, 0, { bindings: new Map(), premises: [], calculations: [] });
-    while (cursor < queue.length) {
-      const work = queue[cursor];
-      queue[cursor++] = null; // Release processed work without recursive JS calls.
-      if (work.resume) {
-        const { rule, position, partial } = work.resume;
-        advance(rule, position, partial);
-        continue;
-      }
-      const { subscription, record } = work;
-      const { rule, position, goal, partial } = subscription;
-      const bindings = match(goal, record.goal, partial.bindings);
-      if (bindings) advance(rule, position + 1, {
-        bindings, premises: [...partial.premises, record], calculations: partial.calculations,
-      });
+    for (const rule of layer) if (!rule.backward) advance(rule, 0, { bindings: new Map(), premises: [], calculations: [] });
+  }
+  while (nextLevel < queues.length) {
+    const level = nextLevel;
+    const queue = queues[level];
+    if (cursors[level] === queue.length) { nextLevel++; continue; }
+    const work = queue[cursors[level]];
+    queue[cursors[level]++] = null; // Release processed work without recursive JS calls.
+    if (work.start) {
+      advance(work.start.rule, 0, work.start.partial);
+      continue;
     }
+    if (work.negative) {
+      const { rule, position, partial, goal } = work.negative;
+      if (bucket(known, goal.relation, goal.terms).length === 0) {
+        const id = key(goal);
+        if (!absences.has(id)) absences.set(id, absence(goal));
+        advance(rule, position + 1, { ...partial, premises: [...partial.premises, absences.get(id)] });
+      }
+      continue;
+    }
+    if (work.resume) {
+      const { rule, position, partial } = work.resume;
+      advance(rule, position, partial);
+      continue;
+    }
+    const { subscription, record } = work;
+    const { rule, position, goal, partial } = subscription;
+    const bindings = match(goal, record.goal, partial.bindings);
+    if (bindings) advance(rule, position + 1, {
+      ...partial, bindings, premises: [...partial.premises, record], calculations: partial.calculations,
+    });
   }
   return [...facts.values()];
 }

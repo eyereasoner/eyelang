@@ -48,8 +48,10 @@ http://127.0.0.1:8000/playground.html.
 - Facts end with `.`; questions end with `?`. Notes start with `#`.
 - Names are single words: `socrates`, `red-fox`. Capitalization does not matter.
   Double quotes preserve text: `"Classic Tea Biscuits"`.
-- Rules use `if`, `and`, and `then`. The placeholders `someone`, `something`,
-  `number`, `first`, and `second` keep the same value within one rule.
+- `if clues then answer.` follows facts forward. `answer if clues.` works
+  backwards from a question, remembering answers so recursive rules can reuse them.
+  Join clues with `and`. The placeholders `someone`, `something`, `number`,
+  `first`, and `second` keep the same value within one rule.
 - Ask `who is a mortal?`, `is socrates a mortal?`, or `what does milo like?`.
   Follow a question with `why?` to explain all its answers.
 - Properties look like `the score of milo is 7.`. Lists look like `[1, 0, 1]`.
@@ -62,6 +64,22 @@ http://127.0.0.1:8000/playground.html.
 
 These are fixed sentence shapes. The complete syntax and meaning are in
 [SPEC.md](SPEC.md).
+
+For example, this calculates just the Fibonacci numbers needed for the question:
+
+```text
+the fibonacci of 0 is 0.
+the fibonacci of 1 is 1.
+the fibonacci of number is first plus second
+if number is greater than 1
+and the fibonacci of number minus 1 is first
+and the fibonacci of number minus 2 is second.
+
+what is the fibonacci of 10000?
+```
+
+Give a backward rule the inputs its calculations need. Asking for every Fibonacci
+number has no finite stopping point; asking for one has.
 
 ## Examples
 

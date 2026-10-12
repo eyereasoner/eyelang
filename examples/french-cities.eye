@@ -11,11 +11,11 @@ lemans connects angers.
 lemans connects tours.
 angers connects nantes.
 
-# One road is enough to reach the next city.
-if someone connects something then someone reaches something.
+# Work backwards from the route asked for: one road is enough.
+someone reaches something if someone connects something.
 
 # Take one road, then follow a route from the next city.
-if someone connects something and something reaches first then someone reaches first.
+someone reaches first if someone connects something and something reaches first.
 
 # Answer: which cities have a route to Nantes?
 who reaches nantes?

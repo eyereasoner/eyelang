@@ -47,22 +47,15 @@ e-to-minus-half-pi is a power.
 the base of e-to-minus-half-pi is euler.
 the exponent of e-to-minus-half-pi is minus-half-pi.
 
-# Polar coordinates: distance from zero and angle in radians.
-if someone is a power and the base of someone is something then something is a power-base.
+# Work out polar coordinates when another calculation asks for them.
 
-if someone is a power-base
-and the real of someone is first
-and the imaginary of someone is second
-then the radius of someone is square root of (first times first plus second times second).
+the radius of someone is square root of (first times first plus second times second)
+if the real of someone is first and the imaginary of someone is second.
 
-if someone is a power-base
-and the real of someone is first
-and the imaginary of someone is second
-then the angle of someone is angle of first with second.
+the angle of someone is angle of first with second
+if the real of someone is first and the imaginary of someone is second.
 
-if someone is a power-base
-and the radius of someone is first
-then the log-radius of someone is natural log of first.
+the log-radius of someone is natural log of first if the radius of someone is first.
 
 # For a base with radius r and angle t, raised to c + d i:
 # size = r to the power c, times exp of minus d times t.
@@ -125,31 +118,24 @@ if someone is an inverse-sine then someone is an inverse-function.
 if someone is an inverse-cosine then someone is an inverse-function.
 
 # Measure the distances from minus one and plus one.
-if someone is an inverse-function
-and the input of someone is something
+the left-distance of someone is square root of ((1 plus first) to the power of 2 plus second to the power of 2)
+if the input of someone is something
 and the real of something is first
-and the imaginary of something is second
-then the left-distance of someone is square root of ((1 plus first) to the power of 2 plus second to the power of 2).
+and the imaginary of something is second.
 
-if someone is an inverse-function
-and the input of someone is something
+the right-distance of someone is square root of ((1 minus first) to the power of 2 plus second to the power of 2)
+if the input of someone is something
 and the real of something is first
-and the imaginary of something is second
-then the right-distance of someone is square root of ((1 minus first) to the power of 2 plus second to the power of 2).
+and the imaginary of something is second.
 
-if someone is an inverse-function
-and the left-distance of someone is first
-and the right-distance of someone is second
-then the difference of someone is (first minus second) divided by 2.
+the difference of someone is (first minus second) divided by 2
+if the left-distance of someone is first and the right-distance of someone is second.
 
-if someone is an inverse-function
-and the left-distance of someone is first
-and the right-distance of someone is second
-then the average of someone is (first plus second) divided by 2.
+the average of someone is (first plus second) divided by 2
+if the left-distance of someone is first and the right-distance of someone is second.
 
-if someone is an inverse-function
-and the average of someone is first
-then the imaginary-size of someone is natural log of (first plus square root of (first to the power of 2 minus 1)).
+the imaginary-size of someone is natural log of (first plus square root of (first to the power of 2 minus 1))
+if the average of someone is first.
 
 if someone is an inverse-sine
 and the difference of someone is first
@@ -186,11 +172,11 @@ why?
 
 # Check: apply sine or cosine to each inverse result to recover the input.
 # cosh(b) = (exp(b) + exp(-b)) / 2; sinh(b) = (exp(b) - exp(-b)) / 2.
-if someone is an inverse-function and the imaginary of someone is first
-then the hyperbolic-cosine of someone is (exponential of first plus exponential of (0 minus first)) divided by 2.
+the hyperbolic-cosine of someone is (exponential of first plus exponential of (0 minus first)) divided by 2
+if the imaginary of someone is first.
 
-if someone is an inverse-function and the imaginary of someone is first
-then the hyperbolic-sine of someone is (exponential of first minus exponential of (0 minus first)) divided by 2.
+the hyperbolic-sine of someone is (exponential of first minus exponential of (0 minus first)) divided by 2
+if the imaginary of someone is first.
 
 if someone is an inverse-sine and the real of someone is first
 and the hyperbolic-cosine of someone is second

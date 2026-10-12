@@ -12,7 +12,7 @@ test('French cities find the original Nantes starting cities and explain a road-
     'chartres reaches nantes.', 'paris reaches nantes.',
   ]));
   assert.equal(nantes, 'yes, paris reaches nantes.');
-  assert.deepEqual([...whyNantes.matchAll(/(\w+) connects (\w+)\./g)].map(m => [m[1], m[2]]), [
+  assert.deepEqual([...whyNantes.matchAll(/^\s*(\w+) connects (\w+)\.$/gm)].map(m => [m[1], m[2]]), [
     ['paris', 'chartres'], ['chartres', 'lemans'], ['lemans', 'angers'], ['angers', 'nantes'],
   ]);
   assert.equal(tours, 'yes, paris reaches tours.');

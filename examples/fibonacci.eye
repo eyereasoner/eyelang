@@ -2,14 +2,11 @@
 the fibonacci of 0 is 0.
 the fibonacci of 1 is 1.
 
-# Work out the steps up to 10000.
-every number from 2 to 10000 is a step.
-
-# Look back one step and two steps. Add those two answers.
-if number is a step
+# Work backwards from the number asked for. Reuse each answer once found.
+the fibonacci of number is first plus second
+if number is greater than 1
 and the fibonacci of number minus 1 is first
-and the fibonacci of number minus 2 is second
-then the fibonacci of number is first plus second.
+and the fibonacci of number minus 2 is second.
 
 # Answer: the first eleven Fibonacci numbers.
 what is the fibonacci of 0?

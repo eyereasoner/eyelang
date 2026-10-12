@@ -56,7 +56,8 @@ shapes; the lexical and well-formedness requirements also apply. They are not
 ABNF and do not imply general English parsing.
 
 A *ground* term contains no variables. A *clue* is a rule premise. A *completed
-program* is the result after all inference layers have reached a fixed point.
+program* is the result after forward inference and all requested backward calls
+have reached a fixed point in each inference layer.
 
 ## 2. Program model
 
@@ -65,14 +66,16 @@ program   = { statement }
 statement = sentence "."
           | range "."
           | "if" clue { "and" clue } "then" sentence "."
+          | sentence "if" clue { "and" clue } "."
           | question "?"
           | "check that" assertion "."
 ```
 
 Implementations MUST parse the whole program before evaluation, load all input
-facts, complete inference, answer questions in their written order, and then
-evaluate checks in their written order. A question can use facts or rules
-written later in the file. Checks MUST NOT assert facts or affect inference.
+facts, request the goals in all questions and checks, complete inference, answer
+questions in their written order, and then evaluate checks in their written
+order. A question can use facts or rules written later in the file. Checks MUST
+NOT assert facts; like questions, they can request backward computation.
 
 Each ordinary sentence denotes a binary relation:
 
@@ -194,16 +197,35 @@ bound MUST NOT exceed the last. A range is not an execution limit.
 A rule has at least one clue and exactly one conclusion. All its clues must
 hold under the same variable bindings. A positive ordinary clue can bind
 previously unbound variables by matching facts, including elements of lists.
-Implementations MUST process binding requirements in premise order:
+
+`if clues then answer.` is a forward rule. `answer if clues.` is a backward
+rule: its conclusion is called the *head*, and evaluation starts when a question,
+check, or ordinary rule clue requests a matching answer. Both forms express the
+same implication, with different directions of evaluation.
+
+Implementations MUST process binding requirements in premise order. For a
+forward rule:
 
 1. Variables used in arithmetic MUST be bound by an earlier positive clue.
 2. Variables in a comparison MUST be bound by an earlier positive clue.
 3. Variables in a negative clue MUST be bound by an earlier positive clue.
 4. Every conclusion variable MUST have been bound in the premises.
 
+For a backward rule, variables in ordinary head positions MAY instead receive
+bindings from the call. These include variables inside head lists and tails,
+but exclude variables occurring only inside head calculations. Such head
+variables count as available for static safety checking. At runtime, every
+variable needed by arithmetic, a comparison, or negation MUST actually be
+ground when that clue is reached. Every emitted answer MUST be ground. A call
+that reaches a clue or answer without the necessary bindings MUST fail with
+an error, rather than silently return no answers.
+
 Comparisons and negative clues MUST NOT introduce bindings. Arithmetic is
 forward evaluation, not inverse solving. Unsafe rules MUST be rejected.
 Negative and computed comparison sentences MUST NOT be facts or conclusions.
+Calculations in a backward head MUST be evaluated after its clues succeed and
+the resulting ground answer MUST match the original call. A false body MUST
+NOT evaluate its head calculations.
 
 The hello world of reasoning uses an ordinary verb and variable kinds:
 
@@ -215,6 +237,22 @@ if someone is a first and first implies second then someone is a second.
 
 The rule derives `socrates is a mortal.`. Additional kinds and implication
 facts can use the same rule, including chains of implications.
+
+A backward definition can use a supplied number without a range of input facts:
+
+```text
+the fibonacci of 0 is 0.
+the fibonacci of 1 is 1.
+the fibonacci of number is first plus second
+if number is greater than 1
+and the fibonacci of number minus 1 is first
+and the fibonacci of number minus 2 is second.
+what is the fibonacci of 10000?
+```
+
+The question binds `number`; recursive clues request its two predecessors.
+An unrestricted `the fibonacci of who is what?` MUST fail because the comparison
+requires a known `number`. Supplying a result does not solve for its index.
 
 ## 5. Arithmetic and comparisons
 
@@ -285,13 +323,29 @@ ordinary questions.
 ### 6.1. Positive inference
 
 Facts have set semantics. Implementations MUST add each distinct ground
-relation/argument tuple at most once, and MUST apply rules until no further
-conclusions can be added. Several values for one property subject are distinct
-facts; there is no replacement or implicit uniqueness constraint.
+relation/argument tuple at most once. Several values for one property subject
+are distinct facts; there is no replacement or implicit uniqueness constraint.
 
-For positive programs, the result MUST be the least fixed point containing
-the input facts. Rule ordering MUST NOT change that set. Inference MAY change
-answer order or select a different valid first derivation.
+Forward rules MUST be evaluated to a fixed point over all available facts.
+Backward rules MUST be evaluated for requested calls only, including calls
+created by forward or backward clues. A rule set with no requested backward
+calls MUST NOT enumerate its backward definitions. Matching supplied facts and
+answers from either rule form MUST be available to both forms.
+
+Implementations MUST table backward calls: calls differing only in variable
+names share one evaluation, preserving repeated-variable constraints. Each
+matching answer MUST be delivered once per waiting consumer. An active
+recursive call MUST suspend its consumers and resume them as answers arrive;
+it MUST NOT be treated as failure or expanded into an unbounded recursive
+execution stack. Positive recursive components MUST reach their least fixed
+point, including an empty result when there is no supporting base fact.
+Tables MUST be local to a program run.
+
+For terminating positive programs whose calls supply the required inputs,
+requested answers MUST agree with the least fixed point of the implications
+and input facts. Unrequested backward consequences need not be materialized.
+Rule and question ordering MUST NOT change the answer sets. Inference MAY
+change answer order or select a different valid first derivation.
 
 ### 6.2. Absence clues
 
@@ -307,10 +361,13 @@ An ordinary negative clue holds exactly when no fact matching its ground
 positive form follows from the completed producer layers. This is absence of
 evidence within the program, not explicit falsity or a claim about the world.
 
-Implementations MUST stratify rule dependencies before inference. Positive
-dependencies MAY share a layer; a negative consumer MUST run strictly after
-all possible producers of its negative premise. Any dependency cycle through
-a negative edge MUST be rejected.
+Implementations MUST stratify dependencies of both rule forms before inference.
+Positive dependencies MAY share a layer; a negative consumer MUST run strictly
+after all possible producers of its negative premise. Any dependency cycle
+through a negative edge MUST be rejected.
+Testing absence MUST request the positive form of the goal and complete all
+its producer work first, including newly requested backward calls. An active
+or not-yet-requested call MUST NOT be mistaken for absent evidence.
 
 In this version, membership dependencies distinguish fixed kind constants.
 A variable kind overlaps every membership kind. Other dependencies use the
@@ -321,10 +378,12 @@ producers and introduce no negative dependency edges.
 
 ### 6.3. Termination and scope
 
-With a finite value domain, fixed-point evaluation terminates even with
-positive cycles. Arithmetic and list construction can create an unbounded
-domain, so termination is then a property of the program. No semantic depth
-limit or automatic truncation is defined.
+With a finite value domain and finitely many distinct call patterns, fixed-point
+evaluation terminates even with positive cycles. Arithmetic and list construction
+can create an unbounded domain of answers or calls, so termination is then a
+property of the program. Tabling does not make every query finite. Inputs can
+bound backward computation, as in the Fibonacci example; no separate range is
+needed. No semantic depth limit or automatic truncation is defined.
 
 This version has no explicit false facts, disjunction, general term
 constructors beyond lists, mutation, imports, or external calls.
@@ -352,6 +411,9 @@ Ordinary sentences containing query variables can serve as questions. Positive
 queries MUST return all matching facts, once each. A ground positive query
 MUST answer yes when matching evidence exists and unknown otherwise. It MUST
 NOT treat missing positive evidence as an explicit no answer.
+Questions and checks MUST request matching backward calls before answers are
+rendered. Ground negative questions MUST request and complete their positive
+form before testing absence.
 
 Arithmetic in a question MUST be ground. Query variables can match values
 but MUST NOT occur inside calculations.
@@ -376,6 +438,13 @@ what is the largest of all scores?
 ```
 
 Aggregation MUST run over the completed inferred facts, not partial results.
+It MUST request all matching backward membership kinds or property relations
+with their subjects and values unconstrained. It MUST NOT aggregate only the
+answers already cached by other questions. Thus finite definitions can be
+aggregated independently of question order; a definition requiring a ground
+input, such as Fibonacci above, MUST report an insufficient-input error when
+an aggregate attempts unrestricted enumeration. A variable-kind backward head
+MUST be requested with both arguments unconstrained for membership counts.
 Counting selects matching membership kinds and counts distinct subjects.
 Value aggregates select matching property names and operate on every distinct
 subject/value fact. Identical repeated facts count once; equal values from
@@ -412,6 +481,8 @@ completed search and lack of a matching fact. It MUST NOT label absence as a
 supplied fact.
 
 Every derived fact MUST retain a successful supporting rule and its premises.
+This applies to both forward and backward derivations. A call supplies bindings,
+not new input facts; it MUST NOT appear as a supplied-fact premise.
 Input facts MUST be identified as supplied. Arithmetic explanations MUST show
 concrete operands and results; computed comparisons MUST be identified as
 checked values. Aggregate explanations MUST identify the operation and its
@@ -484,7 +555,8 @@ Programs with no questions or checks receive a prompt to add a question.
 This section is informative.
 
 `language.js` exports `parse`, `infer`, `say`, and `run`. Parsing produces
-facts, rules, questions, and checks; inference returns facts with evidence;
+facts, rules, questions, and checks; inference requests their goals and returns
+materialized facts with evidence (including requested backward answers);
 `run` returns rendered output blocks or throws an error. `eyelang.js` supplies
 the file/stdin interface. Importing the language module has no CLI side effects.
 
@@ -492,14 +564,16 @@ the file/stdin interface. Importing the language module has no CLI side effects.
 draft storage, share links, file/URL loading, and output downloads. Each run
 uses `playground-worker.js`, which imports the same language module; Stop
 terminates that worker. The displayed output preview is explicitly bounded,
-while copying and downloading retain the full result. `npm run playground`
+while copying and downloading retain the full result. `node playground-server.js`
 starts a local HTTP server; the browser assets also work on a static host.
 These UI facilities do not change language syntax or inference semantics.
 
 The evaluator indexes binary facts by both arguments, either argument, or
 neither. Partial matches wait for their next clue. A FIFO work queue joins
-existing and newly derived facts without recursive evaluator calls. Ground
-lists use structural index keys; non-ground patterns use broader indexes
+existing and newly derived facts without recursive evaluator calls. Queues
+prioritize lower inference layers, including work requested by backward calls.
+Variant calls share a table and use the same fact indexes to resume consumers.
+Ground lists use structural index keys; non-ground patterns use broader indexes
 and structural matching. Explanations use an iterative walk over the evidence
 graph and retain one successful derivation per distinct fact.
 
@@ -507,13 +581,14 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
 
 - `socrates.eye` supplies generic inheritance of membership through implication.
 - Animals, friends, and paths introduce facts, joins, and positive cycles.
-- French cities derives reachability from one-way roads. Explanations expose
+- French cities requests reachability through one-way roads. Explanations expose
   supporting routes; the example does not optimize route length.
-- Fibonacci derives bounded steps by addition, including exact Fibonacci
-  10000 (2090 digits). Checks include Cassini's identity. Its full explanation
+- Fibonacci works backwards from its requested indices by addition, including
+  exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity. Its full explanation
   shares 20000 evidence records instead of expanding a recursive proof tree.
-- Complex numbers uses ordinary rules for powers and inverse functions. The
-  real input is configurable, initially `5.22`. For real inputs outside the
+- Complex numbers uses forward rules for results and backward rules for helper
+  calculations in powers and inverse functions. The real input is configurable,
+  initially `5.22`. For real inputs outside the
   unit interval, this example chooses positive imaginary inverse sine and
   negative imaginary inverse cosine. Checks use explicit rounding tolerances
   and recover the input with forward functions.
