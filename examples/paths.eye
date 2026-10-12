@@ -1,4 +1,4 @@
-# A loop does not keep eyelang thinking forever.
+# Rules over a finite cycle of follows facts.
 ada follows ben.
 ben follows cara.
 cara follows ada.

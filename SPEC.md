@@ -14,8 +14,8 @@ current eyelang experiment. Future revisions may change the language.
 
 ## Abstract
 
-eyelang is a small symbolic logic programming language intended to be readable
-by children. Programs contain facts, rules, questions, and checks. Evaluation
+eyelang is a symbolic logic programming language.
+Programs contain facts, rules, questions, and checks. Evaluation
 derives consequences, explains selected answers, and tests stated expectations.
 This document specifies syntax, values, inference, arithmetic, negation,
 aggregation, explanations, errors, and the command-line interface.

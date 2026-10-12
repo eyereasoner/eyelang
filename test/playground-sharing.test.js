@@ -202,7 +202,7 @@ test('clipboard failures leave inline links visible and manual Gist instructions
   assert.match(app.element('editor-status').textContent, /Copy your program/);
 });
 
-test('invalid references and failed Gist creation produce readable errors', async () => {
+test('invalid references and failed Gist creation identify the URL or HTTP error', async () => {
   const invalid = await playground({ hash: '#example=../outside' });
   assert.equal(invalid.element('source-name').textContent, 'socrates.eye');
   assert.match(invalid.element('editor-status').textContent, /Couldn't read/);

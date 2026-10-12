@@ -1,7 +1,7 @@
 {
   "name": "eyelang",
   "version": "0.0.7",
-  "description": "A simple symbolic logic programming language.",
+  "description": "An experimental symbolic logic programming language.",
   "type": "module",
   "bin": {
     "eyelang": "./eyelang.js"

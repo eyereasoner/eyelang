@@ -1,8 +1,10 @@
 # Working on eyelang
 
-eyelang is an experimental symbolic logic programming language intended to be
-readable by children. Keep its syntax small, explanations concrete, and error
-messages understandable. Prefer ordinary language in user-facing text.
+eyelang is an experimental symbolic logic programming language. Describe its
+implemented syntax, semantics, and limits without making claims about the age,
+background, or ability of its users. Distinguish demonstrated behavior from
+design goals. Keep explanations concrete, error messages specific, and
+user-facing text direct.
 
 ## Repository map
 

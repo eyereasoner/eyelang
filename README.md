@@ -4,8 +4,8 @@
 [Playground](https://eyereasoner.github.io/eyelang/playground) ·
 [Language specification](https://eyereasoner.github.io/eyelang/SPEC)
 
-A small, experimental logic programming language, written so kids can read it.
-Tell it facts and rules. Ask a question. See why the answer follows, and check it.
+An experimental symbolic logic programming language with forward and backward
+rules, query explanations, and executable checks.
 
 ## Hello, Socrates
 

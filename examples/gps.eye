@@ -40,7 +40,7 @@ if the location of traveller is second
 and the destination of trip is third
 and the route of [second, third] is first.
 
-# Give the two possible action lists friendly names, once their routes exist.
+# Name the two action lists direct and via-kortrijk.
 the name of [drive-gent-brugge, drive-brugge-oostende] is direct.
 the name of [drive-gent-kortrijk, drive-kortrijk-brugge, drive-brugge-oostende] is via-kortrijk.
 the label of direct is "Gent → Brugge → Oostende".

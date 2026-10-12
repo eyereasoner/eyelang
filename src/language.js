@@ -1,4 +1,4 @@
-// A deliberately small language: words name things, sentences relate them.
+// Sentences describe binary relations between values.
 // Every new fact keeps its first reason, including any arithmetic it used.
 const word = /^[\p{L}][\p{L}\p{N}_-]*$/u;
 const integer = /^-?\d+$/;
@@ -770,7 +770,7 @@ export function say(goal) {
     return `the ${goal.relation.slice(9)} of ${first} is ${second}`;
   }
   if (goal.relation === 'is a') {
-    // These first programs use simple words such as cat, animal and friend.
+    // Choose the article by the first letter, without pronunciation analysis.
     const article = /^[aeiou]/.test(second) ? 'an' : 'a';
     return `${first} is ${article} ${second}`;
   }
