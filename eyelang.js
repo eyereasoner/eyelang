@@ -14,9 +14,7 @@ if (args.length === 1 && ['-v', '--version'].includes(args[0])) {
 } else {
   try {
     const source = readFileSync(args[0] === '-' ? 0 : args[0], 'utf8');
-    const answers = run(source);
-    if (!answers.length) console.log('I have read your program. Add a question ending with ?');
-    else console.log(answers.join('\n\n'));
+    console.log(run(source, { arc: true }).join('\n\n'));
   } catch (error) {
     console.error(error.code === 'ENOENT' ? `I couldn't find the program "${args[0]}".` : error.message);
     process.exitCode = 1;

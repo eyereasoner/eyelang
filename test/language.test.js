@@ -162,7 +162,9 @@ test('the command reads standard input and reports program errors with a failing
     input: 'milo is a cat. who is a cat?', encoding: 'utf8',
   });
   assert.equal(good.status, 0);
-  assert.equal(good.stdout, 'milo is a cat.\n');
+  assert.equal(good.stdout, '# Answer\nmilo is a cat.\n\n' +
+    '# Reason\nNo explanation was requested. Add why? after a question.\n\n' +
+    '# Check\nNo checks were requested.\n');
   const bad = spawnSync(process.execPath, [cli.pathname, '-'], {
     input: 'milo is cat.', encoding: 'utf8',
   });

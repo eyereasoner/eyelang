@@ -17,8 +17,7 @@
     h1 small { color: var(--muted); font-size: 15px; letter-spacing: 0; font-weight: 500; margin-left: 14px; }
     a { color: var(--accent); text-underline-offset: 3px; }
     nav { display: flex; flex-wrap: wrap; gap: 20px; padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
-    .arc { margin: 18px 0; color: var(--muted); font-size: clamp(12px, 3.5vw, 14px); white-space: nowrap; }
-    .arc b { color: var(--accent); }
+    .arc { margin: 18px 0; color: var(--muted); font-size: 14px; }
     .toolbar, .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
     .toolbar { padding: 18px 20px; margin-bottom: 18px; }
     .load-row { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
@@ -82,7 +81,7 @@
     </header>
     <div id="serve-hint" role="status">Start <code>node src/playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
     <noscript><p>Turn on JavaScript to run programs in this playground.</p></noscript>
-    <p class="arc" aria-label="Answer, Reason why, Check"><span><b>A</b> Answer</span> · <span><b>R</b> Reason why</span> · <span><b>C</b> Check</span></p>
+    <p class="arc">Enabling dialogical reasoning using <a href="https://josd.github.io/arc/">ARC</a>: Answer · Reason · Check.</p>
 
     <section class="toolbar" aria-label="Load and save programs">
       <div class="load-row">
@@ -144,13 +143,13 @@
         <div class="actions"><button id="run" class="primary" type="button" disabled>Run program</button><button id="stop" class="stop" type="button" disabled>Stop</button><span class="shortcut"><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></span></div>
       </section>
       <section class="card" aria-labelledby="output-label">
-        <div class="heading"><h2 id="output-label">Answer, Reason why, Check</h2><span id="output-size"></span></div>
+        <div class="heading"><h2 id="output-label">Answer, Reason, Check</h2><span id="output-size"></span></div>
         <pre id="output" tabindex="0" aria-labelledby="output-label">Your answers will appear here.</pre>
         <p id="preview-note" hidden></p>
         <div class="actions"><p id="run-status" role="status" aria-live="polite">Ready when you are.</p><button id="copy-output" type="button" disabled>Copy output</button><button id="save-output" type="button" disabled>Save output</button></div>
       </section>
     </div>
-    <footer><p>Your program runs in your browser. Edits are saved on this device when space is available.</p><a href="https://josd.github.io/arc/">About ARC</a></footer>
+    <footer><p>Your program runs in your browser. Edits are saved on this device when space is available.</p></footer>
   </main>
   <script type="module" src="src/playground.js"></script>
 </body>

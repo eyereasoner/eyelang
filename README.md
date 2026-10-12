@@ -33,6 +33,7 @@ node eyelang.js examples/socrates.eye
 The answer is `socrates is a mortal.`. The explanation shows the rule and its
 two clues. The checks confirm the answer and that there is exactly one mortal.
 This is [ARC: Answer, Reason, Check](https://josd.github.io/arc/).
+Output is grouped under `# Answer`, `# Reason`, and `# Check`.
 
 ## Playground
 

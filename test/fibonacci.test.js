@@ -112,10 +112,12 @@ test('the command prints Fibonacci 10000 and explains all its steps exactly once
   assert.equal(result.status, 0, result.stderr);
   const expected = referenceFibonacci(10000);
   assert.equal(expected.length, 2090);
-  const answers = result.stdout.split('\n\n');
-  assert.equal(answers.length, 19);
-  assert.equal(answers[12], `the fibonacci of 10000 is ${expected}.`);
-  const explanation = answers[13];
+  assert.deepEqual([...result.stdout.matchAll(/^# (Answer|Reason|Check)$/gm)].map(match => match[1]), ['Answer', 'Reason', 'Check']);
+  const [answerSection, reasonSection, checkSection] = result.stdout.split(/\n\n# (?:Reason|Check)\n/);
+  const answers = answerSection.replace(/^# Answer\n/, '').split('\n\n');
+  assert.equal(answers.length, 12);
+  assert.equal(answers[11], `the fibonacci of 10000 is ${expected}.`);
+  const explanation = reasonSection.split('\n\n')[1];
   assert.match(explanation, /^Here is why\. Each step is shown once\./);
   const records = [...explanation.matchAll(/^step (\d+): the fibonacci of (\d+) is (\d+)\.$/gm)];
   assert.equal(records.length, 10001);
@@ -131,7 +133,8 @@ test('the command prints Fibonacci 10000 and explains all its steps exactly once
   assert.equal(steps.length, 20000);
   assert.equal(new Set(steps).size, 20000);
   assert.match(explanation, /That explains step 20000\.$/);
-  assert.match(answers[18], /^check passed: the cassini of 10000 is -1\.\n$/);
+  assert.equal(checkSection.split('\n\n').length, 5);
+  assert.match(checkSection, /check passed: the cassini of 10000 is -1\.\n$/);
   assert.equal(result.stderr, '');
 });
 

@@ -881,7 +881,7 @@ function explain(roots) {
   return lines.join('\n');
 }
 
-export function run(source) {
+export function run(source, { arc = false } = {}) {
   const program = parse(source);
   const facts = infer(program);
   let previous = null;
@@ -931,5 +931,15 @@ export function run(source) {
       throw new Error(`Line ${assertion.line}: ${error.message}`);
     }
   }
-  return answers;
+  if (!arc) return answers;
+  const sections = [[], [], answers.slice(program.questions.length)];
+  program.questions.forEach((question, index) => sections[question.why ? 1 : 0].push(answers[index]));
+  const empty = [
+    'Add a question ending with ? to ask about your program.',
+    'No explanation was requested. Add why? after a question.',
+    'No checks were requested.',
+  ];
+  return ['Answer', 'Reason', 'Check'].map((label, index) => {
+    return `# ${label}\n${sections[index].join('\n\n') || empty[index]}`;
+  });
 }

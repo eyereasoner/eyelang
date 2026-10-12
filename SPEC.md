@@ -551,7 +551,14 @@ node eyelang.js --help
 Successful command execution MUST exit zero. Errors MUST be written to stderr
 and cause a nonzero status. The reference command renders all questions and
 checks before writing their output; if any check fails, it prints no successful
-answer transcript. Successful output blocks are separated by blank lines.
+answer transcript. Successful output in the CLI and playground MUST contain
+three sections headed by the comments `# Answer`, `# Reason`, and `# Check`,
+in that order. Ordinary query answers appear under `# Answer`; explicit why
+questions and follow-ups appear under `# Reason`; successful checks appear
+under `# Check`. Blocks within each section retain their written order and
+are separated by blank lines. All three headings appear even when a section
+has no results; a message indicates what was not requested. Section grouping
+MUST NOT change the preceding-question context used by `why?`.
 
 Programs with no questions or checks receive a prompt to add a question.
 `--help` and `-h` display usage. `--version` and `-v` display `eyelang` followed
@@ -565,7 +572,9 @@ This section is informative.
 `src/language.js` exports `parse`, `infer`, `say`, and `run`. Parsing produces
 facts, rules, questions, and checks; inference requests their goals and returns
 materialized facts with evidence (including requested backward answers);
-`run` returns rendered output blocks or throws an error. `eyelang.js` supplies
+`run(source)` returns rendered output blocks or throws an error;
+`run(source, { arc: true })` groups those blocks into the three ARC sections
+used by the CLI and playground. `eyelang.js` supplies
 the file/stdin interface. Importing the language module has no CLI side effects.
 
 `playground.html` and `src/playground.js` provide a browser editor, bundled examples,
