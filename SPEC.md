@@ -563,6 +563,6 @@ convention; no media type is registered by this memo.
 ### 14.2. Informative references
 
 - [ARC: Answer, Reason, Check](https://josd.github.io/arc/).
-- [README.md](README.md): introduction and example index.
-- [language.js](language.js): reference implementation.
-- [test/](test/): executable behavior and regression checks.
+- [README.md](https://github.com/eyereasoner/eyelang/blob/main/README.md): introduction and example index.
+- [language.js](https://github.com/eyereasoner/eyelang/blob/main/language.js): reference implementation.
+- [test/](https://github.com/eyereasoner/eyelang/tree/main/test): executable behavior and regression checks.

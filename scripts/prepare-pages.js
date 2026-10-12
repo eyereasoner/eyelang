@@ -21,10 +21,7 @@ export async function preparePages(destination, basePath = '/eyelang') {
   await write('playground/index.html', playground.replace('<head>', '<head>\n  <base href="../">'));
 
   const readme = (await readFile(resolve(root, 'README.md'), 'utf8')).replaceAll('(SPEC.md)', '(SPEC/)');
-  const spec = (await readFile(resolve(root, 'SPEC.md'), 'utf8'))
-    .replaceAll('(README.md)', '(../)')
-    .replaceAll('(language.js)', '(../language.js)')
-    .replaceAll('(test/)', '(https://github.com/eyereasoner/eyelang/tree/main/test)');
+  const spec = await readFile(resolve(root, 'SPEC.md'), 'utf8');
   await write('index.md', `---\nlayout: default\ntitle: eyelang\n---\n\n${readme}`);
   await write('SPEC/index.md', `---\nlayout: default\ntitle: eyelang Language Specification\n---\n\n${spec}`);
   await write('_config.yml', JSON.stringify({
