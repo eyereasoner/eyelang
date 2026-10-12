@@ -601,6 +601,10 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
 - Fibonacci works backwards from its requested indices by addition, including
   exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity. Its full explanation
   shares 20000 evidence records instead of expanding a recursive proof tree.
+- Ackermann uses backward hyperoperation rules and exact exponentiation to
+  answer twelve sample calls. `A(3, 1000)` equals `2^1003 - 3`, and `A(4, 2)`
+  equals `2^65536 - 3` (19729 digits). Explanations retain the recursive work;
+  larger inputs can require impractical amounts of time, memory, or output.
 - Bayes diagnosis multiplies supplied symptom likelihoods and priors, then
   normalizes across the diseases listed for each case. An observed absent
   symptom contributes `1 - p`; an unobserved symptom contributes no factor.

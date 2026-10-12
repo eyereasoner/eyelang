@@ -97,6 +97,7 @@ Every example includes answers, reasons, and executable checks.
 | [Age](https://github.com/eyereasoner/eyelang/blob/main/examples/age.eye) | Checking an age against a supplied date |
 | [Bayes diagnosis](https://github.com/eyereasoner/eyelang/blob/main/examples/bayes-diagnosis.eye) | Updating toy disease probabilities from symptom evidence |
 | [Fibonacci](https://github.com/eyereasoner/eyelang/blob/main/examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
+| [Ackermann](https://github.com/eyereasoner/eyelang/blob/main/examples/ackermann.eye) | Exact large integers and nested backward calls |
 | [Complex numbers](https://github.com/eyereasoner/eyelang/blob/main/examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
 | [Turing machine](https://github.com/eyereasoner/eyelang/blob/main/examples/turing.eye) | Running binary tapes with ordinary rules |
 | [Delfour](https://github.com/eyereasoner/eyelang/blob/main/examples/delfour.eye) | A shopping policy and a lower-sugar recommendation |
