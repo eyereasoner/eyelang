@@ -95,6 +95,7 @@ Every example includes answers, reasons, and executable checks.
 | [French cities](https://github.com/eyereasoner/eyelang/blob/main/examples/french-cities.eye) | Routes through one-way roads |
 | [GPS](https://github.com/eyereasoner/eyelang/blob/main/examples/gps.eye) | Choosing a route by duration, cost, belief, and comfort |
 | [Age](https://github.com/eyereasoner/eyelang/blob/main/examples/age.eye) | Checking an age against a supplied date |
+| [Bayes diagnosis](https://github.com/eyereasoner/eyelang/blob/main/examples/bayes-diagnosis.eye) | Updating toy disease probabilities from symptom evidence |
 | [Fibonacci](https://github.com/eyereasoner/eyelang/blob/main/examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
 | [Complex numbers](https://github.com/eyereasoner/eyelang/blob/main/examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
 | [Turing machine](https://github.com/eyereasoner/eyelang/blob/main/examples/turing.eye) | Running binary tapes with ordinary rules |

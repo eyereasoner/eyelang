@@ -601,6 +601,12 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
 - Fibonacci works backwards from its requested indices by addition, including
   exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity. Its full explanation
   shares 20000 evidence records instead of expanding a recursive proof tree.
+- Bayes diagnosis multiplies supplied symptom likelihoods and priors, then
+  normalizes across the diseases listed for each case. An observed absent
+  symptom contributes `1 - p`; an unobserved symptom contributes no factor.
+  The toy model assumes conditional independence and alternative diseases;
+  its results are relative to that candidate list. Checks reject probabilities
+  outside `[0, 1]`, require a positive total, and verify normalization.
 - Complex numbers uses forward rules for results and backward rules for helper
   calculations in powers and inverse functions. The real input is configurable,
   initially `5.22`. For real inputs outside the
