@@ -28,7 +28,7 @@ test('the playground serves its page, browser modules, examples, and documentati
     ['/src/playground-worker.js', 'text/javascript', "import { run } from './language.js'"],
     ['/src/language.js', 'text/javascript', 'export function run('],
     ['/examples/socrates.eye', 'text/plain', 'human implies mortal.'],
-    ['/SPEC.md', 'text/plain', '# eyelang Language Specification'],
+    ['/SPEC.md', 'text/plain', '# eyelang Specification'],
   ]) {
     const response = await get(path);
     assert.equal(response.status, 200, path);

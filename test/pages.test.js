@@ -31,7 +31,7 @@ test('Pages serves playground dependencies under the project path and prepares r
     assert.match(html, /href="\.\/">eyelang/);
     assert.match(html, /href="https:\/\/github.com\/eyereasoner\/eyelang">Repository/);
     assert.match(html, /href="playground\/">Playground/);
-    assert.match(html, /href="SPEC\/">Language specification/);
+    assert.match(html, /href="SPEC\/">Specification/);
   }
 
   const home = await read('index.md');
@@ -39,7 +39,7 @@ test('Pages serves playground dependencies under the project path and prepares r
   assert.match(home, /^---\nlayout: default\n/);
   assert.match(home, /\[SPEC.md\]\(SPEC\/\)/);
   assert.match(spec, /^---\nlayout: default\n/);
-  assert.match(spec, /# eyelang Language Specification/);
+  assert.match(spec, /# eyelang Specification/);
   for (const [label, path] of [['README.md', 'blob/main/README.md'], ['src/language.js', 'blob/main/src/language.js'], ['test/', 'tree/main/test']]) {
     assert.ok(spec.includes(`[${label}](https://github.com/eyereasoner/eyelang/${path})`), label);
   }

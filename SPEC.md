@@ -1,4 +1,4 @@
-# eyelang Language Specification
+# eyelang Specification
 
 ```text
 Document: eyelang-spec-0001

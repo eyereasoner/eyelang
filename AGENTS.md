@@ -16,7 +16,7 @@ user-facing text direct.
 - `src/playground-server.js`: local static server.
 - `examples/*.eye`: executable examples using ARC (Answer, Reason, Check).
 - `test/*.test.js`: Node.js behavior and regression tests.
-- `SPEC.md`: normative language specification in RFC style.
+- `SPEC.md`: normative specification in RFC style.
 - `README.md`: concise introduction, usage, and example index.
 - `scripts/prepare-pages.js` and `scripts/pages-layout.html`: website staging
   and shared documentation layout.
@@ -65,7 +65,7 @@ it with Jekyll into `_site/`. These generated directories are ignored.
   specification's example descriptions current when relevant.
 - Keep README example links pointed at repository files. Preserve the same
   top navigation on the homepage, specification, and playground: eyelang,
-  Repository, Playground, Language specification.
+  Repository, Playground, Specification.
 - Use the project name `eyelang`. Omit obsolete slogans and public provenance
   notes about sibling projects. Do not restore `DESIGN.md`; keep language design
   and semantics in `SPEC.md`.

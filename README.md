@@ -2,7 +2,7 @@
 
 [Repository](https://github.com/eyereasoner/eyelang) ·
 [Playground](https://eyereasoner.github.io/eyelang/playground) ·
-[Language specification](https://eyereasoner.github.io/eyelang/SPEC)
+[Specification](https://eyereasoner.github.io/eyelang/SPEC)
 
 An experimental symbolic logic programming language with forward and backward
 rules, query explanations, and executable checks.

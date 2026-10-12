@@ -25,7 +25,7 @@ export async function preparePages(destination, basePath = '/eyelang') {
   const readme = (await readFile(resolve(root, 'README.md'), 'utf8')).replaceAll('(SPEC.md)', '(SPEC/)');
   const spec = await readFile(resolve(root, 'SPEC.md'), 'utf8');
   await write('index.md', `---\nlayout: default\ntitle: eyelang\n---\n\n${readme}`);
-  await write('SPEC/index.md', `---\nlayout: default\ntitle: eyelang Language Specification\n---\n\n${spec}`);
+  await write('SPEC/index.md', `---\nlayout: default\ntitle: eyelang Specification\n---\n\n${spec}`);
   await write('_config.yml', JSON.stringify({
     title: 'eyelang', baseurl: basePath, markdown: 'kramdown',
     kramdown: { input: 'GFM', auto_ids: true },
