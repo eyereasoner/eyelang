@@ -22,53 +22,53 @@ the input of case4 is [].
 # The rules below run any machine described by this transition-table shape.
 # A configuration is [state, reversed-left-tape, current-symbol, right-tape].
 # [first | second] separates the first item from the rest of a list.
-if the machine of first is second and the start of second is third
-and the input of first is [fourth | fifth]
-then first runs [third, [], fourth, fifth].
+if the machine of ?case is ?machine and the start of ?machine is ?state
+and the input of ?case is [?symbol | ?rest]
+then ?case runs [?state, [], ?symbol, ?rest].
 
-if the machine of first is second and the start of second is third
-and the input of first is []
-then first runs [third, [], blank, []].
+if the machine of ?case is ?machine and the start of ?machine is ?state
+and the input of ?case is []
+then ?case runs [?state, [], blank, []].
 
 # Write the symbol and move right, extending the tape with blank if needed.
-if first runs [second, third, fourth, [fifth | sixth]]
-and the machine of first is seventh
-and the transition of [seventh, second, fourth] is [eighth, ninth, right]
-then first runs [eighth, [ninth | third], fifth, sixth].
+if ?case runs [?state, ?left, ?read, [?next-symbol | ?right]]
+and the machine of ?case is ?machine
+and the transition of [?machine, ?state, ?read] is [?next-state, ?write, right]
+then ?case runs [?next-state, [?write | ?left], ?next-symbol, ?right].
 
-if first runs [second, third, fourth, []]
-and the machine of first is fifth
-and the transition of [fifth, second, fourth] is [sixth, seventh, right]
-then first runs [sixth, [seventh | third], blank, []].
+if ?case runs [?state, ?left, ?read, []]
+and the machine of ?case is ?machine
+and the transition of [?machine, ?state, ?read] is [?next-state, ?write, right]
+then ?case runs [?next-state, [?write | ?left], blank, []].
 
 # Write the symbol and move left, extending the tape with blank if needed.
-if first runs [second, [third | fourth], fifth, sixth]
-and the machine of first is seventh
-and the transition of [seventh, second, fifth] is [eighth, ninth, left]
-then first runs [eighth, fourth, third, [ninth | sixth]].
+if ?case runs [?state, [?previous | ?left], ?read, ?right]
+and the machine of ?case is ?machine
+and the transition of [?machine, ?state, ?read] is [?next-state, ?write, left]
+then ?case runs [?next-state, ?left, ?previous, [?write | ?right]].
 
-if first runs [second, [], third, fourth]
-and the machine of first is fifth
-and the transition of [fifth, second, third] is [sixth, seventh, left]
-then first runs [sixth, [], blank, [seventh | fourth]].
+if ?case runs [?state, [], ?read, ?right]
+and the machine of ?case is ?machine
+and the transition of [?machine, ?state, ?read] is [?next-state, ?write, left]
+then ?case runs [?next-state, [], blank, [?write | ?right]].
 
 # A stay instruction writes without moving the head.
-if first runs [second, third, fourth, fifth]
-and the machine of first is sixth
-and the transition of [sixth, second, fourth] is [seventh, eighth, stay]
-then first runs [seventh, third, eighth, fifth].
+if ?case runs [?state, ?left, ?read, ?right]
+and the machine of ?case is ?machine
+and the transition of [?machine, ?state, ?read] is [?next-state, ?write, stay]
+then ?case runs [?next-state, ?left, ?write, ?right].
 
 # On halt, turn the reversed left side around and join it to the rest.
-if first runs [halt, second, third, fourth]
-then the unfinished-output of first is [second, [third | fourth]].
+if ?case runs [halt, ?left, ?symbol, ?right]
+then the unfinished-output of ?case is [?left, [?symbol | ?right]].
 
-if the unfinished-output of first is [[second | third], fourth]
-then the unfinished-output of first is [third, [second | fourth]].
+if the unfinished-output of ?case is [[?symbol | ?left], ?right]
+then the unfinished-output of ?case is [?left, [?symbol | ?right]].
 
-if the unfinished-output of first is [[], second]
-then the output of first is second.
+if the unfinished-output of ?case is [[], ?output]
+then the output of ?case is ?output.
 
-if the output of first is second then first is a finished-case.
+if the output of ?case is ?output then ?case is a finished-case.
 
 # Answer: read each input and its computed output.
 what is the input of case1?

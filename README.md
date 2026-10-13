@@ -13,7 +13,7 @@ rules, query explanations, and executable checks.
 socrates is a human.
 human implies mortal.
 
-if first is a second and second implies third then first is a third.
+if ?person is a ?kind and ?kind implies ?superkind then ?person is a ?superkind.
 
 # Answer
 who is a mortal?
@@ -56,8 +56,9 @@ http://127.0.0.1:8000/playground.html.
   Double quotes preserve text: `"Classic Tea Biscuits"`.
 - `if clues then answer.` follows facts forward. `answer if clues.` works
   backwards from a question, remembering answers so recursive rules can reuse them.
-  Join clues with `and`. Placeholders keep the same value within one rule:
-  `first` through `sixteenth`.
+  Join clues with `and`. Variables start with `?` and have names you choose,
+  such as `?person`, `?kind`, or `?value`. Repeating a name within one rule
+  means the same value; another rule starts a fresh scope.
 - Ask `who is a mortal?`, `is socrates a mortal?`, or `what does milo like?`.
   Follow a question with `why?` to explain all its answers.
 - Properties look like `the score of milo is 7.`. Lists look like `[1, 0, 1]`.
@@ -76,10 +77,10 @@ For example, this calculates just the Fibonacci numbers needed for the question:
 ```text
 the fibonacci of 0 is 0.
 the fibonacci of 1 is 1.
-the fibonacci of first is second plus third
-if first is greater than 1
-and the fibonacci of first minus 1 is second
-and the fibonacci of first minus 2 is third.
+the fibonacci of ?index is ?previous plus ?earlier
+if ?index is greater than 1
+and the fibonacci of ?index minus 1 is ?previous
+and the fibonacci of ?index minus 2 is ?earlier.
 
 what is the fibonacci of 10000?
 ```

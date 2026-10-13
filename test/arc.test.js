@@ -9,7 +9,7 @@ const headings = blocks => blocks.map(block => block.split('\n')[0]);
 test('ARC output groups answers, reasons, and checks without changing follow-up context', () => {
   const source = `
     milo is a cat. luna is a dog.
-    if first is a cat then first is an animal.
+    if ?x is a cat then ?x is an animal.
     who is an animal? why?
     check that milo is an animal.
     who is a dog? why? why?
@@ -21,7 +21,7 @@ test('ARC output groups answers, reasons, and checks without changing follow-up 
   assert.equal(arc[0], '# Answer\n' + [plain[0], plain[2]].join('\n\n'));
   assert.equal(arc[1], '# Reason\n' + [plain[1], plain[3], plain[4]].join('\n\n'));
   assert.equal(arc[2], '# Check\n' + plain.slice(5).join('\n\n'));
-  assert.match(arc[1], /because if first is a cat/);
+  assert.match(arc[1], /because if milo is a cat/);
 });
 
 test('all three ARC headings remain present when questions, explanations, or checks are absent', () => {

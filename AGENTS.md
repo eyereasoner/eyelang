@@ -47,11 +47,12 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 
 - Read the relevant sections of `SPEC.md` before changing language behavior.
   Keep the implementation, specification, README examples, and tests consistent.
-- Rule variables are exactly `first`, `second`, `third`, `fourth`, `fifth`,
-  `sixth`, `seventh`, `eighth`, `ninth`, `tenth`, `eleventh`, `twelfth`,
-  `thirteenth`, `fourteenth`, `fifteenth`, and `sixteenth`. They are local to
-  one rule and can bind any value, including people. Prefer consecutive names
-  starting with `first` in each example rule. `who` and `what` are query variables.
+- Named variables start with `?`, such as `?person`, `?kind`, and `?value`.
+  Choose names that describe their role. Their scope is one rule or question;
+  repeating a name within that scope requires the same value. Ordinal words
+  have no variable meaning. `who` and `what` remain query variables.
+- Show actual values in short explanations and local bindings in numbered
+  proofs so users can follow each rule application.
 - Preserve both forward rules (`if clues then answer.`) and tabled backward
   rules (`answer if clues.`). Backward calculations need bound inputs;
   arithmetic does not solve equations in reverse.

@@ -7,7 +7,7 @@ import { infer, parse, run } from '../src/language.js';
 test('checks inspect the completed program without asserting facts', () => {
   const source = `
     check that milo is an animal.
-    if first is a cat then first is an animal.
+    if ?x is a cat then ?x is an animal.
     milo is a cat.
     who is an animal? why?
   `;
@@ -16,7 +16,7 @@ test('checks inspect the completed program without asserting facts', () => {
   assert.equal(infer(program).length, 2);
   const answers = run(source);
   assert.equal(answers[0], 'milo is an animal.');
-  assert.match(answers[1], /because if first is a cat/);
+  assert.match(answers[1], /because if milo is a cat/);
   assert.equal(answers[2], 'check passed: milo is an animal.');
   assert.throws(() => run('check that milo is an animal.'), /Line 1: Check failed: milo is an animal\./);
 });
@@ -25,8 +25,8 @@ test('negative checks use completed absence, including late recursive producers'
   const source = `
     milo is a cat.
     check that milo is not an animal.
-    if first is a cat then first is a pet.
-    if first is a pet then first is an animal.
+    if ?x is a cat then ?x is a pet.
+    if ?x is a pet then ?x is an animal.
   `;
   assert.throws(() => run(source), /Line 3: Check failed/);
   assert.deepEqual(run('check that milo does not need rest.'), ['check passed: milo does not need rest.']);
@@ -67,7 +67,7 @@ test('aggregate checks handle counts, totals, extrema, empty sets and exact larg
 });
 
 test('checks require named ground conditions and a full stop, with source lines preserved', () => {
-  for (const condition of ['first is a cat', 'the score of what is 7', '[fourth | fifth] is a tape', 'third is less than 2']) {
+  for (const condition of ['?x is a cat', 'the score of what is 7', '[?a | ?b] is a tape', '?z is less than 2']) {
     assert.throws(() => parse(`check that ${condition}.`), /Name the things in a check|Use who and what in a question/);
   }
   assert.throws(() => parse('check that milo is a cat?'), /Finish a check with \./);
@@ -100,7 +100,7 @@ test('bundled checks detect broken sample data and a wrong inverse formula', () 
     ['negation', 'luna is a tired-player.', 'rex is a tired-player.'],
     ['turing', 'the input of case1 is [1, 0, 1, 0, 0, 1].', 'the input of case1 is [0].'],
     ['delfour', 'the files-written of delfour is 6.', 'the files-written of delfour is 5.'],
-    ['complex', 'then the real of first is arc sine of second.', 'then the real of first is arc cosine of second.'],
+    ['complex', 'then the real of ?function is arc sine of ?difference.', 'then the real of ?function is arc cosine of ?difference.'],
   ]) {
     const source = readFileSync(new URL(`../examples/${file}.eye`, import.meta.url), 'utf8');
     assert.notEqual(source.replace(before, after), source);

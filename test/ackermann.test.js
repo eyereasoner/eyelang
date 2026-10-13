@@ -67,7 +67,7 @@ test('negative inputs have no answer and unrestricted enumeration requires known
   for (const inputs of [[-1, 0], [0, -1], [3, -1, 2], [4, 1, -1]]) {
     assert.deepEqual(run(rules + ask(inputs)), ["I don't know anyone or anything that fits that question yet."]);
   }
-  assert.throws(() => run(rules + 'what is the ackermann of who?'), /Give first a value/);
+  assert.throws(() => run(rules + 'what is the ackermann of who?'), /Give \?m a value/);
 });
 
 test('explanations retain the exact large power and the recursive higher-operation steps', () => {
@@ -76,7 +76,7 @@ test('explanations retain the exact large power and the recursive higher-operati
   assert.ok(large.includes(`2 to the power of 65536 makes ${1n << 65536n}.`));
   assert.ok(large.includes(`minus 3 makes ${samples[10][1]}.`));
   assert.match(large, /the ackermann of \[4, 4, 2\] is 65536\./);
-  assert.match(large, /because the ackermann of \[first, second, third\] is fourth/);
+  assert.match(large, /because the ackermann of \[4, 4, 2\] is 65536/);
   const higher = output[13];
   assert.match(higher, /the ackermann of \[5, 3, 2\] is 65536\./);
   assert.match(higher, /65536 minus 3 makes 65533\./);
@@ -86,7 +86,7 @@ test('explanations retain the exact large power and the recursive higher-operati
 });
 
 test('ARC checks detect an incorrect exponentiation rule', () => {
-  const broken = source.replace('second to the power of first', 'first to the power of second');
+  const broken = source.replace('?base to the power of ?count', '?count to the power of ?base');
   assert.throws(() => run(broken), /Check failed: the ackermann of \[3, 4\] is 125/);
 });
 

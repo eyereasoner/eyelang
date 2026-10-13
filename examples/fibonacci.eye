@@ -3,10 +3,10 @@ the fibonacci of 0 is 0.
 the fibonacci of 1 is 1.
 
 # Work backwards from the number asked for. Reuse each answer once found.
-the fibonacci of first is second plus third
-if first is greater than 1
-and the fibonacci of first minus 1 is second
-and the fibonacci of first minus 2 is third.
+the fibonacci of ?index is ?previous plus ?earlier
+if ?index is greater than 1
+and the fibonacci of ?index minus 1 is ?previous
+and the fibonacci of ?index minus 2 is ?earlier.
 
 # Answer: the first eleven Fibonacci numbers.
 what is the fibonacci of 0?
@@ -29,10 +29,10 @@ what is the fibonacci of 10000?
 
 # Check: known values and Cassini's identity, a different mathematical relation.
 # F(10000) * F(9998) - F(9999)^2 = -1 because 9999 is odd.
-if the fibonacci of 10000 is first
-and the fibonacci of 9998 is second
-and the fibonacci of 9999 is third
-then the cassini of 10000 is first times second minus third times third.
+if the fibonacci of 10000 is ?current
+and the fibonacci of 9998 is ?earlier
+and the fibonacci of 9999 is ?previous
+then the cassini of 10000 is ?current times ?earlier minus ?previous times ?previous.
 
 check that the fibonacci of 0 is 0.
 check that the fibonacci of 1 is 1.

@@ -4,7 +4,7 @@
 Document: eyelang-spec-0001
 Category: Experimental
 Language version: 0.0.10
-Date: 2026-10-12
+Date: 2026-10-13
 ```
 
 ## Status of This Memo
@@ -100,8 +100,10 @@ Statements can span lines or share a line.
 
 `#` begins a comment ending at the next newline, except inside quoted text.
 Comments MUST NOT change the line numbers reported for following statements.
-`.` ends a fact, rule, range, or check; `?` ends a question. Punctuation inside
-quoted text does not end a statement. A dot between two decimal digits belongs
+`.` ends a fact, rule, range, or check. At the start of a token, `?` followed
+immediately by a Unicode letter starts a named variable; other occurrences of
+`?` end a question. Punctuation inside quoted text does not end a statement.
+A dot between two decimal digits belongs
 to a numeric literal: use whitespace in `1. 2` to separate numeric sentences.
 Keywords and separators inside quoted text, lists, or parentheses MUST NOT
 split the enclosing sentence or rule.
@@ -116,21 +118,24 @@ The following words are reserved:
 if then and is a an why does plus minus not
 ```
 
-The sixteen rule variables are:
+A named variable is `?` followed by a name:
 
 ```text
-first second third fourth fifth sixth seventh eighth
-ninth tenth eleventh twelfth thirteenth fourteenth fifteenth sixteenth
+variable = "?" name
+examples = ?person ?kind ?value ?birth-year
 ```
 
-Their scope is one rule. They can bind any value, and two different variables
-MAY bind the same value. Repeated occurrences MUST agree. All sixteen names
-denote distinct variables; ordinal names do not imply numeric values.
+Names after `?` follow the same character and lowercase normalization rules
+as ordinary names. There is no fixed list or limit on variable names.
+A variable's scope is one rule or one question. It can bind any value, and two
+different variables MAY bind the same value. Repeated occurrences in the same
+scope MUST agree; identical names in different scopes are independent.
 
-`who` and `what` are query variables. Rule variables MUST NOT occur in facts
-or questions. Query variables MUST NOT occur in facts or rules. Checks MUST
-be ground. Relation and property names MUST be fixed names, not variables or
-reserved words.
+`who` and `what` are additional query variables; they MUST NOT occur in facts
+or rules. Named variables MAY occur in rules and questions, but MUST NOT occur
+in facts. Checks MUST be ground. Relation and property names MUST be fixed
+names, not variables or reserved words. Unprefixed ordinal words are ordinary
+names and have no variable meaning.
 
 ### 3.3. Numbers
 
@@ -171,7 +176,7 @@ calculations where their context permits. A tail MUST be a list or a variable
 that binds to a list. Improper lists MUST be rejected. Closed tails MUST be
 flattened: `[1 | [2]]` equals `[1, 2]`.
 
-In a pattern, `[first | second]` matches a nonempty list and binds its first
+In a pattern, `[?item | ?rest]` matches a nonempty list and binds its first
 item and remaining list. In a conclusion it constructs a list. List matching
 MUST use structural equality and enforce repeated-variable agreement. Every
 derived list MUST be ground.
@@ -239,7 +244,7 @@ The hello world of reasoning uses an ordinary verb and variable kinds:
 ```text
 socrates is a human.
 human implies mortal.
-if first is a second and second implies third then first is a third.
+if ?person is a ?kind and ?kind implies ?superkind then ?person is a ?superkind.
 ```
 
 The rule derives `socrates is a mortal.`. Additional kinds and implication
@@ -250,16 +255,16 @@ A backward definition can use a supplied number without a range of input facts:
 ```text
 the fibonacci of 0 is 0.
 the fibonacci of 1 is 1.
-the fibonacci of first is second plus third
-if first is greater than 1
-and the fibonacci of first minus 1 is second
-and the fibonacci of first minus 2 is third.
+the fibonacci of ?index is ?previous plus ?earlier
+if ?index is greater than 1
+and the fibonacci of ?index minus 1 is ?previous
+and the fibonacci of ?index minus 2 is ?earlier.
 what is the fibonacci of 10000?
 ```
 
-The question binds `first`; recursive clues request its two predecessors.
+The question binds `?index`; recursive clues request its two predecessors.
 An unrestricted `the fibonacci of who is what?` MUST fail because the comparison
-requires a known `first`. Supplying a result does not solve for its index.
+requires a known `?index`. Supplying a result does not solve for its index.
 
 ## 5. Arithmetic and comparisons
 
@@ -359,8 +364,8 @@ change answer order or select a different valid first derivation.
 Rules accept these negative shapes:
 
 ```text
-first is not a tired-player
-first does not need rest
+?player is not a tired-player
+?player does not need rest
 not the score of milo is 7
 ```
 
@@ -403,6 +408,7 @@ Supported shapes include:
 
 ```text
 who is a mortal?
+?person is a mortal?
 is socrates a mortal?
 who likes luna?
 what does milo like?
@@ -501,6 +507,11 @@ unshared proof and numbered steps otherwise. Each numbered rule application
 references earlier premise steps, and the final line identifies the explained
 root steps. Implementations MUST NOT silently omit proof steps or numeric
 digits. Exact layout and the threshold for numbered output MAY differ.
+
+Explanations MUST make the bindings of each rule application explicit.
+The reference implementation substitutes actual values into the rule text in
+short explanations. Numbered explanations share rule templates and show the
+variable bindings at each application; those bindings are local to that step.
 
 An explanation records a derivation selected by the evaluator. It does not
 independently certify that inference was correct or that an absence or

@@ -30,9 +30,9 @@ test('empty counts and totals are zero; empty extrema are unknown', () => {
 test('aggregates see the completed derived and negated relations', () => {
   assert.deepEqual(run(`
     milo is a player. luna is a player. luna is a tired-player.
-    if first is a player and first is not a resting-player then first is a ready-player.
-    if first is a tired-player then first is a resting-player.
-    if first is a ready-player then the score of first is 5.
+    if ?x is a player and ?x is not a resting-player then ?x is a ready-player.
+    if ?x is a tired-player then ?x is a resting-player.
+    if ?x is a ready-player then the score of ?x is 5.
     how many ready-players are there?
     what is the total of all scores?
   `), ['there is 1 ready-player.', 'the total of all scores is 5.']);

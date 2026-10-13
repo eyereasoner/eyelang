@@ -10,29 +10,29 @@ the age-limit of test is 80.
 
 # Work backwards from the person and the number of years asked about.
 # A larger year difference is enough, even before this year's birthday.
-first is-older-than second
-if the birthday of first is [third, fourth, fifth]
-and the date of today is [sixth, seventh, eighth]
-and sixth minus third is greater than second.
+?person is-older-than ?years
+if the birthday of ?person is [?birth-year, ?birth-month, ?birth-day]
+and the date of today is [?year, ?month, ?day]
+and ?year minus ?birth-year is greater than ?years.
 
 # With the same year difference, the birthday must have passed.
 # On the birthday itself, the person is exactly that old, not older.
-first is-older-than second
-if the birthday of first is [third, fourth, fifth]
-and the date of today is [sixth, seventh, eighth]
-and sixth minus third is equal to second
-and seventh is greater than fourth.
+?person is-older-than ?years
+if the birthday of ?person is [?birth-year, ?birth-month, ?birth-day]
+and the date of today is [?year, ?month, ?day]
+and ?year minus ?birth-year is equal to ?years
+and ?month is greater than ?birth-month.
 
-first is-older-than second
-if the birthday of first is [third, fourth, fifth]
-and the date of today is [sixth, seventh, eighth]
-and sixth minus third is equal to second
-and seventh is equal to fourth
-and eighth is greater than fifth.
+?person is-older-than ?years
+if the birthday of ?person is [?birth-year, ?birth-month, ?birth-day]
+and the date of today is [?year, ?month, ?day]
+and ?year minus ?birth-year is equal to ?years
+and ?month is equal to ?birth-month
+and ?day is greater than ?birth-day.
 
-if the person of test is first
-and the age-limit of test is second
-and first is-older-than second
+if the person of test is ?person
+and the age-limit of test is ?years
+and ?person is-older-than ?years
 then test is a passed-check.
 
 # Answer and Reason: find who qualifies, then explain the test result.

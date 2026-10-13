@@ -49,38 +49,38 @@ the exponent of e-to-minus-half-pi is minus-half-pi.
 
 # Work out polar coordinates when another calculation asks for them.
 
-the radius of first is square root of (second times second plus third times third)
-if the real of first is second and the imaginary of first is third.
+the radius of ?number is square root of (?real times ?real plus ?imaginary times ?imaginary)
+if the real of ?number is ?real and the imaginary of ?number is ?imaginary.
 
-the angle of first is angle of second with third
-if the real of first is second and the imaginary of first is third.
+the angle of ?number is angle of ?real with ?imaginary
+if the real of ?number is ?real and the imaginary of ?number is ?imaginary.
 
-the log-radius of first is natural log of second if the radius of first is second.
+the log-radius of ?number is natural log of ?radius if the radius of ?number is ?radius.
 
 # For a base with radius r and angle t, raised to c + d i:
 # size = r to the power c, times exp of minus d times t.
 # phase = d times log of r, plus c times t.
-if first is a power
-and the base of first is second and the exponent of first is third
-and the radius of second is fourth and the angle of second is fifth
-and the real of third is sixth and the imaginary of third is seventh
-then the size of first is (fourth to the power of sixth) times exponential of (0 minus seventh times fifth).
+if ?power is a power
+and the base of ?power is ?base and the exponent of ?power is ?exponent
+and the radius of ?base is ?radius and the angle of ?base is ?angle
+and the real of ?exponent is ?real and the imaginary of ?exponent is ?imaginary
+then the size of ?power is (?radius to the power of ?real) times exponential of (0 minus ?imaginary times ?angle).
 
-if first is a power
-and the base of first is second and the exponent of first is third
-and the log-radius of second is fourth and the angle of second is fifth
-and the real of third is sixth and the imaginary of third is seventh
-then the phase of first is seventh times fourth plus sixth times fifth.
+if ?power is a power
+and the base of ?power is ?base and the exponent of ?power is ?exponent
+and the log-radius of ?base is ?log-radius and the angle of ?base is ?angle
+and the real of ?exponent is ?real and the imaginary of ?exponent is ?imaginary
+then the phase of ?power is ?imaginary times ?log-radius plus ?real times ?angle.
 
-if first is a power
-and the size of first is second
-and the phase of first is third
-then the real of first is second times cosine of third.
+if ?power is a power
+and the size of ?power is ?size
+and the phase of ?power is ?phase
+then the real of ?power is ?size times cosine of ?phase.
 
-if first is a power
-and the size of first is second
-and the phase of first is third
-then the imaginary of first is second times sine of third.
+if ?power is a power
+and the size of ?power is ?size
+and the phase of ?power is ?phase
+then the imaginary of ?power is ?size times sine of ?phase.
 
 # Apply both inverse functions to the input declared at the top.
 asin-result is an inverse-sine.
@@ -88,44 +88,44 @@ the input of asin-result is input.
 acos-result is an inverse-cosine.
 the input of acos-result is input.
 
-if first is an inverse-sine then first is an inverse-function.
-if first is an inverse-cosine then first is an inverse-function.
+if ?function is an inverse-sine then ?function is an inverse-function.
+if ?function is an inverse-cosine then ?function is an inverse-function.
 
 # Measure the distances from minus one and plus one.
-the left-distance of first is square root of ((1 plus second) to the power of 2 plus third to the power of 2)
-if the input of first is fourth
-and the real of fourth is second
-and the imaginary of fourth is third.
+the left-distance of ?function is square root of ((1 plus ?real) to the power of 2 plus ?imaginary to the power of 2)
+if the input of ?function is ?input
+and the real of ?input is ?real
+and the imaginary of ?input is ?imaginary.
 
-the right-distance of first is square root of ((1 minus second) to the power of 2 plus third to the power of 2)
-if the input of first is fourth
-and the real of fourth is second
-and the imaginary of fourth is third.
+the right-distance of ?function is square root of ((1 minus ?real) to the power of 2 plus ?imaginary to the power of 2)
+if the input of ?function is ?input
+and the real of ?input is ?real
+and the imaginary of ?input is ?imaginary.
 
-the difference of first is (second minus third) divided by 2
-if the left-distance of first is second and the right-distance of first is third.
+the difference of ?function is (?left minus ?right) divided by 2
+if the left-distance of ?function is ?left and the right-distance of ?function is ?right.
 
-the average of first is (second plus third) divided by 2
-if the left-distance of first is second and the right-distance of first is third.
+the average of ?function is (?left plus ?right) divided by 2
+if the left-distance of ?function is ?left and the right-distance of ?function is ?right.
 
-the imaginary-size of first is natural log of (second plus square root of (second to the power of 2 minus 1))
-if the average of first is second.
+the imaginary-size of ?function is natural log of (?average plus square root of (?average to the power of 2 minus 1))
+if the average of ?function is ?average.
 
-if first is an inverse-sine
-and the difference of first is second
-then the real of first is arc sine of second.
+if ?function is an inverse-sine
+and the difference of ?function is ?difference
+then the real of ?function is arc sine of ?difference.
 
-if first is an inverse-sine
-and the imaginary-size of first is second
-then the imaginary of first is second.
+if ?function is an inverse-sine
+and the imaginary-size of ?function is ?size
+then the imaginary of ?function is ?size.
 
-if first is an inverse-cosine
-and the difference of first is second
-then the real of first is arc cosine of second.
+if ?function is an inverse-cosine
+and the difference of ?function is ?difference
+then the real of ?function is arc cosine of ?difference.
 
-if first is an inverse-cosine
-and the imaginary-size of first is second
-then the imaginary of first is 0 minus second.
+if ?function is an inverse-cosine
+and the imaginary-size of ?function is ?size
+then the imaginary of ?function is 0 minus ?size.
 
 # Answer: read each result as its real part plus its imaginary part times i.
 what is the real of sqrt-minus-one?
@@ -146,64 +146,64 @@ why?
 
 # Check: apply sine or cosine to each inverse result to recover the input.
 # cosh(b) = (exp(b) + exp(-b)) / 2; sinh(b) = (exp(b) - exp(-b)) / 2.
-the hyperbolic-cosine of first is (exponential of second plus exponential of (0 minus second)) divided by 2
-if the imaginary of first is second.
+the hyperbolic-cosine of ?function is (exponential of ?imaginary plus exponential of (0 minus ?imaginary)) divided by 2
+if the imaginary of ?function is ?imaginary.
 
-the hyperbolic-sine of first is (exponential of second minus exponential of (0 minus second)) divided by 2
-if the imaginary of first is second.
+the hyperbolic-sine of ?function is (exponential of ?imaginary minus exponential of (0 minus ?imaginary)) divided by 2
+if the imaginary of ?function is ?imaginary.
 
-if first is an inverse-sine and the real of first is second
-and the hyperbolic-cosine of first is third
-then the recovered-real of first is sine of second times third.
+if ?function is an inverse-sine and the real of ?function is ?real
+and the hyperbolic-cosine of ?function is ?cosh
+then the recovered-real of ?function is sine of ?real times ?cosh.
 
-if first is an inverse-sine and the real of first is second
-and the hyperbolic-sine of first is third
-then the recovered-imaginary of first is cosine of second times third.
+if ?function is an inverse-sine and the real of ?function is ?real
+and the hyperbolic-sine of ?function is ?sinh
+then the recovered-imaginary of ?function is cosine of ?real times ?sinh.
 
-if first is an inverse-cosine and the real of first is second
-and the hyperbolic-cosine of first is third
-then the recovered-real of first is cosine of second times third.
+if ?function is an inverse-cosine and the real of ?function is ?real
+and the hyperbolic-cosine of ?function is ?cosh
+then the recovered-real of ?function is cosine of ?real times ?cosh.
 
-if first is an inverse-cosine and the real of first is second
-and the hyperbolic-sine of first is third
-then the recovered-imaginary of first is 0 minus sine of second times third.
+if ?function is an inverse-cosine and the real of ?function is ?real
+and the hyperbolic-sine of ?function is ?sinh
+then the recovered-imaginary of ?function is 0 minus sine of ?real times ?sinh.
 
-if the input of first is second
-and the real of second is third and the recovered-real of first is fourth
-then the real-error of first is absolute value of (third minus fourth).
+if the input of ?function is ?input
+and the real of ?input is ?expected and the recovered-real of ?function is ?actual
+then the real-error of ?function is absolute value of (?expected minus ?actual).
 
-if the input of first is second
-and the imaginary of second is third and the recovered-imaginary of first is fourth
-then the imaginary-error of first is absolute value of (third minus fourth).
+if the input of ?function is ?input
+and the imaginary of ?input is ?expected and the recovered-imaginary of ?function is ?actual
+then the imaginary-error of ?function is absolute value of (?expected minus ?actual).
 
-if first is an inverse-function
-and the real-error of first is second and second is at most 0.000000000001
-and the imaginary-error of first is third and third is at most 0.000000000001
-then first is a checked-inverse.
+if ?function is an inverse-function
+and the real-error of ?function is ?real-error and ?real-error is at most 0.000000000001
+and the imaginary-error of ?function is ?imaginary-error and ?imaginary-error is at most 0.000000000001
+then ?function is a checked-inverse.
 
 # Square the calculated square root and compare with the original base.
-if the real of sqrt-minus-one is first and the imaginary of sqrt-minus-one is second
-then the squared-real of sqrt-minus-one is first times first minus second times second.
+if the real of sqrt-minus-one is ?real and the imaginary of sqrt-minus-one is ?imaginary
+then the squared-real of sqrt-minus-one is ?real times ?real minus ?imaginary times ?imaginary.
 
-if the real of sqrt-minus-one is first and the imaginary of sqrt-minus-one is second
-then the squared-imaginary of sqrt-minus-one is 2 times first times second.
+if the real of sqrt-minus-one is ?real and the imaginary of sqrt-minus-one is ?imaginary
+then the squared-imaginary of sqrt-minus-one is 2 times ?real times ?imaginary.
 
-if the squared-real of sqrt-minus-one is first and the real of minus-one is second
-and absolute value of (first minus second) is at most 0.000000000001
-and the squared-imaginary of sqrt-minus-one is third and the imaginary of minus-one is fourth
-and absolute value of (third minus fourth) is at most 0.000000000001
+if the squared-real of sqrt-minus-one is ?actual-real and the real of minus-one is ?expected-real
+and absolute value of (?actual-real minus ?expected-real) is at most 0.000000000001
+and the squared-imaginary of sqrt-minus-one is ?actual-imaginary and the imaginary of minus-one is ?expected-imaginary
+and absolute value of (?actual-imaginary minus ?expected-imaginary) is at most 0.000000000001
 then sqrt-minus-one is a checked-square-root.
 
 # Euler's identity and the agreement of i^i with exp(-pi/2).
 # Use a looser tolerance for the rounded exponent declared at the top.
-if the real of e-to-i-pi is first and absolute value of (first plus 1) is at most 0.000000000001
-and the imaginary of e-to-i-pi is second and absolute value of second is at most 0.000000000001
+if the real of e-to-i-pi is ?real and absolute value of (?real plus 1) is at most 0.000000000001
+and the imaginary of e-to-i-pi is ?imaginary and absolute value of ?imaginary is at most 0.000000000001
 then e-to-i-pi is a checked-identity.
 
-if the real of i-to-i is first and the real of e-to-minus-half-pi is second
-and absolute value of (first minus second) is at most 0.0000000001
-and the imaginary of i-to-i is third and absolute value of third is at most 0.000000000001
-and the imaginary of e-to-minus-half-pi is fourth and absolute value of fourth is at most 0.000000000001
+if the real of i-to-i is ?actual-real and the real of e-to-minus-half-pi is ?expected-real
+and absolute value of (?actual-real minus ?expected-real) is at most 0.0000000001
+and the imaginary of i-to-i is ?actual-imaginary and absolute value of ?actual-imaginary is at most 0.000000000001
+and the imaginary of e-to-minus-half-pi is ?expected-imaginary and absolute value of ?expected-imaginary is at most 0.000000000001
 then i-to-i is a checked-identity.
 
 check that sqrt-minus-one is a checked-square-root.

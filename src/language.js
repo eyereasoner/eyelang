@@ -3,10 +3,7 @@
 const word = /^[\p{L}][\p{L}\p{N}_-]*$/u;
 const integer = /^-?\d+$/;
 const numeric = /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/;
-const placeholders = new Set([
-  'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth',
-  'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth',
-]);
+const namedVariable = /^\?[\p{L}][\p{L}\p{N}_-]*$/u;
 const questionWords = new Set(['who', 'what']);
 const reserved = new Set(['if', 'then', 'and', 'is', 'a', 'an', 'why', 'does', 'plus', 'minus', 'not']);
 
@@ -52,12 +49,12 @@ function normalize(text) {
 function simpleTerm(text, mode) {
   if (integer.test(text)) return BigInt(text).toString();
   if (numeric.test(text)) return finite(Number(text));
+  if (namedVariable.test(text)) {
+    if (mode !== 'rule' && mode !== 'question') throw new Error(`Use ${text} in a rule or a question; facts give values directly.`);
+    return { variable: text };
+  }
   if (!word.test(text) || reserved.has(text)) {
     throw new Error(`Use one word for a name or kind, such as milo or animal; I found "${text}".`);
-  }
-  if (placeholders.has(text)) {
-    if (mode !== 'rule') throw new Error(`Use ${text} inside an if … then … rule or an answer if … rule.`);
-    return { variable: text };
   }
   if (questionWords.has(text)) {
     if (mode !== 'question') throw new Error('Use who and what in a question ending with ?');
@@ -161,7 +158,7 @@ function sentence(text, mode) {
   const sides = text.startsWith('the ') ? splitOutside(text, ' is ') : [];
   const property = sides.length === 2 ? /^the (\S+) of (.+)$/.exec(sides[0]) : null;
   if (property && word.test(property[1]) && !reserved.has(property[1]) &&
-      !placeholders.has(property[1]) && !questionWords.has(property[1])) {
+      !questionWords.has(property[1])) {
     return { relation: `property:${property[1]}`, terms: [term(property[2], mode), term(sides[1], mode)] };
   }
   const parts = sentenceWords(text);
@@ -171,7 +168,7 @@ function sentence(text, mode) {
     return { relation: 'is a', terms: [term(parts[0], mode), kind] };
   }
   if (parts.length === 3 && word.test(parts[1]) && !reserved.has(parts[1]) &&
-      !placeholders.has(parts[1]) && !questionWords.has(parts[1])) {
+      !questionWords.has(parts[1])) {
     return { relation: parts[1], terms: [term(parts[0], mode), term(parts[2], mode)] };
   }
   throw new Error(`I couldn't read "${text}". Try "milo is a cat" or "milo likes luna".`);
@@ -296,7 +293,7 @@ function question(text) {
   const parts = sentenceWords(text);
   const is = parts.length === 4 && parts[0] === 'is' && ['a', 'an'].includes(parts[2]);
   const does = parts.length === 4 && parts[0] === 'does';
-  const object = parts.length === 4 && questionWords.has(parts[0]) && parts[1] === 'does';
+  const object = parts.length === 4 && (questionWords.has(parts[0]) || namedVariable.test(parts[0])) && parts[1] === 'does';
   const property = /^what is the (\S+) of (.+)$/.exec(text);
   const equality = splitOutside(text, ' equal to ');
   const propertyTest = equality.length === 2 ? /^is the (\S+) of (.+)$/.exec(equality[0]) : null;
@@ -348,6 +345,9 @@ export function parse(source) {
     if (quoted) { if (text[i] === '\\') i++; continue; }
     const punctuation = text[i];
     if (punctuation !== '.' && punctuation !== '?') continue;
+    // A question mark starts a variable only at a token boundary before a letter.
+    if (punctuation === '?' && (i === 0 || /[\s(\[|,.?]/u.test(text[i - 1])) &&
+        /^\?\p{L}/u.test(text.slice(i))) continue;
     if (punctuation === '.' && /\d/.test(text[i - 1] ?? '') && /\d/.test(text[i + 1] ?? '')) continue;
     const raw = text.slice(start, i);
     const offset = start + raw.search(/\S/);
@@ -655,7 +655,7 @@ export function infer(program) {
       }
       const conclusion = substitute(rule.conclusion, partial.bindings, calculations);
       if (partial.table && !match(partial.table.goal, conclusion, new Map())) return;
-      add(conclusion, { rule, premises: partial.premises, calculations });
+      add(conclusion, { rule, premises: partial.premises, calculations, bindings: partial.bindings });
       return;
     }
     const calculations = [...partial.calculations];
@@ -818,6 +818,17 @@ function otherReason(record, steps = null) {
   return 'you told me this.';
 }
 
+function appliedRule(record) {
+  // Replace variable tokens without touching quoted text or inserted values.
+  return record.rule.text.replace(/"(?:\\.|[^"\\])*"|\?[\p{L}][\p{L}\p{N}_-]*/gu,
+    token => namedVariable.test(token) ? sayTerm(calculate({ variable: token }, record.bindings)) : token);
+}
+
+function appliedBindings(record) {
+  return [...record.bindings].filter(([name]) => namedVariable.test(name))
+    .map(([name]) => `${name} = ${sayTerm(calculate({ variable: name }, record.bindings))}`).join(', ');
+}
+
 function explainTree(record) {
   const lines = [];
   const pending = [{ record, depth: 0 }];
@@ -827,7 +838,7 @@ function explainTree(record) {
     lines.push(`${indent}${say(current.goal)}.`);
     if (!current.rule) lines.push(`${indent}  ${otherReason(current)}`);
     else {
-      lines.push(`${indent}  because ${current.rule.text}`);
+      lines.push(`${indent}  because ${appliedRule(current)}`);
       for (const calculation of current.calculations ?? []) lines.push(`${indent}  ${calculation}`);
     }
     for (let i = current.premises.length - 1; i >= 0; i--) {
@@ -874,6 +885,8 @@ function explain(roots) {
     if (!record.rule) lines.push(`  ${otherReason(record, steps)}`);
     else {
       lines.push(`  because rule ${rules.get(record.rule)} uses steps ${record.premises.map(p => steps.get(p)).join(', ')}.`);
+      const bindings = appliedBindings(record);
+      if (bindings) lines.push(`  with ${bindings}.`);
       for (const calculation of record.calculations ?? []) lines.push(`  ${calculation}`);
     }
   }

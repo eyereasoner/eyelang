@@ -12,10 +12,10 @@ lemans connects tours.
 angers connects nantes.
 
 # Work backwards from the route asked for: one road is enough.
-first reaches second if first connects second.
+?from reaches ?to if ?from connects ?to.
 
 # Take one road, then follow a route from the next city.
-first reaches second if first connects third and third reaches second.
+?from reaches ?to if ?from connects ?via and ?via reaches ?to.
 
 # Answer: which cities have a route to Nantes?
 who reaches nantes?

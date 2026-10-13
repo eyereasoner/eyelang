@@ -4,37 +4,37 @@
 
 ind is a n0.
 
-if first is a n10 then first is an a2.
-if first is a n0 then first is a n1.
-if first is a n0 then first is an i1.
-if first is a n0 then first is a j1.
-if first is a n1 then first is a n2.
-if first is a n1 then first is an i2.
-if first is a n1 then first is a j2.
-if first is a n2 then first is a n3.
-if first is a n2 then first is an i3.
-if first is a n2 then first is a j3.
-if first is a n3 then first is a n4.
-if first is a n3 then first is an i4.
-if first is a n3 then first is a j4.
-if first is a n4 then first is a n5.
-if first is a n4 then first is an i5.
-if first is a n4 then first is a j5.
-if first is a n5 then first is a n6.
-if first is a n5 then first is an i6.
-if first is a n5 then first is a j6.
-if first is a n6 then first is a n7.
-if first is a n6 then first is an i7.
-if first is a n6 then first is a j7.
-if first is a n7 then first is a n8.
-if first is a n7 then first is an i8.
-if first is a n7 then first is a j8.
-if first is a n8 then first is a n9.
-if first is a n8 then first is an i9.
-if first is a n8 then first is a j9.
-if first is a n9 then first is a n10.
-if first is a n9 then first is an i10.
-if first is a n9 then first is a j10.
+if ?entity is a n10 then ?entity is an a2.
+if ?entity is a n0 then ?entity is a n1.
+if ?entity is a n0 then ?entity is an i1.
+if ?entity is a n0 then ?entity is a j1.
+if ?entity is a n1 then ?entity is a n2.
+if ?entity is a n1 then ?entity is an i2.
+if ?entity is a n1 then ?entity is a j2.
+if ?entity is a n2 then ?entity is a n3.
+if ?entity is a n2 then ?entity is an i3.
+if ?entity is a n2 then ?entity is a j3.
+if ?entity is a n3 then ?entity is a n4.
+if ?entity is a n3 then ?entity is an i4.
+if ?entity is a n3 then ?entity is a j4.
+if ?entity is a n4 then ?entity is a n5.
+if ?entity is a n4 then ?entity is an i5.
+if ?entity is a n4 then ?entity is a j5.
+if ?entity is a n5 then ?entity is a n6.
+if ?entity is a n5 then ?entity is an i6.
+if ?entity is a n5 then ?entity is a j6.
+if ?entity is a n6 then ?entity is a n7.
+if ?entity is a n6 then ?entity is an i7.
+if ?entity is a n6 then ?entity is a j7.
+if ?entity is a n7 then ?entity is a n8.
+if ?entity is a n7 then ?entity is an i8.
+if ?entity is a n7 then ?entity is a j8.
+if ?entity is a n8 then ?entity is a n9.
+if ?entity is a n8 then ?entity is an i9.
+if ?entity is a n8 then ?entity is a j9.
+if ?entity is a n9 then ?entity is a n10.
+if ?entity is a n9 then ?entity is an i10.
+if ?entity is a n9 then ?entity is a j10.
 
 # Answer: did ind reach the final label?
 who is an a2?

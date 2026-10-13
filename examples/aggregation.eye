@@ -10,7 +10,7 @@ the score of rex is 10.
 # Repeating a clue does not give a player an extra score.
 the score of luna is 7.
 
-if first is a player then first is a team-member.
+if ?player is a player then ?player is a team-member.
 
 # Answer: count the players and compare their scores.
 how many players are there?

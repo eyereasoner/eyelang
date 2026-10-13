@@ -2,7 +2,7 @@ milo likes luna.
 luna is a cat.
 
 # In this program, anyone who likes a cat is a friend.
-if first likes second and second is a cat then first is a friend.
+if ?person likes ?friend and ?friend is a cat then ?person is a friend.
 
 # Answer: who fits the friend rule?
 who is a friend?

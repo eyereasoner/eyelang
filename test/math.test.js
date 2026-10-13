@@ -5,7 +5,7 @@ import { parse, run } from '../src/language.js';
 function result(expression) {
   const [answer] = run(`
     milo is a calculator.
-    if first is a calculator then the result of first is ${expression}.
+    if ?x is a calculator then the result of ?x is ${expression}.
     what is the result of milo?
   `);
   return answer.slice('the result of milo is '.length, -1);
@@ -64,17 +64,17 @@ test('angles cover all four quadrants and the axes in the range zero to two pi',
 test('computed clues wait for earlier inputs and explanations include each calculation', () => {
   const answers = run(`
     the value of milo is 9. the root of milo is 3.
-    if the value of first is fourth
-    and the root of first is square root of fourth
-    then the result of first is fourth divided by 2.
+    if the value of ?x is ?a
+    and the root of ?x is square root of ?a
+    then the result of ?x is ?a divided by 2.
     what is the result of milo? why?
   `);
   assert.equal(answers[0], 'the result of milo is 4.5.');
   assert.match(answers[1], /square root of 9 makes 3\./);
   assert.match(answers[1], /9 divided by 2 makes 4.5\./);
   assert.throws(() => parse(`
-    if the root of first is square root of fourth then first is a calculator.
-  `), /Find fourth in an earlier clue/);
+    if the root of ?x is square root of ?a then ?x is a calculator.
+  `), /Find \?a in an earlier clue/);
   assert.throws(() => parse('what is the root of square root of what?'), /Use known numbers/);
   assert.throws(() => parse('the root of milo is square root of 9.'), /Put calculations in a rule or question/);
 });

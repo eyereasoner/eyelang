@@ -62,111 +62,111 @@ the hmac of scanner-signature is "b21d0072d90112a9f820aced0286889f4b6ef92b145e6f
 the verification-mode of scanner-signature is trusted-precomputed-input.
 
 # Project the envelope's fields while keeping the case attached.
-if the envelope of first is second and the insight of second is third
-then the case-insight of first is third.
-if the envelope of first is second and the policy of second is third
-then the case-policy of first is third.
+if the envelope of ?case is ?envelope and the insight of ?envelope is ?insight
+then the case-insight of ?case is ?insight.
+if the envelope of ?case is ?envelope and the policy of ?envelope is ?policy
+then the case-policy of ?case is ?policy.
 
-if the household of first is second and the condition of second is "Diabetes"
-then first is a low-sugar-case.
-if first is a low-sugar-case and the case-insight of first is second
-then the derived-need of [first, second] is low-sugar.
+if the household of ?case is ?household and the condition of ?household is "Diabetes"
+then ?case is a low-sugar-case.
+if ?case is a low-sugar-case and the case-insight of ?case is ?insight
+then the derived-need of [?case, ?insight] is low-sugar.
 
 # Check the supplied signature declaration and compare the supplied digests.
-if the signature of first is second
-and the verification-mode of second is trusted-precomputed-input
-then [first, trusted-signature] is a passed-check.
+if the signature of ?case is ?signature
+and the verification-mode of ?signature is trusted-precomputed-input
+then [?case, trusted-signature] is a passed-check.
 
-if the envelope of first is second and the signature of first is third
-and the hash of second is fourth and the payload-hash of third is fourth
-then [first, matching-hash] is a passed-check.
+if the envelope of ?case is ?envelope and the signature of ?case is ?signature
+and the hash of ?envelope is ?hash and the payload-hash of ?signature is ?hash
+then [?case, matching-hash] is a passed-check.
 
 # Check only this insight's supplied payload text, not the private household.
-if the case-insight of first is second and the payload-text of second is third
-and not third contains the text "diabetes" and not third contains the text "medical"
-then [first, minimal-payload] is a passed-check.
+if the case-insight of ?case is ?insight and the payload-text of ?insight is ?payload
+and not ?payload contains the text "diabetes" and not ?payload contains the text "medical"
+then [?case, minimal-payload] is a passed-check.
 
-if the case-insight of first is second
-and the device of second is third and the event of second is fourth
-and the expires of second is fifth
-then [first, complete-scope] is a passed-check.
+if the case-insight of ?case is ?insight
+and the device of ?insight is ?device and the event of ?insight is ?event
+and the expires of ?insight is ?expires
+then [?case, complete-scope] is a passed-check.
 
 # Timestamps share one UTC format, so their text order is also their time order.
-if the case-insight of first is second and the case-policy of first is third
-and the permission of [third, use, second] is shopping-assist
-and the request-action of first is use and the request-purpose of first is shopping-assist
-and the authorization-time of first is fourth and the expires of second is fifth
-and fourth is at most fifth
-then [first, authorization] is a passed-check.
+if the case-insight of ?case is ?insight and the case-policy of ?case is ?policy
+and the permission of [?policy, use, ?insight] is shopping-assist
+and the request-action of ?case is use and the request-purpose of ?case is shopping-assist
+and the authorization-time of ?case is ?time and the expires of ?insight is ?expires
+and ?time is at most ?expires
+then [?case, authorization] is a passed-check.
 
-if [first, authorization] is a passed-check then the outcome of first is "Allowed".
-if [first, authorization] is a passed-check and the case-insight of first is second
-then the target of first is second.
+if [?case, authorization] is a passed-check then the outcome of ?case is "Allowed".
+if [?case, authorization] is a passed-check and the case-insight of ?case is ?insight
+then the target of ?case is ?insight.
 
-if the scanned-product of first is second and the name of second is third
-then the scanned-name of first is third.
-if the scanned-product of first is second and the category of second is third
-then the scanned-category of first is third.
-if the scanned-product of first is second and the sugar of second is third
-then the scanned-sugar of first is third.
+if the scanned-product of ?case is ?product and the name of ?product is ?name
+then the scanned-name of ?case is ?name.
+if the scanned-product of ?case is ?product and the category of ?product is ?category
+then the scanned-category of ?case is ?category.
+if the scanned-product of ?case is ?product and the sugar of ?product is ?sugar
+then the scanned-sugar of ?case is ?sugar.
 
-if [first, authorization] is a passed-check
-and the scanned-sugar of first is second and the case-insight of first is third
-and the threshold of third is fourth and second is at least fourth
-then [first, high-sugar] is a passed-check.
+if [?case, authorization] is a passed-check
+and the scanned-sugar of ?case is ?sugar and the case-insight of ?case is ?insight
+and the threshold of ?insight is ?threshold and ?sugar is at least ?threshold
+then [?case, high-sugar] is a passed-check.
 
-if [first, high-sugar] is a passed-check
-then the headline of first is "Track sugar per serving while you scan".
-if [first, high-sugar] is a passed-check then the note of first is "High sugar".
+if [?case, high-sugar] is a passed-check
+then the headline of ?case is "Track sugar per serving while you scan".
+if [?case, high-sugar] is a passed-check then the note of ?case is "High sugar".
 
 # Consider only products from the same shelf with strictly less sugar.
-if the scanned-category of first is second and the scanned-sugar of first is third
-and the category of fourth is second and the sugar of fourth is fifth
-and fifth is less than third
-then first considers fourth.
+if the scanned-category of ?case is ?category and the scanned-sugar of ?case is ?scanned-sugar
+and the category of ?product is ?category and the sugar of ?product is ?sugar
+and ?sugar is less than ?scanned-sugar
+then ?case considers ?product.
 
 # A candidate loses if another eligible candidate has even less sugar.
-if first considers second and first considers third
-and the sugar of second is fourth and the sugar of third is fifth
-and fifth is less than fourth
-then [first, second] is a beaten-candidate.
+if ?case considers ?product and ?case considers ?other
+and the sugar of ?product is ?sugar and the sugar of ?other is ?other-sugar
+and ?other-sugar is less than ?sugar
+then [?case, ?product] is a beaten-candidate.
 
-if first considers second and [first, second] is not a beaten-candidate
-then the alternative of first is second.
-if the alternative of first is second and the name of second is third
-then the alternative-name of first is third.
-if [first, high-sugar] is a passed-check and the alternative-name of first is second
-then the banner-alternative of first is second.
+if ?case considers ?product and [?case, ?product] is not a beaten-candidate
+then the alternative of ?case is ?product.
+if the alternative of ?case is ?product and the name of ?product is ?name
+then the alternative-name of ?case is ?name.
+if [?case, high-sugar] is a passed-check and the alternative-name of ?case is ?name
+then the banner-alternative of ?case is ?name.
 
-if the scanned-sugar of first is second and the alternative of first is third
-and the sugar of third is fourth and fourth is less than second
-then [first, lower-sugar] is a passed-check.
+if the scanned-sugar of ?case is ?scanned-sugar and the alternative of ?case is ?product
+and the sugar of ?product is ?sugar and ?sugar is less than ?scanned-sugar
+then [?case, lower-sugar] is a passed-check.
 
-if the case-insight of first is second and the duty-time of first is third
-and the expires of second is fourth and third is at most fourth
-then [first, duty-timing] is a passed-check.
+if the case-insight of ?case is ?insight and the duty-time of ?case is ?time
+and the expires of ?insight is ?expires and ?time is at most ?expires
+then [?case, duty-timing] is a passed-check.
 
-if the case-policy of first is second and the case-insight of first is third
-and the prohibition of [second, distribute, third] is marketing
-then [first, marketing-prohibited] is a passed-check.
+if the case-policy of ?case is ?policy and the case-insight of ?case is ?insight
+and the prohibition of [?policy, distribute, ?insight] is marketing
+then [?case, marketing-prohibited] is a passed-check.
 
-if the files-written of first is 6 then [first, expected-file-count] is a passed-check.
+if the files-written of ?case is 6 then [?case, expected-file-count] is a passed-check.
 
-if [first, trusted-signature] is a passed-check
-and [first, matching-hash] is a passed-check
-and [first, minimal-payload] is a passed-check
-and [first, complete-scope] is a passed-check
-and [first, authorization] is a passed-check
-and [first, high-sugar] is a passed-check
-and [first, lower-sugar] is a passed-check
-and [first, duty-timing] is a passed-check
-and [first, marketing-prohibited] is a passed-check
-and [first, expected-file-count] is a passed-check
-then first is a checked-case.
+if [?case, trusted-signature] is a passed-check
+and [?case, matching-hash] is a passed-check
+and [?case, minimal-payload] is a passed-check
+and [?case, complete-scope] is a passed-check
+and [?case, authorization] is a passed-check
+and [?case, high-sugar] is a passed-check
+and [?case, lower-sugar] is a passed-check
+and [?case, duty-timing] is a passed-check
+and [?case, marketing-prohibited] is a passed-check
+and [?case, expected-file-count] is a passed-check
+then ?case is a checked-case.
 
-if the case-insight of first is second
-and the device of second is third and the event of second is fourth
-then the scope of first is [third, fourth].
+if the case-insight of ?case is ?insight
+and the device of ?insight is ?device and the event of ?insight is ?event
+then the scope of ?case is [?device, ?event].
 
 # Answer: the shopping decision, banner, and supporting case information.
 what is the case-name of delfour?

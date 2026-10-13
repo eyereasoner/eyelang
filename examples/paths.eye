@@ -3,8 +3,8 @@ ada follows ben.
 ben follows cara.
 cara follows ada.
 
-if first follows second then first reaches second.
-if first reaches second and second follows ada then first reaches ada.
+if ?from follows ?to then ?from reaches ?to.
+if ?from reaches ?via and ?via follows ada then ?from reaches ada.
 
 # Answer: who can reach ada?
 who reaches ada?
