@@ -27,9 +27,6 @@ why is the fibonacci of 5 equal to 5?
 # Ask for a larger answer using the same rule.
 what is the fibonacci of 10000?
 
-# Reason: every step of the large answer, with shared work shown once.
-why?
-
 # Check: known values and Cassini's identity, a different mathematical relation.
 # F(10000) * F(9998) - F(9999)^2 = -1 because 9999 is odd.
 if the fibonacci of 10000 is first

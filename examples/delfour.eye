@@ -172,6 +172,10 @@ then the scope of first is [third, fourth].
 what is the case-name of delfour?
 is delfour a low-sugar-case?
 what is the derived-need of [delfour, sugar-insight]?
+# Reason: explain the derived low-sugar insight.
+why?
+
+# Continue with the shopping decision and supporting case information.
 what is the outcome of delfour?
 what is the target of delfour?
 what is the metric of sugar-insight?
@@ -190,9 +194,6 @@ what is the files-written of delfour?
 # Check results: ten obligations must all be satisfied.
 who is a passed-check?
 is delfour a checked-case?
-
-# Reason: explain the complete checklist, including the shopping decision.
-why?
 
 # Check: assert the expected decision and recommendation, and fail if any obligation is missing.
 check that the outcome of delfour is "Allowed".

@@ -24,10 +24,10 @@ test('the example computes Fibonacci from the seeds and explains its arithmetic'
   assert.match(answers[11], /5 minus 2 makes 3\./);
   assert.match(answers[11], /3 plus 2 makes 5\./);
   assert.match(answers[11], /the fibonacci of 0 is 0\.\n\s+you told me this\./);
-  assert.equal(answers.length, 19);
+  assert.equal(answers.length, 18);
   assert.equal(answers[12], `the fibonacci of 10000 is ${referenceFibonacci(10000)}.`);
-  assert.match(answers[13], /^Here is why/);
-  assert.equal(answers[18], 'check passed: the cassini of 10000 is -1.');
+  assert.ok(answers.slice(13).every(answer => answer.startsWith('check passed:')));
+  assert.equal(answers[17], 'check passed: the cassini of 10000 is -1.');
 });
 
 test('the same rule works with different seeds and reverse step order', () => {

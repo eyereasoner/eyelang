@@ -114,8 +114,7 @@ Deep taxonomy examples have [10](https://github.com/eyereasoner/eyelang/blob/mai
 [10000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-10000.eye), and
 [100000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-100000.eye) steps.
 
-Run any `.eye` file in the same way. Fibonacci and the larger taxonomies print
-long explanations; save their output to a file:
+Run any `.eye` file in the same way. Save large answers and explanations to a file:
 
 ```sh
 node eyelang.js examples/fibonacci.eye > fibonacci-arc.txt

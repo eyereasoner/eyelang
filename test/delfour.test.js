@@ -14,7 +14,7 @@ function query(program, question) {
 test('Delfour derives authorization, the same-shelf alternative, the banner, and ten successful checks', () => {
   const answers = run(source);
   assert.equal(answers.length, 26);
-  assert.deepEqual(answers.slice(0, 18), [
+  assert.deepEqual([...answers.slice(0, 3), ...answers.slice(4, 19)], [
     'the case-name of delfour is "delfour".',
     'yes, delfour is a low-sugar-case.',
     'the derived-need of [delfour, sugar-insight] is low-sugar.',
@@ -35,9 +35,13 @@ test('Delfour derives authorization, the same-shelf alternative, the banner, and
   ]);
   const names = ['trusted-signature', 'matching-hash', 'minimal-payload', 'complete-scope',
     'authorization', 'high-sugar', 'lower-sugar', 'duty-timing', 'marketing-prohibited', 'expected-file-count'];
-  assert.deepEqual(new Set(answers[18].split('\n')), new Set(names.map(name => `[delfour, ${name}] is a passed-check.`)));
-  assert.equal(answers[19], 'yes, delfour is a checked-case.');
-  assert.match(answers[20], /trusted-precomputed-input/);
+  assert.deepEqual(new Set(answers[19].split('\n')), new Set(names.map(name => `[delfour, ${name}] is a passed-check.`)));
+  assert.equal(answers[20], 'yes, delfour is a checked-case.');
+  assert.equal(answers[3], query(source, 'why is the derived-need of [delfour, sugar-insight] equal to low-sugar?'));
+  assert.match(answers[3], /^the derived-need of \[delfour, sugar-insight\] is low-sugar\./);
+  assert.match(answers[3], /the condition of household-profile is "Diabetes"/);
+  assert.match(answers[3], /the insight of shopping-envelope is sugar-insight/);
+  assert.doesNotMatch(answers[3], /passed-check|checked-case|scanner-signature/);
   assert.ok(answers.slice(21).every(answer => answer.startsWith('check passed:')));
 });
 

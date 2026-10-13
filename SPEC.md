@@ -608,8 +608,9 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
   explicit; on the birthday itself the person is exactly that age. This example
   does not read a clock or implement general date/duration arithmetic.
 - Fibonacci works backwards from its requested indices by addition, including
-  exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity. Its full explanation
-  shares 20000 evidence records instead of expanding a recursive proof tree.
+  exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity.
+  Adding `why?` after the Fibonacci 10000 question explains that answer using
+  20000 shared evidence records instead of expanding a recursive proof tree.
 - Ackermann uses backward hyperoperation rules and exact exponentiation to
   answer twelve sample calls. `A(3, 1000)` equals `2^1003 - 3`, and `A(4, 2)`
   equals `2^65536 - 3` (19729 digits). Explanations retain the recursive work;
