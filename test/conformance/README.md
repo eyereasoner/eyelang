@@ -18,7 +18,7 @@ Each test name has a stable case ID and references a section of [SPEC.md](../../
 | §3.3–3.4: Numbers and text | Exact integer canonicalization, binary64 limits, matching versus numeric equality, JSON escapes and distinct value types | `lexical.json` |
 | §3.5: Lists | Structural matching, nested lists, tail flattening, repeated variables, improper-list rejection | `lexical.json`, `inference.test.js` |
 | §4: Facts and rules | Ranges, articles, safe binding order, ground answers, backward head inputs and calculations | `lexical.json`, `inference.test.js` |
-| §5: Arithmetic and comparisons | Precedence, associativity, exact integers, real functions, domain errors, type rejection, UTF-16 text ordering, computed negation | `arithmetic.json` |
+| §5: Arithmetic and comparisons | Precedence, associativity, exact integers, quotients and remainders, rounding, extrema, bits, constants, real functions, domain errors, type rejection, UTF-16 text ordering, computed negation | `arithmetic.json`, `extended-arithmetic.json` |
 | §6.1: Positive inference | Set semantics, demand, recursive fixed points, variant calls, repeated-variable constraints, run isolation, source and question order | `inference.test.js` |
 | §6.2–6.3: Negation and scope | Completed producer layers, empty recursive components, conservative negative-cycle rejection, finite deep chains | `inference.test.js` |
 | §7.1: Questions | All question shapes, yes/unknown/absence distinctions, ground calculations, controlled verb inflection | `questions-checks.json` |

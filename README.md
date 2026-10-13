@@ -63,7 +63,9 @@ http://127.0.0.1:8000/playground.html.
   Follow a question with `why?` to explain all its answers.
 - Properties look like `the score of milo is 7.`. Lists look like `[1, 0, 1]`.
 - Calculations include `plus`, `minus`, `times`, `divided by`, and powers.
-  Whole-number arithmetic is exact; real functions use approximate arithmetic.
+  Integer quotients, remainders, rounding, min/max, and bit operations are also
+  available. Whole-number arithmetic is exact; real functions use approximate
+  arithmetic. Use `constant pi` and `constant e` for the mathematical constants.
 - `not` means there is no matching evidence in the completed program.
   An ordinary unanswered question says “I don't know.”
 - `check that … .` tests an expectation. A failed check stops the run with a
@@ -101,6 +103,7 @@ Every example includes answers, reasons, and executable checks.
 | [French cities](https://github.com/eyereasoner/eyelang/blob/main/examples/french-cities.eye) | Routes through one-way roads |
 | [GPS](https://github.com/eyereasoner/eyelang/blob/main/examples/gps.eye) | Choosing a route by duration, cost, belief, and comfort |
 | [Age](https://github.com/eyereasoner/eyelang/blob/main/examples/age.eye) | Checking an age against a supplied date |
+| [Arithmetic](https://github.com/eyereasoner/eyelang/blob/main/examples/arithmetic.eye) | Exact integers, division, rounding, bits, and real functions |
 | [Bayes diagnosis](https://github.com/eyereasoner/eyelang/blob/main/examples/bayes-diagnosis.eye) | Updating toy disease probabilities from symptom evidence |
 | [Fibonacci](https://github.com/eyereasoner/eyelang/blob/main/examples/fibonacci.eye) | Exact Fibonacci 10000 and Cassini's identity |
 | [Ackermann](https://github.com/eyereasoner/eyelang/blob/main/examples/ackermann.eye) | Exact large integers and nested backward calls |

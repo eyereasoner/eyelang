@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { run } from '../../src/language.js';
 
 // Fixtures are source programs and independent expected observations, not parser snapshots.
-for (const file of ['lexical', 'arithmetic', 'questions-checks']) {
+for (const file of ['lexical', 'arithmetic', 'extended-arithmetic', 'questions-checks']) {
   const cases = JSON.parse(readFileSync(new URL(`./${file}.json`, import.meta.url), 'utf8'));
   for (const entry of cases) {
     test(`[${entry.id}] SPEC §${entry.section}: ${entry.name}`, () => {

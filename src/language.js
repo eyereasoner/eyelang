@@ -68,11 +68,26 @@ const unaryMath = new Map([
   ['natural log', Math.log], ['exponential', Math.exp],
   ['sine', Math.sin], ['cosine', Math.cos],
   ['arc sine', Math.asin], ['arc cosine', Math.acos],
+  ['tangent', Math.tan], ['arc tangent', Math.atan],
+  ['sign', Math.sign], ['floor', Math.floor], ['ceiling', Math.ceil],
+  ['round', Math.round], ['truncate', Math.trunc],
+  ['integer part', Math.trunc], ['fractional part', value => value - Math.trunc(value)],
+  ['bit complement', null],
 ]);
 const unaryPrefixes = [...unaryMath.keys()].map(operation => ({ operation, words: `${operation} of`.split(' ') }));
+const integerUnary = new Set(['floor', 'ceiling', 'round', 'truncate', 'integer part']);
+const exactUnary = new Set(['absolute value', 'sign', 'fractional part', ...integerUnary]);
+const binaryPrefixes = ['angle', 'minimum', 'maximum', 'greatest common divisor',
+  'bit intersection', 'bit union', 'bit xor'].map(operation => ({ operation, words: `${operation} of`.split(' ') }));
+const constants = new Map([['constant pi', Math.PI], ['constant e', Math.E]]);
+const integerBinary = new Set(['quotient', 'floor quotient', 'remainder', 'modulo', 'greatest common divisor',
+  'bit intersection', 'bit union', 'bit xor', 'shifted left by', 'shifted right by']);
 const binaryOperators = [
+  { words: ['shifted', 'left', 'by'], precedence: 0 }, { words: ['shifted', 'right', 'by'], precedence: 0 },
   { words: ['plus'], precedence: 1 }, { words: ['minus'], precedence: 1 },
   { words: ['times'], precedence: 2 }, { words: ['divided', 'by'], precedence: 2 },
+  { words: ['quotient'], precedence: 2 }, { words: ['floor', 'quotient'], precedence: 2 },
+  { words: ['remainder'], precedence: 2 }, { words: ['modulo'], precedence: 2 },
   { words: ['to', 'the', 'power', 'of'], precedence: 3, rightAssociative: true },
 ];
 
@@ -117,11 +132,18 @@ function term(text, mode) {
       position += words.length;
       return { operation, left: expression(4) };
     }
-    if (starts(['angle', 'of'])) {
-      position += 2;
+    for (const operation of constants.keys()) {
+      const words = operation.split(' ');
+      if (!starts(words)) continue;
+      position += words.length;
+      return { operation };
+    }
+    for (const { operation, words } of binaryPrefixes) {
+      if (!starts(words)) continue;
+      position += words.length;
       const left = expression(0);
-      if (tokens[position++] !== 'with') throw new Error('Write an angle as "angle of real with imaginary".');
-      return { operation: 'angle', left, right: expression(4) };
+      if (tokens[position++] !== 'with') throw new Error(`Write ${operation} as "${operation} of value with value".`);
+      return { operation, left, right: expression(4) };
     }
     const token = tokens[position++];
     if (!token || [')', ']', '|', ','].includes(token)) throw new Error('Give each calculation or list its values.');
@@ -209,11 +231,28 @@ function calculate(value, bindings, calculations = null) {
   }
   if (value.list) return list(value.list.map(t => calculate(t, bindings, calculations)),
     value.tail === undefined ? undefined : calculate(value.tail, bindings, calculations));
+  if (constants.has(value.operation)) {
+    const result = String(constants.get(value.operation));
+    calculations?.push(`${value.operation} makes ${result}.`);
+    return result;
+  }
   const left = calculate(value.left, bindings, calculations);
   if (left === undefined) throw new Error('Find a number before using it in a calculation.');
   if (!numeric.test(left)) throw new Error(`I can only use numbers with ${value.operation}; I found ${sayTerm(left)}.`);
   if (unaryMath.has(value.operation)) {
-    const result = finite(unaryMath.get(value.operation)(real(left)));
+    let result;
+    if (value.operation === 'bit complement') {
+      if (!integer.test(left)) throw new Error('Bit complement needs a whole number.');
+      result = (~BigInt(left)).toString();
+    } else if (integer.test(left) && exactUnary.has(value.operation)) {
+      const number = BigInt(left);
+      result = value.operation === 'absolute value' ? (number < 0n ? -number : number).toString()
+        : value.operation === 'sign' ? String(number < 0n ? -1 : number > 0n ? 1 : 0)
+        : value.operation === 'fractional part' ? '0' : left;
+    } else {
+      const number = real(unaryMath.get(value.operation)(real(left)));
+      result = integerUnary.has(value.operation) ? BigInt(number).toString() : String(number);
+    }
     calculations?.push(`${value.operation} of ${left} makes ${result}.`);
     return result;
   }
@@ -224,7 +263,15 @@ function calculate(value, bindings, calculations = null) {
   if (!numeric.test(right)) {
     throw new Error(`I can only use numbers with ${value.operation}; I found ${sayTerm(right)}.`);
   }
+  if (value.operation === 'minimum' || value.operation === 'maximum') {
+    const a = integer.test(left) ? BigInt(left) : real(left);
+    const b = integer.test(right) ? BigInt(right) : real(right);
+    const result = (value.operation === 'minimum' ? a <= b : a >= b) ? left : right;
+    calculations?.push(`${value.operation} of ${left} with ${right} makes ${result}.`);
+    return result;
+  }
   const exact = integer.test(left) && integer.test(right);
+  if (integerBinary.has(value.operation) && !exact) throw new Error(`${value.operation} needs two whole numbers.`);
   const a = exact ? BigInt(left) : real(left);
   const b = exact ? BigInt(right) : real(right);
   let answer;
@@ -239,6 +286,33 @@ function calculate(value, bindings, calculations = null) {
     case 'to the power of':
       answer = exact && b >= 0n ? a ** b : real(a) ** real(b);
       break;
+    case 'quotient':
+    case 'floor quotient':
+    case 'remainder':
+    case 'modulo': {
+      if (b === 0n) throw new Error('I cannot divide by zero.');
+      const quotient = a / b;
+      const remainder = a % b;
+      const floor = remainder !== 0n && (a < 0n) !== (b < 0n) ? quotient - 1n : quotient;
+      answer = value.operation === 'quotient' ? quotient : value.operation === 'floor quotient' ? floor
+        : value.operation === 'remainder' ? remainder : a - floor * b;
+      break;
+    }
+    case 'greatest common divisor': {
+      let x = a < 0n ? -a : a;
+      let y = b < 0n ? -b : b;
+      while (y !== 0n) [x, y] = [y, x % y];
+      answer = x;
+      break;
+    }
+    case 'bit intersection': answer = a & b; break;
+    case 'bit union': answer = a | b; break;
+    case 'bit xor': answer = a ^ b; break;
+    case 'shifted left by':
+    case 'shifted right by':
+      if (b < 0n) throw new Error('A bit shift needs a nonnegative whole-number count.');
+      answer = value.operation === 'shifted left by' ? a << b : a >> b;
+      break;
     case 'angle': {
       const angle = Math.atan2(real(b), real(a));
       const turn = 2 * Math.PI;
@@ -248,8 +322,8 @@ function calculate(value, bindings, calculations = null) {
     default: throw new Error(`Unknown calculation: ${value.operation}.`);
   }
   const result = typeof answer === 'bigint' ? answer.toString() : finite(answer);
-  calculations?.push(value.operation === 'angle'
-    ? `angle of ${left} with ${right} makes ${result}.`
+  calculations?.push(binaryPrefixes.some(prefix => prefix.operation === value.operation)
+    ? `${value.operation} of ${left} with ${right} makes ${result}.`
     : `${left} ${value.operation} ${right} makes ${result}.`);
   return result;
 }
@@ -917,6 +991,7 @@ export function run(source, { arc = false } = {}) {
       if (!answer) return `I don't know any ${aggregate.label} yet.`;
       return why ? explain([answer]) : `${say(answer.goal)}.`;
     }
+    goal = { ...goal, terms: goal.terms.map(value => specialize(value, new Map())) };
     let found = facts.filter(record => match(goal, record.goal, new Map()));
     if (goal.negated) {
       if (found.length) {

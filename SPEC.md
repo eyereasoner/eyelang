@@ -274,8 +274,9 @@ The operators below are ordered from lowest to highest binary precedence:
 
 | Operators | Associativity |
 | --- | --- |
+| `shifted left by`, `shifted right by` | Left |
 | `plus`, `minus` | Left |
-| `times`, `divided by` | Left |
+| `times`, `divided by`, `quotient`, `floor quotient`, `remainder`, `modulo` | Left |
 | `to the power of` | Right |
 
 Parentheses override precedence. Prefix functions bind to the next value or
@@ -286,19 +287,77 @@ square root of       absolute value of
 natural log of       exponential of
 sine of              cosine of
 arc sine of          arc cosine of
+tangent of           arc tangent of
+sign of              bit complement of
+floor of             ceiling of
+round of             truncate of
+integer part of      fractional part of
 ```
 
+Binary prefix functions have these forms:
+
+```text
+angle of real with imaginary
+minimum of value with value
+maximum of value with value
+greatest common divisor of integer with integer
+bit intersection of integer with integer
+bit union of integer with integer
+bit xor of integer with integer
+```
+
+The first argument is an expression ending at the matching `with`; the second
+binds like a unary prefix-function argument. Parentheses can group either
+argument. For example, `minimum of 2 with 3 plus 4` yields `6`, while
+`minimum of 2 with (3 plus 4)` yields `2`.
+
+`constant pi` and `constant e` evaluate to binary64 values equivalent to
+JavaScript `Math.PI` and `Math.E`. They are calculation expressions, including
+when used alone; facts MUST use direct values instead. Bare `pi` and `e`
+remain ordinary names. Constants do not introduce new reserved words.
+
 `angle of real with imaginary` computes `atan2(imaginary, real)`, normalized
-to `[0, 2*pi)`. The first argument is an expression ending at `with`; the
-second binds like a prefix-function argument. All angles are in radians.
-The angle of `(0, 0)` is defined as zero.
+to `[0, 2*pi)`. All angles are in radians. The angle of `(0, 0)` is defined
+as zero. Tangent and arc tangent use the real binary64 functions.
 
 When both canonical operands are integers, addition, subtraction,
 multiplication, nonnegative integer powers, and division with an integer
-result MUST be exact. Other operations MUST use binary64 arithmetic equivalent
-to the reference implementation's JavaScript Number and Math operations.
+result MUST be exact. Absolute value and sign MUST preserve exact canonical
+integers without converting them to binary64. Rounding and integer part MUST
+leave canonical integers unchanged; their fractional part is zero.
+Other real calculations MUST use binary64 arithmetic equivalent to the
+reference implementation's JavaScript Number and Math operations.
 Decimal input that canonicalizes to an integer participates in exact integer
 operations. Large integers converted for approximate operations can round.
+
+`quotient`, `floor quotient`, `remainder`, and `modulo` MUST accept only two
+canonical whole-number operands and calculate exactly. `quotient` truncates
+toward zero; `floor quotient` rounds the quotient toward negative infinity.
+`remainder` satisfies `a = (a quotient b) * b + r` and has the dividend's sign
+when nonzero. `modulo` satisfies `a = (a floor quotient b) * b + m` and has
+the divisor's sign when nonzero. Both have magnitude less than the divisor's
+absolute value. All four MUST reject a zero divisor. For example, with `-7`
+and `3`, the results are respectively `-2`, `-3`, `-1`, and `2`.
+
+For real inputs, `floor` and `ceiling` round toward negative and positive
+infinity, respectively. `truncate` and `integer part` round toward zero.
+`round` selects the nearest integer, with halfway cases toward positive
+infinity, equivalent to JavaScript `Math.round`: `round of -1.5` is `-1`.
+These five functions MUST return canonical integer values. `fractional part`
+subtracts the integer part from the input in binary64 arithmetic.
+
+`minimum` and `maximum` MUST compare two numeric operands using exact mixed
+integer/binary64 ordering, as in Section 5.2, and return the selected operand
+without converting it. Equal operands select the first. `greatest common
+divisor` MUST accept canonical whole numbers and return their exact nonnegative
+greatest common divisor; the result for `(0, 0)` is zero.
+
+Bit operations MUST accept only canonical whole numbers and use unbounded
+signed two's-complement semantics. `bit intersection`, `bit union`, `bit xor`,
+and `bit complement` correspond to AND, OR, XOR, and NOT on bits. Left shifts
+multiply by a power of two; right shifts extend the sign, rounding negative
+quotients toward negative infinity. Shift counts MUST be nonnegative canonical
+whole numbers. Bit operations MUST NOT truncate operands to 32 or 64 bits.
 
 Quoted text, names, and lists MUST NOT be coerced into arithmetic operands.
 Division by zero, non-finite conversions or results, and real-function domain
@@ -618,6 +677,10 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
   years, using supplied `[year, month, day]` lists. The comparison date is
   explicit; on the birthday itself the person is exactly that age. This example
   does not read a clock or implement general date/duration arithmetic.
+- Arithmetic demonstrates exact large-integer absolute value, both integer
+  quotients and remainders, rounding, extrema, greatest common divisors, bit
+  operations, constants, and real functions. Checks include negative-division
+  identities and a trigonometric round trip with an explicit tolerance.
 - Fibonacci works backwards from its requested indices by addition, including
   exact Fibonacci 10000 (2090 digits). Checks include Cassini's identity.
   Adding `why?` after the Fibonacci 10000 question explains that answer using
