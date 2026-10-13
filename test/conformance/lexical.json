@@ -1,0 +1,1122 @@
+[
+  {
+    "id": "lex-whitespace",
+    "section": "3.1",
+    "name": "case folding and whitespace across lines",
+    "source": "\tÉLODIE\n IS\t AN\n ARTIST.\nwho\tis\tan\tartist?",
+    "expected": [
+      "élodie is an artist."
+    ]
+  },
+  {
+    "id": "lex-comment",
+    "section": "3.1",
+    "name": "comments may contain statement terminators",
+    "source": "# ignored . ? and then\nada is a person. # ?bad is a variable.\nwho is a person?",
+    "expected": [
+      "ada is a person."
+    ]
+  },
+  {
+    "id": "lex-crlf",
+    "section": "3.1",
+    "name": "CRLF source keeps statement boundaries",
+    "source": "ada is a person.\r\nben is a person.\r\nwho is a person?",
+    "expected": [
+      "ada is a person.\nben is a person."
+    ]
+  },
+  {
+    "id": "lex-quoted-punctuation",
+    "section": "3.1",
+    "name": "quoted punctuation and separators stay inside values",
+    "source": "the text of demo is \"if and then is # ? . ( [ ] )\". what is the text of demo?",
+    "expected": [
+      "the text of demo is \"if and then is # ? . ( [ ] )\"."
+    ]
+  },
+  {
+    "id": "lex-nested-separators",
+    "section": "3.1",
+    "name": "nested list strings do not split a rule",
+    "source": "the data of demo is [\" and \", [\" if \", \" then \", \" is \"]]. if the data of ?x is [\" and \", [\" if \", \" then \", \" is \"]] then ?x is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "lex-decimal-boundary",
+    "section": "3.1",
+    "name": "a decimal point differs from a sentence terminator",
+    "source": "the value of demo is 1.25. 2 is a number. what is the value of demo? who is a number?",
+    "expected": [
+      "the value of demo is 1.25.",
+      "2 is a number."
+    ]
+  },
+  {
+    "id": "lex-variable-boundary",
+    "section": "3.1",
+    "name": "variables next to list punctuation are not question endings",
+    "source": "[ada,ben] knows ada. [?left,?right] knows ?left? ",
+    "expected": [
+      "[ada, ben] knows ada."
+    ]
+  },
+  {
+    "id": "name-unicode-0",
+    "section": "3.2",
+    "name": "name éloïse is accepted and normalized",
+    "source": "éloïse is a person. who is a person?",
+    "expected": [
+      "éloïse is a person."
+    ]
+  },
+  {
+    "id": "name-unicode-1",
+    "section": "3.2",
+    "name": "name 東京 is accepted and normalized",
+    "source": "東京 is a person. who is a person?",
+    "expected": [
+      "東京 is a person."
+    ]
+  },
+  {
+    "id": "name-unicode-2",
+    "section": "3.2",
+    "name": "name αβγ is accepted and normalized",
+    "source": "αβγ is a person. who is a person?",
+    "expected": [
+      "αβγ is a person."
+    ]
+  },
+  {
+    "id": "name-unicode-3",
+    "section": "3.2",
+    "name": "name person2 is accepted and normalized",
+    "source": "person2 is a person. who is a person?",
+    "expected": [
+      "person2 is a person."
+    ]
+  },
+  {
+    "id": "name-unicode-4",
+    "section": "3.2",
+    "name": "name person_2 is accepted and normalized",
+    "source": "person_2 is a person. who is a person?",
+    "expected": [
+      "person_2 is a person."
+    ]
+  },
+  {
+    "id": "name-unicode-5",
+    "section": "3.2",
+    "name": "name person-two is accepted and normalized",
+    "source": "person-two is a person. who is a person?",
+    "expected": [
+      "person-two is a person."
+    ]
+  },
+  {
+    "id": "name-unicode-6",
+    "section": "3.2",
+    "name": "name ẞ is accepted and normalized",
+    "source": "ẞ is a person. who is a person?",
+    "expected": [
+      "ß is a person."
+    ]
+  },
+  {
+    "id": "name-invalid-0",
+    "section": "3.2",
+    "name": "invalid name _ada is rejected",
+    "source": "_ada is a person.",
+    "error": "one word",
+    "line": 1
+  },
+  {
+    "id": "name-invalid-1",
+    "section": "3.2",
+    "name": "invalid name -ada is rejected",
+    "source": "-ada is a person.",
+    "error": "one word",
+    "line": 1
+  },
+  {
+    "id": "name-invalid-2",
+    "section": "3.2",
+    "name": "invalid name 2ada is rejected",
+    "source": "2ada is a person.",
+    "error": "one word",
+    "line": 1
+  },
+  {
+    "id": "name-invalid-3",
+    "section": "3.2",
+    "name": "invalid name ada/bob is rejected",
+    "source": "ada/bob is a person.",
+    "error": "one word",
+    "line": 1
+  },
+  {
+    "id": "name-invalid-4",
+    "section": "3.2",
+    "name": "invalid name ada:bob is rejected",
+    "source": "ada:bob is a person.",
+    "error": "one word",
+    "line": 1
+  },
+  {
+    "id": "name-invalid-5",
+    "section": "3.2",
+    "name": "invalid name ada@bob is rejected",
+    "source": "ada@bob is a person.",
+    "error": "one word",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-if",
+    "section": "3.2",
+    "name": "if cannot be an ordinary name",
+    "source": "the label of demo is if.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-then",
+    "section": "3.2",
+    "name": "then cannot be an ordinary name",
+    "source": "the label of demo is then.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-and",
+    "section": "3.2",
+    "name": "and cannot be an ordinary name",
+    "source": "the label of demo is and.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-is",
+    "section": "3.2",
+    "name": "is cannot be an ordinary name",
+    "source": "the label of demo is is.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-a",
+    "section": "3.2",
+    "name": "a cannot be an ordinary name",
+    "source": "the label of demo is a.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-an",
+    "section": "3.2",
+    "name": "an cannot be an ordinary name",
+    "source": "the label of demo is an.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-why",
+    "section": "3.2",
+    "name": "why cannot be an ordinary name",
+    "source": "the label of demo is why.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-does",
+    "section": "3.2",
+    "name": "does cannot be an ordinary name",
+    "source": "the label of demo is does.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-plus",
+    "section": "3.2",
+    "name": "plus cannot be an ordinary name",
+    "source": "the label of demo is plus.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-minus",
+    "section": "3.2",
+    "name": "minus cannot be an ordinary name",
+    "source": "the label of demo is minus.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-reserved-not",
+    "section": "3.2",
+    "name": "not cannot be an ordinary name",
+    "source": "the label of demo is not.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "relation-verb",
+    "section": "3.2",
+    "name": "relations must be fixed nonreserved names: verb",
+    "source": "ada ?relation ben?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "relation-property",
+    "section": "3.2",
+    "name": "relations must be fixed nonreserved names: property",
+    "source": "the ?property of ada is ?value?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "relation-reserved-verb",
+    "section": "3.2",
+    "name": "relations must be fixed nonreserved names: reserved-verb",
+    "source": "ada and ben.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "relation-reserved-property",
+    "section": "3.2",
+    "name": "relations must be fixed nonreserved names: reserved-property",
+    "source": "the and of ada is ben.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "relation-query-word-verb",
+    "section": "3.2",
+    "name": "relations must be fixed nonreserved names: query-word-verb",
+    "source": "ada who ben.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "relation-query-word-property",
+    "section": "3.2",
+    "name": "relations must be fixed nonreserved names: query-word-property",
+    "source": "the what of ada is ben.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "name-ordinals",
+    "section": "3.2",
+    "name": "ordinal words have no hidden variable meaning",
+    "source": "first likes second. third is a name. if first likes ?person then ?person is a name. who is a name?",
+    "expected": [
+      "third is a name.\nsecond is a name."
+    ]
+  },
+  {
+    "id": "variable-separate-scopes",
+    "section": "3.2",
+    "name": "a repeated spelling starts a fresh scope in each rule and query",
+    "source": "ada has-tag red. ben has-tag blue. if ?person has-tag red then ?person is a warm-person. if ?person has-tag blue then ?person is a cool-person. ?person is a warm-person? ?person is a cool-person?",
+    "expected": [
+      "ada is a warm-person.",
+      "ben is a cool-person."
+    ]
+  },
+  {
+    "id": "variable-same-value",
+    "section": "3.2",
+    "name": "different variables may bind the same value",
+    "source": "ada likes ada. if ?left likes ?right then [?left, ?right] is a pair. who is a pair?",
+    "expected": [
+      "[ada, ada] is a pair."
+    ]
+  },
+  {
+    "id": "variable-query-repeat",
+    "section": "3.2",
+    "name": "repeated query variables filter unequal arguments",
+    "source": "ada likes ada. ada likes ben. ?person likes ?person?",
+    "expected": [
+      "ada likes ada."
+    ]
+  },
+  {
+    "id": "variable-unicode",
+    "section": "3.2",
+    "name": "variable names normalize case and Unicode",
+    "source": "ada is a person. if ?ÉLÈVE is a person then ?élève is an artist. ?ARTISTE is an artist?",
+    "expected": [
+      "ada is an artist."
+    ]
+  },
+  {
+    "id": "variable-context-fact-subject",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: fact-subject",
+    "source": "?person is a person.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-fact-list",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: fact-list",
+    "source": "the value of demo is [?value].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-fact-tail",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: fact-tail",
+    "source": "the value of demo is [ada | ?tail].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-who-fact",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: who-fact",
+    "source": "who is a person.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-what-fact",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: what-fact",
+    "source": "the value of demo is what.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-who-rule",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: who-rule",
+    "source": "if who is a person then ada is an artist.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-what-rule",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: what-rule",
+    "source": "ada likes what if ada is a person.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-check",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: check",
+    "source": "check that ?person is a person.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-check-list",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: check-list",
+    "source": "check that the value of demo is [?value].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-context-check-tail",
+    "section": "3.2",
+    "name": "variables are rejected in forbidden contexts: check-tail",
+    "source": "check that the value of demo is [ada | ?tail].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-invalid-0",
+    "section": "3.2",
+    "name": "variable identifiers start with a letter: ?1x",
+    "source": "?1x is a person?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-invalid-1",
+    "section": "3.2",
+    "name": "variable identifiers start with a letter: ?_x",
+    "source": "?_x is a person?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "variable-invalid-2",
+    "section": "3.2",
+    "name": "variable identifiers start with a letter: ?-x",
+    "source": "?-x is a person?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-canonical-0",
+    "section": "3.3",
+    "name": "000123 canonicalizes to 123",
+    "source": "the value of demo is 000123. what is the value of demo?",
+    "expected": [
+      "the value of demo is 123."
+    ]
+  },
+  {
+    "id": "number-canonical-1",
+    "section": "3.3",
+    "name": "-000 canonicalizes to 0",
+    "source": "the value of demo is -000. what is the value of demo?",
+    "expected": [
+      "the value of demo is 0."
+    ]
+  },
+  {
+    "id": "number-canonical-2",
+    "section": "3.3",
+    "name": "9007199254740993123456789 canonicalizes to 9007199254740993123456789",
+    "source": "the value of demo is 9007199254740993123456789. what is the value of demo?",
+    "expected": [
+      "the value of demo is 9007199254740993123456789."
+    ]
+  },
+  {
+    "id": "number-canonical-3",
+    "section": "3.3",
+    "name": "-0.0 canonicalizes to 0",
+    "source": "the value of demo is -0.0. what is the value of demo?",
+    "expected": [
+      "the value of demo is 0."
+    ]
+  },
+  {
+    "id": "number-canonical-4",
+    "section": "3.3",
+    "name": "0002.5000 canonicalizes to 2.5",
+    "source": "the value of demo is 0002.5000. what is the value of demo?",
+    "expected": [
+      "the value of demo is 2.5."
+    ]
+  },
+  {
+    "id": "number-canonical-5",
+    "section": "3.3",
+    "name": "2.0 canonicalizes to 2",
+    "source": "the value of demo is 2.0. what is the value of demo?",
+    "expected": [
+      "the value of demo is 2."
+    ]
+  },
+  {
+    "id": "number-canonical-6",
+    "section": "3.3",
+    "name": "1E+3 canonicalizes to 1000",
+    "source": "the value of demo is 1E+3. what is the value of demo?",
+    "expected": [
+      "the value of demo is 1000."
+    ]
+  },
+  {
+    "id": "number-canonical-7",
+    "section": "3.3",
+    "name": "1e21 canonicalizes to 1e+21",
+    "source": "the value of demo is 1e21. what is the value of demo?",
+    "expected": [
+      "the value of demo is 1e+21."
+    ]
+  },
+  {
+    "id": "number-canonical-8",
+    "section": "3.3",
+    "name": "1e-7 canonicalizes to 1e-7",
+    "source": "the value of demo is 1e-7. what is the value of demo?",
+    "expected": [
+      "the value of demo is 1e-7."
+    ]
+  },
+  {
+    "id": "number-canonical-9",
+    "section": "3.3",
+    "name": "1e-400 canonicalizes to 0",
+    "source": "the value of demo is 1e-400. what is the value of demo?",
+    "expected": [
+      "the value of demo is 0."
+    ]
+  },
+  {
+    "id": "number-canonical-10",
+    "section": "3.3",
+    "name": "5e-324 canonicalizes to 5e-324",
+    "source": "the value of demo is 5e-324. what is the value of demo?",
+    "expected": [
+      "the value of demo is 5e-324."
+    ]
+  },
+  {
+    "id": "number-canonical-11",
+    "section": "3.3",
+    "name": "9007199254740993.0 canonicalizes to 9007199254740992",
+    "source": "the value of demo is 9007199254740993.0. what is the value of demo?",
+    "expected": [
+      "the value of demo is 9007199254740992."
+    ]
+  },
+  {
+    "id": "number-invalid-0",
+    "section": "3.3",
+    "name": "invalid numeric literal 1e309",
+    "source": "the value of demo is 1e309.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-invalid-1",
+    "section": "3.3",
+    "name": "invalid numeric literal -1e309",
+    "source": "the value of demo is -1e309.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-invalid-2",
+    "section": "3.3",
+    "name": "invalid numeric literal +1",
+    "source": "the value of demo is +1.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-invalid-3",
+    "section": "3.3",
+    "name": "invalid numeric literal .5",
+    "source": "the value of demo is .5.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-invalid-4",
+    "section": "3.3",
+    "name": "invalid numeric literal 1e",
+    "source": "the value of demo is 1e.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-invalid-5",
+    "section": "3.3",
+    "name": "invalid numeric literal 1e+",
+    "source": "the value of demo is 1e+.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-invalid-6",
+    "section": "3.3",
+    "name": "invalid numeric literal 1_000",
+    "source": "the value of demo is 1_000.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "number-match-versus-compare",
+    "section": "3.3",
+    "name": "matching is canonical while equality is numeric",
+    "source": "the value of demo is 1000000000000000000000. is the value of demo equal to 1e21? check that 1000000000000000000000 is equal to 1e21.",
+    "expected": [
+      "I don't know whether the value of demo is 1e+21.",
+      "check passed: 1000000000000000000000 is equal to 1e21."
+    ]
+  },
+  {
+    "id": "text-json-0",
+    "section": "3.4",
+    "name": "JSON text preserves decoded values 0",
+    "source": "the value of demo is \" A  B\\tC \". what is the value of demo?",
+    "expected": [
+      "the value of demo is \" A  B\\tC \"."
+    ]
+  },
+  {
+    "id": "text-json-1",
+    "section": "3.4",
+    "name": "JSON text preserves decoded values 1",
+    "source": "the value of demo is \"Line one\\nLine two\". what is the value of demo?",
+    "expected": [
+      "the value of demo is \"Line one\\nLine two\"."
+    ]
+  },
+  {
+    "id": "text-json-2",
+    "section": "3.4",
+    "name": "JSON text preserves decoded values 2",
+    "source": "the value of demo is \"\\\"quoted\\\" \\\\ path\". what is the value of demo?",
+    "expected": [
+      "the value of demo is \"\\\"quoted\\\" \\\\ path\"."
+    ]
+  },
+  {
+    "id": "text-json-3",
+    "section": "3.4",
+    "name": "JSON text preserves decoded values 3",
+    "source": "the value of demo is \"?person # and then . ?\". what is the value of demo?",
+    "expected": [
+      "the value of demo is \"?person # and then . ?\"."
+    ]
+  },
+  {
+    "id": "text-json-4",
+    "section": "3.4",
+    "name": "JSON text preserves decoded values 4",
+    "source": "the value of demo is \"\\b\\f\\r\". what is the value of demo?",
+    "expected": [
+      "the value of demo is \"\\b\\f\\r\"."
+    ]
+  },
+  {
+    "id": "text-json-5",
+    "section": "3.4",
+    "name": "JSON text preserves decoded values 5",
+    "source": "the value of demo is \"😀 café 東京\". what is the value of demo?",
+    "expected": [
+      "the value of demo is \"😀 café 東京\"."
+    ]
+  },
+  {
+    "id": "text-escape-equality",
+    "section": "3.4",
+    "name": "decoded Unicode escapes match literal text",
+    "source": "the value of demo is \"\\u0041\". is the value of demo equal to \"A\"?",
+    "expected": [
+      "yes, the value of demo is \"A\"."
+    ]
+  },
+  {
+    "id": "text-type-distinction",
+    "section": "3.4",
+    "name": "quoted names and numbers remain different types",
+    "source": "the value of demo is red. the value of demo is \"red\". the value of demo is 7. the value of demo is \"7\". what is the value of demo?",
+    "expected": [
+      "the value of demo is red.\nthe value of demo is \"red\".\nthe value of demo is 7.\nthe value of demo is \"7\"."
+    ]
+  },
+  {
+    "id": "text-invalid-escape",
+    "section": "3.4",
+    "name": "invalid JSON text is rejected: escape",
+    "source": "the value of demo is \"bad\\q\".",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "text-invalid-unicode",
+    "section": "3.4",
+    "name": "invalid JSON text is rejected: unicode",
+    "source": "the value of demo is \"bad\\uQQQQ\".",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "text-invalid-newline",
+    "section": "3.4",
+    "name": "invalid JSON text is rejected: newline",
+    "source": "the value of demo is \"one\ntwo\".",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "text-invalid-unfinished",
+    "section": "3.4",
+    "name": "invalid JSON text is rejected: unfinished",
+    "source": "the value of demo is \"unfinished.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-tail-flatten",
+    "section": "3.5",
+    "name": "closed nested tails flatten structurally",
+    "source": "the value of demo is [1 | [2 | [3]]]. is the value of demo equal to [1, 2, 3]?",
+    "expected": [
+      "yes, the value of demo is [1, 2, 3]."
+    ]
+  },
+  {
+    "id": "list-empty-tail",
+    "section": "3.5",
+    "name": "a closed empty tail equals a closed list",
+    "source": "the value of demo is [1 | []]. is the value of demo equal to [1]?",
+    "expected": [
+      "yes, the value of demo is [1]."
+    ]
+  },
+  {
+    "id": "list-nested-repeat",
+    "section": "3.5",
+    "name": "repeated variables agree across nested list patterns",
+    "source": "the data of good is [[red], red]. the data of bad is [[red], blue]. if the data of ?case is [[?x], ?x] then ?case is a match. who is a match?",
+    "expected": [
+      "good is a match."
+    ]
+  },
+  {
+    "id": "list-empty-no-head",
+    "section": "3.5",
+    "name": "empty lists do not match nonempty patterns",
+    "source": "the data of demo is []. if the data of ?case is [?head | ?tail] then ?case is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "list-tail-construction",
+    "section": "3.5",
+    "name": "tail matching and construction retain nested item types",
+    "source": "the data of demo is [red, [\"Blue\", 7], []]. if the data of ?case is [?head | ?tail] then the data-tail of ?case is [tag | ?tail]. what is the data-tail of demo?",
+    "expected": [
+      "the data-tail of demo is [tag, [\"Blue\", 7], []]."
+    ]
+  },
+  {
+    "id": "list-invalid-0",
+    "section": "3.5",
+    "name": "malformed or improper list [1,]",
+    "source": "the data of demo is [1,].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-1",
+    "section": "3.5",
+    "name": "malformed or improper list [,1]",
+    "source": "the data of demo is [,1].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-2",
+    "section": "3.5",
+    "name": "malformed or improper list [1 2]",
+    "source": "the data of demo is [1 2].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-3",
+    "section": "3.5",
+    "name": "malformed or improper list [| []]",
+    "source": "the data of demo is [| []].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-4",
+    "section": "3.5",
+    "name": "malformed or improper list [1 | 2]",
+    "source": "the data of demo is [1 | 2].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-5",
+    "section": "3.5",
+    "name": "malformed or improper list [1 | \"tail\"]",
+    "source": "the data of demo is [1 | \"tail\"].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-6",
+    "section": "3.5",
+    "name": "malformed or improper list [1 | red]",
+    "source": "the data of demo is [1 | red].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-7",
+    "section": "3.5",
+    "name": "malformed or improper list [1 | [] | []]",
+    "source": "the data of demo is [1 | [] | []].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-8",
+    "section": "3.5",
+    "name": "malformed or improper list [1",
+    "source": "the data of demo is [1.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-invalid-9",
+    "section": "3.5",
+    "name": "malformed or improper list [1]]",
+    "source": "the data of demo is [1]].",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "list-runtime-tail",
+    "section": "3.5",
+    "name": "a bound tail must be a list",
+    "source": "the data of demo is red. if the data of ?case is ?tail then the output of ?case is [tag | ?tail].",
+    "error": "must be another list"
+  },
+  {
+    "id": "kind-invalid-literal-0",
+    "section": "4.1",
+    "name": "membership kinds must be unquoted atomic values",
+    "source": "ada is a [red].",
+    "error": "one word for a kind",
+    "line": 1
+  },
+  {
+    "id": "kind-invalid-literal-1",
+    "section": "4.1",
+    "name": "membership kinds must be unquoted atomic values",
+    "source": "ada is a \"red\".",
+    "error": "one word for a kind",
+    "line": 1
+  },
+  {
+    "id": "kind-invalid-derived-0",
+    "section": "4.1",
+    "name": "derived membership kinds are validated",
+    "source": "the kind of ada is [red]. if the kind of ?person is ?kind then ?person is a ?kind.",
+    "error": "one word for a kind"
+  },
+  {
+    "id": "kind-invalid-derived-1",
+    "section": "4.1",
+    "name": "derived membership kinds are validated",
+    "source": "the kind of ada is \"red\". if the kind of ?person is ?kind then ?person is a ?kind.",
+    "error": "one word for a kind"
+  },
+  {
+    "id": "range-inclusive",
+    "section": "4.1",
+    "name": "inclusive negative-to-positive ranges produce ordinary facts",
+    "source": "every number from -2 to 2 is an integer. -2 is a number. who is an integer? check that there are 5 integers.",
+    "expected": [
+      "-2 is an integer.\n-1 is an integer.\n0 is an integer.\n1 is an integer.\n2 is an integer.",
+      "check passed: there are 5 integers."
+    ]
+  },
+  {
+    "id": "range-singleton",
+    "section": "4.1",
+    "name": "a singleton range keeps integers beyond binary64 precision",
+    "source": "every number from 9007199254740993 to 9007199254740993 is a token. who is a token?",
+    "expected": [
+      "9007199254740993 is a token."
+    ]
+  },
+  {
+    "id": "range-invalid-0",
+    "section": "4.1",
+    "name": "ranges require ordered integer literals",
+    "source": "every number from 2 to 1 is a token.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "range-invalid-1",
+    "section": "4.1",
+    "name": "ranges require ordered integer literals",
+    "source": "every number from 1.5 to 2 is a token.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "range-invalid-2",
+    "section": "4.1",
+    "name": "ranges require ordered integer literals",
+    "source": "every number from 1e0 to 2 is a token.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "fact-calculation-0",
+    "section": "4.1",
+    "name": "facts cannot contain calculations",
+    "source": "the value of demo is 1 plus 2.",
+    "error": "calculations",
+    "line": 1
+  },
+  {
+    "id": "fact-calculation-1",
+    "section": "4.1",
+    "name": "facts cannot contain calculations",
+    "source": "(1 plus 2) likes red.",
+    "error": "calculations",
+    "line": 1
+  },
+  {
+    "id": "fact-calculation-2",
+    "section": "4.1",
+    "name": "facts cannot contain calculations",
+    "source": "the value of demo is [1 plus 2].",
+    "error": "calculations",
+    "line": 1
+  },
+  {
+    "id": "rule-safety-0",
+    "section": "4.2",
+    "name": "unsafe variables are rejected in premise order 0",
+    "source": "if ?x is a person then ?y is a friend.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-safety-1",
+    "section": "4.2",
+    "name": "unsafe variables are rejected in premise order 1",
+    "source": "if the score of ?x is ?n plus 1 then ?x is a person.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-safety-2",
+    "section": "4.2",
+    "name": "unsafe variables are rejected in premise order 2",
+    "source": "if ?n is less than 3 then demo is a match.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-safety-3",
+    "section": "4.2",
+    "name": "unsafe variables are rejected in premise order 3",
+    "source": "if ?x is not a cat then ?x is a dog.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-safety-4",
+    "section": "4.2",
+    "name": "unsafe variables are rejected in premise order 4",
+    "source": "if ?x is a person and ?x does not like ?y then ?x is a match.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-safety-5",
+    "section": "4.2",
+    "name": "unsafe variables are rejected in premise order 5",
+    "source": "if ?x is less than 3 and the score of demo is ?x then demo is a match.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-safety-6",
+    "section": "4.2",
+    "name": "unsafe variables are rejected in premise order 6",
+    "source": "the value of demo is ?x plus 1 if demo is a seed.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-invalid-sentence-0",
+    "section": "4.2",
+    "name": "negative and computed conditions cannot be facts or conclusions",
+    "source": "not ada likes ben.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-invalid-sentence-1",
+    "section": "4.2",
+    "name": "negative and computed conditions cannot be facts or conclusions",
+    "source": "2 is less than 3.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-invalid-sentence-2",
+    "section": "4.2",
+    "name": "negative and computed conditions cannot be facts or conclusions",
+    "source": "if ada is a person then not ada likes ben.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-invalid-sentence-3",
+    "section": "4.2",
+    "name": "negative and computed conditions cannot be facts or conclusions",
+    "source": "if ada is a person then 2 is less than 3.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-malformed-0",
+    "section": "4.2",
+    "name": "rules need premises and one conclusion",
+    "source": "if then ada is a person.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-malformed-1",
+    "section": "4.2",
+    "name": "rules need premises and one conclusion",
+    "source": "if ada is a person then ada is a friend then ada is a colleague.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "rule-malformed-2",
+    "section": "4.2",
+    "name": "rules need premises and one conclusion",
+    "source": "ada is a friend if .",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "syntax-comment-line",
+    "section": "3.1, 10",
+    "name": "comments preserve the syntax diagnostic source line",
+    "source": "# . ?\n\nada is a person. # a comment\n\nada is person.",
+    "error": ".",
+    "line": 5
+  },
+  {
+    "id": "syntax-unfinished-line",
+    "section": "10",
+    "name": "unfinished statements report their starting line",
+    "source": "# comment\n\nada is a person.\n\nben is a person",
+    "error": "Finish",
+    "line": 5
+  },
+  {
+    "id": "syntax-empty-0",
+    "section": "10",
+    "name": "empty statements are rejected",
+    "source": ".",
+    "error": "sentence before",
+    "line": 1
+  },
+  {
+    "id": "syntax-empty-1",
+    "section": "10",
+    "name": "empty statements are rejected",
+    "source": "?",
+    "error": "sentence before",
+    "line": 1
+  },
+  {
+    "id": "syntax-empty-2",
+    "section": "10",
+    "name": "empty statements are rejected",
+    "source": "ada is a person..",
+    "error": "sentence before",
+    "line": 1
+  }
+]

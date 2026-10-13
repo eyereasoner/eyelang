@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "node --test",
+    "test:conformance": "node --test test/conformance",
     "start": "node eyelang.js examples/socrates.eye",
     "version": "node scripts/sync-version.js"
   },

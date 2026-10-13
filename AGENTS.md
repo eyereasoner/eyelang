@@ -34,6 +34,7 @@ node eyelang.js - < examples/socrates.eye
 node eyelang.js --version
 node src/playground-server.js
 node --test test/variables.test.js
+npm run test:conformance
 npm test
 node scripts/prepare-pages.js
 git diff --check

@@ -689,7 +689,15 @@ export function infer(program) {
   function requestAssertion(assertion) {
     if (!definitions.size) return;
     if (assertion.goal && !assertion.goal.relation.startsWith('compare:')) {
-      demand({ relation: assertion.goal.relation, terms: assertion.goal.terms.map(t => specialize(t, new Map())) });
+      let terms;
+      try { terms = assertion.goal.terms.map(t => specialize(t, new Map())); }
+      catch (error) {
+        // Invalid check arguments are evaluated again in the check phase, in
+        // source order and with the check's line number. Questions fail now.
+        if (assertion.line !== undefined) return;
+        throw error;
+      }
+      demand({ relation: assertion.goal.relation, terms });
     }
     if (!assertion.aggregate) return;
     const { operation, label } = assertion.aggregate;
@@ -785,7 +793,7 @@ function aggregateAnswer(aggregate, facts) {
   let detail;
   if (operation === 'count') {
     const matches = facts.filter(record => record.goal.relation === 'is a' && plural(record.goal.terms[1]) === label);
-    premises = [...new Map(matches.map(record => [record.goal.terms[0], record])).values()];
+    premises = [...new Map(matches.map(record => [JSON.stringify(record.goal.terms[0]), record])).values()];
     value = String(premises.length);
     const name = value === '1' ? premises[0].goal.terms[1] : label;
     text = `there ${value === '1' ? 'is' : 'are'} ${value} ${name}`;

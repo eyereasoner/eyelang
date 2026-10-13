@@ -659,6 +659,12 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
   derives 300002 facts, and explains the full chain to its terminal label.
 
 `npm test` exercises these behaviors, including deliberate assertion failures.
+`npm run test:conformance` runs the dedicated
+[specification conformance suite](https://github.com/eyereasoner/eyelang/tree/main/test/conformance).
+Its cases identify the relevant sections of this document and exercise valid
+programs, required rejections, fixed points, explanations, checks, and the CLI.
+The suite also runs as part of `npm test`; answer order and the selected valid
+derivation are not conformance requirements.
 Reference tests independently compare Fibonacci against fast doubling and
 Turing outputs against binary addition; explanation tests check shared steps
 and concrete values. Large examples print long explanations and can be run

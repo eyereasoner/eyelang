@@ -1,0 +1,1009 @@
+[
+  {
+    "id": "math-left-minus",
+    "section": "5.1",
+    "name": "20 minus 5 minus 2 = 13",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 20 minus 5 minus 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 13."
+    ]
+  },
+  {
+    "id": "math-left-division",
+    "section": "5.1",
+    "name": "24 divided by 3 divided by 2 = 4",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 24 divided by 3 divided by 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 4."
+    ]
+  },
+  {
+    "id": "math-mixed-product",
+    "section": "5.1",
+    "name": "24 divided by 3 times 2 = 16",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 24 divided by 3 times 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 16."
+    ]
+  },
+  {
+    "id": "math-product-precedence",
+    "section": "5.1",
+    "name": "2 plus 3 times 4 minus 5 = 9",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 2 plus 3 times 4 minus 5. what is the result of demo?",
+    "expected": [
+      "the result of demo is 9."
+    ]
+  },
+  {
+    "id": "math-parentheses",
+    "section": "5.1",
+    "name": "(2 plus 3) times (4 minus 1) = 15",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is (2 plus 3) times (4 minus 1). what is the result of demo?",
+    "expected": [
+      "the result of demo is 15."
+    ]
+  },
+  {
+    "id": "math-power-right",
+    "section": "5.1",
+    "name": "3 to the power of 2 to the power of 2 = 81",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 3 to the power of 2 to the power of 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 81."
+    ]
+  },
+  {
+    "id": "math-power-left-group",
+    "section": "5.1",
+    "name": "(3 to the power of 2) to the power of 2 = 81",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is (3 to the power of 2) to the power of 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 81."
+    ]
+  },
+  {
+    "id": "math-power-right-distinct",
+    "section": "5.1",
+    "name": "2 to the power of 2 to the power of 3 = 256",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 2 to the power of 2 to the power of 3. what is the result of demo?",
+    "expected": [
+      "the result of demo is 256."
+    ]
+  },
+  {
+    "id": "math-prefix-binds",
+    "section": "5.1",
+    "name": "absolute value of -2 plus 3 = 5",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is absolute value of -2 plus 3. what is the result of demo?",
+    "expected": [
+      "the result of demo is 5."
+    ]
+  },
+  {
+    "id": "math-prefix-group",
+    "section": "5.1",
+    "name": "absolute value of (-2 plus 3) = 1",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is absolute value of (-2 plus 3). what is the result of demo?",
+    "expected": [
+      "the result of demo is 1."
+    ]
+  },
+  {
+    "id": "math-prefix-power",
+    "section": "5.1",
+    "name": "square root of 4 to the power of 3 = 8",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is square root of 4 to the power of 3. what is the result of demo?",
+    "expected": [
+      "the result of demo is 8."
+    ]
+  },
+  {
+    "id": "math-negative-literal-power",
+    "section": "5.1",
+    "name": "-2 to the power of 2 = 4",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is -2 to the power of 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 4."
+    ]
+  },
+  {
+    "id": "math-negative-exponent",
+    "section": "5.1",
+    "name": "2 to the power of -4 = 0.0625",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 2 to the power of -4. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0.0625."
+    ]
+  },
+  {
+    "id": "math-zero-power",
+    "section": "5.1",
+    "name": "0 to the power of 0 = 1",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 0 to the power of 0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 1."
+    ]
+  },
+  {
+    "id": "math-exact-plus",
+    "section": "5.1",
+    "name": "9007199254740993 plus 2 = 9007199254740995",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 9007199254740993 plus 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 9007199254740995."
+    ]
+  },
+  {
+    "id": "math-exact-minus",
+    "section": "5.1",
+    "name": "-9007199254740993 minus 2 = -9007199254740995",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is -9007199254740993 minus 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is -9007199254740995."
+    ]
+  },
+  {
+    "id": "math-exact-product",
+    "section": "5.1",
+    "name": "9007199254740993 times -3 = -27021597764222979",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 9007199254740993 times -3. what is the result of demo?",
+    "expected": [
+      "the result of demo is -27021597764222979."
+    ]
+  },
+  {
+    "id": "math-exact-division",
+    "section": "5.1",
+    "name": "27021597764222979 divided by -3 = -9007199254740993",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 27021597764222979 divided by -3. what is the result of demo?",
+    "expected": [
+      "the result of demo is -9007199254740993."
+    ]
+  },
+  {
+    "id": "math-exact-power",
+    "section": "5.1",
+    "name": "2 to the power of 128 = 340282366920938463463374607431768211456",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 2 to the power of 128. what is the result of demo?",
+    "expected": [
+      "the result of demo is 340282366920938463463374607431768211456."
+    ]
+  },
+  {
+    "id": "math-canonical-integer",
+    "section": "5.1",
+    "name": "9007199254740993 plus 2.0 = 9007199254740995",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 9007199254740993 plus 2.0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 9007199254740995."
+    ]
+  },
+  {
+    "id": "math-real-division",
+    "section": "5.1",
+    "name": "7 divided by 2 = 3.5",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 7 divided by 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 3.5."
+    ]
+  },
+  {
+    "id": "math-real-mixed",
+    "section": "5.1",
+    "name": "1.25 times 2 plus 0.5 = 3",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 1.25 times 2 plus 0.5. what is the result of demo?",
+    "expected": [
+      "the result of demo is 3."
+    ]
+  },
+  {
+    "id": "math-binary64-rounding",
+    "section": "5.1",
+    "name": "0.1 plus 0.2 = 0.30000000000000004",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 0.1 plus 0.2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0.30000000000000004."
+    ]
+  },
+  {
+    "id": "math-underflow",
+    "section": "5.1",
+    "name": "5e-324 divided by 2 = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is 5e-324 divided by 2. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-sqrt",
+    "section": "5.1",
+    "name": "square root of 16 = 4",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is square root of 16. what is the result of demo?",
+    "expected": [
+      "the result of demo is 4."
+    ]
+  },
+  {
+    "id": "math-abs",
+    "section": "5.1",
+    "name": "absolute value of -4.5 = 4.5",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is absolute value of -4.5. what is the result of demo?",
+    "expected": [
+      "the result of demo is 4.5."
+    ]
+  },
+  {
+    "id": "math-log",
+    "section": "5.1",
+    "name": "natural log of 1 = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is natural log of 1. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-exp",
+    "section": "5.1",
+    "name": "exponential of 0 = 1",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is exponential of 0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 1."
+    ]
+  },
+  {
+    "id": "math-sin",
+    "section": "5.1",
+    "name": "sine of 0 = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is sine of 0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-cos",
+    "section": "5.1",
+    "name": "cosine of 0 = 1",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is cosine of 0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 1."
+    ]
+  },
+  {
+    "id": "math-asin",
+    "section": "5.1",
+    "name": "arc sine of 0 = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is arc sine of 0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-acos",
+    "section": "5.1",
+    "name": "arc cosine of 1 = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is arc cosine of 1. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-angle-origin",
+    "section": "5.1",
+    "name": "angle of 0 with 0 = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is angle of 0 with 0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-angle-east",
+    "section": "5.1",
+    "name": "angle of 3 with 0 = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is angle of 3 with 0. what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-angle-group",
+    "section": "5.1",
+    "name": "angle of (1 plus 1) with (2 minus 2) = 0",
+    "source": "demo is a calculator. if demo is a calculator then the result of demo is angle of (1 plus 1) with (2 minus 2). what is the result of demo?",
+    "expected": [
+      "the result of demo is 0."
+    ]
+  },
+  {
+    "id": "math-domain-0",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: 1 divided by 0",
+    "source": "if 1 is equal to 1 then the result of demo is 1 divided by 0.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-1",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: 1 divided by -0.0",
+    "source": "if 1 is equal to 1 then the result of demo is 1 divided by -0.0.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-2",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: square root of -1",
+    "source": "if 1 is equal to 1 then the result of demo is square root of -1.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-3",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: natural log of 0",
+    "source": "if 1 is equal to 1 then the result of demo is natural log of 0.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-4",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: natural log of -1",
+    "source": "if 1 is equal to 1 then the result of demo is natural log of -1.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-5",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: arc sine of 2",
+    "source": "if 1 is equal to 1 then the result of demo is arc sine of 2.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-6",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: arc cosine of 2",
+    "source": "if 1 is equal to 1 then the result of demo is arc cosine of 2.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-7",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: exponential of 1000",
+    "source": "if 1 is equal to 1 then the result of demo is exponential of 1000.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-8",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: 1e308 times 1e308",
+    "source": "if 1 is equal to 1 then the result of demo is 1e308 times 1e308.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-domain-9",
+    "section": "5.1",
+    "name": "invalid or nonfinite arithmetic: -2 to the power of 0.5",
+    "source": "if 1 is equal to 1 then the result of demo is -2 to the power of 0.5.",
+    "error": "divide by zero|finite real number"
+  },
+  {
+    "id": "math-no-coercion-0",
+    "section": "5.1",
+    "name": "arithmetic must not coerce \"3\"",
+    "source": "if 1 is equal to 1 then the result of demo is \"3\" plus 1.",
+    "error": "only use numbers"
+  },
+  {
+    "id": "math-no-coercion-1",
+    "section": "5.1",
+    "name": "arithmetic must not coerce three",
+    "source": "if 1 is equal to 1 then the result of demo is three plus 1.",
+    "error": "only use numbers"
+  },
+  {
+    "id": "math-no-coercion-2",
+    "section": "5.1",
+    "name": "arithmetic must not coerce [3]",
+    "source": "if 1 is equal to 1 then the result of demo is [3] plus 1.",
+    "error": "only use numbers"
+  },
+  {
+    "id": "math-nonfinite-conversion",
+    "section": "5.1",
+    "name": "a huge integer cannot be silently converted to Infinity",
+    "source": "if 1 is equal to 1 then the result of demo is sine of 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999.",
+    "error": "finite real number"
+  },
+  {
+    "id": "math-syntax-0",
+    "section": "5.1",
+    "name": "unfinished calculation 1 plus",
+    "source": "if 1 is equal to 1 then the result of demo is 1 plus.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "math-syntax-1",
+    "section": "5.1",
+    "name": "unfinished calculation (1 plus 2",
+    "source": "if 1 is equal to 1 then the result of demo is (1 plus 2.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "math-syntax-2",
+    "section": "5.1",
+    "name": "unfinished calculation 1 times (2 plus)",
+    "source": "if 1 is equal to 1 then the result of demo is 1 times (2 plus).",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "math-syntax-3",
+    "section": "5.1",
+    "name": "unfinished calculation sine of",
+    "source": "if 1 is equal to 1 then the result of demo is sine of.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "math-syntax-4",
+    "section": "5.1",
+    "name": "unfinished calculation angle of 1",
+    "source": "if 1 is equal to 1 then the result of demo is angle of 1.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "math-syntax-5",
+    "section": "5.1",
+    "name": "unfinished calculation 1 2",
+    "source": "if 1 is equal to 1 then the result of demo is 1 2.",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "compare-less-boundary",
+    "section": "5.2",
+    "name": "3 is less than 3",
+    "source": "if 3 is less than 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-less-boundary-not",
+    "section": "5.2",
+    "name": "not 3 is less than 3",
+    "source": "if not 3 is less than 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-less-true",
+    "section": "5.2",
+    "name": "2 is less than 3",
+    "source": "if 2 is less than 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-less-true-not",
+    "section": "5.2",
+    "name": "not 2 is less than 3",
+    "source": "if not 2 is less than 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-at-most-boundary",
+    "section": "5.2",
+    "name": "3 is at most 3",
+    "source": "if 3 is at most 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-at-most-boundary-not",
+    "section": "5.2",
+    "name": "not 3 is at most 3",
+    "source": "if not 3 is at most 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-at-most-false",
+    "section": "5.2",
+    "name": "4 is at most 3",
+    "source": "if 4 is at most 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-at-most-false-not",
+    "section": "5.2",
+    "name": "not 4 is at most 3",
+    "source": "if not 4 is at most 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-greater-boundary",
+    "section": "5.2",
+    "name": "3 is greater than 3",
+    "source": "if 3 is greater than 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-greater-boundary-not",
+    "section": "5.2",
+    "name": "not 3 is greater than 3",
+    "source": "if not 3 is greater than 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-greater-true",
+    "section": "5.2",
+    "name": "4 is greater than 3",
+    "source": "if 4 is greater than 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-greater-true-not",
+    "section": "5.2",
+    "name": "not 4 is greater than 3",
+    "source": "if not 4 is greater than 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-at-least-boundary",
+    "section": "5.2",
+    "name": "3 is at least 3",
+    "source": "if 3 is at least 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-at-least-boundary-not",
+    "section": "5.2",
+    "name": "not 3 is at least 3",
+    "source": "if not 3 is at least 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-at-least-false",
+    "section": "5.2",
+    "name": "2 is at least 3",
+    "source": "if 2 is at least 3 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-at-least-false-not",
+    "section": "5.2",
+    "name": "not 2 is at least 3",
+    "source": "if not 2 is at least 3 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-equal-numeric",
+    "section": "5.2",
+    "name": "1.0 is equal to 1",
+    "source": "if 1.0 is equal to 1 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-equal-numeric-not",
+    "section": "5.2",
+    "name": "not 1.0 is equal to 1",
+    "source": "if not 1.0 is equal to 1 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-unequal-numeric",
+    "section": "5.2",
+    "name": "1 is equal to 2",
+    "source": "if 1 is equal to 2 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-unequal-numeric-not",
+    "section": "5.2",
+    "name": "not 1 is equal to 2",
+    "source": "if not 1 is equal to 2 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-big-mixed",
+    "section": "5.2",
+    "name": "9007199254740993 is greater than 9007199254740992.0",
+    "source": "if 9007199254740993 is greater than 9007199254740992.0 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-big-mixed-not",
+    "section": "5.2",
+    "name": "not 9007199254740993 is greater than 9007199254740992.0",
+    "source": "if not 9007199254740993 is greater than 9007199254740992.0 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-big-mixed-reverse",
+    "section": "5.2",
+    "name": "9007199254740992.0 is less than 9007199254740993",
+    "source": "if 9007199254740992.0 is less than 9007199254740993 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-big-mixed-reverse-not",
+    "section": "5.2",
+    "name": "not 9007199254740992.0 is less than 9007199254740993",
+    "source": "if not 9007199254740992.0 is less than 9007199254740993 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-big-negative-mixed",
+    "section": "5.2",
+    "name": "-9007199254740993 is less than -9007199254740992.0",
+    "source": "if -9007199254740993 is less than -9007199254740992.0 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-big-negative-mixed-not",
+    "section": "5.2",
+    "name": "not -9007199254740993 is less than -9007199254740992.0",
+    "source": "if not -9007199254740993 is less than -9007199254740992.0 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-big-scientific-equal",
+    "section": "5.2",
+    "name": "1000000000000000000000 is equal to 1e21",
+    "source": "if 1000000000000000000000 is equal to 1e21 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-big-scientific-equal-not",
+    "section": "5.2",
+    "name": "not 1000000000000000000000 is equal to 1e21",
+    "source": "if not 1000000000000000000000 is equal to 1e21 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-name-equal",
+    "section": "5.2",
+    "name": "red is equal to red",
+    "source": "if red is equal to red then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-name-equal-not",
+    "section": "5.2",
+    "name": "not red is equal to red",
+    "source": "if not red is equal to red then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-name-unequal",
+    "section": "5.2",
+    "name": "red is equal to blue",
+    "source": "if red is equal to blue then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-name-unequal-not",
+    "section": "5.2",
+    "name": "not red is equal to blue",
+    "source": "if not red is equal to blue then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-name-versus-text",
+    "section": "5.2",
+    "name": "red is equal to \"red\"",
+    "source": "if red is equal to \"red\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-name-versus-text-not",
+    "section": "5.2",
+    "name": "not red is equal to \"red\"",
+    "source": "if not red is equal to \"red\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-number-versus-text",
+    "section": "5.2",
+    "name": "7 is equal to \"7\"",
+    "source": "if 7 is equal to \"7\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-number-versus-text-not",
+    "section": "5.2",
+    "name": "not 7 is equal to \"7\"",
+    "source": "if not 7 is equal to \"7\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-list-equal",
+    "section": "5.2",
+    "name": "[red, [1 | [2]]] is equal to [red, [1, 2]]",
+    "source": "if [red, [1 | [2]]] is equal to [red, [1, 2]] then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-list-equal-not",
+    "section": "5.2",
+    "name": "not [red, [1 | [2]]] is equal to [red, [1, 2]]",
+    "source": "if not [red, [1 | [2]]] is equal to [red, [1, 2]] then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-list-unequal",
+    "section": "5.2",
+    "name": "[red, 1] is equal to [red, \"1\"]",
+    "source": "if [red, 1] is equal to [red, \"1\"] then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-list-unequal-not",
+    "section": "5.2",
+    "name": "not [red, 1] is equal to [red, \"1\"]",
+    "source": "if not [red, 1] is equal to [red, \"1\"] then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-text-case-order",
+    "section": "5.2",
+    "name": "\"Z\" is less than \"a\"",
+    "source": "if \"Z\" is less than \"a\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-text-case-order-not",
+    "section": "5.2",
+    "name": "not \"Z\" is less than \"a\"",
+    "source": "if not \"Z\" is less than \"a\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-text-code-unit-order",
+    "section": "5.2",
+    "name": "\"😀\" is less than \"\\ue000\"",
+    "source": "if \"😀\" is less than \"\\ue000\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-text-code-unit-order-not",
+    "section": "5.2",
+    "name": "not \"😀\" is less than \"\\ue000\"",
+    "source": "if not \"😀\" is less than \"\\ue000\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-text-not-date-order",
+    "section": "5.2",
+    "name": "\"2026-2\" is greater than \"2026-10\"",
+    "source": "if \"2026-2\" is greater than \"2026-10\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-text-not-date-order-not",
+    "section": "5.2",
+    "name": "not \"2026-2\" is greater than \"2026-10\"",
+    "source": "if not \"2026-2\" is greater than \"2026-10\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-text-exact-equality",
+    "section": "5.2",
+    "name": "\"Red\" is equal to \"red\"",
+    "source": "if \"Red\" is equal to \"red\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-text-exact-equality-not",
+    "section": "5.2",
+    "name": "not \"Red\" is equal to \"red\"",
+    "source": "if not \"Red\" is equal to \"red\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-contains-case",
+    "section": "5.2",
+    "name": "\"Private MEDICAL data\" contains the text \"medical\"",
+    "source": "if \"Private MEDICAL data\" contains the text \"medical\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-contains-case-not",
+    "section": "5.2",
+    "name": "not \"Private MEDICAL data\" contains the text \"medical\"",
+    "source": "if not \"Private MEDICAL data\" contains the text \"medical\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-contains-empty",
+    "section": "5.2",
+    "name": "\"Text\" contains the text \"\"",
+    "source": "if \"Text\" contains the text \"\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-contains-empty-not",
+    "section": "5.2",
+    "name": "not \"Text\" contains the text \"\"",
+    "source": "if not \"Text\" contains the text \"\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-contains-not-casefold",
+    "section": "5.2",
+    "name": "\"Straße\" contains the text \"STRASSE\"",
+    "source": "if \"Straße\" contains the text \"STRASSE\" then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-contains-not-casefold-not",
+    "section": "5.2",
+    "name": "not \"Straße\" contains the text \"STRASSE\"",
+    "source": "if not \"Straße\" contains the text \"STRASSE\" then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-computed-expression",
+    "section": "5.2",
+    "name": "2 plus 3 times 4 is equal to 14",
+    "source": "if 2 plus 3 times 4 is equal to 14 then demo is a match. who is a match?",
+    "expected": [
+      "demo is a match."
+    ]
+  },
+  {
+    "id": "compare-computed-expression-not",
+    "section": "5.2",
+    "name": "not 2 plus 3 times 4 is equal to 14",
+    "source": "if not 2 plus 3 times 4 is equal to 14 then demo is a match. who is a match?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "compare-invalid-type-0",
+    "section": "5.2",
+    "name": "incompatible comparison types: 3 is less than \"4\"",
+    "source": "if 3 is less than \"4\" then demo is a match.",
+    "error": "two numbers or two quoted texts|Use quoted text"
+  },
+  {
+    "id": "compare-invalid-type-1",
+    "section": "5.2",
+    "name": "incompatible comparison types: red is greater than blue",
+    "source": "if red is greater than blue then demo is a match.",
+    "error": "two numbers or two quoted texts|Use quoted text"
+  },
+  {
+    "id": "compare-invalid-type-2",
+    "section": "5.2",
+    "name": "incompatible comparison types: [1] is at most [2]",
+    "source": "if [1] is at most [2] then demo is a match.",
+    "error": "two numbers or two quoted texts|Use quoted text"
+  },
+  {
+    "id": "compare-invalid-type-3",
+    "section": "5.2",
+    "name": "incompatible comparison types: \"3\" is at least 3",
+    "source": "if \"3\" is at least 3 then demo is a match.",
+    "error": "two numbers or two quoted texts|Use quoted text"
+  },
+  {
+    "id": "compare-invalid-type-4",
+    "section": "5.2",
+    "name": "incompatible comparison types: red contains the text \"r\"",
+    "source": "if red contains the text \"r\" then demo is a match.",
+    "error": "two numbers or two quoted texts|Use quoted text"
+  },
+  {
+    "id": "compare-invalid-type-5",
+    "section": "5.2",
+    "name": "incompatible comparison types: \"red\" contains the text red",
+    "source": "if \"red\" contains the text red then demo is a match.",
+    "error": "two numbers or two quoted texts|Use quoted text"
+  }
+]

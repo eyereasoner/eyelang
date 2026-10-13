@@ -1,0 +1,932 @@
+[
+  {
+    "id": "program-whole-file",
+    "section": "2",
+    "name": "questions and checks see later declarations",
+    "source": "who is an artist? check that ada is an artist. ada is a person. if ?person is a person then ?person is an artist.",
+    "expected": [
+      "ada is an artist.",
+      "check passed: ada is an artist."
+    ]
+  },
+  {
+    "id": "program-no-subclass",
+    "section": "2",
+    "name": "implies has no implicit inheritance behavior",
+    "source": "ada is a human. human implies mortal. is ada a mortal?",
+    "expected": [
+      "I don't know whether ada is a mortal."
+    ]
+  },
+  {
+    "id": "program-distinct-relations",
+    "section": "2",
+    "name": "membership, verbs, and properties have separate identities",
+    "source": "ada is a person. ada score 7. the score of ada is 8. the person of ada is ben. who is a person? ada score ?value? what is the score of ada? what is the person of ada?",
+    "expected": [
+      "ada is a person.",
+      "ada score 7.",
+      "the score of ada is 8.",
+      "the person of ada is ben."
+    ]
+  },
+  {
+    "id": "question-form-0",
+    "section": "7.1",
+    "name": "who is a person?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. who is a person?",
+    "expected": [
+      "ada is a person."
+    ]
+  },
+  {
+    "id": "question-form-1",
+    "section": "7.1",
+    "name": "?person is a person?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. ?person is a person?",
+    "expected": [
+      "ada is a person."
+    ]
+  },
+  {
+    "id": "question-form-2",
+    "section": "7.1",
+    "name": "is ada a person?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. is ada a person?",
+    "expected": [
+      "yes, ada is a person."
+    ]
+  },
+  {
+    "id": "question-form-3",
+    "section": "7.1",
+    "name": "who likes ben?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. who likes ben?",
+    "expected": [
+      "ada likes ben."
+    ]
+  },
+  {
+    "id": "question-form-4",
+    "section": "7.1",
+    "name": "what does ada like?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. what does ada like?",
+    "expected": [
+      "ada likes ben."
+    ]
+  },
+  {
+    "id": "question-form-5",
+    "section": "7.1",
+    "name": "?friend does ada like?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. ?friend does ada like?",
+    "expected": [
+      "ada likes ben."
+    ]
+  },
+  {
+    "id": "question-form-6",
+    "section": "7.1",
+    "name": "does ada like ben?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. does ada like ben?",
+    "expected": [
+      "yes, ada likes ben."
+    ]
+  },
+  {
+    "id": "question-form-7",
+    "section": "7.1",
+    "name": "the score of who is what?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. the score of who is what?",
+    "expected": [
+      "the score of ada is 7."
+    ]
+  },
+  {
+    "id": "question-form-8",
+    "section": "7.1",
+    "name": "the score of ?person is ?value?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. the score of ?person is ?value?",
+    "expected": [
+      "the score of ada is 7."
+    ]
+  },
+  {
+    "id": "question-form-9",
+    "section": "7.1",
+    "name": "what is the score of ada?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. what is the score of ada?",
+    "expected": [
+      "the score of ada is 7."
+    ]
+  },
+  {
+    "id": "question-form-10",
+    "section": "7.1",
+    "name": "is the score of ada equal to 7?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. is the score of ada equal to 7?",
+    "expected": [
+      "yes, the score of ada is 7."
+    ]
+  },
+  {
+    "id": "question-form-11",
+    "section": "7.1",
+    "name": "is ada a stranger?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. is ada a stranger?",
+    "expected": [
+      "I don't know whether ada is a stranger."
+    ]
+  },
+  {
+    "id": "question-form-12",
+    "section": "7.1",
+    "name": "does ada like cara?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. does ada like cara?",
+    "expected": [
+      "I don't know whether ada likes cara."
+    ]
+  },
+  {
+    "id": "question-form-13",
+    "section": "7.1",
+    "name": "who is a stranger?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. who is a stranger?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet."
+    ]
+  },
+  {
+    "id": "question-form-14",
+    "section": "7.1",
+    "name": "is ada not a stranger?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. is ada not a stranger?",
+    "expected": [
+      "yes, there is no evidence in this program that ada is a stranger."
+    ]
+  },
+  {
+    "id": "question-form-15",
+    "section": "7.1",
+    "name": "is ada not a person?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. is ada not a person?",
+    "expected": [
+      "no, the program shows that ada is a person."
+    ]
+  },
+  {
+    "id": "question-form-16",
+    "section": "7.1",
+    "name": "does ada not like cara?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. does ada not like cara?",
+    "expected": [
+      "yes, there is no evidence in this program that ada likes cara."
+    ]
+  },
+  {
+    "id": "question-form-17",
+    "section": "7.1",
+    "name": "does ada not like ben?",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. does ada not like ben?",
+    "expected": [
+      "no, the program shows that ada likes ben."
+    ]
+  },
+  {
+    "id": "question-ground-calculation",
+    "section": "7.1",
+    "name": "ground calculations may occur in question arguments",
+    "source": "the square of 3 is 9. the square of (1 plus 2) is ?value?",
+    "expected": [
+      "the square of 3 is 9."
+    ]
+  },
+  {
+    "id": "question-inflection-0",
+    "section": "7.1",
+    "name": "have is queried as has",
+    "source": "ada has item. does ada have item? what does ada have?",
+    "expected": [
+      "yes, ada has item.",
+      "ada has item."
+    ]
+  },
+  {
+    "id": "question-inflection-1",
+    "section": "7.1",
+    "name": "carry is queried as carries",
+    "source": "ada carries item. does ada carry item? what does ada carry?",
+    "expected": [
+      "yes, ada carries item.",
+      "ada carries item."
+    ]
+  },
+  {
+    "id": "question-inflection-2",
+    "section": "7.1",
+    "name": "play is queried as plays",
+    "source": "ada plays item. does ada play item? what does ada play?",
+    "expected": [
+      "yes, ada plays item.",
+      "ada plays item."
+    ]
+  },
+  {
+    "id": "question-inflection-3",
+    "section": "7.1",
+    "name": "pass is queried as passes",
+    "source": "ada passes item. does ada pass item? what does ada pass?",
+    "expected": [
+      "yes, ada passes item.",
+      "ada passes item."
+    ]
+  },
+  {
+    "id": "question-inflection-4",
+    "section": "7.1",
+    "name": "wash is queried as washes",
+    "source": "ada washes item. does ada wash item? what does ada wash?",
+    "expected": [
+      "yes, ada washes item.",
+      "ada washes item."
+    ]
+  },
+  {
+    "id": "question-inflection-5",
+    "section": "7.1",
+    "name": "watch is queried as watches",
+    "source": "ada watches item. does ada watch item? what does ada watch?",
+    "expected": [
+      "yes, ada watches item.",
+      "ada watches item."
+    ]
+  },
+  {
+    "id": "question-inflection-6",
+    "section": "7.1",
+    "name": "fix is queried as fixes",
+    "source": "ada fixes item. does ada fix item? what does ada fix?",
+    "expected": [
+      "yes, ada fixes item.",
+      "ada fixes item."
+    ]
+  },
+  {
+    "id": "question-inflection-7",
+    "section": "7.1",
+    "name": "buzz is queried as buzzes",
+    "source": "ada buzzes item. does ada buzz item? what does ada buzz?",
+    "expected": [
+      "yes, ada buzzes item.",
+      "ada buzzes item."
+    ]
+  },
+  {
+    "id": "question-inflection-8",
+    "section": "7.1",
+    "name": "go is queried as goes",
+    "source": "ada goes item. does ada go item? what does ada go?",
+    "expected": [
+      "yes, ada goes item.",
+      "ada goes item."
+    ]
+  },
+  {
+    "id": "question-invalid-0",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question is ?person not a person?",
+    "source": "is ?person not a person?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "question-invalid-1",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question does ada not like ?person?",
+    "source": "does ada not like ?person?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "question-invalid-2",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question is who not a person?",
+    "source": "is who not a person?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "question-invalid-3",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question why is ?person a person?",
+    "source": "why is ?person a person?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "question-invalid-4",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question is 2 less than 3?",
+    "source": "is 2 less than 3?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "question-invalid-5",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question the score of ada is ?value plus 1?",
+    "source": "the score of ada is ?value plus 1?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "question-invalid-6",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question what is the score of ?person plus 1?",
+    "source": "what is the score of ?person plus 1?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "question-invalid-7",
+    "section": "7.1, 8",
+    "name": "unsupported or nonground question ada likes ben?",
+    "source": "ada likes ben?",
+    "error": ".",
+    "line": 1
+  },
+  {
+    "id": "aggregate-plural-0",
+    "section": "7.2",
+    "name": "person counts under people",
+    "source": "ada is a person. ben is an person. ada is a person. how many people are there? check that there are 2 people.",
+    "expected": [
+      "there are 2 people.",
+      "check passed: there are 2 people."
+    ]
+  },
+  {
+    "id": "aggregate-plural-1",
+    "section": "7.2",
+    "name": "child counts under children",
+    "source": "ada is a child. ben is an child. ada is a child. how many children are there? check that there are 2 children.",
+    "expected": [
+      "there are 2 children.",
+      "check passed: there are 2 children."
+    ]
+  },
+  {
+    "id": "aggregate-plural-2",
+    "section": "7.2",
+    "name": "mouse counts under mice",
+    "source": "ada is a mouse. ben is an mouse. ada is a mouse. how many mice are there? check that there are 2 mice.",
+    "expected": [
+      "there are 2 mice.",
+      "check passed: there are 2 mice."
+    ]
+  },
+  {
+    "id": "aggregate-plural-3",
+    "section": "7.2",
+    "name": "sheep counts under sheep",
+    "source": "ada is a sheep. ben is an sheep. ada is a sheep. how many sheep are there? check that there are 2 sheep.",
+    "expected": [
+      "there are 2 sheep.",
+      "check passed: there are 2 sheep."
+    ]
+  },
+  {
+    "id": "aggregate-plural-4",
+    "section": "7.2",
+    "name": "fish counts under fish",
+    "source": "ada is a fish. ben is an fish. ada is a fish. how many fish are there? check that there are 2 fish.",
+    "expected": [
+      "there are 2 fish.",
+      "check passed: there are 2 fish."
+    ]
+  },
+  {
+    "id": "aggregate-plural-5",
+    "section": "7.2",
+    "name": "puppy counts under puppies",
+    "source": "ada is a puppy. ben is an puppy. ada is a puppy. how many puppies are there? check that there are 2 puppies.",
+    "expected": [
+      "there are 2 puppies.",
+      "check passed: there are 2 puppies."
+    ]
+  },
+  {
+    "id": "aggregate-plural-6",
+    "section": "7.2",
+    "name": "toy counts under toys",
+    "source": "ada is a toy. ben is an toy. ada is a toy. how many toys are there? check that there are 2 toys.",
+    "expected": [
+      "there are 2 toys.",
+      "check passed: there are 2 toys."
+    ]
+  },
+  {
+    "id": "aggregate-plural-7",
+    "section": "7.2",
+    "name": "class counts under classes",
+    "source": "ada is a class. ben is an class. ada is a class. how many classes are there? check that there are 2 classes.",
+    "expected": [
+      "there are 2 classes.",
+      "check passed: there are 2 classes."
+    ]
+  },
+  {
+    "id": "aggregate-plural-8",
+    "section": "7.2",
+    "name": "dish counts under dishes",
+    "source": "ada is a dish. ben is an dish. ada is a dish. how many dishes are there? check that there are 2 dishes.",
+    "expected": [
+      "there are 2 dishes.",
+      "check passed: there are 2 dishes."
+    ]
+  },
+  {
+    "id": "aggregate-plural-9",
+    "section": "7.2",
+    "name": "match counts under matches",
+    "source": "ada is a match. ben is an match. ada is a match. how many matches are there? check that there are 2 matches.",
+    "expected": [
+      "there are 2 matches.",
+      "check passed: there are 2 matches."
+    ]
+  },
+  {
+    "id": "aggregate-plural-10",
+    "section": "7.2",
+    "name": "box counts under boxes",
+    "source": "ada is a box. ben is an box. ada is a box. how many boxes are there? check that there are 2 boxes.",
+    "expected": [
+      "there are 2 boxes.",
+      "check passed: there are 2 boxes."
+    ]
+  },
+  {
+    "id": "aggregate-plural-11",
+    "section": "7.2",
+    "name": "quiz counts under quizes",
+    "source": "ada is a quiz. ben is an quiz. ada is a quiz. how many quizes are there? check that there are 2 quizes.",
+    "expected": [
+      "there are 2 quizes.",
+      "check passed: there are 2 quizes."
+    ]
+  },
+  {
+    "id": "aggregate-plural-12",
+    "section": "7.2",
+    "name": "hero counts under heroes",
+    "source": "ada is a hero. ben is an hero. ada is a hero. how many heroes are there? check that there are 2 heroes.",
+    "expected": [
+      "there are 2 heroes.",
+      "check passed: there are 2 heroes."
+    ]
+  },
+  {
+    "id": "aggregate-set-values",
+    "section": "7.2",
+    "name": "distinct subject/value facts all contribute, duplicates once",
+    "source": "the score of ada is 3. the score of ada is 5. the score of ben is 3. the score of ben is 3. what is the total of all scores? what is the smallest of all scores? what is the largest of all scores?",
+    "expected": [
+      "the total of all scores is 11.",
+      "the smallest of all scores is 3.",
+      "the largest of all scores is 5."
+    ]
+  },
+  {
+    "id": "aggregate-empty",
+    "section": "7.2",
+    "name": "empty count and total are zero and extrema unknown",
+    "source": "how many people are there? what is the total of all scores? what is the smallest of all scores? what is the largest of all scores?",
+    "expected": [
+      "there are 0 people.",
+      "the total of all scores is 0.",
+      "I don't know any scores yet.",
+      "I don't know any scores yet."
+    ]
+  },
+  {
+    "id": "aggregate-exact",
+    "section": "7.2",
+    "name": "aggregates retain whole integers beyond binary64 precision",
+    "source": "the score of ada is 9007199254740993. the score of ben is -9007199254740992. what is the total of all scores? what is the smallest of all scores? what is the largest of all scores?",
+    "expected": [
+      "the total of all scores is 1.",
+      "the smallest of all scores is -9007199254740992.",
+      "the largest of all scores is 9007199254740993."
+    ]
+  },
+  {
+    "id": "aggregate-canonical-integer",
+    "section": "7.2",
+    "name": "decimal and scientific literals canonicalized to integers may aggregate",
+    "source": "the score of ada is 1.0. the score of ben is 1e3. what is the total of all scores?",
+    "expected": [
+      "the total of all scores is 1001."
+    ]
+  },
+  {
+    "id": "aggregate-invalid-total-0",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail total",
+    "source": "the score of ada is 2. the score of ben is 1.5. what is the total of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-total-1",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail total",
+    "source": "the score of ada is 2. the score of ben is \"3\". what is the total of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-total-2",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail total",
+    "source": "the score of ada is 2. the score of ben is red. what is the total of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-total-3",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail total",
+    "source": "the score of ada is 2. the score of ben is [3]. what is the total of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-total-4",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail total",
+    "source": "the score of ada is 2. the score of ben is 1e21. what is the total of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-smallest-0",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail smallest",
+    "source": "the score of ada is 2. the score of ben is 1.5. what is the smallest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-smallest-1",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail smallest",
+    "source": "the score of ada is 2. the score of ben is \"3\". what is the smallest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-smallest-2",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail smallest",
+    "source": "the score of ada is 2. the score of ben is red. what is the smallest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-smallest-3",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail smallest",
+    "source": "the score of ada is 2. the score of ben is [3]. what is the smallest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-smallest-4",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail smallest",
+    "source": "the score of ada is 2. the score of ben is 1e21. what is the smallest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-largest-0",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail largest",
+    "source": "the score of ada is 2. the score of ben is 1.5. what is the largest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-largest-1",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail largest",
+    "source": "the score of ada is 2. the score of ben is \"3\". what is the largest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-largest-2",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail largest",
+    "source": "the score of ada is 2. the score of ben is red. what is the largest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-largest-3",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail largest",
+    "source": "the score of ada is 2. the score of ben is [3]. what is the largest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "aggregate-invalid-largest-4",
+    "section": "7.2",
+    "name": "noncanonical-whole-number values fail largest",
+    "source": "the score of ada is 2. the score of ben is 1e21. what is the largest of all scores?",
+    "error": "whole numbers"
+  },
+  {
+    "id": "check-positive-0",
+    "section": "9",
+    "name": "successful assertion ada is a person",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that ada is a person.",
+    "expected": [
+      "check passed: ada is a person."
+    ]
+  },
+  {
+    "id": "check-positive-1",
+    "section": "9",
+    "name": "successful assertion ada likes ben",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that ada likes ben.",
+    "expected": [
+      "check passed: ada likes ben."
+    ]
+  },
+  {
+    "id": "check-positive-2",
+    "section": "9",
+    "name": "successful assertion the score of ada is 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that the score of ada is 7.",
+    "expected": [
+      "check passed: the score of ada is 7."
+    ]
+  },
+  {
+    "id": "check-positive-3",
+    "section": "9",
+    "name": "successful assertion ada is not a stranger",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that ada is not a stranger.",
+    "expected": [
+      "check passed: ada is not a stranger."
+    ]
+  },
+  {
+    "id": "check-positive-4",
+    "section": "9",
+    "name": "successful assertion ada does not like cara",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that ada does not like cara.",
+    "expected": [
+      "check passed: ada does not like cara."
+    ]
+  },
+  {
+    "id": "check-positive-5",
+    "section": "9",
+    "name": "successful assertion not the score of ada is 8",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that not the score of ada is 8.",
+    "expected": [
+      "check passed: not the score of ada is 8."
+    ]
+  },
+  {
+    "id": "check-positive-6",
+    "section": "9",
+    "name": "successful assertion 7 is at least 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that 7 is at least 7.",
+    "expected": [
+      "check passed: 7 is at least 7."
+    ]
+  },
+  {
+    "id": "check-positive-7",
+    "section": "9",
+    "name": "successful assertion not 7 is less than 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that not 7 is less than 7.",
+    "expected": [
+      "check passed: not 7 is less than 7."
+    ]
+  },
+  {
+    "id": "check-positive-8",
+    "section": "9",
+    "name": "successful assertion \"HELLO\" contains the text \"hello\"",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that \"HELLO\" contains the text \"hello\".",
+    "expected": [
+      "check passed: \"HELLO\" contains the text \"hello\"."
+    ]
+  },
+  {
+    "id": "check-positive-9",
+    "section": "9",
+    "name": "successful assertion there are 1 people",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that there are 1 people.",
+    "expected": [
+      "check passed: there are 1 people."
+    ]
+  },
+  {
+    "id": "check-positive-10",
+    "section": "9",
+    "name": "successful assertion there is 1 person",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that there is 1 person.",
+    "expected": [
+      "check passed: there is 1 person."
+    ]
+  },
+  {
+    "id": "check-positive-11",
+    "section": "9",
+    "name": "successful assertion the total of all scores is 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that the total of all scores is 7.",
+    "expected": [
+      "check passed: the total of all scores is 7."
+    ]
+  },
+  {
+    "id": "check-positive-12",
+    "section": "9",
+    "name": "successful assertion the smallest of all scores is 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that the smallest of all scores is 7.",
+    "expected": [
+      "check passed: the smallest of all scores is 7."
+    ]
+  },
+  {
+    "id": "check-positive-13",
+    "section": "9",
+    "name": "successful assertion the largest of all scores is 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7. check that the largest of all scores is 7.",
+    "expected": [
+      "check passed: the largest of all scores is 7."
+    ]
+  },
+  {
+    "id": "check-failure-0",
+    "section": "9",
+    "name": "false assertion fails ada is a stranger",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that ada is a stranger.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-1",
+    "section": "9",
+    "name": "false assertion fails ada does not like ben",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that ada does not like ben.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-2",
+    "section": "9",
+    "name": "false assertion fails not the score of ada is 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that not the score of ada is 7.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-3",
+    "section": "9",
+    "name": "false assertion fails 7 is less than 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that 7 is less than 7.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-4",
+    "section": "9",
+    "name": "false assertion fails not 7 is at least 7",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that not 7 is at least 7.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-5",
+    "section": "9",
+    "name": "false assertion fails there are 2 people",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that there are 2 people.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-6",
+    "section": "9",
+    "name": "false assertion fails the total of all scores is 8",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that the total of all scores is 8.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-7",
+    "section": "9",
+    "name": "false assertion fails the smallest of all scores is 8",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that the smallest of all scores is 8.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-failure-8",
+    "section": "9",
+    "name": "false assertion fails the largest of all scores is 8",
+    "source": "ada is a person. ada likes ben. the score of ada is 7.\n# preserved line\ncheck that the largest of all scores is 8.",
+    "error": "Check failed:",
+    "line": 3
+  },
+  {
+    "id": "check-empty-smallest",
+    "section": "9",
+    "name": "an empty extremum check fails",
+    "source": "check that the smallest of all scores is 0.",
+    "error": "Check failed:",
+    "line": 1
+  },
+  {
+    "id": "check-empty-largest",
+    "section": "9",
+    "name": "an empty extremum check fails",
+    "source": "check that the largest of all scores is 0.",
+    "error": "Check failed:",
+    "line": 1
+  },
+  {
+    "id": "check-runtime-line-0",
+    "section": "9",
+    "name": "evaluation errors in checks retain the check line",
+    "source": "# comment\n\ncheck that 1 divided by 0 is equal to 0.",
+    "error": "divide by zero|two numbers or two quoted texts|whole numbers",
+    "line": 3
+  },
+  {
+    "id": "check-runtime-line-1",
+    "section": "9",
+    "name": "evaluation errors in checks retain the check line",
+    "source": "# comment\n\ncheck that 3 is less than \"4\".",
+    "error": "divide by zero|two numbers or two quoted texts|whole numbers",
+    "line": 3
+  },
+  {
+    "id": "check-runtime-line-2",
+    "section": "9",
+    "name": "evaluation errors in checks retain the check line",
+    "source": "the score of demo is 1.5.\n\ncheck that the total of all scores is 0.",
+    "error": "divide by zero|two numbers or two quoted texts|whole numbers",
+    "line": 3
+  },
+  {
+    "id": "check-terminator",
+    "section": "9",
+    "name": "checks end with a full stop",
+    "source": "check that ada is a person?",
+    "error": "Finish a check",
+    "line": 1
+  },
+  {
+    "id": "check-no-assertion",
+    "section": "2, 9",
+    "name": "negative assertions do not become positive evidence",
+    "source": "check that ada is not a person. who is a person?",
+    "expected": [
+      "I don't know anyone or anything that fits that question yet.",
+      "check passed: ada is not a person."
+    ]
+  },
+  {
+    "id": "check-first-failure",
+    "section": "9",
+    "name": "the first false assertion stops later checks",
+    "source": "# header\ncheck that ada is a person.\ncheck that 1 divided by 0 is equal to 1.",
+    "error": "Check failed: ada is a person",
+    "line": 2
+  },
+  {
+    "id": "program-parse-before-evaluate",
+    "section": "2, 10",
+    "name": "the whole file is parsed before any runtime check",
+    "source": "check that ada is a person.\nada is person.",
+    "error": "couldn.t read",
+    "line": 2
+  },
+  {
+    "id": "check-request-error-0",
+    "section": "9",
+    "name": "invalid ground check inputs retain the source line with backward definitions present",
+    "source": "the echo of ?input is ?input if ?input is equal to ?input.\n\ncheck that the score of 1 divided by 0 is 0.",
+    "error": "divide by zero",
+    "line": 3
+  },
+  {
+    "id": "check-request-error-1",
+    "section": "9",
+    "name": "invalid ground check inputs retain the source line with backward definitions present",
+    "source": "the echo of ?input is ?input if ?input is equal to ?input.\n\ncheck that not the score of 1 divided by 0 is 0.",
+    "error": "divide by zero",
+    "line": 3
+  },
+  {
+    "id": "check-request-order",
+    "section": "2, 9",
+    "name": "requesting a later invalid check does not overtake the first failed assertion",
+    "source": "the echo of ?input is ?input if ?input is equal to ?input.\ncheck that ada is a person.\ncheck that the score of 1 divided by 0 is 0.",
+    "error": "Check failed: ada is a person",
+    "line": 2
+  }
+]
