@@ -1,6 +1,6 @@
 {
   "name": "eyelang",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "An experimental symbolic logic programming language.",
   "type": "module",
   "bin": {
