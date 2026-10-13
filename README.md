@@ -107,6 +107,7 @@ Every example includes answers, reasons, and executable checks.
 | [Complex numbers](https://github.com/eyereasoner/eyelang/blob/main/examples/complex.eye) | Powers, `asin(5.22)`, and inverse checks |
 | [Turing machine](https://github.com/eyereasoner/eyelang/blob/main/examples/turing.eye) | Running binary tapes with ordinary rules |
 | [Delfour](https://github.com/eyereasoner/eyelang/blob/main/examples/delfour.eye) | A shopping policy and a lower-sugar recommendation |
+| [Research portal](https://github.com/eyereasoner/eyelang/blob/main/examples/research-portal.eye) | Research policy, device consent, and breach plans across two rulebooks |
 | [Negation](https://github.com/eyereasoner/eyelang/blob/main/examples/negation.eye) | Reasoning from absent evidence |
 | [Aggregation](https://github.com/eyereasoner/eyelang/blob/main/examples/aggregation.eye) | Counts, totals, and smallest/largest values |
 

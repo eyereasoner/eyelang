@@ -646,6 +646,15 @@ Every bundled example follows [ARC: Answer, Reason, Check](https://josd.github.i
   hash check compares supplied digests, and audit/file counts are sample data.
   Quoted timestamps share one UTC format so text order matches time order.
 - Negation and aggregation illustrate completed-program search and set semantics.
+- Research portal evaluates a fixed ODRL/DPV research policy alongside independent
+  device-consent rules, comparing a modelled EU baseline with the original
+  Commission Digital Omnibus proposal, COM(2025) 837 final (19 November 2025).
+  It reports 22 session assessments, six breach-notification plans, three planned
+  deletion duties, five changed outcomes, and one prohibition-overrides conflict.
+  Ordered lists retain all failed constraints and the basis for each decision.
+  Risk, device purpose, consent status, dates, and completed months since refusal
+  are supplied inputs. The proposal is a comparison scenario; duty fulfilment,
+  actual consent collection, and legal compliance are not proved.
 - Five taxonomies have 10 through 100000 steps. The largest has 300001 rules,
   derives 300002 facts, and explains the full chain to its terminal label.
 
