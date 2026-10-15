@@ -1,12 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const cli = fileURLToPath(new URL('../../eyelang.js', import.meta.url));
+const { version } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+
+// SPEC §2 (whole-program parsing), §9 (checks), and §10 (CLI and transcripts).
 function invoke(args, input) {
   const result = spawnSync(process.execPath, [cli,...args], {input,encoding:'utf8',timeout:10000});
   assert.ifError(result.error);
@@ -17,7 +20,8 @@ for (const flag of ['-h','--help','-v','--version']) {
   test(`CLI ${flag} succeeds`, () => {
     const result=invoke([flag]);
     assert.equal(result.status,0);
-    assert.ok(result.stdout.length);
+    if (['-v', '--version'].includes(flag)) assert.equal(result.stdout, `eyelang ${version}\n`);
+    else assert.match(result.stdout, /node eyelang\.js examples\/socrates\.pl/);
     assert.equal(result.stderr,'');
   });
 }
@@ -39,6 +43,17 @@ test('CLI reads UTF-8 .pl files and stdin identically, with standard ARC comment
   assert.match(file.stdout,/you told me this/);
 });
 
+test('§10: CLI keeps each boolean answer with its query and explains empty ARC sections', () => {
+  const result = invoke(['-'], '?- true. ?- fail.');
+  assert.equal(result.status, 0);
+  assert.equal(result.stderr, '');
+  assert.equal(result.stdout, [
+    '% Answer\n?- true.\ntrue.\n\n?- fail.\nfalse.',
+    '% Reason\nNo explanation was requested. Add ?- why. after a query.',
+    '% Check\nNo checks were requested.\n',
+  ].join('\n\n'));
+});
+
 test('CLI query failure succeeds and missing paths fail',()=>{
   const missing=invoke(['-'],'?- missing.');
   assert.equal(missing.status,0); assert.match(missing.stdout,/false\./);
@@ -47,9 +62,11 @@ test('CLI query failure succeeds and missing paths fail',()=>{
 });
 for (const [id,source,error] of [
   ['syntax','p(a). ?- p(X).\nwrong syntax.',/Line 2:/],
+  ['parse-before-runtime','?- X is 1/0.\nbroken syntax.',/Line 2:/],
   ['unfinished','p(a).\nq(b)',/Line 2:/],
   ['check','p(a). ?- p(X). ?- why.\n:- assertion(missing).',/Line 2: Check failed/],
   ['check-arithmetic','p(a). ?- p(X).\n:- assertion(X is 1\/0).',/Line 2:.*divide by zero/],
+  ['queries-before-checks',':- assertion(missing).\n?- X is 1/0.',/Line 2:.*divide by zero/],
   ['runtime','p(X) :- X is 1/0. ?- p(X).',/divide by zero/],
   ['cycle',String.raw`p(a) :- \+ p(a). ?- p(a).`,/cycle through negation/],
 ]) {

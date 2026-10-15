@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { run } from '../src/language.js';
+import { run } from '../../src/language.js';
+import { assertAnswers } from './helpers.js';
+
+// SPEC §3 (numeric terms) and §5 (arithmetic and builtins).
 
 const result = expression => run(`?- Value is ${expression}.`)[0];
 for (const [expression, expected] of [
@@ -19,12 +22,19 @@ for (const [expression, expected] of [
   [String.raw`\13`, '-14'], ['1<<100', '1267650600228229401496703205376'], ['-7>>1', '-4'],
   ['sqrt(9)', '3.0'], ['sin(0)+cos(0)', '1.0'], ['log(exp(2))', '2.0'],
   ['atan2(0,-1)', String(Math.PI)], ['pi', String(Math.PI)], ['e', String(Math.E)],
+  ['+2^2', '4'], ['10-3-2', '5'], ['24//3//2', '4'],
+  ['abs(-2.5)', '2.5'], ['sign(0)', '0'], ['sign(2.5)', '1'],
+  ['tan(0)', '0.0'], ['asin(0)', '0.0'], ['acos(1)', '0.0'], ['atan(0)', '0.0'],
+  ['angle(0,-1)', String(3 * Math.PI / 2)], ['angle(1,0)', '0.0'],
+  ['min(1,1.0)', '1'], ['min(1.0,1)', '1.0'], ['max(1,1.0)', '1'], ['max(1.0,1)', '1.0'],
+  [String.raw`-1 /\ (1<<100)`, '1267650600228229401496703205376'],
+  [String.raw`1 \/ 2 /\ 2`, '2'], ['13 xor 6', '11'],
 ]) {
-  test(`Prolog arithmetic: ${expression}`, () => assert.equal(result(expression), `Value = ${expected}.`));
+  test(`§5 arithmetic: ${expression}`, () => assert.equal(result(expression), `Value = ${expected}.`));
 }
 
 test('numeric types, unification, identity, non-unifiability, and arithmetic equality are distinct', () => {
-  assert.deepEqual(run(String.raw`
+  assertAnswers(run(String.raw`
     ?- 1 = 1.0. ?- 1 =:= 1.0. ?- 1 == 1.0. ?- 1 =\= 2.
     ?- '1' = 1. ?- 'same' = same. ?- "same" = same.
     ?- 3 is 6/2. ?- 3.0 is 6/2. ?- 3 =:= 6/2.
@@ -34,7 +44,7 @@ test('numeric types, unification, identity, non-unifiability, and arithmetic equ
 });
 
 test('numeric comparison preserves large integer operands', () => {
-  assert.deepEqual(run('?- 1000000000000000000001 > 1e21. ?- 1000000000000000000001 =:= 1e21. ?- 2 =< 3, 3 >= 2.'), ['true.', 'false.', 'true.']);
+  assertAnswers(run('?- 1000000000000000000001 > 1e21. ?- 1000000000000000000001 =:= 1e21. ?- 2 =< 3, 3 >= 2.'), ['true.', 'false.', 'true.']);
 });
 
 test('huge integer rounding does not convert to binary64', () => {
@@ -46,22 +56,62 @@ test('huge integer rounding does not convert to binary64', () => {
 
 for (const [expression, error] of [
   ['1/0', /divide by zero/], ['1//0', /divide by zero/], ['1 mod 0', /divide by zero/],
+  ['1 div 0', /divide by zero/], ['1 rem 0', /divide by zero/],
   ['sqrt(-1)', /finite real/], ['log(0)', /finite real/], ['exp(1000)', /finite real/],
   ['1e308*1e308', /finite real/], ['asin(2)', /finite real/], ['3.5//2', /integer/],
   ['1<<(-1)', /nonnegative/], ['sin(orange)', /number/], ['unknown(2)', /function: unknown\/1/],
   ['X+1', /unbound/], ['"7"+1', /number/],
+  ['[7]+1', /number/], ['gcd(2.0,1)', /integer/], ['1<<1.0', /integer/],
+  ['unknown(1,2)', /function: unknown\/2/], ['unknown(1,2,3)', /function: unknown\/3/],
 ]) {
   test(`invalid arithmetic is specific: ${expression}`, () => assert.throws(() => result(expression), error));
 }
 
 test('between enumerates exact bounded integers and filters a supplied result', () => {
-  assert.deepEqual(run('?- between(9007199254740993,9007199254740995,N). ?- between(1,3,2). ?- between(3,1,N). ?- between(1,3,4).'),
+  assertAnswers(run('?- between(9007199254740993,9007199254740995,N). ?- between(1,3,2). ?- between(3,1,N). ?- between(1,3,4).'),
     ['N = 9007199254740993.\nN = 9007199254740994.\nN = 9007199254740995.', 'true.', 'false.', 'false.']);
   assert.throws(() => run('?- between(Low,3,N).'), /bound integer/);
 });
 
+test('§5: ** requires parentheses when chained, while ^ associates to the right', () => {
+  assert.throws(() => result('2**3**2'), /Parenthesize chained \*\*/);
+  assert.equal(result('(2**3)**2'), 'Value = 64.0.');
+  assert.equal(result('2**(3**2)'), 'Value = 512.0.');
+});
+
+test('§3 and §5: integer and real terms stay distinct without numeric coercion', () => {
+  assertAnswers(run(`
+    ?- Value = 1.0. ?- Value = 1e0. ?- Value = 1.
+    ?- 9007199254740993 = 9007199254740992.0.
+    ?- 9007199254740993 > 9007199254740992.0.
+    ?- pi = 3.141592653589793. ?- pi =:= 3.141592653589793.
+    ?- true. ?- false. ?- fail.
+  `), ['Value = 1.0.', 'Value = 1.0.', 'Value = 1.', 'false.', 'true.', 'false.', 'true.', 'true.', 'false.', 'false.']);
+  assert.throws(() => run('?- Value = 1e309.'), /real literal must be finite/);
+});
+
+test('§5: identity and non-unifiability test terms without retaining trial bindings', () => {
+  assertAnswers(run(String.raw`
+    ?- X == Y. ?- X \== Y, X = a, Y = a.
+    ?- pair(X, a) \= pair(b, c), X = d.
+    ?- pair(X, a) \= pair(b, a).
+  `), ['false.', 'X = a, Y = a.', 'X = d.', 'false.']);
+});
+
+test('§5: ordering is lexicographic UTF-16 for bound homogeneous atoms or strings', () => {
+  assertAnswers(run(`
+    ?- '😀' @< '\uE000'. ?- "😀" @< "\uE000".
+    ?- a @=< a. ?- b @> a. ?- b @>= b.
+    ?- "a" @=< "a". ?- "b" @> "a". ?- "b" @>= "b".
+  `), Array(8).fill('true.'));
+  for (const source of ['?- X @< a.', '?- 1 @< 2.', '?- [a] @< [b].']) {
+    assert.throws(() => run(source), /two bound atoms or two bound strings/);
+  }
+  assert.throws(() => run('?- contains_text("a", Part).'), /two bound strings/);
+});
+
 test('string and atom ordering and case-insensitive text containment are explicit', () => {
-  assert.deepEqual(run('?- "2026-01-01" @< "2026-02-01". ?- a @< b. ?- contains_text("Diabetes", "BET").'), ['true.', 'true.', 'true.']);
+  assertAnswers(run('?- "2026-01-01" @< "2026-02-01". ?- a @< b. ?- contains_text("Diabetes", "BET").'), ['true.', 'true.', 'true.']);
   assert.throws(() => run('?- a @< "b".'), /two bound atoms or two bound strings/);
   assert.throws(() => run('?- "a" < "b".'), /number/);
   assert.throws(() => run('?- contains_text(a,"a").'), /bound strings/);

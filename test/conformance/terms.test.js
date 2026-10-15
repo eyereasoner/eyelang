@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { run } from '../src/language.js';
+import { run } from '../../src/language.js';
+import { assertAnswers } from './helpers.js';
+
+// SPEC §3 (structural terms, unit clauses, and occurs check) and §4 (binding).
 
 test('compounds, nested lists, repeated variables, and list tails unify structurally', () => {
-  assert.deepEqual(run(`
+  assertAnswers(run(`
     data(point(1, 2), [a, [b, c], d]).
     ?- data(point(X, Y), [Head | Tail]).
     ?- data(point(X, X), _).
@@ -14,7 +17,7 @@ test('compounds, nested lists, repeated variables, and list tails unify structur
 });
 
 test('append and member use ordinary Prolog unit clauses and recursive clauses', () => {
-  assert.deepEqual(run(`
+  assertAnswers(run(`
     :- table append/3, member/2.
     append([], List, List).
     append([Head | Tail], Right, [Head | Joined]) :- append(Tail, Right, Joined).
@@ -27,7 +30,7 @@ test('append and member use ordinary Prolog unit clauses and recursive clauses',
 });
 
 test('unification rejects cyclic terms and incompatible constructors', () => {
-  assert.deepEqual(run(`
+  assertAnswers(run(`
     ?- X = point(X).
     ?- X = [a|X].
     ?- X = Y, Y = f(X).

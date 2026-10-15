@@ -314,7 +314,8 @@ tuples and their evidence; `say` formats a goal; `run(source)` returns rendered
 blocks. `run(source, { arc: true })` produces the three ARC sections.
 Both the CLI and browser worker use this module. The
 [test/](https://github.com/eyereasoner/eyelang/tree/main/test) directory contains
-conformance fixtures, behavior regressions, and browser-interface tests.
+conformance tests with a section coverage map, behavior regressions, and
+browser-interface tests.
 
 ## 12. Limits and resource considerations
 

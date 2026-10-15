@@ -2,10 +2,64 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { run } from '../../src/language.js';
 
+// SPEC §8 (evidence and explanation context), §9 (checks), and §10 (ARC output).
+
 test('short explanations show actual applied clauses and distinguish supplied facts', () => {
   const answers = run('human(socrates). mortal(Person) :- human(Person). ?- mortal(Who). ?- why.');
   assert.equal(answers[0], 'Who = socrates.');
   assert.equal(answers[1], 'mortal(socrates).\n  because mortal(socrates) :- human(socrates).\n  human(socrates).\n    you told me this.');
+});
+
+test('§8: explicit why explains every matching answer and sets consecutive follow-up context', () => {
+  const output = run(`
+    supplied(a). supplied(b).
+    derived(X) :- supplied(X).
+    ?- why(derived(Who)). ?- why. ?- why.
+  `);
+  assert.equal(output.length, 3);
+  for (const value of ['a', 'b']) {
+    assert.match(output[0], new RegExp(`derived\\(${value}\\)\\.`));
+    assert.match(output[0], new RegExp(`supplied\\(${value}\\)\\.`));
+  }
+  assert.equal(output[1], output[0]);
+  assert.equal(output[2], output[0]);
+});
+
+test('§8: why accepts a grouped conjunction and records unsuccessful explicit goals', () => {
+  const output = run(`
+    supplied(a). supplied(b). derived(X) :- supplied(X).
+    ?- why((derived(Who), Who = a)). ?- why.
+    ?- why(missing(a)). ?- why.
+  `);
+  assert.match(output[0], /derived\(a\)\./);
+  assert.doesNotMatch(output[0], /derived\(b\)\./);
+  assert.equal(output[1], output[0]);
+  assert.equal(output[2], 'false.');
+  assert.equal(output[3], 'There is no successful answer to explain.');
+});
+
+test('§9: checks only test existence, do not add facts, and run in written order', () => {
+  assert.deepEqual(run(`
+    p(a). p(b).
+    :- assertion(p(_)).
+    ?- p(c).
+    :- assertion((X = a, p(X))).
+    ?- why.
+  `), ['false.', 'There is no successful answer to explain.',
+    'check passed: p(_).', 'check passed: X = a, p(X).']);
+  assert.throws(() => run(':- assertion(missing).\n:- assertion(X is 1/0).'),
+    /^Error: Line 1: Check failed: missing\./);
+});
+
+test('§8: explanations retain every digit of exact computed values', () => {
+  const output = run(`
+    value(9007199254740993).
+    doubled(Total) :- value(Value), Total is Value*2.
+    ?- doubled(Total). ?- why.
+  `);
+  assert.equal(output[0], 'Total = 18014398509481986.');
+  assert.match(output[1], /doubled\(18014398509481986\)/);
+  assert.match(output[1], /\(9007199254740993 \* 2\) = 18014398509481986\./);
 });
 
 test('explanations show concrete arithmetic, completed absence, and aggregate contributors', () => {

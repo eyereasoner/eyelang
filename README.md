@@ -148,7 +148,8 @@ npm run test:conformance
 
 The [conformance suite](https://github.com/eyereasoner/eyelang/tree/main/test/conformance)
 tests the specification's syntax, semantics, explanations, checks, and CLI.
-It also runs as part of `npm test`.
+Its coverage map links specification sections to tests with explicit expected
+results. It also runs as part of `npm test`.
 
 To release, commit your changes and run `./release patch "$(git log -1 --pretty=%B)"`.
 Use `minor` or `major` instead of `patch` for a larger version bump.

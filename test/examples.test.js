@@ -27,7 +27,7 @@ test('Delfour answers identify the question for each substitution and ground res
 });
 
 for (const depth of [10,100,1000,10000,100000]) {
-  test(`taxonomy ${depth}: all classifications and actual supporting steps survive migration`, () => {
+  test(`taxonomy ${depth}: all classifications retain their supporting steps`, () => {
     const source = readFileSync(new URL(`deep-taxonomy-${depth}.pl`, examples), 'utf8');
     const facts = infer(parse(source)).filter(record=>record.goal.relation === 'predicate:is_a/2');
     assert.equal(facts.length, 3*depth+2);
