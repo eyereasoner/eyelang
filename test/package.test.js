@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { access, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,8 +19,10 @@ test('the npm package preserves its publisher identity and installs a working CL
     return result;
   };
 
-  const packed = npm(['pack', '--json', '--ignore-scripts', '--pack-destination', directory], root);
-  const [{ filename }] = JSON.parse(packed.stdout);
+  npm(['pack', '--ignore-scripts', '--pack-destination', directory], root);
+  const tarballs = (await readdir(directory)).filter(file => file.endsWith('.tgz'));
+  assert.equal(tarballs.length, 1);
+  const [filename] = tarballs;
   npm(['install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', join(directory, filename)], directory);
   const installed = join(directory, 'node_modules', 'eyelang');
   const pkg = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'));
