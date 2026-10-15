@@ -1,6 +1,6 @@
 {
   "name": "eyelang",
-  "version": "0.1.2",
+  "version": "0.5.0",
   "description": "An experimental symbolic logic programming language using a practical Prolog subset.",
   "type": "module",
   "bin": {
