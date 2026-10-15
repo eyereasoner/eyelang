@@ -288,8 +288,11 @@ and produce a nonzero status. The CLI MUST prepare the complete transcript
 before printing it, so failed checks produce no partial successful transcript.
 
 The CLI and playground MUST group output under `% Answer`, `% Reason`, and
-`% Check`, in that order, retaining written order within each section. Empty
-sections MUST explain what was not requested. Section grouping MUST NOT change
+`% Check`, in that order, retaining written order within each section. In
+`% Answer`, each result block MUST be preceded by its query in `?- Goal.` form,
+including results with no displayed variables and unsuccessful queries. Query
+formatting MAY normalize whitespace and parentheses. Empty sections MUST
+explain what was not requested. Section grouping MUST NOT change
 preceding-query explanation context. Malformed or unfinished statements MUST
 report a source line. Unsupported syntax and runtime operations MUST fail
 explicitly. The earlier English-like syntax is not supported.

@@ -1028,7 +1028,10 @@ export function run(source, { arc = false } = {}) {
   for (const assertion of program.checks) answers.push(`check passed: ${assertion.text}.`);
   if (!arc) return answers;
   const sections = [[], [], answers.slice(program.questions.length)];
-  program.questions.forEach((question, index) => sections[question.why ? 1 : 0].push(answers[index]));
+  program.questions.forEach((question, index) => {
+    const answer = question.why ? answers[index] : `?- ${question.body.map(say).join(', ')}.\n${answers[index]}`;
+    sections[question.why ? 1 : 0].push(answer);
+  });
   const empty = [
     'Add a query such as ?- mortal(Who).',
     'No explanation was requested. Add ?- why. after a query.',

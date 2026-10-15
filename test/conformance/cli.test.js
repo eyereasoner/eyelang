@@ -34,7 +34,7 @@ test('CLI reads UTF-8 .pl files and stdin identically, with standard ARC comment
   const file=invoke([path]); const stdin=invoke(['-'],source);
   assert.equal(file.status,0); assert.equal(file.stdout,stdin.stdout);
   assert.equal(file.stderr,'');
-  assert.match(file.stdout,/X = 'élodie'\./);
+  assert.match(file.stdout, /^% Answer\n\?- person\(X\)\.\nX = 'élodie'\./);
   assert.deepEqual([...file.stdout.matchAll(/^% (Answer|Reason|Check)$/gm)].map(match=>match[1]),['Answer','Reason','Check']);
   assert.match(file.stdout,/you told me this/);
 });

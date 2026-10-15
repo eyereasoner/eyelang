@@ -32,6 +32,8 @@ The answer is `Who = socrates.`. The explanation shows the rule and its fact.
 The assertions check mortality and the number of matching people. This is
 [ARC: Answer, Reason, Check](https://josd.github.io/arc/).
 The CLI and playground group output under `% Answer`, `% Reason`, and `% Check`.
+Each answer block shows its query before the bindings or `true.` / `false.`
+so results retain their context when a program asks several questions.
 
 ## Playground
 

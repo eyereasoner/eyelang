@@ -16,6 +16,16 @@ for (const file of readdirSync(examples).filter(file => file.endsWith('.pl') && 
   });
 }
 
+test('Delfour answers identify the question for each substitution and ground result', () => {
+  const source = readFileSync(new URL('delfour.pl', examples), 'utf8');
+  const [answer] = run(source, { arc: true });
+  assert.ok(answer.includes('?- \'case-name\'(delfour, What).\nWhat = "delfour".'));
+  assert.ok(answer.includes('?- outcome(delfour, What).\nWhat = "Allowed".'));
+  assert.ok(answer.includes("?- is_a(delfour, 'low-sugar-case').\ntrue."));
+  assert.match(answer, /\?- is_a\(Who, 'passed-check'\)\.\nWho = \[delfour,/);
+  assert.ok(answer.endsWith("?- is_a(delfour, 'checked-case').\ntrue."));
+});
+
 for (const depth of [10,100,1000,10000,100000]) {
   test(`taxonomy ${depth}: all classifications and actual supporting steps survive migration`, () => {
     const source = readFileSync(new URL(`deep-taxonomy-${depth}.pl`, examples), 'utf8');

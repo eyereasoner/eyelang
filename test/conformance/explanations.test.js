@@ -44,7 +44,7 @@ test('numbered proofs show every shared step and local clause binding once', () 
 
 test('ARC grouping preserves source context and reports all empty sections', () => {
   const output = run('p(a). ?- p(X). ?- why. :- assertion(p(a)).', {arc:true});
-  assert.match(output[0], /^% Answer\nX = a\./);
+  assert.equal(output[0], '% Answer\n?- p(X).\nX = a.');
   assert.match(output[1], /^% Reason\np\(a\)/);
   assert.match(output[2], /^% Check\ncheck passed: p\(a\)\./);
   assert.deepEqual(run('p(a).',{arc:true}), [
@@ -52,6 +52,26 @@ test('ARC grouping preserves source context and reports all empty sections', () 
     '% Reason\nNo explanation was requested. Add ?- why. after a query.',
     '% Check\nNo checks were requested.',
   ]);
+});
+
+test('ARC answers retain query context for reused variables, conjunctions, and boolean results', () => {
+  const output = run(`
+    name(shop, "Delfour"). name(product, "Tea Biscuits").
+    ?- name(shop, What). ?- why.
+    ?- name(product, What). ?- why.
+    ?- name(shop, _). ?- missing.
+    ?- name(Who, What), Who = product.
+    ?- aggregate_all(count, name(Who, _), Count).
+  `, { arc: true });
+  assert.equal(output[0], '% Answer\n' + [
+    '?- name(shop, What).\nWhat = "Delfour".',
+    '?- name(product, What).\nWhat = "Tea Biscuits".',
+    '?- name(shop, _).\ntrue.',
+    '?- missing.\nfalse.',
+    '?- name(Who, What), Who = product.\nWho = product, What = "Tea Biscuits".',
+    '?- aggregate_all(count, (name(Who, _)), Count).\nCount = 2.',
+  ].join('\n\n'));
+  assert.equal(output[1], '% Reason\nname(shop, "Delfour").\n  you told me this.\n\nname(product, "Tea Biscuits").\n  you told me this.');
 });
 
 test('assertions are existential checks and fail in source order with source lines', () => {
