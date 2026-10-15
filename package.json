@@ -2,9 +2,13 @@
   "name": "eyelang",
   "version": "0.6.0",
   "description": "An experimental symbolic logic programming language using a practical Prolog subset.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eyereasoner/eyelang.git"
+  },
   "type": "module",
   "bin": {
-    "eyelang": "./eyelang.js"
+    "eyelang": "eyelang.js"
   },
   "scripts": {
     "test": "node --test",

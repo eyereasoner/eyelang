@@ -1,0 +1,45 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = fileURLToPath(new URL('../', import.meta.url));
+
+test('the npm package preserves its publisher identity and installs a working CLI', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'eyelang-package-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const env = { ...process.env, npm_config_cache: join(directory, 'cache') };
+  const npm = (args, cwd) => {
+    const result = spawnSync('npm', args, { cwd, env, encoding: 'utf8' });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stderr || result.error?.message);
+    return result;
+  };
+
+  const packed = npm(['pack', '--json', '--ignore-scripts', '--pack-destination', directory], root);
+  const [{ filename }] = JSON.parse(packed.stdout);
+  npm(['install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', join(directory, filename)], directory);
+  const installed = join(directory, 'node_modules', 'eyelang');
+  const pkg = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'));
+  assert.deepEqual(pkg.repository, {
+    type: 'git',
+    url: 'git+https://github.com/eyereasoner/eyelang.git',
+  });
+  assert.deepEqual(pkg.bin, { eyelang: 'eyelang.js' });
+  await access(join(directory, 'node_modules', '.bin', process.platform === 'win32' ? 'eyelang.cmd' : 'eyelang'));
+
+  const cli = join(installed, pkg.bin.eyelang);
+  const version = spawnSync(process.execPath, [cli, '--version'], { cwd: directory, encoding: 'utf8' });
+  assert.ifError(version.error);
+  assert.equal(version.status, 0, version.stderr || version.error?.message);
+  assert.equal(version.stdout, `eyelang ${pkg.version}\n`);
+
+  const program = await readFile(join(root, 'examples', 'socrates.pl'), 'utf8');
+  const answer = spawnSync(process.execPath, [cli, '-'], { cwd: directory, input: program, encoding: 'utf8' });
+  assert.ifError(answer.error);
+  assert.equal(answer.status, 0, answer.stderr || answer.error?.message);
+  assert.match(answer.stdout, /mortal\(socrates\)/);
+});

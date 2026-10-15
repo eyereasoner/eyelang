@@ -155,3 +155,13 @@ To release, commit your changes and run `./release patch "$(git log -1 --pretty=
 Use `minor` or `major` instead of `patch` for a larger version bump.
 The version bump updates the specification and playground; pushing the tag
 runs the tests and creates a GitHub release with that message.
+
+The tag also runs `.github/workflows/publish-npm.yml` to publish to npm using
+OIDC. In the `eyelang` package settings on npm, configure a GitHub Actions
+trusted publisher with organization `eyereasoner`, repository `eyelang`, and
+workflow filename `publish-npm.yml`. Leave the environment name empty and allow
+direct publishing with `npm publish`. The package's `repository.url` must match
+this GitHub repository. See the [npm trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
+If publishing fails with a 404 permission error, verify these settings as well
+as the package metadata. Changing files on `main` does not change an existing
+release tag; release the fix under a new version and tag.

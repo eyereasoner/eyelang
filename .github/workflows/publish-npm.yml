@@ -24,6 +24,14 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
 
+      - name: Verify release version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: test "$RELEASE_TAG" = "v$(node -p "require('./package.json').version")"
+
+      - name: Run tests
+        run: npm test
+
       - name: Check package contents
         run: npm pack --dry-run
 
