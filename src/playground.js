@@ -4,7 +4,7 @@ const examples = byId('example-select');
 const output = byId('output');
 const editorStatus = byId('editor-status');
 const runStatus = byId('run-status');
-const draftKey = 'eyelang.playground.draft.v1';
+const draftKey = 'eyelang.playground.draft.v2';
 const previewLimit = 200000;
 const shareLimit = 1900;
 let worker = null;
@@ -13,7 +13,7 @@ let loadId = 0;
 let loadController = null;
 let saveTimer;
 let initialSource = '';
-let filename = 'socrates.eye';
+let filename = 'socrates.pl';
 let currentExample = 'socrates';
 let fullOutput = '';
 let sourceReference = null;
@@ -82,8 +82,8 @@ function replaceProgram(source, name, example = '', reference = null) {
   stopRun();
   editor.value = source;
   initialSource = source;
-  filename = name.replace(/[^a-z0-9._-]/gi, '-') || 'program.eye';
-  if (!filename.endsWith('.eye')) filename += '.eye';
+  filename = name.replace(/[^a-z0-9._-]/gi, '-') || 'program.pl';
+  if (!filename.endsWith('.pl')) filename += '.pl';
   byId('source-name').textContent = filename;
   examples.value = example;
   currentExample = example;
@@ -136,7 +136,7 @@ async function fetchProgram(url, signal) {
 
 function loadExample(name, autoRun = false, keepShareLocation = false) {
   if (![...examples.options].some(option => option.value === name && name)) throw new Error('Choose an example from the list.');
-  return loadProgram(signal => fetchProgram(`examples/${name}.eye`, signal), `${name}.eye`, {
+  return loadProgram(signal => fetchProgram(`examples/${name}.pl`, signal), `${name}.pl`, {
     example: name, autoRun, keepShareLocation, reference: { kind: 'example', name },
   });
 }
@@ -163,8 +163,8 @@ async function fetchGist(id, signal) {
   if (!response.ok) throw new Error(`HTTP ${response.status}. Check the Gist and try again.`);
   const gist = await response.json();
   const files = gist.files || {};
-  const file = files['program.eye'] || Object.values(files).find(file => file.filename?.endsWith('.eye'));
-  if (!file) throw new Error('This Gist needs a .eye program file.');
+  const file = files['program.pl'] || Object.values(files).find(file => file.filename?.endsWith('.pl'));
+  if (!file) throw new Error('This Gist needs a .pl program file.');
   if (file.truncated) {
     const raw = programUrl(file.raw_url);
     if (raw.protocol !== 'https:' || raw.hostname !== 'gist.githubusercontent.com') throw new Error('The Gist has an invalid program URL.');
@@ -208,8 +208,8 @@ async function createGistShare(reason = '') {
     byId('gist-panel').hidden = false;
     byId('gist-url').value = '';
     window.open('https://gist.github.com/', '_blank', 'noopener');
-    try { await navigator.clipboard.writeText(source); editorStatus.textContent = 'Program copied. Paste it into a Gist named program.eye, then paste the Gist URL below.'; }
-    catch { editorStatus.textContent = 'Copy your program into a Gist named program.eye, then paste the Gist URL below.'; }
+    try { await navigator.clipboard.writeText(source); editorStatus.textContent = 'Program copied. Paste it into a Gist named program.pl, then paste the Gist URL below.'; }
+    catch { editorStatus.textContent = 'Copy your program into a Gist named program.pl, then paste the Gist URL below.'; }
     return;
   }
   sharing = true;
@@ -219,7 +219,7 @@ async function createGistShare(reason = '') {
     const response = await fetch('https://api.github.com/gists', {
       method: 'POST',
       headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token.trim()}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: 'eyelang playground share', public: false, files: { 'program.eye': { content: source } } }),
+      body: JSON.stringify({ description: 'eyelang playground share', public: false, files: { 'program.pl': { content: source } } }),
     });
     if (!response.ok) throw new Error(`GitHub returned HTTP ${response.status}. Check the token's Gist permission and try again.`);
     const id = gistId((await response.json()).id || '');
@@ -328,7 +328,7 @@ examples.addEventListener('change', () => {
 byId('reset').addEventListener('click', () => replaceProgram(initialSource, filename, currentExample,
   sourceReference?.source === initialSource ? sourceReference : null));
 byId('save-program').addEventListener('click', () => download(editor.value, filename));
-byId('save-output').addEventListener('click', () => download(fullOutput, filename.replace(/\.eye$/, '-output.txt')));
+byId('save-output').addEventListener('click', () => download(fullOutput, filename.replace(/\.pl$/, '-output.txt')));
 byId('copy-output').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(fullOutput); status('Complete output copied.'); }
   catch { status("Copy isn't available here. Use Save output instead."); }
@@ -355,7 +355,7 @@ byId('url-form').addEventListener('submit', event => {
   event.preventDefault();
   try {
     const url = programUrl(byId('program-url').value);
-    const name = url.pathname.split('/').at(-1) || 'program.eye';
+    const name = url.pathname.split('/').at(-1) || 'program.pl';
     loadProgram(signal => fetchProgram(url.href, signal), name, { reference: { kind: 'url', url: url.href } });
   } catch (error) { editorStatus.textContent = error.message; }
 });
@@ -365,14 +365,14 @@ async function initialize() {
   const params = new URLSearchParams(location.hash.slice(1));
   if (['program', 'example', 'url', 'gist'].some(key => params.has(key))) {
     try {
-      if (location.hash.startsWith('#program=')) replaceProgram(decodeURIComponent(location.hash.slice(9)), 'shared.eye');
+      if (location.hash.startsWith('#program=')) replaceProgram(decodeURIComponent(location.hash.slice(9)), 'shared.pl');
       else if (params.has('example')) await loadExample(params.get('example'), false, true);
       else if (params.has('gist')) {
         const id = gistId(params.get('gist'));
-        await loadProgram(signal => fetchGist(id, signal), 'gist.eye', { reference: { kind: 'gist', id }, keepShareLocation: true });
+        await loadProgram(signal => fetchGist(id, signal), 'gist.pl', { reference: { kind: 'gist', id }, keepShareLocation: true });
       } else {
         const url = programUrl(params.get('url'));
-        await loadProgram(signal => fetchProgram(url.href, signal), url.pathname.split('/').at(-1) || 'program.eye', {
+        await loadProgram(signal => fetchProgram(url.href, signal), url.pathname.split('/').at(-1) || 'program.pl', {
           reference: { kind: 'url', url: url.href }, keepShareLocation: true,
         });
       }
@@ -388,7 +388,7 @@ async function initialize() {
         else if (draft.reference?.kind === 'url') reference = { kind: 'url', url: programUrl(draft.reference.url).href };
         else if (draft.reference?.kind === 'gist') reference = { kind: 'gist', id: gistId(draft.reference.id) };
       } catch { /* An invalid draft reference can still have usable program text. */ }
-      replaceProgram(draft.source, typeof draft.filename === 'string' ? draft.filename : 'program.eye', example, reference);
+      replaceProgram(draft.source, typeof draft.filename === 'string' ? draft.filename : 'program.pl', example, reference);
       editorStatus.textContent = 'Your previous program was restored.';
     } else await loadExample('socrates', true);
   }

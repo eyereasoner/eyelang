@@ -27,7 +27,7 @@ test('the playground serves its page, browser modules, examples, and documentati
     ['/src/playground.js', 'text/javascript', 'new Worker('],
     ['/src/playground-worker.js', 'text/javascript', "import { run } from './language.js'"],
     ['/src/language.js', 'text/javascript', 'export function run('],
-    ['/examples/socrates.eye', 'text/plain', 'human implies mortal.'],
+    ['/examples/socrates.pl', 'text/plain', 'human(socrates).'],
     ['/SPEC.md', 'text/plain', '# eyelang Specification'],
   ]) {
     const response = await get(path);
@@ -42,7 +42,7 @@ test('the playground serves its page, browser modules, examples, and documentati
 
 test('the playground server handles missing assets, malformed URLs, and unsupported methods', async t => {
   const get = await withServer(t);
-  for (const path of ['/missing', '/examples/missing.eye', '/package.json', '/src/playground-server.js', '/language.js', '/playground.js', '/.git/config', '/%2e%2e%2fpackage.json']) {
+  for (const path of ['/missing', '/examples/missing.pl', '/package.json', '/src/playground-server.js', '/language.js', '/playground.js', '/.git/config', '/%2e%2e%2fpackage.json']) {
     assert.equal((await get(path)).status, 404, path);
   }
   assert.equal((await get('/%xx')).status, 400);
@@ -53,8 +53,8 @@ test('the playground server handles missing assets, malformed URLs, and unsuppor
 
 test('the playground offers every bundled example and links to existing local assets', () => {
   const html = readFileSync(new URL('../playground.html', import.meta.url), 'utf8');
-  const listed = [...html.matchAll(/<option value="([a-z0-9-]+)"/g)].map(match => `${match[1]}.eye`);
-  const files = readdirSync(new URL('../examples/', import.meta.url)).filter(file => file.endsWith('.eye'));
+  const listed = [...html.matchAll(/<option value="([a-z0-9-]+)"/g)].map(match => `${match[1]}.pl`);
+  const files = readdirSync(new URL('../examples/', import.meta.url)).filter(file => file.endsWith('.pl'));
   assert.deepEqual(listed.sort(), files.sort());
   for (const match of html.matchAll(/(?:src|href)="([^":]+\.(?:js|md))"/g)) {
     assert.doesNotThrow(() => readFileSync(new URL(`../${match[1]}`, import.meta.url)), match[1]);

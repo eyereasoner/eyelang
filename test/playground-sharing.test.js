@@ -7,8 +7,8 @@ const root = new URL('../', import.meta.url);
 const script = (await readFile(new URL('src/playground.js', root), 'utf8'))
   .replaceAll('import.meta.url', JSON.stringify(new URL('src/playground.js', root).href));
 const exampleNames = (await readdir(new URL('examples/', root)))
-  .filter(name => name.endsWith('.eye')).map(name => name.slice(0, -4));
-const sample = 'milo is a cat. who is a cat?';
+  .filter(name => name.endsWith('.pl')).map(name => name.slice(0, -3));
+const sample = 'cat(milo). ?- cat(Who).';
 const gist = 'abc123def456abc123def456abc123deff';
 
 // Exercise the real UI handlers with a small DOM and controlled network/storage.
@@ -24,7 +24,7 @@ async function playground({ hash = '', draft, fetch: fetchOverride, token = null
     return elements.get(id);
   };
   element('example-select').options = [{ value: '' }, ...exampleNames.map(value => ({ value }))];
-  const storage = new Map(draft ? [['eyelang.playground.draft.v1', JSON.stringify(draft)]] : []);
+  const storage = new Map(draft ? [['eyelang.playground.draft.v2', JSON.stringify(draft)]] : []);
   const copied = [];
   const opened = [];
   const prompts = [];
@@ -96,7 +96,7 @@ test('edits share their actual text; undo and reset restore short example links'
 
 test('restored pristine drafts retain references; edited and legacy drafts embed text', async () => {
   const original = await playground({ hash: '#example=socrates' });
-  const draft = JSON.parse(original.storage.get('eyelang.playground.draft.v1'));
+  const draft = JSON.parse(original.storage.get('eyelang.playground.draft.v2'));
   const pristine = await playground({ draft });
   await pristine.dispatch('share');
   assert.ok(shared(pristine).endsWith('#example=socrates'));
@@ -108,7 +108,7 @@ test('restored pristine drafts retain references; edited and legacy drafts embed
 });
 
 test('existing inline links preserve Unicode, plus signs, and quoted punctuation', async () => {
-  const source = 'the text of café is "a+b & # ?". what is the text of café?';
+  const source = `text('café', "a+b & # ?"). ?- text('café', Text).`;
   const app = await playground({ hash: '#program=' + encodeURIComponent(source), draft: { source: sample } });
   assert.equal(program(app), source);
   assert.equal(app.runs.length, 0);
@@ -117,19 +117,19 @@ test('existing inline links preserve Unicode, plus signs, and quoted punctuation
 });
 
 test('URL references load without running and stop being references after editing', async () => {
-  const url = 'https://example.net/program.eye?name=a%2Bb';
+  const url = 'https://example.net/program.pl?name=a%2Bb';
   const app = await playground({ hash: '#url=' + encodeURIComponent(url), fetch: () => new Response(sample) });
   assert.equal(program(app), sample);
   assert.equal(app.runs.length, 0);
   await app.dispatch('share');
   assert.equal(shared(app), 'https://example.org/eyelang/playground/#url=' + encodeURIComponent(url));
-  await app.edit(sample + '\n# edited');
+  await app.edit(sample + '\n% edited');
   await app.dispatch('share');
   assert.ok(shared(app).includes('#program='));
 });
 
 test('a URL opened through the form also gets a reference link', async () => {
-  const url = 'https://example.net/program.eye';
+  const url = 'https://example.net/program.pl';
   const app = await playground({ hash: '#program=' + encodeURIComponent(sample), fetch: address => address === url ? new Response(sample) : null });
   app.element('program-url').value = url;
   await app.dispatch('url-form', 'submit');
@@ -137,8 +137,8 @@ test('a URL opened through the form also gets a reference link', async () => {
   assert.ok(shared(app).endsWith('#url=' + encodeURIComponent(url)));
 });
 
-test('gist links load .eye content without credentials or automatic execution', async () => {
-  const app = await playground({ hash: '#gist=' + gist, draft: { source: 'old draft' }, fetch: () => Response.json({ files: { 'hello.eye': { filename: 'hello.eye', content: sample } } }) });
+test('gist links load .pl content without credentials or automatic execution', async () => {
+  const app = await playground({ hash: '#gist=' + gist, draft: { source: 'old draft' }, fetch: () => Response.json({ files: { 'hello.pl': { filename: 'hello.pl', content: sample } } }) });
   assert.equal(program(app), sample);
   assert.equal(app.requests[0].url, `https://api.github.com/gists/${gist}`);
   assert.equal(app.requests[0].options.headers, undefined);
@@ -148,8 +148,8 @@ test('gist links load .eye content without credentials or automatic execution', 
 });
 
 test('truncated gist files fetch the complete raw program', async () => {
-  const raw = `https://gist.githubusercontent.com/person/${gist}/raw/program.eye`;
-  const app = await playground({ hash: '#gist=' + gist, fetch: address => address === raw ? new Response(sample) : Response.json({ files: { 'program.eye': { truncated: true, content: 'partial', raw_url: raw } } }) });
+  const raw = `https://gist.githubusercontent.com/person/${gist}/raw/program.pl`;
+  const app = await playground({ hash: '#gist=' + gist, fetch: address => address === raw ? new Response(sample) : Response.json({ files: { 'program.pl': { truncated: true, content: 'partial', raw_url: raw } } }) });
   assert.equal(program(app), sample);
   assert.equal(app.requests.length, 2);
 });
@@ -163,7 +163,7 @@ test('creating a gist sends the snapshot and token only to GitHub, then shares i
   assert.equal(request.options.headers.Authorization, 'Bearer test-token');
   const body = JSON.parse(request.options.body);
   assert.equal(body.public, false);
-  assert.equal(body.files['program.eye'].content, sample);
+  assert.equal(body.files['program.pl'].content, sample);
   assert.ok(shared(app).endsWith('#gist=' + gist));
   assert.equal([...app.storage.values()].join('').includes('test-token'), false);
   await app.dispatch('share');
@@ -204,7 +204,7 @@ test('clipboard failures leave inline links visible and manual Gist instructions
 
 test('invalid references and failed Gist creation identify the URL or HTTP error', async () => {
   const invalid = await playground({ hash: '#example=../outside' });
-  assert.equal(invalid.element('source-name').textContent, 'socrates.eye');
+  assert.equal(invalid.element('source-name').textContent, 'socrates.pl');
   assert.match(invalid.element('editor-status').textContent, /Couldn't read/);
   const denied = await playground({ hash: '#program=' + encodeURIComponent(sample), token: 'bad-token', fetch: () => new Response('', { status: 401 }) });
   await denied.dispatch('create-gist');

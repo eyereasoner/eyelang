@@ -21,7 +21,7 @@ test('Pages serves playground dependencies under the project path and prepares r
     const assets = [...html.matchAll(/src="([^"]+)"/g)].map(match => match[1]);
     assets.push('src/playground-worker.js', 'src/language.js');
     for (const match of html.matchAll(/<option value="([a-z0-9-]+)"/g)) {
-      assets.push(`examples/${match[1]}.eye`);
+      assets.push(`examples/${match[1]}.pl`);
     }
     for (const asset of assets) {
       const deployed = new URL(asset, base);

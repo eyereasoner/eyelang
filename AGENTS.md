@@ -14,7 +14,7 @@ user-facing text direct.
 - `playground.html`, `src/playground.js`, and `src/playground-worker.js`:
   browser interface and computation worker.
 - `src/playground-server.js`: local static server.
-- `examples/*.eye`: executable examples using ARC (Answer, Reason, Check).
+- `examples/*.pl`: executable examples using ARC (Answer, Reason, Check).
 - `test/*.test.js`: Node.js behavior and regression tests.
 - `SPEC.md`: normative specification in RFC style.
 - `README.md`: concise introduction, usage, and example index.
@@ -29,11 +29,11 @@ Node.js 18 or later is required. The project uses ES modules and has no package
 dependencies or build step for running programs.
 
 ```sh
-node eyelang.js examples/socrates.eye
-node eyelang.js - < examples/socrates.eye
+node eyelang.js examples/socrates.pl
+node eyelang.js - < examples/socrates.pl
 node eyelang.js --version
 node src/playground-server.js
-node --test test/variables.test.js
+node --test test/language.test.js
 npm run test:conformance
 npm test
 node scripts/prepare-pages.js
@@ -48,21 +48,20 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 
 - Read the relevant sections of `SPEC.md` before changing language behavior.
   Keep the implementation, specification, README examples, and tests consistent.
-- Named variables start with `?`, such as `?person`, `?kind`, and `?value`.
-  Choose names that describe their role. Their scope is one rule or question;
-  repeating a name within that scope requires the same value. Ordinal words
-  have no variable meaning. `who` and `what` remain query variables.
+- Use Prolog syntax: lowercase atoms, uppercase or underscore variables, facts
+  ending in `.`, clauses `Head :- Body.`, conjunction with `,`, and queries
+  `?- Goal.`. Each `_` is fresh; other variables are scoped to one clause or query.
 - Show actual values in short explanations and local bindings in numbered
   proofs so users can follow each rule application.
-- Preserve both forward rules (`if clues then answer.`) and tabled backward
-  rules (`answer if clues.`). Backward calculations need bound inputs;
-  arithmetic does not solve equations in reverse.
+- Preserve forward inference for range-restricted clauses and demand-driven
+  tabling with `:- table Name/Arity.`. Arithmetic uses `is/2` with bound inputs;
+  it does not solve equations in reverse.
 - Preserve exact integer arithmetic with `BigInt` and finite binary64 real
   arithmetic. Negation uses completed evidence and stratified inference.
 - Explanations and executable checks are part of the language. When changing
-  inference, verify answers, `why?` output, and check failures as appropriate.
-- Use `.eye` for examples. Each bundled example should demonstrate an answer,
-  explain it with `why?`, and verify expectations with `check that ... .`.
+  inference, verify answers, `?- why.` output, and check failures as appropriate.
+- Use `.pl` for examples. Each bundled example should demonstrate an answer,
+  explain it with `?- why.`, and verify expectations with `:- assertion(Goal).`.
 - Add new examples to the README index and the playground selector. Keep the
   specification's example descriptions current when relevant.
 - Keep README example links pointed at repository files. Preserve the same

@@ -1,74 +1,41 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { run } from '../src/language.js';
 
-test('the scoreboard counts derived kinds and totals equal scores from different players', () => {
-  const answers = run(readFileSync(new URL('../examples/aggregation.eye', import.meta.url), 'utf8'));
-  assert.equal(answers[0], 'there are 3 players.');
-  assert.equal(answers[1], 'there are 3 team-members.');
-  assert.equal(answers[2], 'the total of all scores is 24.');
-  assert.match(answers[3], /I added all 3 matching values in the completed program/);
-  for (const name of ['milo', 'luna', 'rex']) assert.match(answers[3], new RegExp(`the score of ${name} is`));
-  assert.equal(answers[4], 'the smallest of all scores is 7.');
-  assert.equal(answers[5], 'the largest of all scores is 10.');
+const scores = 'score(ada,7). score(ben,7). score(cara,10). score(ben,7).';
+test('aggregates use distinct completed tuples, exact totals, and explicit output arguments', () => {
+  assert.deepEqual(run(`${scores}
+    ?- aggregate_all(count, score(X,V), N).
+    ?- aggregate_all(sum(V), score(X,V), N).
+    ?- aggregate_all(min(V), score(X,V), N).
+    ?- aggregate_all(max(V), score(X,V), N).
+    ?- aggregate_all(count, score(X,V), 3).
+    ?- aggregate_all(count, score(X,V), 4).
+  `), ['N = 3.', 'N = 24.', 'N = 7.', 'N = 10.', 'true.', 'false.']);
 });
 
-test('empty counts and totals are zero; empty extrema are unknown', () => {
-  assert.deepEqual(run(`
-    how many cats are there?
-    what is the total of all scores?
-    what is the smallest of all scores?
-    why?
-    what is the largest of all scores?
-  `), [
-    'there are 0 cats.', 'the total of all scores is 0.', "I don't know any scores yet.",
-    "I don't have an answer to explain yet.", "I don't know any scores yet.",
-  ]);
+test('aggregation completes tabled producers, handles empty input, and respects outer bindings', () => {
+  assert.deepEqual(run(`${scores}
+    :- table copied/2. copied(X,V) :- score(X,V).
+    total(N) :- aggregate_all(sum(V), copied(X,V), N).
+    ?- total(N).
+    ?- aggregate_all(count, missing(X), N).
+    ?- aggregate_all(sum(V), missing(V), N).
+    ?- aggregate_all(min(V), missing(V), N).
+    ?- Person=ada, aggregate_all(sum(V), copied(Person,V), N).
+    ?- aggregate_all(count, (copied(X,V), V>7), N).
+  `), ['N = 24.', 'N = 0.', 'N = 0.', 'false.', 'Person = ada, N = 7.', 'N = 1.']);
 });
 
-test('aggregates see the completed derived and negated relations', () => {
-  assert.deepEqual(run(`
-    milo is a player. luna is a player. luna is a tired-player.
-    if ?x is a player and ?x is not a resting-player then ?x is a ready-player.
-    if ?x is a tired-player then ?x is a resting-player.
-    if ?x is a ready-player then the score of ?x is 5.
-    how many ready-players are there?
-    what is the total of all scores?
-  `), ['there is 1 ready-player.', 'the total of all scores is 5.']);
+test('aggregate sums preserve exact large integers and support finite real values', () => {
+  assert.deepEqual(run(`value(a,9007199254740993). value(b,2).
+    ?- aggregate_all(sum(V),value(X,V),N).
+    ?- aggregate_all(sum(V),between(1,3,V),N).
+    real(a,0.5). real(b,1.25). ?- aggregate_all(sum(V),real(X,V),N).
+  `), ['N = 9007199254740995.', 'N = 6.', 'N = 1.75.']);
 });
 
-test('negative and large values aggregate exactly with duplicate facts counted once', () => {
-  assert.deepEqual(run(`
-    the score of milo is 900719925474099300000.
-    the score of luna is -5. the score of luna is -5.
-    what is the total of all scores?
-    what is the smallest of all scores?
-    what is the largest of all scores?
-  `), [
-    'the total of all scores is 900719925474099299995.',
-    'the smallest of all scores is -5.',
-    'the largest of all scores is 900719925474099300000.',
-  ]);
-});
-
-test('aggregation refuses non-numeric values rather than ignoring them', () => {
-  for (const operation of ['total', 'smallest', 'largest']) {
-    assert.throws(() => run(`the score of milo is orange. what is the ${operation} of all scores?`), /whole numbers/);
-  }
-});
-
-test('regular and common irregular plural names work with distinct membership counts', () => {
-  assert.deepEqual(run(`
-    ada is a person. ada is a person. ben is a person.
-    milo is a puppy.
-    how many people are there?
-    how many puppies are there?
-  `), ['there are 2 people.', 'there is 1 puppy.']);
-});
-
-test('why after a zero count reports the search, not a supplied fact', () => {
-  const explanation = run('how many cats are there? why?')[1];
-  assert.match(explanation, /I counted all matching names in the completed program: 0/);
-  assert.doesNotMatch(explanation, /you told me this/);
+test('aggregate cycles and unavailable arithmetic inputs report errors', () => {
+  assert.throws(() => run('p(N) :- aggregate_all(count,p(X),N). ?- p(N).'), /cycle through negation or aggregation/);
+  assert.throws(() => run(':- table p/2. p(X,Y) :- Y is X+1. ?- aggregate_all(count,p(X,Y),N).'), /unbound/);
 });

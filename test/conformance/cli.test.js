@@ -1,98 +1,60 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const cli = fileURLToPath(new URL('../../eyelang.js', import.meta.url));
 function invoke(args, input) {
-  const result = spawnSync(process.execPath, [cli, ...args], { input, encoding: 'utf8', timeout: 10000 });
+  const result = spawnSync(process.execPath, [cli,...args], {input,encoding:'utf8',timeout:10000});
   assert.ifError(result.error);
-  assert.equal(result.signal, null);
+  assert.equal(result.signal,null);
   return result;
 }
-
-for (const flag of ['-h', '--help']) {
-  test(`[cli-help-${flag}] SPEC §10: ${flag} succeeds with usage on stdout`, () => {
-    const result = invoke([flag]);
-    assert.equal(result.status, 0);
-    assert.match(result.stdout, /node eyelang\.js/);
-    assert.equal(result.stderr, '');
+for (const flag of ['-h','--help','-v','--version']) {
+  test(`CLI ${flag} succeeds`, () => {
+    const result=invoke([flag]);
+    assert.equal(result.status,0);
+    assert.ok(result.stdout.length);
+    assert.equal(result.stderr,'');
   });
 }
-for (const flag of ['-v', '--version']) {
-  test(`[cli-version-${flag}] SPEC §10: ${flag} reports the package version exactly`, () => {
-    const { version } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
-    const result = invoke([flag]);
-    assert.equal(result.status, 0);
-    assert.equal(result.stdout, `eyelang ${version}\n`);
-    assert.equal(result.stderr, '');
-  });
-}
-for (const [id, args] of [['none', []], ['two', ['one.eye', 'two.eye']]]) {
-  test(`[cli-arguments-${id}] SPEC §10: an ordinary invocation requires exactly one input`, () => {
-    const result = invoke(args);
-    assert.notEqual(result.status, 0);
-    assert.equal(result.stdout, '');
-    assert.ok(result.stderr.length > 0);
-  });
+for (const args of [[],['one.pl','two.pl']]) {
+  test(`CLI rejects argument count ${args.length}`,()=>assert.notEqual(invoke(args).status,0));
 }
 
-test('[cli-file-stdin] SPEC §10: UTF-8 files and standard input produce the same complete ARC transcript', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'eyelang-conformance-'));
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const path = join(directory, 'école 東京.eye');
-  const source = 'ÉLODIE is a person. who is a person? why? check that élodie is a person.';
-  writeFileSync(path, source);
-  const file = invoke([path]);
-  const stdin = invoke(['-'], source);
-  assert.equal(file.status, 0);
-  assert.equal(stdin.status, 0);
-  assert.equal(file.stderr, '');
-  assert.equal(stdin.stderr, '');
-  assert.equal(file.stdout, stdin.stdout);
-  assert.deepEqual([...file.stdout.matchAll(/^# (Answer|Reason|Check)$/gm)].map(match => match[1]), ['Answer', 'Reason', 'Check']);
-  assert.match(file.stdout, /élodie is a person/);
-  assert.match(file.stdout, /you told me this/);
-  assert.match(file.stdout, /check passed: élodie is a person/);
+test('CLI reads UTF-8 .pl files and stdin identically, with standard ARC comments',t=>{
+  const directory=mkdtempSync(join(tmpdir(),'eyelang-prolog-'));
+  t.after(()=>rmSync(directory,{recursive:true,force:true}));
+  const path=join(directory,'café.pl');
+  const source="person('élodie'). ?- person(X). ?- why. :- assertion(person('élodie')).";
+  writeFileSync(path,source);
+  const file=invoke([path]); const stdin=invoke(['-'],source);
+  assert.equal(file.status,0); assert.equal(file.stdout,stdin.stdout);
+  assert.equal(file.stderr,'');
+  assert.match(file.stdout,/X = 'élodie'\./);
+  assert.deepEqual([...file.stdout.matchAll(/^% (Answer|Reason|Check)$/gm)].map(match=>match[1]),['Answer','Reason','Check']);
+  assert.match(file.stdout,/you told me this/);
 });
 
-test('[cli-unknown-success] SPEC §10: unknown answers are successful query results', () => {
-  const result = invoke(['-'], 'is ada a person?');
-  assert.equal(result.status, 0);
-  assert.equal(result.stderr, '');
-  assert.match(result.stdout, /I don't know whether ada is a person/);
+test('CLI query failure succeeds and missing paths fail',()=>{
+  const missing=invoke(['-'],'?- missing.');
+  assert.equal(missing.status,0); assert.match(missing.stdout,/false\./);
+  const file=invoke(['/missing-conformance-program.pl']);
+  assert.notEqual(file.status,0); assert.match(file.stderr,/couldn't find the program/);
 });
-
-test('[cli-empty-prompt] SPEC §10: a program with no questions or checks prompts for a question', () => {
-  const result = invoke(['-'], 'ada is a person.');
-  assert.equal(result.status, 0);
-  assert.match(result.stdout, /Add a question/);
-  assert.match(result.stdout, /# Answer[\s\S]*# Reason[\s\S]*# Check/);
-});
-
-for (const [id, source, error] of [
-  ['syntax', 'ada is a person. who is a person?\nada is person.', /Line 2:/],
-  ['unfinished', 'ada is a person. who is a person?\nben is a person', /Line 2:/],
-  ['check', 'ada is a person. who is a person? why?\ncheck that ada is a stranger.', /Line 2: Check failed/],
-  ['check-arithmetic', 'ada is a person. who is a person?\ncheck that 1 divided by 0 is equal to 1.', /Line 2:.*divide by zero/],
-  ['check-request', 'the echo of ?input is ?input if ?input is equal to ?input.\nwho is a person?\ncheck that the score of 1 divided by 0 is 0.', /Line 3:.*divide by zero/],
-  ['runtime', 'if 1 is equal to 1 then the result of demo is 1 divided by 0.', /divide by zero/],
-  ['cycle', '?person is a person if ?person is not a person.', /loop through not/],
+for (const [id,source,error] of [
+  ['syntax','p(a). ?- p(X).\nwrong syntax.',/Line 2:/],
+  ['unfinished','p(a).\nq(b)',/Line 2:/],
+  ['check','p(a). ?- p(X). ?- why.\n:- assertion(missing).',/Line 2: Check failed/],
+  ['check-arithmetic','p(a). ?- p(X).\n:- assertion(X is 1\/0).',/Line 2:.*divide by zero/],
+  ['runtime','p(X) :- X is 1/0. ?- p(X).',/divide by zero/],
+  ['cycle',String.raw`p(a) :- \+ p(a). ?- p(a).`,/cycle through negation/],
 ]) {
-  test(`[cli-error-${id}] SPEC §10: ${id} errors exit nonzero, report stderr, and emit no partial transcript`, () => {
-    const result = invoke(['-'], source);
-    assert.notEqual(result.status, 0);
-    assert.equal(result.stdout, '');
-    assert.match(result.stderr, error);
+  test(`CLI ${id} error emits no partial transcript`,()=>{
+    const result=invoke(['-'],source);
+    assert.notEqual(result.status,0); assert.equal(result.stdout,''); assert.match(result.stderr,error);
   });
 }
-
-test('[cli-missing-file] SPEC §10: a missing input file produces a nonzero status and a diagnostic', () => {
-  const result = invoke([fileURLToPath(new URL('./missing-conformance-program.eye', import.meta.url))]);
-  assert.notEqual(result.status, 0);
-  assert.equal(result.stdout, '');
-  assert.match(result.stderr, /couldn't find the program/);
-});

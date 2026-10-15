@@ -81,7 +81,7 @@
     </header>
     <div id="serve-hint" role="status">Start <code>node src/playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
     <noscript><p>Turn on JavaScript to run programs in this playground.</p></noscript>
-    <p class="arc">Enabling dialogical reasoning using <a href="https://josd.github.io/arc/">ARC</a>: Answer · Reason · Check.</p>
+    <p class="arc">A practical Prolog subset with <code>.pl</code> programs and <a href="https://josd.github.io/arc/">ARC</a>: Answer · Reason · Check.</p>
 
     <section class="toolbar" aria-label="Load and save programs">
       <div class="load-row">
@@ -120,9 +120,9 @@
       <details>
         <summary>Open a file or URL</summary>
         <div class="open-fields">
-          <div><label for="open-file">Open a program from your computer</label><input id="open-file" type="file" accept=".eye,text/plain"></div>
+          <div><label for="open-file">Open a program from your computer</label><input id="open-file" type="file" accept=".pl,text/plain"></div>
           <form id="url-form" class="load-row">
-            <div class="url-field"><label for="program-url">Program URL</label><input id="program-url" type="url" placeholder="https://example.org/program.eye" required></div>
+            <div class="url-field"><label for="program-url">Program URL</label><input id="program-url" type="url" placeholder="https://example.org/program.pl" required></div>
             <button id="load-url" type="submit">Load URL</button>
           </form>
         </div>
@@ -130,7 +130,7 @@
       <p id="editor-status" class="message" role="status">Loading Socrates…</p>
       <div id="share-panel" hidden><label for="share-url">Copy this link to share your program</label><input id="share-url" type="text" readonly></div>
       <div id="gist-panel" hidden>
-        <p class="message">On <a href="https://gist.github.com/" target="_blank" rel="noopener">GitHub Gist</a>, name the file <code>program.eye</code>, paste your program, and create the Gist. Anyone with its link can read it. Paste its URL here to get a playground link.</p>
+        <p class="message">On <a href="https://gist.github.com/" target="_blank" rel="noopener">GitHub Gist</a>, name the file <code>program.pl</code>, paste your program, and create the Gist. Anyone with its link can read it. Paste its URL here to get a playground link.</p>
         <form id="gist-form" class="load-row">
           <div class="url-field"><label for="gist-url">Gist URL or ID</label><input id="gist-url" type="text" placeholder="https://gist.github.com/you/…" required></div>
           <button id="gist-link" type="submit">Make share link</button>
@@ -140,7 +140,7 @@
 
     <div class="workspace">
       <section class="card" aria-labelledby="program-label">
-        <div class="heading"><label id="program-label" for="program">Your program</label><span id="source-name">socrates.eye</span></div>
+        <div class="heading"><label id="program-label" for="program">Your program</label><span id="source-name">socrates.pl</span></div>
         <textarea id="program" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="editor-status" disabled></textarea>
         <div class="actions"><button id="run" class="primary" type="button" disabled>Run program</button><button id="stop" class="stop" type="button" disabled>Stop</button><span class="shortcut"><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></span></div>
       </section>

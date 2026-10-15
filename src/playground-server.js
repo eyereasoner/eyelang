@@ -16,7 +16,7 @@ export function createPlaygroundServer() {
     let path;
     try { path = decodeURIComponent(new URL(request.url, 'http://localhost').pathname).slice(1) || 'playground.html'; }
     catch { response.writeHead(400).end('Invalid URL.'); return; }
-    if (!files.has(path) && !/^examples\/[a-z0-9-]+\.eye$/.test(path)) {
+    if (!files.has(path) && !/^examples\/[a-z0-9-]+\.pl$/.test(path)) {
       response.writeHead(404).end('File not found.');
       return;
     }

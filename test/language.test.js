@@ -1,213 +1,75 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
 import { infer, parse, run, say } from '../src/language.js';
 
-test('Socrates derives mortality through a generic kind implication and explains both clues', () => {
-  const source = readFileSync(new URL('../examples/socrates.eye', import.meta.url), 'utf8');
-  assert.deepEqual(run(source), [
-    'socrates is a mortal.',
-    'socrates is a mortal.\n' +
-      '  because if socrates is a human and human implies mortal then socrates is a mortal.\n' +
-      '  socrates is a human.\n    you told me this.\n' +
-      '  human implies mortal.\n    you told me this.',
-    'check passed: socrates is a mortal.',
-    'check passed: there is 1 mortal.',
-  ]);
-  const extended = source.replace('check that there is 1 mortal.', 'check that there are 2 mortals.') + `
-    plato is a philosopher.
-    philosopher implies human.
-  `;
-  assert.deepEqual(new Set(run(extended)[0].split('\n')), new Set([
-    'socrates is a mortal.', 'plato is a mortal.',
-  ]));
-  assert.throws(() => run(source.replace('human implies mortal.', '')), /Check failed: socrates is a mortal/);
-});
-
-test('a program answers who, yes, why and unknown questions', () => {
-  const source = readFileSync(new URL('../examples/animals.eye', import.meta.url), 'utf8');
-  assert.deepEqual(run(source), [
-    'milo is an animal.\nluna is an animal.',
-    'yes, milo is an animal.',
-    'milo is an animal.\n  because if milo is a cat then milo is an animal.\n  milo is a cat.\n    you told me this.',
-    "I don't know whether milo is a dog.",
-    'check passed: milo is an animal.',
-    'check passed: luna is an animal.',
-    'check passed: there are 2 animals.',
-    'check passed: milo is not a dog.',
-  ]);
-});
-
-test('joining clues keeps repeated variables consistent across both premises', () => {
-  const answers = run(`
-    milo likes luna. milo likes rex. ada likes rex.
-    luna is a cat. rex is a dog.
-    if ?x likes ?y and ?y is a cat then ?x is a friend.
-    who is a friend?
-    why is milo a friend?
-  `);
-  assert.equal(answers[0], 'milo is a friend.');
-  assert.match(answers[1], /milo likes luna\./);
-  assert.match(answers[1], /luna is a cat\./);
-  assert.doesNotMatch(answers[1], /rex/);
-});
-
-test('rules reach a fixed point even when declared in reverse dependency order', () => {
+test('facts and clauses use Prolog syntax, arbitrary arities, and case-sensitive atoms', () => {
   assert.deepEqual(run(`
-    if ?x is an animal then ?x is a creature.
-    if ?x is a cat then ?x is an animal.
-    milo is a cat.
-    who is a creature?
-    why is milo a creature?
-  `).map(answer => answer.split('\n')[0]), ['milo is a creature.', 'milo is a creature.']);
+    human(socrates). mortal(Person) :- human(Person).
+    ready. point(origin, 0, 0). point(origin).
+    label('Ada', "Ada"). label(ada, 'Ada').
+    ?- mortal(Who). ?- ready. ?- point(origin, X, Y).
+    ?- point(origin). ?- point(origin, X). ?- label(ada, "Ada").
+  `), ['Who = socrates.', 'true.', 'X = 0, Y = 0.', 'true.', 'false.', 'false.']);
 });
 
-test('cycles finish and retain explanations founded on supplied facts', () => {
-  const source = `
-    if ?x is a cat then ?x is an animal.
-    if ?x is an animal then ?x is a cat.
-    milo is a cat. milo is a cat.
-    who is a cat?
-    why is milo an animal?
-  `;
-  assert.equal(infer(parse(source)).length, 2);
-  assert.equal(run(source)[0], 'milo is a cat.');
-  assert.match(run(source)[1], /you told me this\./);
+test('comments, quotes, escapes, decimal dots, and multiline clauses preserve source lines', () => {
   assert.deepEqual(run(`
-    if ?x is a cat then ?x is an animal.
-    if ?x is an animal then ?x is a cat.
-    is milo a cat?
-  `), ["I don't know whether milo is a cat."]);
+    % comment with a period . and ?-
+    /* block .\n comment */
+    label('café', "a.b % /* ?- ").
+    label('it''s', 'can''t').
+    value(-1.25e-7).
+    copy(X) :-\n label('café', X).
+    ?- copy(Text). ?- value(N). ?- label('it''s', X).
+  `), ['Text = "a.b % /* ?- ".', 'N = -1.25e-7.', "X = 'can''t'."]);
+  assert.throws(() => parse('% first\n/* second\n third */\np(a) :- .'), /^Error: Line 4:/);
+  assert.throws(() => parse('% first\np(1e309).'), /^Error: Line 2:.*finite/);
+  assert.deepEqual(run(String.raw`?- X = "\u00e9\n\t".`), ['X = "é\\n\\t".']);
 });
 
-test('a repeated variable requires the same name in both places', () => {
+test('variables share one clause or query scope, and anonymous variables are fresh', () => {
   assert.deepEqual(run(`
-    milo likes luna. luna likes luna.
-    if ?x likes ?x then ?x is a self-admirer.
-    who is a self-admirer?
-  `), ['luna is a self-admirer.']);
+    pair(a, a). pair(a, b). pair(b, b).
+    same(X) :- pair(X, X).
+    other(X) :- pair(a, X).
+    ?- same(X). ?- other(X). ?- pair(_, _).
+    ?- pair(_Left, _Right). ?- pair(_Same, _Same).
+    ?- X = Y, Y = a. ?- missing(_, _).
+  `), ['X = a.\nX = b.', 'X = a.\nX = b.', 'true.', 'true.', 'true.', 'X = a, Y = a.', 'false.']);
 });
 
-test('duplicates and alternate derivations produce one answer', () => {
-  assert.deepEqual(run(`
-    milo is a cat. milo is a cat. milo is a pet.
-    if ?x is a cat then ?x is an animal.
-    if ?x is a pet then ?x is an animal.
-    who is an animal?
-  `), ['milo is an animal.']);
+test('unit clauses with variables accept bound inputs and require ground answers', () => {
+  assert.deepEqual(run('same(X, X). ?- same(a, Y). ?- same(a, b).'), ['Y = a.', 'false.']);
+  assert.throws(() => run('same(X, X). ?- same(X, Y).'), /answer must be ground/);
 });
 
-test('questions about actions work for subjects, objects, yes and why', () => {
-  assert.deepEqual(run(`
-    milo likes luna. luna knows milo.
-    who likes luna?
-    what does milo like?
-    who does luna know?
-    does milo like luna?
-    why does milo like luna?
-  `), [
-    'milo likes luna.', 'milo likes luna.', 'luna knows milo.',
-    'yes, milo likes luna.', 'milo likes luna.\n  you told me this.',
-  ]);
+test('queries see later clauses, while table declarations apply to the complete predicate', () => {
+  const program = parse('?- mortal(X). mortal(X) :- human(X). human(socrates). :- table mortal/1.');
+  assert.ok(program.rules.find(rule => rule.conclusion.relation === 'predicate:mortal/1').backward);
+  assert.deepEqual(run('?- mortal(X). mortal(X) :- human(X). human(socrates). :- table mortal/1.'), ['X = socrates.']);
+  assert.equal(say(infer(parse("p('red-fox', point(1, 2), [a,b])."))[0].goal), "p('red-fox', point(1, 2), [a, b])");
 });
 
-test('programs ignore letter case, accept multiline rules and retain error lines', () => {
-  assert.deepEqual(run(`
-    # My program
-    Milo is a cat.
-    if ?x is a cat
-      then ?x is an animal.
-    Who is an animal?
-  `), ['milo is an animal.']);
-  assert.throws(() => parse('# first line\nmilo is a cat.\nthis is broken.'), /Line 3:/);
+test('arithmetic in ordinary arguments remains a compound term', () => {
+  assert.deepEqual(run('stored(1+2). ?- stored(X). ?- stored(3). ?- X is 1+2, stored(X).'), ['X = (1 + 2).', 'false.', 'false.']);
 });
 
-test('unknown questions are distinct from negative conclusions', () => {
-  assert.deepEqual(run('who is a dog? why is milo a dog?'), [
-    "I don't know anyone or anything that fits that question yet.",
-    "I don't know whether milo is a dog.",
-  ]);
-});
-
-test('rules cannot invent an unbound individual', () => {
-  assert.throws(() => parse('if ?x is a cat then ?y is an animal.'), /Use \?y after if/);
-  assert.throws(() => parse('?x is a cat.'), /in a rule or a question/);
-});
-
-test('unfinished programs and unsupported sentence shapes get useful errors', () => {
-  for (const source of ['milo is a cat', 'milo is cat.', 'if milo is a cat.', '.', 'why who is an animal?']) {
+for (const source of [
+  'milo is a cat.', 'if ?x is a cat then ?x is an animal.',
+  'who is a cat?', 'why?', 'check that milo is a cat.', '# old comment\np(a).',
+  ':- table', ':- table p/', 'p(a)', 'p(a) :- .', 'p().', 'p(a); p(b).', 'p(a) :- !.',
+  ':- use_module(library(lists)).', ':- initialization(main).',
+  ':- op(500, xfx, likes).', 'p([a|b]).', "p('unfinished).", '/* unfinished',
+  'p(1.2.3).', 'p(a) :- call(q(a)). -> q(a).',
+]) {
+  test(`unsupported or unfinished syntax reports a line: ${source.slice(0, 55)}`, () => {
     assert.throws(() => parse(source), /^Error: Line \d+:/);
-  }
-});
-
-test('questions see the whole program, including later facts', () => {
-  assert.deepEqual(run('who is a cat? milo is a cat.'), ['milo is a cat.']);
-});
-
-test('both remaining example programs run with explanations', () => {
-  for (const name of ['friends', 'paths']) {
-    const source = readFileSync(new URL(`../examples/${name}.eye`, import.meta.url), 'utf8');
-    const answers = run(source);
-    assert.ok(answers.length > 0);
-    assert.ok(answers.every(answer => !answer.startsWith("I don't know")));
-    assert.ok(answers.some(answer => /because /.test(answer)));
-    assert.match(answers.at(-1), /^check passed:/);
-  }
-});
-
-test('the command reads standard input and reports program errors with a failing exit status', () => {
-  const cli = new URL('../eyelang.js', import.meta.url);
-  const good = spawnSync(process.execPath, [cli.pathname, '-'], {
-    input: 'milo is a cat. who is a cat?', encoding: 'utf8',
   });
-  assert.equal(good.status, 0);
-  assert.equal(good.stdout, '# Answer\nmilo is a cat.\n\n' +
-    '# Reason\nNo explanation was requested. Add why? after a question.\n\n' +
-    '# Check\nNo checks were requested.\n');
-  const bad = spawnSync(process.execPath, [cli.pathname, '-'], {
-    input: 'milo is cat.', encoding: 'utf8',
-  });
-  assert.equal(bad.status, 1);
-  assert.match(bad.stderr, /Line 1:/);
-});
+}
 
-test('all derived terms are concrete names', () => {
-  const facts = infer(parse(`
-    milo likes luna. luna is a cat.
-    if ?x likes ?y and ?y is a cat then ?x is a friend.
-  `));
-  assert.ok(facts.every(record => record.goal.terms.every(term => typeof term === 'string')));
-  assert.ok(facts.map(record => say(record.goal)).includes('milo is a friend'));
-});
-
-test('waiting joins consume facts added before and after a prefix becomes ready', () => {
-  const source = `
-    milo likes luna. milo likes rex.
-    luna is a kitten. rex is a puppy.
-    if ?x likes ?y and ?y is a pet then ?x helps ?y.
-    if ?x is a kitten then ?x is a pet.
-    if ?x is a puppy then ?x is a pet.
-    if ?x helps ?y and ?y is a pet then ?x knows ?y.
-    who helps what?
-    who knows what?
-  `;
-  assert.deepEqual(run(source), [
-    'milo helps luna.\nmilo helps rex.', 'milo knows luna.\nmilo knows rex.',
-  ]);
-});
-
-test('recursive joins preserve all solutions and tolerate multiple property values', () => {
-  const source = `
-    milo likes luna. luna likes rex. rex likes milo.
-    if ?x likes ?y then ?y likes ?x.
-    the color of milo is orange. the color of milo is black.
-    if ?x likes milo and the color of milo is ?y then the favorite of ?x is ?y.
-    who likes what?
-    what is the favorite of luna?
-  `;
-  const answers = run(source);
-  assert.equal(answers[0].split('\n').length, 6);
-  assert.equal(new Set(answers[0].split('\n')).size, 6);
-  assert.equal(answers[1], 'the favorite of luna is orange.\nthe favorite of luna is black.');
+test('quoted user predicates cannot collide with generated query or aggregate predicates', () => {
+  assert.deepEqual(run("'$query1'(intruder). p(a). ?- p(X)."), ['X = a.']);
+  assert.deepEqual(run("'$aggregate1'(intruder). p(a). ?- aggregate_all(count,p(X),N)."), ['N = 1.']);
+  assert.deepEqual(run('?- is(X,2+3).'), ['X = 5.']);
+  assert.throws(() => parse('p(a).q(b).'), /period must be followed/);
 });

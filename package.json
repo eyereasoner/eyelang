@@ -1,7 +1,7 @@
 {
   "name": "eyelang",
   "version": "0.0.13",
-  "description": "An experimental symbolic logic programming language.",
+  "description": "An experimental symbolic logic programming language using a practical Prolog subset.",
   "type": "module",
   "bin": {
     "eyelang": "./eyelang.js"
@@ -9,7 +9,7 @@
   "scripts": {
     "test": "node --test",
     "test:conformance": "node --test test/conformance",
-    "start": "node eyelang.js examples/socrates.eye",
+    "start": "node eyelang.js examples/socrates.pl",
     "version": "node scripts/sync-version.js"
   },
   "engines": {
