@@ -175,6 +175,43 @@ subset. Unsupported arithmetic functions MUST report their name and arity.
 
 ## 6. Inference and negation
 
+### 6.1. Herbrand semantics
+
+eyelang MUST use **Herbrand semantics** for ordinary predicates, with the
+interpreted builtins specified in Section 5. Ground terms denote themselves:
+`socrates` denotes the atom `socrates`, and `point(2, 3)` denotes that compound
+term. A functor constructs data; it does not implicitly call a function.
+Distinct ground terms MUST remain distinct after the lexical normalization
+and structural matching described in Section 3. For example, `socrates` and
+`plato` are different values, while `socrates` and `'socrates'` are the same
+atom. Asserting a relation between two terms does not make them identical.
+
+The **Herbrand universe** is the set of finite ground terms constructible from
+the language's constants and constructors, including its supported numeric
+values, strings, and proper lists. Variables range over these terms. The
+**Herbrand base** is the set of all ordinary predicate applications to ground
+terms, such as `human(socrates)`. These applications are called ground atoms;
+here, "atom" means a proposition, distinct from an atom used as a term.
+A Herbrand interpretation specifies which ground atoms are true.
+
+For positive clauses, the program's meaning MUST be the **least Herbrand
+model**, relative to the specified builtins: the smallest set of ground atoms
+containing the facts and closed under rule application. Clause variables are
+universally quantified: whenever a ground instance of a rule's body holds,
+its head holds. Thus the facts and clause in Section 2 make
+`human(socrates)` and `mortal(socrates)` true. A query returns ground bindings
+that make its goals true, subject to the input requirements of this subset.
+
+Arithmetic builtins have their specified numeric interpretation. For example,
+`1 + 2` remains a compound term in an ordinary argument, while `Value is 1 + 2`
+binds `Value` to the integer `3`. `1 = 1.0` fails because the terms differ;
+`1 =:= 1.0` succeeds by numeric comparison. Stratified negation extends the
+positive semantics by testing absence only after the relevant producers
+complete, as specified below. The universe can be infinite; these semantics
+do not require enumerating it or guarantee that evaluation terminates.
+
+### 6.2. Evaluation and negation
+
 Facts and answers have set semantics. Every distinct ground tuple MUST be
 stored at most once, regardless of the number of derivations. Positive
 recursion MUST reach a least fixed point when its domain is finite.
@@ -334,6 +371,7 @@ and a labeled output preview, with complete output available for copy/save.
 
 ## 13. References
 
+- [Herbrand semantics: Stanford Introduction to Logic, Section 7.3](https://logical.stanford.edu/intrologic/chapters/chapter_07.html)
 - [SWI-Prolog syntax](https://www.swi-prolog.org/man/syntax.html)
 - [SWI-Prolog operators](https://www.swi-prolog.org/pldoc/man?section=opsummary)
 - [SWI-Prolog arithmetic](https://www.swi-prolog.org/man/arith.html)
