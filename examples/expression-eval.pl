@@ -1,0 +1,39 @@
+% A graph of expression nodes evaluated recursively, then used by a forward rule.
+literal(n2, 2).
+literal(n3, 3).
+literal(n10, 10).
+literal(n4, 4).
+expression(product, mul, n2, n3).
+expression(difference, sub, n10, n4).
+expression(total, add, product, difference).
+root(example, total).
+
+value(Node, Value) :-
+    literal(Node, Value).
+value(Node, Value) :-
+    expression(Node, Operation, Left, Right),
+    value(Left, L),
+    value(Right, R),
+    calculate(Operation, L, R, Value).
+
+calculate(add, L, R, Value) :-
+    Value is L + R.
+calculate(sub, L, R, Value) :-
+    Value is L - R.
+calculate(mul, L, R, Value) :-
+    Value is L * R.
+
+result(Name, Value) :-
+    root(Name, Node),
+    value(Node, Value).
+
+% Answer and Reason
+?- result(Name, Value).
+?- why.
+
+% Check
+:- assertion(result(example, 12)).
+:- assertion(value(product, 6)).
+:- assertion(value(difference, 6)).
+:- assertion(value(total, 12)).
+:- assertion(aggregate_all(count, value(Node, Value), 7)).

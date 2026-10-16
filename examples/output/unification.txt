@@ -1,0 +1,67 @@
+% Answer
+?- append(Prefix, Suffix, [a, b]).
+Prefix = [], Suffix = [a, b].
+Prefix = [a], Suffix = [b].
+Prefix = [a, b], Suffix = [].
+
+?- matching_pair(pair(same, same)).
+true.
+
+?- matching_pair(pair(a, b)).
+false.
+
+?- head_tail([a, b, c], Head, Tail).
+Head = a, Tail = [b, c].
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: append([], Ys, Ys).
+rule 2: append([X | Xs], Ys, [X | Zs]) :- append(Xs, Ys, Zs).
+step 1: append([], [a, b], [a, b]).
+  because rule 1.
+  with Ys = [a, b].
+step 2: append([], [b], [b]).
+  because rule 1.
+  with Ys = [b].
+step 3: append([a], [b], [a, b]).
+  because rule 2 uses steps 2.
+  with Ys = [b], X = a, Zs = [b], Xs = [].
+step 4: append([], [], []).
+  because rule 1.
+  with Ys = [].
+step 5: append([b], [], [b]).
+  because rule 2 uses steps 4.
+  with Ys = [], X = b, Zs = [], Xs = [].
+step 6: append([a, b], [], [a, b]).
+  because rule 2 uses steps 5.
+  with Ys = [], X = a, Zs = [b], Xs = [b].
+That explains steps 1, 3, 6.
+
+Here is why. Each step is shown once.
+rule 1: matching_pair(pair(X, X)).
+step 1: matching_pair(pair(same, same)).
+  because rule 1.
+  with X = same.
+That explains step 1.
+
+Here is why. Each step is shown once.
+rule 1: head_tail([Head | Tail], Head, Tail).
+step 1: head_tail([a, b, c], a, [b, c]).
+  because rule 1.
+  with Head = a, Tail = [b, c].
+That explains step 1.
+
+% Check
+check passed: append([], [a, b], [a, b]).
+
+check passed: append([a], [b], [a, b]).
+
+check passed: append([a, b], [], [a, b]).
+
+check passed: aggregate_all(count, (append(Prefix, Suffix, [a, b])), 3).
+
+check passed: matching_pair(pair(same, same)).
+
+check passed: \+ (matching_pair(pair(a, b))).
+
+check passed: head_tail([a, b, c], a, [b, c]).

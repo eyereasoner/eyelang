@@ -1,0 +1,82 @@
+% Answer
+?- result(Name, Value).
+Name = example, Value = 12.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: value(Node, Value) :- literal(Node, Value).
+rule 2: calculate(mul, L, R, Value) :- Value is (L * R).
+rule 3: value(Node, Value) :- expression(Node, Operation, Left, Right), value(Left, L), value(Right, R), calculate(Operation, L, R, Value).
+rule 4: calculate(sub, L, R, Value) :- Value is (L - R).
+rule 5: calculate(add, L, R, Value) :- Value is (L + R).
+rule 6: result(Name, Value) :- root(Name, Node), value(Node, Value).
+step 1: root(example, total).
+  you told me this.
+step 2: expression(total, add, product, difference).
+  you told me this.
+step 3: expression(product, mul, n2, n3).
+  you told me this.
+step 4: literal(n2, 2).
+  you told me this.
+step 5: value(n2, 2).
+  because rule 1 uses steps 4.
+  with Node = n2, Value = 2.
+step 6: literal(n3, 3).
+  you told me this.
+step 7: value(n3, 3).
+  because rule 1 uses steps 6.
+  with Node = n3, Value = 3.
+step 8: 6 is (2 * 3).
+  I checked these values.
+step 9: calculate(mul, 2, 3, 6).
+  because rule 2 uses steps 8.
+  with L = 2, R = 3, Value = 6.
+  (2 * 3) = 6.
+step 10: value(product, 6).
+  because rule 3 uses steps 3, 5, 7, 9.
+  with Node = product, Operation = mul, Left = n2, Right = n3, L = 2, R = 3, Value = 6.
+step 11: expression(difference, sub, n10, n4).
+  you told me this.
+step 12: literal(n10, 10).
+  you told me this.
+step 13: value(n10, 10).
+  because rule 1 uses steps 12.
+  with Node = n10, Value = 10.
+step 14: literal(n4, 4).
+  you told me this.
+step 15: value(n4, 4).
+  because rule 1 uses steps 14.
+  with Node = n4, Value = 4.
+step 16: 6 is (10 - 4).
+  I checked these values.
+step 17: calculate(sub, 10, 4, 6).
+  because rule 4 uses steps 16.
+  with L = 10, R = 4, Value = 6.
+  (10 - 4) = 6.
+step 18: value(difference, 6).
+  because rule 3 uses steps 11, 13, 15, 17.
+  with Node = difference, Operation = sub, Left = n10, Right = n4, L = 10, R = 4, Value = 6.
+step 19: 12 is (6 + 6).
+  I checked these values.
+step 20: calculate(add, 6, 6, 12).
+  because rule 5 uses steps 19.
+  with L = 6, R = 6, Value = 12.
+  (6 + 6) = 12.
+step 21: value(total, 12).
+  because rule 3 uses steps 2, 10, 18, 20.
+  with Node = total, Operation = add, Left = product, Right = difference, L = 6, R = 6, Value = 12.
+step 22: result(example, 12).
+  because rule 6 uses steps 1, 21.
+  with Name = example, Node = total, Value = 12.
+That explains step 22.
+
+% Check
+check passed: result(example, 12).
+
+check passed: value(product, 6).
+
+check passed: value(difference, 6).
+
+check passed: value(total, 12).
+
+check passed: aggregate_all(count, (value(Node, Value)), 7).

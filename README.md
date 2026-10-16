@@ -133,6 +133,12 @@ Every example includes answers, reasons, and executable checks.
 | [Animals](https://github.com/eyereasoner/eyelang/blob/main/examples/animals.pl) | Facts, rules, and missing evidence |
 | [Friends](https://github.com/eyereasoner/eyelang/blob/main/examples/friends.pl) | Combining clues |
 | [Paths](https://github.com/eyereasoner/eyelang/blob/main/examples/paths.pl) | Rules with a loop |
+| [Lists](https://github.com/eyereasoner/eyelang/blob/main/examples/lists.pl) | Recursive concatenation, squares, and sums |
+| [Unification](https://github.com/eyereasoner/eyelang/blob/main/examples/unification.pl) | List splits and repeated-variable constraints |
+| [Hanoi](https://github.com/eyereasoner/eyelang/blob/main/examples/hanoi.pl) | Constructing a seven-move solution for three disks |
+| [Expression evaluation](https://github.com/eyereasoner/eyelang/blob/main/examples/expression-eval.pl) | Evaluating an expression graph and using its result in a rule |
+| [State transitions](https://github.com/eyereasoner/eyelang/blob/main/examples/state-transitions.pl) | Account balances from an ordered event log |
+| [Control system](https://github.com/eyereasoner/eyelang/blob/main/examples/control-system.pl) | Feedforward and nonlinear feedback actuator commands |
 | [French cities](https://github.com/eyereasoner/eyelang/blob/main/examples/french-cities.pl) | Routes through one-way roads |
 | [GPS](https://github.com/eyereasoner/eyelang/blob/main/examples/gps.pl) | Choosing a route by duration, cost, belief, and comfort |
 | [Age](https://github.com/eyereasoner/eyelang/blob/main/examples/age.pl) | Checking an age against a supplied date |

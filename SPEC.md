@@ -354,9 +354,11 @@ programs.
 all executable `.pl` examples. Each example demonstrates answers, explanations,
 and assertions. They include Socrates, positive cycles, routes, dates, exact
 arithmetic, probabilities, Fibonacci 10000, Ackermann, complex numbers, a Turing
-machine, two policy scenarios, negation, aggregation, and taxonomies up to
-100000 levels. These examples demonstrate behavior, not general performance
-or correctness guarantees for arbitrary inputs.
+machine, recursive lists, unification, Hanoi, expression graphs, account state
+transitions, feedforward and nonlinear feedback control, two policy scenarios,
+negation, aggregation, and taxonomies up to 100000 levels. These examples
+demonstrate behavior, not general performance or correctness guarantees for
+arbitrary inputs.
 
 [src/language.js](https://github.com/eyereasoner/eyelang/blob/main/src/language.js)
 exports `parse`, `infer`, `say`, and `run` without Node-specific dependencies.

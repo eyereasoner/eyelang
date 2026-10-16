@@ -1,0 +1,75 @@
+% Answer
+?- moves(3, left, right, center, Moves).
+Moves = [move(left, right), move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)].
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: moves(1, From, To, _, [move(From, To)]).
+rule 2: append([], Ys, Ys).
+rule 3: append([X | Xs], Ys, [X | Zs]) :- append(Xs, Ys, Zs).
+rule 4: moves(N, From, To, Spare, Moves) :- N > 1, Smaller is (N - 1), moves(Smaller, From, Spare, To, First), moves(Smaller, Spare, To, From, Last), append(First, [move(From, To) | Last], Moves).
+step 1: 3 > 1.
+  I checked these values.
+step 2: 2 is (3 - 1).
+  I checked these values.
+step 3: 2 > 1.
+  I checked these values.
+step 4: 1 is (2 - 1).
+  I checked these values.
+step 5: moves(1, left, right, center, [move(left, right)]).
+  because rule 1.
+  with From = left, To = right.
+step 6: moves(1, right, center, left, [move(right, center)]).
+  because rule 1.
+  with From = right, To = center.
+step 7: append([], [move(left, center), move(right, center)], [move(left, center), move(right, center)]).
+  because rule 2.
+  with Ys = [move(left, center), move(right, center)].
+step 8: append([move(left, right)], [move(left, center), move(right, center)], [move(left, right), move(left, center), move(right, center)]).
+  because rule 3 uses steps 7.
+  with X = move(left, right), Xs = [], Ys = [move(left, center), move(right, center)], Zs = [move(left, center), move(right, center)].
+step 9: moves(2, left, center, right, [move(left, right), move(left, center), move(right, center)]).
+  because rule 4 uses steps 3, 4, 5, 6, 8.
+  with N = 2, From = left, To = center, Spare = right, Moves = [move(left, right), move(left, center), move(right, center)], Smaller = 1, First = [move(left, right)], Last = [move(right, center)].
+  (2 - 1) = 1.
+step 10: 2 > 1.
+  I checked these values.
+step 11: 1 is (2 - 1).
+  I checked these values.
+step 12: moves(1, center, left, right, [move(center, left)]).
+  because rule 1.
+  with From = center, To = left.
+step 13: append([], [move(center, right), move(left, right)], [move(center, right), move(left, right)]).
+  because rule 2.
+  with Ys = [move(center, right), move(left, right)].
+step 14: append([move(center, left)], [move(center, right), move(left, right)], [move(center, left), move(center, right), move(left, right)]).
+  because rule 3 uses steps 13.
+  with X = move(center, left), Xs = [], Ys = [move(center, right), move(left, right)], Zs = [move(center, right), move(left, right)].
+step 15: moves(2, center, right, left, [move(center, left), move(center, right), move(left, right)]).
+  because rule 4 uses steps 10, 11, 12, 5, 14.
+  with N = 2, From = center, To = right, Spare = left, Moves = [move(center, left), move(center, right), move(left, right)], Smaller = 1, First = [move(center, left)], Last = [move(left, right)].
+  (2 - 1) = 1.
+step 16: append([], [move(left, right), move(center, left), move(center, right), move(left, right)], [move(left, right), move(center, left), move(center, right), move(left, right)]).
+  because rule 2.
+  with Ys = [move(left, right), move(center, left), move(center, right), move(left, right)].
+step 17: append([move(right, center)], [move(left, right), move(center, left), move(center, right), move(left, right)], [move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)]).
+  because rule 3 uses steps 16.
+  with X = move(right, center), Xs = [], Ys = [move(left, right), move(center, left), move(center, right), move(left, right)], Zs = [move(left, right), move(center, left), move(center, right), move(left, right)].
+step 18: append([move(left, center), move(right, center)], [move(left, right), move(center, left), move(center, right), move(left, right)], [move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)]).
+  because rule 3 uses steps 17.
+  with X = move(left, center), Xs = [move(right, center)], Ys = [move(left, right), move(center, left), move(center, right), move(left, right)], Zs = [move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)].
+step 19: append([move(left, right), move(left, center), move(right, center)], [move(left, right), move(center, left), move(center, right), move(left, right)], [move(left, right), move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)]).
+  because rule 3 uses steps 18.
+  with X = move(left, right), Xs = [move(left, center), move(right, center)], Ys = [move(left, right), move(center, left), move(center, right), move(left, right)], Zs = [move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)].
+step 20: moves(3, left, right, center, [move(left, right), move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)]).
+  because rule 4 uses steps 1, 2, 9, 15, 19.
+  with N = 3, From = left, To = right, Spare = center, Moves = [move(left, right), move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)], Smaller = 2, First = [move(left, right), move(left, center), move(right, center)], Last = [move(center, left), move(center, right), move(left, right)].
+  (3 - 1) = 2.
+That explains step 20.
+
+% Check
+check passed: moves(1, left, right, center, [move(left, right)]).
+
+check passed: moves(2, left, right, center, [move(left, center), move(left, right), move(center, right)]).
+
+check passed: moves(3, left, right, center, [move(left, right), move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)]).

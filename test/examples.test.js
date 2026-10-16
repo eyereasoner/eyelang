@@ -68,3 +68,24 @@ test('Fibonacci 10000 retains every digit and verifies Cassini independently', (
   assert.equal(previous.toString().length, 2090);
   assert.ok(result.some(line=>line.startsWith('check passed: cassini(10000, -1)')));
 });
+
+test('Hanoi moves are legal, reach the destination, and use seven moves', () => {
+  const source = readFileSync(new URL('hanoi.pl', examples), 'utf8');
+  const solution = infer(parse(source)).find(record =>
+    record.goal.relation === 'predicate:moves/5' && record.goal.terms[0] === '3' &&
+    record.goal.terms[1].atom === 'left' && record.goal.terms[2].atom === 'right');
+  assert.ok(solution);
+  const moves = solution.goal.terms[4].list;
+  assert.equal(moves.length, 7);
+  const pegs = { left: [3, 2, 1], center: [], right: [] };
+  for (const move of moves) {
+    assert.equal(move.functor, 'move');
+    const [from, to] = move.args.map(peg => peg.atom);
+    assert.notEqual(from, to);
+    const disk = pegs[from].pop();
+    assert.notEqual(disk, undefined, 'A move needs a disk on its source peg.');
+    assert.ok(!pegs[to].length || pegs[to].at(-1) > disk, 'A larger disk cannot cover a smaller disk.');
+    pegs[to].push(disk);
+  }
+  assert.deepEqual(pegs, { left: [], center: [], right: [3, 2, 1] });
+});
