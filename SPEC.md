@@ -1,8 +1,14 @@
 # eyelang Specification
 
+[eyelang](https://eyereasoner.github.io/eyelang/) ·
+[Repository](https://github.com/eyereasoner/eyelang) ·
+[Playground](https://eyereasoner.github.io/eyelang/playground) ·
+[Tutorial](https://eyereasoner.github.io/eyelang/TUTORIAL/) ·
+[Specification](https://eyereasoner.github.io/eyelang/SPEC)
+
 ```text
 Document: eyelang-spec-0001
-Category: Experimental
+Category: Language Specification
 Language version: 5.0.6
 Date: 2026-10-15
 ```
@@ -10,7 +16,7 @@ Date: 2026-10-15
 ## Status of This Memo
 
 This project specification is not an IETF RFC. It defines the implemented
-experimental eyelang subset of Prolog syntax. It does not claim full ISO Prolog
+eyelang subset of Prolog syntax. It does not claim full ISO Prolog
 conformance or compatibility with every Prolog program.
 
 ## 1. Conventions and conformance
@@ -298,6 +304,10 @@ report a source line. Unsupported syntax and runtime operations MUST fail
 explicitly. The earlier English-like syntax is not supported.
 
 ## 11. Implementation and examples
+
+[TUTORIAL.md](https://github.com/eyereasoner/eyelang/blob/main/TUTORIAL.md)
+introduces facts, rules, queries, explanations, checks, recursion, arithmetic,
+aggregation, structured terms, and demand-driven tabling through runnable programs.
 
 [README.md](https://github.com/eyereasoner/eyelang/blob/main/README.md) indexes
 all executable `.pl` examples. Each example demonstrates answers, explanations,

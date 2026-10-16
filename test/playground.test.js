@@ -29,6 +29,7 @@ test('the playground serves its page, browser modules, examples, and documentati
     ['/src/language.js', 'text/javascript', 'export function run('],
     ['/examples/socrates.pl', 'text/plain', 'human(socrates).'],
     ['/SPEC.md', 'text/plain', '# eyelang Specification'],
+    ['/TUTORIAL.md', 'text/plain', '# eyelang tutorial'],
   ]) {
     const response = await get(path);
     assert.equal(response.status, 200, path);
@@ -53,6 +54,7 @@ test('the playground server handles missing assets, malformed URLs, and unsuppor
 
 test('the playground offers every bundled example and links to existing local assets', () => {
   const html = readFileSync(new URL('../playground.html', import.meta.url), 'utf8');
+  assert.match(html, /href="https:\/\/eyereasoner\.github\.io\/eyelang\/TUTORIAL\/">Tutorial/);
   const listed = [...html.matchAll(/<option value="([a-z0-9-]+)"/g)].map(match => `${match[1]}.pl`);
   const files = readdirSync(new URL('../examples/', import.meta.url)).filter(file => file.endsWith('.pl'));
   assert.deepEqual(listed.sort(), files.sort());

@@ -1,6 +1,6 @@
 # Working on eyelang
 
-eyelang is an experimental symbolic logic programming language. Describe its
+eyelang is a symbolic logic programming language. Describe its
 implemented syntax, semantics, and limits without making claims about the age,
 background, or ability of its users. Distinguish demonstrated behavior from
 design goals. Keep explanations concrete, error messages specific, and
@@ -18,6 +18,7 @@ user-facing text direct.
 - `test/*.test.js`: Node.js behavior and regression tests.
 - `SPEC.md`: normative specification in RFC style.
 - `README.md`: concise introduction, usage, and example index.
+- `TUTORIAL.md`: hands-on guide with runnable programs and expected results.
 - `scripts/prepare-pages.js` and `scripts/pages-layout.html`: website staging
   and shared documentation layout.
 - `scripts/sync-version.js`, `release`, and `.github/workflows/`: version
@@ -65,8 +66,8 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 - Add new examples to the README index and the playground selector. Keep the
   specification's example descriptions current when relevant.
 - Keep README example links pointed at repository files. Preserve the same
-  top navigation on the homepage, specification, and playground: eyelang,
-  Repository, Playground, Specification.
+  top navigation on the homepage, specification, tutorial, and playground:
+  eyelang, Repository, Playground, Tutorial, Specification.
 - Use the project name `eyelang`. Omit obsolete slogans and public provenance
   notes about sibling projects. Do not restore `DESIGN.md`; keep language design
   and semantics in `SPEC.md`.

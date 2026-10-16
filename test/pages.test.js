@@ -31,18 +31,42 @@ test('Pages serves playground dependencies under the project path and prepares r
     assert.match(html, /href="\.\/">eyelang/);
     assert.match(html, /href="https:\/\/github.com\/eyereasoner\/eyelang">Repository/);
     assert.match(html, /href="playground\/">Playground/);
+    assert.match(html, /href="TUTORIAL\/">Tutorial/);
+    const tutorialUrl = new URL('TUTORIAL/', base);
+    assert.equal(tutorialUrl.pathname, '/eyelang/TUTORIAL/');
+    assert.ok((await read('TUTORIAL/index.md')).length > 0);
     assert.match(html, /href="SPEC\/">Specification/);
   }
 
   const home = await read('index.md');
   const spec = await read('SPEC/index.md');
+  const tutorial = await read('TUTORIAL/index.md');
   assert.match(home, /^---\nlayout: default\n/);
   assert.match(home, /\[SPEC.md\]\(SPEC\/\)/);
+  assert.match(home, /\[hands-on tutorial\]\(TUTORIAL\/\)/);
   assert.match(spec, /^---\nlayout: default\n/);
   assert.match(spec, /# eyelang Specification/);
+  assert.match(tutorial, /^---\nlayout: default\n/);
+  assert.match(tutorial, /# eyelang tutorial/);
+  for (const document of [home, spec, tutorial]) {
+    assert.match(document.split('\n## ')[0], /\[Tutorial\]\(https:\/\/eyereasoner\.github\.io\/eyelang\/TUTORIAL\/\)/);
+  }
+  assert.equal(await read('TUTORIAL.md'), await readFile(new URL('../TUTORIAL.md', import.meta.url), 'utf8'));
+  for (const [document, target, expected] of [
+    ['', 'TUTORIAL/', '/eyelang/TUTORIAL/'],
+    ['TUTORIAL/', '../SPEC/', '/eyelang/SPEC/'],
+    ['TUTORIAL/', '../#examples', '/eyelang/#examples'],
+  ]) {
+    const url = new URL(target, `https://eyereasoner.github.io/eyelang/${document}`);
+    assert.equal(url.pathname + url.hash, expected);
+    const page = url.pathname.slice('/eyelang/'.length);
+    assert.ok((await read(`${page}index.md`)).length > 0);
+    assert.ok((document ? tutorial : home).includes(`](${target})`));
+  }
   for (const [label, path] of [['README.md', 'blob/main/README.md'], ['src/language.js', 'blob/main/src/language.js'], ['test/', 'tree/main/test']]) {
     assert.ok(spec.includes(`[${label}](https://github.com/eyereasoner/eyelang/${path})`), label);
   }
   assert.equal(JSON.parse(await read('_config.yml')).baseurl, '/eyelang');
   assert.match(await read('_layouts/default.html'), /\{\{ content \}\}/);
+  assert.match(await read('_layouts/default.html'), /href="\{\{ '\/TUTORIAL\/' \| relative_url \}\}">Tutorial/);
 });
