@@ -89,3 +89,44 @@ test('Hanoi moves are legal, reach the destination, and use seven moves', () => 
   }
   assert.deepEqual(pegs, { left: [], center: [], right: [3, 2, 1] });
 });
+
+test('Peano arithmetic enumerates every split of three and computes factorial five as 120', () => {
+  const source = readFileSync(new URL('peano.pl', examples), 'utf8');
+  const records = infer(parse(source));
+  const natural = term => {
+    let value = 0;
+    while (term.functor === 's' && term.args.length === 1) {
+      value++;
+      term = term.args[0];
+    }
+    assert.deepEqual(term, { atom: 'zero' });
+    return value;
+  };
+  const splits = records.filter(record => record.goal.relation === 'predicate:add/3' &&
+    natural(record.goal.terms[2]) === 3).map(record => record.goal.terms.slice(0, 2).map(natural));
+  assert.deepEqual(splits.sort((a, b) => a[0] - b[0]), [[0, 3], [1, 2], [2, 1], [3, 0]]);
+  const factorials = new Map(records.filter(record => record.goal.relation === 'predicate:factorial/2')
+    .map(record => record.goal.terms.map(natural)));
+  let expected = 1;
+  for (let n = 0; n <= 5; n++) {
+    if (n) expected *= n;
+    assert.equal(factorials.get(n), expected);
+  }
+});
+
+test('Collatz trajectories agree with an independent iterative calculation for starts 1 through 20', () => {
+  const source = readFileSync(new URL('collatz.pl', examples), 'utf8');
+  const trajectories = new Map(infer(parse(source))
+    .filter(record => record.goal.relation === 'predicate:trajectory/2')
+    .map(record => [record.goal.terms[0], record.goal.terms[1].list]));
+  for (let start = 1n; start <= 20n; start++) {
+    const expected = [];
+    let n = start;
+    while (n !== 1n) {
+      expected.push(n.toString());
+      n = n % 2n === 0n ? n / 2n : 3n * n + 1n;
+    }
+    expected.push('1');
+    assert.deepEqual(trajectories.get(start.toString()), expected, `Starting value ${start}`);
+  }
+});

@@ -1,0 +1,110 @@
+% Answer
+?- dog_count(Owner, Count).
+Owner = alice, Count = 5.
+Owner = bob, Count = 2.
+Owner = carol, Count = 4.
+Owner = dana, Count = 0.
+
+?- requires(Owner, dog_license).
+Owner = alice.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: dog_count(Owner, N) :- owner(Owner), aggregate_all(count, (owns(Owner, Dog)), N).
+step 1: owner(alice).
+  you told me this.
+step 2: owns(alice, dog1).
+  you told me this.
+step 3: owns(alice, dog2).
+  you told me this.
+step 4: owns(alice, dog3).
+  you told me this.
+step 5: owns(alice, dog4).
+  you told me this.
+step 6: owns(alice, dog5).
+  you told me this.
+step 7: aggregate_all(count, (owns(Owner, Dog)), 5).
+  I computed count over 5 distinct matching tuples in the completed program. I used steps 2, 3, 4, 5, 6.
+step 8: dog_count(alice, 5).
+  because rule 1 uses steps 1, 7.
+  with Owner = alice, N = 5.
+step 9: owner(bob).
+  you told me this.
+step 10: owns(bob, dog6).
+  you told me this.
+step 11: owns(bob, dog7).
+  you told me this.
+step 12: aggregate_all(count, (owns(Owner, Dog)), 2).
+  I computed count over 2 distinct matching tuples in the completed program. I used steps 10, 11.
+step 13: dog_count(bob, 2).
+  because rule 1 uses steps 9, 12.
+  with Owner = bob, N = 2.
+step 14: owner(carol).
+  you told me this.
+step 15: owns(carol, dog8).
+  you told me this.
+step 16: owns(carol, dog9).
+  you told me this.
+step 17: owns(carol, dog10).
+  you told me this.
+step 18: owns(carol, dog11).
+  you told me this.
+step 19: aggregate_all(count, (owns(Owner, Dog)), 4).
+  I computed count over 4 distinct matching tuples in the completed program. I used steps 15, 16, 17, 18.
+step 20: dog_count(carol, 4).
+  because rule 1 uses steps 14, 19.
+  with Owner = carol, N = 4.
+step 21: owner(dana).
+  you told me this.
+step 22: aggregate_all(count, (owns(Owner, Dog)), 0).
+  I computed count over 0 distinct matching tuples in the completed program.
+step 23: dog_count(dana, 0).
+  because rule 1 uses steps 21, 22.
+  with Owner = dana, N = 0.
+That explains steps 8, 13, 20, 23.
+
+Here is why. Each step is shown once.
+rule 1: dog_count(Owner, N) :- owner(Owner), aggregate_all(count, (owns(Owner, Dog)), N).
+rule 2: requires(Owner, dog_license) :- dog_count(Owner, N), N > 4.
+step 1: owner(alice).
+  you told me this.
+step 2: owns(alice, dog1).
+  you told me this.
+step 3: owns(alice, dog2).
+  you told me this.
+step 4: owns(alice, dog3).
+  you told me this.
+step 5: owns(alice, dog4).
+  you told me this.
+step 6: owns(alice, dog5).
+  you told me this.
+step 7: aggregate_all(count, (owns(Owner, Dog)), 5).
+  I computed count over 5 distinct matching tuples in the completed program. I used steps 2, 3, 4, 5, 6.
+step 8: dog_count(alice, 5).
+  because rule 1 uses steps 1, 7.
+  with Owner = alice, N = 5.
+step 9: 5 > 4.
+  I checked these values.
+step 10: requires(alice, dog_license).
+  because rule 2 uses steps 8, 9.
+  with Owner = alice, N = 5.
+That explains step 10.
+
+% Check
+check passed: dog_count(alice, 5).
+
+check passed: dog_count(bob, 2).
+
+check passed: dog_count(carol, 4).
+
+check passed: dog_count(dana, 0).
+
+check passed: requires(alice, dog_license).
+
+check passed: \+ (requires(bob, dog_license)).
+
+check passed: \+ (requires(carol, dog_license)).
+
+check passed: \+ (requires(dana, dog_license)).
+
+check passed: aggregate_all(count, (requires(Owner, dog_license)), 1).
