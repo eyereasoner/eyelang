@@ -356,11 +356,13 @@ and assertions. They include Socrates, positive cycles, routes and minimum
 costs, Gregorian Easter dates, exact arithmetic, symbolic Peano arithmetic,
 bounded Collatz trajectories, peasant multiplication and exponentiation,
 probabilities, Fibonacci 10000, Ackermann, complex numbers, a Turing machine,
-recursive lists, unification, Hanoi, expression graphs, account state
-transitions, feedforward and nonlinear feedback control, policy scenarios,
-dog-count thresholds, negation, aggregation, and taxonomies up to 100000
-levels. These examples demonstrate behavior, not general performance or
-correctness guarantees for arbitrary inputs.
+recursive lists, prime sieving, unification, Hanoi, expression graphs,
+account state transitions, feedforward and nonlinear feedback control,
+interval relations, family branches, structured classifications, schema
+closure, role permissions, policy scenarios, dog-count thresholds, negation,
+aggregation, and taxonomies up to 100000 levels. These examples demonstrate
+behavior, not general performance or correctness guarantees for arbitrary
+inputs.
 
 [src/language.js](https://github.com/eyereasoner/eyelang/blob/main/src/language.js)
 exports `parse`, `infer`, `say`, and `run` without Node-specific dependencies.

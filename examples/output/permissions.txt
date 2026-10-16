@@ -1,0 +1,82 @@
+% Answer
+?- allowed(User, Action).
+User = alice, Action = read.
+User = alice, Action = write.
+User = bob, Action = read.
+
+?- candidate(carol, Action).
+Action = read.
+Action = write.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: candidate(User, Action) :- role(User, Role), permits(Role, Action).
+rule 2: allowed(User, Action) :- candidate(User, Action), \+ (suspended(User)).
+step 1: role(alice, editor).
+  you told me this.
+step 2: permits(editor, read).
+  you told me this.
+step 3: candidate(alice, read).
+  because rule 1 uses steps 1, 2.
+  with User = alice, Role = editor, Action = read.
+step 4: \+ (suspended(alice)).
+  I checked the completed program and found no matching fact.
+step 5: allowed(alice, read).
+  because rule 2 uses steps 3, 4.
+  with User = alice, Action = read.
+step 6: permits(editor, write).
+  you told me this.
+step 7: candidate(alice, write).
+  because rule 1 uses steps 1, 6.
+  with User = alice, Role = editor, Action = write.
+step 8: allowed(alice, write).
+  because rule 2 uses steps 7, 4.
+  with User = alice, Action = write.
+step 9: role(bob, viewer).
+  you told me this.
+step 10: permits(viewer, read).
+  you told me this.
+step 11: candidate(bob, read).
+  because rule 1 uses steps 9, 10.
+  with User = bob, Role = viewer, Action = read.
+step 12: \+ (suspended(bob)).
+  I checked the completed program and found no matching fact.
+step 13: allowed(bob, read).
+  because rule 2 uses steps 11, 12.
+  with User = bob, Action = read.
+That explains steps 5, 8, 13.
+
+Here is why. Each step is shown once.
+rule 1: candidate(User, Action) :- role(User, Role), permits(Role, Action).
+step 1: role(carol, editor).
+  you told me this.
+step 2: permits(editor, read).
+  you told me this.
+step 3: candidate(carol, read).
+  because rule 1 uses steps 1, 2.
+  with User = carol, Role = editor, Action = read.
+step 4: permits(editor, write).
+  you told me this.
+step 5: candidate(carol, write).
+  because rule 1 uses steps 1, 4.
+  with User = carol, Role = editor, Action = write.
+That explains steps 3, 5.
+
+% Check
+check passed: allowed(alice, read).
+
+check passed: allowed(alice, write).
+
+check passed: allowed(bob, read).
+
+check passed: \+ (allowed(bob, write)).
+
+check passed: candidate(carol, read).
+
+check passed: candidate(carol, write).
+
+check passed: \+ (allowed(carol, read)).
+
+check passed: \+ (allowed(carol, write)).
+
+check passed: aggregate_all(count, (allowed(User, Action)), 3).

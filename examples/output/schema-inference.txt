@@ -1,0 +1,82 @@
+% Answer
+?- type(Who, Class).
+Who = koko, Class = cat.
+Who = koko, Class = mammal.
+Who = alice, Class = person.
+Who = bob, Class = person.
+Who = koko, Class = animal.
+
+?- triple(Subject, Property, Object).
+Subject = alice, Property = parent_of, Object = bob.
+Subject = alice, Property = related_to, Object = bob.
+Subject = alice, Property = connected_to, Object = bob.
+
+?- type(alice, person).
+true.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: subclass(A, C) :- subclass(A, B), subclass(B, C).
+rule 2: type(X, B) :- type(X, A), subclass(A, B).
+step 1: type(koko, cat).
+  you told me this.
+step 2: subclass(cat, mammal).
+  you told me this.
+step 3: subclass(mammal, animal).
+  you told me this.
+step 4: subclass(cat, animal).
+  because rule 1 uses steps 2, 3.
+  with A = cat, B = mammal, C = animal.
+step 5: type(koko, animal).
+  because rule 2 uses steps 1, 4.
+  with X = koko, A = cat, B = animal.
+That explains step 5.
+
+Here is why. Each step is shown once.
+rule 1: subproperty(P, R) :- subproperty(P, Q), subproperty(Q, R).
+rule 2: triple(S, Q, O) :- triple(S, P, O), subproperty(P, Q).
+step 1: triple(alice, parent_of, bob).
+  you told me this.
+step 2: subproperty(parent_of, related_to).
+  you told me this.
+step 3: subproperty(related_to, connected_to).
+  you told me this.
+step 4: subproperty(parent_of, connected_to).
+  because rule 1 uses steps 2, 3.
+  with P = parent_of, Q = related_to, R = connected_to.
+step 5: triple(alice, connected_to, bob).
+  because rule 2 uses steps 1, 4.
+  with S = alice, P = parent_of, O = bob, Q = connected_to.
+That explains step 5.
+
+Here is why. Each step is shown once.
+rule 1: type(S, Class) :- triple(S, P, _), domain(P, Class).
+step 1: triple(alice, parent_of, bob).
+  you told me this.
+step 2: domain(parent_of, person).
+  you told me this.
+step 3: type(alice, person).
+  because rule 1 uses steps 1, 2.
+  with S = alice, P = parent_of, Class = person.
+That explains step 3.
+
+% Check
+check passed: subclass(cat, animal).
+
+check passed: subproperty(parent_of, connected_to).
+
+check passed: type(koko, mammal).
+
+check passed: type(koko, animal).
+
+check passed: type(alice, person).
+
+check passed: type(bob, person).
+
+check passed: triple(alice, related_to, bob).
+
+check passed: triple(alice, connected_to, bob).
+
+check passed: aggregate_all(count, (triple(Subject, Property, Object)), 3).
+
+check passed: aggregate_all(count, (type(Who, Class)), 5).

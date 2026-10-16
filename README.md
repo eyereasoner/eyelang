@@ -132,6 +132,9 @@ Every example includes answers, reasons, and executable checks.
 | [Socrates](https://github.com/eyereasoner/eyelang/blob/main/examples/socrates.pl) | The hello world of reasoning |
 | [Animals](https://github.com/eyereasoner/eyelang/blob/main/examples/animals.pl) | Facts, rules, and missing evidence |
 | [Friends](https://github.com/eyereasoner/eyelang/blob/main/examples/friends.pl) | Combining clues |
+| [Family cousins](https://github.com/eyereasoner/eyelang/blob/main/examples/family-cousins.pl) | Generations and inherited branch labels |
+| [Good cobbler](https://github.com/eyereasoner/eyelang/blob/main/examples/good-cobbler.pl) | Matching structured descriptions of skills |
+| [Schema inference](https://github.com/eyereasoner/eyelang/blob/main/examples/schema-inference.pl) | Subclasses, subproperties, domains, and ranges |
 | [Paths](https://github.com/eyereasoner/eyelang/blob/main/examples/paths.pl) | Rules with a loop |
 | [Shortest path](https://github.com/eyereasoner/eyelang/blob/main/examples/shortest-path.pl) | Minimum costs in an acyclic weighted graph |
 | [Lists](https://github.com/eyereasoner/eyelang/blob/main/examples/lists.pl) | Recursive concatenation, squares, and sums |
@@ -139,10 +142,12 @@ Every example includes answers, reasons, and executable checks.
 | [Hanoi](https://github.com/eyereasoner/eyelang/blob/main/examples/hanoi.pl) | Constructing a seven-move solution for three disks |
 | [Peano arithmetic](https://github.com/eyereasoner/eyelang/blob/main/examples/peano.pl) | Symbolic addition, multiplication, factorials, and splitting a sum |
 | [Collatz](https://github.com/eyereasoner/eyelang/blob/main/examples/collatz.pl) | Recursive trajectories for starting values 1 through 20 |
+| [Sieve](https://github.com/eyereasoner/eyelang/blob/main/examples/sieve.pl) | Finding all primes through 100 with recursive list filtering |
 | [Peasant arithmetic](https://github.com/eyereasoner/eyelang/blob/main/examples/peasant.pl) | Exact multiplication and exponentiation by halving |
 | [Expression evaluation](https://github.com/eyereasoner/eyelang/blob/main/examples/expression-eval.pl) | Evaluating an expression graph and using its result in a rule |
 | [State transitions](https://github.com/eyereasoner/eyelang/blob/main/examples/state-transitions.pl) | Account balances from an ordered event log |
 | [Control system](https://github.com/eyereasoner/eyelang/blob/main/examples/control-system.pl) | Feedforward and nonlinear feedback actuator commands |
+| [Interval relations](https://github.com/eyereasoner/eyelang/blob/main/examples/interval-relations.pl) | All thirteen interval relations and derived endpoints |
 | [French cities](https://github.com/eyereasoner/eyelang/blob/main/examples/french-cities.pl) | Routes through one-way roads |
 | [GPS](https://github.com/eyereasoner/eyelang/blob/main/examples/gps.pl) | Choosing a route by duration, cost, belief, and comfort |
 | [Age](https://github.com/eyereasoner/eyelang/blob/main/examples/age.pl) | Checking an age against a supplied date |
@@ -155,6 +160,7 @@ Every example includes answers, reasons, and executable checks.
 | [Turing machine](https://github.com/eyereasoner/eyelang/blob/main/examples/turing.pl) | Running binary tapes with ordinary rules |
 | [Delfour](https://github.com/eyereasoner/eyelang/blob/main/examples/delfour.pl) | A shopping policy and a lower-sugar recommendation |
 | [Dog license](https://github.com/eyereasoner/eyelang/blob/main/examples/dog-license.pl) | A supplied ownership threshold, including zero and boundary counts |
+| [Permissions](https://github.com/eyereasoner/eyelang/blob/main/examples/permissions.pl) | Role permissions with suspension exclusions |
 | [Research portal](https://github.com/eyereasoner/eyelang/blob/main/examples/research-portal.pl) | Research policy, device consent, and breach plans across two rulebooks |
 | [Negation](https://github.com/eyereasoner/eyelang/blob/main/examples/negation.pl) | Reasoning from absent evidence |
 | [Aggregation](https://github.com/eyereasoner/eyelang/blob/main/examples/aggregation.pl) | Counts, totals, and smallest/largest values |

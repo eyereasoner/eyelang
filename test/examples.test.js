@@ -130,3 +130,56 @@ test('Collatz trajectories agree with an independent iterative calculation for s
     assert.deepEqual(trajectories.get(start.toString()), expected, `Starting value ${start}`);
   }
 });
+
+test('the sieve produces exactly the primes found independently by trial division', () => {
+  const source = readFileSync(new URL('sieve.pl', examples), 'utf8');
+  const results = new Map(infer(parse(source))
+    .filter(record => record.goal.relation === 'predicate:primes/2')
+    .map(record => [record.goal.terms[0], record.goal.terms[1].list]));
+  for (const limit of [1, 2, 10, 100]) {
+    const expected = [];
+    for (let number = 2; number <= limit; number++) {
+      let prime = true;
+      for (let divisor = 2; divisor * divisor <= number; divisor++) {
+        if (number % divisor === 0) { prime = false; break; }
+      }
+      if (prime) expected.push(String(number));
+    }
+    assert.deepEqual(results.get(String(limit)), expected, `Limit ${limit}`);
+  }
+});
+
+test('interval relations classify every ordered pair by its normalized endpoint order', () => {
+  const source = readFileSync(new URL('interval-relations.pl', examples), 'utf8');
+  const records = infer(parse(source));
+  const intervals = new Map(records.filter(record => record.goal.relation === 'predicate:interval/3')
+    .map(record => [record.goal.terms[0].atom, record.goal.terms.slice(1).map(Number)]));
+  assert.equal(intervals.size, 10);
+  // Endpoint ranks give an independent classification of all thirteen cases.
+  const patterns = new Map([
+    ['0123', 'before'], ['0112', 'meets'], ['0213', 'overlaps'],
+    ['0102', 'starts'], ['1203', 'during'], ['1202', 'finishes'],
+    ['0101', 'equals'], ['2301', 'after'], ['1201', 'met_by'],
+    ['1302', 'overlapped_by'], ['0201', 'started_by'],
+    ['0312', 'contains'], ['0212', 'finished_by'],
+  ]);
+  const actual = new Map();
+  for (const record of records.filter(record => record.goal.relation === 'predicate:relation/3')) {
+    const [first, relation, second] = record.goal.terms.map(term => term.atom);
+    const pair = `${first}:${second}`;
+    if (!actual.has(pair)) actual.set(pair, []);
+    actual.get(pair).push(relation);
+  }
+  assert.equal(actual.size, 100);
+  const observed = new Set();
+  for (const [first, left] of intervals) for (const [second, right] of intervals) {
+    const endpoints = [...left, ...right];
+    const ordered = [...new Set(endpoints)].sort((a, b) => a - b);
+    const signature = endpoints.map(value => ordered.indexOf(value)).join('');
+    const expected = patterns.get(signature);
+    assert.ok(expected, `Unknown endpoint order ${signature}`);
+    assert.deepEqual(actual.get(`${first}:${second}`), [expected], `${first} and ${second}`);
+    observed.add(expected);
+  }
+  assert.deepEqual([...observed].sort(), [...patterns.values()].sort());
+});

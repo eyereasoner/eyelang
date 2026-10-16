@@ -1,0 +1,56 @@
+% Answer
+?- good_at(Person, Trade).
+Person = joe, Trade = cobbler.
+Person = jane, Trade = carpenter.
+
+?- classified_as(Person, Trade).
+Person = joe, Trade = cobbler.
+Person = jane, Trade = carpenter.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: good_at(Person, Trade) :- description(Person, [good, Trade]).
+step 1: description(joe, [good, cobbler]).
+  you told me this.
+step 2: good_at(joe, cobbler).
+  because rule 1 uses steps 1.
+  with Person = joe, Trade = cobbler.
+step 3: description(jane, [good, carpenter]).
+  you told me this.
+step 4: good_at(jane, carpenter).
+  because rule 1 uses steps 3.
+  with Person = jane, Trade = carpenter.
+That explains steps 2, 4.
+
+Here is why. Each step is shown once.
+rule 1: classified_as(Person, Trade) :- description(Person, [good, Trade]).
+step 1: description(joe, [good, cobbler]).
+  you told me this.
+step 2: classified_as(joe, cobbler).
+  because rule 1 uses steps 1.
+  with Person = joe, Trade = cobbler.
+step 3: description(jane, [good, carpenter]).
+  you told me this.
+step 4: classified_as(jane, carpenter).
+  because rule 1 uses steps 3.
+  with Person = jane, Trade = carpenter.
+That explains steps 2, 4.
+
+% Check
+check passed: good_at(joe, cobbler).
+
+check passed: good_at(jane, carpenter).
+
+check passed: classified_as(joe, cobbler).
+
+check passed: classified_as(jane, carpenter).
+
+check passed: \+ (good_at(joe, carpenter)).
+
+check passed: \+ (good_at(sam, cobbler)).
+
+check passed: \+ (classified_as(sam, cobbler)).
+
+check passed: aggregate_all(count, (good_at(Person, Trade)), 2).
+
+check passed: aggregate_all(count, (classified_as(Person, Trade)), 2).

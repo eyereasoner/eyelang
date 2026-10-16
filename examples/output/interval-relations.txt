@@ -1,0 +1,170 @@
+% Answer
+?- relation(I, Relation, J).
+I = a, Relation = before, J = b.
+I = a, Relation = meets, J = c.
+I = d, Relation = meets, J = b.
+I = e, Relation = before, J = b.
+I = e, Relation = meets, J = c.
+I = f, Relation = before, J = b.
+I = f, Relation = before, J = c.
+I = f, Relation = meets, J = d.
+I = f, Relation = meets, J = g.
+I = g, Relation = before, J = b.
+I = g, Relation = meets, J = c.
+I = a, Relation = equals, J = a.
+I = b, Relation = after, J = a.
+I = c, Relation = met_by, J = a.
+I = a, Relation = equals, J = e.
+I = a, Relation = during, J = h.
+I = b, Relation = equals, J = b.
+I = b, Relation = during, J = h.
+I = c, Relation = equals, J = c.
+I = c, Relation = during, J = h.
+I = b, Relation = met_by, J = d.
+I = d, Relation = equals, J = d.
+I = d, Relation = during, J = h.
+I = e, Relation = equals, J = a.
+I = b, Relation = after, J = e.
+I = c, Relation = met_by, J = e.
+I = e, Relation = equals, J = e.
+I = e, Relation = during, J = h.
+I = f, Relation = starts, J = a.
+I = b, Relation = after, J = f.
+I = c, Relation = after, J = f.
+I = d, Relation = met_by, J = f.
+I = f, Relation = starts, J = e.
+I = f, Relation = equals, J = f.
+I = g, Relation = met_by, J = f.
+I = f, Relation = during, J = h.
+I = g, Relation = finishes, J = a.
+I = b, Relation = after, J = g.
+I = c, Relation = met_by, J = g.
+I = g, Relation = starts, J = d.
+I = g, Relation = finishes, J = e.
+I = g, Relation = equals, J = g.
+I = g, Relation = during, J = h.
+I = h, Relation = equals, J = h.
+I = a, Relation = before, J = i.
+I = b, Relation = before, J = i.
+I = c, Relation = before, J = i.
+I = d, Relation = before, J = i.
+I = e, Relation = before, J = i.
+I = f, Relation = before, J = i.
+I = g, Relation = before, J = i.
+I = h, Relation = meets, J = i.
+I = a, Relation = before, J = j.
+I = b, Relation = meets, J = j.
+I = c, Relation = before, J = j.
+I = d, Relation = before, J = j.
+I = e, Relation = before, J = j.
+I = f, Relation = before, J = j.
+I = g, Relation = before, J = j.
+I = a, Relation = overlaps, J = d.
+I = h, Relation = contains, J = a.
+I = h, Relation = contains, J = b.
+I = c, Relation = overlaps, J = b.
+I = h, Relation = contains, J = c.
+I = d, Relation = overlaps, J = c.
+I = h, Relation = contains, J = d.
+I = e, Relation = overlaps, J = d.
+I = h, Relation = contains, J = e.
+I = a, Relation = started_by, J = f.
+I = e, Relation = started_by, J = f.
+I = h, Relation = contains, J = f.
+I = a, Relation = finished_by, J = g.
+I = d, Relation = started_by, J = g.
+I = e, Relation = finished_by, J = g.
+I = h, Relation = contains, J = g.
+I = i, Relation = after, J = a.
+I = i, Relation = after, J = b.
+I = i, Relation = after, J = c.
+I = i, Relation = after, J = d.
+I = i, Relation = after, J = e.
+I = i, Relation = after, J = f.
+I = i, Relation = after, J = g.
+I = i, Relation = met_by, J = h.
+I = j, Relation = meets, J = i.
+I = j, Relation = after, J = a.
+I = j, Relation = met_by, J = b.
+I = j, Relation = after, J = c.
+I = j, Relation = after, J = d.
+I = j, Relation = after, J = e.
+I = j, Relation = after, J = f.
+I = j, Relation = after, J = g.
+I = d, Relation = overlapped_by, J = a.
+I = b, Relation = overlapped_by, J = c.
+I = c, Relation = overlapped_by, J = d.
+I = d, Relation = overlapped_by, J = e.
+I = i, Relation = equals, J = i.
+I = j, Relation = finishes, J = h.
+I = i, Relation = met_by, J = j.
+I = j, Relation = equals, J = j.
+I = h, Relation = finished_by, J = j.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: valid_interval(I, S, E) :- interval(I, S, E), S < E.
+rule 2: pair(I, J, SI, EI, SJ, EJ) :- valid_interval(I, SI, EI), valid_interval(J, SJ, EJ).
+rule 3: relation(I, overlaps, J) :- pair(I, J, SI, EI, SJ, EJ), SI < SJ, SJ < EI, EI < EJ.
+step 1: interval(a, 600, 720).
+  you told me this.
+step 2: 600 < 720.
+  I checked these values.
+step 3: valid_interval(a, 600, 720).
+  because rule 1 uses steps 1, 2.
+  with I = a, S = 600, E = 720.
+step 4: interval(d, 660, 780).
+  you told me this.
+step 5: 660 < 780.
+  I checked these values.
+step 6: valid_interval(d, 660, 780).
+  because rule 1 uses steps 4, 5.
+  with I = d, S = 660, E = 780.
+step 7: pair(a, d, 600, 720, 660, 780).
+  because rule 2 uses steps 3, 6.
+  with I = a, SI = 600, EI = 720, J = d, SJ = 660, EJ = 780.
+step 8: 600 < 660.
+  I checked these values.
+step 9: 660 < 720.
+  I checked these values.
+step 10: 720 < 780.
+  I checked these values.
+step 11: relation(a, overlaps, d).
+  because rule 3 uses steps 7, 8, 9, 10.
+  with I = a, J = d, SI = 600, EI = 720, SJ = 660, EJ = 780.
+That explains step 11.
+
+% Check
+check passed: relation(a, before, b).
+
+check passed: relation(b, after, a).
+
+check passed: relation(a, meets, c).
+
+check passed: relation(c, met_by, a).
+
+check passed: relation(a, overlaps, d).
+
+check passed: relation(d, overlapped_by, a).
+
+check passed: relation(f, starts, a).
+
+check passed: relation(a, started_by, f).
+
+check passed: relation(a, during, h).
+
+check passed: relation(h, contains, a).
+
+check passed: relation(g, finishes, a).
+
+check passed: relation(a, finished_by, g).
+
+check passed: relation(a, equals, e).
+
+check passed: interval(i, 960, 1080).
+
+check passed: interval(j, 900, 960).
+
+check passed: aggregate_all(count, (interval(I, S, E)), 10).
+
+check passed: aggregate_all(count, (relation(I, Relation, J)), 100).
