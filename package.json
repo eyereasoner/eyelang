@@ -1,6 +1,6 @@
 {
   "name": "eyelang",
-  "version": "5.0.4",
+  "version": "5.0.5",
   "description": "An experimental symbolic logic programming language using a practical Prolog subset.",
   "repository": {
     "type": "git",
