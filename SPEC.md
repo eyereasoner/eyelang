@@ -9,7 +9,7 @@
 ```text
 Document: eyelang-spec-0001
 Category: Language Specification
-Language version: 5.0.6
+Language version: 5.0.7
 Date: 2026-10-15
 ```
 
