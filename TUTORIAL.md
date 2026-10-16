@@ -8,31 +8,16 @@ connections, calculate a journey time, and summarize the options. Along the
 way, each program produces an answer, explains it, and checks an expectation.
 That is **ARC: Answer, Reason, Check**.
 
-## Run a program
-
-Open the [playground](https://eyereasoner.github.io/eyelang/playground/), replace
-the editor contents with a program below, and press **Run program**.
-Use **Stop** to cancel a long computation.
-
-For the command line, install eyelang with Node.js 18 or later:
-
-```sh
-npm install --global eyelang
-eyelang outing.pl
-```
-
-Save the program as `outing.pl` before running it. From a repository checkout,
-use `node eyelang.js outing.pl` instead; running the interpreter requires no
-package installation or build step. Queries belong in the file alongside the
-facts and rules.
-
-Each Prolog block below is a complete program. Replace the file or editor
-contents when moving to the next block.
+Each lesson has a **🚀 Try it in the playground** link. Open it and press
+**Run program** to see the answers, reasons, and checks. The complete program
+is already loaded; edit it to try your own ideas and run it again.
 
 ## 1. Make your first inference
 
 Start with a place and a fact about its opening status. A rule connects the
 two facts to a possible visit:
+
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=place%28park%29.%0Aopen%28park%29.%0A%0Avisit%28Place%29%20%3A-%0A%20%20%20%20place%28Place%29%2C%0A%20%20%20%20open%28Place%29.%0A%0A%25%20Answer%0A%3F-%20visit%28Where%29.%0A%25%20Reason%0A%3F-%20why.%0A%25%20Check%0A%3A-%20assertion%28visit%28park%29%29.)
 
 ```prolog
 place(park).
@@ -92,6 +77,8 @@ quotes for atoms such as `'city-park'` and double quotes for strings such as
 Now choose among several places. A visit must have a known entry fee, fit a
 limit of 6, and have no recorded closure:
 
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=place%28park%29.%0Aplace%28museum%29.%0Aplace%28cafe%29.%0Aentry_fee%28park%2C%200%29.%0Aentry_fee%28museum%2C%2012%29.%0Aentry_fee%28cafe%2C%205%29.%0Aclosed%28museum%29.%0A%0Avisit%28Place%2C%20Fee%29%20%3A-%0A%20%20%20%20place%28Place%29%2C%0A%20%20%20%20entry_fee%28Place%2C%20Fee%29%2C%0A%20%20%20%20%5C%2B%20closed%28Place%29%2C%0A%20%20%20%20Fee%20%3D%3C%206.%0A%0A%3F-%20visit%28Where%2C%20Fee%29.%0A%3F-%20why%28visit%28cafe%2C%205%29%29.%0A%0A%3A-%20assertion%28visit%28park%2C%200%29%29.%0A%3A-%20assertion%28visit%28cafe%2C%205%29%29.%0A%3A-%20assertion%28%5C%2B%20visit%28museum%2C%2012%29%29.%0A%3A-%20assertion%28aggregate_all%28count%2C%20visit%28Place%2C%20Fee%29%2C%202%29%29.)
+
 ```prolog
 place(park).
 place(museum).
@@ -149,6 +136,8 @@ Some conclusions need more than one application of a rule. A reachable place
 is either one road away, or reachable after taking a road to an intermediate
 place:
 
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=road%28home%2C%20park%29.%0Aroad%28park%2C%20museum%29.%0Aroad%28park%2C%20cafe%29.%0Aroad%28museum%2C%20park%29.%0A%0Areachable%28From%2C%20To%29%20%3A-%0A%20%20%20%20road%28From%2C%20To%29.%0Areachable%28From%2C%20To%29%20%3A-%0A%20%20%20%20road%28From%2C%20Via%29%2C%0A%20%20%20%20reachable%28Via%2C%20To%29.%0A%0A%3F-%20reachable%28home%2C%20Where%29.%0A%3F-%20why%28reachable%28home%2C%20museum%29%29.%0A%0A%3A-%20assertion%28reachable%28home%2C%20park%29%29.%0A%3A-%20assertion%28reachable%28home%2C%20museum%29%29.%0A%3A-%20assertion%28reachable%28home%2C%20cafe%29%29.%0A%3A-%20assertion%28aggregate_all%28count%2C%20reachable%28home%2C%20Place%29%2C%203%29%29.%0A%3A-%20assertion%28%5C%2B%20reachable%28home%2C%20home%29%29.)
+
 ```prolog
 road(home, park).
 road(park, museum).
@@ -193,6 +182,8 @@ then check your prediction with an assertion and an updated count.
 Keep numbers as data and make each calculation explicit. This program finds
 two-leg journeys from home that take at most 20 minutes:
 
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=leg%28home%2C%20park%2C%2010%29.%0Aleg%28park%2C%20cafe%2C%207%29.%0Aleg%28park%2C%20museum%2C%2025%29.%0A%0Ashort_trip%28To%2C%20Minutes%29%20%3A-%0A%20%20%20%20leg%28home%2C%20Via%2C%20First%29%2C%0A%20%20%20%20leg%28Via%2C%20To%2C%20Second%29%2C%0A%20%20%20%20Minutes%20is%20First%20%2B%20Second%2C%0A%20%20%20%20Minutes%20%3D%3C%2020.%0A%0A%3F-%20short_trip%28Where%2C%20Minutes%29.%0A%3F-%20why.%0A%3F-%20Value%20is%209007199254740993%20%2B%201.%0A%0A%3A-%20assertion%28short_trip%28cafe%2C%2017%29%29.%0A%3A-%20assertion%28%5C%2B%20short_trip%28museum%2C%2035%29%29.%0A%3A-%20assertion%289007199254740993%20%2B%201%20%3D%3A%3D%209007199254740994%29.)
+
 ```prolog
 leg(home, park, 10).
 leg(park, cafe, 7).
@@ -236,6 +227,8 @@ enumerate journeys of arbitrary length.
 
 An aggregate answers a question about a completed set of matching tuples:
 
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=entry_fee%28park%2C%200%29.%0Aentry_fee%28cafe%2C%205%29.%0Aentry_fee%28garden%2C%205%29.%0Aentry_fee%28museum%2C%2012%29.%0Aentry_fee%28cafe%2C%205%29.%0A%0A%3F-%20aggregate_all%28count%2C%20entry_fee%28Place%2C%20Fee%29%2C%20Count%29.%0A%3F-%20aggregate_all%28sum%28Fee%29%2C%20entry_fee%28Place%2C%20Fee%29%2C%20Total%29.%0A%3F-%20why.%0A%0A%3A-%20assertion%28aggregate_all%28count%2C%20entry_fee%28Place%2C%20Fee%29%2C%204%29%29.%0A%3A-%20assertion%28aggregate_all%28sum%28Fee%29%2C%20entry_fee%28Place%2C%20Fee%29%2C%2022%29%29.%0A%3A-%20assertion%28aggregate_all%28min%28Fee%29%2C%20entry_fee%28Place%2C%20Fee%29%2C%200%29%29.%0A%3A-%20assertion%28aggregate_all%28max%28Fee%29%2C%20entry_fee%28Place%2C%20Fee%29%2C%2012%29%29.)
+
 ```prolog
 entry_fee(park, 0).
 entry_fee(cafe, 5).
@@ -268,6 +261,8 @@ display only `Count` or `Total`.
 A term can describe more than a single label. Here, `details/2` groups an entry
 type and a list of activities. List patterns let a rule inspect the first item
 and continue with the rest:
+
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=%3A-%20table%20member%2F2.%0A%0Aouting%28park%2C%20details%28free%2C%20%5Bwalk%2C%20picnic%5D%29%29.%0Aouting%28museum%2C%20details%28ticketed%2C%20%5Bart%2C%20history%5D%29%29.%0A%0Amember%28Item%2C%20%5BItem%20%7C%20_%5D%29.%0Amember%28Item%2C%20%5B_%20%7C%20Rest%5D%29%20%3A-%0A%20%20%20%20member%28Item%2C%20Rest%29.%0A%0A%3F-%20outing%28Where%2C%20details%28free%2C%20%5BFirst%20%7C%20Rest%5D%29%29.%0A%3F-%20why.%0A%3F-%20outing%28Where%2C%20details%28_Kind%2C%20Activities%29%29%2C%20member%28picnic%2C%20Activities%29.%0A%3F-%20why.%0A%0A%3A-%20assertion%28member%28picnic%2C%20%5Bwalk%2C%20picnic%5D%29%29.%0A%3A-%20assertion%28%5C%2B%20member%28swim%2C%20%5Bwalk%2C%20picnic%5D%29%29.)
 
 ```prolog
 :- table member/2.
@@ -303,6 +298,8 @@ answers; the interpreter does not return unresolved list tails as answers.
 
 Tabling is also useful when a calculation needs an input. Supply a particular
 Fibonacci index and share the intermediate answers needed to compute it:
+
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=%3A-%20table%20fibonacci%2F2.%0A%0Afibonacci%280%2C%200%29.%0Afibonacci%281%2C%201%29.%0Afibonacci%28N%2C%20Value%29%20%3A-%0A%20%20%20%20N%20%3E%201%2C%0A%20%20%20%20PreviousIndex%20is%20N%20-%201%2C%0A%20%20%20%20EarlierIndex%20is%20N%20-%202%2C%0A%20%20%20%20fibonacci%28PreviousIndex%2C%20Previous%29%2C%0A%20%20%20%20fibonacci%28EarlierIndex%2C%20Earlier%29%2C%0A%20%20%20%20Value%20is%20Previous%20%2B%20Earlier.%0A%0A%3F-%20fibonacci%2820%2C%20Value%29.%0A%3F-%20why.%0A%0A%3A-%20assertion%28fibonacci%2820%2C%206765%29%29.%0A%3A-%20assertion%28%28fibonacci%2819%2C%20A%29%2C%20fibonacci%2820%2C%20B%29%2C%20fibonacci%2821%2C%20C%29%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20A%2AC%20-%20B%2AB%20%3D%3A%3D%201%29%29.)
 
 ```prolog
 :- table fibonacci/2.
@@ -352,6 +349,8 @@ with inputs, finite data, and stopping conditions.
 An assertion turns an expectation into an executable part of the program.
 This deliberately incorrect expectation makes the run fail:
 
+[🚀 Try it in the playground](https://eyereasoner.github.io/eyelang/playground/#program=entry_fee%28cafe%2C%205%29.%0A%3F-%20entry_fee%28cafe%2C%20Fee%29.%0A%3F-%20why.%0A%3A-%20assertion%28entry_fee%28cafe%2C%204%29%29.)
+
 ```prolog
 entry_fee(cafe, 5).
 ?- entry_fee(cafe, Fee).
@@ -386,11 +385,6 @@ and taxonomy programs. The [specification](SPEC.md) defines the exact syntax and
 semantics. eyelang implements a Prolog subset: cut, disjunction, general
 meta-calls, modules, mutation, and external I/O predicates are outside it.
 
-When a proof becomes large, save the complete CLI output:
-
-```sh
-eyelang outing.pl > outing-arc.txt
-```
-
-In the playground, the preview may be shortened, but copying or saving the
-output keeps the complete result.
+Use **Save program** in the playground to keep your edited `.pl` file.
+**Copy output** and **Save output** keep the complete answers, reasons, and
+checks, including when a long result has a shortened preview.

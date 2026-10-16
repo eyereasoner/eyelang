@@ -67,6 +67,25 @@ async function playground({ hash = '', draft, fetch: fetchOverride, token = null
 const shared = app => app.element('share-url').value;
 const program = app => app.element('program').value;
 
+test('tutorial links prefill every lesson and run its exact program', async () => {
+  const tutorial = await readFile(new URL('TUTORIAL.md', root), 'utf8');
+  const sources = [...tutorial.matchAll(/```prolog\n([\s\S]*?)\n```/g)].map(match => match[1]);
+  const links = [...tutorial.matchAll(/\[🚀 Try it in the playground\]\(([^)]+)\)/g)].map(match => new URL(match[1]));
+  assert.equal(links.length, sources.length);
+  assert.ok(links.length > 0);
+  for (const [index, link] of links.entries()) {
+    assert.equal(link.origin, 'https://eyereasoner.github.io');
+    assert.equal(link.pathname, '/eyelang/playground/');
+    assert.equal(decodeURIComponent(link.hash.slice(9)), sources[index]);
+    const app = await playground({ hash: link.hash, draft: { source: 'old draft' } });
+    assert.equal(program(app), sources[index], `lesson ${index+1}`);
+    assert.equal(app.runs.length, 0);
+    await app.dispatch('run');
+    assert.equal(app.runs.length, 1);
+    assert.equal(app.runs[0].source, sources[index]);
+  }
+});
+
 test('bundled examples use short references, including the largest taxonomy', async () => {
   const app = await playground({ hash: '#example=deep-taxonomy-100000' });
   assert.ok(program(app).length > 1000000);
