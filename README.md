@@ -38,7 +38,8 @@ Run it with Node.js 18 or later. No packages to install:
 node eyelang.js examples/socrates.pl
 ```
 
-The answer is `Who = socrates.`. The explanation shows the rule and its fact.
+The answer is `Who = socrates.`. The explanation uses numbered rules and
+steps to show the supporting fact, the rule, and its local variable bindings.
 The assertions check mortality and the number of matching people. This is
 [ARC: Answer, Reason, Check](https://josd.github.io/arc/).
 The CLI and playground group output under `% Answer`, `% Reason`, and `% Check`.

@@ -296,10 +296,13 @@ successful answers to that goal and MUST become the current context.
 
 Every derived tuple MUST retain a successful rule and its supporting evidence.
 Supplied facts, completed absence searches, computed tests, and aggregates MUST
-be identified separately. Short proofs MUST show actual terms in applied
-clauses; numbered proofs MUST show local bindings. Arithmetic evidence MUST
-include concrete operands and results. Shared or deep proofs MUST avoid
-repeated expansion and MUST NOT silently omit steps or numeric digits.
+be identified separately. All successful explanations MUST use one numbered
+format: each rule is listed once, and each step is shown once before the steps
+that use it. This includes explanations of single supplied facts. Derived steps
+MUST identify their rule, supporting step numbers, and local variable bindings
+when present. Unit clauses have no supporting steps. Ordinary predicate steps
+MUST show actual ground terms, and arithmetic evidence MUST include concrete
+operands and results. Explanations MUST NOT silently omit steps or numeric digits.
 Explanations record one selected derivation; they are not independent proof
 certificates or guarantees that the search implementation is correct.
 

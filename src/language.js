@@ -1011,21 +1011,14 @@ export function infer(program, { validateChecks = false } = {}) {
   return [...facts.values()];
 }
 
-function otherReason(record, steps = null) {
+function otherReason(record, steps) {
   if (record.comparison) return 'I checked these values.';
   if (record.absence) return 'I checked the completed program and found no matching fact.';
   if (record.aggregate) {
-    const uses = steps && record.premises.length ? ` I used steps ${record.premises.map(p => steps.get(p)).join(', ')}.` : '';
+    const uses = record.premises.length ? ` I used steps ${record.premises.map(p => steps.get(p)).join(', ')}.` : '';
     return record.aggregate.detail + uses;
   }
   return 'you told me this.';
-}
-
-function appliedRule(record) {
-  const head = say(substitute(record.rule.conclusion, record.bindings));
-  const body = record.rule.premises.map(goal =>
-    say({ ...goal, terms: goal.terms.map(value => specialize(value, record.bindings)) })).join(', ');
-  return `${head}${body ? ` :- ${body}` : ''}.`;
 }
 
 function appliedBindings(record) {
@@ -1033,52 +1026,25 @@ function appliedBindings(record) {
     .map(([name]) => `${name} = ${sayTerm(specialize({ variable: name }, record.bindings))}`).join(', ');
 }
 
-function explainTree(record) {
-  const lines = [];
-  const pending = [{ record, depth: 0 }];
-  while (pending.length) {
-    const { record: current, depth } = pending.pop();
-    const indent = '  '.repeat(depth);
-    lines.push(`${indent}${say(current.goal)}.`);
-    if (!current.rule) lines.push(`${indent}  ${otherReason(current)}`);
-    else {
-      lines.push(`${indent}  because ${appliedRule(current)}`);
-      for (const calculation of current.calculations ?? []) lines.push(`${indent}  ${calculation}`);
-    }
-    for (let i = current.premises.length - 1; i >= 0; i--) {
-      pending.push({ record: current.premises[i], depth: depth + 1 });
-    }
-  }
-  return lines.join('\n');
-}
-
 function explain(roots) {
   // Walk the proof graph without recursion. Shared premises get one numbered
   // step, rather than an exponentially expanding tree of repeated reasons.
   const seen = new Set();
   const records = [];
-  const pending = roots.slice().reverse().map(record => ({ record, depth: 0, finish: false }));
-  let shared = false;
-  let deepest = 0;
+  const pending = roots.slice().reverse().map(record => ({ record, finish: false }));
   while (pending.length) {
     const frame = pending.pop();
     if (frame.finish) {
       records.push(frame.record);
       continue;
     }
-    if (seen.has(frame.record)) {
-      shared = true;
-      continue;
-    }
+    if (seen.has(frame.record)) continue;
     seen.add(frame.record);
-    deepest = Math.max(deepest, frame.depth);
     pending.push({ ...frame, finish: true });
     for (let i = frame.record.premises.length - 1; i >= 0; i--) {
-      pending.push({ record: frame.record.premises[i], depth: frame.depth + 1, finish: false });
+      pending.push({ record: frame.record.premises[i], finish: false });
     }
   }
-  // Preserve the short indented format for small explanations with no sharing.
-  if (roots.length === 1 && !shared && deepest <= 16) return explainTree(roots[0]);
   const rules = new Map();
   for (const record of records) if (record.rule && !rules.has(record.rule)) rules.set(record.rule, rules.size + 1);
   const steps = new Map(records.map((record, index) => [record, index + 1]));
@@ -1094,7 +1060,8 @@ function explain(roots) {
     line(`step ${steps.get(record)}: ${say(record.goal)}.`);
     if (!record.rule) line(`  ${otherReason(record, steps)}`);
     else {
-      line(`  because rule ${rules.get(record.rule)} uses steps ${record.premises.map(p => steps.get(p)).join(', ')}.`);
+      const uses = record.premises.length ? ` uses steps ${record.premises.map(p => steps.get(p)).join(', ')}` : '';
+      line(`  because rule ${rules.get(record.rule)}${uses}.`);
       const bindings = appliedBindings(record);
       if (bindings) line(`  with ${bindings}.`);
       for (const calculation of record.calculations ?? []) line(`  ${calculation}`);

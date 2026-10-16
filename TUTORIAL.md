@@ -38,12 +38,16 @@ visit(Place) :-
 The answer is `Where = park.`. The reason shows the actual rule application:
 
 ```text
-visit(park).
-  because visit(park) :- place(park), open(park).
-  place(park).
-    you told me this.
-  open(park).
-    you told me this.
+Here is why. Each step is shown once.
+rule 1: visit(Place) :- place(Place), open(Place).
+step 1: place(park).
+  you told me this.
+step 2: open(park).
+  you told me this.
+step 3: visit(park).
+  because rule 1 uses steps 1, 2.
+  with Place = park.
+That explains step 3.
 ```
 
 `visit(park)` follows because both conditions hold. Remove `open(park).` and
@@ -334,12 +338,12 @@ predicate. The supplied index bounds this calculation; asking
 `fibonacci(N, Value)` with both variables unbound raises an
 error when `N > 1` needs its input.
 
-Short proofs for a single answer use an indented tree when they have no shared
-steps. Multiple answers, shared steps, or deep chains use numbered rules and
-steps, with local bindings such as `N = 20`. Numbering lets an explanation
-refer to a shared premise without expanding it repeatedly. Each derived tuple
-retains one successful derivation; `why` does not enumerate every alternative
-proof of the same answer.
+Every proof uses numbered rules and steps, with local bindings such as
+`N = 20`. Supporting steps appear before the steps that use them. A shared
+premise appears once, and later steps refer to its number. The same format
+applies to a single fact, a short derivation, or a deep chain. Each derived
+tuple retains one successful derivation; `why` does not enumerate every
+alternative proof of the same answer.
 
 Tabling does not guarantee termination for arbitrary programs. Rules can still
 create infinitely many distinct numbers, terms, or calls. Bound computations

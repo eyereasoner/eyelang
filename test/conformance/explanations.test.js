@@ -4,10 +4,61 @@ import { run } from '../../src/language.js';
 
 // SPEC §8 (evidence and explanation context), §9 (checks), and §10 (ARC output).
 
-test('short explanations show actual applied clauses and distinguish supplied facts', () => {
+test('short explanations use numbered rules, supporting facts, and local bindings', () => {
   const answers = run('human(socrates). mortal(Person) :- human(Person). ?- mortal(Who). ?- why.');
   assert.equal(answers[0], 'Who = socrates.');
-  assert.equal(answers[1], 'mortal(socrates).\n  because mortal(socrates) :- human(socrates).\n  human(socrates).\n    you told me this.');
+  assert.equal(answers[1], [
+    'Here is why. Each step is shown once.',
+    'rule 1: mortal(Person) :- human(Person).',
+    'step 1: human(socrates).',
+    '  you told me this.',
+    'step 2: mortal(socrates).',
+    '  because rule 1 uses steps 1.',
+    '  with Person = socrates.',
+    'That explains step 2.',
+  ].join('\n'));
+});
+
+test('unit clauses use numbered rules without empty supporting-step references', () => {
+  const output = run('same(X, X). ?- same(a, Value). ?- why.');
+  assert.equal(output[0], 'Value = a.');
+  assert.equal(output[1], [
+    'Here is why. Each step is shown once.',
+    'rule 1: same(X, X).',
+    'step 1: same(a, a).',
+    '  because rule 1.',
+    '  with X = a.',
+    'That explains step 1.',
+  ].join('\n'));
+});
+
+test('short proofs show shared supporting steps once before their consumers', () => {
+  const output = run(`
+    source(a).
+    left(X) :- source(X).
+    right(X) :- source(X).
+    both(X) :- left(X), right(X).
+    ?- both(Who). ?- why.
+  `);
+  assert.equal(output[0], 'Who = a.');
+  assert.equal(output[1], [
+    'Here is why. Each step is shown once.',
+    'rule 1: left(X) :- source(X).',
+    'rule 2: right(X) :- source(X).',
+    'rule 3: both(X) :- left(X), right(X).',
+    'step 1: source(a).',
+    '  you told me this.',
+    'step 2: left(a).',
+    '  because rule 1 uses steps 1.',
+    '  with X = a.',
+    'step 3: right(a).',
+    '  because rule 2 uses steps 1.',
+    '  with X = a.',
+    'step 4: both(a).',
+    '  because rule 3 uses steps 2, 3.',
+    '  with X = a.',
+    'That explains step 4.',
+  ].join('\n'));
 });
 
 test('§8: explicit why explains every matching answer and sets consecutive follow-up context', () => {
@@ -72,7 +123,8 @@ test('explanations show concrete arithmetic, completed absence, and aggregate co
     ?- aggregate_all(sum(V),score(X,V),N). ?- why.
   `);
   assert.match(answers[1], /\(7 \+ 1\) = 8\./);
-  assert.match(answers[1], /next\(ada, 8\) :- score\(ada, 7\), 8 is \(7 \+ 1\)\./);
+  assert.match(answers[1], /rule 1: next\(X, N\) :- score\(X, V\), N is \(V \+ 1\)\./);
+  assert.match(answers[1], /with X = ada, V = 7, N = 8\./);
   assert.match(answers[3], /completed program and found no matching fact/);
   assert.match(answers[5], /sum over 2 distinct matching tuples/);
   assert.match(answers[5], /score\(ada, 7\)/);
@@ -80,13 +132,14 @@ test('explanations show concrete arithmetic, completed absence, and aggregate co
 });
 
 test('follow-up explanations retain context across checks and across consecutive why queries', () => {
+  const factProof = 'Here is why. Each step is shown once.\nstep 1: p(a).\n  you told me this.\nThat explains step 1.';
   assert.deepEqual(run('p(a). ?- p(X). :- assertion(p(a)). ?- why. ?- why.').slice(1,3),
-    ['p(a).\n  you told me this.', 'p(a).\n  you told me this.']);
+    [factProof, factProof]);
   assert.deepEqual(run('?- why. ?- missing. ?- why.'), ['Ask a query first, then ask ?- why.', 'false.', 'There is no successful answer to explain.']);
   assert.deepEqual(run('?- why.'), ['Ask a query first, then ask ?- why.']);
 });
 
-test('numbered proofs show every shared step and local clause binding once', () => {
+test('numbered proofs retain local clause bindings in deep derivations', () => {
   const clauses = Array.from({length:40},(_,i)=>`p${i+1}(X) :- p${i}(X).`).join('\n');
   const why = run(`p0(a). ${clauses} ?- p40(X). ?- why.`)[1];
   assert.match(why, /^Here is why/);
@@ -96,8 +149,8 @@ test('numbered proofs show every shared step and local clause binding once', () 
   assert.match(why, /rule \d+: p1\(X\) :- p0\(X\)/);
 });
 
-for (const depth of [255, 700]) {
-  test(`numbered proof at depth ${depth} retains every line across output chunks`, () => {
+for (const depth of [0, 1, 16, 17, 255, 700]) {
+  test(`numbered proof at depth ${depth} retains every line`, () => {
     const clauses = Array.from({ length: depth }, (_, index) => `p${index+1}(X) :- p${index}(X).`).join('\n');
     const why = run(`p0(a). ${clauses} ?- p${depth}(X). ?- why.`)[1];
     const expected = ['Here is why. Each step is shown once.'];
@@ -116,7 +169,7 @@ for (const depth of [255, 700]) {
 test('ARC grouping preserves source context and reports all empty sections', () => {
   const output = run('p(a). ?- p(X). ?- why. :- assertion(p(a)).', {arc:true});
   assert.equal(output[0], '% Answer\n?- p(X).\nX = a.');
-  assert.match(output[1], /^% Reason\np\(a\)/);
+  assert.equal(output[1], '% Reason\nHere is why. Each step is shown once.\nstep 1: p(a).\n  you told me this.\nThat explains step 1.');
   assert.match(output[2], /^% Check\ncheck passed: p\(a\)\./);
   assert.deepEqual(run('p(a).',{arc:true}), [
     '% Answer\nAdd a query such as ?- mortal(Who).',
@@ -142,7 +195,10 @@ test('ARC answers retain query context for reused variables, conjunctions, and b
     '?- name(Who, What), Who = product.\nWho = product, What = "Tea Biscuits".',
     '?- aggregate_all(count, (name(Who, _)), Count).\nCount = 2.',
   ].join('\n\n'));
-  assert.equal(output[1], '% Reason\nname(shop, "Delfour").\n  you told me this.\n\nname(product, "Tea Biscuits").\n  you told me this.');
+  assert.equal(output[1], '% Reason\n' + [
+    'Here is why. Each step is shown once.\nstep 1: name(shop, "Delfour").\n  you told me this.\nThat explains step 1.',
+    'Here is why. Each step is shown once.\nstep 1: name(product, "Tea Biscuits").\n  you told me this.\nThat explains step 1.',
+  ].join('\n\n'));
 });
 
 test('assertions are existential checks and fail in source order with source lines', () => {

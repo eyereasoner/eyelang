@@ -53,8 +53,8 @@ it with Jekyll into `_site/`. These generated directories are ignored.
   ending in `.`, clauses `Head :- Body.`, conjunction with `,`, and queries
   `?- Goal.`. Each `_` is fresh; other variables are scoped to one clause or
   query.
-- Show actual values in short explanations and local bindings in numbered
-  proofs so users can follow each rule application.
+- Use numbered rules and steps for every proof. Show actual values and local
+  bindings so users can follow each rule application.
 - Preserve forward inference for range-restricted clauses and demand-driven
   tabling with `:- table Name/Arity.`. Arithmetic uses `is/2` with bound inputs;
   it does not solve equations in reverse.
