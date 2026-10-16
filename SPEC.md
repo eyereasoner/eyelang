@@ -3,7 +3,7 @@
 ```text
 Document: eyelang-spec-0001
 Category: Experimental
-Language version: 5.0.5
+Language version: 5.0.6
 Date: 2026-10-15
 ```
 
