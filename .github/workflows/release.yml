@@ -30,3 +30,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --notes-from-tag
+
+  zenodo:
+    needs: release
+    uses: ./.github/workflows/zenodo.yml
+    with:
+      release_tag: ${{ github.ref_name }}
+    secrets:
+      ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}

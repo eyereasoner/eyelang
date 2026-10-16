@@ -1,18 +1,69 @@
 name: Publish to Zenodo
 
 on:
+  # Automated releases call this workflow directly: events created with
+  # GITHUB_TOKEN do not trigger release workflows.
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
+    secrets:
+      ZENODO_TOKEN:
+        required: true
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing published release tag (for example, v5.0.2)
+        required: true
+        type: string
   release:
     types: [published]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: zenodo-${{ inputs.release_tag || github.event.release.tag_name }}
+  cancel-in-progress: false
+
 jobs:
   publish:
-   runs-on: ubuntu-latest
-   steps:
-     - name: Checkout code
-       uses: actions/checkout@v4
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-     - name: Publish to Zenodo
-       uses: sbrisard/zenodo-action@v1
-       with:
-         client_id: ${{ secrets.ZENODO_TOKEN }}
-         # Alternatively, use standard zenodo-upload action or a custom script if preferred
+      - name: Verify published release and Zenodo token
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+        run: |
+          if [ -z "$ZENODO_TOKEN" ]; then
+            echo '::error::Set the ZENODO_TOKEN repository secret with deposit:write and deposit:actions scopes.'
+            exit 1
+          fi
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = false
+
+      - name: Archive the release tag
+        run: git archive --format=zip --prefix="eyelang-${RELEASE_TAG}/" --output=eyelang.zip "refs/tags/$RELEASE_TAG"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install uploader dependency
+        run: python -m pip install requests
+
+      - name: Publish to Zenodo
+        uses: rseng/zenodo-release@a9c88701a0176df755015f8ca4cf8cc754162f27
+        with:
+          token: ${{ secrets.ZENODO_TOKEN }}
+          version: ${{ env.RELEASE_TAG }}
+          zenodo_json: .zenodo.json
+          archive: eyelang.zip
+          html_url: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}
+          doi: ${{ vars.ZENODO_CONCEPT_DOI }}

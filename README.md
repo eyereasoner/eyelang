@@ -167,3 +167,20 @@ this GitHub repository. See the [npm trusted publishing documentation](https://d
 If publishing fails with a 404 permission error, verify these settings as well
 as the package metadata. Changing files on `main` does not change an existing
 release tag; release the fix under a new version and tag.
+
+After creating the GitHub release, the release workflow calls
+`.github/workflows/zenodo.yml` to publish the tagged source archive to Zenodo
+using `.zenodo.json` for metadata. Set the repository secret `ZENODO_TOKEN` to
+a Zenodo personal access token with `deposit:write` and `deposit:actions` scopes.
+If the project already has a Zenodo concept DOI (the DOI for all versions), set
+the repository variable `ZENODO_CONCEPT_DOI` to it. Otherwise, the first upload
+creates one; set that variable to the resulting concept DOI before the next
+release so subsequent versions stay linked. Leaving it empty creates a separate
+record on each run.
+
+The Zenodo workflow also supports releases published manually on GitHub and a
+manual **Run workflow** action with a `release_tag` input for an existing
+published release. Automated releases call it directly because events created
+with `GITHUB_TOKEN` do not start release-triggered workflows. Check Zenodo before
+rerunning a successful upload, since rerunning can publish another record or
+version.

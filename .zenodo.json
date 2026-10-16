@@ -1,0 +1,13 @@
+{
+  "title": "eyelang",
+  "description": "An experimental symbolic logic programming language using a practical Prolog subset, with answers, explanations, and executable checks.",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "creators": [
+    {
+      "name": "De Roo, Jos",
+      "affiliation": "KNoWS office of IDLab, Ghent University - imec"
+    }
+  ]
+}
