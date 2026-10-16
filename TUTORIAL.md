@@ -120,11 +120,12 @@ the explanation identifies the completed absence search and the numeric test.
 `why(visit(cafe, 5))` asks directly for that particular explanation.
 
 The result depends on the supplied data: no recorded closure is not a promise
-that a place is open in the world. If opening status must be supplied explicitly,
-use a positive `open(Place)` condition as in the first program. Put a positive
-goal before a negative test to bind its inputs; `\+ closed(Place)` on its own
-with an unbound `Place` raises an error. Dependencies through negation must be
-stratified: a rule cannot depend, directly or indirectly, on its own absence.
+that a place is open in the world. If opening status must be supplied
+explicitly, use a positive `open(Place)` condition as in the first program.
+Put a positive goal before a negative test to bind its inputs;
+`\+ closed(Place)` on its own with an unbound `Place` raises an error.
+Dependencies through negation must be stratified: a rule cannot depend,
+directly or indirectly, on its own absence.
 
 **Try it:** remove the museum closure and raise the fee limit to 12. Add an
 assertion for the museum, replace its absence check, and update the expected

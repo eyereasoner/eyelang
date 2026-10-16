@@ -28,25 +28,27 @@ and arity; `parent/1` and `parent/2` are distinct predicates.
 Source files are UTF-8 and conventionally use `.pl`. Programs use these forms:
 
 ```prolog
-human(socrates).                         % ground fact
-mortal(Person) :- human(Person).          % clause
-?- mortal(Who).                           % query
-?- human(X), mortal(X).                   % conjunction
-?- why.                                  % explain previous answers
-?- why(mortal(socrates)).                 % explain a goal
-:- assertion(mortal(socrates)).           % executable check
-:- table fibonacci/2, ackermann/2.        % tabled predicate declarations
+human(socrates).                        % ground fact
+mortal(Person) :- human(Person).        % clause
+?- mortal(Who).                         % query
+?- human(X), mortal(X).                 % conjunction
+?- why.                                 % explain previous answers
+?- why(mortal(socrates)).               % explain a goal
+:- assertion(mortal(socrates)).         % executable check
+:- table fibonacci/2, ackermann/2.      % tabled predicate declarations
 ```
 
-All statements MUST end in `.`, followed by whitespace, a comment, or end of file. The interpreter MUST parse the entire source,
-load all facts, complete requested inference, answer queries in source order,
-and evaluate checks in source order. A query MAY use later facts or clauses.
+All statements MUST end in `.`, followed by whitespace, a comment, or end of
+file. The interpreter MUST parse the entire source, load all facts, complete
+requested inference, answer queries in source order, and evaluate checks in
+source order. A query MAY use later facts or clauses.
 Checks MUST NOT assert facts. Queries and checks MUST request the backward
 computation they need. `why` follow-ups refer to the preceding ordinary query,
 even when checks or other follow-ups intervene.
 
-`why/0`, `why/1`, `assertion/1`, and `aggregate_all/3` have the special top-level
-meanings described here; they are not ordinary user-defined control predicates.
+`why/0`, `why/1`, `assertion/1`, and `aggregate_all/3` have the special
+top-level meanings described here; they are not ordinary user-defined control
+predicates.
 `why` MAY wrap a parenthesized conjunction. Directives other than `table` and
 `assertion` MUST be rejected. Query forms belong in program files in this
 interpreter; other Prolog systems may require entering them at a top level.
@@ -63,7 +65,8 @@ Single quotes delimit atoms, including Unicode names and punctuation:
 `'red-fox'`, `'Élodie'`, `'7'`. Quoted and unquoted spellings of the same atom
 MUST unify. Double quotes delimit strings, which MUST remain distinct from
 atoms and numbers. Quotes MAY be doubled inside the corresponding quoted
-value. Supported backslash escapes are `\n`, `\r`, `\t`, `\b`, `\f`, `\\`, `\'`, `\"`, and Unicode `\uXXXX` / `\UXXXXXXXX`.
+value. Supported backslash escapes are `\n`, `\r`, `\t`, `\b`, `\f`, `\\`,
+`\'`, `\"`, and Unicode `\uXXXX` / `\UXXXXXXXX`.
 Comments start with `%` and run to the end of the line, or use `/* ... */`.
 Block comments are not nested. Quoted comment markers are literal content.
 Comments and multiline terms MUST preserve diagnostic source lines.
@@ -82,8 +85,9 @@ outside this subset. Nested compounds and lists MUST match structurally.
 Unification MUST perform an occurs check and MUST NOT create cyclic terms.
 Ground facts are loaded directly. Unit clauses containing variables, such as
 `append([], List, List).`, MUST act as demand-driven clauses with an empty
-body; their calls MUST supply enough bindings to produce ground answers. Compound arithmetic syntax in a fact is an
-ordinary compound term and MUST NOT be implicitly evaluated.
+body; their calls MUST supply enough bindings to produce ground answers.
+Compound arithmetic syntax in a fact is an ordinary compound term and MUST NOT
+be implicitly evaluated.
 
 ## 4. Clauses and binding
 
@@ -240,12 +244,14 @@ a helper predicate. Negated tests MUST NOT introduce bindings. Negated `is/2`
 and unification require bound operands; negated `between/3` and aggregate goals
 require a helper predicate.
 
-The implementation MUST reject dependency cycles through negation or aggregation.
+The implementation MUST reject dependency cycles through negation or
+aggregation.
 A negative consumer MUST run after its producer strata finish. Dependency
 analysis distinguishes predicates by name/arity and excludes producer heads
 with incompatible atomic argument constants; other argument constraints MAY
 be treated conservatively. Arithmetic tests have no fact producers.
-Absence means no evidence in this completed program, not a claim about the world.
+Absence means no evidence in this completed program, not a claim about the
+world.
 
 No semantic depth limit is defined. Arithmetic, compound construction, or
 expanding call patterns can create infinite computation. Tabling MUST NOT be
@@ -338,7 +344,8 @@ explicitly. The earlier English-like syntax is not supported.
 
 [TUTORIAL.md](https://github.com/eyereasoner/eyelang/blob/main/TUTORIAL.md)
 introduces facts, rules, queries, explanations, checks, recursion, arithmetic,
-aggregation, structured terms, and demand-driven tabling through runnable programs.
+aggregation, structured terms, and demand-driven tabling through runnable
+programs.
 
 [README.md](https://github.com/eyereasoner/eyelang/blob/main/README.md) indexes
 all executable `.pl` examples. Each example demonstrates answers, explanations,
@@ -350,9 +357,10 @@ or correctness guarantees for arbitrary inputs.
 
 [src/language.js](https://github.com/eyereasoner/eyelang/blob/main/src/language.js)
 exports `parse`, `infer`, `say`, and `run` without Node-specific dependencies.
-`parse` returns facts, rules, questions, and checks; `infer` returns materialized
-tuples and their evidence; `say` formats a goal; `run(source)` returns rendered
-blocks. `run(source, { arc: true })` produces the three ARC sections.
+`parse` returns facts, rules, questions, and checks; `infer` returns
+materialized tuples and their evidence; `say` formats a goal; `run(source)`
+returns rendered blocks. `run(source, { arc: true })` produces the three ARC
+sections.
 Both the CLI and browser worker use this module. The
 [test/](https://github.com/eyereasoner/eyelang/tree/main/test) directory contains
 conformance tests with a section coverage map, behavior regressions, and

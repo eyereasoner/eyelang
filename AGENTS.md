@@ -51,7 +51,8 @@ it with Jekyll into `_site/`. These generated directories are ignored.
   Keep the implementation, specification, README examples, and tests consistent.
 - Use Prolog syntax: lowercase atoms, uppercase or underscore variables, facts
   ending in `.`, clauses `Head :- Body.`, conjunction with `,`, and queries
-  `?- Goal.`. Each `_` is fresh; other variables are scoped to one clause or query.
+  `?- Goal.`. Each `_` is fresh; other variables are scoped to one clause or
+  query.
 - Show actual values in short explanations and local bindings in numbered
   proofs so users can follow each rule application.
 - Preserve forward inference for range-restricted clauses and demand-driven
@@ -60,7 +61,8 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 - Preserve exact integer arithmetic with `BigInt` and finite binary64 real
   arithmetic. Negation uses completed evidence and stratified inference.
 - Explanations and executable checks are part of the language. When changing
-  inference, verify answers, `?- why.` output, and check failures as appropriate.
+  inference, verify answers, `?- why.` output, and check failures as
+  appropriate.
 - Use `.pl` for examples. Each bundled example should demonstrate an answer,
   explain it with `?- why.`, and verify expectations with `:- assertion(Goal).`.
 - Add new examples to the README index and the playground selector. Keep the
@@ -116,5 +118,6 @@ then run the command for the requested version bump:
 The script switches to `main`, pulls with `--ff-only`, bumps the version, stages
 all changes, commits, creates an annotated tag, and pushes the branch and tag.
 Review the working tree first because it stages every changed file. A push to
-`main` deploys GitHub Pages; a `v*` tag runs tests and creates the GitHub release
-using the tag message. Verify the workflows and published version after release.
+`main` deploys GitHub Pages; a `v*` tag runs tests and creates the GitHub
+release using the tag message. Verify the workflows and published version
+after release.

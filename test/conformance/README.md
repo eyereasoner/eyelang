@@ -1,8 +1,8 @@
 # Specification conformance tests
 
-Run `npm run test:conformance`, or `npm test` for all tests. The conformance suite
-uses Node.js with no dependencies or network services. Requirements and expected
-results come from the current [SPEC.md](../../SPEC.md).
+Run `npm run test:conformance`, or `npm test` for all tests. The conformance
+suite uses Node.js with no dependencies or network services. Requirements and
+expected results come from the current [SPEC.md](../../SPEC.md).
 
 | Specification requirements | Coverage |
 | --- | --- |
@@ -20,17 +20,17 @@ results come from the current [SPEC.md](../../SPEC.md).
 | §12: rejected syntax and operations outside the subset | `language.test.js`, `terms.test.js`, `arithmetic.test.js`, `negation.test.js` |
 
 Expectations are written alongside small programs and name the behavior under
-test. Integer and real spellings are compared exactly: `1` and `1.0` are distinct
-terms. Reachability tests use an independent transitive-closure algorithm for
-both forward and tabled inference. Tests do not require a particular first proof
-when several derivations are valid.
+test. Integer and real spellings are compared exactly: `1` and `1.0` are
+distinct terms. Reachability tests use an independent transitive-closure
+algorithm for both forward and tabled inference. Tests do not require a
+particular first proof when several derivations are valid.
 
 `npm test` also runs the behavior regressions in `test/language.test.js`, every
 bundled example, and taxonomy evidence checks through 100000 levels (§11).
 Playground serving and sharing, Pages paths, and version synchronization have
 separate integration tests in `test/`. Worker cancellation and copying/saving
-complete output from a truncated preview (§6, §12) also require an actual-browser
-check when changing the playground.
+complete output from a truncated preview (§6, §12) also require an
+actual-browser check when changing the playground.
 
 These finite tests check the stated cases; they do not establish completeness
 or termination for arbitrary programs.

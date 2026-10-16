@@ -14,8 +14,8 @@
 A symbolic logic programming language using a practical subset of
 Prolog syntax and `.pl` files, with query explanations and executable checks.
 
-Start with the [hands-on tutorial](TUTORIAL.md): choose an outing, follow routes,
-calculate a journey time, and explain and check the results.
+Start with the [hands-on tutorial](TUTORIAL.md): choose an outing, follow
+routes, calculate a journey time, and explain and check the results.
 
 ## Hello, Socrates
 
@@ -47,14 +47,16 @@ so results retain their context when a program asks several questions.
 
 ## Playground
 
-Open [the playground](https://eyereasoner.github.io/eyelang/playground), choose an
-example, and press **Run program** (or Ctrl/⌘ + Enter). **Stop** cancels a long run.
+Open [the playground](https://eyereasoner.github.io/eyelang/playground),
+choose an example, and press **Run program** (or Ctrl/⌘ + Enter). **Stop**
+cancels a long run.
 You can open `.pl` files or URLs, save programs and full output, and share a
 program as a link. Drafts are saved on this device when storage is available.
 Unchanged examples get short links such as `#example=socrates`; edited programs
 are included in the link. **Create Gist share** shares through GitHub with an
 optional token, or helps you create a Gist on GitHub's website.
-Large output has a labeled preview; copying or saving preserves the complete result.
+Large output has a labeled preview; copying or saving preserves the complete
+result.
 For local use, run `node src/playground-server.js` and open
 http://127.0.0.1:8000/playground.html.
 
@@ -62,13 +64,16 @@ http://127.0.0.1:8000/playground.html.
 
 - Facts: `human(socrates).` Rules: `mortal(X) :- human(X).`
 - Atoms start with a lowercase ASCII letter. Quote other atoms, such as
-  `'red-fox'` or `'Élodie'`. Names are case-sensitive. Double quotes denote strings.
+  `'red-fox'` or `'Élodie'`. Names are case-sensitive. Double quotes denote
+  strings.
 - Variables start with an uppercase ASCII letter or `_`. Their scope is one
   clause or query. Repeated names require the same term; each `_` is fresh.
-- Join goals with commas: `?- human(X), likes(X, tea).` All statements end in `.`.
+- Join goals with commas: `?- human(X), likes(X, tea).` All statements
+  end in `.`.
   `%` introduces a line comment; `/* ... */` is a block comment.
 - Queries return all distinct bindings, or `true.` / `false.` for ground goals.
-  Use `?- why.` to explain the preceding answers, or `?- why(mortal(socrates)).`.
+  Use `?- why.` to explain the preceding answers, or
+  `?- why(mortal(socrates)).`.
 - Terms include exact integers, finite binary64 reals, atoms, strings, compound
   terms such as `point(2, 3)`, and lists such as `[Head | Tail]`.
 - Arithmetic is explicit: `Next is N + 1`. Inputs must already be bound.
@@ -86,9 +91,10 @@ http://127.0.0.1:8000/playground.html.
 
 This is a Prolog subset, with set-based inference rather than Prolog's usual
 ordered depth-first execution. It has no cut, disjunction, arbitrary directives,
-modules, mutation, or external calls. `why/0`, `why/1`, and `contains_text/2` are
-eyelang predicates; `assertion/1`, `aggregate_all/3`, and `table/1` follow familiar
-Prolog library or tabling notation. See [SPEC.md](SPEC.md) for exact limits.
+modules, mutation, or external calls. `why/0`, `why/1`, and `contains_text/2`
+are eyelang predicates; `assertion/1`, `aggregate_all/3`, and `table/1` follow
+familiar Prolog library or tabling notation. See [SPEC.md](SPEC.md) for exact
+limits.
 
 For example, this computes only the Fibonacci numbers requested:
 
@@ -140,12 +146,15 @@ Every example includes answers, reasons, and executable checks.
 | [Negation](https://github.com/eyereasoner/eyelang/blob/main/examples/negation.pl) | Reasoning from absent evidence |
 | [Aggregation](https://github.com/eyereasoner/eyelang/blob/main/examples/aggregation.pl) | Counts, totals, and smallest/largest values |
 
-Deep taxonomy examples have [10](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-10.pl),
-[100](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-100.pl), [1000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-1000.pl),
+Deep taxonomy examples have
+[10](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-10.pl),
+[100](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-100.pl),
+[1000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-1000.pl),
 [10000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-10000.pl), and
 [100000](https://github.com/eyereasoner/eyelang/blob/main/examples/deep-taxonomy-100000.pl) steps.
 
-Run any `.pl` file in the same way. Save large answers and explanations to a file:
+Run any `.pl` file in the same way. Save large answers and explanations to a
+file:
 
 ```sh
 node eyelang.js examples/fibonacci.pl > fibonacci-arc.txt
@@ -161,7 +170,8 @@ tests the specification's syntax, semantics, explanations, checks, and CLI.
 Its coverage map links specification sections to tests with explicit expected
 results. It also runs as part of `npm test`.
 
-To release, commit your changes and run `./release patch "$(git log -1 --pretty=%B)"`.
+To release, commit your changes and run
+`./release patch "$(git log -1 --pretty=%B)"`.
 Use `minor` or `major` instead of `patch` for a larger version bump.
 The version bump updates the specification and playground; pushing the tag
 runs the tests, creates a GitHub release with that message, and publishes to npm
@@ -170,18 +180,21 @@ and Zenodo in one job. All publishing steps and their logs appear in the
 
 The workflow publishes to npm using OIDC. In the `eyelang` package settings on
 npm, configure a GitHub Actions trusted publisher with organization
-`eyereasoner`, repository `eyelang`, and workflow filename `publish-release.yml`.
+`eyereasoner`, repository `eyelang`, and workflow filename
+`publish-release.yml`.
 If an existing trusted publisher uses `publish-npm.yml`, update that filename
 to `publish-release.yml` before the next release. Leave the environment name
-empty and allow direct publishing with `npm publish`. The package's `repository.url` must match
-this GitHub repository. See the [npm trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
+empty and allow direct publishing with `npm publish`. The package's
+`repository.url` must match this GitHub repository. See the
+[npm trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/).
 If publishing fails with a 404 permission error, verify these settings as well
 as the package metadata. Changing files on `main` does not change an existing
 release tag; release the fix under a new version and tag.
 
 The same workflow publishes the tagged source archive to Zenodo using
 `.zenodo.json` for metadata. Set the repository secret `ZENODO_TOKEN` to
-a Zenodo personal access token with `deposit:write` and `deposit:actions` scopes.
+a Zenodo personal access token with `deposit:write` and `deposit:actions`
+scopes.
 If the project already has a Zenodo concept DOI (the DOI for all versions), set
 the repository variable `ZENODO_CONCEPT_DOI` to it. Otherwise, the first upload
 creates one; set that variable to the resulting concept DOI before the next
