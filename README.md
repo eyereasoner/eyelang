@@ -1,6 +1,7 @@
 # eyelang
 
 [![npm version](https://img.shields.io/npm/v/eyelang.svg)](https://www.npmjs.com/package/eyelang)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23416492.svg)](https://doi.org/10.5281/zenodo.23416492)
 
 [Repository](https://github.com/eyereasoner/eyelang) ·
 [Playground](https://eyereasoner.github.io/eyelang/playground) ·
