@@ -545,42 +545,42 @@ function callKey(goal) {
   return { relation: goal.relation, terms: goal.terms.map(canonical) };
 }
 
-function matchTerm(wanted, actual, bindings, calculations) {
+function matchTerm(wanted, actual, bindings) {
   if (atomic(wanted)) return sameTerm(wanted, actual);
   if (wanted.variable) {
     const resolved = dereference(wanted, bindings);
-    if (!resolved.variable) return matchTerm(resolved, actual, bindings, calculations);
+    if (!resolved.variable) return matchTerm(resolved, actual, bindings);
     bindings.set(resolved.variable, actual);
     return true;
   }
   if (wanted.functor) return actual.functor === wanted.functor && actual.args.length === wanted.args.length &&
-    wanted.args.every((arg, index) => matchTerm(arg, actual.args[index], bindings, calculations));
+    wanted.args.every((arg, index) => matchTerm(arg, actual.args[index], bindings));
   if (!actual.list || wanted.list.length > actual.list.length) return false;
   for (let i = 0; i < wanted.list.length; i++) {
-    if (!matchTerm(wanted.list[i], actual.list[i], bindings, calculations)) return false;
+    if (!matchTerm(wanted.list[i], actual.list[i], bindings)) return false;
   }
   if (wanted.tail === undefined) return wanted.list.length === actual.list.length;
-  return matchTerm(wanted.tail, { list: actual.list.slice(wanted.list.length) }, bindings, calculations);
+  return matchTerm(wanted.tail, { list: actual.list.slice(wanted.list.length) }, bindings);
 }
 
-function match(pattern, fact, bindings, calculations = null) {
+function match(pattern, fact, bindings) {
   if (pattern.relation !== fact.relation || pattern.terms.length !== fact.terms.length) return null;
   const next = new Map(bindings);
   for (let i = 0; i < pattern.terms.length; i++) {
-    if (!matchTerm(pattern.terms[i], fact.terms[i], next, calculations)) return null;
+    if (!matchTerm(pattern.terms[i], fact.terms[i], next)) return null;
   }
   return next;
 }
 
-function specialize(value, bindings, calculations) {
+function specialize(value, bindings) {
   if (atomic(value)) return value;
   if (value.variable) {
     const resolved = dereference(value, bindings);
-    return resolved.variable ? resolved : specialize(resolved, bindings, calculations);
+    return resolved.variable ? resolved : specialize(resolved, bindings);
   }
-  if (value.list) return list(value.list.map(t => specialize(t, bindings, calculations)),
-    value.tail === undefined ? undefined : specialize(value.tail, bindings, calculations));
-  return { functor: value.functor, args: value.args.map(t => specialize(t, bindings, calculations)) };
+  if (value.list) return list(value.list.map(t => specialize(t, bindings)),
+    value.tail === undefined ? undefined : specialize(value.tail, bindings));
+  return { functor: value.functor, args: value.args.map(t => specialize(t, bindings)) };
 }
 
 function ground(value) {
@@ -590,8 +590,8 @@ function ground(value) {
   return value.list.every(ground) && (value.tail === undefined || ground(value.tail));
 }
 
-function substitute(goal, bindings, calculations) {
-  return { relation: goal.relation, terms: goal.terms.map(t => specialize(t, bindings, calculations)) };
+function substitute(goal, bindings) {
+  return { relation: goal.relation, terms: goal.terms.map(t => specialize(t, bindings)) };
 }
 
 function absence(goal) {
@@ -710,7 +710,7 @@ export function infer(program, { validateChecks = false } = {}) {
     if (!definitions.has(rule.conclusion.relation)) definitions.set(rule.conclusion.relation, []);
     definitions.get(rule.conclusion.relation).push(rule);
   }
-  const tables = new Map();
+  const tables = new Set();
   const facts = new Map();
   const absences = new Map();
   // Scalar keys avoid serializing wildcard tuples. Cache structural keys for
@@ -747,14 +747,15 @@ export function infer(program, { validateChecks = false } = {}) {
     return entry;
   }
   function lookup(index, goal, subscription = null) {
-    if (index === known && goal.terms.every(ground)) {
+    const isGround = goal.terms.every(ground);
+    if (index === known && isGround) {
       const record = facts.get(key(goal));
       return record ? [record] : empty;
     }
     const entry = subscription ? relationIndex(index, goal) : index.get(goal.relation);
     if (!entry) return empty;
     let values; let id;
-    if (goal.terms.every(ground)) { values = entry.exact; id = key(goal); }
+    if (isGround) { values = entry.exact; id = key(goal); }
     else {
       const position = goal.terms.findIndex(ground);
       if (position === -1) {
@@ -803,12 +804,11 @@ export function infer(program, { validateChecks = false } = {}) {
     if (tables.has(id)) return;
     // Calls that differ only in variable spelling share this table. Their
     // consumers suspend on the fact indexes and resume for each new answer.
-    const table = { goal };
-    tables.set(id, table);
+    tables.add(id);
     for (const rule of rules) {
       const bindings = new Map();
       if (rule.conclusion.terms.every((head, index) => unify(head, goal.terms[index], bindings))) {
-        enqueue({ start: { rule, partial: { bindings, premises: [], calculations: [], table } } }, levels.get(rule));
+        enqueue({ start: { rule, partial: { bindings, premises: [], calculations: [], table: goal } } }, levels.get(rule));
       }
     }
   }
@@ -824,8 +824,7 @@ export function infer(program, { validateChecks = false } = {}) {
     const evidence = { goal: { ...premise, terms }, rule: null, premises: [], comparison: true };
     if (premise.aggregate) {
       if (premise.negated) throw new Error('Define a helper predicate before negating an aggregate.');
-      const sourceGoal = { ...premise.aggregate.sourceGoal,
-        terms: premise.aggregate.sourceGoal.terms.map(value => specialize(value, bindings)) };
+      const sourceGoal = substitute(premise.aggregate.sourceGoal, bindings);
       demand(sourceGoal);
       enqueue({ aggregate: { rule, position, partial, premise, sourceGoal, calculations } }, levels.get(rule));
       return;
@@ -925,15 +924,14 @@ export function infer(program, { validateChecks = false } = {}) {
           throw new Error(`Give ${name} a value in the question or an earlier goal; an answer must be ground.`);
         }
       }
-      const conclusion = substitute(rule.conclusion, partial.bindings, calculations);
-      if (partial.table && !match(partial.table.goal, conclusion, new Map())) return;
+      const conclusion = substitute(rule.conclusion, partial.bindings);
+      if (partial.table && !match(partial.table, conclusion, new Map())) return;
       add(conclusion, { rule, premises: partial.premises, calculations, bindings: partial.bindings });
       return;
     }
     const premise = rule.premises[position];
     const calculations = premise.relation.startsWith('builtin:') ? [...partial.calculations] : partial.calculations;
-    const goal = partial.bindings.size === 0 ? premise : { relation: premise.relation,
-      terms: premise.terms.map(t => specialize(t, partial.bindings, calculations)) };
+    const goal = partial.bindings.size === 0 ? premise : substitute(premise, partial.bindings);
     if (premise.relation.startsWith('builtin:')) {
       advanceBuiltin(rule, position, partial, premise, calculations);
       return;
@@ -1006,7 +1004,7 @@ export function infer(program, { validateChecks = false } = {}) {
   for (const assertion of program.checks) {
     requestAssertion(assertion);
     drain();
-    if (validateChecks && !facts.has(key(assertion.goal)) && ![...facts.values()].some(record => match(assertion.goal, record.goal, new Map()))) {
+    if (validateChecks && !lookup(known, assertion.goal).some(record => match(assertion.goal, record.goal, new Map()))) {
       throw new Error(`Line ${assertion.line}: Check failed: ${assertion.text}.`);
     }
   }
