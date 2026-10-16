@@ -1,0 +1,76 @@
+% Answer
+?- reaches(Who, nantes).
+Who = angers.
+Who = lemans.
+Who = chartres.
+Who = paris.
+
+?- reaches(paris, nantes).
+true.
+
+?- reaches(paris, tours).
+true.
+
+?- reaches(nantes, paris).
+false.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: reaches(From, To) :- connects(From, To).
+rule 2: reaches(From, To) :- connects(From, Via), reaches(Via, To).
+step 1: connects(paris, chartres).
+  you told me this.
+step 2: connects(chartres, lemans).
+  you told me this.
+step 3: connects(lemans, angers).
+  you told me this.
+step 4: connects(angers, nantes).
+  you told me this.
+step 5: reaches(angers, nantes).
+  because rule 1 uses steps 4.
+  with From = angers, To = nantes.
+step 6: reaches(lemans, nantes).
+  because rule 2 uses steps 3, 5.
+  with From = lemans, To = nantes, Via = angers.
+step 7: reaches(chartres, nantes).
+  because rule 2 uses steps 2, 6.
+  with From = chartres, To = nantes, Via = lemans.
+step 8: reaches(paris, nantes).
+  because rule 2 uses steps 1, 7.
+  with From = paris, To = nantes, Via = chartres.
+That explains step 8.
+
+Here is why. Each step is shown once.
+rule 1: reaches(From, To) :- connects(From, To).
+rule 2: reaches(From, To) :- connects(From, Via), reaches(Via, To).
+step 1: connects(paris, orleans).
+  you told me this.
+step 2: connects(orleans, blois).
+  you told me this.
+step 3: connects(blois, tours).
+  you told me this.
+step 4: reaches(blois, tours).
+  because rule 1 uses steps 3.
+  with From = blois, To = tours.
+step 5: reaches(orleans, tours).
+  because rule 2 uses steps 2, 4.
+  with From = orleans, To = tours, Via = blois.
+step 6: reaches(paris, tours).
+  because rule 2 uses steps 1, 5.
+  with From = paris, To = tours, Via = orleans.
+That explains step 6.
+
+% Check
+check passed: reaches(paris, nantes).
+
+check passed: reaches(chartres, nantes).
+
+check passed: reaches(lemans, nantes).
+
+check passed: reaches(angers, nantes).
+
+check passed: reaches(paris, tours).
+
+check passed: \+ (reaches(nantes, paris)).
+
+check passed: \+ (reaches(tours, nantes)).

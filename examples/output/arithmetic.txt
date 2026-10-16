@@ -1,0 +1,81 @@
+% Answer
+?- absolute(magnitude, Value).
+Value = 9007199254740993.
+
+?- result(division, What).
+What = [-2, -3, -1, 2].
+
+?- result(rounding, What).
+What = [-3, -2, -3, -2, -2.0, -0.5].
+
+?- result(extrema, What).
+What = [1e+21, 1000000000000000000001].
+
+?- result(gcd, What).
+What = 6.
+
+?- result(bits, What).
+What = [4, 15, 11, -14, 104, 1].
+
+?- constants(mathematics, What).
+What = [3.141592653589793, 2.718281828459045].
+
+?- circumference(circle, What).
+What = 18.84955592153876.
+
+?- 'round-trip'(trigonometry, What).
+What = 0.9999999999999999.
+
+?- result(division, What).
+What = [-2, -3, -1, 2].
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: result(division, [_Calc1, _Calc2, _Calc3, _Calc4]) :- inputs(division, [A, B]), _Calc1 is (A // B), _Calc2 is (A div B), _Calc3 is (A rem B), _Calc4 is (A mod B).
+step 1: inputs(division, [-7, 3]).
+  you told me this.
+step 2: -2 is (-7 // 3).
+  I checked these values.
+step 3: -3 is (-7 div 3).
+  I checked these values.
+step 4: -1 is (-7 rem 3).
+  I checked these values.
+step 5: 2 is (-7 mod 3).
+  I checked these values.
+step 6: result(division, [-2, -3, -1, 2]).
+  because rule 1 uses steps 1, 2, 3, 4, 5.
+  with A = -7, B = 3, _Calc1 = -2, _Calc2 = -3, _Calc3 = -1, _Calc4 = 2.
+  (-7 // 3) = -2.
+  (-7 div 3) = -3.
+  (-7 rem 3) = -1.
+  (-7 mod 3) = 2.
+That explains step 6.
+
+% Check
+check passed: absolute(magnitude, 9007199254740993).
+
+check passed: result(division, [-2, -3, -1, 2]).
+
+check passed: _Calc1 is (((-7 // 3) * 3) + (-7 rem 3)), _Calc1 =:= -7.
+
+check passed: _Calc1 is (((-7 div 3) * 3) + (-7 mod 3)), _Calc1 =:= -7.
+
+check passed: result(rounding, [-3, -2, -3, -2, -2.0, -0.5]).
+
+check passed: _Calc1 is round(-1.5), _Calc1 =:= -2.
+
+check passed: result(extrema, [1e+21, 1000000000000000000001]).
+
+check passed: result(gcd, 6).
+
+check passed: result(bits, [4, 15, 11, -14, 104, 1]).
+
+check passed: _Calc1 is (1 << 100), _Calc1 =:= 1267650600228229401496703205376.
+
+check passed: _Calc1 is pi, _Calc1 > 3.
+
+check passed: _Calc1 is e, _Calc1 < 3.
+
+check passed: circumference(circle, 18.84955592153876).
+
+check passed: _Calc1 is abs((tan(atan(1)) - 1)), _Calc1 =< 1e-12.

@@ -1,0 +1,56 @@
+% Answer
+?- is_a(Who, 'ready-player').
+Who = milo.
+Who = rex.
+
+?- is_a(Who, 'eager-player').
+Who = milo.
+Who = rex.
+
+?- \+ (needs(milo, rest)).
+true.
+
+?- \+ (needs(luna, rest)).
+false.
+
+?- aggregate_all(count, (is_a(Subject, 'ready-player')), Result).
+Result = 2.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: is_a(Player, 'ready-player') :- is_a(Player, player), \+ (needs(Player, rest)).
+step 1: is_a(milo, player).
+  you told me this.
+step 2: \+ (needs(milo, rest)).
+  I checked the completed program and found no matching fact.
+step 3: is_a(milo, 'ready-player').
+  because rule 1 uses steps 1, 2.
+  with Player = milo.
+step 4: is_a(rex, player).
+  you told me this.
+step 5: \+ (needs(rex, rest)).
+  I checked the completed program and found no matching fact.
+step 6: is_a(rex, 'ready-player').
+  because rule 1 uses steps 4, 5.
+  with Player = rex.
+That explains steps 3, 6.
+
+Here is why. Each step is shown once.
+step 1: \+ (needs(milo, rest)).
+  I checked the completed program and found no matching fact.
+That explains step 1.
+
+There is no successful answer to explain.
+
+% Check
+check passed: is_a(milo, 'ready-player').
+
+check passed: is_a(rex, 'ready-player').
+
+check passed: \+ (is_a(luna, 'ready-player')).
+
+check passed: needs(luna, rest).
+
+check passed: \+ (needs(milo, rest)).
+
+check passed: aggregate_all(count, (is_a(Subject, 'ready-player')), 2).

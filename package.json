@@ -13,6 +13,7 @@
   "scripts": {
     "test": "node --test",
     "test:conformance": "node --test test/conformance",
+    "examples:update": "node scripts/example-goldens.js",
     "start": "node eyelang.js examples/socrates.pl",
     "version": "node scripts/sync-version.js"
   },

@@ -1,0 +1,399 @@
+% Answer
+?- scores(case, What).
+What = [0.001547, 0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999].
+
+?- 'evidence-total'(case, What).
+What = 0.00164363.
+
+?- posterior([covid19, case], What).
+What = 0.9412093962753174.
+
+?- posterior([influenza, case], What).
+What = 0.02920365289024903.
+
+?- posterior(['allergic-rhinitis', case], What).
+What = 0.0004563070764101409.
+
+?- posterior(['bacterial-pneumonia', case], What).
+What = 0.029130643758023392.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: candidates(Case, Diseases) :- is_a(Case, 'patient-case'), diseases(Case, Diseases).
+rule 2: candidates(Case, Rest) :- candidates(Case, [Disease | Rest]).
+rule 3: factor([Disease, [Symptom, present]], Probability) :- probability([Disease, Symptom], Probability).
+rule 4: factor([Disease, [Symptom, absent]], _Calc1) :- probability([Disease, Symptom], Probability), _Calc1 is (1 - Probability).
+rule 5: likelihood([Disease, []], 1) :- is_a(Disease, disease).
+rule 6: likelihood([Disease, [Observation | Rest]], _Calc1) :- factor([Disease, Observation], Factor), likelihood([Disease, Rest], Remaining), _Calc1 is (Factor * Remaining).
+rule 7: score([Disease, Case], _Calc1) :- prior(Disease, Prior), evidence(Case, Evidence), likelihood([Disease, Evidence], Likelihood), _Calc1 is (Prior * Likelihood).
+rule 8: scores([[], Case], []) :- is_a(Case, 'patient-case').
+rule 9: scores([[Disease | Rest], Case], [Score | Remaining]) :- score([Disease, Case], Score), scores([Rest, Case], Remaining).
+rule 10: scores(Case, Scores) :- is_a(Case, 'patient-case'), diseases(Case, Diseases), scores([Diseases, Case], Scores).
+rule 11: sum([Value | Rest], _Calc1) :- sum(Rest, Remaining), _Calc1 is (Value + Remaining).
+rule 12: 'evidence-total'(Case, Total) :- is_a(Case, 'patient-case'), scores(Case, Scores), sum(Scores, Total).
+rule 13: posterior([Disease, Case], _Calc1) :- candidates(Case, [Disease | Rest]), score([Disease, Case], Score), 'evidence-total'(Case, Total), Total > 0, _Calc1 is (Score / Total).
+step 1: is_a(case, 'patient-case').
+  you told me this.
+step 2: diseases(case, [covid19, influenza, 'allergic-rhinitis', 'bacterial-pneumonia']).
+  you told me this.
+step 3: candidates(case, [covid19, influenza, 'allergic-rhinitis', 'bacterial-pneumonia']).
+  because rule 1 uses steps 1, 2.
+  with Case = case, Diseases = [covid19, influenza, 'allergic-rhinitis', 'bacterial-pneumonia'].
+step 4: candidates(case, [influenza, 'allergic-rhinitis', 'bacterial-pneumonia']).
+  because rule 2 uses steps 3.
+  with Case = case, Disease = covid19, Rest = [influenza, 'allergic-rhinitis', 'bacterial-pneumonia'].
+step 5: candidates(case, ['allergic-rhinitis', 'bacterial-pneumonia']).
+  because rule 2 uses steps 4.
+  with Case = case, Disease = influenza, Rest = ['allergic-rhinitis', 'bacterial-pneumonia'].
+step 6: candidates(case, ['bacterial-pneumonia']).
+  because rule 2 uses steps 5.
+  with Case = case, Disease = 'allergic-rhinitis', Rest = ['bacterial-pneumonia'].
+step 7: prior('bacterial-pneumonia', 0.01).
+  you told me this.
+step 8: evidence(case, [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]).
+  you told me this.
+step 9: probability(['bacterial-pneumonia', fever], 0.7).
+  you told me this.
+step 10: factor(['bacterial-pneumonia', [fever, present]], 0.7).
+  because rule 3 uses steps 9.
+  with Disease = 'bacterial-pneumonia', Symptom = fever, Probability = 0.7.
+step 11: probability(['bacterial-pneumonia', 'dry-cough'], 0.6).
+  you told me this.
+step 12: factor(['bacterial-pneumonia', ['dry-cough', present]], 0.6).
+  because rule 3 uses steps 11.
+  with Disease = 'bacterial-pneumonia', Symptom = 'dry-cough', Probability = 0.6.
+step 13: probability(['bacterial-pneumonia', 'loss-of-smell'], 0.02).
+  you told me this.
+step 14: factor(['bacterial-pneumonia', ['loss-of-smell', present]], 0.02).
+  because rule 3 uses steps 13.
+  with Disease = 'bacterial-pneumonia', Symptom = 'loss-of-smell', Probability = 0.02.
+step 15: probability(['bacterial-pneumonia', sneezing], 0.05).
+  you told me this.
+step 16: 0.95 is (1 - 0.05).
+  I checked these values.
+step 17: factor(['bacterial-pneumonia', [sneezing, absent]], 0.95).
+  because rule 4 uses steps 15, 16.
+  with Disease = 'bacterial-pneumonia', Symptom = sneezing, _Calc1 = 0.95, Probability = 0.05.
+  (1 - 0.05) = 0.95.
+step 18: probability(['bacterial-pneumonia', 'short-breath'], 0.6).
+  you told me this.
+step 19: factor(['bacterial-pneumonia', ['short-breath', present]], 0.6).
+  because rule 3 uses steps 18.
+  with Disease = 'bacterial-pneumonia', Symptom = 'short-breath', Probability = 0.6.
+step 20: is_a('bacterial-pneumonia', disease).
+  you told me this.
+step 21: likelihood(['bacterial-pneumonia', []], 1).
+  because rule 5 uses steps 20.
+  with Disease = 'bacterial-pneumonia'.
+step 22: 0.6 is (0.6 * 1).
+  I checked these values.
+step 23: likelihood(['bacterial-pneumonia', [['short-breath', present]]], 0.6).
+  because rule 6 uses steps 19, 21, 22.
+  with Disease = 'bacterial-pneumonia', Observation = ['short-breath', present], Rest = [], _Calc1 = 0.6, Factor = 0.6, Remaining = 1.
+  (0.6 * 1) = 0.6.
+step 24: 0.57 is (0.95 * 0.6).
+  I checked these values.
+step 25: likelihood(['bacterial-pneumonia', [[sneezing, absent], ['short-breath', present]]], 0.57).
+  because rule 6 uses steps 17, 23, 24.
+  with Disease = 'bacterial-pneumonia', Observation = [sneezing, absent], Rest = [['short-breath', present]], _Calc1 = 0.57, Factor = 0.95, Remaining = 0.6.
+  (0.95 * 0.6) = 0.57.
+step 26: 0.011399999999999999 is (0.02 * 0.57).
+  I checked these values.
+step 27: likelihood(['bacterial-pneumonia', [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.011399999999999999).
+  because rule 6 uses steps 14, 25, 26.
+  with Disease = 'bacterial-pneumonia', Observation = ['loss-of-smell', present], Rest = [[sneezing, absent], ['short-breath', present]], _Calc1 = 0.011399999999999999, Factor = 0.02, Remaining = 0.57.
+  (0.02 * 0.57) = 0.011399999999999999.
+step 28: 0.006839999999999999 is (0.6 * 0.011399999999999999).
+  I checked these values.
+step 29: likelihood(['bacterial-pneumonia', [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.006839999999999999).
+  because rule 6 uses steps 12, 27, 28.
+  with Disease = 'bacterial-pneumonia', Observation = ['dry-cough', present], Rest = [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.006839999999999999, Factor = 0.6, Remaining = 0.011399999999999999.
+  (0.6 * 0.011399999999999999) = 0.006839999999999999.
+step 30: 0.004787999999999999 is (0.7 * 0.006839999999999999).
+  I checked these values.
+step 31: likelihood(['bacterial-pneumonia', [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.004787999999999999).
+  because rule 6 uses steps 10, 29, 30.
+  with Disease = 'bacterial-pneumonia', Observation = [fever, present], Rest = [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.004787999999999999, Factor = 0.7, Remaining = 0.006839999999999999.
+  (0.7 * 0.006839999999999999) = 0.004787999999999999.
+step 32: 0.00004787999999999999 is (0.01 * 0.004787999999999999).
+  I checked these values.
+step 33: score(['bacterial-pneumonia', case], 0.00004787999999999999).
+  because rule 7 uses steps 7, 8, 31, 32.
+  with Disease = 'bacterial-pneumonia', Case = case, _Calc1 = 0.00004787999999999999, Prior = 0.01, Evidence = [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], Likelihood = 0.004787999999999999.
+  (0.01 * 0.004787999999999999) = 0.00004787999999999999.
+step 34: prior(covid19, 0.05).
+  you told me this.
+step 35: probability([covid19, fever], 0.7).
+  you told me this.
+step 36: factor([covid19, [fever, present]], 0.7).
+  because rule 3 uses steps 35.
+  with Disease = covid19, Symptom = fever, Probability = 0.7.
+step 37: probability([covid19, 'dry-cough'], 0.65).
+  you told me this.
+step 38: factor([covid19, ['dry-cough', present]], 0.65).
+  because rule 3 uses steps 37.
+  with Disease = covid19, Symptom = 'dry-cough', Probability = 0.65.
+step 39: probability([covid19, 'loss-of-smell'], 0.4).
+  you told me this.
+step 40: factor([covid19, ['loss-of-smell', present]], 0.4).
+  because rule 3 uses steps 39.
+  with Disease = covid19, Symptom = 'loss-of-smell', Probability = 0.4.
+step 41: probability([covid19, sneezing], 0.15).
+  you told me this.
+step 42: 0.85 is (1 - 0.15).
+  I checked these values.
+step 43: factor([covid19, [sneezing, absent]], 0.85).
+  because rule 4 uses steps 41, 42.
+  with Disease = covid19, Symptom = sneezing, _Calc1 = 0.85, Probability = 0.15.
+  (1 - 0.15) = 0.85.
+step 44: probability([covid19, 'short-breath'], 0.2).
+  you told me this.
+step 45: factor([covid19, ['short-breath', present]], 0.2).
+  because rule 3 uses steps 44.
+  with Disease = covid19, Symptom = 'short-breath', Probability = 0.2.
+step 46: is_a(covid19, disease).
+  you told me this.
+step 47: likelihood([covid19, []], 1).
+  because rule 5 uses steps 46.
+  with Disease = covid19.
+step 48: 0.2 is (0.2 * 1).
+  I checked these values.
+step 49: likelihood([covid19, [['short-breath', present]]], 0.2).
+  because rule 6 uses steps 45, 47, 48.
+  with Disease = covid19, Observation = ['short-breath', present], Rest = [], _Calc1 = 0.2, Factor = 0.2, Remaining = 1.
+  (0.2 * 1) = 0.2.
+step 50: 0.17 is (0.85 * 0.2).
+  I checked these values.
+step 51: likelihood([covid19, [[sneezing, absent], ['short-breath', present]]], 0.17).
+  because rule 6 uses steps 43, 49, 50.
+  with Disease = covid19, Observation = [sneezing, absent], Rest = [['short-breath', present]], _Calc1 = 0.17, Factor = 0.85, Remaining = 0.2.
+  (0.85 * 0.2) = 0.17.
+step 52: 0.068 is (0.4 * 0.17).
+  I checked these values.
+step 53: likelihood([covid19, [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.068).
+  because rule 6 uses steps 40, 51, 52.
+  with Disease = covid19, Observation = ['loss-of-smell', present], Rest = [[sneezing, absent], ['short-breath', present]], _Calc1 = 0.068, Factor = 0.4, Remaining = 0.17.
+  (0.4 * 0.17) = 0.068.
+step 54: 0.0442 is (0.65 * 0.068).
+  I checked these values.
+step 55: likelihood([covid19, [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.0442).
+  because rule 6 uses steps 38, 53, 54.
+  with Disease = covid19, Observation = ['dry-cough', present], Rest = [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.0442, Factor = 0.65, Remaining = 0.068.
+  (0.65 * 0.068) = 0.0442.
+step 56: 0.03094 is (0.7 * 0.0442).
+  I checked these values.
+step 57: likelihood([covid19, [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.03094).
+  because rule 6 uses steps 36, 55, 56.
+  with Disease = covid19, Observation = [fever, present], Rest = [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.03094, Factor = 0.7, Remaining = 0.0442.
+  (0.7 * 0.0442) = 0.03094.
+step 58: 0.001547 is (0.05 * 0.03094).
+  I checked these values.
+step 59: score([covid19, case], 0.001547).
+  because rule 7 uses steps 34, 8, 57, 58.
+  with Disease = covid19, Case = case, _Calc1 = 0.001547, Prior = 0.05, Evidence = [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], Likelihood = 0.03094.
+  (0.05 * 0.03094) = 0.001547.
+step 60: prior(influenza, 0.03).
+  you told me this.
+step 61: probability([influenza, fever], 0.8).
+  you told me this.
+step 62: factor([influenza, [fever, present]], 0.8).
+  because rule 3 uses steps 61.
+  with Disease = influenza, Symptom = fever, Probability = 0.8.
+step 63: probability([influenza, 'dry-cough'], 0.5).
+  you told me this.
+step 64: factor([influenza, ['dry-cough', present]], 0.5).
+  because rule 3 uses steps 63.
+  with Disease = influenza, Symptom = 'dry-cough', Probability = 0.5.
+step 65: probability([influenza, 'loss-of-smell'], 0.05).
+  you told me this.
+step 66: factor([influenza, ['loss-of-smell', present]], 0.05).
+  because rule 3 uses steps 65.
+  with Disease = influenza, Symptom = 'loss-of-smell', Probability = 0.05.
+step 67: probability([influenza, sneezing], 0.2).
+  you told me this.
+step 68: 0.8 is (1 - 0.2).
+  I checked these values.
+step 69: factor([influenza, [sneezing, absent]], 0.8).
+  because rule 4 uses steps 67, 68.
+  with Disease = influenza, Symptom = sneezing, _Calc1 = 0.8, Probability = 0.2.
+  (1 - 0.2) = 0.8.
+step 70: probability([influenza, 'short-breath'], 0.1).
+  you told me this.
+step 71: factor([influenza, ['short-breath', present]], 0.1).
+  because rule 3 uses steps 70.
+  with Disease = influenza, Symptom = 'short-breath', Probability = 0.1.
+step 72: is_a(influenza, disease).
+  you told me this.
+step 73: likelihood([influenza, []], 1).
+  because rule 5 uses steps 72.
+  with Disease = influenza.
+step 74: 0.1 is (0.1 * 1).
+  I checked these values.
+step 75: likelihood([influenza, [['short-breath', present]]], 0.1).
+  because rule 6 uses steps 71, 73, 74.
+  with Disease = influenza, Observation = ['short-breath', present], Rest = [], _Calc1 = 0.1, Factor = 0.1, Remaining = 1.
+  (0.1 * 1) = 0.1.
+step 76: 0.08000000000000002 is (0.8 * 0.1).
+  I checked these values.
+step 77: likelihood([influenza, [[sneezing, absent], ['short-breath', present]]], 0.08000000000000002).
+  because rule 6 uses steps 69, 75, 76.
+  with Disease = influenza, Observation = [sneezing, absent], Rest = [['short-breath', present]], _Calc1 = 0.08000000000000002, Factor = 0.8, Remaining = 0.1.
+  (0.8 * 0.1) = 0.08000000000000002.
+step 78: 0.004000000000000001 is (0.05 * 0.08000000000000002).
+  I checked these values.
+step 79: likelihood([influenza, [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.004000000000000001).
+  because rule 6 uses steps 66, 77, 78.
+  with Disease = influenza, Observation = ['loss-of-smell', present], Rest = [[sneezing, absent], ['short-breath', present]], _Calc1 = 0.004000000000000001, Factor = 0.05, Remaining = 0.08000000000000002.
+  (0.05 * 0.08000000000000002) = 0.004000000000000001.
+step 80: 0.0020000000000000005 is (0.5 * 0.004000000000000001).
+  I checked these values.
+step 81: likelihood([influenza, [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.0020000000000000005).
+  because rule 6 uses steps 64, 79, 80.
+  with Disease = influenza, Observation = ['dry-cough', present], Rest = [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.0020000000000000005, Factor = 0.5, Remaining = 0.004000000000000001.
+  (0.5 * 0.004000000000000001) = 0.0020000000000000005.
+step 82: 0.0016000000000000005 is (0.8 * 0.0020000000000000005).
+  I checked these values.
+step 83: likelihood([influenza, [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.0016000000000000005).
+  because rule 6 uses steps 62, 81, 82.
+  with Disease = influenza, Observation = [fever, present], Rest = [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.0016000000000000005, Factor = 0.8, Remaining = 0.0020000000000000005.
+  (0.8 * 0.0020000000000000005) = 0.0016000000000000005.
+step 84: 0.000048000000000000015 is (0.03 * 0.0016000000000000005).
+  I checked these values.
+step 85: score([influenza, case], 0.000048000000000000015).
+  because rule 7 uses steps 60, 8, 83, 84.
+  with Disease = influenza, Case = case, _Calc1 = 0.000048000000000000015, Prior = 0.03, Evidence = [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], Likelihood = 0.0016000000000000005.
+  (0.03 * 0.0016000000000000005) = 0.000048000000000000015.
+step 86: prior('allergic-rhinitis', 0.1).
+  you told me this.
+step 87: probability(['allergic-rhinitis', fever], 0.05).
+  you told me this.
+step 88: factor(['allergic-rhinitis', [fever, present]], 0.05).
+  because rule 3 uses steps 87.
+  with Disease = 'allergic-rhinitis', Symptom = fever, Probability = 0.05.
+step 89: probability(['allergic-rhinitis', 'dry-cough'], 0.15).
+  you told me this.
+step 90: factor(['allergic-rhinitis', ['dry-cough', present]], 0.15).
+  because rule 3 uses steps 89.
+  with Disease = 'allergic-rhinitis', Symptom = 'dry-cough', Probability = 0.15.
+step 91: probability(['allergic-rhinitis', 'loss-of-smell'], 0.1).
+  you told me this.
+step 92: factor(['allergic-rhinitis', ['loss-of-smell', present]], 0.1).
+  because rule 3 uses steps 91.
+  with Disease = 'allergic-rhinitis', Symptom = 'loss-of-smell', Probability = 0.1.
+step 93: probability(['allergic-rhinitis', sneezing], 0.8).
+  you told me this.
+step 94: 0.19999999999999996 is (1 - 0.8).
+  I checked these values.
+step 95: factor(['allergic-rhinitis', [sneezing, absent]], 0.19999999999999996).
+  because rule 4 uses steps 93, 94.
+  with Disease = 'allergic-rhinitis', Symptom = sneezing, _Calc1 = 0.19999999999999996, Probability = 0.8.
+  (1 - 0.8) = 0.19999999999999996.
+step 96: probability(['allergic-rhinitis', 'short-breath'], 0.05).
+  you told me this.
+step 97: factor(['allergic-rhinitis', ['short-breath', present]], 0.05).
+  because rule 3 uses steps 96.
+  with Disease = 'allergic-rhinitis', Symptom = 'short-breath', Probability = 0.05.
+step 98: is_a('allergic-rhinitis', disease).
+  you told me this.
+step 99: likelihood(['allergic-rhinitis', []], 1).
+  because rule 5 uses steps 98.
+  with Disease = 'allergic-rhinitis'.
+step 100: 0.05 is (0.05 * 1).
+  I checked these values.
+step 101: likelihood(['allergic-rhinitis', [['short-breath', present]]], 0.05).
+  because rule 6 uses steps 97, 99, 100.
+  with Disease = 'allergic-rhinitis', Observation = ['short-breath', present], Rest = [], _Calc1 = 0.05, Factor = 0.05, Remaining = 1.
+  (0.05 * 1) = 0.05.
+step 102: 0.009999999999999998 is (0.19999999999999996 * 0.05).
+  I checked these values.
+step 103: likelihood(['allergic-rhinitis', [[sneezing, absent], ['short-breath', present]]], 0.009999999999999998).
+  because rule 6 uses steps 95, 101, 102.
+  with Disease = 'allergic-rhinitis', Observation = [sneezing, absent], Rest = [['short-breath', present]], _Calc1 = 0.009999999999999998, Factor = 0.19999999999999996, Remaining = 0.05.
+  (0.19999999999999996 * 0.05) = 0.009999999999999998.
+step 104: 0.0009999999999999998 is (0.1 * 0.009999999999999998).
+  I checked these values.
+step 105: likelihood(['allergic-rhinitis', [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.0009999999999999998).
+  because rule 6 uses steps 92, 103, 104.
+  with Disease = 'allergic-rhinitis', Observation = ['loss-of-smell', present], Rest = [[sneezing, absent], ['short-breath', present]], _Calc1 = 0.0009999999999999998, Factor = 0.1, Remaining = 0.009999999999999998.
+  (0.1 * 0.009999999999999998) = 0.0009999999999999998.
+step 106: 0.00014999999999999996 is (0.15 * 0.0009999999999999998).
+  I checked these values.
+step 107: likelihood(['allergic-rhinitis', [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.00014999999999999996).
+  because rule 6 uses steps 90, 105, 106.
+  with Disease = 'allergic-rhinitis', Observation = ['dry-cough', present], Rest = [['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.00014999999999999996, Factor = 0.15, Remaining = 0.0009999999999999998.
+  (0.15 * 0.0009999999999999998) = 0.00014999999999999996.
+step 108: 0.0000074999999999999985 is (0.05 * 0.00014999999999999996).
+  I checked these values.
+step 109: likelihood(['allergic-rhinitis', [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]]], 0.0000074999999999999985).
+  because rule 6 uses steps 88, 107, 108.
+  with Disease = 'allergic-rhinitis', Observation = [fever, present], Rest = [['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], _Calc1 = 0.0000074999999999999985, Factor = 0.05, Remaining = 0.00014999999999999996.
+  (0.05 * 0.00014999999999999996) = 0.0000074999999999999985.
+step 110: 7.499999999999999e-7 is (0.1 * 0.0000074999999999999985).
+  I checked these values.
+step 111: score(['allergic-rhinitis', case], 7.499999999999999e-7).
+  because rule 7 uses steps 86, 8, 109, 110.
+  with Disease = 'allergic-rhinitis', Case = case, _Calc1 = 7.499999999999999e-7, Prior = 0.1, Evidence = [[fever, present], ['dry-cough', present], ['loss-of-smell', present], [sneezing, absent], ['short-breath', present]], Likelihood = 0.0000074999999999999985.
+  (0.1 * 0.0000074999999999999985) = 7.499999999999999e-7.
+step 112: scores([[], case], []).
+  because rule 8 uses steps 1.
+  with Case = case.
+step 113: scores([['bacterial-pneumonia'], case], [0.00004787999999999999]).
+  because rule 9 uses steps 33, 112.
+  with Disease = 'bacterial-pneumonia', Rest = [], Case = case, Score = 0.00004787999999999999, Remaining = [].
+step 114: scores([['allergic-rhinitis', 'bacterial-pneumonia'], case], [7.499999999999999e-7, 0.00004787999999999999]).
+  because rule 9 uses steps 111, 113.
+  with Disease = 'allergic-rhinitis', Rest = ['bacterial-pneumonia'], Case = case, Score = 7.499999999999999e-7, Remaining = [0.00004787999999999999].
+step 115: scores([[influenza, 'allergic-rhinitis', 'bacterial-pneumonia'], case], [0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999]).
+  because rule 9 uses steps 85, 114.
+  with Disease = influenza, Rest = ['allergic-rhinitis', 'bacterial-pneumonia'], Case = case, Score = 0.000048000000000000015, Remaining = [7.499999999999999e-7, 0.00004787999999999999].
+step 116: scores([[covid19, influenza, 'allergic-rhinitis', 'bacterial-pneumonia'], case], [0.001547, 0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999]).
+  because rule 9 uses steps 59, 115.
+  with Disease = covid19, Rest = [influenza, 'allergic-rhinitis', 'bacterial-pneumonia'], Case = case, Score = 0.001547, Remaining = [0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999].
+step 117: scores(case, [0.001547, 0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999]).
+  because rule 10 uses steps 1, 2, 116.
+  with Case = case, Scores = [0.001547, 0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999], Diseases = [covid19, influenza, 'allergic-rhinitis', 'bacterial-pneumonia'].
+step 118: sum([], 0).
+  you told me this.
+step 119: 0.00004787999999999999 is (0.00004787999999999999 + 0).
+  I checked these values.
+step 120: sum([0.00004787999999999999], 0.00004787999999999999).
+  because rule 11 uses steps 118, 119.
+  with Value = 0.00004787999999999999, Rest = [], _Calc1 = 0.00004787999999999999, Remaining = 0.
+  (0.00004787999999999999 + 0) = 0.00004787999999999999.
+step 121: 0.00004862999999999999 is (7.499999999999999e-7 + 0.00004787999999999999).
+  I checked these values.
+step 122: sum([7.499999999999999e-7, 0.00004787999999999999], 0.00004862999999999999).
+  because rule 11 uses steps 120, 121.
+  with Value = 7.499999999999999e-7, Rest = [0.00004787999999999999], _Calc1 = 0.00004862999999999999, Remaining = 0.00004787999999999999.
+  (7.499999999999999e-7 + 0.00004787999999999999) = 0.00004862999999999999.
+step 123: 0.00009663 is (0.000048000000000000015 + 0.00004862999999999999).
+  I checked these values.
+step 124: sum([0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999], 0.00009663).
+  because rule 11 uses steps 122, 123.
+  with Value = 0.000048000000000000015, Rest = [7.499999999999999e-7, 0.00004787999999999999], _Calc1 = 0.00009663, Remaining = 0.00004862999999999999.
+  (0.000048000000000000015 + 0.00004862999999999999) = 0.00009663.
+step 125: 0.00164363 is (0.001547 + 0.00009663).
+  I checked these values.
+step 126: sum([0.001547, 0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999], 0.00164363).
+  because rule 11 uses steps 124, 125.
+  with Value = 0.001547, Rest = [0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999], _Calc1 = 0.00164363, Remaining = 0.00009663.
+  (0.001547 + 0.00009663) = 0.00164363.
+step 127: 'evidence-total'(case, 0.00164363).
+  because rule 12 uses steps 1, 117, 126.
+  with Case = case, Scores = [0.001547, 0.000048000000000000015, 7.499999999999999e-7, 0.00004787999999999999], Total = 0.00164363.
+step 128: 0.00164363 > 0.
+  I checked these values.
+step 129: 0.029130643758023392 is (0.00004787999999999999 / 0.00164363).
+  I checked these values.
+step 130: posterior(['bacterial-pneumonia', case], 0.029130643758023392).
+  because rule 13 uses steps 6, 33, 127, 128, 129.
+  with Case = case, Disease = 'bacterial-pneumonia', Rest = [], Score = 0.00004787999999999999, Total = 0.00164363, _Calc1 = 0.029130643758023392.
+  (0.00004787999999999999 / 0.00164363) = 0.029130643758023392.
+That explains step 130.
+
+% Check
+check passed: aggregate_all(count, (is_a(Subject, 'invalid-probability')), 0).
+
+check passed: is_a(case, 'normalizable-case').
+
+check passed: is_a(case, 'normalized-case').

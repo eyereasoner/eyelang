@@ -15,12 +15,14 @@ user-facing text direct.
   browser interface and computation worker.
 - `src/playground-server.js`: local static server.
 - `examples/*.pl`: executable examples using ARC (Answer, Reason, Check).
+- `examples/output/*.txt`: saved ARC transcripts for example regression tests.
 - `test/*.test.js`: Node.js behavior and regression tests.
 - `SPEC.md`: normative specification in RFC style.
 - `README.md`: concise introduction, usage, and example index.
 - `TUTORIAL.md`: hands-on guide with runnable programs and expected results.
 - `scripts/prepare-pages.js` and `scripts/pages-layout.html`: website staging
   and shared documentation layout.
+- `scripts/example-goldens.js`: example coverage and explicit golden updates.
 - `scripts/sync-version.js`, `release`, and `.github/workflows/`: version
   synchronization, releases, and GitHub Pages deployment.
 
@@ -37,6 +39,7 @@ node src/playground-server.js
 node --test test/language.test.js
 npm run test:conformance
 npm test
+npm run examples:update
 node scripts/prepare-pages.js
 git diff --check
 ```
@@ -66,7 +69,8 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 - Use `.pl` for examples. Each bundled example should demonstrate an answer,
   explain it with `?- why.`, and verify expectations with `:- assertion(Goal).`.
 - Add new examples to the README index and the playground selector. Keep the
-  specification's example descriptions current when relevant.
+  specification's example descriptions current when relevant. Include an ARC
+  golden or an explicit structural-test exception for large examples.
 - Keep README example links pointed at repository files. Preserve the same
   top navigation on the homepage, specification, tutorial, and playground:
   eyelang, Repository, Playground, Tutorial, Specification.
@@ -88,6 +92,10 @@ Run focused tests while making behavioral changes, then `npm test` before
 finishing changes to code, examples, or release tooling. Add regression tests
 for meaningful behavior changes. Documentation-only edits generally need a
 review and `git diff --check`.
+
+Ordinary tests MUST only read goldens. After intentional example output
+changes, run `npm run examples:update` and review `examples/output/` diffs.
+Keep independent correctness and supporting-evidence checks alongside goldens.
 
 For playground changes, check the actual browser as well as automated tests.
 Preserve worker cancellation, usable error reporting, and complete output when

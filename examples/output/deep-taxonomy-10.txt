@@ -1,0 +1,64 @@
+% Answer
+?- is_a(Who, a2).
+Who = ind.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: is_a(Entity, n1) :- is_a(Entity, n0).
+rule 2: is_a(Entity, n2) :- is_a(Entity, n1).
+rule 3: is_a(Entity, n3) :- is_a(Entity, n2).
+rule 4: is_a(Entity, n4) :- is_a(Entity, n3).
+rule 5: is_a(Entity, n5) :- is_a(Entity, n4).
+rule 6: is_a(Entity, n6) :- is_a(Entity, n5).
+rule 7: is_a(Entity, n7) :- is_a(Entity, n6).
+rule 8: is_a(Entity, n8) :- is_a(Entity, n7).
+rule 9: is_a(Entity, n9) :- is_a(Entity, n8).
+rule 10: is_a(Entity, n10) :- is_a(Entity, n9).
+rule 11: is_a(Entity, a2) :- is_a(Entity, n10).
+step 1: is_a(ind, n0).
+  you told me this.
+step 2: is_a(ind, n1).
+  because rule 1 uses steps 1.
+  with Entity = ind.
+step 3: is_a(ind, n2).
+  because rule 2 uses steps 2.
+  with Entity = ind.
+step 4: is_a(ind, n3).
+  because rule 3 uses steps 3.
+  with Entity = ind.
+step 5: is_a(ind, n4).
+  because rule 4 uses steps 4.
+  with Entity = ind.
+step 6: is_a(ind, n5).
+  because rule 5 uses steps 5.
+  with Entity = ind.
+step 7: is_a(ind, n6).
+  because rule 6 uses steps 6.
+  with Entity = ind.
+step 8: is_a(ind, n7).
+  because rule 7 uses steps 7.
+  with Entity = ind.
+step 9: is_a(ind, n8).
+  because rule 8 uses steps 8.
+  with Entity = ind.
+step 10: is_a(ind, n9).
+  because rule 9 uses steps 9.
+  with Entity = ind.
+step 11: is_a(ind, n10).
+  because rule 10 uses steps 10.
+  with Entity = ind.
+step 12: is_a(ind, a2).
+  because rule 11 uses steps 11.
+  with Entity = ind.
+That explains step 12.
+
+% Check
+check passed: is_a(ind, a2).
+
+check passed: is_a(ind, n10).
+
+check passed: is_a(ind, i10).
+
+check passed: is_a(ind, j10).
+
+check passed: \+ (is_a(ind, n11)).

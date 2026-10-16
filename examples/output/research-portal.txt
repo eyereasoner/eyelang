@@ -1,0 +1,263 @@
+% Answer
+?- assessment(Session, Result).
+Session = [baseline, r3], Result = [['deny-policy', ['prohibited-by', 'no-marketing']], [policy]].
+Session = [baseline, r6], Result = [['deny-policy', ['prohibited-by', 'no-transfer-us']], [policy]].
+Session = ['omnibus-proposal', r3], Result = [['deny-policy', ['prohibited-by', 'no-marketing']], [policy]].
+Session = ['omnibus-proposal', r6], Result = [['deny-policy', ['prohibited-by', 'no-transfer-us']], [policy]].
+Session = [baseline, r11], Result = [['deny-policy', 'no-matching-permission'], [policy]].
+Session = ['omnibus-proposal', r11], Result = [['deny-policy', 'no-matching-permission'], [policy]].
+Session = ['omnibus-proposal', r1], Result = [[permit, research], [policy, "GDPR Art. 88a(3)(c)"]].
+Session = [baseline, r10], Result = [[permit, research], [policy, "ePrivacy Art. 5(3)"]].
+Session = ['omnibus-proposal', r10], Result = [[permit, research], [policy, "GDPR Art. 88a(3)(b)"]].
+Session = [baseline, r1], Result = [['await-device-consent', research], [policy, "ePrivacy Art. 5(3)"]].
+Session = [baseline, r7], Result = [['await-device-consent', research], [policy, "ePrivacy Art. 5(3)"]].
+Session = [baseline, r8], Result = [['await-device-consent', research], [policy, "ePrivacy Art. 5(3)"]].
+Session = [baseline, r9], Result = [['await-device-consent', research], [policy, "ePrivacy Art. 5(3)"]].
+Session = ['omnibus-proposal', r9], Result = [['await-device-consent', research], [policy, "GDPR Art. 88a(1)", "GDPR Art. 88a(4)(c)"]].
+Session = [baseline, r2], Result = [['deny-policy', ['not-permitted', [[unmet, 'for-research', purpose, 'personalised-advertising', within, 'research-and-development'], [unmet, 'under-consent', 'legal-basis', 'legitimate-interest', equal, consent], [unmet, 'consent-given', 'consent-status', 'consent-unknown', equal, 'consent-given']]]], [policy]].
+Session = ['omnibus-proposal', r2], Result = [['deny-policy', ['not-permitted', [[unmet, 'for-research', purpose, 'personalised-advertising', within, 'research-and-development'], [unmet, 'under-consent', 'legal-basis', 'legitimate-interest', equal, consent], [unmet, 'consent-given', 'consent-status', 'consent-unknown', equal, 'consent-given']]]], [policy]].
+Session = [baseline, r4], Result = [['deny-policy', ['not-permitted', [[unmet, 'consent-given', 'consent-status', 'consent-withdrawn', equal, 'consent-given']]]], [policy]].
+Session = ['omnibus-proposal', r4], Result = [['deny-policy', ['not-permitted', [[unmet, 'consent-given', 'consent-status', 'consent-withdrawn', equal, 'consent-given']]]], [policy]].
+Session = [baseline, r5], Result = [['deny-policy', ['not-permitted', [[unmet, pseudonymised, 'technical-measure', encryption, equal, pseudonymisation], [unmet, 'before-2027', date, 20270301, 'less-than', 20270101]]]], [policy]].
+Session = ['omnibus-proposal', r5], Result = [['deny-policy', ['not-permitted', [[unmet, pseudonymised, 'technical-measure', encryption, equal, pseudonymisation], [unmet, 'before-2027', date, 20270301, 'less-than', 20270101]]]], [policy]].
+Session = ['omnibus-proposal', r7], Result = [['deny-device', 'refused-by-signal'], [policy, "GDPR Art. 88a(1)", "GDPR Art. 88b(1)-(2)"]].
+Session = ['omnibus-proposal', r8], Result = [['deny-device', 'do-not-ask-again'], [policy, "GDPR Art. 88a(1)", "GDPR Art. 88a(4)(c)"]].
+
+?- 'breach-plan'(Incident, Plan).
+Incident = [baseline, b1], Plan = [[notify, [authority, none], [people, none]], 'document-breach', ["GDPR Art. 33(1)", "GDPR Art. 34(1)", "GDPR Art. 33(5)"]].
+Incident = [baseline, b2], Plan = [[notify, [authority, ['within-hours', 72]], [people, none]], 'document-breach', ["GDPR Art. 33(1)", "GDPR Art. 34(1)", "GDPR Art. 33(5)"]].
+Incident = [baseline, b3], Plan = [[notify, [authority, ['within-hours', 72]], [people, 'without-undue-delay']], 'document-breach', ["GDPR Art. 33(1)", "GDPR Art. 34(1)", "GDPR Art. 33(5)"]].
+Incident = ['omnibus-proposal', b1], Plan = [[notify, [authority, none], [people, none]], 'document-breach', ["GDPR Art. 33(1) as amended", "GDPR Art. 34(1)", "GDPR Art. 33(5)"]].
+Incident = ['omnibus-proposal', b2], Plan = [[notify, [authority, none], [people, none]], 'document-breach', ["GDPR Art. 33(1) as amended", "GDPR Art. 34(1)", "GDPR Art. 33(5)"]].
+Incident = ['omnibus-proposal', b3], Plan = [[notify, [authority, ['within-hours-via-single-entry-point', 96]], [people, 'without-undue-delay']], 'document-breach', ["GDPR Art. 33(1) as amended", "GDPR Art. 34(1)", "GDPR Art. 33(5)"]].
+
+?- 'planned-duty'(Session, Duty).
+Session = ['omnibus-proposal', r1], Duty = [delete, ['within-days', 90]].
+Session = [baseline, r10], Duty = [delete, ['within-days', 90]].
+Session = ['omnibus-proposal', r10], Duty = [delete, ['within-days', 90]].
+
+?- 'policy-conflict'(Process, Conflict).
+Process = r6, Conflict = ['resolved-by', prohibit, 'no-transfer-us', [overrides, research]].
+
+?- change(Item, Difference).
+Item = [breach, b2], Difference = [from, [notify, [authority, ['within-hours', 72]], [people, none]], to, [notify, [authority, none], [people, none]]].
+Item = [breach, b3], Difference = [from, [notify, [authority, ['within-hours', 72]], [people, 'without-undue-delay']], to, [notify, [authority, ['within-hours-via-single-entry-point', 96]], [people, 'without-undue-delay']]].
+Item = [session, r1], Difference = [from, ['await-device-consent', research], to, [permit, research]].
+Item = [session, r7], Difference = [from, ['await-device-consent', research], to, ['deny-device', 'refused-by-signal']].
+Item = [session, r8], Difference = [from, ['await-device-consent', research], to, ['deny-device', 'do-not-ask-again']].
+
+?- assessment(['omnibus-proposal', r1], What).
+What = [[permit, research], [policy, "GDPR Art. 88a(3)(c)"]].
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: controller(Process, Controller) :- process(Process, [Controller | Rest]).
+rule 2: governs(Policy, Process) :- is_a(Policy, agreement), assigner(Policy, Controller), controller(Process, Controller).
+rule 3: is_a(Process, 'policy-ready-process') :- governs(Policy, Process), 'conflict-strategies'(Policy, [prohibit]).
+rule 4: member([Head | Rest], Head) :- Head = Head.
+rule 5: requester(Process, Requester) :- process(Process, [Controller, Requester | Rest]).
+rule 6: 'is-member-of'(Party, Group) :- 'belongs-to'(Party, Group).
+rule 7: processing(Process, Processing) :- process(Process, [Controller, Requester, Processing | Rest]).
+rule 8: data(Process, Data) :- process(Process, [Controller, Requester, Processing, Data | Rest]).
+rule 9: addresses(Process, Rule) :- requester(Process, Requester), assignee(Rule, Assignee), 'is-member-of'(Requester, Assignee), processing(Process, Processing), 'mapped-action'(Processing, Action), action(Rule, Action), data(Process, Data), target(Rule, Data).
+rule 10: operand([Process, purpose], Purpose) :- process(Process, [Controller, Requester, Processing, Data, Purpose | Rest]).
+rule 11: is_a(Broader, purpose) :- 'has-broader-purpose'(Purpose, Broader).
+rule 12: 'falls-within'(Purpose, Purpose) :- is_a(Purpose, purpose).
+rule 13: 'falls-within'(Purpose, Class) :- 'has-broader-purpose'(Purpose, Middle), 'falls-within'(Middle, Class).
+rule 14: is_a([Process, Constraint], 'met-constraint') :- constraint(Constraint, [Operand, within, Class]), operand([Process, Operand], Value), 'falls-within'(Value, Class).
+rule 15: operand([Process, 'legal-basis'], Basis) :- process(Process, [Controller, Requester, Processing, Data, Purpose, Basis | Rest]).
+rule 16: is_a([Process, Constraint], 'met-constraint') :- constraint(Constraint, [Operand, equal, Expected]), operand([Process, Operand], Expected).
+rule 17: operand([Process, 'consent-status'], Consent) :- process(Process, [Controller, Requester, Processing, Data, Purpose, Basis, Consent | Rest]).
+rule 18: operand([Process, 'technical-measure'], Measure) :- process(Process, [Controller, Requester, Processing, Data, Purpose, Basis, Consent, Measure | Rest]).
+rule 19: operand([Process, date], Date) :- process(Process, [Controller, Requester, Processing, Data, Purpose, Basis, Consent, Measure, Date]).
+rule 20: is_a([Process, Constraint], 'met-constraint') :- constraint(Constraint, [Operand, 'less-than', Limit]), operand([Process, Operand], Value), Value < Limit.
+rule 21: is_a(Process, 'research-process') :- process(Process, Profile).
+rule 22: failures([Process, []], []) :- is_a(Process, 'research-process').
+rule 23: failures([Process, [Constraint | Rest]], Failures) :- is_a([Process, Constraint], 'met-constraint'), failures([Process, Rest], Failures).
+rule 24: is_a([Process, Rule], 'applied-rule') :- addresses(Process, Rule), constraints(Rule, Constraints), failures([Process, Constraints], []).
+rule 25: 'is-permitted-by'(Process, Rule) :- governs(Policy, Process), permissions(Policy, Rules), member(Rules, Rule), is_a([Process, Rule], 'applied-rule').
+rule 26: 'policy-result'(Process, [permit, Rule]) :- is_a(Process, 'policy-ready-process'), 'is-permitted-by'(Process, Rule), \+ (is_a(Process, 'prohibited-process')).
+rule 27: assessment([Rulebook, Process], [[permit, Rule], [policy, Provision]]) :- is_a(Rulebook, rulebook), 'policy-result'(Process, [permit, Rule]), session(Process, [Kind, Choice]), consent([Rulebook, Kind], ['not-needed', Provision]).
+step 1: is_a('omnibus-proposal', rulebook).
+  you told me this.
+step 2: is_a(policy, agreement).
+  you told me this.
+step 3: assigner(policy, hospital).
+  you told me this.
+step 4: process(r1, [hospital, 'partner-be', use, 'lab-results', 'academic-research', consent, 'consent-given', pseudonymisation, 20261115]).
+  you told me this.
+step 5: controller(r1, hospital).
+  because rule 1 uses steps 4.
+  with Process = r1, Controller = hospital, Rest = ['partner-be', use, 'lab-results', 'academic-research', consent, 'consent-given', pseudonymisation, 20261115].
+step 6: governs(policy, r1).
+  because rule 2 uses steps 2, 3, 5.
+  with Policy = policy, Process = r1, Controller = hospital.
+step 7: 'conflict-strategies'(policy, [prohibit]).
+  you told me this.
+step 8: is_a(r1, 'policy-ready-process').
+  because rule 3 uses steps 6, 7.
+  with Process = r1, Policy = policy.
+step 9: permissions(policy, [research]).
+  you told me this.
+step 10: research = research.
+  I checked these values.
+step 11: member([research], research).
+  because rule 4 uses steps 10.
+  with Head = research, Rest = [].
+step 12: requester(r1, 'partner-be').
+  because rule 5 uses steps 4.
+  with Process = r1, Requester = 'partner-be', Controller = hospital, Rest = [use, 'lab-results', 'academic-research', consent, 'consent-given', pseudonymisation, 20261115].
+step 13: assignee(research, consortium).
+  you told me this.
+step 14: 'belongs-to'('partner-be', consortium).
+  you told me this.
+step 15: 'is-member-of'('partner-be', consortium).
+  because rule 6 uses steps 14.
+  with Party = 'partner-be', Group = consortium.
+step 16: processing(r1, use).
+  because rule 7 uses steps 4.
+  with Process = r1, Processing = use, Controller = hospital, Requester = 'partner-be', Rest = ['lab-results', 'academic-research', consent, 'consent-given', pseudonymisation, 20261115].
+step 17: 'mapped-action'(use, use).
+  you told me this.
+step 18: action(research, use).
+  you told me this.
+step 19: data(r1, 'lab-results').
+  because rule 8 uses steps 4.
+  with Process = r1, Data = 'lab-results', Controller = hospital, Requester = 'partner-be', Processing = use, Rest = ['academic-research', consent, 'consent-given', pseudonymisation, 20261115].
+step 20: target(research, 'lab-results').
+  you told me this.
+step 21: addresses(r1, research).
+  because rule 9 uses steps 12, 13, 15, 16, 17, 18, 19, 20.
+  with Process = r1, Rule = research, Requester = 'partner-be', Assignee = consortium, Processing = use, Action = use, Data = 'lab-results'.
+step 22: constraints(research, ['for-research', 'under-consent', 'consent-given', pseudonymised, 'before-2027']).
+  you told me this.
+step 23: constraint('for-research', [purpose, within, 'research-and-development']).
+  you told me this.
+step 24: operand([r1, purpose], 'academic-research').
+  because rule 10 uses steps 4.
+  with Process = r1, Purpose = 'academic-research', Controller = hospital, Requester = 'partner-be', Processing = use, Data = 'lab-results', Rest = [consent, 'consent-given', pseudonymisation, 20261115].
+step 25: 'has-broader-purpose'('academic-research', 'research-and-development').
+  you told me this.
+step 26: is_a('research-and-development', purpose).
+  because rule 11 uses steps 25.
+  with Broader = 'research-and-development', Purpose = 'academic-research'.
+step 27: 'falls-within'('research-and-development', 'research-and-development').
+  because rule 12 uses steps 26.
+  with Purpose = 'research-and-development'.
+step 28: 'falls-within'('academic-research', 'research-and-development').
+  because rule 13 uses steps 25, 27.
+  with Purpose = 'academic-research', Class = 'research-and-development', Middle = 'research-and-development'.
+step 29: is_a([r1, 'for-research'], 'met-constraint').
+  because rule 14 uses steps 23, 24, 28.
+  with Process = r1, Constraint = 'for-research', Operand = purpose, Class = 'research-and-development', Value = 'academic-research'.
+step 30: constraint('under-consent', ['legal-basis', equal, consent]).
+  you told me this.
+step 31: operand([r1, 'legal-basis'], consent).
+  because rule 15 uses steps 4.
+  with Process = r1, Basis = consent, Controller = hospital, Requester = 'partner-be', Processing = use, Data = 'lab-results', Purpose = 'academic-research', Rest = ['consent-given', pseudonymisation, 20261115].
+step 32: is_a([r1, 'under-consent'], 'met-constraint').
+  because rule 16 uses steps 30, 31.
+  with Process = r1, Constraint = 'under-consent', Operand = 'legal-basis', Expected = consent.
+step 33: constraint('consent-given', ['consent-status', equal, 'consent-given']).
+  you told me this.
+step 34: operand([r1, 'consent-status'], 'consent-given').
+  because rule 17 uses steps 4.
+  with Process = r1, Consent = 'consent-given', Controller = hospital, Requester = 'partner-be', Processing = use, Data = 'lab-results', Purpose = 'academic-research', Basis = consent, Rest = [pseudonymisation, 20261115].
+step 35: is_a([r1, 'consent-given'], 'met-constraint').
+  because rule 16 uses steps 33, 34.
+  with Process = r1, Constraint = 'consent-given', Operand = 'consent-status', Expected = 'consent-given'.
+step 36: constraint(pseudonymised, ['technical-measure', equal, pseudonymisation]).
+  you told me this.
+step 37: operand([r1, 'technical-measure'], pseudonymisation).
+  because rule 18 uses steps 4.
+  with Process = r1, Measure = pseudonymisation, Controller = hospital, Requester = 'partner-be', Processing = use, Data = 'lab-results', Purpose = 'academic-research', Basis = consent, Consent = 'consent-given', Rest = [20261115].
+step 38: is_a([r1, pseudonymised], 'met-constraint').
+  because rule 16 uses steps 36, 37.
+  with Process = r1, Constraint = pseudonymised, Operand = 'technical-measure', Expected = pseudonymisation.
+step 39: constraint('before-2027', [date, 'less-than', 20270101]).
+  you told me this.
+step 40: operand([r1, date], 20261115).
+  because rule 19 uses steps 4.
+  with Process = r1, Date = 20261115, Controller = hospital, Requester = 'partner-be', Processing = use, Data = 'lab-results', Purpose = 'academic-research', Basis = consent, Consent = 'consent-given', Measure = pseudonymisation.
+step 41: 20261115 < 20270101.
+  I checked these values.
+step 42: is_a([r1, 'before-2027'], 'met-constraint').
+  because rule 20 uses steps 39, 40, 41.
+  with Process = r1, Constraint = 'before-2027', Operand = date, Limit = 20270101, Value = 20261115.
+step 43: is_a(r1, 'research-process').
+  because rule 21 uses steps 4.
+  with Process = r1, Profile = [hospital, 'partner-be', use, 'lab-results', 'academic-research', consent, 'consent-given', pseudonymisation, 20261115].
+step 44: failures([r1, []], []).
+  because rule 22 uses steps 43.
+  with Process = r1.
+step 45: failures([r1, ['before-2027']], []).
+  because rule 23 uses steps 42, 44.
+  with Process = r1, Constraint = 'before-2027', Rest = [], Failures = [].
+step 46: failures([r1, [pseudonymised, 'before-2027']], []).
+  because rule 23 uses steps 38, 45.
+  with Process = r1, Constraint = pseudonymised, Rest = ['before-2027'], Failures = [].
+step 47: failures([r1, ['consent-given', pseudonymised, 'before-2027']], []).
+  because rule 23 uses steps 35, 46.
+  with Process = r1, Constraint = 'consent-given', Rest = [pseudonymised, 'before-2027'], Failures = [].
+step 48: failures([r1, ['under-consent', 'consent-given', pseudonymised, 'before-2027']], []).
+  because rule 23 uses steps 32, 47.
+  with Process = r1, Constraint = 'under-consent', Rest = ['consent-given', pseudonymised, 'before-2027'], Failures = [].
+step 49: failures([r1, ['for-research', 'under-consent', 'consent-given', pseudonymised, 'before-2027']], []).
+  because rule 23 uses steps 29, 48.
+  with Process = r1, Constraint = 'for-research', Rest = ['under-consent', 'consent-given', pseudonymised, 'before-2027'], Failures = [].
+step 50: is_a([r1, research], 'applied-rule').
+  because rule 24 uses steps 21, 22, 49.
+  with Process = r1, Rule = research, Constraints = ['for-research', 'under-consent', 'consent-given', pseudonymised, 'before-2027'].
+step 51: 'is-permitted-by'(r1, research).
+  because rule 25 uses steps 6, 9, 11, 50.
+  with Policy = policy, Process = r1, Rules = [research], Rule = research.
+step 52: \+ (is_a(r1, 'prohibited-process')).
+  I checked the completed program and found no matching fact.
+step 53: 'policy-result'(r1, [permit, research]).
+  because rule 26 uses steps 8, 51, 52.
+  with Process = r1, Rule = research.
+step 54: session(r1, ['own-audience-measurement', 'first-visit']).
+  you told me this.
+step 55: consent(['omnibus-proposal', 'own-audience-measurement'], ['not-needed', "GDPR Art. 88a(3)(c)"]).
+  you told me this.
+step 56: assessment(['omnibus-proposal', r1], [[permit, research], [policy, "GDPR Art. 88a(3)(c)"]]).
+  because rule 27 uses steps 1, 53, 54, 55.
+  with Rulebook = 'omnibus-proposal', Process = r1, Rule = research, Kind = 'own-audience-measurement', Choice = 'first-visit', Provision = "GDPR Art. 88a(3)(c)".
+That explains step 56.
+
+% Check
+check passed: aggregate_all(count, (is_a(Subject, 'assessed-session')), 22).
+
+check passed: aggregate_all(count, (is_a(Subject, 'planned-breach')), 6).
+
+check passed: aggregate_all(count, (is_a(Subject, 'planned-deletion')), 3).
+
+check passed: aggregate_all(count, (is_a(Subject, 'changed-outcome')), 5).
+
+check passed: aggregate_all(count, (is_a(Subject, 'conflicting-process')), 1).
+
+check passed: 'policy-result'(r1, [permit, research]).
+
+check passed: assessment([baseline, r1], [['await-device-consent', research], [policy, "ePrivacy Art. 5(3)"]]).
+
+check passed: assessment(['omnibus-proposal', r1], [[permit, research], [policy, "GDPR Art. 88a(3)(c)"]]).
+
+check passed: assessment(['omnibus-proposal', r7], [['deny-device', 'refused-by-signal'], [policy, "GDPR Art. 88a(1)", "GDPR Art. 88b(1)-(2)"]]).
+
+check passed: assessment(['omnibus-proposal', r8], [['deny-device', 'do-not-ask-again'], [policy, "GDPR Art. 88a(1)", "GDPR Art. 88a(4)(c)"]]).
+
+check passed: assessment(['omnibus-proposal', r9], [['await-device-consent', research], [policy, "GDPR Art. 88a(1)", "GDPR Art. 88a(4)(c)"]]).
+
+check passed: 'policy-result'(r3, [deny, ['prohibited-by', 'no-marketing']]).
+
+check passed: 'policy-result'(r4, [deny, ['not-permitted', [[unmet, 'consent-given', 'consent-status', 'consent-withdrawn', equal, 'consent-given']]]]).
+
+check passed: 'policy-result'(r5, [deny, ['not-permitted', [[unmet, pseudonymised, 'technical-measure', encryption, equal, pseudonymisation], [unmet, 'before-2027', date, 20270301, 'less-than', 20270101]]]]).
+
+check passed: 'policy-result'(r6, [deny, ['prohibited-by', 'no-transfer-us']]).
+
+check passed: 'policy-conflict'(r6, ['resolved-by', prohibit, 'no-transfer-us', [overrides, research]]).
+
+check passed: 'policy-result'(r11, [deny, 'no-matching-permission']).
+
+check passed: \+ ('planned-duty'([baseline, r1], [delete, ['within-days', 90]])).

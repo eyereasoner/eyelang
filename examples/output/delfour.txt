@@ -1,0 +1,104 @@
+% Answer
+?- 'case-name'(delfour, What).
+What = "delfour".
+
+?- is_a(delfour, 'low-sugar-case').
+true.
+
+?- 'derived-need'([delfour, 'sugar-insight'], What).
+What = 'low-sugar'.
+
+?- outcome(delfour, What).
+What = "Allowed".
+
+?- target(delfour, What).
+What = 'sugar-insight'.
+
+?- metric('sugar-insight', What).
+What = "sugar_g_per_serving".
+
+?- 'threshold-display'('sugar-insight', What).
+What = "10.0".
+
+?- scope(delfour, What).
+What = ["self-scanner", "pick_up_scanner"].
+
+?- retailer('sugar-insight', What).
+What = "Delfour".
+
+?- expires('sugar-insight', What).
+What = "2025-10-05T22:33:48.907185+00:00".
+
+?- 'scanned-name'(delfour, What).
+What = "Classic Tea Biscuits".
+
+?- 'alternative-name'(delfour, What).
+What = "Low-Sugar Tea Biscuits".
+
+?- 'banner-alternative'(delfour, What).
+What = "Low-Sugar Tea Biscuits".
+
+?- headline(delfour, What).
+What = "Track sugar per serving while you scan".
+
+?- note(delfour, What).
+What = "High sugar".
+
+?- algorithm('scanner-signature', What).
+What = "HMAC-SHA256".
+
+?- 'audit-entries'(delfour, What).
+What = 1.
+
+?- 'files-written'(delfour, What).
+What = 6.
+
+?- is_a(Who, 'passed-check').
+Who = [delfour, 'expected-file-count'].
+Who = [delfour, 'trusted-signature'].
+Who = [delfour, 'matching-hash'].
+Who = [delfour, 'marketing-prohibited'].
+Who = [delfour, 'minimal-payload'].
+Who = [delfour, 'complete-scope'].
+Who = [delfour, 'duty-timing'].
+Who = [delfour, authorization].
+Who = [delfour, 'lower-sugar'].
+Who = [delfour, 'high-sugar'].
+
+?- is_a(delfour, 'checked-case').
+true.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: is_a(Case, 'low-sugar-case') :- household(Case, Household), condition(Household, "Diabetes").
+rule 2: 'case-insight'(Case, Insight) :- envelope(Case, Envelope), insight(Envelope, Insight).
+rule 3: 'derived-need'([Case, Insight], 'low-sugar') :- is_a(Case, 'low-sugar-case'), 'case-insight'(Case, Insight).
+step 1: household(delfour, 'household-profile').
+  you told me this.
+step 2: condition('household-profile', "Diabetes").
+  you told me this.
+step 3: is_a(delfour, 'low-sugar-case').
+  because rule 1 uses steps 1, 2.
+  with Case = delfour, Household = 'household-profile'.
+step 4: envelope(delfour, 'shopping-envelope').
+  you told me this.
+step 5: insight('shopping-envelope', 'sugar-insight').
+  you told me this.
+step 6: 'case-insight'(delfour, 'sugar-insight').
+  because rule 2 uses steps 4, 5.
+  with Case = delfour, Envelope = 'shopping-envelope', Insight = 'sugar-insight'.
+step 7: 'derived-need'([delfour, 'sugar-insight'], 'low-sugar').
+  because rule 3 uses steps 3, 6.
+  with Case = delfour, Insight = 'sugar-insight'.
+That explains step 7.
+
+% Check
+check passed: outcome(delfour, "Allowed").
+
+check passed: note(delfour, "High sugar").
+
+check passed: 'alternative-name'(delfour, "Low-Sugar Tea Biscuits").
+
+check passed: aggregate_all(count, (is_a(Subject, 'passed-check')), 10).
+
+check passed: is_a(delfour, 'checked-case').

@@ -1,0 +1,18 @@
+% Answer
+?- mortal(Who).
+Who = socrates.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: mortal(Person) :- human(Person).
+step 1: human(socrates).
+  you told me this.
+step 2: mortal(socrates).
+  because rule 1 uses steps 1.
+  with Person = socrates.
+That explains step 2.
+
+% Check
+check passed: mortal(socrates).
+
+check passed: aggregate_all(count, (mortal(Person)), 1).

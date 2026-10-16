@@ -1,0 +1,424 @@
+% Answer
+?- is_a(Who, a2).
+Who = ind.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: is_a(Entity, n1) :- is_a(Entity, n0).
+rule 2: is_a(Entity, n2) :- is_a(Entity, n1).
+rule 3: is_a(Entity, n3) :- is_a(Entity, n2).
+rule 4: is_a(Entity, n4) :- is_a(Entity, n3).
+rule 5: is_a(Entity, n5) :- is_a(Entity, n4).
+rule 6: is_a(Entity, n6) :- is_a(Entity, n5).
+rule 7: is_a(Entity, n7) :- is_a(Entity, n6).
+rule 8: is_a(Entity, n8) :- is_a(Entity, n7).
+rule 9: is_a(Entity, n9) :- is_a(Entity, n8).
+rule 10: is_a(Entity, n10) :- is_a(Entity, n9).
+rule 11: is_a(Entity, n11) :- is_a(Entity, n10).
+rule 12: is_a(Entity, n12) :- is_a(Entity, n11).
+rule 13: is_a(Entity, n13) :- is_a(Entity, n12).
+rule 14: is_a(Entity, n14) :- is_a(Entity, n13).
+rule 15: is_a(Entity, n15) :- is_a(Entity, n14).
+rule 16: is_a(Entity, n16) :- is_a(Entity, n15).
+rule 17: is_a(Entity, n17) :- is_a(Entity, n16).
+rule 18: is_a(Entity, n18) :- is_a(Entity, n17).
+rule 19: is_a(Entity, n19) :- is_a(Entity, n18).
+rule 20: is_a(Entity, n20) :- is_a(Entity, n19).
+rule 21: is_a(Entity, n21) :- is_a(Entity, n20).
+rule 22: is_a(Entity, n22) :- is_a(Entity, n21).
+rule 23: is_a(Entity, n23) :- is_a(Entity, n22).
+rule 24: is_a(Entity, n24) :- is_a(Entity, n23).
+rule 25: is_a(Entity, n25) :- is_a(Entity, n24).
+rule 26: is_a(Entity, n26) :- is_a(Entity, n25).
+rule 27: is_a(Entity, n27) :- is_a(Entity, n26).
+rule 28: is_a(Entity, n28) :- is_a(Entity, n27).
+rule 29: is_a(Entity, n29) :- is_a(Entity, n28).
+rule 30: is_a(Entity, n30) :- is_a(Entity, n29).
+rule 31: is_a(Entity, n31) :- is_a(Entity, n30).
+rule 32: is_a(Entity, n32) :- is_a(Entity, n31).
+rule 33: is_a(Entity, n33) :- is_a(Entity, n32).
+rule 34: is_a(Entity, n34) :- is_a(Entity, n33).
+rule 35: is_a(Entity, n35) :- is_a(Entity, n34).
+rule 36: is_a(Entity, n36) :- is_a(Entity, n35).
+rule 37: is_a(Entity, n37) :- is_a(Entity, n36).
+rule 38: is_a(Entity, n38) :- is_a(Entity, n37).
+rule 39: is_a(Entity, n39) :- is_a(Entity, n38).
+rule 40: is_a(Entity, n40) :- is_a(Entity, n39).
+rule 41: is_a(Entity, n41) :- is_a(Entity, n40).
+rule 42: is_a(Entity, n42) :- is_a(Entity, n41).
+rule 43: is_a(Entity, n43) :- is_a(Entity, n42).
+rule 44: is_a(Entity, n44) :- is_a(Entity, n43).
+rule 45: is_a(Entity, n45) :- is_a(Entity, n44).
+rule 46: is_a(Entity, n46) :- is_a(Entity, n45).
+rule 47: is_a(Entity, n47) :- is_a(Entity, n46).
+rule 48: is_a(Entity, n48) :- is_a(Entity, n47).
+rule 49: is_a(Entity, n49) :- is_a(Entity, n48).
+rule 50: is_a(Entity, n50) :- is_a(Entity, n49).
+rule 51: is_a(Entity, n51) :- is_a(Entity, n50).
+rule 52: is_a(Entity, n52) :- is_a(Entity, n51).
+rule 53: is_a(Entity, n53) :- is_a(Entity, n52).
+rule 54: is_a(Entity, n54) :- is_a(Entity, n53).
+rule 55: is_a(Entity, n55) :- is_a(Entity, n54).
+rule 56: is_a(Entity, n56) :- is_a(Entity, n55).
+rule 57: is_a(Entity, n57) :- is_a(Entity, n56).
+rule 58: is_a(Entity, n58) :- is_a(Entity, n57).
+rule 59: is_a(Entity, n59) :- is_a(Entity, n58).
+rule 60: is_a(Entity, n60) :- is_a(Entity, n59).
+rule 61: is_a(Entity, n61) :- is_a(Entity, n60).
+rule 62: is_a(Entity, n62) :- is_a(Entity, n61).
+rule 63: is_a(Entity, n63) :- is_a(Entity, n62).
+rule 64: is_a(Entity, n64) :- is_a(Entity, n63).
+rule 65: is_a(Entity, n65) :- is_a(Entity, n64).
+rule 66: is_a(Entity, n66) :- is_a(Entity, n65).
+rule 67: is_a(Entity, n67) :- is_a(Entity, n66).
+rule 68: is_a(Entity, n68) :- is_a(Entity, n67).
+rule 69: is_a(Entity, n69) :- is_a(Entity, n68).
+rule 70: is_a(Entity, n70) :- is_a(Entity, n69).
+rule 71: is_a(Entity, n71) :- is_a(Entity, n70).
+rule 72: is_a(Entity, n72) :- is_a(Entity, n71).
+rule 73: is_a(Entity, n73) :- is_a(Entity, n72).
+rule 74: is_a(Entity, n74) :- is_a(Entity, n73).
+rule 75: is_a(Entity, n75) :- is_a(Entity, n74).
+rule 76: is_a(Entity, n76) :- is_a(Entity, n75).
+rule 77: is_a(Entity, n77) :- is_a(Entity, n76).
+rule 78: is_a(Entity, n78) :- is_a(Entity, n77).
+rule 79: is_a(Entity, n79) :- is_a(Entity, n78).
+rule 80: is_a(Entity, n80) :- is_a(Entity, n79).
+rule 81: is_a(Entity, n81) :- is_a(Entity, n80).
+rule 82: is_a(Entity, n82) :- is_a(Entity, n81).
+rule 83: is_a(Entity, n83) :- is_a(Entity, n82).
+rule 84: is_a(Entity, n84) :- is_a(Entity, n83).
+rule 85: is_a(Entity, n85) :- is_a(Entity, n84).
+rule 86: is_a(Entity, n86) :- is_a(Entity, n85).
+rule 87: is_a(Entity, n87) :- is_a(Entity, n86).
+rule 88: is_a(Entity, n88) :- is_a(Entity, n87).
+rule 89: is_a(Entity, n89) :- is_a(Entity, n88).
+rule 90: is_a(Entity, n90) :- is_a(Entity, n89).
+rule 91: is_a(Entity, n91) :- is_a(Entity, n90).
+rule 92: is_a(Entity, n92) :- is_a(Entity, n91).
+rule 93: is_a(Entity, n93) :- is_a(Entity, n92).
+rule 94: is_a(Entity, n94) :- is_a(Entity, n93).
+rule 95: is_a(Entity, n95) :- is_a(Entity, n94).
+rule 96: is_a(Entity, n96) :- is_a(Entity, n95).
+rule 97: is_a(Entity, n97) :- is_a(Entity, n96).
+rule 98: is_a(Entity, n98) :- is_a(Entity, n97).
+rule 99: is_a(Entity, n99) :- is_a(Entity, n98).
+rule 100: is_a(Entity, n100) :- is_a(Entity, n99).
+rule 101: is_a(Entity, a2) :- is_a(Entity, n100).
+step 1: is_a(ind, n0).
+  you told me this.
+step 2: is_a(ind, n1).
+  because rule 1 uses steps 1.
+  with Entity = ind.
+step 3: is_a(ind, n2).
+  because rule 2 uses steps 2.
+  with Entity = ind.
+step 4: is_a(ind, n3).
+  because rule 3 uses steps 3.
+  with Entity = ind.
+step 5: is_a(ind, n4).
+  because rule 4 uses steps 4.
+  with Entity = ind.
+step 6: is_a(ind, n5).
+  because rule 5 uses steps 5.
+  with Entity = ind.
+step 7: is_a(ind, n6).
+  because rule 6 uses steps 6.
+  with Entity = ind.
+step 8: is_a(ind, n7).
+  because rule 7 uses steps 7.
+  with Entity = ind.
+step 9: is_a(ind, n8).
+  because rule 8 uses steps 8.
+  with Entity = ind.
+step 10: is_a(ind, n9).
+  because rule 9 uses steps 9.
+  with Entity = ind.
+step 11: is_a(ind, n10).
+  because rule 10 uses steps 10.
+  with Entity = ind.
+step 12: is_a(ind, n11).
+  because rule 11 uses steps 11.
+  with Entity = ind.
+step 13: is_a(ind, n12).
+  because rule 12 uses steps 12.
+  with Entity = ind.
+step 14: is_a(ind, n13).
+  because rule 13 uses steps 13.
+  with Entity = ind.
+step 15: is_a(ind, n14).
+  because rule 14 uses steps 14.
+  with Entity = ind.
+step 16: is_a(ind, n15).
+  because rule 15 uses steps 15.
+  with Entity = ind.
+step 17: is_a(ind, n16).
+  because rule 16 uses steps 16.
+  with Entity = ind.
+step 18: is_a(ind, n17).
+  because rule 17 uses steps 17.
+  with Entity = ind.
+step 19: is_a(ind, n18).
+  because rule 18 uses steps 18.
+  with Entity = ind.
+step 20: is_a(ind, n19).
+  because rule 19 uses steps 19.
+  with Entity = ind.
+step 21: is_a(ind, n20).
+  because rule 20 uses steps 20.
+  with Entity = ind.
+step 22: is_a(ind, n21).
+  because rule 21 uses steps 21.
+  with Entity = ind.
+step 23: is_a(ind, n22).
+  because rule 22 uses steps 22.
+  with Entity = ind.
+step 24: is_a(ind, n23).
+  because rule 23 uses steps 23.
+  with Entity = ind.
+step 25: is_a(ind, n24).
+  because rule 24 uses steps 24.
+  with Entity = ind.
+step 26: is_a(ind, n25).
+  because rule 25 uses steps 25.
+  with Entity = ind.
+step 27: is_a(ind, n26).
+  because rule 26 uses steps 26.
+  with Entity = ind.
+step 28: is_a(ind, n27).
+  because rule 27 uses steps 27.
+  with Entity = ind.
+step 29: is_a(ind, n28).
+  because rule 28 uses steps 28.
+  with Entity = ind.
+step 30: is_a(ind, n29).
+  because rule 29 uses steps 29.
+  with Entity = ind.
+step 31: is_a(ind, n30).
+  because rule 30 uses steps 30.
+  with Entity = ind.
+step 32: is_a(ind, n31).
+  because rule 31 uses steps 31.
+  with Entity = ind.
+step 33: is_a(ind, n32).
+  because rule 32 uses steps 32.
+  with Entity = ind.
+step 34: is_a(ind, n33).
+  because rule 33 uses steps 33.
+  with Entity = ind.
+step 35: is_a(ind, n34).
+  because rule 34 uses steps 34.
+  with Entity = ind.
+step 36: is_a(ind, n35).
+  because rule 35 uses steps 35.
+  with Entity = ind.
+step 37: is_a(ind, n36).
+  because rule 36 uses steps 36.
+  with Entity = ind.
+step 38: is_a(ind, n37).
+  because rule 37 uses steps 37.
+  with Entity = ind.
+step 39: is_a(ind, n38).
+  because rule 38 uses steps 38.
+  with Entity = ind.
+step 40: is_a(ind, n39).
+  because rule 39 uses steps 39.
+  with Entity = ind.
+step 41: is_a(ind, n40).
+  because rule 40 uses steps 40.
+  with Entity = ind.
+step 42: is_a(ind, n41).
+  because rule 41 uses steps 41.
+  with Entity = ind.
+step 43: is_a(ind, n42).
+  because rule 42 uses steps 42.
+  with Entity = ind.
+step 44: is_a(ind, n43).
+  because rule 43 uses steps 43.
+  with Entity = ind.
+step 45: is_a(ind, n44).
+  because rule 44 uses steps 44.
+  with Entity = ind.
+step 46: is_a(ind, n45).
+  because rule 45 uses steps 45.
+  with Entity = ind.
+step 47: is_a(ind, n46).
+  because rule 46 uses steps 46.
+  with Entity = ind.
+step 48: is_a(ind, n47).
+  because rule 47 uses steps 47.
+  with Entity = ind.
+step 49: is_a(ind, n48).
+  because rule 48 uses steps 48.
+  with Entity = ind.
+step 50: is_a(ind, n49).
+  because rule 49 uses steps 49.
+  with Entity = ind.
+step 51: is_a(ind, n50).
+  because rule 50 uses steps 50.
+  with Entity = ind.
+step 52: is_a(ind, n51).
+  because rule 51 uses steps 51.
+  with Entity = ind.
+step 53: is_a(ind, n52).
+  because rule 52 uses steps 52.
+  with Entity = ind.
+step 54: is_a(ind, n53).
+  because rule 53 uses steps 53.
+  with Entity = ind.
+step 55: is_a(ind, n54).
+  because rule 54 uses steps 54.
+  with Entity = ind.
+step 56: is_a(ind, n55).
+  because rule 55 uses steps 55.
+  with Entity = ind.
+step 57: is_a(ind, n56).
+  because rule 56 uses steps 56.
+  with Entity = ind.
+step 58: is_a(ind, n57).
+  because rule 57 uses steps 57.
+  with Entity = ind.
+step 59: is_a(ind, n58).
+  because rule 58 uses steps 58.
+  with Entity = ind.
+step 60: is_a(ind, n59).
+  because rule 59 uses steps 59.
+  with Entity = ind.
+step 61: is_a(ind, n60).
+  because rule 60 uses steps 60.
+  with Entity = ind.
+step 62: is_a(ind, n61).
+  because rule 61 uses steps 61.
+  with Entity = ind.
+step 63: is_a(ind, n62).
+  because rule 62 uses steps 62.
+  with Entity = ind.
+step 64: is_a(ind, n63).
+  because rule 63 uses steps 63.
+  with Entity = ind.
+step 65: is_a(ind, n64).
+  because rule 64 uses steps 64.
+  with Entity = ind.
+step 66: is_a(ind, n65).
+  because rule 65 uses steps 65.
+  with Entity = ind.
+step 67: is_a(ind, n66).
+  because rule 66 uses steps 66.
+  with Entity = ind.
+step 68: is_a(ind, n67).
+  because rule 67 uses steps 67.
+  with Entity = ind.
+step 69: is_a(ind, n68).
+  because rule 68 uses steps 68.
+  with Entity = ind.
+step 70: is_a(ind, n69).
+  because rule 69 uses steps 69.
+  with Entity = ind.
+step 71: is_a(ind, n70).
+  because rule 70 uses steps 70.
+  with Entity = ind.
+step 72: is_a(ind, n71).
+  because rule 71 uses steps 71.
+  with Entity = ind.
+step 73: is_a(ind, n72).
+  because rule 72 uses steps 72.
+  with Entity = ind.
+step 74: is_a(ind, n73).
+  because rule 73 uses steps 73.
+  with Entity = ind.
+step 75: is_a(ind, n74).
+  because rule 74 uses steps 74.
+  with Entity = ind.
+step 76: is_a(ind, n75).
+  because rule 75 uses steps 75.
+  with Entity = ind.
+step 77: is_a(ind, n76).
+  because rule 76 uses steps 76.
+  with Entity = ind.
+step 78: is_a(ind, n77).
+  because rule 77 uses steps 77.
+  with Entity = ind.
+step 79: is_a(ind, n78).
+  because rule 78 uses steps 78.
+  with Entity = ind.
+step 80: is_a(ind, n79).
+  because rule 79 uses steps 79.
+  with Entity = ind.
+step 81: is_a(ind, n80).
+  because rule 80 uses steps 80.
+  with Entity = ind.
+step 82: is_a(ind, n81).
+  because rule 81 uses steps 81.
+  with Entity = ind.
+step 83: is_a(ind, n82).
+  because rule 82 uses steps 82.
+  with Entity = ind.
+step 84: is_a(ind, n83).
+  because rule 83 uses steps 83.
+  with Entity = ind.
+step 85: is_a(ind, n84).
+  because rule 84 uses steps 84.
+  with Entity = ind.
+step 86: is_a(ind, n85).
+  because rule 85 uses steps 85.
+  with Entity = ind.
+step 87: is_a(ind, n86).
+  because rule 86 uses steps 86.
+  with Entity = ind.
+step 88: is_a(ind, n87).
+  because rule 87 uses steps 87.
+  with Entity = ind.
+step 89: is_a(ind, n88).
+  because rule 88 uses steps 88.
+  with Entity = ind.
+step 90: is_a(ind, n89).
+  because rule 89 uses steps 89.
+  with Entity = ind.
+step 91: is_a(ind, n90).
+  because rule 90 uses steps 90.
+  with Entity = ind.
+step 92: is_a(ind, n91).
+  because rule 91 uses steps 91.
+  with Entity = ind.
+step 93: is_a(ind, n92).
+  because rule 92 uses steps 92.
+  with Entity = ind.
+step 94: is_a(ind, n93).
+  because rule 93 uses steps 93.
+  with Entity = ind.
+step 95: is_a(ind, n94).
+  because rule 94 uses steps 94.
+  with Entity = ind.
+step 96: is_a(ind, n95).
+  because rule 95 uses steps 95.
+  with Entity = ind.
+step 97: is_a(ind, n96).
+  because rule 96 uses steps 96.
+  with Entity = ind.
+step 98: is_a(ind, n97).
+  because rule 97 uses steps 97.
+  with Entity = ind.
+step 99: is_a(ind, n98).
+  because rule 98 uses steps 98.
+  with Entity = ind.
+step 100: is_a(ind, n99).
+  because rule 99 uses steps 99.
+  with Entity = ind.
+step 101: is_a(ind, n100).
+  because rule 100 uses steps 100.
+  with Entity = ind.
+step 102: is_a(ind, a2).
+  because rule 101 uses steps 101.
+  with Entity = ind.
+That explains step 102.
+
+% Check
+check passed: is_a(ind, a2).
+
+check passed: is_a(ind, n100).
+
+check passed: is_a(ind, i100).
+
+check passed: is_a(ind, j100).
+
+check passed: \+ (is_a(ind, n101)).

@@ -1,0 +1,29 @@
+% Answer
+?- reaches(Who, ada).
+Who = cara.
+Who = ben.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: reaches(From, To) :- follows(From, To).
+rule 2: reaches(From, ada) :- reaches(From, Via), follows(Via, ada).
+step 1: follows(ben, cara).
+  you told me this.
+step 2: reaches(ben, cara).
+  because rule 1 uses steps 1.
+  with From = ben, To = cara.
+step 3: follows(cara, ada).
+  you told me this.
+step 4: reaches(ben, ada).
+  because rule 2 uses steps 2, 3.
+  with From = ben, Via = cara.
+That explains step 4.
+
+% Check
+check passed: \+ (reaches(ada, ada)).
+
+check passed: reaches(ben, ada).
+
+check passed: reaches(cara, ada).
+
+check passed: reaches(ben, cara).

@@ -1,0 +1,42 @@
+% Answer
+?- 'is-older-than'(Who, 80).
+Who = 'pat-h'.
+
+?- is_a(test, 'passed-check').
+true.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: 'is-older-than'(Person, Years) :- birthday(Person, [BirthYear, BirthMonth, BirthDay]), date(today, [Year, Month, Day]), _Calc1 is (Year - BirthYear), _Calc1 > Years.
+rule 2: is_a(test, 'passed-check') :- person(test, Person), 'age-limit'(test, Years), 'is-older-than'(Person, Years).
+step 1: person(test, 'pat-h').
+  you told me this.
+step 2: 'age-limit'(test, 80).
+  you told me this.
+step 3: birthday('pat-h', [1944, 8, 21]).
+  you told me this.
+step 4: date(today, [2026, 10, 12]).
+  you told me this.
+step 5: 82 is (2026 - 1944).
+  I checked these values.
+step 6: 82 > 80.
+  I checked these values.
+step 7: 'is-older-than'('pat-h', 80).
+  because rule 1 uses steps 3, 4, 5, 6.
+  with Person = 'pat-h', Years = 80, BirthYear = 1944, BirthMonth = 8, BirthDay = 21, Year = 2026, Month = 10, Day = 12, _Calc1 = 82.
+  (2026 - 1944) = 82.
+step 8: is_a(test, 'passed-check').
+  because rule 2 uses steps 1, 2, 7.
+  with Person = 'pat-h', Years = 80.
+That explains step 8.
+
+% Check
+check passed: 'is-older-than'('pat-h', 80).
+
+check passed: 'is-older-than'('pat-h', 82).
+
+check passed: \+ ('is-older-than'('pat-h', 83)).
+
+check passed: is_a(test, 'passed-check').
+
+check passed: aggregate_all(count, (is_a(Subject, 'passed-check')), 1).

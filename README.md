@@ -171,6 +171,25 @@ tests the specification's syntax, semantics, explanations, checks, and CLI.
 Its coverage map links specification sections to tests with explicit expected
 results. It also runs as part of `npm test`.
 
+Example tests compare complete ARC transcripts with the
+[saved goldens](https://github.com/eyereasoner/eyelang/tree/main/examples/output).
+These record answers, numbered proofs, and checks from the current
+implementation. Answer order and the selected successful derivation remain
+unspecified by the language; valid changes to either can require a golden
+update. After reviewing an intentional output change, regenerate with:
+
+```sh
+npm run examples:update
+git diff -- examples/output
+```
+
+Ordinary tests only read the goldens. The updater runs all selected examples
+and their assertions successfully before writing files. Review every changed
+transcript; regenerating one does not establish that its results are correct.
+Independent Fibonacci and taxonomy evidence tests remain in place. Taxonomies
+1000, 10000, and 100000 use structural tests instead of large transcript
+goldens; taxonomy 10 and 100 provide representative transcript coverage.
+
 To release, commit your changes and run
 `./release patch "$(git log -1 --pretty=%B)"`.
 Use `minor` or `major` instead of `patch` for a larger version bump.

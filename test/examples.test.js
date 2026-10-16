@@ -2,17 +2,32 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { infer, parse, run } from '../src/language.js';
+import { exampleCases } from '../scripts/example-goldens.js';
 
 const examples = new URL('../examples/', import.meta.url);
-for (const file of readdirSync(examples).filter(file => file.endsWith('.pl') && !file.startsWith('deep-'))) {
+const taxonomyDepths = [10, 100, 1000, 10000, 100000];
+const cases = exampleCases();
+const goldenCases = cases.filter(example => example.golden);
+
+test('every example has a golden or structural checks, without missing or stale transcripts', () => {
+  for (const { file, golden } of cases) {
+    assert.ok(golden || taxonomyDepths.some(depth => file === `deep-taxonomy-${depth}.pl`),
+      `${file} needs a golden transcript or structural checks.`);
+  }
+  assert.deepEqual(readdirSync(new URL('output/', examples)).sort(),
+    goldenCases.map(example => example.file.replace(/\.pl$/, '.txt')));
+});
+
+for (const { file, source, golden } of goldenCases) {
   test(`bundled Prolog example: ${file}`, () => {
-    const source = readFileSync(new URL(file, examples), 'utf8');
-    const result = run(source, {arc:true});
+    const result = run(readFileSync(source, 'utf8'), { arc: true });
     assert.match(result[0], /^% Answer\n/);
     assert.match(result[1], /^% Reason\n/);
     assert.match(result[2], /^% Check\ncheck passed:/);
     assert.doesNotMatch(result[1], /No explanation was requested/);
     assert.doesNotMatch(result[2], /No checks were requested/);
+    assert.equal(result.join('\n\n') + '\n', readFileSync(golden, 'utf8').replace(/\r\n/g, '\n'),
+      `${file}: ARC transcript changed. Review the difference before running npm run examples:update.`);
   });
 }
 
@@ -26,7 +41,7 @@ test('Delfour answers identify the question for each substitution and ground res
   assert.ok(answer.endsWith("?- is_a(delfour, 'checked-case').\ntrue."));
 });
 
-for (const depth of [10,100,1000,10000,100000]) {
+for (const depth of taxonomyDepths) {
   test(`taxonomy ${depth}: all classifications retain their supporting steps`, () => {
     const source = readFileSync(new URL(`deep-taxonomy-${depth}.pl`, examples), 'utf8');
     const facts = infer(parse(source)).filter(record=>record.goal.relation === 'predicate:is_a/2');

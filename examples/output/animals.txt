@@ -1,0 +1,29 @@
+% Answer
+?- is_a(Who, animal).
+Who = milo.
+Who = luna.
+
+?- is_a(milo, animal).
+true.
+
+?- is_a(milo, dog).
+false.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: is_a(Animal, animal) :- is_a(Animal, cat).
+step 1: is_a(milo, cat).
+  you told me this.
+step 2: is_a(milo, animal).
+  because rule 1 uses steps 1.
+  with Animal = milo.
+That explains step 2.
+
+% Check
+check passed: is_a(milo, animal).
+
+check passed: is_a(luna, animal).
+
+check passed: aggregate_all(count, (is_a(Subject, animal)), 2).
+
+check passed: \+ (is_a(milo, dog)).

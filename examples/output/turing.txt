@@ -1,0 +1,75 @@
+% Answer
+?- input(case1, What).
+What = [1, 0, 1, 0, 0, 1].
+
+?- input(case2, What).
+What = [1, 0, 1, 1, 1, 1].
+
+?- input(case3, What).
+What = [1, 1, 1, 1, 1, 1].
+
+?- input(case4, What).
+What = [].
+
+?- output(case1, What).
+What = [1, 0, 1, 0, 1, 0, blank].
+
+?- output(case2, What).
+What = [1, 1, 0, 0, 0, 0, blank].
+
+?- output(case3, What).
+What = [1, 0, 0, 0, 0, 0, 0, blank].
+
+?- output(case4, What).
+What = [1, blank].
+
+?- is_a(Who, 'finished-case').
+Who = case4.
+Who = case1.
+Who = case2.
+Who = case3.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: runs(Case, [State, [], blank, []]) :- machine(Case, Machine), start(Machine, State), input(Case, []).
+rule 2: runs(Case, [NextState, [], blank, [Write | Right]]) :- runs(Case, [State, [], Read, Right]), machine(Case, Machine), transition([Machine, State, Read], [NextState, Write, left]).
+rule 3: runs(Case, [NextState, Left, Write, Right]) :- runs(Case, [State, Left, Read, Right]), machine(Case, Machine), transition([Machine, State, Read], [NextState, Write, stay]).
+rule 4: 'unfinished-output'(Case, [Left, [Symbol | Right]]) :- runs(Case, [halt, Left, Symbol, Right]).
+rule 5: output(Case, Output) :- 'unfinished-output'(Case, [[], Output]).
+step 1: machine(case4, 'add-one').
+  you told me this.
+step 2: start('add-one', scan).
+  you told me this.
+step 3: input(case4, []).
+  you told me this.
+step 4: runs(case4, [scan, [], blank, []]).
+  because rule 1 uses steps 1, 2, 3.
+  with Case = case4, Machine = 'add-one', State = scan.
+step 5: transition(['add-one', scan, blank], [carry, blank, left]).
+  you told me this.
+step 6: runs(case4, [carry, [], blank, [blank]]).
+  because rule 2 uses steps 4, 1, 5.
+  with Case = case4, State = scan, Read = blank, Right = [], Machine = 'add-one', NextState = carry, Write = blank.
+step 7: transition(['add-one', carry, blank], [halt, 1, stay]).
+  you told me this.
+step 8: runs(case4, [halt, [], 1, [blank]]).
+  because rule 3 uses steps 6, 1, 7.
+  with Case = case4, State = carry, Left = [], Read = blank, Right = [blank], Machine = 'add-one', NextState = halt, Write = 1.
+step 9: 'unfinished-output'(case4, [[], [1, blank]]).
+  because rule 4 uses steps 8.
+  with Case = case4, Left = [], Symbol = 1, Right = [blank].
+step 10: output(case4, [1, blank]).
+  because rule 5 uses steps 9.
+  with Case = case4, Output = [1, blank].
+That explains step 10.
+
+% Check
+check passed: output(case1, [1, 0, 1, 0, 1, 0, blank]).
+
+check passed: output(case2, [1, 1, 0, 0, 0, 0, blank]).
+
+check passed: output(case3, [1, 0, 0, 0, 0, 0, 0, blank]).
+
+check passed: output(case4, [1, blank]).
+
+check passed: aggregate_all(count, (is_a(Subject, 'finished-case')), 4).
