@@ -10,15 +10,24 @@ const finite = value => {
 };
 const toReal = value => finite(Number(value)).real;
 const relation = (name, arity) => `predicate:${name}/${arity}`;
-const ordinary = (name, terms = []) => ({ relation: relation(name, terms.length), terms });
 const internal = (name, terms) => ({ relation: `internal:${name}/${terms.length}`, terms });
 const builtin = (name, terms = []) => ({ relation: `builtin:${name}`, terms });
 
-function tokenize(source) {
-  const tokens = [];
+function storeRuleText(text) {
+  Object.defineProperty(this, 'text', { value: text, writable: true, enumerable: true, configurable: true });
+}
+
+function renderRuleText() {
+  const text = [say(this.conclusion), this.premises.length ? ' :- ' : '', this.premises.map(say).join(', '), '.'].join('');
+  storeRuleText.call(this, text);
+  return text;
+}
+
+function* tokenize(source) {
   let position = 0;
   let line = 1;
   const fail = message => { throw new Error(`Line ${line}: ${message}`); };
+  const symbols = new Set(['=\\=', '\\==', '=:=', ':-', '?-', '\\+', '\\=', '==', '=<', '>=', '//', '**', '<<', '>>', '/\\', '\\/', '@=<', '@>=', '@<', '@>']);
   while (position < source.length) {
     const rest = source.slice(position);
     if (/\s/u.test(rest[0])) { if (rest[0] === '\n') line++; position++; continue; }
@@ -63,46 +72,64 @@ function tokenize(source) {
         }
       }
       if (!closed) fail(`Close the ${quote === "'" ? 'quoted atom' : 'string'} with ${quote}.`);
-      tokens.push({ type: quote === "'" ? 'atom' : 'string', value, line: startLine });
+      yield { type: quote === "'" ? 'atom' : 'string', value, line: startLine };
       continue;
     }
     const number = /^\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(rest);
     if (number) {
       const text = number[0];
       if (/[.eE]/.test(text) && !Number.isFinite(Number(text))) fail('A real literal must be finite.');
-      tokens.push({ type: 'number', value: /[.eE]/.test(text) ? finite(Number(text)) : BigInt(text).toString(), line });
+      yield { type: 'number', value: /[.eE]/.test(text) ? finite(Number(text)) : BigInt(text).toString(), line };
       position += text.length;
       continue;
     }
     const name = /^[A-Za-z_][A-Za-z0-9_]*/.exec(rest);
     if (name) {
       const text = name[0];
-      tokens.push({ type: namedVariable.test(text) ? 'variable' : 'atom', value: text, line });
+      yield { type: namedVariable.test(text) ? 'variable' : 'atom', value: text, line };
       position += text.length;
       continue;
     }
-    const symbol = ['=\\=', '\\==', '=:=', ':-', '?-', '\\+', '\\=', '==', '=<', '>=', '//', '**', '<<', '>>', '/\\', '\\/', '@=<', '@>=', '@<', '@>']
-      .find(operator => rest.startsWith(operator)) ?? ('.(),[]|+-*/^=<>\\'.includes(rest[0]) ? rest[0] : null);
+    const three = rest.slice(0, 3);
+    const two = rest.slice(0, 2);
+    const symbol = symbols.has(three) ? three : symbols.has(two) ? two
+      : '.(),[]|+-*/^=<>\\'.includes(rest[0]) ? rest[0] : null;
     if (!symbol) fail(`Unsupported character ${JSON.stringify(rest[0])}. Use Prolog clauses, % comments, and ?- queries.`);
     if (symbol === '.' && rest.length > 1 && !/\s/u.test(rest[1]) && rest[1] !== '%' && !rest.slice(1).startsWith('/*')) fail('A clause-ending period must be followed by whitespace, a comment, or the end of the file.');
-    tokens.push({ type: 'symbol', value: symbol, line });
+    yield { type: 'symbol', value: symbol, line };
     position += symbol.length;
   }
-  tokens.push({ type: 'end', value: '<end>', line });
-  return tokens;
+  yield { type: 'end', value: '<end>', line };
 }
 
 export function parse(source) {
-  const tokens = tokenize(source);
+  const input = tokenize(source);
+  const tokens = [];
   let position = 0;
+  // Retain only the current clause and its lookahead, rather than every token
+  // in a large program. Parenthesized goals can still look ahead as far as needed.
+  function tokenAt(index) {
+    while (tokens.length <= index) {
+      const next = input.next();
+      if (next.done) return tokens[tokens.length - 1];
+      tokens.push(next.value);
+    }
+    return tokens[index];
+  }
   let anonymous = 0;
   let generated = 0;
   const program = { facts: [], rules: [], questions: [], checks: [] };
+  const predicates = new Map();
+  function ordinary(name, terms = []) {
+    const id = relation(name, terms.length);
+    if (!predicates.has(id)) predicates.set(id, id);
+    return { relation: predicates.get(id), terms };
+  }
   const tableDeclarations = [];
-  const peek = value => tokens[position].value === value && tokens[position].type !== 'string';
-  const fail = message => { throw new Error(`Line ${tokens[Math.min(position, tokens.length - 1)].line}: ${message}`); };
+  const peek = value => tokenAt(position).value === value && tokenAt(position).type !== 'string';
+  const fail = message => { throw new Error(`Line ${tokenAt(position).line}: ${message}`); };
   const take = value => { if (peek(value)) { position++; return true; } return false; };
-  const expect = value => { if (!take(value)) fail(`Expected ${value}; found ${tokens[position].value}.`); };
+  const expect = value => { if (!take(value)) fail(`Expected ${value}; found ${tokenAt(position).value}.`); };
   const binary = new Map([
     ['\\/', [1, 'left']], ['xor', [1, 'left']], ['/\\', [1, 'left']],
     ['<<', [1, 'left']], ['>>', [1, 'left']], ['+', [2, 'left']], ['-', [2, 'left']],
@@ -110,7 +137,7 @@ export function parse(source) {
     ['rem', [3, 'left']], ['mod', [3, 'left']], ['**', [4, 'none']], ['^', [4, 'right']],
   ]);
   function primary() {
-    const token = tokens[position++];
+    const token = tokenAt(position++);
     if (token.type === 'number') return token.value;
     if (token.type === 'string') return { text: token.value };
     if (token.type === 'variable') return { variable: token.value === '_' ? `$anonymous${++anonymous}` : token.value };
@@ -120,7 +147,7 @@ export function parse(source) {
       const args = [expression()];
       while (take(',')) args.push(expression());
       expect(')');
-      return { functor: token.value, args };
+      return { functor: token.value, args: args.slice() };
     }
     if (token.value === '(') { const value = expression(); expect(')'); return value; }
     if (token.value === '[') {
@@ -144,8 +171,8 @@ export function parse(source) {
   }
   function expression(minimum = 0) {
     let left = primary();
-    while (binary.has(tokens[position].value)) {
-      const operator = tokens[position].value;
+    while (binary.has(tokenAt(position).value)) {
+      const operator = tokenAt(position).value;
       const [precedence, associativity] = binary.get(operator);
       if (precedence < minimum) break;
       position++;
@@ -177,17 +204,17 @@ export function parse(source) {
       let depth = 0;
       let end = position;
       do {
-        if (tokens[end].value === '(') depth++;
-        if (tokens[end].value === ')') depth--;
+        if (tokenAt(end).value === '(') depth++;
+        if (tokenAt(end).value === ')') depth--;
         end++;
-      } while (depth && tokens[end].type !== 'end');
-      if (!binary.has(tokens[end].value) && !tests.has(tokens[end].value)) {
+      } while (depth && tokenAt(end).type !== 'end');
+      if (!binary.has(tokenAt(end).value) && !tests.has(tokenAt(end).value)) {
         position++;
         const nested = goals(); expect(')'); return nested;
       }
     }
     // aggregate_all/3 uses standard predicate notation and an explicit result.
-    if (peek('aggregate_all') && tokens[position + 1]?.value === '(') {
+    if (peek('aggregate_all') && tokenAt(position + 1)?.value === '(') {
       position += 2;
       const template = expression();
       expect(',');
@@ -207,15 +234,20 @@ export function parse(source) {
       return { ...builtin('aggregate', [result]), aggregate: { operation, sourceGoal, value, body } };
     }
     const left = expression();
-    if (tests.has(tokens[position].value)) {
-      const operator = tokens[position++].value;
+    if (tests.has(tokenAt(position).value)) {
+      const operator = tokenAt(position++).value;
       return builtin(operator, [left, expression()]);
     }
     return asGoal(left);
   }
   function goals() {
-    const body = [oneGoal()].flat();
-    while (take(',')) body.push(...[oneGoal()].flat());
+    const first = oneGoal();
+    const body = Array.isArray(first) ? first : [first];
+    while (take(',')) {
+      const next = oneGoal();
+      if (Array.isArray(next)) body.push(...next);
+      else body.push(next);
+    }
     return body;
   }
   function addRule(conclusion, premises, text = null) {
@@ -242,8 +274,13 @@ export function parse(source) {
       } else if (!names.every(name => bound.has(name))) forward = false;
     }
     if (!variables(conclusion).every(name => bound.has(name))) forward = false;
-    const rule = { conclusion, premises, backward: !forward,
-      text: text ?? `${say(conclusion)}${premises.length ? ` :- ${premises.map(say).join(', ')}` : ''}.` };
+    const rule = { conclusion, premises, backward: !forward };
+    // Most rules never appear in a requested proof. Share the accessor and
+    // materialize their printable text only when it is read.
+    if (text === null) Object.defineProperty(rule, 'text', {
+      get: renderRuleText, set: storeRuleText, enumerable: true, configurable: true,
+    });
+    else rule.text = text;
     program.rules.push(rule);
     return rule;
   }
@@ -253,15 +290,17 @@ export function parse(source) {
     addRule(goal, body, text).line = line;
     return { goal, names, body };
   }
-  while (tokens[position].type !== 'end') {
-    const line = tokens[position].line;
+  while (tokenAt(position).type !== 'end') {
+    tokens.splice(0, position);
+    position = 0;
+    const line = tokenAt(position).line;
     if (take('?-')) {
-      if (peek('why') && tokens[position + 1]?.value === '.') {
+      if (peek('why') && tokenAt(position + 1)?.value === '.') {
         position += 2;
         program.questions.push({ why: true, previous: true });
         continue;
       }
-      const why = peek('why') && tokens[position + 1]?.value === '(';
+      const why = peek('why') && tokenAt(position + 1)?.value === '(';
       if (why) position += 2;
       const body = goals();
       if (why) expect(')');
@@ -270,10 +309,10 @@ export function parse(source) {
     } else if (take(':-')) {
       if (take('table')) {
         do {
-          const name = tokens[position++];
+          const name = tokenAt(position++);
           if (name.type !== 'atom') fail('A table declaration needs a predicate name and arity.');
           expect('/');
-          const arity = tokens[position++];
+          const arity = tokenAt(position++);
           if (arity.type !== 'number' || typeof arity.value !== 'string' || BigInt(arity.value) < 0n) fail('A predicate arity must be a nonnegative integer.');
           tableDeclarations.push(relation(name.value, arity.value));
         } while (take(','));
@@ -442,20 +481,15 @@ export function say(goal) {
   const name = goal.relation.slice(goal.relation.startsWith('predicate:') ? 'predicate:'.length : 0, goal.relation.lastIndexOf('/'));
   return `${quoteAtom(name)}${goal.terms.length ? `(${goal.terms.map(sayTerm).join(', ')})` : ''}`;
 }
-function indexPatterns(terms) {
-  const patterns = [terms, terms.map(() => null), ...terms.map((term, index) => terms.map((value, i) => i === index ? term : null))];
-  return [...new Map(patterns.map(pattern => [JSON.stringify(pattern), pattern])).values()];
-}
-function lookupPattern(terms) {
-  if (terms.every(ground)) return terms;
-  const first = terms.findIndex(ground);
-  return terms.map((term, index) => index === first ? term : null);
-}
-
 const key = goal => JSON.stringify([goal.relation, ...goal.terms]);
 
 function sameTerm(left, right) {
-  return left === right || (typeof left !== 'string' && typeof right !== 'string' && JSON.stringify(left) === JSON.stringify(right));
+  if (left === right) return true;
+  if (typeof left === 'string' || typeof right === 'string') return false;
+  if (left.atom !== undefined || right.atom !== undefined) return left.atom !== undefined && left.atom === right.atom;
+  if (left.text !== undefined || right.text !== undefined) return left.text !== undefined && left.text === right.text;
+  if (left.real !== undefined || right.real !== undefined) return left.real !== undefined && left.real === right.real;
+  return JSON.stringify(left) === JSON.stringify(right);
 }
 
 function dereference(value, bindings) {
@@ -580,28 +614,36 @@ function ruleLayers(rules) {
       const slot = entry.positions[position];
       if (!atomic(value)) { slot.wildcard.push(index); return; }
       const id = JSON.stringify(value);
-      if (!slot.values.has(id)) slot.values.set(id, []);
-      slot.values.get(id).push(index);
+      const matching = slot.values.get(id);
+      if (matching) matching.push(index);
+      else slot.values.set(id, [index]);
     });
   });
+  function dependencyCandidates(premise) {
+    const dependency = premise.aggregate?.sourceGoal ?? premise;
+    const entry = producers.get(dependency.relation);
+    if (!entry) return [];
+    let candidates = entry.all;
+    dependency.terms.forEach((value, position) => {
+      if (!atomic(value)) return;
+      const slot = entry.positions[position];
+      const matching = slot.values.get(JSON.stringify(value)) ?? [];
+      if (matching.length + slot.wildcard.length < candidates.length) candidates = [...matching, ...slot.wildcard];
+    });
+    return candidates.filter(source => !rules[source].conclusion.terms.some((value, position) => atomic(value) &&
+      atomic(dependency.terms[position]) && !sameTerm(value, dependency.terms[position])));
+  }
+  // Without a strict dependency on a rule producer, every rule belongs to
+  // stratum zero. Facts are loaded before any consumer, so missing producers
+  // and predicates containing only supplied facts need no dependency graph.
+  if (!rules.some(rule => rule.premises.some(premise =>
+    (premise.negated || premise.aggregate) && dependencyCandidates(premise).length))) return [rules];
   const outgoing = rules.map(() => []);
   const incoming = rules.map(() => []);
   rules.forEach((rule, target) => {
     for (const premise of rule.premises) {
-      const dependency = premise.aggregate?.sourceGoal ?? premise;
-      const entry = producers.get(dependency.relation);
-      if (!entry) continue;
-      let candidates = entry.all;
-      dependency.terms.forEach((value, position) => {
-        if (!atomic(value)) return;
-        const slot = entry.positions[position];
-        const matching = slot.values.get(JSON.stringify(value)) ?? [];
-        if (matching.length + slot.wildcard.length < candidates.length) candidates = [...matching, ...slot.wildcard];
-      });
       const weight = premise.negated || premise.aggregate ? 1 : 0;
-      for (const source of candidates) {
-        if (rules[source].conclusion.terms.some((value, position) => atomic(value) &&
-            atomic(dependency.terms[position]) && !sameTerm(value, dependency.terms[position]))) continue;
+      for (const source of dependencyCandidates(premise)) {
         outgoing[source].push([target, weight]);
         incoming[target].push(source);
       }
@@ -671,10 +713,24 @@ export function infer(program, { validateChecks = false } = {}) {
   const tables = new Map();
   const facts = new Map();
   const absences = new Map();
-  // Index full tuples and individual arguments for predicates of any arity.
+  // Scalar keys avoid serializing wildcard tuples. Cache structural keys for
+  // compounds, which may occur in several argument indexes during one run.
+  const compoundKeys = new WeakMap();
+  function termKey(value) {
+    if (typeof value === 'string') return `integer:${value}`;
+    if (value.atom !== undefined) return `atom:${value.atom}`;
+    if (value.text !== undefined) return `text:${value.text}`;
+    if (value.real !== undefined) return `real:${value.real}`;
+    let id = compoundKeys.get(value);
+    if (id === undefined) { id = JSON.stringify(value); compoundKeys.set(value, id); }
+    return id;
+  }
   // A rule prefix subscribes to its next goal and sees each matching fact once.
+  // Keep full tuples and single arguments in separate maps, without building
+  // wildcard tuples or allocating empty subscription buckets for every fact.
   const known = new Map();
   const waiting = new Map();
+  const empty = [];
   const queues = layers.map(() => []);
   const cursors = layers.map(() => 0);
   let nextLevel = queues.length;
@@ -682,23 +738,60 @@ export function infer(program, { validateChecks = false } = {}) {
     queues[level].push(work);
     nextLevel = Math.min(nextLevel, level);
   }
-  function bucket(index, relation, pattern) {
-    if (!index.has(relation)) index.set(relation, new Map());
-    const keys = index.get(relation);
-    const id = JSON.stringify(pattern);
-    if (!keys.has(id)) keys.set(id, []);
-    return keys.get(id);
+  function relationIndex(index, goal) {
+    let entry = index.get(goal.relation);
+    if (!entry) {
+      entry = { all: [], exact: new Map(), positions: goal.terms.map(() => new Map()) };
+      index.set(goal.relation, entry);
+    }
+    return entry;
+  }
+  function lookup(index, goal, subscription = null) {
+    if (index === known && goal.terms.every(ground)) {
+      const record = facts.get(key(goal));
+      return record ? [record] : empty;
+    }
+    const entry = subscription ? relationIndex(index, goal) : index.get(goal.relation);
+    if (!entry) return empty;
+    let values; let id;
+    if (goal.terms.every(ground)) { values = entry.exact; id = key(goal); }
+    else {
+      const position = goal.terms.findIndex(ground);
+      if (position === -1) {
+        if (subscription) entry.all.push(subscription);
+        return entry.all;
+      }
+      values = entry.positions[position]; id = termKey(goal.terms[position]);
+    }
+    let records = values.get(id);
+    if (subscription) {
+      if (records) records.push(subscription);
+      else { records = [subscription]; values.set(id, records); }
+    }
+    return records ?? empty;
   }
   function add(goal, reason) {
     const id = key(goal);
     if (facts.has(id)) return false;
+    const entry = relationIndex(known, goal);
     const record = { goal, ...reason };
     facts.set(id, record);
-    for (const pattern of indexPatterns(goal.terms)) {
-      bucket(known, goal.relation, pattern).push(record);
-      for (const subscription of bucket(waiting, goal.relation, pattern)) {
+    entry.all.push(record);
+    const subscribers = waiting.get(goal.relation);
+    function notify(subscriptions) {
+      for (const subscription of subscriptions ?? empty) {
         enqueue({ subscription, record }, levels.get(subscription.rule));
       }
+    }
+    notify(subscribers?.all);
+    notify(subscribers?.exact.get(id));
+    for (let position = 0; position < goal.terms.length; position++) {
+      const term = termKey(goal.terms[position]);
+      const values = entry.positions[position];
+      let records = values.get(term);
+      if (records) records.push(record);
+      else values.set(term, [record]);
+      notify(subscribers?.positions[position].get(term));
     }
     return true;
   }
@@ -721,7 +814,7 @@ export function infer(program, { validateChecks = false } = {}) {
   }
   function resumeBuiltin(rule, position, partial, bindings, evidence, calculations) {
     enqueue({ resume: { rule, position: position + 1, partial: {
-      ...partial, bindings, calculations, premises: [...partial.premises, evidence],
+      ...partial, bindings, calculations, premises: partial.premises.concat(evidence),
     } } }, levels.get(rule));
   }
   function advanceBuiltin(rule, position, partial, premise, calculations) {
@@ -794,7 +887,7 @@ export function infer(program, { validateChecks = false } = {}) {
   }
   function finishAggregate({ rule, position, partial, premise, sourceGoal, calculations }) {
     const { operation, value } = premise.aggregate;
-    const records = bucket(known, sourceGoal.relation, lookupPattern(sourceGoal.terms))
+    const records = lookup(known, sourceGoal)
       .filter(record => match(sourceGoal, record.goal, new Map()));
     let result;
     if (operation === 'count') result = BigInt(records.length).toString();
@@ -826,7 +919,7 @@ export function infer(program, { validateChecks = false } = {}) {
   }
   function advanceStep(rule, position, partial) {
     if (position === rule.premises.length) {
-      const calculations = [...partial.calculations];
+      const calculations = partial.calculations;
       for (const name of rule.backward ? variables(rule.conclusion) : []) {
         if (!ground(specialize({ variable: name }, partial.bindings))) {
           throw new Error(`Give ${name} a value in the question or an earlier goal; an answer must be ground.`);
@@ -837,9 +930,9 @@ export function infer(program, { validateChecks = false } = {}) {
       add(conclusion, { rule, premises: partial.premises, calculations, bindings: partial.bindings });
       return;
     }
-    const calculations = [...partial.calculations];
     const premise = rule.premises[position];
-    const goal = { relation: premise.relation,
+    const calculations = premise.relation.startsWith('builtin:') ? [...partial.calculations] : partial.calculations;
+    const goal = partial.bindings.size === 0 ? premise : { relation: premise.relation,
       terms: premise.terms.map(t => specialize(t, partial.bindings, calculations)) };
     if (premise.relation.startsWith('builtin:')) {
       advanceBuiltin(rule, position, partial, premise, calculations);
@@ -853,10 +946,9 @@ export function infer(program, { validateChecks = false } = {}) {
       enqueue({ negative: { rule, position, partial: { ...partial, calculations }, goal } }, levels.get(rule));
       return;
     }
-    const pattern = lookupPattern(goal.terms);
-    const subscription = { rule, position, goal, partial: { ...partial, calculations } };
-    bucket(waiting, goal.relation, pattern).push(subscription);
-    for (const record of bucket(known, goal.relation, pattern)) enqueue({ subscription, record }, levels.get(rule));
+    const subscription = { rule, position, goal, partial };
+    lookup(waiting, goal, subscription);
+    for (const record of lookup(known, goal)) enqueue({ subscription, record }, levels.get(rule));
   }
   for (const fact of program.facts) add(fact, { rule: null, premises: [] });
   function requestAssertion(assertion) {
@@ -865,8 +957,9 @@ export function infer(program, { validateChecks = false } = {}) {
   for (const assertion of program.questions) requestAssertion(assertion);
   // Arithmetic and list construction can create new values indefinitely.
   // Their rules must bound the work or reach a stopping configuration.
+  const initial = { bindings: new Map(), premises: [], calculations: [] };
   for (const layer of layers) {
-    for (const rule of layer) if (!rule.backward) advance(rule, 0, { bindings: new Map(), premises: [], calculations: [] });
+    for (const rule of layer) if (!rule.backward) advance(rule, 0, initial);
   }
   function drain() {
     while (nextLevel < queues.length) {
@@ -889,10 +982,10 @@ export function infer(program, { validateChecks = false } = {}) {
       }
       if (work.negative) {
         const { rule, position, partial, goal } = work.negative;
-        if (bucket(known, goal.relation, goal.terms).length === 0) {
+        if (lookup(known, goal).length === 0) {
           const id = key(goal);
           if (!absences.has(id)) absences.set(id, absence(goal));
-          advance(rule, position + 1, { ...partial, premises: [...partial.premises, absences.get(id)] });
+          advance(rule, position + 1, { ...partial, premises: partial.premises.concat(absences.get(id)) });
         }
         continue;
       }
@@ -905,7 +998,7 @@ export function infer(program, { validateChecks = false } = {}) {
       const { rule, position, goal, partial } = subscription;
       const bindings = match(goal, record.goal, partial.bindings);
       if (bindings) advance(rule, position + 1, {
-        ...partial, bindings, premises: [...partial.premises, record], calculations: partial.calculations,
+        ...partial, bindings, premises: partial.premises.concat(record), calculations: partial.calculations,
       });
     }
   }
@@ -991,20 +1084,27 @@ function explain(roots) {
   const rules = new Map();
   for (const record of records) if (record.rule && !rules.has(record.rule)) rules.set(record.rule, rules.size + 1);
   const steps = new Map(records.map((record, index) => [record, index + 1]));
-  const lines = ['Here is why. Each step is shown once.'];
-  for (const [rule, number] of rules) lines.push(`rule ${number}: ${rule.text}`);
+  const chunks = [];
+  let lines = [];
+  function line(text) {
+    lines.push(text);
+    if (lines.length === 1024) { chunks.push(lines.join('\n')); lines = []; }
+  }
+  line('Here is why. Each step is shown once.');
+  for (const [rule, number] of rules) line(`rule ${number}: ${rule.text}`);
   for (const record of records) {
-    lines.push(`step ${steps.get(record)}: ${say(record.goal)}.`);
-    if (!record.rule) lines.push(`  ${otherReason(record, steps)}`);
+    line(`step ${steps.get(record)}: ${say(record.goal)}.`);
+    if (!record.rule) line(`  ${otherReason(record, steps)}`);
     else {
-      lines.push(`  because rule ${rules.get(record.rule)} uses steps ${record.premises.map(p => steps.get(p)).join(', ')}.`);
+      line(`  because rule ${rules.get(record.rule)} uses steps ${record.premises.map(p => steps.get(p)).join(', ')}.`);
       const bindings = appliedBindings(record);
-      if (bindings) lines.push(`  with ${bindings}.`);
-      for (const calculation of record.calculations ?? []) lines.push(`  ${calculation}`);
+      if (bindings) line(`  with ${bindings}.`);
+      for (const calculation of record.calculations ?? []) line(`  ${calculation}`);
     }
   }
-  lines.push(`That explains ${roots.length === 1 ? 'step' : 'steps'} ${roots.map(record => steps.get(record)).join(', ')}.`);
-  return lines.join('\n');
+  line(`That explains ${roots.length === 1 ? 'step' : 'steps'} ${roots.map(record => steps.get(record)).join(', ')}.`);
+  if (lines.length) chunks.push(lines.join('\n'));
+  return chunks.join('\n');
 }
 
 

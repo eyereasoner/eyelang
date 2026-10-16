@@ -27,6 +27,37 @@ test('comments, quotes, escapes, decimal dots, and multiline clauses preserve so
   assert.deepEqual(run(String.raw`?- X = "\u00e9\n\t".`), ['X = "é\\n\\t".']);
 });
 
+test('parser lookahead spans grouped goals while preserving later clauses and diagnostics', () => {
+  const source = `
+    value(2).
+    ?- ((value(X), (X+1) =:= 3)), (2+3)*4 =:= 20.
+    ?- aggregate_all(count, ((value(X), X > 0)), N).
+    ?- why.
+    ?- why.
+    value(3).
+    :- assertion((value(2), value(3))).
+  `;
+  const result = run(source);
+  assert.equal(result[0], 'X = 2.');
+  assert.equal(result[1], 'N = 2.');
+  assert.equal(result[2], result[3]);
+  assert.equal(result[4], 'check passed: value(2), value(3).');
+  assert.throws(() => parse(`${source}\nbroken(\n`), /^Error: Line 11:/);
+});
+
+test('rule text remains readable, enumerable, and writable when formatted on demand', () => {
+  const program = parse('copy(X) :- source(X). source(a). ?- copy(X).');
+  const rule = program.rules[0];
+  assert.ok(Object.keys(rule).includes('text'));
+  assert.equal(rule.text, 'copy(X) :- source(X).');
+  assert.equal(rule.text, 'copy(X) :- source(X).');
+  rule.text = 'custom rule text';
+  assert.equal(rule.text, 'custom rule text');
+  const other = parse('p(X) :- q(X).').rules[0];
+  other.text = 'replacement before formatting';
+  assert.equal(other.text, 'replacement before formatting');
+});
+
 test('variables share one clause or query scope, and anonymous variables are fresh', () => {
   assert.deepEqual(run(`
     pair(a, a). pair(a, b). pair(b, b).

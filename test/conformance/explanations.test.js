@@ -96,6 +96,23 @@ test('numbered proofs show every shared step and local clause binding once', () 
   assert.match(why, /rule \d+: p1\(X\) :- p0\(X\)/);
 });
 
+for (const depth of [255, 700]) {
+  test(`numbered proof at depth ${depth} retains every line across output chunks`, () => {
+    const clauses = Array.from({ length: depth }, (_, index) => `p${index+1}(X) :- p${index}(X).`).join('\n');
+    const why = run(`p0(a). ${clauses} ?- p${depth}(X). ?- why.`)[1];
+    const expected = ['Here is why. Each step is shown once.'];
+    for (let index = 1; index <= depth; index++) expected.push(`rule ${index}: p${index}(X) :- p${index-1}(X).`);
+    expected.push('step 1: p0(a).', '  you told me this.');
+    for (let index = 1; index <= depth; index++) expected.push(
+      `step ${index+1}: p${index}(a).`,
+      `  because rule ${index} uses steps ${index}.`,
+      '  with X = a.',
+    );
+    expected.push(`That explains step ${depth+1}.`);
+    assert.equal(why, expected.join('\n'));
+  });
+}
+
 test('ARC grouping preserves source context and reports all empty sections', () => {
   const output = run('p(a). ?- p(X). ?- why. :- assertion(p(a)).', {arc:true});
   assert.equal(output[0], '% Answer\n?- p(X).\nX = a.');

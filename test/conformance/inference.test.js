@@ -87,3 +87,39 @@ test('ordinary predicate arity and argument indexes agree across joins', () => {
     ready. ready(X) :- X=a. ?- ready. ?- ready(X).
   `), ['From = a, To = d.', 'To = c.', 'From = b, Color = red.', 'true.', 'X = a.']);
 });
+
+test('fact subscriptions preserve term types and proof links for every lookup shape', () => {
+  for (const tabled of [false, true]) {
+    const program = parse(`
+      ${tabled ? ':- table pair/2.' : ''}
+      seed(a). seed(b). seed(a).
+      pair(X, 1) :- seed(X).
+      pair(X, 1.0) :- seed(X).
+      pair(X, '1') :- seed(X).
+      pair(X, "1") :- seed(X).
+      pair(X, f(1)) :- seed(X).
+      pair(X, [1]) :- seed(X).
+      ?- pair(X, Y).
+      ?- pair(a, Y).
+      ?- pair(X, f(1)).
+      ?- pair(a, f(1)).
+      ?- pair(a, f(2)).
+      ?- pair(a, [1]).
+      ?- pair(a, 1), pair(a, 1.0), pair(a, '1'), pair(a, "1").
+      :- assertion(pair(b, [1])).
+    `);
+    const records = infer(program, { validateChecks: true });
+    const pairs = records.filter(record => record.goal.relation === 'predicate:pair/2');
+    assert.equal(pairs.length, 12);
+    for (const pair of pairs) {
+      assert.equal(pair.premises.length, 1);
+      assert.equal(pair.premises[0].goal.relation, 'predicate:seed/1');
+      assert.equal(pair.premises[0].goal.terms[0], pair.goal.terms[0]);
+    }
+    const answers = program.questions.map(question => records.filter(record => record.goal.relation === question.goal.relation));
+    assert.deepEqual(answers.map(records => records.length), [12, 6, 2, 1, 0, 1, 1]);
+    for (const records of answers) {
+      for (const record of records) assert.ok(record.premises.every(premise => pairs.includes(premise)));
+    }
+  }
+});
