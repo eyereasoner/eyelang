@@ -25,6 +25,7 @@ export async function preparePages(destination, basePath = '/eyelang') {
   await write('playground/index.html', playground.replace('<head>', '<head>\n  <base href="../">'));
 
   const readme = (await readFile(resolve(root, 'README.md'), 'utf8'))
+    .replace(/<!-- navigation:start -->[\s\S]*?<!-- navigation:end -->\n\n/, '')
     .replaceAll('(SPEC.md)', '(SPEC/)')
     .replaceAll('(TUTORIAL.md)', '(TUTORIAL/)');
   const spec = await readFile(resolve(root, 'SPEC.md'), 'utf8');

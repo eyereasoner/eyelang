@@ -1,11 +1,5 @@
 # eyelang Specification
 
-[eyelang](https://eyereasoner.github.io/eyelang/) ·
-[Repository](https://github.com/eyereasoner/eyelang) ·
-[Playground](https://eyereasoner.github.io/eyelang/playground) ·
-[Tutorial](https://eyereasoner.github.io/eyelang/TUTORIAL/) ·
-[Specification](https://eyereasoner.github.io/eyelang/SPEC)
-
 ```text
 Document: eyelang-spec-0001
 Category: Language Specification

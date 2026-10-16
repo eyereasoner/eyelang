@@ -3,11 +3,13 @@
 [![npm version](https://img.shields.io/npm/v/eyelang.svg)](https://www.npmjs.com/package/eyelang)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23416492.svg)](https://doi.org/10.5281/zenodo.23416492)
 
+<!-- navigation:start -->
 [eyelang](https://eyereasoner.github.io/eyelang/) ·
 [Repository](https://github.com/eyereasoner/eyelang) ·
 [Playground](https://eyereasoner.github.io/eyelang/playground) ·
 [Tutorial](https://eyereasoner.github.io/eyelang/TUTORIAL/) ·
 [Specification](https://eyereasoner.github.io/eyelang/SPEC)
+<!-- navigation:end -->
 
 A symbolic logic programming language using a practical subset of
 Prolog syntax and `.pl` files, with query explanations and executable checks.

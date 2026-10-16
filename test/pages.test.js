@@ -49,8 +49,11 @@ test('Pages serves playground dependencies under the project path and prepares r
   assert.match(tutorial, /^---\nlayout: default\n/);
   assert.match(tutorial, /# eyelang tutorial/);
   for (const document of [home, spec, tutorial]) {
-    assert.match(document.split('\n## ')[0], /\[Tutorial\]\(https:\/\/eyereasoner\.github\.io\/eyelang\/TUTORIAL\/\)/);
+    assert.doesNotMatch(document, /^\[(eyelang|Repository|Playground|Tutorial|Specification)\]\(/m);
+    assert.doesNotMatch(document, /<!-- navigation:(start|end) -->/);
   }
+  assert.match(await read('README.md'), /<!-- navigation:start -->[\s\S]*?\[Tutorial\]\(https:\/\/eyereasoner\.github\.io\/eyelang\/TUTORIAL\/\)/);
+  assert.doesNotMatch(await read('SPEC.md'), /^\[(eyelang|Repository|Playground|Tutorial|Specification)\]\(/m);
   assert.equal(await read('TUTORIAL.md'), await readFile(new URL('../TUTORIAL.md', import.meta.url), 'utf8'));
   for (const [document, target, expected] of [
     ['', 'TUTORIAL/', '/eyelang/TUTORIAL/'],
@@ -67,6 +70,8 @@ test('Pages serves playground dependencies under the project path and prepares r
     assert.ok(spec.includes(`[${label}](https://github.com/eyereasoner/eyelang/${path})`), label);
   }
   assert.equal(JSON.parse(await read('_config.yml')).baseurl, '/eyelang');
-  assert.match(await read('_layouts/default.html'), /\{\{ content \}\}/);
-  assert.match(await read('_layouts/default.html'), /href="\{\{ '\/TUTORIAL\/' \| relative_url \}\}">Tutorial/);
+  const layout = await read('_layouts/default.html');
+  assert.equal([...layout.matchAll(/<nav\b/g)].length, 1);
+  assert.match(layout, /\{\{ content \}\}/);
+  assert.match(layout, /href="\{\{ '\/TUTORIAL\/' \| relative_url \}\}">Tutorial/);
 });

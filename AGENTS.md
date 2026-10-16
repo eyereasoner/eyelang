@@ -68,6 +68,9 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 - Keep README example links pointed at repository files. Preserve the same
   top navigation on the homepage, specification, tutorial, and playground:
   eyelang, Repository, Playground, Tutorial, Specification.
+  Website navigation belongs in `scripts/pages-layout.html`, outside the
+  specification and tutorial content. The README's marked navigation block
+  is for GitHub and is omitted when staging Pages.
 - Use the project name `eyelang`. Omit obsolete slogans and public provenance
   notes about sibling projects. Do not restore `DESIGN.md`; keep language design
   and semantics in `SPEC.md`.
