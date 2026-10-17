@@ -1,7 +1,6 @@
-// A fixed Prolog operator table; user-defined operators and host calls are excluded.
-const integer = /^-?\d+$/;
+// Integers use canonical decimal strings; other scalar terms are tagged objects.
 const namedVariable = /^[A-Z_][A-Za-z0-9_]*$/;
-const numeric = value => typeof value === 'string' && integer.test(value) || value?.real !== undefined;
+const numeric = value => typeof value === 'string' || value?.real !== undefined;
 const numberValue = value => typeof value === 'string' ? BigInt(value) : value.real;
 const atom = value => ({ atom: value });
 const finite = value => {
@@ -12,6 +11,12 @@ const toReal = value => finite(Number(value)).real;
 const relation = (name, arity) => `predicate:${name}/${arity}`;
 const internal = (name, terms) => ({ relation: `internal:${name}/${terms.length}`, terms });
 const builtin = (name, terms = []) => ({ relation: `builtin:${name}`, terms });
+const binary = new Map([
+  ['\\/', [1, 'left']], ['xor', [1, 'left']], ['/\\', [1, 'left']],
+  ['<<', [1, 'left']], ['>>', [1, 'left']], ['+', [2, 'left']], ['-', [2, 'left']],
+  ['*', [3, 'left']], ['/', [3, 'left']], ['//', [3, 'left']], ['div', [3, 'left']],
+  ['rem', [3, 'left']], ['mod', [3, 'left']], ['**', [4, 'none']], ['^', [4, 'right']],
+]);
 
 function storeRuleText(text) {
   Object.defineProperty(this, 'text', { value: text, writable: true, enumerable: true, configurable: true });
@@ -106,8 +111,7 @@ export function parse(source) {
   const input = tokenize(source);
   const tokens = [];
   let position = 0;
-  // Retain only the current clause and its lookahead, rather than every token
-  // in a large program. Parenthesized goals can still look ahead as far as needed.
+  // Buffer one clause plus lookahead to bound parser memory.
   function tokenAt(index) {
     while (tokens.length <= index) {
       const next = input.next();
@@ -125,17 +129,12 @@ export function parse(source) {
     if (!predicates.has(id)) predicates.set(id, id);
     return { relation: predicates.get(id), terms };
   }
-  const tableDeclarations = [];
+  const tabled = new Set();
   const peek = value => tokenAt(position).value === value && tokenAt(position).type !== 'string';
   const fail = message => { throw new Error(`Line ${tokenAt(position).line}: ${message}`); };
   const take = value => { if (peek(value)) { position++; return true; } return false; };
   const expect = value => { if (!take(value)) fail(`Expected ${value}; found ${tokenAt(position).value}.`); };
-  const binary = new Map([
-    ['\\/', [1, 'left']], ['xor', [1, 'left']], ['/\\', [1, 'left']],
-    ['<<', [1, 'left']], ['>>', [1, 'left']], ['+', [2, 'left']], ['-', [2, 'left']],
-    ['*', [3, 'left']], ['/', [3, 'left']], ['//', [3, 'left']], ['div', [3, 'left']],
-    ['rem', [3, 'left']], ['mod', [3, 'left']], ['**', [4, 'none']], ['^', [4, 'right']],
-  ]);
+
   function primary() {
     const token = tokenAt(position++);
     if (token.type === 'number') return token.value;
@@ -147,7 +146,7 @@ export function parse(source) {
       const args = [expression()];
       while (take(',')) args.push(expression());
       expect(')');
-      return { functor: token.value, args: args.slice() };
+      return { functor: token.value, args };
     }
     if (token.value === '(') { const value = expression(); expect(')'); return value; }
     if (token.value === '[') {
@@ -212,7 +211,6 @@ export function parse(source) {
         const nested = goals(); expect(')'); return nested;
       }
     }
-    // aggregate_all/3 uses standard predicate notation and an explicit result.
     if (peek('aggregate_all') && tokenAt(position + 1)?.value === '(') {
       position += 2;
       const template = expression();
@@ -271,8 +269,7 @@ export function parse(source) {
     }
     if (!variables(conclusion).every(name => bound.has(name))) forward = false;
     const rule = { conclusion, premises, backward: !forward };
-    // Most rules never appear in a requested proof. Share the accessor and
-    // materialize their printable text only when it is read.
+    // Format and cache rule text on first access.
     if (text === null) Object.defineProperty(rule, 'text', {
       get: renderRuleText, set: storeRuleText, enumerable: true, configurable: true,
     });
@@ -310,7 +307,7 @@ export function parse(source) {
           expect('/');
           const arity = tokenAt(position++);
           if (arity.type !== 'number' || typeof arity.value !== 'string' || BigInt(arity.value) < 0n) fail('A predicate arity must be a nonnegative integer.');
-          tableDeclarations.push(relation(name.value, arity.value));
+          tabled.add(relation(name.value, arity.value));
         } while (take(','));
         expect('.');
       } else if (take('assertion')) {
@@ -335,7 +332,6 @@ export function parse(source) {
       }
     }
   }
-  const tabled = new Set(tableDeclarations);
   for (const rule of program.rules) if (tabled.has(rule.conclusion.relation)) rule.backward = true;
   return program;
 }
@@ -447,7 +443,7 @@ function sayTerm(value) {
   if (value.text !== undefined) return JSON.stringify(value.text);
   if (value.variable) return value.variable.startsWith('$') ? '_' : value.variable;
   if (value.functor) {
-    if (['+', '-', '*', '/', '//', 'div', 'rem', 'mod', '^', '**', '<<', '>>', '/\\', '\\/', 'xor'].includes(value.functor) && value.args.length === 2) {
+    if (binary.has(value.functor) && value.args.length === 2) {
       return `(${sayTerm(value.args[0])} ${value.functor} ${sayTerm(value.args[1])})`;
     }
     if (['-', '+', '\\'].includes(value.functor) && value.args.length === 1) return `${value.functor} (${sayTerm(value.args[0])})`;
@@ -467,7 +463,7 @@ export function say(goal) {
   }
   if (goal.relation.startsWith('builtin:')) {
     const name = goal.relation.slice(8);
-    if (goal.terms.length === 2 && !['contains_text'].includes(name)) return `${sayTerm(goal.terms[0])} ${name} ${sayTerm(goal.terms[1])}`;
+    if (goal.terms.length === 2 && name !== 'contains_text') return `${sayTerm(goal.terms[0])} ${name} ${sayTerm(goal.terms[1])}`;
     return `${name}${goal.terms.length ? `(${goal.terms.map(sayTerm).join(', ')})` : ''}`;
   }
   const name = goal.relation.slice(goal.relation.startsWith('predicate:') ? 'predicate:'.length : 0, goal.relation.lastIndexOf('/'));
@@ -489,8 +485,6 @@ function dereference(value, bindings) {
   return value;
 }
 
-// Unify a backward head with a call, including open lists and shared variables.
-// Calculations constrain the eventual answer; they never solve inputs backwards.
 function unify(left, right, bindings) {
   left = dereference(left, bindings);
   right = dereference(right, bindings);
@@ -592,8 +586,7 @@ function absence(goal) {
 
 function ruleLayers(rules) {
   if (!rules.some(rule => rule.premises.some(p => p.negated || p.aggregate))) return [rules];
-  // Index producers by atomic head arguments. A large taxonomy should only
-  // inspect producers of the requested class, rather than every other rule.
+  // Index atomic head arguments to avoid scanning unrelated producers.
   const producers = new Map();
   rules.forEach((rule, index) => {
     const head = rule.conclusion;
@@ -625,9 +618,7 @@ function ruleLayers(rules) {
     return candidates.filter(source => !rules[source].conclusion.terms.some((value, position) => atomic(value) &&
       atomic(dependency.terms[position]) && !sameTerm(value, dependency.terms[position])));
   }
-  // Without a strict dependency on a rule producer, every rule belongs to
-  // stratum zero. Facts are loaded before any consumer, so missing producers
-  // and predicates containing only supplied facts need no dependency graph.
+  // Facts are already loaded; only rule producers can require lower strata.
   if (!rules.some(rule => rule.premises.some(premise =>
     (premise.negated || premise.aggregate) && dependencyCandidates(premise).length))) return [rules];
   const outgoing = rules.map(() => []);
@@ -705,8 +696,6 @@ export function infer(program, { validateChecks = false } = {}) {
   const tables = new Set();
   const facts = new Map();
   const absences = new Map();
-  // Scalar keys avoid serializing wildcard tuples. Cache structural keys for
-  // compounds, which may occur in several argument indexes during one run.
   const compoundKeys = new WeakMap();
   function termKey(value) {
     if (typeof value === 'string') return `integer:${value}`;
@@ -717,9 +706,7 @@ export function infer(program, { validateChecks = false } = {}) {
     if (id === undefined) { id = JSON.stringify(value); compoundKeys.set(value, id); }
     return id;
   }
-  // A rule prefix subscribes to its next goal and sees each matching fact once.
-  // Keep full tuples and single arguments in separate maps, without building
-  // wildcard tuples or allocating empty subscription buckets for every fact.
+  // Each rule prefix subscribes to its next goal and sees each matching fact once.
   const known = new Map();
   const waiting = new Map();
   const empty = [];
@@ -794,13 +781,12 @@ export function infer(program, { validateChecks = false } = {}) {
     const goal = callKey(request);
     const id = key(goal);
     if (tables.has(id)) return;
-    // Calls that differ only in variable spelling share this table. Their
-    // consumers suspend on the fact indexes and resume for each new answer.
+    // Variant calls share a table after variable names are canonicalized.
     tables.add(id);
     for (const rule of rules) {
       const bindings = new Map();
       if (rule.conclusion.terms.every((head, index) => unify(head, goal.terms[index], bindings))) {
-        enqueue({ start: { rule, partial: { bindings, premises: [], calculations: [], table: goal } } }, levels.get(rule));
+        enqueue({ resume: { rule, position: 0, partial: { bindings, premises: [], calculations: [], table: goal } } }, levels.get(rule));
       }
     }
   }
@@ -810,17 +796,17 @@ export function infer(program, { validateChecks = false } = {}) {
     } } }, levels.get(rule));
   }
   function advanceBuiltin(rule, position, partial, premise, calculations) {
-    const name = premise.relation.slice(8);
-    const bindings = new Map(partial.bindings);
-    const terms = premise.terms.map(value => specialize(value, bindings));
-    const evidence = { goal: { ...premise, terms }, rule: null, premises: [], comparison: true };
+    const terms = premise.terms.map(value => specialize(value, partial.bindings));
     if (premise.aggregate) {
       if (premise.negated) throw new Error('Define a helper predicate before negating an aggregate.');
-      const sourceGoal = substitute(premise.aggregate.sourceGoal, bindings);
+      const sourceGoal = substitute(premise.aggregate.sourceGoal, partial.bindings);
       demand(sourceGoal);
       enqueue({ aggregate: { rule, position, partial, premise, sourceGoal, calculations } }, levels.get(rule));
       return;
     }
+    const name = premise.relation.slice(8);
+    const bindings = new Map(partial.bindings);
+    const evidence = { goal: { ...premise, terms }, rule: null, premises: [], comparison: true };
     let holds;
     if (name === 'true') holds = true;
     else if (name === 'fail' || name === 'false') holds = false;
@@ -847,7 +833,6 @@ export function infer(program, { validateChecks = false } = {}) {
         : name === '>=' ? a >= b : name === '=:=' ? a <= b && a >= b : !(a <= b && a >= b);
     }
     if (holds === Boolean(premise.negated)) return;
-    // A negated builtin tests a copy and never introduces bindings.
     const resultBindings = premise.negated ? partial.bindings : bindings;
     evidence.goal = { ...premise, terms: premise.terms.map(value => specialize(value, resultBindings)) };
     resumeBuiltin(rule, position, partial, resultBindings, evidence, calculations);
@@ -855,13 +840,13 @@ export function infer(program, { validateChecks = false } = {}) {
   function finishAggregate({ rule, position, partial, premise, sourceGoal, calculations }) {
     const { operation, value } = premise.aggregate;
     const records = lookup(known, sourceGoal)
-      .filter(record => match(sourceGoal, record.goal, new Map()));
+      .filter(record => match(sourceGoal, record.goal));
     let result;
     if (operation === 'count') result = BigInt(records.length).toString();
     else {
       if (!records.length && operation !== 'sum') return;
       const values = records.map(record => {
-        const bindings = match(premise.aggregate.sourceGoal, record.goal, new Map());
+        const bindings = match(premise.aggregate.sourceGoal, record.goal);
         return evaluate(value, bindings);
       });
       if (operation === 'sum') result = values.reduce((total, number) => evaluate({ functor: '+', args: [total, number] }, new Map()), '0');
@@ -893,23 +878,21 @@ export function infer(program, { validateChecks = false } = {}) {
         }
       }
       const conclusion = substitute(rule.conclusion, partial.bindings);
-      if (partial.table && !match(partial.table, conclusion, new Map())) return;
+      if (partial.table && !match(partial.table, conclusion)) return;
       add(conclusion, { rule, premises: partial.premises, calculations, bindings: partial.bindings });
       return;
     }
     const premise = rule.premises[position];
-    const calculations = premise.relation.startsWith('builtin:') ? [...partial.calculations] : partial.calculations;
-    const goal = partial.bindings.size === 0 ? premise : substitute(premise, partial.bindings);
     if (premise.relation.startsWith('builtin:')) {
-      advanceBuiltin(rule, position, partial, premise, calculations);
+      advanceBuiltin(rule, position, partial, premise, [...partial.calculations]);
       return;
     }
+    const goal = partial.bindings.size === 0 ? premise : substitute(premise, partial.bindings);
     if (premise.negated && !goal.terms.every(ground)) throw new Error(`Negation needs bound inputs: ${say(goal)}.`);
     demand(goal);
     if (premise.negated) {
-      // Backward producers may just have been requested. A lower-stratum
-      // queue must reach its fixed point before this absence is tested.
-      enqueue({ negative: { rule, position, partial: { ...partial, calculations }, goal } }, levels.get(rule));
+      // Finish lower-stratum producers before testing absence.
+      enqueue({ negative: { rule, position, partial, goal } }, levels.get(rule));
       return;
     }
     const subscription = { rule, position, goal, partial };
@@ -917,12 +900,7 @@ export function infer(program, { validateChecks = false } = {}) {
     for (const record of lookup(known, goal)) enqueue({ subscription, record }, levels.get(rule));
   }
   for (const fact of program.facts) add(fact, { rule: null, premises: [] });
-  function requestAssertion(assertion) {
-    if (assertion.goal) demand(assertion.goal);
-  }
-  for (const assertion of program.questions) requestAssertion(assertion);
-  // Arithmetic and list construction can create new values indefinitely.
-  // Their rules must bound the work or reach a stopping configuration.
+  for (const question of program.questions) if (question.goal) demand(question.goal);
   const initial = { bindings: new Map(), premises: [], calculations: [] };
   for (const layer of layers) {
     for (const rule of layer) if (!rule.backward) advance(rule, 0, initial);
@@ -933,9 +911,10 @@ export function infer(program, { validateChecks = false } = {}) {
       const queue = queues[level];
       if (cursors[level] === queue.length) { nextLevel++; continue; }
       const work = queue[cursors[level]];
-      queue[cursors[level]++] = null; // Release processed work without recursive JS calls.
-      if (work.start) {
-        advance(work.start.rule, 0, work.start.partial);
+      queue[cursors[level]++] = null; // Release processed work.
+      if (work.resume) {
+        const { rule, position, partial } = work.resume;
+        advance(rule, position, partial);
         continue;
       }
       if (work.aggregate) {
@@ -955,24 +934,19 @@ export function infer(program, { validateChecks = false } = {}) {
         }
         continue;
       }
-      if (work.resume) {
-        const { rule, position, partial } = work.resume;
-        advance(rule, position, partial);
-        continue;
-      }
       const { subscription, record } = work;
       const { rule, position, goal, partial } = subscription;
       const bindings = match(goal, record.goal, partial.bindings);
       if (bindings) advance(rule, position + 1, {
-        ...partial, bindings, premises: partial.premises.concat(record), calculations: partial.calculations,
+        ...partial, bindings, premises: partial.premises.concat(record),
       });
     }
   }
   drain();
   for (const assertion of program.checks) {
-    requestAssertion(assertion);
+    demand(assertion.goal);
     drain();
-    if (validateChecks && !lookup(known, assertion.goal).some(record => match(assertion.goal, record.goal, new Map()))) {
+    if (validateChecks && !lookup(known, assertion.goal).some(record => match(assertion.goal, record.goal))) {
       throw new Error(`Line ${assertion.line}: Check failed: ${assertion.text}.`);
     }
   }
@@ -995,8 +969,7 @@ function appliedBindings(record) {
 }
 
 function explain(roots) {
-  // Walk the proof graph without recursion. Shared premises get one numbered
-  // step, rather than an exponentially expanding tree of repeated reasons.
+  // Iterative postorder visits each shared proof step once.
   const seen = new Set();
   const records = [];
   const pending = roots.slice().reverse().map(record => ({ record, finish: false }));
@@ -1040,19 +1013,17 @@ function explain(roots) {
   return chunks.join('\n');
 }
 
-
 export function run(source, { arc = false } = {}) {
   const program = parse(source);
   const facts = infer(program, { validateChecks: true });
   let previous = null;
-  const roots = records => records.flatMap(record => record.premises);
   const answers = program.questions.map(question => {
     if (question.previous) {
       if (previous === null) return 'Ask a query first, then ask ?- why.';
       return previous.length ? explain(previous) : 'There is no successful answer to explain.';
     }
-    const found = facts.filter(record => match(question.goal, record.goal, new Map()));
-    previous = roots(found);
+    const found = facts.filter(record => match(question.goal, record.goal));
+    previous = found.flatMap(record => record.premises);
     if (question.why) return previous.length ? explain(previous) : 'false.';
     if (!found.length) return 'false.';
     if (!question.names.length) return 'true.';

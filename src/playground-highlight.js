@@ -22,9 +22,7 @@ function literal(text, start) {
   return { kind: first === '"' ? 'string' : 'atom', end };
 }
 
-// Display-only coloring accepts incomplete programs and never changes their text.
-// A range keeps the editor's DOM limited to its visible lines. Only comments and
-// quotes before that range need scanning to recover multiline lexical context.
+// Recover multiline comment and quote state before coloring the visible range.
 export function highlight(text, { start = 0, end = text.length, arc = false } = {}) {
   const html = [];
   let cursor = start;

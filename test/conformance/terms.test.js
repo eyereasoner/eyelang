@@ -41,6 +41,14 @@ test('unification rejects cyclic terms and incompatible constructors', () => {
   `), ['false.', 'false.', 'false.', 'false.', 'false.', 'false.', 'X = 7.']);
 });
 
+test('invalid bound list tails report an error before arithmetic or aggregation', () => {
+  for (const goal of ['X is 3', 'aggregate_all(count, missing(a), X)',
+    String.raw`\+ aggregate_all(count, missing(a), X)`]) {
+    assert.throws(() => run(`?- X = [a | Tail], Tail = b, ${goal}.`),
+      /Line 1: The part after \| must be a list or a variable/);
+  }
+});
+
 test('term-test names are available for ordinary user-defined predicates', () => {
   for (const name of ['var', 'nonvar', 'ground', 'atom', 'string', 'integer',
     'float', 'number', 'atomic', 'compound', 'is_list']) {

@@ -404,7 +404,6 @@ byId('url-form').addEventListener('submit', event => {
 });
 
 async function initialize() {
-  // A shared program wins over the device draft; neither is run automatically.
   const params = new URLSearchParams(location.hash.slice(1));
   if (['program', 'example', 'url', 'gist'].some(key => params.has(key))) {
     try {
@@ -422,7 +421,7 @@ async function initialize() {
     } catch { await loadExample('socrates'); editorStatus.textContent = "Couldn't read the shared link. Loaded Socrates instead."; }
   } else {
     let draft;
-    try { draft = JSON.parse(localStorage.getItem(draftKey)); } catch { /* Storage can be unavailable. */ }
+    try { draft = JSON.parse(localStorage.getItem(draftKey)); } catch {}
     if (draft && typeof draft.source === 'string') {
       const example = [...examples.options].some(option => option.value === draft.example) ? draft.example : '';
       let reference = null;
