@@ -182,7 +182,7 @@ export function parse(source) {
     return left;
   }
   const asGoal = value => {
-    if (value.atom !== undefined) return ['true', 'false', 'fail'].includes(value.atom) ? builtin(value.atom) : ordinary(value.atom);
+    if (value.atom !== undefined) return ['true', 'false'].includes(value.atom) ? builtin(value.atom) : ordinary(value.atom);
     if (!value.functor) fail('A goal must be an atom or a predicate with arguments.');
     const { functor: name, args } = value;
     if (name === 'contains_text' && args.length === 2) return builtin('contains_text', args);
@@ -809,7 +809,7 @@ export function infer(program, { validateChecks = false } = {}) {
     const evidence = { goal: { ...premise, terms }, rule: null, premises: [], comparison: true };
     let holds;
     if (name === 'true') holds = true;
-    else if (name === 'fail' || name === 'false') holds = false;
+    else if (name === 'false') holds = false;
     else if (name === '=') {
       if (premise.negated && !terms.every(ground)) throw new Error('Negated unification needs bound operands in this subset.');
       holds = unify(terms[0], terms[1], bindings);

@@ -12,6 +12,17 @@ test('facts and clauses use Prolog syntax, arbitrary arities, and case-sensitive
   `), ['Who = socrates.', 'true.', 'X = 0, Y = 0.', 'true.', 'false.', 'false.']);
 });
 
+test('false is a builtin while fail is an ordinary user-defined predicate', () => {
+  assert.deepEqual(run(String.raw`?- false. ?- \+ false. ?- fail.`), ['false.', 'true.', 'false.']);
+  const output = run('fail :- true. ?- fail. ?- why. :- assertion(fail).');
+  assert.equal(output[0], 'true.');
+  assert.match(output[1], /rule 1: fail :- true\./);
+  assert.equal(output[2], 'check passed: fail.');
+  assert.throws(() => parse('false.'), /A fact must name an ordinary predicate/);
+  assert.throws(() => parse('false :- true.'), /A rule head must name an ordinary predicate/);
+  assert.throws(() => run(':- assertion(false).'), /Line 1: Check failed: false\./);
+});
+
 test('comments, quotes, escapes, decimal dots, and multiline clauses preserve source lines', () => {
   assert.deepEqual(run(`
     % comment with a period . and ?-

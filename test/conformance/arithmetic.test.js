@@ -97,8 +97,8 @@ test('§3 and §5: integer and real terms stay distinct without numeric coercion
     ?- 9007199254740993 = 9007199254740992.0.
     ?- 9007199254740993 > 9007199254740992.0.
     ?- pi = 3.141592653589793. ?- pi =:= 3.141592653589793.
-    ?- true. ?- false. ?- fail.
-  `), ['Value = 1.0.', 'Value = 1.0.', 'Value = 1.', 'false.', 'true.', 'false.', 'true.', 'true.', 'false.', 'false.']);
+    ?- true. ?- false.
+  `), ['Value = 1.0.', 'Value = 1.0.', 'Value = 1.', 'false.', 'true.', 'false.', 'true.', 'true.', 'false.']);
   assert.throws(() => run('?- Value = 1e309.'), /real literal must be finite/);
 });
 

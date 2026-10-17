@@ -32,7 +32,7 @@ human(socrates).                        % ground fact
 mortal(Person) :- human(Person).        % clause
 ?- mortal(Who).                         % query
 ?- human(X), mortal(X).                 % conjunction
-?- why.                                % explain previous answers
+?- why.                                 % explain previous answers
 ?- why(mortal(socrates)).               % explain a goal
 :- assertion(mortal(socrates)).         % executable check
 :- table fibonacci/2, ackermann/2.      % tabled predicate declarations
@@ -118,7 +118,7 @@ ground; calls that leave output variables unresolved MUST raise an error.
 
 ## 5. Builtins and arithmetic
 
-eyelang provides **18 builtin predicates**, **39 arithmetic operations**, and
+eyelang provides **17 builtin predicates**, **39 arithmetic operations**, and
 **two arithmetic constants**. The operations comprise 18 unary/binary operator
 forms and 22 named functions; `xor/2` appears in both groups and is counted once.
 Special forms are listed separately below.
@@ -136,7 +136,7 @@ goal is reached. These predicates MUST NOT be redefined by facts or clauses.
 | Predicate | Syntax and behavior |
 | --- | --- |
 | `true/0` | `true` always succeeds, without binding variables. |
-| `false/0`, `fail/0` | `false` and `fail` always fail. |
+| `false/0` | `false` always fails. |
 | `=/2` | `Left = Right` unifies terms structurally, with an occurs check. Either operand may contain variables. |
 | `\=/2` | `Left \= Right` succeeds if the terms cannot unify at this point. Trial bindings MUST be discarded. It does not constrain later bindings: `X \= a` fails while `X` is free. |
 | `is/2` | `Value is Expression` evaluates the bound expression and unifies the numeric result with `Value`. A bound result must have the same numeric term type and value. |

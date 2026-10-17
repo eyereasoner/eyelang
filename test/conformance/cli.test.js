@@ -44,11 +44,11 @@ test('CLI reads UTF-8 .pl files and stdin identically, with standard ARC comment
 });
 
 test('§10: CLI keeps each boolean answer with its query and explains empty ARC sections', () => {
-  const result = invoke(['-'], '?- true. ?- fail.');
+  const result = invoke(['-'], '?- true. ?- false.');
   assert.equal(result.status, 0);
   assert.equal(result.stderr, '');
   assert.equal(result.stdout, [
-    '% Answer\n?- true.\ntrue.\n\n?- fail.\nfalse.',
+    '% Answer\n?- true.\ntrue.\n\n?- false.\nfalse.',
     '% Reason\nNo explanation was requested. Add ?- why. after a query.',
     '% Check\nNo checks were requested.\n',
   ].join('\n\n'));
