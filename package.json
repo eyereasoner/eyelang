@@ -1,6 +1,6 @@
 {
   "name": "eyelang",
-  "version": "5.0.21",
+  "version": "5.0.22",
   "description": "A symbolic logic programming language implementing a subset of Prolog, with query explanations and executable checks.",
   "repository": {
     "type": "git",
