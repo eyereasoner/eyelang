@@ -13,6 +13,7 @@
     main { max-width: 1480px; margin: auto; padding: 32px clamp(16px, 4vw, 56px); }
     header, .heading, .actions, footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
     h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); letter-spacing: -.05em; font-weight: 750; }
+    h1 img { vertical-align: middle; }
     h1 span { color: var(--accent); }
     h1 small { color: var(--muted); font-size: 15px; letter-spacing: 0; font-weight: 500; margin-left: 14px; }
     a { color: var(--accent); text-underline-offset: 3px; }
@@ -99,7 +100,7 @@
       <a href="https://eyereasoner.github.io/eyelang/SPEC/">Specification</a>
     </nav>
     <header>
-      <h1>eye<span>lang</span><small>playground <span id="version">v5.0.25</span></small></h1>
+      <h1>eye<span>lang</span><small>playground <span id="version">v5.0.25</span></small> <img src="https://josd.github.io/images/eye.png" alt="" width="32" height="32"></h1>
     </header>
     <div id="serve-hint" role="status">Start <code>node src/playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
     <noscript><p>Turn on JavaScript to run programs in this playground.</p></noscript>

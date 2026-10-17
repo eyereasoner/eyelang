@@ -25,6 +25,7 @@ test('Pages serves playground dependencies under the project path and prepares r
     }
     for (const asset of assets) {
       const deployed = new URL(asset, base);
+      if (deployed.origin !== url.origin) continue;
       assert.ok(deployed.pathname.startsWith('/eyelang/'), asset);
       assert.ok((await read(deployed.pathname.slice('/eyelang/'.length))).length > 0, asset);
     }

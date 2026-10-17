@@ -7,6 +7,28 @@ Language version: 5.0.25
 Date: 2026-10-17
 ```
 
+## Table of contents
+
+- [Status of This Memo](#status-of-this-memo)
+- [1. Conventions and conformance](#1-conventions-and-conformance)
+- [2. Program model](#2-program-model)
+- [3. Lexical conventions and terms](#3-lexical-conventions-and-terms)
+- [4. Clauses and binding](#4-clauses-and-binding)
+- [5. Builtins and arithmetic](#5-builtins-and-arithmetic)
+  - [5.1. Builtin predicates and special forms](#51-builtin-predicates-and-special-forms)
+  - [5.2. Arithmetic operators](#52-arithmetic-operators)
+  - [5.3. Arithmetic functions and constants](#53-arithmetic-functions-and-constants)
+  - [5.4. Ordinary predicates](#54-ordinary-predicates)
+- [6. Inference and negation](#6-inference-and-negation)
+  - [6.1. Herbrand semantics](#61-herbrand-semantics)
+  - [6.2. Evaluation and negation](#62-evaluation-and-negation)
+- [7. Queries and aggregation](#7-queries-and-aggregation)
+- [8. Explanations](#8-explanations)
+- [9. Checks](#9-checks)
+- [10. Errors and command-line interface](#10-errors-and-command-line-interface)
+- [11. Implementation and examples](#11-implementation-and-examples)
+- [12. Limits and resource considerations](#12-limits-and-resource-considerations)
+
 ## Status of This Memo
 
 This project specification is not an IETF RFC. It defines the subset of

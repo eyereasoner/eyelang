@@ -1,4 +1,4 @@
-# eyelang
+# eyelang <img src="https://josd.github.io/images/eye.png" alt="" width="32" height="32">
 
 [![npm version](https://img.shields.io/npm/v/eyelang.svg)](https://www.npmjs.com/package/eyelang)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23416492.svg)](https://doi.org/10.5281/zenodo.23416492)
