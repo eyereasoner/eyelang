@@ -354,7 +354,9 @@ The [homepage](https://eyereasoner.github.io/eyelang/) gives a brief introductio
 and a command-line example. The
 [playground](https://eyereasoner.github.io/eyelang/playground/) lists all
 executable `.pl` examples. Each example demonstrates answers, explanations,
-and assertions. They include Socrates, positive cycles, routes and minimum
+and assertions, with a complete ARC transcript in
+[examples/output/](https://github.com/eyereasoner/eyelang/tree/main/examples/output).
+They include Socrates, positive cycles, routes and minimum
 costs, Gregorian Easter dates, exact arithmetic, symbolic Peano arithmetic,
 bounded Collatz trajectories, peasant multiplication and exponentiation,
 probabilities, Fibonacci 10000, Ackermann, complex numbers, a Turing machine,

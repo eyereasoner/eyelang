@@ -7,18 +7,13 @@ import { exampleCases } from '../scripts/example-goldens.js';
 const examples = new URL('../examples/', import.meta.url);
 const taxonomyDepths = [10, 100, 1000, 10000, 100000];
 const cases = exampleCases();
-const goldenCases = cases.filter(example => example.golden);
 
-test('every example has a golden or structural checks, without missing or stale transcripts', () => {
-  for (const { file, golden } of cases) {
-    assert.ok(golden || taxonomyDepths.some(depth => file === `deep-taxonomy-${depth}.pl`),
-      `${file} needs a golden transcript or structural checks.`);
-  }
+test('every example has a golden, without missing or stale transcripts', () => {
   assert.deepEqual(readdirSync(new URL('output/', examples)).sort(),
-    goldenCases.map(example => example.file.replace(/\.pl$/, '.txt')));
+    cases.map(example => example.file.replace(/\.pl$/, '.txt')));
 });
 
-for (const { file, source, golden } of goldenCases) {
+for (const { file, source, golden } of cases) {
   test(`bundled Prolog example: ${file}`, () => {
     const result = run(readFileSync(source, 'utf8'), { arc: true });
     assert.match(result[0], /^% Answer\n/);

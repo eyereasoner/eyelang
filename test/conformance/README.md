@@ -30,9 +30,9 @@ bundled example, and taxonomy evidence checks through 100000 levels (§11).
 Example transcripts are compared with saved files in `examples/output/`,
 including their answers, numbered proofs, and checks. These goldens record
 the current answer order and selected derivation; they do not change the
-specification's ordering guarantees. Taxonomies 1000, 10000, and 100000 use
-structural evidence tests instead, with taxonomy 10 and 100 covering the
-transcript format. `npm run examples:update` explicitly regenerates the
+specification's ordering guarantees. Every example has a complete ARC golden;
+the taxonomies also retain independent structural evidence tests through
+100000 levels. `npm run examples:update` explicitly regenerates the
 goldens; review the diff before accepting changes. Ordinary tests never
 rewrite them.
 

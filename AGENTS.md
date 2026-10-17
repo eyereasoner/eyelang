@@ -70,8 +70,8 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 - Use `.pl` for examples. Each bundled example should demonstrate an answer,
   explain it with `?- why.`, and verify expectations with `:- assertion(Goal).`.
 - Add new examples to the playground selector. Keep the specification's
-  example descriptions current when relevant. Include an ARC golden or an
-  explicit structural-test exception for large examples.
+  example descriptions current when relevant. Include a complete ARC golden
+  for every example, including large taxonomies.
 - Link reader-facing documentation to GitHub Pages; keep implementation and
   example source links pointed at repository files. Preserve the same top
   navigation on the homepage, specification, tutorial, and playground:

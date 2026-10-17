@@ -12,16 +12,20 @@ function fixture(t) {
   return directory;
 }
 
-test('the golden updater writes full ARC transcripts and skips structural-only examples', t => {
+test('the golden updater writes full ARC transcripts for every example, including large taxonomies', t => {
   const directory = fixture(t);
-  writeFileSync(join(directory, 'deep-taxonomy-1000.pl'), 'This example must not be evaluated by the updater.');
-  assert.equal(updateExampleGoldens(directory), 1);
-  assert.deepEqual(readdirSync(join(directory, 'output')), ['sample.txt']);
-  assert.equal(readFileSync(join(directory, 'output/sample.txt'), 'utf8'), [
+  const files = ['deep-taxonomy-1000', 'deep-taxonomy-10000', 'deep-taxonomy-100000', 'sample'];
+  for (const name of files.slice(0, -1)) {
+    writeFileSync(join(directory, name + '.pl'), readFileSync(join(directory, 'sample.pl'), 'utf8'));
+  }
+  assert.equal(updateExampleGoldens(directory), files.length);
+  assert.deepEqual(readdirSync(join(directory, 'output')).sort(), files.map(name => name + '.txt'));
+  const expected = [
     '% Answer\n?- p(X).\nX = a.',
     '% Reason\nHere is why. Each step is shown once.\nstep 1: p(a).\n  you told me this.\nThat explains step 1.',
     '% Check\ncheck passed: p(a).\n',
-  ].join('\n\n'));
+  ].join('\n\n');
+  for (const name of files) assert.equal(readFileSync(join(directory, 'output', name + '.txt'), 'utf8'), expected);
 });
 
 test('a failed example prevents the updater from overwriting existing goldens', t => {
