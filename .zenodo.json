@@ -1,6 +1,6 @@
 {
   "title": "eyelang",
-  "description": "A symbolic logic programming language using a practical Prolog subset, with answers, explanations, and executable checks.",
+  "description": "A symbolic logic programming language implementing a subset of Prolog, with query explanations and executable checks.",
   "upload_type": "software",
   "access_right": "open",
   "license": "mit",

@@ -18,7 +18,8 @@ user-facing text direct.
 - `examples/output/*.txt`: saved ARC transcripts for example regression tests.
 - `test/*.test.js`: Node.js behavior and regression tests.
 - `SPEC.md`: normative specification in RFC style.
-- `README.md`: concise introduction, usage, and example index.
+- `README.md`: minimal introduction, usage, and links to the tutorial and
+  specification.
 - `TUTORIAL.md`: hands-on guide with runnable programs and expected results.
 - `scripts/prepare-pages.js` and `scripts/pages-layout.html`: website staging
   and shared documentation layout.
@@ -68,11 +69,12 @@ it with Jekyll into `_site/`. These generated directories are ignored.
   appropriate.
 - Use `.pl` for examples. Each bundled example should demonstrate an answer,
   explain it with `?- why.`, and verify expectations with `:- assertion(Goal).`.
-- Add new examples to the README index and the playground selector. Keep the
-  specification's example descriptions current when relevant. Include an ARC
-  golden or an explicit structural-test exception for large examples.
-- Keep README example links pointed at repository files. Preserve the same
-  top navigation on the homepage, specification, tutorial, and playground:
+- Add new examples to the playground selector. Keep the specification's
+  example descriptions current when relevant. Include an ARC golden or an
+  explicit structural-test exception for large examples.
+- Link reader-facing documentation to GitHub Pages; keep implementation and
+  example source links pointed at repository files. Preserve the same top
+  navigation on the homepage, specification, tutorial, and playground:
   eyelang, Repository, Playground, Tutorial, Specification.
   Website navigation belongs in `scripts/pages-layout.html`, outside the
   specification and tutorial content. The README's marked navigation block

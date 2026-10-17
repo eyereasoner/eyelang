@@ -17,21 +17,17 @@ export async function preparePages(destination, basePath = '/eyelang') {
   await mkdir(resolve(destination, '_layouts'), { recursive: true });
 
   const playground = (await readFile(resolve(root, 'playground.html'), 'utf8'))
-    .replace('href="README.md"', 'href="./"')
+    .replace('href="https://eyereasoner.github.io/eyelang/"', 'href="./"')
     .replace('href="playground.html"', 'href="playground/"')
     .replace('href="https://eyereasoner.github.io/eyelang/TUTORIAL/"', 'href="TUTORIAL/"')
-    .replace('href="SPEC.md"', 'href="SPEC/"');
+    .replace('href="https://eyereasoner.github.io/eyelang/SPEC/"', 'href="SPEC/"');
   await write('playground.html', playground);
   await write('playground/index.html', playground.replace('<head>', '<head>\n  <base href="../">'));
 
   const readme = (await readFile(resolve(root, 'README.md'), 'utf8'))
-    .replace(/<!-- navigation:start -->[\s\S]*?<!-- navigation:end -->\n\n/, '')
-    .replaceAll('(SPEC.md)', '(SPEC/)')
-    .replaceAll('(TUTORIAL.md)', '(TUTORIAL/)');
+    .replace(/<!-- navigation:start -->[\s\S]*?<!-- navigation:end -->\n\n/, '');
   const spec = await readFile(resolve(root, 'SPEC.md'), 'utf8');
-  const tutorial = (await readFile(resolve(root, 'TUTORIAL.md'), 'utf8'))
-    .replaceAll('(README.md#examples)', '(../#examples)')
-    .replaceAll('(SPEC.md)', '(../SPEC/)');
+  const tutorial = await readFile(resolve(root, 'TUTORIAL.md'), 'utf8');
   await write('index.md', `---\nlayout: default\ntitle: eyelang\n---\n\n${readme}`);
   await write('SPEC/index.md', `---\nlayout: default\ntitle: eyelang Specification\n---\n\n${spec}`);
   await write('TUTORIAL/index.md', `---\nlayout: default\ntitle: eyelang tutorial\n---\n\n${tutorial}`);

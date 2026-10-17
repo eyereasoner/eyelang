@@ -42,8 +42,8 @@ test('Pages serves playground dependencies under the project path and prepares r
   const spec = await read('SPEC/index.md');
   const tutorial = await read('TUTORIAL/index.md');
   assert.match(home, /^---\nlayout: default\n/);
-  assert.match(home, /\[SPEC.md\]\(SPEC\/\)/);
-  assert.match(home, /\[hands-on tutorial\]\(TUTORIAL\/\)/);
+  assert.match(home, /\[specification\]\(https:\/\/eyereasoner\.github\.io\/eyelang\/SPEC\/\)/);
+  assert.match(home, /\[hands-on tutorial\]\(https:\/\/eyereasoner\.github\.io\/eyelang\/TUTORIAL\/\)/);
   assert.match(spec, /^---\nlayout: default\n/);
   assert.match(spec, /# eyelang Specification/);
   assert.match(tutorial, /^---\nlayout: default\n/);
@@ -55,18 +55,23 @@ test('Pages serves playground dependencies under the project path and prepares r
   assert.match(await read('README.md'), /<!-- navigation:start -->[\s\S]*?\[Tutorial\]\(https:\/\/eyereasoner\.github\.io\/eyelang\/TUTORIAL\/\)/);
   assert.doesNotMatch(await read('SPEC.md'), /^\[(eyelang|Repository|Playground|Tutorial|Specification)\]\(/m);
   assert.equal(await read('TUTORIAL.md'), await readFile(new URL('../TUTORIAL.md', import.meta.url), 'utf8'));
-  for (const [document, target, expected] of [
-    ['', 'TUTORIAL/', '/eyelang/TUTORIAL/'],
-    ['TUTORIAL/', '../SPEC/', '/eyelang/SPEC/'],
-    ['TUTORIAL/', '../#examples', '/eyelang/#examples'],
+  for (const [document, target, expected, file = 'index.md'] of [
+    ['', 'https://eyereasoner.github.io/eyelang/TUTORIAL/', '/eyelang/TUTORIAL/'],
+    ['', 'https://eyereasoner.github.io/eyelang/SPEC/', '/eyelang/SPEC/'],
+    ['TUTORIAL/', 'https://eyereasoner.github.io/eyelang/SPEC/', '/eyelang/SPEC/'],
+    ['TUTORIAL/', 'https://eyereasoner.github.io/eyelang/playground/', '/eyelang/playground/', 'index.html'],
+    ['SPEC/', 'https://eyereasoner.github.io/eyelang/', '/eyelang/'],
+    ['SPEC/', 'https://eyereasoner.github.io/eyelang/TUTORIAL/', '/eyelang/TUTORIAL/'],
+    ['SPEC/', 'https://eyereasoner.github.io/eyelang/playground/', '/eyelang/playground/', 'index.html'],
   ]) {
     const url = new URL(target, `https://eyereasoner.github.io/eyelang/${document}`);
     assert.equal(url.pathname + url.hash, expected);
     const page = url.pathname.slice('/eyelang/'.length);
-    assert.ok((await read(`${page}index.md`)).length > 0);
-    assert.ok((document ? tutorial : home).includes(`](${target})`));
+    assert.ok((await read(`${page}${file}`)).length > 0);
+    const content = document === 'SPEC/' ? spec : document === 'TUTORIAL/' ? tutorial : home;
+    assert.ok(content.includes(`](${target})`));
   }
-  for (const [label, path] of [['README.md', 'blob/main/README.md'], ['src/language.js', 'blob/main/src/language.js'], ['test/', 'tree/main/test']]) {
+  for (const [label, path] of [['src/language.js', 'blob/main/src/language.js'], ['test/', 'tree/main/test']]) {
     assert.ok(spec.includes(`[${label}](https://github.com/eyereasoner/eyelang/${path})`), label);
   }
   assert.equal(JSON.parse(await read('_config.yml')).baseurl, '/eyelang');

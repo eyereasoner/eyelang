@@ -385,10 +385,12 @@ a set of conditions. Start with a small, explicit data set:
 4. Assert both an expected result and an expected absence.
 5. Add more data, recursion, or calculations while keeping the checks useful.
 
-The [example index](README.md#examples) has larger route, arithmetic, policy,
-and taxonomy programs. The [specification](SPEC.md) defines the exact syntax and
-semantics. eyelang implements a Prolog subset: cut, disjunction, general
-meta-calls, modules, mutation, and external I/O predicates are outside it.
+The [playground](https://eyereasoner.github.io/eyelang/playground/) has larger
+route, arithmetic, policy, and taxonomy programs. The
+[specification](https://eyereasoner.github.io/eyelang/SPEC/)
+defines the exact syntax and semantics. eyelang implements a subset of Prolog:
+cut, disjunction, general meta-calls, modules, mutation, and external I/O
+predicates are outside it.
 
 Use **Save program** in the playground to keep your edited `.pl` file.
 **Copy output** and **Save output** keep the complete answers, reasons, and

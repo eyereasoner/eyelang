@@ -4,14 +4,14 @@
 Document: eyelang-spec-0001
 Category: Language Specification
 Language version: 5.0.18
-Date: 2026-10-15
+Date: 2026-10-17
 ```
 
 ## Status of This Memo
 
-This project specification is not an IETF RFC. It defines the implemented
-eyelang subset of Prolog syntax. It does not claim full ISO Prolog
-conformance or compatibility with every Prolog program.
+This project specification is not an IETF RFC. It defines the subset of
+Prolog implemented by eyelang. It does not claim full ISO Prolog conformance
+or compatibility with every Prolog program.
 
 ## 1. Conventions and conformance
 
@@ -32,7 +32,7 @@ human(socrates).                        % ground fact
 mortal(Person) :- human(Person).        % clause
 ?- mortal(Who).                         % query
 ?- human(X), mortal(X).                 % conjunction
-?- why.                                 % explain previous answers
+?- why.                                % explain previous answers
 ?- why(mortal(socrates)).               % explain a goal
 :- assertion(mortal(socrates)).         % executable check
 :- table fibonacci/2, ackermann/2.      % tabled predicate declarations
@@ -345,13 +345,15 @@ explicitly. The earlier English-like syntax is not supported.
 
 ## 11. Implementation and examples
 
-[TUTORIAL.md](https://github.com/eyereasoner/eyelang/blob/main/TUTORIAL.md)
+The [tutorial](https://eyereasoner.github.io/eyelang/TUTORIAL/)
 introduces facts, rules, queries, explanations, checks, recursion, arithmetic,
 aggregation, structured terms, and demand-driven tabling through runnable
 programs.
 
-[README.md](https://github.com/eyereasoner/eyelang/blob/main/README.md) indexes
-all executable `.pl` examples. Each example demonstrates answers, explanations,
+The [homepage](https://eyereasoner.github.io/eyelang/) gives a brief introduction
+and a command-line example. The
+[playground](https://eyereasoner.github.io/eyelang/playground/) lists all
+executable `.pl` examples. Each example demonstrates answers, explanations,
 and assertions. They include Socrates, positive cycles, routes and minimum
 costs, Gregorian Easter dates, exact arithmetic, symbolic Peano arithmetic,
 bounded Collatz trajectories, peasant multiplication and exponentiation,
