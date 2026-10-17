@@ -140,5 +140,3 @@ check passed: gcc([1, 1, 1, 1, 1, 1, 1, 1, 1], [0, 0, 0], [[0, 0, 1], [0, 1, 1],
 check passed: gcc([0, 1, 0], [0, 0, 0], [[0, 0, 0], [0, 0, 1], [0, 0, 1]]).
 
 check passed: gcc([], [0, 0, 0], []).
-
-check passed: gcc([0, 1, 0], [0, 0, 0], States), is_list(States), ground(States).

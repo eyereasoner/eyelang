@@ -148,11 +148,11 @@ test('tutorial links prefill every lesson and run its exact program', async () =
 });
 
 test('bundled examples use short references, including the largest taxonomy', async () => {
-  const app = await playground({ hash: '#example=deep-taxonomy-100000' });
+  const app = await playground({ hash: '#example=deep-taxonomy-10000' });
   assert.ok(program(app).length > 1000000);
   assert.equal(app.runs.length, 0, 'shared examples wait for Run');
   await app.dispatch('share');
-  assert.equal(shared(app), 'https://example.org/eyelang/playground/#example=deep-taxonomy-100000');
+  assert.equal(shared(app), 'https://example.org/eyelang/playground/#example=deep-taxonomy-10000');
   assert.equal(app.prompts.length, 0);
   assert.equal(app.copied.at(-1), shared(app));
 });

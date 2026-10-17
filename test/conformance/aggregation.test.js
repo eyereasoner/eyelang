@@ -65,7 +65,8 @@ test('aggregation completes tabled producers, handles empty input, and respects 
 test('aggregate sums preserve exact large integers and support finite real values', () => {
   assertAnswers(run(`value(a,9007199254740993). value(b,2).
     ?- aggregate_all(sum(V),value(X,V),N).
-    ?- aggregate_all(sum(V),between(1,3,V),N).
+    small(1). small(2). small(3).
+    ?- aggregate_all(sum(V),small(V),N).
     real(a,0.5). real(b,1.25). ?- aggregate_all(sum(V),real(X,V),N).
   `), ['N = 9007199254740995.', 'N = 6.', 'N = 1.75.']);
 });

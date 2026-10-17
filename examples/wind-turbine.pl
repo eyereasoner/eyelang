@@ -18,9 +18,7 @@ needs_maintenance(Turbine, age_based_maintenance) :-
     LastMaint >= 6.
 
 needs_maintenance(Turbine, problem_based_maintenance) :-
-    turbine(Turbine, _, _, Issues, _),
-    is_list(Issues),
-    Issues \= [].       % Rule 3: Problem-based maintenance
+    turbine(Turbine, _, _, [_ | _], _).    % Rule 3: Problem-based maintenance
 
 needs_maintenance(Turbine, performance_based_maintenance) :-
     turbine(Turbine, _, _, _, Efficiency),

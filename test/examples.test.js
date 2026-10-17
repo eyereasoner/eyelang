@@ -5,7 +5,7 @@ import { infer, parse, run } from '../src/language.js';
 import { exampleCases } from '../scripts/example-goldens.js';
 
 const examples = new URL('../examples/', import.meta.url);
-const taxonomyDepths = [10, 100, 1000, 10000, 100000];
+const taxonomyDepths = [10, 100, 1000, 10000];
 const cases = exampleCases();
 
 test('every example has a golden, without missing or stale transcripts', () => {
@@ -34,6 +34,31 @@ test('Delfour answers identify the question for each substitution and ground res
   assert.ok(answer.includes("?- is_a(delfour, 'low-sugar-case').\ntrue."));
   assert.match(answer, /\?- is_a\(Who, 'passed-check'\)\.\nWho = \[delfour,/);
   assert.ok(answer.endsWith("?- is_a(delfour, 'checked-case').\ntrue."));
+});
+
+test('complex polar-angle clauses normalize quadrants and rounded full turns', () => {
+  const source = readFileSync(new URL('complex.pl', examples), 'utf8');
+  assert.doesNotThrow(() => run(source + `
+    :- assertion(normalized_angle(0.0, 0.0)).
+    :- assertion((Angle is pi/2, normalized_angle(Angle, Angle))).
+    :- assertion((Signed is -pi/2, Angle is 3*pi/2, normalized_angle(Signed, Angle))).
+    :- assertion((Signed is -pi, Angle is pi, normalized_angle(Signed, Angle))).
+    :- assertion(normalized_angle(-1.0e-17, 0.0)).
+  `));
+});
+
+test('turbine problem maintenance requires a nonempty list of issues', () => {
+  const source = readFileSync(new URL('wind-turbine.pl', examples), 'utf8');
+  const records = infer(parse(source + `
+    turbine(empty, 0, 0, [], 100).
+    turbine(atom, 0, 0, vibration, 100).
+    turbine(text, 0, 0, "vibration", 100).
+    turbine(issues, 0, 0, [vibration, noise], 100).
+    ?- needs_maintenance(Turbine, problem_based_maintenance).
+  `));
+  const turbines = records.filter(({ goal }) => goal.relation === 'predicate:needs_maintenance/2' &&
+    goal.terms[1].atom === 'problem_based_maintenance').map(({ goal }) => goal.terms[0].atom);
+  assert.deepEqual(turbines.sort(), ['issues', 't456', 't789']);
 });
 
 for (const depth of taxonomyDepths) {

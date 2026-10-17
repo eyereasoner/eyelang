@@ -42,4 +42,3 @@ rounded_root(Inputs, Root) :-
 :- assertion((findRoot([2, 2.0, 1.0e-15], Root), abs(Root - e) < 1.0e-14)).
 :- assertion((findRoot([3, 3.0, 1.0e-15], Root), abs(Root - pi) < 1.0e-14)).
 :- assertion((findRoot([1, 1.0, 1.0e-15], Root), f(1, Root, Residual), abs(Residual) < 1.0e-15)).
-:- assertion((findRoot([1, 1.0, 1.0e-15], Root), float(Root), ground(Root))).

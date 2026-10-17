@@ -1,7 +1,8 @@
 % N queens: list position is the row, list value is the column (both 1-based).
+% Supply a nonnegative integer board size.
 :- table queens/2, columns/3, select/3, place/3, safe/3.
 
-queens(N, Columns) :- integer(N), N >= 0, columns(1, N, Available), place(Available, [], Columns).
+queens(N, Columns) :- N >= 0, columns(1, N, Available), place(Available, [], Columns).
 columns(I, N, []) :- I > N.
 columns(I, N, [I|Rest]) :- I =< N, Next is I+1, columns(Next, N, Rest).
 select(X, [X|Rest], Rest).
@@ -29,5 +30,5 @@ safe(Column, [Other|Rest], Distance) :-
 :- assertion(aggregate_all(count, queens(3, Columns), 0)).
 :- assertion(aggregate_all(count, queens(4, Columns), 2)).
 :- assertion(aggregate_all(count, queens(8, Columns), 92)).
-:- assertion(\+ queens(4.0, [])).
+:- assertion(\+ queens(-1, [])).
 :- assertion(\+ queens(4, [1, 2, 3, 4])).

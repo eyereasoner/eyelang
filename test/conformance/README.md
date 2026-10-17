@@ -2,7 +2,8 @@
 
 Run `npm run test:conformance`, or `npm test` for all tests. The conformance
 suite uses Node.js with no dependencies or network services. Requirements and
-expected results come from the current [SPEC.md](../../SPEC.md).
+expected results come from the current
+[specification](https://eyereasoner.github.io/eyelang/SPEC/).
 
 | Specification requirements | Coverage |
 | --- | --- |
@@ -10,8 +11,8 @@ expected results come from the current [SPEC.md](../../SPEC.md).
 | §2: complete-program loading, statement boundaries, source order | `language.test.js`, `cli.test.js` |
 | §3: atoms, strings, escapes, variable scope, projection, source lines | `language.test.js` |
 | §3–4: compounds, lists, occurs check, unit clauses, ground outputs, explicit arithmetic, binding order | `terms.test.js`, `language.test.js` |
-| §5: type tests, variable bindings, grounding, and proper lists | `terms.test.js` |
 | §3, §5: exact integers, finite reals, distinct numeric types, precedence, arithmetic functions, builtins, and errors | `arithmetic.test.js` |
+| §5: ordinary predicate definitions, recursive integer ranges, and excluded identity operators | `terms.test.js`, `arithmetic.test.js` |
 | §6: set semantics, fixed points, clause order, table declarations, variant calls, recursion, run isolation | `inference.test.js`, `terms.test.js` |
 | §6: completed negation, stratification, arity and constant dependencies, bound negative tests | `negation.test.js`, `aggregation.test.js` |
 | §7: distinct completed producer tuples, empty aggregates, exact sums, extrema, outer bindings, local variables | `aggregation.test.js` |
@@ -27,13 +28,13 @@ algorithm for both forward and tabled inference. Tests do not require a
 particular first proof when several derivations are valid.
 
 `npm test` also runs the behavior regressions in `test/language.test.js`, every
-bundled example, and taxonomy evidence checks through 100000 levels (§11).
+bundled example, and taxonomy evidence checks through 10000 levels (§11).
 Example transcripts are compared with saved files in `examples/output/`,
 including their answers, numbered proofs, and checks. These goldens record
 the current answer order and selected derivation; they do not change the
 specification's ordering guarantees. Every example has a complete ARC golden;
 the taxonomies also retain independent structural evidence tests through
-100000 levels. `npm run examples:update` explicitly regenerates the
+10000 levels. `npm run examples:update` explicitly regenerates the
 goldens; review the diff before accepting changes. Ordinary tests never
 rewrite them.
 

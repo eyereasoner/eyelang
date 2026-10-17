@@ -1,6 +1,14 @@
 % An ordered event log defines a relation between successive account states.
 % Each event references its predecessor; no stored balance is mutated.
 :- table balance/2.
+:- table between/3.
+
+% Enumerate an inclusive range with bound integer endpoints.
+between(Low, High, Low) :- Low =< High.
+between(Low, High, Value) :-
+    Low < High,
+    Next is Low + 1,
+    between(Next, High, Value).
 
 opening_balance(100).
 event(1, deposit, 25).

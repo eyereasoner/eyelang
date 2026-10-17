@@ -4,7 +4,6 @@ item(pear, 4, 3).
 item(plum, 2, 5).
 line_total(Name, Total) :-
     item(Name, Quantity, Price),
-    atom(Name), integer(Quantity), number(Price),
     Total is Quantity * Price.
 invoice(Total) :- aggregate_all(sum(Amount), line_total(Name, Amount), Total).
 

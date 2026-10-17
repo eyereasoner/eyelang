@@ -25,7 +25,6 @@ for (const [expression, expected] of [
   ['+2^2', '4'], ['10-3-2', '5'], ['24//3//2', '4'],
   ['abs(-2.5)', '2.5'], ['sign(0)', '0'], ['sign(2.5)', '1'],
   ['tan(0)', '0.0'], ['asin(0)', '0.0'], ['acos(1)', '0.0'], ['atan(0)', '0.0'],
-  ['angle(0,-1)', String(3 * Math.PI / 2)], ['angle(1,0)', '0.0'],
   ['min(1,1.0)', '1'], ['min(1.0,1)', '1.0'], ['max(1,1.0)', '1'], ['max(1.0,1)', '1.0'],
   [String.raw`-1 /\ (1<<100)`, '1267650600228229401496703205376'],
   [String.raw`1 \/ 2 /\ 2`, '2'], ['13 xor 6', '11'],
@@ -33,14 +32,14 @@ for (const [expression, expected] of [
   test(`§5 arithmetic: ${expression}`, () => assert.equal(result(expression), `Value = ${expected}.`));
 }
 
-test('numeric types, unification, identity, non-unifiability, and arithmetic equality are distinct', () => {
+test('numeric types, unification, non-unifiability, and arithmetic equality are distinct', () => {
   assertAnswers(run(String.raw`
-    ?- 1 = 1.0. ?- 1 =:= 1.0. ?- 1 == 1.0. ?- 1 =\= 2.
+    ?- 1 = 1.0. ?- 1 =:= 1.0. ?- 1 =\= 2.
     ?- '1' = 1. ?- 'same' = same. ?- "same" = same.
     ?- 3 is 6/2. ?- 3.0 is 6/2. ?- 3 =:= 6/2.
-    ?- a \= b. ?- X \= a. ?- _X == _X. ?- X \== Y, X=a, Y=b.
-  `), ['false.', 'true.', 'false.', 'true.', 'false.', 'true.', 'false.',
-    'false.', 'true.', 'true.', 'true.', 'false.', 'true.', 'X = a, Y = b.']);
+    ?- a \= b. ?- X \= a.
+  `), ['false.', 'true.', 'true.', 'false.', 'true.', 'false.',
+    'false.', 'true.', 'true.', 'true.', 'false.']);
 });
 
 test('numeric comparison preserves large integer operands', () => {
@@ -62,15 +61,28 @@ for (const [expression, error] of [
   ['1<<(-1)', /nonnegative/], ['sin(orange)', /number/], ['unknown(2)', /function: unknown\/1/],
   ['X+1', /unbound/], ['"7"+1', /number/],
   ['[7]+1', /number/], ['gcd(2.0,1)', /integer/], ['1<<1.0', /integer/],
-  ['unknown(1,2)', /function: unknown\/2/], ['unknown(1,2,3)', /function: unknown\/3/],
+  ['angle(0,-1)', /function: angle\/2/], ['unknown(1,2)', /function: unknown\/2/], ['unknown(1,2,3)', /function: unknown\/3/],
 ]) {
   test(`invalid arithmetic is specific: ${expression}`, () => assert.throws(() => result(expression), error));
 }
 
-test('between enumerates exact bounded integers and filters a supplied result', () => {
-  assertAnswers(run('?- between(9007199254740993,9007199254740995,N). ?- between(1,3,2). ?- between(3,1,N). ?- between(1,3,4).'),
-    ['N = 9007199254740993.\nN = 9007199254740994.\nN = 9007199254740995.', 'true.', 'false.', 'false.']);
-  assert.throws(() => run('?- between(Low,3,N).'), /bound integer/);
+test('integer ranges use ordinary recursive clauses with exact arithmetic', () => {
+  const source = `
+    :- table between/3.
+    between(Low, High, Low) :- Low =< High.
+    between(Low, High, Value) :- Low < High, Next is Low + 1, between(Next, High, Value).
+  `;
+  assertAnswers(run(source + `
+    ?- between(9007199254740993,9007199254740995,N).
+    ?- between(1,3,2). ?- between(3,1,N). ?- between(1,3,4).
+    ?- \\+ between(1,3,4). ?- \\+ between(1,3,2).
+    ?- aggregate_all(sum(V), between(1,3,V), Sum).
+  `), ['N = 9007199254740993.\nN = 9007199254740994.\nN = 9007199254740995.',
+    'true.', 'false.', 'false.', 'true.', 'false.', 'Sum = 6.']);
+  const output = run(source + '?- between(1,3,2). ?- why. :- assertion(between(1,3,2)).');
+  assert.match(output[1], /rule \d+: between/);
+  assert.match(output[1], /Next = 2/);
+  assert.throws(() => run(source + '?- between(Low,3,N).'), /unbound/);
 });
 
 test('§5: ** requires parentheses when chained, while ^ associates to the right', () => {
@@ -90,12 +102,11 @@ test('§3 and §5: integer and real terms stay distinct without numeric coercion
   assert.throws(() => run('?- Value = 1e309.'), /real literal must be finite/);
 });
 
-test('§5: identity and non-unifiability test terms without retaining trial bindings', () => {
+test('§5: non-unifiability does not retain trial bindings', () => {
   assertAnswers(run(String.raw`
-    ?- X == Y. ?- X \== Y, X = a, Y = a.
     ?- pair(X, a) \= pair(b, c), X = d.
     ?- pair(X, a) \= pair(b, a).
-  `), ['false.', 'X = a, Y = a.', 'X = d.', 'false.']);
+  `), ['X = d.', 'false.']);
 });
 
 test('§5: ordering is lexicographic UTF-16 for bound homogeneous atoms or strings', () => {
@@ -115,4 +126,10 @@ test('string and atom ordering and case-insensitive text containment are explici
   assert.throws(() => run('?- a @< "b".'), /two bound atoms or two bound strings/);
   assert.throws(() => run('?- "a" < "b".'), /number/);
   assert.throws(() => run('?- contains_text(a,"a").'), /bound strings/);
+});
+
+test('identity operators are outside the supported goal syntax', () => {
+  for (const operator of ['==', '\\==']) {
+    assert.throws(() => run(`?- a ${operator} a.`), /Line 1:/);
+  }
 });

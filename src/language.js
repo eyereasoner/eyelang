@@ -27,7 +27,7 @@ function* tokenize(source) {
   let position = 0;
   let line = 1;
   const fail = message => { throw new Error(`Line ${line}: ${message}`); };
-  const symbols = new Set(['=\\=', '\\==', '=:=', ':-', '?-', '\\+', '\\=', '==', '=<', '>=', '//', '**', '<<', '>>', '/\\', '\\/', '@=<', '@>=', '@<', '@>']);
+  const symbols = new Set(['=\\=', '=:=', ':-', '?-', '\\+', '\\=', '=<', '>=', '//', '**', '<<', '>>', '/\\', '\\/', '@=<', '@>=', '@<', '@>']);
   while (position < source.length) {
     const rest = source.slice(position);
     if (/\s/u.test(rest[0])) { if (rest[0] === '\n') line++; position++; continue; }
@@ -187,12 +187,10 @@ export function parse(source) {
     if (!value.functor) fail('A goal must be an atom or a predicate with arguments.');
     const { functor: name, args } = value;
     if (name === 'contains_text' && args.length === 2) return builtin('contains_text', args);
-    if (name === 'between' && args.length === 3) return builtin('between', args);
-    if (termTests.has(name) && args.length === 1) return builtin(name, args);
     if (tests.has(name) && args.length === 2) return builtin(name, args);
     return ordinary(name, args);
   };
-  const tests = new Set(['is', '=', '\\=', '==', '\\==', '<', '=<', '>', '>=', '=:=', '=\\=', '@<', '@=<', '@>', '@>=']);
+  const tests = new Set(['is', '=', '\\=', '<', '=<', '>', '>=', '=:=', '=\\=', '@<', '@=<', '@>', '@>=']);
   function oneGoal() {
     if (take('\\+')) {
       let nested;
@@ -267,9 +265,6 @@ export function parse(source) {
       } else if (premise.relation === 'builtin:is') {
         if (!termVariables(premise.terms[1]).every(name => bound.has(name))) forward = false;
         termVariables(premise.terms[0]).forEach(name => bound.add(name));
-      } else if (premise.relation === 'builtin:between') {
-        if (!premise.terms.slice(0, 2).flatMap(termVariables).every(name => bound.has(name))) forward = false;
-        termVariables(premise.terms[2]).forEach(name => bound.add(name));
       } else if (premise.relation === 'builtin:=' && premise.terms.some(value => termVariables(value).every(name => bound.has(name)))) {
         names.forEach(name => bound.add(name));
       } else if (!names.every(name => bound.has(name))) forward = false;
@@ -352,19 +347,6 @@ function list(items, tail) {
 }
 
 const atomic = value => typeof value === 'string' || value?.atom !== undefined || value?.text !== undefined || value?.real !== undefined;
-const termTests = new Map([
-  ['var', value => value.variable !== undefined],
-  ['nonvar', value => value.variable === undefined],
-  ['ground', ground],
-  ['atom', value => value.atom !== undefined],
-  ['string', value => value.text !== undefined],
-  ['integer', value => typeof value === 'string' && integer.test(value)],
-  ['float', value => value.real !== undefined],
-  ['number', numeric],
-  ['atomic', value => atomic(value) || value.list?.length === 0 && value.tail === undefined],
-  ['compound', value => value.functor !== undefined || value.list?.length > 0],
-  ['is_list', value => value.list !== undefined && value.tail === undefined],
-]);
 function variables(goal) { return goal.terms.flatMap(termVariables); }
 function termVariables(value) {
   if (value === undefined || atomic(value)) return [];
@@ -444,10 +426,6 @@ function evaluate(expression, bindings, calculations = null) {
         whole(); if (b < 0n) throw new Error('A shift count must be nonnegative.');
         result = name === '<<' ? a << b : a >> b; break;
       case 'atan2': result = Math.atan2(toReal(a), toReal(b)); break;
-      case 'angle': {
-        const angle = Math.atan2(toReal(b), toReal(a));
-        result = angle < 0 ? (angle + 2 * Math.PI) % (2 * Math.PI) : angle; break;
-      }
       default: throw new Error(`Unsupported arithmetic function: ${name}/2.`);
     }
   } else throw new Error(`Unsupported arithmetic function: ${name}/${args.length}.`);
@@ -843,38 +821,13 @@ export function infer(program, { validateChecks = false } = {}) {
       enqueue({ aggregate: { rule, position, partial, premise, sourceGoal, calculations } }, levels.get(rule));
       return;
     }
-    if (name === 'between') {
-      if (premise.negated) throw new Error('Define a helper predicate before negating between/3.');
-      const [low, high, target] = terms;
-      if (typeof low !== 'string' || !integer.test(low) || typeof high !== 'string' || !integer.test(high)) {
-        throw new Error('between/3 needs bound integer lower and upper limits.');
-      }
-      const first = BigInt(low);
-      const last = BigInt(high);
-      if (ground(target)) {
-        if (typeof target === 'string' && integer.test(target) && BigInt(target) >= first && BigInt(target) <= last) {
-          resumeBuiltin(rule, position, partial, bindings, evidence, calculations);
-        }
-        return;
-      }
-      for (let number = first; number <= last; number++) {
-        const next = new Map(bindings);
-        if (!unify(premise.terms[2], number.toString(), next)) continue;
-        resumeBuiltin(rule, position, partial, next,
-          { ...evidence, goal: { ...premise, terms: [low, high, number.toString()] } }, calculations);
-      }
-      return;
-    }
     let holds;
     if (name === 'true') holds = true;
     else if (name === 'fail' || name === 'false') holds = false;
-    else if (termTests.has(name)) holds = termTests.get(name)(terms[0]);
     else if (name === '=') {
       if (premise.negated && !terms.every(ground)) throw new Error('Negated unification needs bound operands in this subset.');
       holds = unify(terms[0], terms[1], bindings);
     } else if (name === '\\=') holds = !unify(terms[0], terms[1], new Map(bindings));
-    else if (name === '==') holds = sameTerm(terms[0], terms[1]);
-    else if (name === '\\==') holds = !sameTerm(terms[0], terms[1]);
     else if (name === 'is') {
       if (premise.negated && !ground(terms[0])) throw new Error('Negated is/2 needs a bound result in this subset.');
       const result = evaluate(premise.terms[1], bindings, calculations);

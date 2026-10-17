@@ -1,64 +1,56 @@
 % Answer
 ?- needs_maintenance(Turbine, Reason).
+Turbine = t456, Reason = problem_based_maintenance.
+Turbine = t789, Reason = problem_based_maintenance.
 Turbine = t456, Reason = time_based_maintenance.
 Turbine = t456, Reason = performance_based_maintenance.
 Turbine = t101, Reason = performance_based_maintenance.
 Turbine = t456, Reason = age_based_maintenance.
-Turbine = t456, Reason = problem_based_maintenance.
-Turbine = t789, Reason = problem_based_maintenance.
 
 ?- needs_maintenance(t123, Reason).
 false.
 
 % Reason
 Here is why. Each step is shown once.
-rule 1: needs_maintenance(Turbine, time_based_maintenance) :- turbine(Turbine, _, LastMaint, _, _), LastMaint >= 12.
-rule 2: needs_maintenance(Turbine, performance_based_maintenance) :- turbine(Turbine, _, _, _, Efficiency), Efficiency < 80.
-rule 3: needs_maintenance(Turbine, age_based_maintenance) :- turbine(Turbine, Age, LastMaint, _, _), Age > 10, LastMaint >= 6.
-rule 4: needs_maintenance(Turbine, problem_based_maintenance) :- turbine(Turbine, _, _, Issues, _), is_list(Issues), Issues \= [].
+rule 1: needs_maintenance(Turbine, problem_based_maintenance) :- turbine(Turbine, _, _, [_ | _], _).
+rule 2: needs_maintenance(Turbine, time_based_maintenance) :- turbine(Turbine, _, LastMaint, _, _), LastMaint >= 12.
+rule 3: needs_maintenance(Turbine, performance_based_maintenance) :- turbine(Turbine, _, _, _, Efficiency), Efficiency < 80.
+rule 4: needs_maintenance(Turbine, age_based_maintenance) :- turbine(Turbine, Age, LastMaint, _, _), Age > 10, LastMaint >= 6.
 step 1: turbine(t456, 12, 15, [vibration], 78).
   you told me this.
-step 2: 15 >= 12.
+step 2: needs_maintenance(t456, problem_based_maintenance).
+  because rule 1 uses steps 1.
+  with Turbine = t456.
+step 3: turbine(t789, 8, 7, [noise], 85).
+  you told me this.
+step 4: needs_maintenance(t789, problem_based_maintenance).
+  because rule 1 uses steps 3.
+  with Turbine = t789.
+step 5: 15 >= 12.
   I checked these values.
-step 3: needs_maintenance(t456, time_based_maintenance).
-  because rule 1 uses steps 1, 2.
+step 6: needs_maintenance(t456, time_based_maintenance).
+  because rule 2 uses steps 1, 5.
   with Turbine = t456, LastMaint = 15.
-step 4: 78 < 80.
+step 7: 78 < 80.
   I checked these values.
-step 5: needs_maintenance(t456, performance_based_maintenance).
-  because rule 2 uses steps 1, 4.
+step 8: needs_maintenance(t456, performance_based_maintenance).
+  because rule 3 uses steps 1, 7.
   with Turbine = t456, Efficiency = 78.
-step 6: turbine(t101, 15, 5, [], 65).
+step 9: turbine(t101, 15, 5, [], 65).
   you told me this.
-step 7: 65 < 80.
+step 10: 65 < 80.
   I checked these values.
-step 8: needs_maintenance(t101, performance_based_maintenance).
-  because rule 2 uses steps 6, 7.
+step 11: needs_maintenance(t101, performance_based_maintenance).
+  because rule 3 uses steps 9, 10.
   with Turbine = t101, Efficiency = 65.
-step 9: 12 > 10.
+step 12: 12 > 10.
   I checked these values.
-step 10: 15 >= 6.
+step 13: 15 >= 6.
   I checked these values.
-step 11: needs_maintenance(t456, age_based_maintenance).
-  because rule 3 uses steps 1, 9, 10.
-  with Turbine = t456, Age = 12, LastMaint = 15.
-step 12: is_list([vibration]).
-  I checked these values.
-step 13: [vibration] \= [].
-  I checked these values.
-step 14: needs_maintenance(t456, problem_based_maintenance).
+step 14: needs_maintenance(t456, age_based_maintenance).
   because rule 4 uses steps 1, 12, 13.
-  with Turbine = t456, Issues = [vibration].
-step 15: turbine(t789, 8, 7, [noise], 85).
-  you told me this.
-step 16: is_list([noise]).
-  I checked these values.
-step 17: [noise] \= [].
-  I checked these values.
-step 18: needs_maintenance(t789, problem_based_maintenance).
-  because rule 4 uses steps 15, 16, 17.
-  with Turbine = t789, Issues = [noise].
-That explains steps 3, 5, 8, 11, 14, 18.
+  with Turbine = t456, Age = 12, LastMaint = 15.
+That explains steps 2, 4, 6, 8, 11, 14.
 
 % Check
 check passed: needs_maintenance(t456, time_based_maintenance).

@@ -26,10 +26,9 @@ test('§6: dependency analysis distinguishes predicate arities', () => {
   `), ['true.', 'false.']);
 });
 
-test('§6: nested negation and negated generators require helper predicates', () => {
+test('§6: nested negation and negated aggregates require helper predicates', () => {
   for (const [source, error] of [
     [String.raw`?- \+ (\+ missing(a)).`, /Nested negation/],
-    [String.raw`?- \+ between(1,3,2).`, /helper predicate/],
     [String.raw`?- \+ aggregate_all(count,missing(X),0).`, /helper predicate/],
     [String.raw`?- \+ (X is 1+2).`, /bound result/],
     [String.raw`?- \+ (3 is X+2).`, /unbound/],

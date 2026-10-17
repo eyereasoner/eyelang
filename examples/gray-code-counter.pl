@@ -60,4 +60,3 @@ inv(1, 0).
      [1, 0, 1], [1, 0, 0], [0, 0, 0], [0, 0, 1]])).
 :- assertion(gcc([0, 1, 0], [0, 0, 0], [[0, 0, 0], [0, 0, 1], [0, 0, 1]])).
 :- assertion(gcc([], [0, 0, 0], [])).
-:- assertion((gcc([0, 1, 0], [0, 0, 0], States), is_list(States), ground(States))).

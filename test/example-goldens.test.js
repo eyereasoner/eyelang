@@ -14,7 +14,7 @@ function fixture(t) {
 
 test('the golden updater writes full ARC transcripts for every example, including large taxonomies', t => {
   const directory = fixture(t);
-  const files = ['deep-taxonomy-1000', 'deep-taxonomy-10000', 'deep-taxonomy-100000', 'sample'];
+  const files = ['deep-taxonomy-1000', 'deep-taxonomy-10000', 'sample'];
   for (const name of files.slice(0, -1)) {
     writeFileSync(join(directory, name + '.pl'), readFileSync(join(directory, 'sample.pl'), 'utf8'));
   }

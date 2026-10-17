@@ -46,7 +46,7 @@ Checks MUST NOT assert facts. Queries and checks MUST request the backward
 computation they need. `why` follow-ups refer to the preceding ordinary query,
 even when checks or other follow-ups intervene.
 
-`why/0`, `why/1`, `assertion/1`, and `aggregate_all/3` have the special
+`why/0`, `why/1`, and `assertion/1` have the special
 top-level meanings described here; they are not ordinary user-defined control
 predicates.
 `why` MAY wrap a parenthesized conjunction. Directives other than `table` and
@@ -116,92 +116,151 @@ numeric result with the left. Arithmetic inputs MUST be bound at that point;
 computations MUST NOT solve backward. A successful materialized head MUST be
 ground; calls that leave output variables unresolved MUST raise an error.
 
-## 5. Arithmetic and builtins
+## 5. Builtins and arithmetic
 
-Arithmetic supports these binary operators, from lower to higher precedence:
+eyelang provides **18 builtin predicates**, **39 arithmetic operations**, and
+**two arithmetic constants**. The operations comprise 18 unary/binary operator
+forms and 22 named functions; `xor/2` appears in both groups and is counted once.
+Special forms are listed separately below.
 
-| Operators | Associativity |
+Arithmetic expressions are data until evaluated by `is/2`, a numeric comparison,
+or an aggregate's numeric template. An arithmetic function is not a callable
+goal: `sqrt(9)` alone does not compute a square root.
+
+### 5.1. Builtin predicates and special forms
+
+The following builtin predicates MAY appear in clause bodies, queries, and
+assertions. Inputs described as bound MUST have their required values when the
+goal is reached. These predicates MUST NOT be redefined by facts or clauses.
+
+| Predicate | Syntax and behavior |
 | --- | --- |
-| `\/`, `xor`, `/\`, `<<`, `>>` | Left |
-| `+`, `-` | Left |
-| `*`, `/`, `//`, `div`, `rem`, `mod` | Left |
-| `**`, `^` | `**` non-associative; `^` right |
+| `true/0` | `true` always succeeds, without binding variables. |
+| `false/0`, `fail/0` | `false` and `fail` always fail. |
+| `=/2` | `Left = Right` unifies terms structurally, with an occurs check. Either operand may contain variables. |
+| `\=/2` | `Left \= Right` succeeds if the terms cannot unify at this point. Trial bindings MUST be discarded. It does not constrain later bindings: `X \= a` fails while `X` is free. |
+| `is/2` | `Value is Expression` evaluates the bound expression and unifies the numeric result with `Value`. A bound result must have the same numeric term type and value. |
+| `</2`, `=</2`, `>/2`, `>=/2` | Numeric less than, less than or equal, greater than, and greater than or equal. Both expressions are evaluated. |
+| `=:=/2`, `=\=/2` | Numeric equality and inequality. Both expressions are evaluated; `1 =:= 1.0` succeeds. |
+| `@</2`, `@=</2`, `@>/2`, `@>=/2` | Lexicographic less than, less than or equal, greater than, and greater than or equal. Both operands MUST be bound atoms, or both MUST be bound strings. Ordering compares UTF-16 code units; it does not perform locale collation or general term ordering. |
+| `contains_text/2` | `contains_text(Text, Part)` requires two bound strings. It lowercases both using Unicode default case conversion, then tests literal substring containment. No Unicode normalization is performed. An empty `Part` succeeds. |
+| `aggregate_all/3` | `aggregate_all(Template, Goal, Result)` computes `count`, `sum(Value)`, `min(Value)`, or `max(Value)` over completed, distinct producer tuples. See Section 7 for binding, scope, and empty-result rules. |
 
-Unary `+`, `-`, and `\` are supported; powers bind more tightly than unary
-signs. Parentheses override precedence. Prefix functions use ordinary argument
-syntax: `sqrt(9)`, `min(A, B)`. The implemented arithmetic functions are:
+The following special forms complete the language's built-in facilities;
+they are not additional ordinary predicates:
 
-```text
-abs/1 sign/1 sqrt/1 log/1 exp/1 sin/1 cos/1 tan/1 asin/1 acos/1 atan/1
-floor/1 ceiling/1 round/1 truncate/1 float_integer_part/1 float_fractional_part/1
-min/2 max/2 gcd/2 atan2/2 angle/2 xor/2
-```
+| Form | Context and meaning |
+| --- | --- |
+| `\+ Goal` | Negation of one goal, with the completion and binding requirements in Section 6. |
+| `?- why.` | Explain the preceding ordinary query's answers (Section 8). |
+| `?- why(Goal).` | Query and explain `Goal`, which may be a conjunction (Section 8). |
+| `:- assertion(Goal).` | Require a successful solution of `Goal` (Section 9). |
+| `:- table Name/Arity, ... .` | Declare ordinary predicates demand-driven and tabled (Section 6). |
 
-`pi` and `e` are real constants only in arithmetic evaluation. Addition,
-subtraction, multiplication, and `^` with two integers and a nonnegative
-exponent MUST be exact. `/` and `**` MUST produce real results. Other
-transcendental operations use JavaScript binary64 Math functions in radians.
-`atan2(Y, X)` has the usual signed result; the eyelang extension `angle(X, Y)`
-normalizes `atan2(Y, X)` to `[0, 2*pi)`.
+Conjunction with `,` and parenthesized goal groups are supported syntax.
+The predicates above introduce no mutation or I/O effects. A failed test
+produces no solution; an invalid arithmetic input or an unmet input requirement
+MUST raise an error rather than silently failing.
 
-`//`, `div`, `rem`, `mod`, `gcd`, and bit operations MUST require integers.
+### 5.2. Arithmetic operators
+
+The following table is exhaustive. Rows run from lower to higher precedence;
+operators on the same row share precedence. Parentheses override precedence.
+All operands MUST evaluate to numbers; the integer-only operations reject reals,
+even those with an integral value such as `3.0`.
+
+| Binary operators | Associativity | Meaning |
+| --- | --- | --- |
+| `\/`, `xor`, `/\`, `<<`, `>>` | Left | Integer bitwise OR, XOR, AND, left shift, right shift. |
+| `+`, `-` | Left | Addition and subtraction. |
+| `*`, `/`, `//`, `div`, `rem`, `mod` | Left | Multiplication, real division, truncating integer quotient, flooring integer quotient, truncating remainder, flooring remainder. |
+| `**`, `^` | `**` non-associative; `^` right | Real power; power preserving exact integers for integer operands and a nonnegative exponent. |
+
+Unary `+` preserves its operand; unary `-` negates it. Unary `\` is integer
+bitwise complement. Unary operators bind more tightly than multiplication and
+less tightly than powers: `-2^2` evaluates to `-4`.
+
+Addition, subtraction, and multiplication of two integers MUST be exact.
+Unary signs MUST preserve the operand's numeric type. `/` and `**` MUST produce
+reals. `^` MUST produce an exact integer for integer operands and a nonnegative
+exponent, and a real otherwise. Other mixed integer/real arithmetic MUST convert
+its operands to binary64; conversion and results MUST remain finite.
+
+`//`, `div`, `rem`, `mod`, and bit operations MUST require integers.
 `//` truncates toward zero; `div` floors. `rem` has the dividend's sign;
 `mod` has the divisor's sign. With `-7` and `3`, the four results are `-2`,
-`-3`, `-1`, and `2`. Zero divisors MUST fail. Bit operations MUST use unbounded
-signed two's-complement semantics. Shift counts MUST be nonnegative.
-`gcd` returns the nonnegative greatest common divisor, including zero for
-`gcd(0, 0)`.
+`-3`, `-1`, and `2`. Division or remainder by zero MUST raise an error.
+Bit operations MUST use unbounded signed two's-complement semantics.
+Shift counts MUST be nonnegative; right shift preserves the sign.
 
-`floor`, `ceiling`, `round`, and `truncate` MUST return integers; `round` MUST
-round halfway cases away from zero. Integer inputs MUST retain every digit.
-`float_integer_part` and `float_fractional_part` MUST return real values.
-`min` and `max` MUST preserve the selected operand's type and exact value,
-selecting the first on equality. Mixed integer/real numeric comparisons MUST
-preserve the integer operand rather than first rounding both to binary64.
-Atoms, strings, and lists MUST NOT be coerced to numbers.
+### 5.3. Arithmetic functions and constants
 
-Builtins available in bodies, queries, and assertions are:
+Functions use ordinary argument syntax inside arithmetic expressions:
+`sqrt(9)`, `min(A, B)`. The following table lists every supported function.
+Arguments MUST evaluate to numbers, subject to the additional requirements
+shown. Integer and real result types remain distinct terms.
 
-| Goal | Meaning |
+| Function | Meaning and result |
 | --- | --- |
-| `true`, `false`, `fail` | Success or failure |
-| `var(Term)`, `nonvar(Term)` | Test whether the current term is a free variable or is not a free variable |
-| `ground(Term)` | Test whether the term contains no free variables |
-| `atom(Term)`, `string(Term)` | Test the distinct atom and string term types |
-| `integer(Term)`, `float(Term)`, `number(Term)` | Test an exact integer, a binary64 real, or either numeric type |
-| `atomic(Term)`, `compound(Term)` | Test a non-variable atomic term or a compound term, including nonempty lists |
-| `is_list(Term)` | Test a proper list with a known end; elements may contain variables |
-| `A = B`, `A \= B` | Unification or non-unifiability |
-| `A == B`, `A \== B` | Structural identity or non-identity, without binding |
-| `Value is Expression` | Evaluate and unify a number |
-| `<`, `=<`, `>`, `>=`, `=:=`, `=\=` | Numeric comparisons; both sides are evaluated |
-| `@<`, `@=<`, `@>`, `@>=` | Ordering of two bound atoms or two bound strings only |
-| `between(Low, High, Value)` | Inclusive integer range; bounds must be bound |
-| `contains_text(Text, Part)` | eyelang case-insensitive substring test on two bound strings |
+| `abs/1` | Absolute value, preserving the integer or real type. |
+| `sign/1` | Integer `-1`, `0`, or `1` according to the argument's sign. |
+| `sqrt/1` | Real square root of a nonnegative argument. |
+| `log/1`, `exp/1` | Real natural logarithm of a positive argument; real exponential. |
+| `sin/1`, `cos/1`, `tan/1` | Real trigonometric functions, with input angles in radians. |
+| `asin/1`, `acos/1`, `atan/1` | Real principal inverse trigonometric functions in radians. `asin` and `acos` require inputs in `[-1, 1]`; their result ranges are `[-pi/2, pi/2]` and `[0, pi]`. `atan` returns a value in `[-pi/2, pi/2]`. |
+| `atan2/2` | `atan2(Y, X)` returns the real signed angle of `(X, Y)` in `[-pi, pi]`; `atan2(0, 0)` returns `0.0`. |
+| `floor/1`, `ceiling/1` | Integer rounding toward negative and positive infinity respectively. |
+| `round/1`, `truncate/1` | Integer rounding to nearest with halfway cases away from zero; integer rounding toward zero. |
+| `float_integer_part/1` | Real integral part, truncated toward zero. |
+| `float_fractional_part/1` | Real argument minus its truncated integral part. |
+| `min/2`, `max/2` | Smaller or larger operand, preserving its type and exact value; select the first on numeric equality. |
+| `gcd/2` | Nonnegative integer greatest common divisor of two integers, including `gcd(0, 0) = 0`. |
+| `xor/2` | Integer bitwise XOR, equivalent to the infix `xor` operator. |
 
-Term tests MUST inspect the current bindings without binding, evaluating,
-or constraining their argument. A later goal may change which tests succeed;
-for example, `var(X), X = 1, integer(X)` succeeds. Their negations MUST test
-the same current term without introducing bindings. The existing requirement
-for ground displayed answers still applies.
+`pi` and `e` evaluate to the binary64 approximations
+`3.141592653589793` and `2.718281828459045`. Outside arithmetic evaluation they
+remain ordinary atoms. Transcendental functions use the JavaScript binary64
+Math operations; their last result bit MAY differ between runtimes.
 
-`integer/1` MUST fail for a real such as `1.0` and an unevaluated arithmetic
-term such as `1 + 2`. `number/1` accepts either numeric term type. `atomic/1`
-accepts atoms, strings, numbers, and `[]`. The empty list is not an atom or
-compound; nonempty lists, including open lists, are compounds. `is_list/1`
-MUST fail for a free variable or open list, but MUST accept `[X]` even when
-`X` is unbound. `ground/1` MUST inspect nested compounds and list elements.
+`floor`, `ceiling`, `round`, and `truncate` MUST retain every digit of an
+integer input. `float_integer_part` and `float_fractional_part` convert integer
+inputs to binary64 and MUST return reals. Numeric comparisons and `min`/`max`
+MUST preserve an integer operand's exact value rather than first rounding both
+operands to binary64. Atoms, strings, and lists MUST NOT be coerced to numbers.
+Non-finite conversions, overflow, and real function domain errors MUST raise
+an error. Unsupported arithmetic functions MUST report their name and arity.
 
-The term-order operators implement lexicographic UTF-16 ordering only for the
-two stated homogeneous types; general Prolog term ordering is outside this
-subset. Unsupported arithmetic functions MUST report their name and arity.
+### 5.4. Ordinary predicates
+
+Predicates outside the listed builtin indicators and special forms have no
+implicit implementation. Programs MAY define them with facts and clauses;
+without a matching definition, a ground call has no solution. Term-type tests
+and structural identity tests are not provided as builtins.
+
+Integer ranges, list operations, and polar-angle normalization can be defined
+using ordinary clauses. For example, with bound integer endpoints:
+
+```prolog
+:- table between/3.
+between(Low, High, Low) :- Low =< High.
+between(Low, High, Value) :-
+    Low < High,
+    Next is Low + 1,
+    between(Next, High, Value).
+?- between(2, 4, Value).
+```
+
+This defines an ordinary `between/3` predicate with answers `2`, `3`, and `4`.
+Its arithmetic inputs MUST be bound, as with any other clause using arithmetic.
 
 ## 6. Inference and negation
 
 ### 6.1. Herbrand semantics
 
-eyelang MUST use **Herbrand semantics** for ordinary predicates, with the
-interpreted builtins specified in Section 5. Ground terms denote themselves:
+eyelang MUST use
+[Herbrand semantics](https://logical.stanford.edu/intrologic/chapters/chapter_07.html)
+for ordinary predicates, with the interpreted builtins specified in Section 5.
+Ground terms denote themselves:
 `socrates` denotes the atom `socrates`, and `point(2, 3)` denotes that compound
 term. A functor constructs data; it does not implicitly call a function.
 Distinct ground terms MUST remain distinct after the lexical normalization
@@ -260,8 +319,8 @@ and procedural side effects are not provided.
 producers complete. Negative ordinary goals MUST be ground when reached.
 Negation of a conjunction and nested negation are outside this subset; define
 a helper predicate. Negated tests MUST NOT introduce bindings. Negated `is/2`
-and unification require bound operands; negated `between/3` and aggregate goals
-require a helper predicate.
+and unification require bound operands; negated aggregate goals require a
+helper predicate.
 
 The implementation MUST reject dependency cycles through negation or
 aggregation.
@@ -373,7 +432,7 @@ The [homepage](https://eyereasoner.github.io/eyelang/) gives a brief introductio
 and a command-line example. The
 [playground](https://eyereasoner.github.io/eyelang/playground/) lists all
 executable `.pl` examples. Each example demonstrates answers, explanations,
-and assertions, with a complete ARC transcript in
+and assertions, with a complete transcript in
 [examples/output/](https://github.com/eyereasoner/eyelang/tree/main/examples/output).
 They include Socrates, positive cycles, routes and minimum
 costs, Gregorian Easter dates, exact arithmetic, symbolic Peano arithmetic,
@@ -383,7 +442,7 @@ recursive lists, prime sieving, unification, Hanoi, expression graphs,
 account state transitions, feedforward and nonlinear feedback control,
 interval relations, family branches, structured classifications, schema
 closure, role permissions, policy scenarios, dog-count thresholds, negation,
-aggregation, and taxonomies up to 100000 levels.
+aggregation, and taxonomies up to 10000 levels.
 Padovan numbers, Newton–Raphson roots, a Gray-code counter, turbine maintenance,
 inventory totals, access conditions, ranked policy findings, eight-queen
 solutions, an instrument puzzle, and conflicting animal observations also
@@ -395,9 +454,7 @@ inputs.
 exports `parse`, `infer`, `say`, and `run` without Node-specific dependencies.
 `parse` returns facts, rules, questions, and checks; `infer` returns
 materialized tuples and their evidence; `say` formats a goal; `run(source)`
-returns rendered blocks. `run(source, { arc: true })` produces the three ARC
-sections.
-Both the CLI and browser worker use this module. The
+returns rendered blocks. Both the CLI and browser worker use this module. The
 [test/](https://github.com/eyereasoner/eyelang/tree/main/test) directory contains
 conformance tests with a section coverage map, behavior regressions, and
 browser-interface tests.
@@ -407,18 +464,8 @@ browser-interface tests.
 This subset excludes cut, disjunction, if-then-else, arbitrary operator
 declarations, nonground answers, improper or cyclic lists, general meta-calls,
 DCGs, modules/imports, mutation, I/O predicates, and external calls.
-It does not implement every ISO or SWI-Prolog builtin. Library-like predicates
-and directives supported here do not imply the corresponding full libraries.
+Only the builtins and special forms listed in Section 5 are provided.
+Library-like names do not imply additional predicates or complete libraries.
 Stored facts, tables, explanations, and arithmetic results can be large.
 The CLI defines no execution timeout; the playground uses a cancellable worker
 and a labeled output preview, with complete output available for copy/save.
-
-## 13. References
-
-- [Herbrand semantics: Stanford Introduction to Logic, Section 7.3](https://logical.stanford.edu/intrologic/chapters/chapter_07.html)
-- [SWI-Prolog syntax](https://www.swi-prolog.org/man/syntax.html)
-- [SWI-Prolog operators](https://www.swi-prolog.org/pldoc/man?section=opsummary)
-- [SWI-Prolog arithmetic](https://www.swi-prolog.org/man/arith.html)
-- [SWI-Prolog term tests](https://www.swi-prolog.org/pldoc/man?section=typetest)
-- [SWI-Prolog proper-list test](https://www.swi-prolog.org/pldoc/man?predicate=is_list/1)
-- [ARC: Answer, Reason, Check](https://josd.github.io/arc/)

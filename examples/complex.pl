@@ -67,10 +67,17 @@ radius(Number, _Calc1) :-
     real(Number, Real),
     imaginary(Number, Imaginary),
     _Calc1 is sqrt(((Real * Real) + (Imaginary * Imaginary))).
-angle(Number, _Calc1) :-
+angle(Number, Angle) :-
     real(Number, Real),
     imaginary(Number, Imaginary),
-    _Calc1 is angle(Real, Imaginary).
+    Signed is atan2(Imaginary, Real),
+    normalized_angle(Signed, Angle).
+% Express the polar angle in [0, 2*pi), including a rounded full turn as zero.
+normalized_angle(Angle, Angle) :- Angle >= 0.
+normalized_angle(Signed, Angle) :-
+    Signed < 0,
+    Shifted is Signed + 2*pi,
+    Angle is Shifted - floor(Shifted / (2*pi)) * (2*pi).
 'log-radius'(Number, _Calc1) :-
     radius(Number, Radius),
     _Calc1 is log(Radius).
