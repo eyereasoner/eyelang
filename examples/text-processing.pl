@@ -1,0 +1,57 @@
+% Text processing through Unicode character codes.
+%
+% atom_codes/2 and string_codes/2 bridge names, text, and integer lists.
+% Ordinary clauses then join a prefix to a decimal field and parse the field
+% with exact arithmetic. No additional text or number-conversion builtins are
+% needed. Supplementary characters such as 😀 occupy one code point.
+
+:- table append/3, decimal_digits/3.
+
+reading("0042").
+label(sensor, 'café 😀').
+
+append([], Right, Right).
+append([Head | Tail], Right, [Head | Joined]) :-
+  append(Tail, Right, Joined).
+
+decimal_digits([], Value, Value).
+decimal_digits([Code | Rest], Accumulator, Value) :-
+  Code >= 48,
+  Code =< 57,
+  Next is Accumulator * 10 + Code - 48,
+  decimal_digits(Rest, Next, Value).
+
+unsigned_decimal(Text, Value) :-
+  string_codes(Text, [First | Rest]),
+  decimal_digits([First | Rest], 0, Value).
+
+sensor_record(Name, Value) :-
+  reading(Text),
+  unsigned_decimal(Text, Value),
+  atom_codes(sensor_, Prefix),
+  string_codes(Text, Digits),
+  append(Prefix, Digits, Codes),
+  atom_codes(Name, Codes).
+
+label_text(Name, Text) :-
+  label(Name, Atom),
+  atom_codes(Atom, Codes),
+  string_codes(Text, Codes).
+
+% Answer and Reason
+?- sensor_record(Name, Value).
+?- why.
+?- label_text(Name, Text).
+?- string_codes("café 😀", Codes).
+
+% Check
+:- assertion(sensor_record(sensor_0042, 42)).
+:- assertion(label_text(sensor, "café 😀")).
+:- assertion(string_codes("café 😀", [99, 97, 102, 233, 32, 128512])).
+:- assertion(unsigned_decimal("900719925474099312345", 900719925474099312345)).
+:- assertion(unsigned_decimal("0", 0)).
+:- assertion(\+ unsigned_decimal("", 0)).
+:- assertion(\+ unsigned_decimal("4x", 4)).
+:- assertion(\+ unsigned_decimal("-42", -42)).
+:- assertion(atom_codes('', [])).
+:- assertion(string_codes("", [])).

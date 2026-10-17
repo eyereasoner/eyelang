@@ -1,0 +1,107 @@
+% Answer
+?- record_shape(Record, Name, Arity).
+Record = temperature(room, 21), Name = temperature, Arity = 2.
+Record = unexpected(on), Name = unexpected, Arity = 1.
+Record = location(sensor, north), Name = location, Arity = 2.
+Record = location(sensor, north, 3), Name = location, Arity = 3.
+
+?- rejected(Record, Name, Arity).
+Record = unexpected(on), Name = unexpected, Arity = 1.
+Record = location(sensor, north), Name = location, Arity = 2.
+
+?- receipt(Record, Receipt).
+Record = temperature(room, 21), Receipt = accepted_record(temperature, [room, 21]).
+Record = location(sensor, north, 3), Receipt = accepted_record(location, [sensor, north, 3]).
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: member(Head, [Head | _]).
+rule 2: member(Value, [_ | Rest]) :- member(Value, Rest).
+rule 3: length([_ | Rest], Count) :- length(Rest, Previous), Count is (Previous + 1).
+rule 4: record_shape(Record, Name, Arity) :- batch(Records), member(Record, Records), Record =.. [Name | Arguments], length(Arguments, Arity).
+rule 5: rejected(Record, Name, Arity) :- record_shape(Record, Name, Arity), \+ (schema(Name, Arity)).
+step 1: batch([temperature(room, 21), location(sensor, north, 3), location(sensor, north), unexpected(on)]).
+  you told me this.
+step 2: member(unexpected(on), [unexpected(on)]).
+  because rule 1.
+  with Head = unexpected(on).
+step 3: member(unexpected(on), [location(sensor, north), unexpected(on)]).
+  because rule 2 uses steps 2.
+  with Value = unexpected(on), Rest = [unexpected(on)].
+step 4: member(unexpected(on), [location(sensor, north, 3), location(sensor, north), unexpected(on)]).
+  because rule 2 uses steps 3.
+  with Value = unexpected(on), Rest = [location(sensor, north), unexpected(on)].
+step 5: member(unexpected(on), [temperature(room, 21), location(sensor, north, 3), location(sensor, north), unexpected(on)]).
+  because rule 2 uses steps 4.
+  with Value = unexpected(on), Rest = [location(sensor, north, 3), location(sensor, north), unexpected(on)].
+step 6: unexpected(on) =.. [unexpected, on].
+  I checked these values.
+step 7: length([], 0).
+  you told me this.
+step 8: 1 is (0 + 1).
+  I checked these values.
+step 9: length([on], 1).
+  because rule 3 uses steps 7, 8.
+  with Rest = [], Count = 1, Previous = 0.
+  (0 + 1) = 1.
+step 10: record_shape(unexpected(on), unexpected, 1).
+  because rule 4 uses steps 1, 5, 6, 9.
+  with Records = [temperature(room, 21), location(sensor, north, 3), location(sensor, north), unexpected(on)], Record = unexpected(on), Name = unexpected, Arguments = [on], Arity = 1.
+step 11: \+ (schema(unexpected, 1)).
+  I checked the completed program and found no matching fact.
+step 12: rejected(unexpected(on), unexpected, 1).
+  because rule 5 uses steps 10, 11.
+  with Record = unexpected(on), Name = unexpected, Arity = 1.
+step 13: member(location(sensor, north), [location(sensor, north), unexpected(on)]).
+  because rule 1.
+  with Head = location(sensor, north).
+step 14: member(location(sensor, north), [location(sensor, north, 3), location(sensor, north), unexpected(on)]).
+  because rule 2 uses steps 13.
+  with Value = location(sensor, north), Rest = [location(sensor, north), unexpected(on)].
+step 15: member(location(sensor, north), [temperature(room, 21), location(sensor, north, 3), location(sensor, north), unexpected(on)]).
+  because rule 2 uses steps 14.
+  with Value = location(sensor, north), Rest = [location(sensor, north, 3), location(sensor, north), unexpected(on)].
+step 16: location(sensor, north) =.. [location, sensor, north].
+  I checked these values.
+step 17: 1 is (0 + 1).
+  I checked these values.
+step 18: length([north], 1).
+  because rule 3 uses steps 7, 17.
+  with Rest = [], Count = 1, Previous = 0.
+  (0 + 1) = 1.
+step 19: 2 is (1 + 1).
+  I checked these values.
+step 20: length([sensor, north], 2).
+  because rule 3 uses steps 18, 19.
+  with Rest = [north], Count = 2, Previous = 1.
+  (1 + 1) = 2.
+step 21: record_shape(location(sensor, north), location, 2).
+  because rule 4 uses steps 1, 15, 16, 20.
+  with Records = [temperature(room, 21), location(sensor, north, 3), location(sensor, north), unexpected(on)], Record = location(sensor, north), Name = location, Arguments = [sensor, north], Arity = 2.
+step 22: \+ (schema(location, 2)).
+  I checked the completed program and found no matching fact.
+step 23: rejected(location(sensor, north), location, 2).
+  because rule 5 uses steps 21, 22.
+  with Record = location(sensor, north), Name = location, Arity = 2.
+That explains steps 12, 23.
+
+% Check
+check passed: accepted(temperature(room, 21)).
+
+check passed: accepted(location(sensor, north, 3)).
+
+check passed: rejected(location(sensor, north), location, 2).
+
+check passed: rejected(unexpected(on), unexpected, 1).
+
+check passed: aggregate_all(count, (accepted(Record)), 2).
+
+check passed: aggregate_all(count, (rejected(Record, Name, Arity)), 2).
+
+check passed: receipt(temperature(room, 21), accepted_record(temperature, [room, 21])).
+
+check passed: [a, b] =.. ['.', a, [b]].
+
+check passed: List =.. ['.', a, [b]], List = [a, b].
+
+check passed: Term =.. [reading, Value], Value = 42, Term = reading(42).

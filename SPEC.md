@@ -82,6 +82,9 @@ A term MAY be an atom, integer, real, string, variable, compound term such as
 arguments. Arity-zero predicates use a bare atom. Lists use `[]`, `[a, b]`,
 and `[Head | Tail]`; tails MUST be lists or variables. Improper lists are
 outside this subset. Nested compounds and lists MUST match structurally.
+The quoted constructor `'.'(Head, Tail)` is equivalent to `[Head | Tail]`
+and has the same tail restrictions. The empty list `[]` is distinct from
+the quoted atom `'[]'`.
 Unification MUST perform an occurs check and MUST NOT create cyclic terms.
 Ground facts are loaded directly. Unit clauses containing variables, such as
 `append([], List, List).`, MUST act as demand-driven clauses with an empty
@@ -118,7 +121,7 @@ ground; calls that leave output variables unresolved MUST raise an error.
 
 ## 5. Builtins and arithmetic
 
-eyelang provides **17 builtin predicates**, **39 arithmetic operations**, and
+eyelang provides **20 builtin predicates**, **39 arithmetic operations**, and
 **two arithmetic constants**. The operations comprise 18 unary/binary operator
 forms and 22 named functions; `xor/2` appears in both groups and is counted once.
 Special forms are listed separately below.
@@ -144,7 +147,32 @@ goal is reached. These predicates MUST NOT be redefined by facts or clauses.
 | `=:=/2`, `=\=/2` | Numeric equality and inequality. Both expressions are evaluated; `1 =:= 1.0` succeeds. |
 | `@</2`, `@=</2`, `@>/2`, `@>=/2` | Lexicographic less than, less than or equal, greater than, and greater than or equal. Both operands MUST be bound atoms, or both MUST be bound strings. Ordering compares UTF-16 code units; it does not perform locale collation or general term ordering. |
 | `contains_text/2` | `contains_text(Text, Part)` requires two bound strings. It lowercases both using Unicode default case conversion, then tests literal substring containment. No Unicode normalization is performed. An empty `Part` succeeds. |
+| `atom_codes/2` | `atom_codes(Atom, Codes)` relates an atom to its list of Unicode scalar values as integers. A bound atom produces codes; otherwise a bound proper list of codes produces an atom. |
+| `string_codes/2` | `string_codes(String, Codes)` provides the same conversion for strings, preserving their distinction from atoms. |
+| `=../2` | `Term =.. Parts` decomposes a nonvariable term into a list of its functor and arguments, or constructs a term from such a list. It does not evaluate or call the constructed term. |
 | `aggregate_all/3` | `aggregate_all(Template, Goal, Result)` computes `count`, `sum(Value)`, `min(Value)`, or `max(Value)` over completed, distinct producer tuples. See Section 7 for binding, scope, and empty-result rules. |
+
+For the two text conversions, a bound first argument MUST have the specified
+text type. Its codes are unified with the second argument, which MAY contain
+variables. If the first argument is a variable, the second MUST be a ground
+proper list of integers from 0 through 1114111, excluding surrogate values
+55296 through 57343. Text containing an unpaired surrogate MUST raise an
+error. Supplementary characters occupy one code; empty text corresponds to
+`[]`. Conversion MUST preserve code points without Unicode normalization.
+Invalid decoding inputs and calls with neither required input supplied MUST
+raise an error; a valid conversion with an incompatible output simply fails.
+
+For `=../2`, a compound decomposes to `[Functor | Arguments]`, for example
+`point(2, 3) =.. [point, 2, 3]`. An atom, number, or string decomposes to a
+singleton list containing itself. The empty list decomposes to `[[]]`;
+a nonempty list decomposes to `['.', Head, Tail]`. In the construction
+direction, `Parts` MUST have a known, nonempty, proper list spine. A
+singleton MUST contain a bound atom, number, string, or `[]`; a longer list
+MUST begin with a bound atom functor. Arguments MAY contain variables that
+are bound by subsequent goals. Constructing `'.'/2` MUST obey the list-tail
+restrictions in Section 3. Neither direction introduces cyclic terms, and
+displayed answers MUST still be ground. Missing inputs or invalid parts
+MUST raise an error; incompatible terms and parts fail by unification.
 
 The following special forms complete the language's built-in facilities;
 they are not additional ordinary predicates:
@@ -319,7 +347,8 @@ and procedural side effects are not provided.
 producers complete. Negative ordinary goals MUST be ground when reached.
 Negation of a conjunction and nested negation are outside this subset; define
 a helper predicate. Negated tests MUST NOT introduce bindings. Negated `is/2`
-and unification require bound operands; negated aggregate goals require a
+and unification require bound operands, as do negated `atom_codes/2`,
+`string_codes/2`, and `=../2`; negated aggregate goals require a
 helper predicate.
 
 The implementation MUST reject dependency cycles through negation or
@@ -445,8 +474,11 @@ closure, role permissions, policy scenarios, dog-count thresholds, negation,
 aggregation, and taxonomies up to 10000 levels.
 Padovan numbers, Newton–Raphson roots, a Gray-code counter, turbine maintenance,
 inventory totals, access conditions, ranked policy findings, eight-queen
-solutions, an instrument puzzle, and conflicting animal observations also
-have executable examples. These examples demonstrate
+solutions, an instrument puzzle, conflicting animal observations, population
+statistics, vector similarity, annotated expression types, symbolic
+differentiation, knapsack optimization, Unicode text processing, and generic
+term inspection and construction also have executable examples.
+These examples demonstrate
 behavior, not general performance or correctness guarantees for arbitrary
 inputs.
 

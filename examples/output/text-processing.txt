@@ -1,0 +1,131 @@
+% Answer
+?- sensor_record(Name, Value).
+Name = sensor_0042, Value = 42.
+
+?- label_text(Name, Text).
+Name = sensor, Text = "café 😀".
+
+?- string_codes("café 😀", Codes).
+Codes = [99, 97, 102, 233, 32, 128512].
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: decimal_digits([], Value, Value).
+rule 2: decimal_digits([Code | Rest], Accumulator, Value) :- Code >= 48, Code =< 57, Next is (((Accumulator * 10) + Code) - 48), decimal_digits(Rest, Next, Value).
+rule 3: unsigned_decimal(Text, Value) :- string_codes(Text, [First | Rest]), decimal_digits([First | Rest], 0, Value).
+rule 4: append([], Right, Right).
+rule 5: append([Head | Tail], Right, [Head | Joined]) :- append(Tail, Right, Joined).
+rule 6: sensor_record(Name, Value) :- reading(Text), unsigned_decimal(Text, Value), atom_codes(sensor_, Prefix), string_codes(Text, Digits), append(Prefix, Digits, Codes), atom_codes(Name, Codes).
+step 1: reading("0042").
+  you told me this.
+step 2: string_codes("0042", [48, 48, 52, 50]).
+  I checked these values.
+step 3: 48 >= 48.
+  I checked these values.
+step 4: 48 =< 57.
+  I checked these values.
+step 5: 0 is (((0 * 10) + 48) - 48).
+  I checked these values.
+step 6: 48 >= 48.
+  I checked these values.
+step 7: 48 =< 57.
+  I checked these values.
+step 8: 0 is (((0 * 10) + 48) - 48).
+  I checked these values.
+step 9: 52 >= 48.
+  I checked these values.
+step 10: 52 =< 57.
+  I checked these values.
+step 11: 4 is (((0 * 10) + 52) - 48).
+  I checked these values.
+step 12: 50 >= 48.
+  I checked these values.
+step 13: 50 =< 57.
+  I checked these values.
+step 14: 42 is (((4 * 10) + 50) - 48).
+  I checked these values.
+step 15: decimal_digits([], 42, 42).
+  because rule 1.
+  with Value = 42.
+step 16: decimal_digits([50], 4, 42).
+  because rule 2 uses steps 12, 13, 14, 15.
+  with Code = 50, Rest = [], Accumulator = 4, Value = 42, Next = 42.
+  (4 * 10) = 40.
+  ((4 * 10) + 50) = 90.
+  (((4 * 10) + 50) - 48) = 42.
+step 17: decimal_digits([52, 50], 0, 42).
+  because rule 2 uses steps 9, 10, 11, 16.
+  with Code = 52, Rest = [50], Accumulator = 0, Value = 42, Next = 4.
+  (0 * 10) = 0.
+  ((0 * 10) + 52) = 52.
+  (((0 * 10) + 52) - 48) = 4.
+step 18: decimal_digits([48, 52, 50], 0, 42).
+  because rule 2 uses steps 6, 7, 8, 17.
+  with Code = 48, Rest = [52, 50], Accumulator = 0, Value = 42, Next = 0.
+  (0 * 10) = 0.
+  ((0 * 10) + 48) = 48.
+  (((0 * 10) + 48) - 48) = 0.
+step 19: decimal_digits([48, 48, 52, 50], 0, 42).
+  because rule 2 uses steps 3, 4, 5, 18.
+  with Code = 48, Rest = [48, 52, 50], Accumulator = 0, Value = 42, Next = 0.
+  (0 * 10) = 0.
+  ((0 * 10) + 48) = 48.
+  (((0 * 10) + 48) - 48) = 0.
+step 20: unsigned_decimal("0042", 42).
+  because rule 3 uses steps 2, 19.
+  with Text = "0042", Value = 42, First = 48, Rest = [48, 52, 50].
+step 21: atom_codes(sensor_, [115, 101, 110, 115, 111, 114, 95]).
+  I checked these values.
+step 22: string_codes("0042", [48, 48, 52, 50]).
+  I checked these values.
+step 23: append([], [48, 48, 52, 50], [48, 48, 52, 50]).
+  because rule 4.
+  with Right = [48, 48, 52, 50].
+step 24: append([95], [48, 48, 52, 50], [95, 48, 48, 52, 50]).
+  because rule 5 uses steps 23.
+  with Head = 95, Tail = [], Right = [48, 48, 52, 50], Joined = [48, 48, 52, 50].
+step 25: append([114, 95], [48, 48, 52, 50], [114, 95, 48, 48, 52, 50]).
+  because rule 5 uses steps 24.
+  with Head = 114, Tail = [95], Right = [48, 48, 52, 50], Joined = [95, 48, 48, 52, 50].
+step 26: append([111, 114, 95], [48, 48, 52, 50], [111, 114, 95, 48, 48, 52, 50]).
+  because rule 5 uses steps 25.
+  with Head = 111, Tail = [114, 95], Right = [48, 48, 52, 50], Joined = [114, 95, 48, 48, 52, 50].
+step 27: append([115, 111, 114, 95], [48, 48, 52, 50], [115, 111, 114, 95, 48, 48, 52, 50]).
+  because rule 5 uses steps 26.
+  with Head = 115, Tail = [111, 114, 95], Right = [48, 48, 52, 50], Joined = [111, 114, 95, 48, 48, 52, 50].
+step 28: append([110, 115, 111, 114, 95], [48, 48, 52, 50], [110, 115, 111, 114, 95, 48, 48, 52, 50]).
+  because rule 5 uses steps 27.
+  with Head = 110, Tail = [115, 111, 114, 95], Right = [48, 48, 52, 50], Joined = [115, 111, 114, 95, 48, 48, 52, 50].
+step 29: append([101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [101, 110, 115, 111, 114, 95, 48, 48, 52, 50]).
+  because rule 5 uses steps 28.
+  with Head = 101, Tail = [110, 115, 111, 114, 95], Right = [48, 48, 52, 50], Joined = [110, 115, 111, 114, 95, 48, 48, 52, 50].
+step 30: append([115, 101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]).
+  because rule 5 uses steps 29.
+  with Head = 115, Tail = [101, 110, 115, 111, 114, 95], Right = [48, 48, 52, 50], Joined = [101, 110, 115, 111, 114, 95, 48, 48, 52, 50].
+step 31: atom_codes(sensor_0042, [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]).
+  I checked these values.
+step 32: sensor_record(sensor_0042, 42).
+  because rule 6 uses steps 1, 20, 21, 22, 30, 31.
+  with Text = "0042", Value = 42, Prefix = [115, 101, 110, 115, 111, 114, 95], Digits = [48, 48, 52, 50], Codes = [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50], Name = sensor_0042.
+That explains step 32.
+
+% Check
+check passed: sensor_record(sensor_0042, 42).
+
+check passed: label_text(sensor, "café 😀").
+
+check passed: string_codes("café 😀", [99, 97, 102, 233, 32, 128512]).
+
+check passed: unsigned_decimal("900719925474099312345", 900719925474099312345).
+
+check passed: unsigned_decimal("0", 0).
+
+check passed: \+ (unsigned_decimal("", 0)).
+
+check passed: \+ (unsigned_decimal("4x", 4)).
+
+check passed: \+ (unsigned_decimal("-42", -42)).
+
+check passed: atom_codes('', []).
+
+check passed: string_codes("", []).

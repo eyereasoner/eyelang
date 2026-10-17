@@ -11,6 +11,8 @@ const toReal = value => finite(Number(value)).real;
 const relation = (name, arity) => `predicate:${name}/${arity}`;
 const internal = (name, terms) => ({ relation: `internal:${name}/${terms.length}`, terms });
 const builtin = (name, terms = []) => ({ relation: `builtin:${name}`, terms });
+const tests = new Set(['is', '=', '=..', '\\=', '<', '=<', '>', '>=', '=:=', '=\\=', '@<', '@=<', '@>', '@>=']);
+const textConversions = new Map([['atom_codes', 'atom'], ['string_codes', 'text']]);
 const binary = new Map([
   ['\\/', [1, 'left']], ['xor', [1, 'left']], ['/\\', [1, 'left']],
   ['<<', [1, 'left']], ['>>', [1, 'left']], ['+', [2, 'left']], ['-', [2, 'left']],
@@ -32,7 +34,7 @@ function* tokenize(source) {
   let position = 0;
   let line = 1;
   const fail = message => { throw new Error(`Line ${line}: ${message}`); };
-  const symbols = new Set(['=\\=', '=:=', ':-', '?-', '\\+', '\\=', '=<', '>=', '//', '**', '<<', '>>', '/\\', '\\/', '@=<', '@>=', '@<', '@>']);
+  const symbols = new Set(['=..', '=\\=', '=:=', ':-', '?-', '\\+', '\\=', '=<', '>=', '//', '**', '<<', '>>', '/\\', '\\/', '@=<', '@>=', '@<', '@>']);
   while (position < source.length) {
     const rest = source.slice(position);
     if (/\s/u.test(rest[0])) { if (rest[0] === '\n') line++; position++; continue; }
@@ -146,6 +148,10 @@ export function parse(source) {
       const args = [expression()];
       while (take(',')) args.push(expression());
       expect(')');
+      if (token.value === '.' && args.length === 2) {
+        if (!args[1].list && !args[1].variable) fail('The part after | must be a list or a variable in this subset.');
+        return list([args[0]], args[1]);
+      }
       return { functor: token.value, args };
     }
     if (token.value === '(') { const value = expression(); expect(')'); return value; }
@@ -185,11 +191,10 @@ export function parse(source) {
     if (value.atom !== undefined) return ['true', 'false'].includes(value.atom) ? builtin(value.atom) : ordinary(value.atom);
     if (!value.functor) fail('A goal must be an atom or a predicate with arguments.');
     const { functor: name, args } = value;
-    if (name === 'contains_text' && args.length === 2) return builtin('contains_text', args);
+    if ((name === 'contains_text' || textConversions.has(name)) && args.length === 2) return builtin(name, args);
     if (tests.has(name) && args.length === 2) return builtin(name, args);
     return ordinary(name, args);
   };
-  const tests = new Set(['is', '=', '\\=', '<', '=<', '>', '>=', '=:=', '=\\=', '@<', '@=<', '@>', '@>=']);
   function oneGoal() {
     if (take('\\+')) {
       let nested;
@@ -263,7 +268,8 @@ export function parse(source) {
       } else if (premise.relation === 'builtin:is') {
         if (!termVariables(premise.terms[1]).every(name => bound.has(name))) forward = false;
         termVariables(premise.terms[0]).forEach(name => bound.add(name));
-      } else if (premise.relation === 'builtin:=' && premise.terms.some(value => termVariables(value).every(name => bound.has(name)))) {
+      } else if (['builtin:=', 'builtin:=..', 'builtin:atom_codes', 'builtin:string_codes'].includes(premise.relation) &&
+        premise.terms.some(value => termVariables(value).every(name => bound.has(name)))) {
         names.forEach(name => bound.add(name));
       } else if (!names.every(name => bound.has(name))) forward = false;
     }
@@ -339,7 +345,51 @@ export function parse(source) {
 function list(items, tail) {
   if (tail?.list) return list([...items, ...tail.list], tail.tail);
   if (tail !== undefined && !tail.variable) throw new Error('The part after | must be a list or a variable in this subset.');
+  if (!items.length && tail !== undefined) return tail;
   return tail === undefined ? { list: items } : { list: items, tail };
+}
+
+function textCodes(name, terms) {
+  const kind = textConversions.get(name);
+  const [text, codes] = terms;
+  const scalar = code => {
+    if (!Number.isInteger(code) || code < 0 || code > 0x10ffff || code >= 0xd800 && code <= 0xdfff) {
+      throw new Error(`${name}/2 needs Unicode scalar values: integers from 0 to 1114111 excluding 55296 through 57343.`);
+    }
+    return code;
+  };
+  if (!text.variable) {
+    if (text[kind] === undefined) throw new Error(`${name}/2 needs ${kind === 'atom' ? 'an atom' : 'a string'} as its first argument.`);
+    return list(Array.from(text[kind], character => String(scalar(character.codePointAt(0)))));
+  }
+  if (!codes.list || codes.tail !== undefined || !ground(codes)) {
+    throw new Error(`${name}/2 needs a bound ${kind === 'atom' ? 'atom' : 'string'} or a bound proper list of character codes.`);
+  }
+  return { [kind]: codes.list.map(code => {
+    if (typeof code !== 'string') throw new Error(`${name}/2 needs integer character codes.`);
+    return String.fromCodePoint(scalar(Number(code)));
+  }).join('') };
+}
+
+function termParts(term) {
+  if (term.functor) return list([atom(term.functor), ...term.args]);
+  if (term.list?.length) return list([atom('.'), term.list[0], list(term.list.slice(1), term.tail)]);
+  return list([term]);
+}
+
+function termFromParts(parts) {
+  if (!parts.list || parts.tail !== undefined || !parts.list.length) {
+    throw new Error('=../2 needs a nonvariable term or a nonempty proper list of parts.');
+  }
+  const [name, ...args] = parts.list;
+  if (!args.length) {
+    if (!atomic(name) && !(name.list?.length === 0 && name.tail === undefined)) {
+      throw new Error('=../2 needs an atomic value or [] in a singleton parts list.');
+    }
+    return name;
+  }
+  if (name.atom === undefined) throw new Error('=../2 needs a bound atom as the functor in a parts list with arguments.');
+  return name.atom === '.' && args.length === 2 ? list([args[0]], args[1]) : { functor: name.atom, args };
 }
 
 const atomic = value => typeof value === 'string' || value?.atom !== undefined || value?.text !== undefined || value?.real !== undefined;
@@ -463,7 +513,7 @@ export function say(goal) {
   }
   if (goal.relation.startsWith('builtin:')) {
     const name = goal.relation.slice(8);
-    if (goal.terms.length === 2 && name !== 'contains_text') return `${sayTerm(goal.terms[0])} ${name} ${sayTerm(goal.terms[1])}`;
+    if (tests.has(name)) return `${sayTerm(goal.terms[0])} ${name} ${sayTerm(goal.terms[1])}`;
     return `${name}${goal.terms.length ? `(${goal.terms.map(sayTerm).join(', ')})` : ''}`;
   }
   const name = goal.relation.slice(goal.relation.startsWith('predicate:') ? 'predicate:'.length : 0, goal.relation.lastIndexOf('/'));
@@ -497,8 +547,11 @@ function unify(left, right, bindings) {
     while (pending.length) {
       const part = dereference(pending.pop(), bindings);
       if (part.variable === variable.variable) return false;
-      if (part.list) pending.push(...part.list, ...(part.tail ? [part.tail] : []));
-      if (part.functor) pending.push(...part.args);
+      if (part.list) {
+        for (const item of part.list) pending.push(item);
+        if (part.tail) pending.push(part.tail);
+      }
+      if (part.functor) for (const arg of part.args) pending.push(arg);
     }
     bindings.set(variable.variable, value);
     return true;
@@ -813,6 +866,11 @@ export function infer(program, { validateChecks = false } = {}) {
     else if (name === '=') {
       if (premise.negated && !terms.every(ground)) throw new Error('Negated unification needs bound operands in this subset.');
       holds = unify(terms[0], terms[1], bindings);
+    } else if (name === '=..' || textConversions.has(name)) {
+      if (premise.negated && !terms.every(ground)) throw new Error(`Negated ${name}/2 needs bound operands.`);
+      const target = terms[0].variable ? 0 : 1;
+      const result = name === '=..' ? target === 0 ? termFromParts(terms[1]) : termParts(terms[0]) : textCodes(name, terms);
+      holds = unify(premise.terms[target], result, bindings);
     } else if (name === '\\=') holds = !unify(terms[0], terms[1], new Map(bindings));
     else if (name === 'is') {
       if (premise.negated && !ground(terms[0])) throw new Error('Negated is/2 needs a bound result in this subset.');

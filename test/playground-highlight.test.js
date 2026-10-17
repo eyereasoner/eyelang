@@ -8,13 +8,13 @@ function plain(html) {
 }
 
 test('Prolog coloring distinguishes terms, numbers, comments, and operators without changing text', () => {
-  const source = '% a comment\nhuman(socrates).\nmortal(Person) :- human(Person).\n?- X is -1.25e+3, X >= 2.\n';
+  const source = '% a comment\nhuman(socrates).\nmortal(Person) :- human(Person).\n?- X is -1.25e+3, X >= 2.\n?- point(1, 2) =.. Parts.\n';
   const html = highlight(source);
   assert.equal(plain(html), source);
   for (const [kind, text] of [
     ['comment', '% a comment'], ['predicate', 'human'], ['atom', 'socrates'],
     ['variable', 'Person'], ['operator', ':-'], ['operator', '?-'],
-    ['operator', 'is'], ['number', '1.25e+3'],
+    ['operator', 'is'], ['operator', '=..'], ['number', '1.25e+3'],
   ]) assert.ok(html.includes('<span class="syntax-' + kind + '">' + text + '</span>'));
 });
 

@@ -41,7 +41,7 @@ export function highlight(text, { start = 0, end = text.length, arc = false } = 
     }
     delimiters.lastIndex = part.end;
   }
-  const tokens = /[%'"]|\/\*|\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[A-Za-z_][A-Za-z0-9_]*|=\\=|\\==|=:=|@=<|@>=|:-|\?-|\\\+|\\=|==|=<|>=|\/\/|\*\*|<<|>>|\/\\|\\\/|@<|@>|[()[\],.|:?+*/^=<>\\-]/g;
+  const tokens = /[%'"]|\/\*|\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|[A-Za-z_][A-Za-z0-9_]*|=\\=|\\==|=\.\.|=:=|@=<|@>=|:-|\?-|\\\+|\\=|==|=<|>=|\/\/|\*\*|<<|>>|\/\\|\\\/|@<|@>|[()[\],.|:?+*/^=<>\\-]/g;
   tokens.lastIndex = cursor;
   while (cursor < end && (match = tokens.exec(text)) && match.index < end) {
     const from = match.index;

@@ -1,0 +1,98 @@
+% Answer
+?- type_answer(Name, Type).
+Name = id, Type = fun(t0, t0).
+Name = first_of_pair, Type = bool.
+Name = const, Type = fun(t0, fun(t1, t0)).
+Name = apply_id, Type = int.
+Name = branch, Type = int.
+Name = compose, Type = fun(fun(t1, t2), fun(fun(t0, t1), fun(t0, t2))).
+
+?- type_reason(Name, Reason).
+Name = apply_id, Reason = "the identity function's parameter type is unified with int".
+Name = compose, Reason = "application unifies f with t1 -> t2 and g with t0 -> t1".
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: lookup(Name, [[Name, Type] | _], Type).
+rule 2: lookup(Name, [[Other, _] | Rest], Type) :- Name \= Other, lookup(Name, Rest, Type).
+rule 3: type_expr(Env, var(Name), Type) :- lookup(Name, Env, Type).
+rule 4: type_expr(Env, app(Fn, Arg), Result_type) :- type_expr(Env, Fn, fun(Arg_type, Result_type)), type_expr(Env, Arg, Arg_type).
+rule 5: type_expr(Env, lam(Name, Arg_type, Body), fun(Arg_type, Body_type)) :- type_expr([[Name, Arg_type] | Env], Body, Body_type).
+rule 6: type_answer(Name, Type) :- program(Name, Expr), type_expr([], Expr, Type).
+step 1: program(compose, lam(f, fun(t1, t2), lam(g, fun(t0, t1), lam(x, t0, app(var(f), app(var(g), var(x))))))).
+  you told me this.
+step 2: f \= x.
+  I checked these values.
+step 3: f \= g.
+  I checked these values.
+step 4: lookup(f, [[f, fun(t1, t2)]], fun(t1, t2)).
+  because rule 1.
+  with Name = f, Type = fun(t1, t2).
+step 5: lookup(f, [[g, fun(t0, t1)], [f, fun(t1, t2)]], fun(t1, t2)).
+  because rule 2 uses steps 3, 4.
+  with Name = f, Other = g, Rest = [[f, fun(t1, t2)]], Type = fun(t1, t2).
+step 6: lookup(f, [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], fun(t1, t2)).
+  because rule 2 uses steps 2, 5.
+  with Name = f, Other = x, Rest = [[g, fun(t0, t1)], [f, fun(t1, t2)]], Type = fun(t1, t2).
+step 7: type_expr([[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], var(f), fun(t1, t2)).
+  because rule 3 uses steps 6.
+  with Env = [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], Name = f, Type = fun(t1, t2).
+step 8: g \= x.
+  I checked these values.
+step 9: lookup(g, [[g, fun(t0, t1)], [f, fun(t1, t2)]], fun(t0, t1)).
+  because rule 1.
+  with Name = g, Type = fun(t0, t1).
+step 10: lookup(g, [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], fun(t0, t1)).
+  because rule 2 uses steps 8, 9.
+  with Name = g, Other = x, Rest = [[g, fun(t0, t1)], [f, fun(t1, t2)]], Type = fun(t0, t1).
+step 11: type_expr([[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], var(g), fun(t0, t1)).
+  because rule 3 uses steps 10.
+  with Env = [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], Name = g, Type = fun(t0, t1).
+step 12: lookup(x, [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], t0).
+  because rule 1.
+  with Name = x, Type = t0.
+step 13: type_expr([[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], var(x), t0).
+  because rule 3 uses steps 12.
+  with Env = [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], Name = x, Type = t0.
+step 14: type_expr([[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], app(var(g), var(x)), t1).
+  because rule 4 uses steps 11, 13.
+  with Env = [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], Fn = var(g), Arg = var(x), Result_type = t1, Arg_type = t0.
+step 15: type_expr([[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], app(var(f), app(var(g), var(x))), t2).
+  because rule 4 uses steps 7, 14.
+  with Env = [[x, t0], [g, fun(t0, t1)], [f, fun(t1, t2)]], Fn = var(f), Arg = app(var(g), var(x)), Result_type = t2, Arg_type = t1.
+step 16: type_expr([[g, fun(t0, t1)], [f, fun(t1, t2)]], lam(x, t0, app(var(f), app(var(g), var(x)))), fun(t0, t2)).
+  because rule 5 uses steps 15.
+  with Env = [[g, fun(t0, t1)], [f, fun(t1, t2)]], Name = x, Arg_type = t0, Body = app(var(f), app(var(g), var(x))), Body_type = t2.
+step 17: type_expr([[f, fun(t1, t2)]], lam(g, fun(t0, t1), lam(x, t0, app(var(f), app(var(g), var(x))))), fun(fun(t0, t1), fun(t0, t2))).
+  because rule 5 uses steps 16.
+  with Env = [[f, fun(t1, t2)]], Name = g, Arg_type = fun(t0, t1), Body = lam(x, t0, app(var(f), app(var(g), var(x)))), Body_type = fun(t0, t2).
+step 18: type_expr([], lam(f, fun(t1, t2), lam(g, fun(t0, t1), lam(x, t0, app(var(f), app(var(g), var(x)))))), fun(fun(t1, t2), fun(fun(t0, t1), fun(t0, t2)))).
+  because rule 5 uses steps 17.
+  with Env = [], Name = f, Arg_type = fun(t1, t2), Body = lam(g, fun(t0, t1), lam(x, t0, app(var(f), app(var(g), var(x))))), Body_type = fun(fun(t0, t1), fun(t0, t2)).
+step 19: type_answer(compose, fun(fun(t1, t2), fun(fun(t0, t1), fun(t0, t2)))).
+  because rule 6 uses steps 1, 18.
+  with Name = compose, Expr = lam(f, fun(t1, t2), lam(g, fun(t0, t1), lam(x, t0, app(var(f), app(var(g), var(x)))))), Type = fun(fun(t1, t2), fun(fun(t0, t1), fun(t0, t2))).
+That explains step 19.
+
+% Check
+check passed: type_answer(id, fun(t0, t0)).
+
+check passed: type_answer(const, fun(t0, fun(t1, t0))).
+
+check passed: type_answer(apply_id, int).
+
+check passed: type_answer(compose, fun(fun(t1, t2), fun(fun(t0, t1), fun(t0, t2)))).
+
+check passed: type_answer(branch, int).
+
+check passed: type_answer(first_of_pair, bool).
+
+check passed: aggregate_all(count, (type_answer(Name, Type)), 6).
+
+check passed: \+ (type_expr([], add(bool_lit(true), int_lit(1)), int)).
+
+check passed: \+ (type_expr([], if(bool_lit(true), int_lit(1), bool_lit(false)), int)).
+
+check passed: type_expr([[x, bool], [x, int]], var(x), bool).
+
+check passed: \+ (type_expr([[x, bool], [x, int]], var(x), int)).

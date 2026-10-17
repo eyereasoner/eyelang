@@ -61,6 +61,111 @@ test('turbine problem maintenance requires a nonempty list of issues', () => {
   assert.deepEqual(turbines.sort(), ['issues', 't456', 't789']);
 });
 
+function exampleDefinition(name) {
+  return readFileSync(new URL(name + '.pl', examples), 'utf8').split('% Answer and Reason')[0];
+}
+
+const numericValue = term => typeof term === 'string' ? Number(term) : term.real;
+const closeTo = (actual, expected) => assert.ok(Math.abs(actual - expected) <= 1e-9 * Math.max(1, Math.abs(expected)),
+  `Expected ${actual} to be close to ${expected}.`);
+
+test('population statistics retain repeated observations and agree with independent calculations', () => {
+  const samples = [[3, 3, 3], [-4, 1, 1, 6], [2, 9]];
+  const fixtures = samples.map((values, index) => `sample(case${index}, [${values.join(',')}]).`).join('\n');
+  const records = infer(parse(exampleDefinition('statistics-summary') + fixtures + '\n?- populationStddev(Name, Value).'));
+  for (const [index, values] of samples.entries()) {
+    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    const variance = values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length;
+    for (const [name, expected] of [['mean', mean], ['populationVariance', variance], ['populationStddev', Math.sqrt(variance)]]) {
+      const results = records.filter(({ goal }) => goal.relation === `predicate:${name}/2` && goal.terms[0].atom === `case${index}`);
+      assert.equal(results.length, 1);
+      closeTo(numericValue(results[0].goal.terms[1]), expected);
+    }
+  }
+});
+
+test('vector similarity agrees with independent dot products and lengths', () => {
+  const pairs = [[[1, 0], [0, 1]], [[1, -2, 3], [-2, 4, -6]], [[3, 4], [4, 3]]];
+  const fixtures = pairs.map(([a, b], index) =>
+    `vector(case${index}, a, [${a.join(',')}]). vector(case${index}, b, [${b.join(',')}]).`).join('\n');
+  const records = infer(parse(exampleDefinition('vector-similarity') + fixtures + '\n?- cosineSimilarity(Name, Value).'));
+  for (const [index, [a, b]] of pairs.entries()) {
+    const expected = a.reduce((sum, value, i) => sum + value * b[i], 0) / (Math.hypot(...a) * Math.hypot(...b));
+    const results = records.filter(({ goal }) => goal.relation === 'predicate:cosineSimilarity/2' && goal.terms[0].atom === `case${index}`);
+    assert.equal(results.length, 1);
+    closeTo(numericValue(results[0].goal.terms[1]), expected);
+  }
+});
+
+test('annotated type inference respects shadowing and rejects ill-typed expressions', () => {
+  const output = run(exampleDefinition('type-inference') + `
+    ?- type_expr([], lam(x, int, lam(x, bool, var(x))), Type).
+    ?- type_expr([], app(lam(x, int, var(x)), bool_lit(true)), Type).
+    ?- type_expr([], add(int_lit(1), bool_lit(false)), Type).
+    ?- type_expr([], if(int_lit(1), int_lit(2), int_lit(3)), Type).
+    ?- type_expr([], var(unbound), Type).
+  `);
+  assert.deepEqual(output, ['Type = fun(int, fun(bool, bool)).', 'false.', 'false.', 'false.', 'false.']);
+});
+
+test('symbolic derivatives agree with numerical differences on valid domains', () => {
+  const records = infer(parse(exampleDefinition('symbolic-derivative') + `
+    expr(quotient, divide(add(var(x), const(1)), sub(var(x), const(1)))).
+    ?- derivative_result(Name, Derivative).
+  `));
+  const expressions = new Map(records.filter(({ goal }) => goal.relation === 'predicate:expr/2')
+    .map(({ goal }) => [goal.terms[0].atom, goal.terms[1]]));
+  const derivatives = records.filter(({ goal }) => goal.relation === 'predicate:derivative_result/2');
+  assert.equal(derivatives.length, 5);
+  function evaluate(term, x) {
+    if (term.functor === 'const') return numericValue(term.args[0]);
+    if (term.functor === 'var') { assert.equal(term.args[0].atom, 'x'); return x; }
+    const left = evaluate(term.args[0], x);
+    if (term.functor === 'log') return Math.log(left);
+    const right = term.functor === 'pow' ? numericValue(term.args[1]) : evaluate(term.args[1], x);
+    switch (term.functor) {
+      case 'add': return left + right;
+      case 'sub': return left - right;
+      case 'mul': return left * right;
+      case 'divide': return left / right;
+      case 'pow': return left ** right;
+      default: assert.fail('Unknown expression constructor: ' + term.functor);
+    }
+  }
+  for (const { goal: { terms: [name, derivative] } } of derivatives) {
+    for (const x of [1.5, 2, 3]) {
+      const h = 1e-5;
+      const expression = expressions.get(name.atom);
+      const expected = (evaluate(expression, x + h) - evaluate(expression, x - h)) / (2 * h);
+      const actual = evaluate(derivative, x);
+      assert.ok(Math.abs(actual - expected) < 1e-7 * Math.max(1, Math.abs(expected)), `${name.atom} at x = ${x}`);
+    }
+  }
+});
+
+test('knapsack feasible and optimal packs match exhaustive enumeration at several capacities', () => {
+  const definition = exampleDefinition('knapsack-optimization');
+  const items = parse(definition).facts.filter(goal => goal.relation === 'predicate:item/3')
+    .map(goal => ({ name: goal.terms[0].atom, weight: Number(goal.terms[1]), value: Number(goal.terms[2]) }));
+  assert.equal(items.length, 8);
+  for (const capacity of [0, 10, 15]) {
+    const expected = [];
+    for (let mask = 0; mask < 2 ** items.length; mask++) {
+      const chosen = items.filter((_, i) => mask & (1 << i));
+      const weight = chosen.reduce((sum, item) => sum + item.weight, 0);
+      const value = chosen.reduce((sum, item) => sum + item.value, 0);
+      if (weight <= capacity) expected.push([chosen.map(item => item.name), weight, value]);
+    }
+    const best = Math.max(...expected.map(pack => pack[2]));
+    const records = infer(parse(definition.replace('capacity(15).', `capacity(${capacity}).`) + '\n?- best_pack(Pack, Weight, Value).'));
+    for (const [predicate, packs] of [['feasible_pack', expected], ['best_pack', expected.filter(pack => pack[2] === best)]]) {
+      const actual = records.filter(({ goal }) => goal.relation === `predicate:${predicate}/3`)
+        .map(({ goal }) => [goal.terms[0].list.map(item => item.atom), Number(goal.terms[1]), Number(goal.terms[2])]);
+      assert.deepEqual(actual.map(JSON.stringify).sort(), packs.map(JSON.stringify).sort(), `${predicate}, capacity ${capacity}`);
+    }
+  }
+});
+
 for (const depth of taxonomyDepths) {
   test(`taxonomy ${depth}: all classifications retain their supporting steps`, () => {
     const source = readFileSync(new URL(`deep-taxonomy-${depth}.pl`, examples), 'utf8');
