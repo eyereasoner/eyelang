@@ -1,4 +1,4 @@
-# eyelang tutorial <img src="https://josd.github.io/images/eye.png" alt="" width="32" height="32">
+# <img src="https://josd.github.io/images/eye.png" alt="" width="32" height="32"> eyelang tutorial
 
 Write down what you know, describe how the pieces fit together, and ask what
 follows. Then ask **why** and check that the result is the one you intended.

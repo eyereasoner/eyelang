@@ -48,7 +48,7 @@ test('Pages serves playground dependencies under the project path and prepares r
   assert.match(spec, /^---\nlayout: default\n/);
   assert.match(spec, /# eyelang Specification/);
   assert.match(tutorial, /^---\nlayout: default\n/);
-  assert.match(tutorial, /# eyelang tutorial/);
+  assert.match(tutorial, /^# .*eyelang tutorial/m);
   for (const document of [home, spec, tutorial]) {
     assert.doesNotMatch(document, /^\[(eyelang|Repository|Playground|Tutorial|Specification)\]\(/m);
     assert.doesNotMatch(document, /<!-- navigation:(start|end) -->/);

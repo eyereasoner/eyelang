@@ -30,7 +30,7 @@ test('the playground serves its page, browser modules, examples, and documentati
     ['/src/language.js', 'text/javascript', 'export function run('],
     ['/examples/socrates.pl', 'text/plain', 'human(socrates).'],
     ['/SPEC.md', 'text/plain', '# eyelang Specification'],
-    ['/TUTORIAL.md', 'text/plain', '# eyelang tutorial'],
+    ['/TUTORIAL.md', 'text/plain', 'eyelang tutorial'],
   ]) {
     const response = await get(path);
     assert.equal(response.status, 200, path);

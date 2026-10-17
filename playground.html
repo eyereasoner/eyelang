@@ -11,14 +11,16 @@
     [hidden] { display: none !important; }
     body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
     main { max-width: 1480px; margin: auto; padding: 32px clamp(16px, 4vw, 56px); }
-    header, .heading, .actions, footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    header { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+    header > img { flex: none; border-radius: 50%; }
+    header > div { min-width: 0; }
+    .heading, .actions, footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
     h1 { margin: 0; font-size: clamp(30px, 4vw, 42px); letter-spacing: -.05em; font-weight: 750; }
-    h1 img { vertical-align: middle; }
     h1 span { color: var(--accent); }
-    h1 small { color: var(--muted); font-size: 15px; letter-spacing: 0; font-weight: 500; margin-left: 14px; }
+    h1 small { display: inline-block; color: var(--muted); font-size: 15px; letter-spacing: 0; font-weight: 500; margin-left: 14px; }
     a { color: var(--accent); text-underline-offset: 3px; }
     nav { display: flex; flex-wrap: wrap; gap: 20px; padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--line); }
-    .arc { margin: 18px 0; color: var(--muted); font-size: 14px; }
+    .arc { margin: 0; color: var(--muted); font-size: 14px; }
     .toolbar, .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
     .toolbar { padding: 18px 20px; margin-bottom: 18px; }
     .load-row { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; }
@@ -78,7 +80,7 @@
     #serve-hint code { white-space: nowrap; }
     footer { margin-top: 20px; color: var(--muted); font-size: 13px; }
     footer p { margin: 0; }
-    @media (max-width: 800px) { .workspace { grid-template-columns: 1fr; } main { padding-top: 20px; } #program, #output { height: 380px; } .shortcut { display: none; } }
+    @media (max-width: 800px) { .workspace { grid-template-columns: 1fr; } main { padding-top: 20px; } h1 small { display: block; margin-left: 0; } #program, #output { height: 380px; } .shortcut { display: none; } }
     @media (prefers-color-scheme: dark) {
       :root { color-scheme: dark; --page: #101c24; --card: #182832; --ink: #e1edf2; --muted: #a6b9c4; --line: #344954; --accent: #74d7bd; --soft: #233c3e; --error: #ff9aac; --editor: #14232c; --comment: #94aab7; --atom: #b5d9f2; --predicate: #c4afff; --variable: #ffd08a; --number: #8cccf8; --string: #a7dd9d; --operator: #f3a6cf; --selection: #74d7bd40; }
       button.primary { color: #112b27; }
@@ -100,11 +102,14 @@
       <a href="https://eyereasoner.github.io/eyelang/SPEC/">Specification</a>
     </nav>
     <header>
-      <h1>eye<span>lang</span><small>playground <span id="version">v5.0.26</span></small> <img src="https://josd.github.io/images/eye.png" alt="" width="32" height="32"></h1>
+      <img src="https://josd.github.io/images/eye.png" alt="" width="64" height="64">
+      <div>
+        <h1>eye<span>lang</span><small>playground <span id="version">v5.0.26</span></small></h1>
+        <p class="arc">A subset of Prolog with <code>.pl</code> programs and <a href="https://josd.github.io/arc/">ARC</a>: Answer · Reason · Check.</p>
+      </div>
     </header>
     <div id="serve-hint" role="status">Start <code>node src/playground-server.js</code> in the project folder, then open <a href="http://127.0.0.1:8000/playground.html">http://127.0.0.1:8000/playground.html</a>.</div>
     <noscript><p>Turn on JavaScript to run programs in this playground.</p></noscript>
-    <p class="arc">A subset of Prolog with <code>.pl</code> programs and <a href="https://josd.github.io/arc/">ARC</a>: Answer · Reason · Check.</p>
 
     <section class="toolbar" aria-label="Load and save programs">
       <div class="load-row">
