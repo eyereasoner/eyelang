@@ -1,0 +1,59 @@
+% Answer
+?- accepted(Policy).
+Policy = 'PolicyX'.
+
+?- pass('PolicyX', Test).
+Test = anyOfTest.
+Test = allOfTest.
+Test = noneOfTest.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: pass(Policy, allOfTest) :- policy(Policy), \+ (missing_all(Policy)).
+rule 2: matched_any(Policy) :- policy(Request, Policy), policy(Policy), anyOf(Policy, Attribute), has(Request, Attribute).
+rule 3: pass(Policy, anyOfTest) :- policy(Policy), matched_any(Policy).
+rule 4: pass(Policy, noneOfTest) :- policy(Policy), \+ (matched_none(Policy)).
+rule 5: accepted(Policy) :- policy(Policy), pass(Policy, allOfTest), pass(Policy, anyOfTest), pass(Policy, noneOfTest).
+step 1: policy('PolicyX').
+  you told me this.
+step 2: \+ (missing_all('PolicyX')).
+  I checked the completed program and found no matching fact.
+step 3: pass('PolicyX', allOfTest).
+  because rule 1 uses steps 1, 2.
+  with Policy = 'PolicyX'.
+step 4: policy(test1, 'PolicyX').
+  you told me this.
+step 5: anyOf('PolicyX', 'C').
+  you told me this.
+step 6: has(test1, 'C').
+  you told me this.
+step 7: matched_any('PolicyX').
+  because rule 2 uses steps 4, 1, 5, 6.
+  with Request = test1, Policy = 'PolicyX', Attribute = 'C'.
+step 8: pass('PolicyX', anyOfTest).
+  because rule 3 uses steps 1, 7.
+  with Policy = 'PolicyX'.
+step 9: \+ (matched_none('PolicyX')).
+  I checked the completed program and found no matching fact.
+step 10: pass('PolicyX', noneOfTest).
+  because rule 4 uses steps 1, 9.
+  with Policy = 'PolicyX'.
+step 11: accepted('PolicyX').
+  because rule 5 uses steps 1, 3, 8, 10.
+  with Policy = 'PolicyX'.
+That explains step 11.
+
+% Check
+check passed: accepted('PolicyX').
+
+check passed: pass('PolicyX', allOfTest).
+
+check passed: pass('PolicyX', anyOfTest).
+
+check passed: pass('PolicyX', noneOfTest).
+
+check passed: aggregate_all(count, (pass('PolicyX', Test)), 3).
+
+check passed: \+ (missing_all('PolicyX')).
+
+check passed: \+ (matched_none('PolicyX')).

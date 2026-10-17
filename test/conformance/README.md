@@ -10,6 +10,7 @@ expected results come from the current [SPEC.md](../../SPEC.md).
 | §2: complete-program loading, statement boundaries, source order | `language.test.js`, `cli.test.js` |
 | §3: atoms, strings, escapes, variable scope, projection, source lines | `language.test.js` |
 | §3–4: compounds, lists, occurs check, unit clauses, ground outputs, explicit arithmetic, binding order | `terms.test.js`, `language.test.js` |
+| §5: type tests, variable bindings, grounding, and proper lists | `terms.test.js` |
 | §3, §5: exact integers, finite reals, distinct numeric types, precedence, arithmetic functions, builtins, and errors | `arithmetic.test.js` |
 | §6: set semantics, fixed points, clause order, table declarations, variant calls, recursion, run isolation | `inference.test.js`, `terms.test.js` |
 | §6: completed negation, stratification, arity and constant dependencies, bound negative tests | `negation.test.js`, `aggregation.test.js` |

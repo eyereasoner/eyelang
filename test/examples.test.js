@@ -178,3 +178,57 @@ test('interval relations classify every ordered pair by its normalized endpoint 
   }
   assert.deepEqual([...observed].sort(), [...patterns.values()].sort());
 });
+
+test('Padovan results agree with an independent iterative recurrence through index 3674', () => {
+  const source = readFileSync(new URL('padovan.pl', examples), 'utf8');
+  const records = infer(parse(source)).filter(record => record.goal.relation === 'predicate:padovan/2');
+  const expected = [0n, 1n, 1n];
+  for (let n = 3; n <= 3674; n++) expected.push(expected[n - 2] + expected[n - 3]);
+  for (const { goal } of records) {
+    assert.equal(goal.terms[1], expected[Number(goal.terms[0])].toString());
+  }
+  assert.ok(records.some(record => record.goal.terms[0] === '3674'));
+});
+
+test('the Gray-code counter matches binary-reflected Gray code and holds on zero clock pulses', () => {
+  const source = readFileSync(new URL('gray-code-counter.pl', examples), 'utf8');
+  const counters = infer(parse(source)).filter(record => record.goal.relation === 'predicate:gcc/3');
+  for (const clocks of [Array(9).fill(1), [0, 1, 0]]) {
+    const record = counters.find(({ goal }) => goal.terms[0].list?.join(',') === clocks.join(',') &&
+      goal.terms[1].list?.join(',') === '0,0,0');
+    assert.ok(record);
+    let value = 0;
+    const expected = clocks.map(clock => {
+      value = (value + clock) % 8;
+      const gray = value ^ (value >> 1);
+      return [2, 1, 0].map(shift => String((gray >> shift) & 1));
+    });
+    assert.deepEqual(record.goal.terms[2].list.map(state => state.list), expected);
+  }
+});
+
+test('all 92 eight-queen boards have one queen per row and column and no shared diagonals', () => {
+  const source = readFileSync(new URL('queens.pl', examples), 'utf8');
+  const boards = infer(parse(source)).filter(record => record.goal.relation === 'predicate:queens/2' &&
+    record.goal.terms[0] === '8').map(record => record.goal.terms[1].list.map(Number));
+  assert.equal(boards.length, 92);
+  assert.equal(new Set(boards.map(board => board.join(','))).size, 92);
+  for (const board of boards) {
+    assert.deepEqual([...board].sort((a, b) => a - b), [1, 2, 3, 4, 5, 6, 7, 8]);
+    assert.equal(new Set(board.map((column, row) => column - row)).size, 8);
+    assert.equal(new Set(board.map((column, row) => column + row)).size, 8);
+  }
+});
+
+test('access control rejects a missing required attribute, a missing alternative, or a forbidden attribute', () => {
+  const source = readFileSync(new URL('access-control-policy.pl', examples), 'utf8').split('% query')[0];
+  for (const [program, accepted] of [
+    [source, true],
+    [source.replace("has(test1, 'B').", ''), false],
+    [source.replace("has(test1, 'C').", ''), false],
+    [source + "has(test1, 'D').", false],
+  ]) {
+    const records = infer(parse(program + '\n?- accepted(Policy).'));
+    assert.equal(records.some(record => record.goal.relation === 'predicate:accepted/1'), accepted);
+  }
+});

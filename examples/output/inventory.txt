@@ -1,0 +1,72 @@
+% Answer
+?- invoice(Total).
+Total = 28.
+
+?- line_total(Item, Amount).
+Item = apple, Amount = 6.
+Item = pear, Amount = 12.
+Item = plum, Amount = 10.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: line_total(Name, Total) :- item(Name, Quantity, Price), atom(Name), integer(Quantity), number(Price), Total is (Quantity * Price).
+rule 2: invoice(Total) :- aggregate_all(sum(Amount), (line_total(Name, Amount)), Total).
+step 1: item(apple, 3, 2).
+  you told me this.
+step 2: atom(apple).
+  I checked these values.
+step 3: integer(3).
+  I checked these values.
+step 4: number(2).
+  I checked these values.
+step 5: 6 is (3 * 2).
+  I checked these values.
+step 6: line_total(apple, 6).
+  because rule 1 uses steps 1, 2, 3, 4, 5.
+  with Name = apple, Quantity = 3, Price = 2, Total = 6.
+  (3 * 2) = 6.
+step 7: item(pear, 4, 3).
+  you told me this.
+step 8: atom(pear).
+  I checked these values.
+step 9: integer(4).
+  I checked these values.
+step 10: number(3).
+  I checked these values.
+step 11: 12 is (4 * 3).
+  I checked these values.
+step 12: line_total(pear, 12).
+  because rule 1 uses steps 7, 8, 9, 10, 11.
+  with Name = pear, Quantity = 4, Price = 3, Total = 12.
+  (4 * 3) = 12.
+step 13: item(plum, 2, 5).
+  you told me this.
+step 14: atom(plum).
+  I checked these values.
+step 15: integer(2).
+  I checked these values.
+step 16: number(5).
+  I checked these values.
+step 17: 10 is (2 * 5).
+  I checked these values.
+step 18: line_total(plum, 10).
+  because rule 1 uses steps 13, 14, 15, 16, 17.
+  with Name = plum, Quantity = 2, Price = 5, Total = 10.
+  (2 * 5) = 10.
+step 19: aggregate_all(sum(Amount), (line_total(Name, Amount)), 28).
+  I computed sum over 3 distinct matching tuples in the completed program. I used steps 6, 12, 18.
+step 20: invoice(28).
+  because rule 2 uses steps 19.
+  with Total = 28.
+That explains step 20.
+
+% Check
+check passed: line_total(apple, 6).
+
+check passed: line_total(pear, 12).
+
+check passed: line_total(plum, 10).
+
+check passed: invoice(28).
+
+check passed: aggregate_all(count, (line_total(Item, Amount)), 3).

@@ -165,6 +165,12 @@ Builtins available in bodies, queries, and assertions are:
 | Goal | Meaning |
 | --- | --- |
 | `true`, `false`, `fail` | Success or failure |
+| `var(Term)`, `nonvar(Term)` | Test whether the current term is a free variable or is not a free variable |
+| `ground(Term)` | Test whether the term contains no free variables |
+| `atom(Term)`, `string(Term)` | Test the distinct atom and string term types |
+| `integer(Term)`, `float(Term)`, `number(Term)` | Test an exact integer, a binary64 real, or either numeric type |
+| `atomic(Term)`, `compound(Term)` | Test a non-variable atomic term or a compound term, including nonempty lists |
+| `is_list(Term)` | Test a proper list with a known end; elements may contain variables |
 | `A = B`, `A \= B` | Unification or non-unifiability |
 | `A == B`, `A \== B` | Structural identity or non-identity, without binding |
 | `Value is Expression` | Evaluate and unify a number |
@@ -172,6 +178,19 @@ Builtins available in bodies, queries, and assertions are:
 | `@<`, `@=<`, `@>`, `@>=` | Ordering of two bound atoms or two bound strings only |
 | `between(Low, High, Value)` | Inclusive integer range; bounds must be bound |
 | `contains_text(Text, Part)` | eyelang case-insensitive substring test on two bound strings |
+
+Term tests MUST inspect the current bindings without binding, evaluating,
+or constraining their argument. A later goal may change which tests succeed;
+for example, `var(X), X = 1, integer(X)` succeeds. Their negations MUST test
+the same current term without introducing bindings. The existing requirement
+for ground displayed answers still applies.
+
+`integer/1` MUST fail for a real such as `1.0` and an unevaluated arithmetic
+term such as `1 + 2`. `number/1` accepts either numeric term type. `atomic/1`
+accepts atoms, strings, numbers, and `[]`. The empty list is not an atom or
+compound; nonempty lists, including open lists, are compounds. `is_list/1`
+MUST fail for a free variable or open list, but MUST accept `[X]` even when
+`X` is unbound. `ground/1` MUST inspect nested compounds and list elements.
 
 The term-order operators implement lexicographic UTF-16 ordering only for the
 two stated homogeneous types; general Prolog term ordering is outside this
@@ -364,7 +383,11 @@ recursive lists, prime sieving, unification, Hanoi, expression graphs,
 account state transitions, feedforward and nonlinear feedback control,
 interval relations, family branches, structured classifications, schema
 closure, role permissions, policy scenarios, dog-count thresholds, negation,
-aggregation, and taxonomies up to 100000 levels. These examples demonstrate
+aggregation, and taxonomies up to 100000 levels.
+Padovan numbers, Newton–Raphson roots, a Gray-code counter, turbine maintenance,
+inventory totals, access conditions, ranked policy findings, eight-queen
+solutions, an instrument puzzle, and conflicting animal observations also
+have executable examples. These examples demonstrate
 behavior, not general performance or correctness guarantees for arbitrary
 inputs.
 
@@ -396,4 +419,6 @@ and a labeled output preview, with complete output available for copy/save.
 - [SWI-Prolog syntax](https://www.swi-prolog.org/man/syntax.html)
 - [SWI-Prolog operators](https://www.swi-prolog.org/pldoc/man?section=opsummary)
 - [SWI-Prolog arithmetic](https://www.swi-prolog.org/man/arith.html)
+- [SWI-Prolog term tests](https://www.swi-prolog.org/pldoc/man?section=typetest)
+- [SWI-Prolog proper-list test](https://www.swi-prolog.org/pldoc/man?predicate=is_list/1)
 - [ARC: Answer, Reason, Check](https://josd.github.io/arc/)

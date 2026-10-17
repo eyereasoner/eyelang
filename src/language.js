@@ -188,6 +188,7 @@ export function parse(source) {
     const { functor: name, args } = value;
     if (name === 'contains_text' && args.length === 2) return builtin('contains_text', args);
     if (name === 'between' && args.length === 3) return builtin('between', args);
+    if (termTests.has(name) && args.length === 1) return builtin(name, args);
     if (tests.has(name) && args.length === 2) return builtin(name, args);
     return ordinary(name, args);
   };
@@ -351,6 +352,19 @@ function list(items, tail) {
 }
 
 const atomic = value => typeof value === 'string' || value?.atom !== undefined || value?.text !== undefined || value?.real !== undefined;
+const termTests = new Map([
+  ['var', value => value.variable !== undefined],
+  ['nonvar', value => value.variable === undefined],
+  ['ground', ground],
+  ['atom', value => value.atom !== undefined],
+  ['string', value => value.text !== undefined],
+  ['integer', value => typeof value === 'string' && integer.test(value)],
+  ['float', value => value.real !== undefined],
+  ['number', numeric],
+  ['atomic', value => atomic(value) || value.list?.length === 0 && value.tail === undefined],
+  ['compound', value => value.functor !== undefined || value.list?.length > 0],
+  ['is_list', value => value.list !== undefined && value.tail === undefined],
+]);
 function variables(goal) { return goal.terms.flatMap(termVariables); }
 function termVariables(value) {
   if (value === undefined || atomic(value)) return [];
@@ -854,6 +868,7 @@ export function infer(program, { validateChecks = false } = {}) {
     let holds;
     if (name === 'true') holds = true;
     else if (name === 'fail' || name === 'false') holds = false;
+    else if (termTests.has(name)) holds = termTests.get(name)(terms[0]);
     else if (name === '=') {
       if (premise.negated && !terms.every(ground)) throw new Error('Negated unification needs bound operands in this subset.');
       holds = unify(terms[0], terms[1], bindings);

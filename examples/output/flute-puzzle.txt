@@ -1,0 +1,57 @@
+% Answer
+?- solution(Flute).
+Flute = sandy.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: uniq_people(A, B, C) :- person(A), person(B), person(C), A \= B, A \= C, B \= C.
+rule 2: solution(Flute) :- uniq_people(Doctor, Lawyer, Engineer), uniq_people(Piano, Violin, Flute), chris \= Doctor, Lawyer = Piano, Engineer \= chris, Violin = Doctor, sandy \= Violin.
+step 1: person(pat).
+  you told me this.
+step 2: person(chris).
+  you told me this.
+step 3: person(sandy).
+  you told me this.
+step 4: pat \= chris.
+  I checked these values.
+step 5: pat \= sandy.
+  I checked these values.
+step 6: chris \= sandy.
+  I checked these values.
+step 7: uniq_people(pat, chris, sandy).
+  because rule 1 uses steps 1, 2, 3, 4, 5, 6.
+  with A = pat, B = chris, C = sandy.
+step 8: chris \= pat.
+  I checked these values.
+step 9: chris \= sandy.
+  I checked these values.
+step 10: pat \= sandy.
+  I checked these values.
+step 11: uniq_people(chris, pat, sandy).
+  because rule 1 uses steps 2, 1, 3, 8, 9, 10.
+  with A = chris, B = pat, C = sandy.
+step 12: chris \= pat.
+  I checked these values.
+step 13: chris = chris.
+  I checked these values.
+step 14: sandy \= chris.
+  I checked these values.
+step 15: pat = pat.
+  I checked these values.
+step 16: sandy \= pat.
+  I checked these values.
+step 17: solution(sandy).
+  because rule 2 uses steps 7, 11, 12, 13, 14, 15, 16.
+  with Doctor = pat, Lawyer = chris, Engineer = sandy, Piano = chris, Violin = pat, Flute = sandy.
+That explains step 17.
+
+% Check
+check passed: solution(sandy).
+
+check passed: \+ (solution(chris)).
+
+check passed: \+ (solution(pat)).
+
+check passed: aggregate_all(count, (solution(Flute)), 1).
+
+check passed: aggregate_all(count, (uniq_people(A, B, C)), 6).

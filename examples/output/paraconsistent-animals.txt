@@ -1,0 +1,81 @@
+% Answer
+?- flies_safely(Animal, Status).
+Animal = tweety, Status = undecided.
+Animal = mythic, Status = undecided.
+Animal = falco, Status = true.
+Animal = opus, Status = false.
+Animal = batsy, Status = true.
+
+?- wings_safely(Animal, Status).
+Animal = batsy, Status = undecided.
+Animal = tweety, Status = true.
+Animal = falco, Status = true.
+Animal = mythic, Status = true.
+Animal = nemo, Status = false.
+
+?- needs_review(Animal, Property).
+Animal = tweety, Property = flies.
+Animal = mythic, Property = flies.
+Animal = batsy, Property = wings.
+
+?- moves_by(Animal, Mode).
+Animal = tweety, Mode = unknown.
+Animal = mythic, Mode = unknown.
+Animal = falco, Mode = flying.
+Animal = opus, Mode = walking.
+Animal = batsy, Mode = flying.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: wings(X, true) :- bat(X).
+rule 2: wings(X, false) :- mammal(X).
+rule 3: wing_status(X, both) :- wings(X, true), wings(X, false).
+rule 4: wings_safely(X, undecided) :- wing_status(X, both).
+step 1: bat(batsy).
+  you told me this.
+step 2: wings(batsy, true).
+  because rule 1 uses steps 1.
+  with X = batsy.
+step 3: mammal(batsy).
+  you told me this.
+step 4: wings(batsy, false).
+  because rule 2 uses steps 3.
+  with X = batsy.
+step 5: wing_status(batsy, both).
+  because rule 3 uses steps 2, 4.
+  with X = batsy.
+step 6: wings_safely(batsy, undecided).
+  because rule 4 uses steps 5.
+  with X = batsy.
+That explains step 6.
+
+% Check
+check passed: flies_safely(tweety, undecided).
+
+check passed: flies_safely(falco, true).
+
+check passed: flies_safely(opus, false).
+
+check passed: flies_safely(mythic, undecided).
+
+check passed: wings_safely(batsy, undecided).
+
+check passed: wings_safely(nemo, false).
+
+check passed: needs_review(tweety, flies).
+
+check passed: needs_review(mythic, flies).
+
+check passed: needs_review(batsy, wings).
+
+check passed: aggregate_all(count, (needs_review(Animal, Property)), 3).
+
+check passed: moves_by(tweety, unknown).
+
+check passed: moves_by(falco, flying).
+
+check passed: moves_by(opus, walking).
+
+check passed: \+ (flies_safely(tweety, true)).
+
+check passed: \+ (flies_safely(tweety, false)).
