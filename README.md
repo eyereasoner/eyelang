@@ -51,6 +51,8 @@ so results retain their context when a program asks several questions.
 Open [the playground](https://eyereasoner.github.io/eyelang/playground),
 choose an example, and press **Run program** (or Ctrl/⌘ + Enter). **Stop**
 cancels a long run.
+The program editor and ARC output use Prolog syntax coloring in light and dark
+themes. Editing, sharing, copying, and saving preserve the original text.
 You can open `.pl` files or URLs, save programs and full output, and share a
 program as a link. Drafts are saved on this device when storage is available.
 Unchanged examples get short links such as `#example=socrates`; edited programs

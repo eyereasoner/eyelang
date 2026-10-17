@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light dark">
   <title>eyelang playground</title>
   <style>
-    :root { color-scheme: light; --page: #f4f6f8; --card: #fff; --ink: #172936; --muted: #566874; --line: #d5dfe5; --accent: #096a67; --soft: #e7f4f1; --error: #ad283b; --editor: #fbfcfd; }
+    :root { color-scheme: light; --page: #f4f6f8; --card: #fff; --ink: #172936; --muted: #566874; --line: #d5dfe5; --accent: #096a67; --soft: #e7f4f1; --error: #ad283b; --editor: #fbfcfd; --comment: #61727c; --atom: #086f72; --predicate: #5b46a3; --variable: #9a3c11; --number: #12618c; --string: #267036; --operator: #9b2c67; --selection: #096a6730; }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     body { margin: 0; background: var(--page); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
@@ -44,11 +44,27 @@
     .heading { padding: 16px 20px; border-bottom: 1px solid var(--line); }
     h2, .heading label { font-size: 16px; margin: 0; font-weight: 650; }
     .heading span { font-size: 12px; color: var(--muted); }
-    #program, #output { display: block; width: 100%; height: clamp(360px, 53vh, 720px); margin: 0; padding: 20px; background: var(--editor); color: var(--ink); font: 14px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; overflow: auto; }
+    /* Whole-pixel lines keep the textarea and its colored mirror aligned in long files. */
+    #program, #output, #program-highlight { font: 14px/24px ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; }
+    #program, #output { display: block; width: 100%; height: clamp(360px, 53vh, 720px); margin: 0; padding: 20px; background: var(--editor); color: var(--ink); overflow: auto; }
+    .editor { position: relative; background: var(--editor); }
+    #program-highlight { position: absolute; inset: 0; margin: 0; overflow: hidden; pointer-events: none; color: var(--ink); }
+    #program-colors { display: block; padding: 20px; width: max-content; min-width: 100%; font: inherit; white-space: pre; }
     #program { border: 0; border-radius: 0; resize: vertical; white-space: pre; }
+    #program.syntax-colored { position: relative; background: transparent; color: transparent; caret-color: var(--ink); }
+    #program.syntax-colored::selection { background: var(--selection); color: transparent; }
     #program:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
     #output { white-space: pre-wrap; overflow-wrap: anywhere; }
     #output.error { color: var(--error); }
+    .syntax-comment, .syntax-note { color: var(--comment); }
+    .syntax-atom { color: var(--atom); }
+    .syntax-predicate { color: var(--predicate); }
+    .syntax-variable { color: var(--variable); }
+    .syntax-number { color: var(--number); }
+    .syntax-string { color: var(--string); }
+    .syntax-operator, .syntax-label { color: var(--operator); }
+    .syntax-punctuation { color: var(--muted); }
+    .syntax-section { color: var(--accent); font-weight: 650; }
     .actions { padding: 14px 20px; border-top: 1px solid var(--line); min-height: 72px; justify-content: start; gap: 8px; }
     .shortcut { margin-left: auto; font-size: 12px; color: var(--muted); }
     kbd { font: inherit; border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; }
@@ -63,8 +79,13 @@
     footer p { margin: 0; }
     @media (max-width: 800px) { .workspace { grid-template-columns: 1fr; } main { padding-top: 20px; } #program, #output { height: 380px; } .shortcut { display: none; } }
     @media (prefers-color-scheme: dark) {
-      :root { color-scheme: dark; --page: #101c24; --card: #182832; --ink: #e1edf2; --muted: #a6b9c4; --line: #344954; --accent: #74d7bd; --soft: #233c3e; --error: #ff9aac; --editor: #14232c; }
+      :root { color-scheme: dark; --page: #101c24; --card: #182832; --ink: #e1edf2; --muted: #a6b9c4; --line: #344954; --accent: #74d7bd; --soft: #233c3e; --error: #ff9aac; --editor: #14232c; --comment: #94aab7; --atom: #b5d9f2; --predicate: #c4afff; --variable: #ffd08a; --number: #8cccf8; --string: #a7dd9d; --operator: #f3a6cf; --selection: #74d7bd40; }
       button.primary { color: #112b27; }
+    }
+    @media (forced-colors: active) {
+      #program-highlight { display: none; }
+      #program.syntax-colored { background: Canvas; color: CanvasText; caret-color: auto; }
+      #program.syntax-colored::selection { background: Highlight; color: HighlightText; }
     }
   </style>
 </head>
@@ -162,7 +183,10 @@
     <div class="workspace">
       <section class="card" aria-labelledby="program-label">
         <div class="heading"><label id="program-label" for="program">Your program</label><span id="source-name">socrates.pl</span></div>
-        <textarea id="program" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="editor-status" disabled></textarea>
+        <div class="editor">
+          <pre id="program-highlight" aria-hidden="true" hidden><code id="program-colors"></code></pre>
+          <textarea id="program" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="editor-status" disabled></textarea>
+        </div>
         <div class="actions"><button id="run" class="primary" type="button" disabled>Run program</button><button id="stop" class="stop" type="button" disabled>Stop</button><span class="shortcut"><kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Enter</kbd></span></div>
       </section>
       <section class="card" aria-labelledby="output-label">

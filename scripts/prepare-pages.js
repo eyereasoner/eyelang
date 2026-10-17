@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 export async function preparePages(destination, basePath = '/eyelang') {
   await mkdir(destination, { recursive: true });
   await mkdir(resolve(destination, 'src'), { recursive: true });
-  for (const file of ['src/language.js', 'src/playground.js', 'src/playground-worker.js', 'README.md', 'TUTORIAL.md', 'SPEC.md', 'LICENSE.md', 'examples']) {
+  for (const file of ['src/language.js', 'src/playground.js', 'src/playground-highlight.js', 'src/playground-worker.js', 'README.md', 'TUTORIAL.md', 'SPEC.md', 'LICENSE.md', 'examples']) {
     await cp(resolve(root, file), resolve(destination, file), { recursive: true });
   }
   const write = (file, text) => writeFile(resolve(destination, file), text);

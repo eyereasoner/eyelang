@@ -19,7 +19,7 @@ test('Pages serves playground dependencies under the project path and prepares r
     assert.equal(new URL('.', base).pathname, '/eyelang/');
 
     const assets = [...html.matchAll(/src="([^"]+)"/g)].map(match => match[1]);
-    assets.push('src/playground-worker.js', 'src/language.js');
+    assets.push('src/playground-worker.js', 'src/playground-highlight.js', 'src/language.js');
     for (const match of html.matchAll(/<option value="([a-z0-9-]+)"/g)) {
       assets.push(`examples/${match[1]}.pl`);
     }

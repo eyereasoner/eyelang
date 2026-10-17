@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
+import { highlight } from '../src/playground-highlight.js';
 
 const root = new URL('../', import.meta.url);
 const script = (await readFile(new URL('src/playground.js', root), 'utf8'))
+  .replace("import { highlight } from './playground-highlight.js';", '')
   .replaceAll('import.meta.url', JSON.stringify(new URL('src/playground.js', root).href));
 const exampleNames = (await readdir(new URL('examples/', root)))
   .filter(name => name.endsWith('.pl')).map(name => name.slice(0, -3));
@@ -16,10 +18,12 @@ async function playground({ hash = '', draft, fetch: fetchOverride, token = null
   const elements = new Map();
   const element = id => {
     if (!elements.has(id)) elements.set(id, {
-      value: '', textContent: '', disabled: false, hidden: true, dataset: {}, options: [],
+      value: '', textContent: '', disabled: false, hidden: true, dataset: {}, options: [], style: {},
+      scrollTop: 0, scrollLeft: 0, clientHeight: 380,
       handlers: {}, classList: { toggle() {}, remove() {} },
       addEventListener(name, handler) { this.handlers[name] = handler; },
-      setAttribute() {}, removeAttribute() {}, focus() {}, select() {}, setSelectionRange() {},
+      setAttribute() {}, removeAttribute() {}, focus() {}, select() {},
+      setSelectionRange(start, end) { this.selectionStart = start; this.selectionEnd = end; },
     });
     return elements.get(id);
   };
@@ -30,15 +34,20 @@ async function playground({ hash = '', draft, fetch: fetchOverride, token = null
   const prompts = [];
   const requests = [];
   const runs = [];
+  const workers = [];
   const location = new URL(`https://example.org/eyelang/playground/${hash}`);
   const context = {
     document: { getElementById: element, documentElement: { dataset: {} } },
-    location, URL, URLSearchParams, AbortController,
+    location, URL, URLSearchParams, AbortController, highlight,
     history: { replaceState(_, __, url) { location.href = new URL(url, location).href; } },
     localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) },
     navigator: { clipboard: { async writeText(text) { if (!clipboard) throw new Error('Unavailable'); copied.push(text); } } },
     setTimeout: () => 1, clearTimeout() {},
-    Worker: class { postMessage(data) { runs.push(data); } terminate() {} },
+    Worker: class {
+      constructor() { workers.push(this); }
+      postMessage(data) { runs.push(data); }
+      terminate() { this.terminated = true; }
+    },
     async fetch(url, options) {
       requests.push({ url: String(url), options });
       const response = await fetchOverride?.(String(url), options);
@@ -51,6 +60,8 @@ async function playground({ hash = '', draft, fetch: fetchOverride, token = null
     },
   };
   context.window = { Worker: context.Worker, addEventListener() {},
+    getComputedStyle: () => ({ lineHeight: '24px' }),
+    requestAnimationFrame: callback => callback(),
     prompt(message) { prompts.push(message); return token; },
     open(...args) { opened.push(args); },
   };
@@ -61,11 +72,61 @@ async function playground({ hash = '', draft, fetch: fetchOverride, token = null
     for (let i = 0; i < 20 && element('program').disabled; i++) await new Promise(resolve => setTimeout(resolve, 5));
   };
   const edit = async source => { element('program').value = source; await dispatch('program', 'input'); };
-  return { element, dispatch, edit, storage, copied, opened, prompts, requests, runs, location };
+  return { element, dispatch, edit, storage, copied, opened, prompts, requests, runs, workers, location };
 }
 
 const shared = app => app.element('share-url').value;
 const program = app => app.element('program').value;
+
+test('editor coloring follows edits, scrolling, and reset while preserving the program', async () => {
+  const app = await playground({ hash: '#program=' + encodeURIComponent(sample) });
+  const colors = app.element('program-colors');
+  assert.equal(colors.innerHTML, highlight(sample));
+  const source = 'p(X) :- q(X).\n'.repeat(1000) + 'tail(Last).';
+  await app.edit(source);
+  assert.equal(program(app), source);
+  assert.ok(colors.innerHTML.length < 10000, 'only visible lines are rendered');
+  app.element('program').scrollTop = 995 * 24;
+  app.element('program').scrollLeft = 42;
+  await app.dispatch('program', 'scroll');
+  assert.match(colors.innerHTML, /Last/);
+  assert.match(colors.style.transform, /^translate\(-42px,/);
+  await app.dispatch('reset');
+  assert.equal(program(app), sample);
+  assert.equal(colors.innerHTML, highlight(sample));
+});
+
+test('colored output keeps its complete raw text for copying and terminates the worker', async () => {
+  const app = await playground({ hash: '#program=' + encodeURIComponent(sample) });
+  await app.dispatch('run');
+  const output = '% Answer\ntext("<script>&lt;</script>").\n' + 'p(a).\n'.repeat(35000);
+  app.workers[0].onmessage({ data: { output, elapsed: 10 } });
+  assert.equal(app.workers[0].terminated, true);
+  assert.equal(app.element('output').innerHTML, highlight(output.slice(0, 200000), { arc: true }));
+  assert.doesNotMatch(app.element('output').innerHTML, /<script>/);
+  assert.equal(app.element('preview-note').hidden, false);
+  await app.dispatch('copy-output');
+  assert.equal(app.copied.at(-1), output);
+});
+
+test('run errors remain plain text and select the source line; editing still cancels a run', async () => {
+  const source = 'p(a).\n?- X is Missing + 1.';
+  const app = await playground({ hash: '#program=' + encodeURIComponent(source) });
+  await app.dispatch('run');
+  const error = 'Line 2: Missing must be bound before arithmetic evaluation.';
+  app.workers[0].onmessage({ data: { error } });
+  assert.equal(app.element('output').textContent, error);
+  assert.equal(app.element('program').selectionStart, 6);
+  assert.equal(app.element('program').selectionEnd, source.length);
+  await app.dispatch('copy-output');
+  assert.equal(app.copied.at(-1), error);
+  await app.dispatch('run');
+  await app.edit(sample);
+  assert.equal(app.workers[1].terminated, true);
+  assert.equal(app.element('run').disabled, false);
+  assert.equal(app.element('stop').disabled, true);
+  assert.equal(app.element('program-colors').innerHTML, highlight(sample));
+});
 
 test('tutorial links prefill every lesson and run its exact program', async () => {
   const tutorial = await readFile(new URL('TUTORIAL.md', root), 'utf8');

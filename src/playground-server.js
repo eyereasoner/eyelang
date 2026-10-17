@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
 const root = new URL('../', import.meta.url);
-const files = new Set(['playground.html', 'src/playground.js', 'src/playground-worker.js', 'src/language.js', 'README.md', 'TUTORIAL.md', 'SPEC.md']);
+const files = new Set(['playground.html', 'src/playground.js', 'src/playground-highlight.js', 'src/playground-worker.js', 'src/language.js', 'README.md', 'TUTORIAL.md', 'SPEC.md']);
 
 export function createPlaygroundServer() {
   return createServer(async (request, response) => {

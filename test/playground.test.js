@@ -25,6 +25,7 @@ test('the playground serves its page, browser modules, examples, and documentati
   for (const [path, type, content] of [
     ['/', 'text/html', '<title>eyelang playground</title>'],
     ['/src/playground.js', 'text/javascript', 'new Worker('],
+    ['/src/playground-highlight.js', 'text/javascript', 'export function highlight('],
     ['/src/playground-worker.js', 'text/javascript', "import { run } from './language.js'"],
     ['/src/language.js', 'text/javascript', 'export function run('],
     ['/examples/socrates.pl', 'text/plain', 'human(socrates).'],

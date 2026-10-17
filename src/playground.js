@@ -1,5 +1,8 @@
+import { highlight } from './playground-highlight.js';
+
 const byId = id => document.getElementById(id);
 const editor = byId('program');
+const editorColors = byId('program-colors');
 const examples = byId('example-select');
 const output = byId('output');
 const editorStatus = byId('editor-status');
@@ -18,8 +21,44 @@ let currentExample = 'socrates';
 let fullOutput = '';
 let sourceReference = null;
 let sharing = false;
+let coloringScheduled = false;
 
 byId('serve-hint').hidden = true;
+byId('program-highlight').hidden = false;
+editor.classList.toggle('syntax-colored', true);
+
+function colorProgram() {
+  const source = editor.value;
+  const lineHeight = parseFloat(window.getComputedStyle(editor).lineHeight);
+  const firstLine = Math.max(0, Math.floor(editor.scrollTop / lineHeight) - 3);
+  let start = 0;
+  let line = 0;
+  while (line < firstLine) {
+    const next = source.indexOf('\n', start);
+    if (next < 0) break;
+    start = next + 1;
+    line++;
+  }
+  let end = start;
+  const count = Math.ceil(editor.clientHeight / lineHeight) + 7;
+  for (let row = 0; row < count; row++) {
+    const next = source.indexOf('\n', end);
+    if (next < 0) { end = source.length; break; }
+    end = next + 1;
+  }
+  editorColors.innerHTML = highlight(source, { start, end }) + (source[end - 1] === '\n' ? ' ' : '');
+  editorColors.style.transform = `translate(${-editor.scrollLeft}px, ${line * lineHeight - editor.scrollTop}px)`;
+}
+
+function scheduleColoring() {
+  if (coloringScheduled) return;
+  coloringScheduled = true;
+  window.requestAnimationFrame(() => { coloringScheduled = false; colorProgram(); });
+}
+
+editor.addEventListener('scroll', scheduleColoring);
+window.addEventListener('resize', scheduleColoring);
+if ('ResizeObserver' in window) new window.ResizeObserver(scheduleColoring).observe(editor);
 
 function status(message, state = '') {
   runStatus.textContent = message;
@@ -36,7 +75,9 @@ function controls() {
 
 function showOutput(text, error = false) {
   fullOutput = text;
-  output.textContent = text.slice(0, previewLimit);
+  const preview = text.slice(0, previewLimit);
+  if (error) output.textContent = preview;
+  else output.innerHTML = highlight(preview, { arc: true });
   output.classList.toggle('error', error);
   byId('output-size').textContent = `${text.length.toLocaleString()} characters`;
   const note = byId('preview-note');
@@ -81,6 +122,7 @@ function stopRun(message = 'Stopped. You can edit your program and run again.') 
 function replaceProgram(source, name, example = '', reference = null) {
   stopRun();
   editor.value = source;
+  colorProgram();
   initialSource = source;
   filename = name.replace(/[^a-z0-9._-]/gi, '-') || 'program.pl';
   if (!filename.endsWith('.pl')) filename += '.pl';
@@ -305,6 +347,7 @@ editor.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); runProgram(); }
 });
 editor.addEventListener('input', () => {
+  scheduleColoring();
   clearShareLocation();
   stopRun();
   status('Program changed. Run it to update the output.');
