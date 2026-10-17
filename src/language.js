@@ -1071,9 +1071,7 @@ function explain(roots) {
   return chunks.join('\n');
 }
 
-export function run(source, { arc = false } = {}) {
-  const program = parse(source);
-  const facts = infer(program, { validateChecks: true });
+export function render(program, facts, { arc = false } = {}) {
   let previous = null;
   const answers = program.questions.map(question => {
     if (question.previous) {
@@ -1100,4 +1098,10 @@ export function run(source, { arc = false } = {}) {
     'No checks were requested.',
   ];
   return ['Answer', 'Reason', 'Check'].map((label, index) => `% ${label}\n${sections[index].join('\n\n') || empty[index]}`);
+}
+
+export function run(source, options) {
+  const program = parse(source);
+  const facts = infer(program, { validateChecks: true });
+  return render(program, facts, options);
 }

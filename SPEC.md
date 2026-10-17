@@ -499,19 +499,36 @@ inventory totals, access conditions, ranked policy findings, eight-queen
 solutions, an instrument puzzle, conflicting animal observations, population
 statistics, vector similarity, annotated expression types, symbolic
 differentiation, knapsack optimization, Unicode text processing, and generic
-term inspection and construction also have executable examples.
+term inspection and construction also have executable examples. Service-log
+correlation, record-quality audits, critical-path and weighted interval
+scheduling, and bounded path discovery across a full airport graph combine
+these facilities in application examples.
+Additional models cover component vulnerability response, charger configuration,
+bounded job-shop scheduling, recovery with redundant services, finite sign
+analysis across loops, and discrete battery dispatch. Pure-math examples cover
+Pell equations, Vandermonde's identity, and cosets of the permutation group S3.
 These examples demonstrate
 behavior, not general performance or correctness guarantees for arbitrary
 inputs.
 
 [src/language.js](https://github.com/eyereasoner/eyelang/blob/main/src/language.js)
-exports `parse`, `infer`, `say`, and `run` without Node-specific dependencies.
+exports `parse`, `infer`, `render`, `say`, and `run` without Node-specific dependencies.
 `parse` returns facts, rules, questions, and checks; `infer` returns
-materialized tuples and their evidence; `say` formats a goal; `run(source)`
-returns rendered blocks. Both the CLI and browser worker use this module. The
+materialized tuples and their evidence; `render(program, records, options)`
+formats completed inference as answer, explanation, and check blocks; `say`
+formats a goal. Callers of `render` MUST obtain records with
+`infer(program, { validateChecks: true })` before displaying check successes.
+`run(source, options)` performs parsing, checked inference, and rendering.
+Both `render` and `run` accept `{ arc: true }` to group the blocks as Answer,
+Reason, and Check. Both the CLI and browser worker use this module. The
 [test/](https://github.com/eyereasoner/eyelang/tree/main/test) directory contains
 conformance tests with a section coverage map, behavior regressions, and
 browser-interface tests.
+
+`npm run benchmark` reports parsing, checked inference, and full output-rendering
+times separately, with process peak memory from isolated runs. The
+[benchmark notes](https://github.com/eyereasoner/eyelang/tree/main/benchmarks)
+describe the workloads and measurement limits.
 
 ## 12. Limits and resource considerations
 

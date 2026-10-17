@@ -1,0 +1,75 @@
+% Answer
+?- recommendation(Site, Product).
+Site = depot_a, Product = fleet22.
+
+?- blocker(Site, Product, Reason).
+Site = depot_a, Product = rapid50, Reason = insufficient_site_power(60, 80).
+Site = depot_a, Product = budget11, Reason = insufficient_charge_rate(11, 22).
+Site = depot_a, Product = legacy22, Reason = connector_mismatch(type2, ccs2).
+
+?- required_change(Site, Product, Change).
+Site = depot_a, Product = rapid50, Change = increase_site_power_to(80).
+Site = depot_a, Product = budget11, Change = choose_charger_at_least_kw(22).
+Site = depot_a, Product = legacy22, Change = choose_connector(ccs2).
+
+?- power_upgrade(Site, Product, ExtraKw).
+Site = depot_a, Product = rapid50, ExtraKw = 20.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: compatible(Site, Product) :- site(Site, _, _, _, _), charger(Product, _, _, _, _, _), \+ (has_blocker(Site, Product)).
+rule 2: priced_option(Site, Product, Cost) :- compatible(Site, Product), charger(Product, _, _, _, _, Cost).
+rule 3: recommendation(Site, Product) :- site(Site, _, _, _, _), aggregate_all(min(Cost), (priced_option(Site, Candidate, Cost)), Minimum), priced_option(Site, Product, Minimum).
+step 1: site(depot_a, 60, 22, ccs2, three_phase).
+  you told me this.
+step 2: charger(fleet22, 22, 45, ccs2, three_phase, 600000).
+  you told me this.
+step 3: \+ (has_blocker(depot_a, fleet22)).
+  I checked the completed program and found no matching fact.
+step 4: compatible(depot_a, fleet22).
+  because rule 1 uses steps 1, 2, 3.
+  with Site = depot_a, Product = fleet22.
+step 5: priced_option(depot_a, fleet22, 600000).
+  because rule 2 uses steps 4, 2.
+  with Site = depot_a, Product = fleet22, Cost = 600000.
+step 6: aggregate_all(min(Cost), (priced_option(Site, Candidate, Cost)), 600000).
+  I computed min over 1 distinct matching tuples in the completed program. I used steps 5.
+step 7: recommendation(depot_a, fleet22).
+  because rule 3 uses steps 1, 6, 5.
+  with Site = depot_a, Product = fleet22, Minimum = 600000.
+That explains step 7.
+
+Here is why. Each step is shown once.
+rule 1: power_upgrade(Site, Product, ExtraKw) :- site(Site, Available, RequiredCharge, Connector, Supply), charger(Product, OfferedCharge, Needed, Connector, Supply, _), OfferedCharge >= RequiredCharge, Needed > Available, ExtraKw is (Needed - Available).
+step 1: site(depot_a, 60, 22, ccs2, three_phase).
+  you told me this.
+step 2: charger(rapid50, 50, 80, ccs2, three_phase, 900000).
+  you told me this.
+step 3: 50 >= 22.
+  I checked these values.
+step 4: 80 > 60.
+  I checked these values.
+step 5: 20 is (80 - 60).
+  I checked these values.
+step 6: power_upgrade(depot_a, rapid50, 20).
+  because rule 1 uses steps 1, 2, 3, 4, 5.
+  with Site = depot_a, Available = 60, RequiredCharge = 22, Connector = ccs2, Supply = three_phase, Product = rapid50, OfferedCharge = 50, Needed = 80, ExtraKw = 20.
+  (80 - 60) = 20.
+That explains step 6.
+
+% Check
+check passed: recommendation(depot_a, fleet22).
+
+check passed: blocker(depot_a, rapid50, insufficient_site_power(60, 80)).
+
+check passed: blocker(depot_a, budget11, insufficient_charge_rate(11, 22)).
+
+check passed: blocker(depot_a, legacy22, connector_mismatch(type2, ccs2)).
+
+check passed: power_upgrade(depot_a, rapid50, 20).
+
+check passed: \+ (power_upgrade(depot_a, budget11, 0)).
+
+check passed: aggregate_all(count, (compatible(Site, Product)), 1).
+
+check passed: aggregate_all(count, (blocker(Site, Product, Reason)), 3).

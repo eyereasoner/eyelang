@@ -1,0 +1,145 @@
+% Answer
+?- abs_state(Program, Point, Sign).
+Program = countdown, Point = input, Sign = neg.
+Program = countdown, Point = input, Sign = zero.
+Program = countdown, Point = input, Sign = pos.
+Program = guarded, Point = input, Sign = neg.
+Program = guarded, Point = input, Sign = zero.
+Program = guarded, Point = input, Sign = pos.
+Program = countdown, Point = negative_branch, Sign = pos.
+Program = countdown, Point = nonnegative_branch, Sign = zero.
+Program = countdown, Point = nonnegative_branch, Sign = pos.
+Program = guarded, Point = negative_branch, Sign = pos.
+Program = guarded, Point = nonnegative_branch, Sign = zero.
+Program = guarded, Point = nonnegative_branch, Sign = pos.
+Program = countdown, Point = loop_head, Sign = pos.
+Program = countdown, Point = loop_head, Sign = zero.
+Program = guarded, Point = check, Sign = pos.
+Program = guarded, Point = check, Sign = zero.
+Program = countdown, Point = loop_body, Sign = zero.
+Program = countdown, Point = loop_body, Sign = pos.
+Program = countdown, Point = divide, Sign = zero.
+Program = guarded, Point = divide, Sign = pos.
+Program = guarded, Point = zero_result, Sign = zero.
+
+?- abs_warning(Program, Warning).
+Program = countdown, Warning = possible_division_by_zero(divide).
+
+?- nonzero_divisor(Program, Point).
+Program = guarded, Point = divide.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: abs_state(Program, Point, Sign) :- entry(Program, Point), input_sign(Sign).
+rule 2: abs_state(Program, To, Result) :- abs_state(Program, From, Sign), transition(Program, From, To, Guard, Operation), accepts(Guard, Sign), transfer(Operation, Sign, Result).
+rule 3: zero_possible(Program, Point) :- abs_state(Program, Point, zero).
+rule 4: abs_warning(Program, possible_division_by_zero(Point)) :- division(Program, Point), zero_possible(Program, Point).
+step 1: division(countdown, divide).
+  you told me this.
+step 2: entry(countdown, input).
+  you told me this.
+step 3: input_sign(zero).
+  you told me this.
+step 4: abs_state(countdown, input, zero).
+  because rule 1 uses steps 2, 3.
+  with Program = countdown, Point = input, Sign = zero.
+step 5: transition(countdown, input, nonnegative_branch, nonnegative, identity).
+  you told me this.
+step 6: accepts(nonnegative, zero).
+  you told me this.
+step 7: transfer(identity, zero, zero).
+  you told me this.
+step 8: abs_state(countdown, nonnegative_branch, zero).
+  because rule 2 uses steps 4, 5, 6, 7.
+  with Program = countdown, From = input, Sign = zero, To = nonnegative_branch, Guard = nonnegative, Operation = identity, Result = zero.
+step 9: transition(countdown, nonnegative_branch, loop_head, any, identity).
+  you told me this.
+step 10: accepts(any, zero).
+  you told me this.
+step 11: abs_state(countdown, loop_head, zero).
+  because rule 2 uses steps 8, 9, 10, 7.
+  with Program = countdown, From = nonnegative_branch, Sign = zero, To = loop_head, Guard = any, Operation = identity, Result = zero.
+step 12: transition(countdown, loop_head, divide, nonpositive, identity).
+  you told me this.
+step 13: accepts(nonpositive, zero).
+  you told me this.
+step 14: abs_state(countdown, divide, zero).
+  because rule 2 uses steps 11, 12, 13, 7.
+  with Program = countdown, From = loop_head, Sign = zero, To = divide, Guard = nonpositive, Operation = identity, Result = zero.
+step 15: zero_possible(countdown, divide).
+  because rule 3 uses steps 14.
+  with Program = countdown, Point = divide.
+step 16: abs_warning(countdown, possible_division_by_zero(divide)).
+  because rule 4 uses steps 1, 15.
+  with Program = countdown, Point = divide.
+That explains step 16.
+
+Here is why. Each step is shown once.
+rule 1: abs_state(Program, Point, Sign) :- entry(Program, Point), input_sign(Sign).
+rule 2: abs_state(Program, To, Result) :- abs_state(Program, From, Sign), transition(Program, From, To, Guard, Operation), accepts(Guard, Sign), transfer(Operation, Sign, Result).
+rule 3: reachable_division(Program, Point) :- division(Program, Point), abs_state(Program, Point, _).
+rule 4: nonzero_divisor(Program, Point) :- reachable_division(Program, Point), \+ (zero_possible(Program, Point)).
+step 1: division(guarded, divide).
+  you told me this.
+step 2: entry(guarded, input).
+  you told me this.
+step 3: input_sign(neg).
+  you told me this.
+step 4: abs_state(guarded, input, neg).
+  because rule 1 uses steps 2, 3.
+  with Program = guarded, Point = input, Sign = neg.
+step 5: transition(guarded, input, negative_branch, negative, negate).
+  you told me this.
+step 6: accepts(negative, neg).
+  you told me this.
+step 7: transfer(negate, neg, pos).
+  you told me this.
+step 8: abs_state(guarded, negative_branch, pos).
+  because rule 2 uses steps 4, 5, 6, 7.
+  with Program = guarded, From = input, Sign = neg, To = negative_branch, Guard = negative, Operation = negate, Result = pos.
+step 9: transition(guarded, negative_branch, check, any, identity).
+  you told me this.
+step 10: accepts(any, pos).
+  you told me this.
+step 11: transfer(identity, pos, pos).
+  you told me this.
+step 12: abs_state(guarded, check, pos).
+  because rule 2 uses steps 8, 9, 10, 11.
+  with Program = guarded, From = negative_branch, Sign = pos, To = check, Guard = any, Operation = identity, Result = pos.
+step 13: transition(guarded, check, divide, positive, identity).
+  you told me this.
+step 14: accepts(positive, pos).
+  you told me this.
+step 15: abs_state(guarded, divide, pos).
+  because rule 2 uses steps 12, 13, 14, 11.
+  with Program = guarded, From = check, Sign = pos, To = divide, Guard = positive, Operation = identity, Result = pos.
+step 16: reachable_division(guarded, divide).
+  because rule 3 uses steps 1, 15.
+  with Program = guarded, Point = divide.
+step 17: \+ (zero_possible(guarded, divide)).
+  I checked the completed program and found no matching fact.
+step 18: nonzero_divisor(guarded, divide).
+  because rule 4 uses steps 16, 17.
+  with Program = guarded, Point = divide.
+That explains step 18.
+
+% Check
+check passed: abs_warning(countdown, possible_division_by_zero(divide)).
+
+check passed: abs_state(countdown, loop_head, zero).
+
+check passed: abs_state(countdown, loop_head, pos).
+
+check passed: \+ (abs_state(countdown, loop_head, neg)).
+
+check passed: abs_state(countdown, divide, zero).
+
+check passed: abs_state(guarded, divide, pos).
+
+check passed: nonzero_divisor(guarded, divide).
+
+check passed: \+ (nonzero_divisor(countdown, divide)).
+
+check passed: \+ (abs_warning(guarded, possible_division_by_zero(divide))).
+
+check passed: aggregate_all(count, (abs_warning(Program, Warning)), 1).

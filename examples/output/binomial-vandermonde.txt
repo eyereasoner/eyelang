@@ -1,0 +1,1214 @@
+% Answer
+?- binomial_answer(Kind, Value).
+Kind = symmetry_24_7, Value = true.
+Kind = choose_24_12, Value = 2704156.
+Kind = choose_100_50, Value = 100891344545564193334812497256.
+Kind = row_12_sum, Value = 4096.
+Kind = vandermonde_12_10_8, Value = 319770.
+
+% Reason
+Here is why. Each step is shown once.
+rule 1: choose_step(_N, K, K, Accumulator, Accumulator).
+rule 2: choose_step(N, K, I, Accumulator, C) :- I < K, Next is (I + 1), Numerator is (Accumulator * (N - I)), Updated is (Numerator // Next), choose_step(N, K, Next, Updated, C).
+rule 3: choose(N, K, C) :- K >= 0, K =< N, Steps is min(K, (N - K)), choose_step(N, Steps, 0, 1, C).
+rule 4: between(Low, High, Low) :- Low =< High.
+rule 5: between(Low, High, Value) :- Low < High, Next is (Low + 1), between(Next, High, Value).
+rule 6: vandermonde_sum(N, M, R, Sum) :- aggregate_all(sum(Product), (between(0, R, K), Other is (R - K), choose(N, K, A), choose(M, Other, B), Product is (A * B)), Sum).
+rule 7: vandermonde(N, M, R, Sum) :- Total is (N + M), choose(Total, R, Sum), vandermonde_sum(N, M, R, Sum).
+step 1: 22 is (12 + 10).
+  I checked these values.
+step 2: 8 >= 0.
+  I checked these values.
+step 3: 8 =< 22.
+  I checked these values.
+step 4: 8 is min(8, (22 - 8)).
+  I checked these values.
+step 5: 0 < 8.
+  I checked these values.
+step 6: 1 is (0 + 1).
+  I checked these values.
+step 7: 22 is (1 * (22 - 0)).
+  I checked these values.
+step 8: 22 is (22 // 1).
+  I checked these values.
+step 9: 1 < 8.
+  I checked these values.
+step 10: 2 is (1 + 1).
+  I checked these values.
+step 11: 462 is (22 * (22 - 1)).
+  I checked these values.
+step 12: 231 is (462 // 2).
+  I checked these values.
+step 13: 2 < 8.
+  I checked these values.
+step 14: 3 is (2 + 1).
+  I checked these values.
+step 15: 4620 is (231 * (22 - 2)).
+  I checked these values.
+step 16: 1540 is (4620 // 3).
+  I checked these values.
+step 17: 3 < 8.
+  I checked these values.
+step 18: 4 is (3 + 1).
+  I checked these values.
+step 19: 29260 is (1540 * (22 - 3)).
+  I checked these values.
+step 20: 7315 is (29260 // 4).
+  I checked these values.
+step 21: 4 < 8.
+  I checked these values.
+step 22: 5 is (4 + 1).
+  I checked these values.
+step 23: 131670 is (7315 * (22 - 4)).
+  I checked these values.
+step 24: 26334 is (131670 // 5).
+  I checked these values.
+step 25: 5 < 8.
+  I checked these values.
+step 26: 6 is (5 + 1).
+  I checked these values.
+step 27: 447678 is (26334 * (22 - 5)).
+  I checked these values.
+step 28: 74613 is (447678 // 6).
+  I checked these values.
+step 29: 6 < 8.
+  I checked these values.
+step 30: 7 is (6 + 1).
+  I checked these values.
+step 31: 1193808 is (74613 * (22 - 6)).
+  I checked these values.
+step 32: 170544 is (1193808 // 7).
+  I checked these values.
+step 33: 7 < 8.
+  I checked these values.
+step 34: 8 is (7 + 1).
+  I checked these values.
+step 35: 2558160 is (170544 * (22 - 7)).
+  I checked these values.
+step 36: 319770 is (2558160 // 8).
+  I checked these values.
+step 37: choose_step(22, 8, 8, 319770, 319770).
+  because rule 1.
+  with _N = 22, K = 8, Accumulator = 319770.
+step 38: choose_step(22, 8, 7, 170544, 319770).
+  because rule 2 uses steps 33, 34, 35, 36, 37.
+  with N = 22, K = 8, I = 7, Accumulator = 170544, C = 319770, Next = 8, Numerator = 2558160, Updated = 319770.
+  (7 + 1) = 8.
+  (22 - 7) = 15.
+  (170544 * (22 - 7)) = 2558160.
+  (2558160 // 8) = 319770.
+step 39: choose_step(22, 8, 6, 74613, 319770).
+  because rule 2 uses steps 29, 30, 31, 32, 38.
+  with N = 22, K = 8, I = 6, Accumulator = 74613, C = 319770, Next = 7, Numerator = 1193808, Updated = 170544.
+  (6 + 1) = 7.
+  (22 - 6) = 16.
+  (74613 * (22 - 6)) = 1193808.
+  (1193808 // 7) = 170544.
+step 40: choose_step(22, 8, 5, 26334, 319770).
+  because rule 2 uses steps 25, 26, 27, 28, 39.
+  with N = 22, K = 8, I = 5, Accumulator = 26334, C = 319770, Next = 6, Numerator = 447678, Updated = 74613.
+  (5 + 1) = 6.
+  (22 - 5) = 17.
+  (26334 * (22 - 5)) = 447678.
+  (447678 // 6) = 74613.
+step 41: choose_step(22, 8, 4, 7315, 319770).
+  because rule 2 uses steps 21, 22, 23, 24, 40.
+  with N = 22, K = 8, I = 4, Accumulator = 7315, C = 319770, Next = 5, Numerator = 131670, Updated = 26334.
+  (4 + 1) = 5.
+  (22 - 4) = 18.
+  (7315 * (22 - 4)) = 131670.
+  (131670 // 5) = 26334.
+step 42: choose_step(22, 8, 3, 1540, 319770).
+  because rule 2 uses steps 17, 18, 19, 20, 41.
+  with N = 22, K = 8, I = 3, Accumulator = 1540, C = 319770, Next = 4, Numerator = 29260, Updated = 7315.
+  (3 + 1) = 4.
+  (22 - 3) = 19.
+  (1540 * (22 - 3)) = 29260.
+  (29260 // 4) = 7315.
+step 43: choose_step(22, 8, 2, 231, 319770).
+  because rule 2 uses steps 13, 14, 15, 16, 42.
+  with N = 22, K = 8, I = 2, Accumulator = 231, C = 319770, Next = 3, Numerator = 4620, Updated = 1540.
+  (2 + 1) = 3.
+  (22 - 2) = 20.
+  (231 * (22 - 2)) = 4620.
+  (4620 // 3) = 1540.
+step 44: choose_step(22, 8, 1, 22, 319770).
+  because rule 2 uses steps 9, 10, 11, 12, 43.
+  with N = 22, K = 8, I = 1, Accumulator = 22, C = 319770, Next = 2, Numerator = 462, Updated = 231.
+  (1 + 1) = 2.
+  (22 - 1) = 21.
+  (22 * (22 - 1)) = 462.
+  (462 // 2) = 231.
+step 45: choose_step(22, 8, 0, 1, 319770).
+  because rule 2 uses steps 5, 6, 7, 8, 44.
+  with N = 22, K = 8, I = 0, Accumulator = 1, C = 319770, Next = 1, Numerator = 22, Updated = 22.
+  (0 + 1) = 1.
+  (22 - 0) = 22.
+  (1 * (22 - 0)) = 22.
+  (22 // 1) = 22.
+step 46: choose(22, 8, 319770).
+  because rule 3 uses steps 2, 3, 4, 45.
+  with N = 22, K = 8, C = 319770, Steps = 8.
+  (22 - 8) = 14.
+  min(8, (22 - 8)) = 8.
+step 47: 0 =< 8.
+  I checked these values.
+step 48: between(0, 8, 0).
+  because rule 4 uses steps 47.
+  with Low = 0, High = 8.
+step 49: 8 is (8 - 0).
+  I checked these values.
+step 50: 0 >= 0.
+  I checked these values.
+step 51: 0 =< 12.
+  I checked these values.
+step 52: 0 is min(0, (12 - 0)).
+  I checked these values.
+step 53: choose_step(12, 0, 0, 1, 1).
+  because rule 1.
+  with _N = 12, K = 0, Accumulator = 1.
+step 54: choose(12, 0, 1).
+  because rule 3 uses steps 50, 51, 52, 53.
+  with N = 12, K = 0, C = 1, Steps = 0.
+  (12 - 0) = 12.
+  min(0, (12 - 0)) = 0.
+step 55: 8 >= 0.
+  I checked these values.
+step 56: 8 =< 10.
+  I checked these values.
+step 57: 2 is min(8, (10 - 8)).
+  I checked these values.
+step 58: 0 < 2.
+  I checked these values.
+step 59: 1 is (0 + 1).
+  I checked these values.
+step 60: 10 is (1 * (10 - 0)).
+  I checked these values.
+step 61: 10 is (10 // 1).
+  I checked these values.
+step 62: 1 < 2.
+  I checked these values.
+step 63: 2 is (1 + 1).
+  I checked these values.
+step 64: 90 is (10 * (10 - 1)).
+  I checked these values.
+step 65: 45 is (90 // 2).
+  I checked these values.
+step 66: choose_step(10, 2, 2, 45, 45).
+  because rule 1.
+  with _N = 10, K = 2, Accumulator = 45.
+step 67: choose_step(10, 2, 1, 10, 45).
+  because rule 2 uses steps 62, 63, 64, 65, 66.
+  with N = 10, K = 2, I = 1, Accumulator = 10, C = 45, Next = 2, Numerator = 90, Updated = 45.
+  (1 + 1) = 2.
+  (10 - 1) = 9.
+  (10 * (10 - 1)) = 90.
+  (90 // 2) = 45.
+step 68: choose_step(10, 2, 0, 1, 45).
+  because rule 2 uses steps 58, 59, 60, 61, 67.
+  with N = 10, K = 2, I = 0, Accumulator = 1, C = 45, Next = 1, Numerator = 10, Updated = 10.
+  (0 + 1) = 1.
+  (10 - 0) = 10.
+  (1 * (10 - 0)) = 10.
+  (10 // 1) = 10.
+step 69: choose(10, 8, 45).
+  because rule 3 uses steps 55, 56, 57, 68.
+  with N = 10, K = 8, C = 45, Steps = 2.
+  (10 - 8) = 2.
+  min(8, (10 - 8)) = 2.
+step 70: 45 is (1 * 45).
+  I checked these values.
+step 71: 0 < 8.
+  I checked these values.
+step 72: 1 is (0 + 1).
+  I checked these values.
+step 73: 1 =< 8.
+  I checked these values.
+step 74: between(1, 8, 1).
+  because rule 4 uses steps 73.
+  with Low = 1, High = 8.
+step 75: between(0, 8, 1).
+  because rule 5 uses steps 71, 72, 74.
+  with Low = 0, High = 8, Value = 1, Next = 1.
+  (0 + 1) = 1.
+step 76: 7 is (8 - 1).
+  I checked these values.
+step 77: 1 >= 0.
+  I checked these values.
+step 78: 1 =< 12.
+  I checked these values.
+step 79: 1 is min(1, (12 - 1)).
+  I checked these values.
+step 80: 0 < 1.
+  I checked these values.
+step 81: 1 is (0 + 1).
+  I checked these values.
+step 82: 12 is (1 * (12 - 0)).
+  I checked these values.
+step 83: 12 is (12 // 1).
+  I checked these values.
+step 84: choose_step(12, 1, 1, 12, 12).
+  because rule 1.
+  with _N = 12, K = 1, Accumulator = 12.
+step 85: choose_step(12, 1, 0, 1, 12).
+  because rule 2 uses steps 80, 81, 82, 83, 84.
+  with N = 12, K = 1, I = 0, Accumulator = 1, C = 12, Next = 1, Numerator = 12, Updated = 12.
+  (0 + 1) = 1.
+  (12 - 0) = 12.
+  (1 * (12 - 0)) = 12.
+  (12 // 1) = 12.
+step 86: choose(12, 1, 12).
+  because rule 3 uses steps 77, 78, 79, 85.
+  with N = 12, K = 1, C = 12, Steps = 1.
+  (12 - 1) = 11.
+  min(1, (12 - 1)) = 1.
+step 87: 7 >= 0.
+  I checked these values.
+step 88: 7 =< 10.
+  I checked these values.
+step 89: 3 is min(7, (10 - 7)).
+  I checked these values.
+step 90: 0 < 3.
+  I checked these values.
+step 91: 1 is (0 + 1).
+  I checked these values.
+step 92: 10 is (1 * (10 - 0)).
+  I checked these values.
+step 93: 10 is (10 // 1).
+  I checked these values.
+step 94: 1 < 3.
+  I checked these values.
+step 95: 2 is (1 + 1).
+  I checked these values.
+step 96: 90 is (10 * (10 - 1)).
+  I checked these values.
+step 97: 45 is (90 // 2).
+  I checked these values.
+step 98: 2 < 3.
+  I checked these values.
+step 99: 3 is (2 + 1).
+  I checked these values.
+step 100: 360 is (45 * (10 - 2)).
+  I checked these values.
+step 101: 120 is (360 // 3).
+  I checked these values.
+step 102: choose_step(10, 3, 3, 120, 120).
+  because rule 1.
+  with _N = 10, K = 3, Accumulator = 120.
+step 103: choose_step(10, 3, 2, 45, 120).
+  because rule 2 uses steps 98, 99, 100, 101, 102.
+  with N = 10, K = 3, I = 2, Accumulator = 45, C = 120, Next = 3, Numerator = 360, Updated = 120.
+  (2 + 1) = 3.
+  (10 - 2) = 8.
+  (45 * (10 - 2)) = 360.
+  (360 // 3) = 120.
+step 104: choose_step(10, 3, 1, 10, 120).
+  because rule 2 uses steps 94, 95, 96, 97, 103.
+  with N = 10, K = 3, I = 1, Accumulator = 10, C = 120, Next = 2, Numerator = 90, Updated = 45.
+  (1 + 1) = 2.
+  (10 - 1) = 9.
+  (10 * (10 - 1)) = 90.
+  (90 // 2) = 45.
+step 105: choose_step(10, 3, 0, 1, 120).
+  because rule 2 uses steps 90, 91, 92, 93, 104.
+  with N = 10, K = 3, I = 0, Accumulator = 1, C = 120, Next = 1, Numerator = 10, Updated = 10.
+  (0 + 1) = 1.
+  (10 - 0) = 10.
+  (1 * (10 - 0)) = 10.
+  (10 // 1) = 10.
+step 106: choose(10, 7, 120).
+  because rule 3 uses steps 87, 88, 89, 105.
+  with N = 10, K = 7, C = 120, Steps = 3.
+  (10 - 7) = 3.
+  min(7, (10 - 7)) = 3.
+step 107: 1440 is (12 * 120).
+  I checked these values.
+step 108: 1 < 8.
+  I checked these values.
+step 109: 2 is (1 + 1).
+  I checked these values.
+step 110: 2 < 8.
+  I checked these values.
+step 111: 3 is (2 + 1).
+  I checked these values.
+step 112: 3 < 8.
+  I checked these values.
+step 113: 4 is (3 + 1).
+  I checked these values.
+step 114: 4 < 8.
+  I checked these values.
+step 115: 5 is (4 + 1).
+  I checked these values.
+step 116: 5 =< 8.
+  I checked these values.
+step 117: between(5, 8, 5).
+  because rule 4 uses steps 116.
+  with Low = 5, High = 8.
+step 118: between(4, 8, 5).
+  because rule 5 uses steps 114, 115, 117.
+  with Low = 4, High = 8, Value = 5, Next = 5.
+  (4 + 1) = 5.
+step 119: between(3, 8, 5).
+  because rule 5 uses steps 112, 113, 118.
+  with Low = 3, High = 8, Value = 5, Next = 4.
+  (3 + 1) = 4.
+step 120: between(2, 8, 5).
+  because rule 5 uses steps 110, 111, 119.
+  with Low = 2, High = 8, Value = 5, Next = 3.
+  (2 + 1) = 3.
+step 121: between(1, 8, 5).
+  because rule 5 uses steps 108, 109, 120.
+  with Low = 1, High = 8, Value = 5, Next = 2.
+  (1 + 1) = 2.
+step 122: between(0, 8, 5).
+  because rule 5 uses steps 71, 72, 121.
+  with Low = 0, High = 8, Value = 5, Next = 1.
+  (0 + 1) = 1.
+step 123: 3 is (8 - 5).
+  I checked these values.
+step 124: 5 >= 0.
+  I checked these values.
+step 125: 5 =< 12.
+  I checked these values.
+step 126: 5 is min(5, (12 - 5)).
+  I checked these values.
+step 127: 0 < 5.
+  I checked these values.
+step 128: 1 is (0 + 1).
+  I checked these values.
+step 129: 12 is (1 * (12 - 0)).
+  I checked these values.
+step 130: 12 is (12 // 1).
+  I checked these values.
+step 131: 1 < 5.
+  I checked these values.
+step 132: 2 is (1 + 1).
+  I checked these values.
+step 133: 132 is (12 * (12 - 1)).
+  I checked these values.
+step 134: 66 is (132 // 2).
+  I checked these values.
+step 135: 2 < 5.
+  I checked these values.
+step 136: 3 is (2 + 1).
+  I checked these values.
+step 137: 660 is (66 * (12 - 2)).
+  I checked these values.
+step 138: 220 is (660 // 3).
+  I checked these values.
+step 139: 3 < 5.
+  I checked these values.
+step 140: 4 is (3 + 1).
+  I checked these values.
+step 141: 1980 is (220 * (12 - 3)).
+  I checked these values.
+step 142: 495 is (1980 // 4).
+  I checked these values.
+step 143: 4 < 5.
+  I checked these values.
+step 144: 5 is (4 + 1).
+  I checked these values.
+step 145: 3960 is (495 * (12 - 4)).
+  I checked these values.
+step 146: 792 is (3960 // 5).
+  I checked these values.
+step 147: choose_step(12, 5, 5, 792, 792).
+  because rule 1.
+  with _N = 12, K = 5, Accumulator = 792.
+step 148: choose_step(12, 5, 4, 495, 792).
+  because rule 2 uses steps 143, 144, 145, 146, 147.
+  with N = 12, K = 5, I = 4, Accumulator = 495, C = 792, Next = 5, Numerator = 3960, Updated = 792.
+  (4 + 1) = 5.
+  (12 - 4) = 8.
+  (495 * (12 - 4)) = 3960.
+  (3960 // 5) = 792.
+step 149: choose_step(12, 5, 3, 220, 792).
+  because rule 2 uses steps 139, 140, 141, 142, 148.
+  with N = 12, K = 5, I = 3, Accumulator = 220, C = 792, Next = 4, Numerator = 1980, Updated = 495.
+  (3 + 1) = 4.
+  (12 - 3) = 9.
+  (220 * (12 - 3)) = 1980.
+  (1980 // 4) = 495.
+step 150: choose_step(12, 5, 2, 66, 792).
+  because rule 2 uses steps 135, 136, 137, 138, 149.
+  with N = 12, K = 5, I = 2, Accumulator = 66, C = 792, Next = 3, Numerator = 660, Updated = 220.
+  (2 + 1) = 3.
+  (12 - 2) = 10.
+  (66 * (12 - 2)) = 660.
+  (660 // 3) = 220.
+step 151: choose_step(12, 5, 1, 12, 792).
+  because rule 2 uses steps 131, 132, 133, 134, 150.
+  with N = 12, K = 5, I = 1, Accumulator = 12, C = 792, Next = 2, Numerator = 132, Updated = 66.
+  (1 + 1) = 2.
+  (12 - 1) = 11.
+  (12 * (12 - 1)) = 132.
+  (132 // 2) = 66.
+step 152: choose_step(12, 5, 0, 1, 792).
+  because rule 2 uses steps 127, 128, 129, 130, 151.
+  with N = 12, K = 5, I = 0, Accumulator = 1, C = 792, Next = 1, Numerator = 12, Updated = 12.
+  (0 + 1) = 1.
+  (12 - 0) = 12.
+  (1 * (12 - 0)) = 12.
+  (12 // 1) = 12.
+step 153: choose(12, 5, 792).
+  because rule 3 uses steps 124, 125, 126, 152.
+  with N = 12, K = 5, C = 792, Steps = 5.
+  (12 - 5) = 7.
+  min(5, (12 - 5)) = 5.
+step 154: 3 >= 0.
+  I checked these values.
+step 155: 3 =< 10.
+  I checked these values.
+step 156: 3 is min(3, (10 - 3)).
+  I checked these values.
+step 157: choose(10, 3, 120).
+  because rule 3 uses steps 154, 155, 156, 105.
+  with N = 10, K = 3, C = 120, Steps = 3.
+  (10 - 3) = 7.
+  min(3, (10 - 3)) = 3.
+step 158: 95040 is (792 * 120).
+  I checked these values.
+step 159: 5 < 8.
+  I checked these values.
+step 160: 6 is (5 + 1).
+  I checked these values.
+step 161: 6 =< 8.
+  I checked these values.
+step 162: between(6, 8, 6).
+  because rule 4 uses steps 161.
+  with Low = 6, High = 8.
+step 163: between(5, 8, 6).
+  because rule 5 uses steps 159, 160, 162.
+  with Low = 5, High = 8, Value = 6, Next = 6.
+  (5 + 1) = 6.
+step 164: between(4, 8, 6).
+  because rule 5 uses steps 114, 115, 163.
+  with Low = 4, High = 8, Value = 6, Next = 5.
+  (4 + 1) = 5.
+step 165: between(3, 8, 6).
+  because rule 5 uses steps 112, 113, 164.
+  with Low = 3, High = 8, Value = 6, Next = 4.
+  (3 + 1) = 4.
+step 166: between(2, 8, 6).
+  because rule 5 uses steps 110, 111, 165.
+  with Low = 2, High = 8, Value = 6, Next = 3.
+  (2 + 1) = 3.
+step 167: between(1, 8, 6).
+  because rule 5 uses steps 108, 109, 166.
+  with Low = 1, High = 8, Value = 6, Next = 2.
+  (1 + 1) = 2.
+step 168: between(0, 8, 6).
+  because rule 5 uses steps 71, 72, 167.
+  with Low = 0, High = 8, Value = 6, Next = 1.
+  (0 + 1) = 1.
+step 169: 2 is (8 - 6).
+  I checked these values.
+step 170: 6 >= 0.
+  I checked these values.
+step 171: 6 =< 12.
+  I checked these values.
+step 172: 6 is min(6, (12 - 6)).
+  I checked these values.
+step 173: 0 < 6.
+  I checked these values.
+step 174: 1 is (0 + 1).
+  I checked these values.
+step 175: 12 is (1 * (12 - 0)).
+  I checked these values.
+step 176: 12 is (12 // 1).
+  I checked these values.
+step 177: 1 < 6.
+  I checked these values.
+step 178: 2 is (1 + 1).
+  I checked these values.
+step 179: 132 is (12 * (12 - 1)).
+  I checked these values.
+step 180: 66 is (132 // 2).
+  I checked these values.
+step 181: 2 < 6.
+  I checked these values.
+step 182: 3 is (2 + 1).
+  I checked these values.
+step 183: 660 is (66 * (12 - 2)).
+  I checked these values.
+step 184: 220 is (660 // 3).
+  I checked these values.
+step 185: 3 < 6.
+  I checked these values.
+step 186: 4 is (3 + 1).
+  I checked these values.
+step 187: 1980 is (220 * (12 - 3)).
+  I checked these values.
+step 188: 495 is (1980 // 4).
+  I checked these values.
+step 189: 4 < 6.
+  I checked these values.
+step 190: 5 is (4 + 1).
+  I checked these values.
+step 191: 3960 is (495 * (12 - 4)).
+  I checked these values.
+step 192: 792 is (3960 // 5).
+  I checked these values.
+step 193: 5 < 6.
+  I checked these values.
+step 194: 6 is (5 + 1).
+  I checked these values.
+step 195: 5544 is (792 * (12 - 5)).
+  I checked these values.
+step 196: 924 is (5544 // 6).
+  I checked these values.
+step 197: choose_step(12, 6, 6, 924, 924).
+  because rule 1.
+  with _N = 12, K = 6, Accumulator = 924.
+step 198: choose_step(12, 6, 5, 792, 924).
+  because rule 2 uses steps 193, 194, 195, 196, 197.
+  with N = 12, K = 6, I = 5, Accumulator = 792, C = 924, Next = 6, Numerator = 5544, Updated = 924.
+  (5 + 1) = 6.
+  (12 - 5) = 7.
+  (792 * (12 - 5)) = 5544.
+  (5544 // 6) = 924.
+step 199: choose_step(12, 6, 4, 495, 924).
+  because rule 2 uses steps 189, 190, 191, 192, 198.
+  with N = 12, K = 6, I = 4, Accumulator = 495, C = 924, Next = 5, Numerator = 3960, Updated = 792.
+  (4 + 1) = 5.
+  (12 - 4) = 8.
+  (495 * (12 - 4)) = 3960.
+  (3960 // 5) = 792.
+step 200: choose_step(12, 6, 3, 220, 924).
+  because rule 2 uses steps 185, 186, 187, 188, 199.
+  with N = 12, K = 6, I = 3, Accumulator = 220, C = 924, Next = 4, Numerator = 1980, Updated = 495.
+  (3 + 1) = 4.
+  (12 - 3) = 9.
+  (220 * (12 - 3)) = 1980.
+  (1980 // 4) = 495.
+step 201: choose_step(12, 6, 2, 66, 924).
+  because rule 2 uses steps 181, 182, 183, 184, 200.
+  with N = 12, K = 6, I = 2, Accumulator = 66, C = 924, Next = 3, Numerator = 660, Updated = 220.
+  (2 + 1) = 3.
+  (12 - 2) = 10.
+  (66 * (12 - 2)) = 660.
+  (660 // 3) = 220.
+step 202: choose_step(12, 6, 1, 12, 924).
+  because rule 2 uses steps 177, 178, 179, 180, 201.
+  with N = 12, K = 6, I = 1, Accumulator = 12, C = 924, Next = 2, Numerator = 132, Updated = 66.
+  (1 + 1) = 2.
+  (12 - 1) = 11.
+  (12 * (12 - 1)) = 132.
+  (132 // 2) = 66.
+step 203: choose_step(12, 6, 0, 1, 924).
+  because rule 2 uses steps 173, 174, 175, 176, 202.
+  with N = 12, K = 6, I = 0, Accumulator = 1, C = 924, Next = 1, Numerator = 12, Updated = 12.
+  (0 + 1) = 1.
+  (12 - 0) = 12.
+  (1 * (12 - 0)) = 12.
+  (12 // 1) = 12.
+step 204: choose(12, 6, 924).
+  because rule 3 uses steps 170, 171, 172, 203.
+  with N = 12, K = 6, C = 924, Steps = 6.
+  (12 - 6) = 6.
+  min(6, (12 - 6)) = 6.
+step 205: 2 >= 0.
+  I checked these values.
+step 206: 2 =< 10.
+  I checked these values.
+step 207: 2 is min(2, (10 - 2)).
+  I checked these values.
+step 208: choose(10, 2, 45).
+  because rule 3 uses steps 205, 206, 207, 68.
+  with N = 10, K = 2, C = 45, Steps = 2.
+  (10 - 2) = 8.
+  min(2, (10 - 2)) = 2.
+step 209: 41580 is (924 * 45).
+  I checked these values.
+step 210: 2 =< 8.
+  I checked these values.
+step 211: between(2, 8, 2).
+  because rule 4 uses steps 210.
+  with Low = 2, High = 8.
+step 212: between(1, 8, 2).
+  because rule 5 uses steps 108, 109, 211.
+  with Low = 1, High = 8, Value = 2, Next = 2.
+  (1 + 1) = 2.
+step 213: between(0, 8, 2).
+  because rule 5 uses steps 71, 72, 212.
+  with Low = 0, High = 8, Value = 2, Next = 1.
+  (0 + 1) = 1.
+step 214: 6 is (8 - 2).
+  I checked these values.
+step 215: 2 >= 0.
+  I checked these values.
+step 216: 2 =< 12.
+  I checked these values.
+step 217: 2 is min(2, (12 - 2)).
+  I checked these values.
+step 218: 0 < 2.
+  I checked these values.
+step 219: 1 is (0 + 1).
+  I checked these values.
+step 220: 12 is (1 * (12 - 0)).
+  I checked these values.
+step 221: 12 is (12 // 1).
+  I checked these values.
+step 222: 1 < 2.
+  I checked these values.
+step 223: 2 is (1 + 1).
+  I checked these values.
+step 224: 132 is (12 * (12 - 1)).
+  I checked these values.
+step 225: 66 is (132 // 2).
+  I checked these values.
+step 226: choose_step(12, 2, 2, 66, 66).
+  because rule 1.
+  with _N = 12, K = 2, Accumulator = 66.
+step 227: choose_step(12, 2, 1, 12, 66).
+  because rule 2 uses steps 222, 223, 224, 225, 226.
+  with N = 12, K = 2, I = 1, Accumulator = 12, C = 66, Next = 2, Numerator = 132, Updated = 66.
+  (1 + 1) = 2.
+  (12 - 1) = 11.
+  (12 * (12 - 1)) = 132.
+  (132 // 2) = 66.
+step 228: choose_step(12, 2, 0, 1, 66).
+  because rule 2 uses steps 218, 219, 220, 221, 227.
+  with N = 12, K = 2, I = 0, Accumulator = 1, C = 66, Next = 1, Numerator = 12, Updated = 12.
+  (0 + 1) = 1.
+  (12 - 0) = 12.
+  (1 * (12 - 0)) = 12.
+  (12 // 1) = 12.
+step 229: choose(12, 2, 66).
+  because rule 3 uses steps 215, 216, 217, 228.
+  with N = 12, K = 2, C = 66, Steps = 2.
+  (12 - 2) = 10.
+  min(2, (12 - 2)) = 2.
+step 230: 6 >= 0.
+  I checked these values.
+step 231: 6 =< 10.
+  I checked these values.
+step 232: 4 is min(6, (10 - 6)).
+  I checked these values.
+step 233: 0 < 4.
+  I checked these values.
+step 234: 1 is (0 + 1).
+  I checked these values.
+step 235: 10 is (1 * (10 - 0)).
+  I checked these values.
+step 236: 10 is (10 // 1).
+  I checked these values.
+step 237: 1 < 4.
+  I checked these values.
+step 238: 2 is (1 + 1).
+  I checked these values.
+step 239: 90 is (10 * (10 - 1)).
+  I checked these values.
+step 240: 45 is (90 // 2).
+  I checked these values.
+step 241: 2 < 4.
+  I checked these values.
+step 242: 3 is (2 + 1).
+  I checked these values.
+step 243: 360 is (45 * (10 - 2)).
+  I checked these values.
+step 244: 120 is (360 // 3).
+  I checked these values.
+step 245: 3 < 4.
+  I checked these values.
+step 246: 4 is (3 + 1).
+  I checked these values.
+step 247: 840 is (120 * (10 - 3)).
+  I checked these values.
+step 248: 210 is (840 // 4).
+  I checked these values.
+step 249: choose_step(10, 4, 4, 210, 210).
+  because rule 1.
+  with _N = 10, K = 4, Accumulator = 210.
+step 250: choose_step(10, 4, 3, 120, 210).
+  because rule 2 uses steps 245, 246, 247, 248, 249.
+  with N = 10, K = 4, I = 3, Accumulator = 120, C = 210, Next = 4, Numerator = 840, Updated = 210.
+  (3 + 1) = 4.
+  (10 - 3) = 7.
+  (120 * (10 - 3)) = 840.
+  (840 // 4) = 210.
+step 251: choose_step(10, 4, 2, 45, 210).
+  because rule 2 uses steps 241, 242, 243, 244, 250.
+  with N = 10, K = 4, I = 2, Accumulator = 45, C = 210, Next = 3, Numerator = 360, Updated = 120.
+  (2 + 1) = 3.
+  (10 - 2) = 8.
+  (45 * (10 - 2)) = 360.
+  (360 // 3) = 120.
+step 252: choose_step(10, 4, 1, 10, 210).
+  because rule 2 uses steps 237, 238, 239, 240, 251.
+  with N = 10, K = 4, I = 1, Accumulator = 10, C = 210, Next = 2, Numerator = 90, Updated = 45.
+  (1 + 1) = 2.
+  (10 - 1) = 9.
+  (10 * (10 - 1)) = 90.
+  (90 // 2) = 45.
+step 253: choose_step(10, 4, 0, 1, 210).
+  because rule 2 uses steps 233, 234, 235, 236, 252.
+  with N = 10, K = 4, I = 0, Accumulator = 1, C = 210, Next = 1, Numerator = 10, Updated = 10.
+  (0 + 1) = 1.
+  (10 - 0) = 10.
+  (1 * (10 - 0)) = 10.
+  (10 // 1) = 10.
+step 254: choose(10, 6, 210).
+  because rule 3 uses steps 230, 231, 232, 253.
+  with N = 10, K = 6, C = 210, Steps = 4.
+  (10 - 6) = 4.
+  min(6, (10 - 6)) = 4.
+step 255: 13860 is (66 * 210).
+  I checked these values.
+step 256: 4 =< 8.
+  I checked these values.
+step 257: between(4, 8, 4).
+  because rule 4 uses steps 256.
+  with Low = 4, High = 8.
+step 258: between(3, 8, 4).
+  because rule 5 uses steps 112, 113, 257.
+  with Low = 3, High = 8, Value = 4, Next = 4.
+  (3 + 1) = 4.
+step 259: between(2, 8, 4).
+  because rule 5 uses steps 110, 111, 258.
+  with Low = 2, High = 8, Value = 4, Next = 3.
+  (2 + 1) = 3.
+step 260: between(1, 8, 4).
+  because rule 5 uses steps 108, 109, 259.
+  with Low = 1, High = 8, Value = 4, Next = 2.
+  (1 + 1) = 2.
+step 261: between(0, 8, 4).
+  because rule 5 uses steps 71, 72, 260.
+  with Low = 0, High = 8, Value = 4, Next = 1.
+  (0 + 1) = 1.
+step 262: 4 is (8 - 4).
+  I checked these values.
+step 263: 4 >= 0.
+  I checked these values.
+step 264: 4 =< 12.
+  I checked these values.
+step 265: 4 is min(4, (12 - 4)).
+  I checked these values.
+step 266: 0 < 4.
+  I checked these values.
+step 267: 1 is (0 + 1).
+  I checked these values.
+step 268: 12 is (1 * (12 - 0)).
+  I checked these values.
+step 269: 12 is (12 // 1).
+  I checked these values.
+step 270: 1 < 4.
+  I checked these values.
+step 271: 2 is (1 + 1).
+  I checked these values.
+step 272: 132 is (12 * (12 - 1)).
+  I checked these values.
+step 273: 66 is (132 // 2).
+  I checked these values.
+step 274: 2 < 4.
+  I checked these values.
+step 275: 3 is (2 + 1).
+  I checked these values.
+step 276: 660 is (66 * (12 - 2)).
+  I checked these values.
+step 277: 220 is (660 // 3).
+  I checked these values.
+step 278: 3 < 4.
+  I checked these values.
+step 279: 4 is (3 + 1).
+  I checked these values.
+step 280: 1980 is (220 * (12 - 3)).
+  I checked these values.
+step 281: 495 is (1980 // 4).
+  I checked these values.
+step 282: choose_step(12, 4, 4, 495, 495).
+  because rule 1.
+  with _N = 12, K = 4, Accumulator = 495.
+step 283: choose_step(12, 4, 3, 220, 495).
+  because rule 2 uses steps 278, 279, 280, 281, 282.
+  with N = 12, K = 4, I = 3, Accumulator = 220, C = 495, Next = 4, Numerator = 1980, Updated = 495.
+  (3 + 1) = 4.
+  (12 - 3) = 9.
+  (220 * (12 - 3)) = 1980.
+  (1980 // 4) = 495.
+step 284: choose_step(12, 4, 2, 66, 495).
+  because rule 2 uses steps 274, 275, 276, 277, 283.
+  with N = 12, K = 4, I = 2, Accumulator = 66, C = 495, Next = 3, Numerator = 660, Updated = 220.
+  (2 + 1) = 3.
+  (12 - 2) = 10.
+  (66 * (12 - 2)) = 660.
+  (660 // 3) = 220.
+step 285: choose_step(12, 4, 1, 12, 495).
+  because rule 2 uses steps 270, 271, 272, 273, 284.
+  with N = 12, K = 4, I = 1, Accumulator = 12, C = 495, Next = 2, Numerator = 132, Updated = 66.
+  (1 + 1) = 2.
+  (12 - 1) = 11.
+  (12 * (12 - 1)) = 132.
+  (132 // 2) = 66.
+step 286: choose_step(12, 4, 0, 1, 495).
+  because rule 2 uses steps 266, 267, 268, 269, 285.
+  with N = 12, K = 4, I = 0, Accumulator = 1, C = 495, Next = 1, Numerator = 12, Updated = 12.
+  (0 + 1) = 1.
+  (12 - 0) = 12.
+  (1 * (12 - 0)) = 12.
+  (12 // 1) = 12.
+step 287: choose(12, 4, 495).
+  because rule 3 uses steps 263, 264, 265, 286.
+  with N = 12, K = 4, C = 495, Steps = 4.
+  (12 - 4) = 8.
+  min(4, (12 - 4)) = 4.
+step 288: 4 >= 0.
+  I checked these values.
+step 289: 4 =< 10.
+  I checked these values.
+step 290: 4 is min(4, (10 - 4)).
+  I checked these values.
+step 291: choose(10, 4, 210).
+  because rule 3 uses steps 288, 289, 290, 253.
+  with N = 10, K = 4, C = 210, Steps = 4.
+  (10 - 4) = 6.
+  min(4, (10 - 4)) = 4.
+step 292: 103950 is (495 * 210).
+  I checked these values.
+step 293: 6 < 8.
+  I checked these values.
+step 294: 7 is (6 + 1).
+  I checked these values.
+step 295: 7 < 8.
+  I checked these values.
+step 296: 8 is (7 + 1).
+  I checked these values.
+step 297: 8 =< 8.
+  I checked these values.
+step 298: between(8, 8, 8).
+  because rule 4 uses steps 297.
+  with Low = 8, High = 8.
+step 299: between(7, 8, 8).
+  because rule 5 uses steps 295, 296, 298.
+  with Low = 7, High = 8, Value = 8, Next = 8.
+  (7 + 1) = 8.
+step 300: between(6, 8, 8).
+  because rule 5 uses steps 293, 294, 299.
+  with Low = 6, High = 8, Value = 8, Next = 7.
+  (6 + 1) = 7.
+step 301: between(5, 8, 8).
+  because rule 5 uses steps 159, 160, 300.
+  with Low = 5, High = 8, Value = 8, Next = 6.
+  (5 + 1) = 6.
+step 302: between(4, 8, 8).
+  because rule 5 uses steps 114, 115, 301.
+  with Low = 4, High = 8, Value = 8, Next = 5.
+  (4 + 1) = 5.
+step 303: between(3, 8, 8).
+  because rule 5 uses steps 112, 113, 302.
+  with Low = 3, High = 8, Value = 8, Next = 4.
+  (3 + 1) = 4.
+step 304: between(2, 8, 8).
+  because rule 5 uses steps 110, 111, 303.
+  with Low = 2, High = 8, Value = 8, Next = 3.
+  (2 + 1) = 3.
+step 305: between(1, 8, 8).
+  because rule 5 uses steps 108, 109, 304.
+  with Low = 1, High = 8, Value = 8, Next = 2.
+  (1 + 1) = 2.
+step 306: between(0, 8, 8).
+  because rule 5 uses steps 71, 72, 305.
+  with Low = 0, High = 8, Value = 8, Next = 1.
+  (0 + 1) = 1.
+step 307: 0 is (8 - 8).
+  I checked these values.
+step 308: 8 >= 0.
+  I checked these values.
+step 309: 8 =< 12.
+  I checked these values.
+step 310: 4 is min(8, (12 - 8)).
+  I checked these values.
+step 311: choose(12, 8, 495).
+  because rule 3 uses steps 308, 309, 310, 286.
+  with N = 12, K = 8, C = 495, Steps = 4.
+  (12 - 8) = 4.
+  min(8, (12 - 8)) = 4.
+step 312: 0 >= 0.
+  I checked these values.
+step 313: 0 =< 10.
+  I checked these values.
+step 314: 0 is min(0, (10 - 0)).
+  I checked these values.
+step 315: choose_step(10, 0, 0, 1, 1).
+  because rule 1.
+  with _N = 10, K = 0, Accumulator = 1.
+step 316: choose(10, 0, 1).
+  because rule 3 uses steps 312, 313, 314, 315.
+  with N = 10, K = 0, C = 1, Steps = 0.
+  (10 - 0) = 10.
+  min(0, (10 - 0)) = 0.
+step 317: 495 is (495 * 1).
+  I checked these values.
+step 318: 7 =< 8.
+  I checked these values.
+step 319: between(7, 8, 7).
+  because rule 4 uses steps 318.
+  with Low = 7, High = 8.
+step 320: between(6, 8, 7).
+  because rule 5 uses steps 293, 294, 319.
+  with Low = 6, High = 8, Value = 7, Next = 7.
+  (6 + 1) = 7.
+step 321: between(5, 8, 7).
+  because rule 5 uses steps 159, 160, 320.
+  with Low = 5, High = 8, Value = 7, Next = 6.
+  (5 + 1) = 6.
+step 322: between(4, 8, 7).
+  because rule 5 uses steps 114, 115, 321.
+  with Low = 4, High = 8, Value = 7, Next = 5.
+  (4 + 1) = 5.
+step 323: between(3, 8, 7).
+  because rule 5 uses steps 112, 113, 322.
+  with Low = 3, High = 8, Value = 7, Next = 4.
+  (3 + 1) = 4.
+step 324: between(2, 8, 7).
+  because rule 5 uses steps 110, 111, 323.
+  with Low = 2, High = 8, Value = 7, Next = 3.
+  (2 + 1) = 3.
+step 325: between(1, 8, 7).
+  because rule 5 uses steps 108, 109, 324.
+  with Low = 1, High = 8, Value = 7, Next = 2.
+  (1 + 1) = 2.
+step 326: between(0, 8, 7).
+  because rule 5 uses steps 71, 72, 325.
+  with Low = 0, High = 8, Value = 7, Next = 1.
+  (0 + 1) = 1.
+step 327: 1 is (8 - 7).
+  I checked these values.
+step 328: 7 >= 0.
+  I checked these values.
+step 329: 7 =< 12.
+  I checked these values.
+step 330: 5 is min(7, (12 - 7)).
+  I checked these values.
+step 331: choose(12, 7, 792).
+  because rule 3 uses steps 328, 329, 330, 152.
+  with N = 12, K = 7, C = 792, Steps = 5.
+  (12 - 7) = 5.
+  min(7, (12 - 7)) = 5.
+step 332: 1 >= 0.
+  I checked these values.
+step 333: 1 =< 10.
+  I checked these values.
+step 334: 1 is min(1, (10 - 1)).
+  I checked these values.
+step 335: 0 < 1.
+  I checked these values.
+step 336: 1 is (0 + 1).
+  I checked these values.
+step 337: 10 is (1 * (10 - 0)).
+  I checked these values.
+step 338: 10 is (10 // 1).
+  I checked these values.
+step 339: choose_step(10, 1, 1, 10, 10).
+  because rule 1.
+  with _N = 10, K = 1, Accumulator = 10.
+step 340: choose_step(10, 1, 0, 1, 10).
+  because rule 2 uses steps 335, 336, 337, 338, 339.
+  with N = 10, K = 1, I = 0, Accumulator = 1, C = 10, Next = 1, Numerator = 10, Updated = 10.
+  (0 + 1) = 1.
+  (10 - 0) = 10.
+  (1 * (10 - 0)) = 10.
+  (10 // 1) = 10.
+step 341: choose(10, 1, 10).
+  because rule 3 uses steps 332, 333, 334, 340.
+  with N = 10, K = 1, C = 10, Steps = 1.
+  (10 - 1) = 9.
+  min(1, (10 - 1)) = 1.
+step 342: 7920 is (792 * 10).
+  I checked these values.
+step 343: 3 =< 8.
+  I checked these values.
+step 344: between(3, 8, 3).
+  because rule 4 uses steps 343.
+  with Low = 3, High = 8.
+step 345: between(2, 8, 3).
+  because rule 5 uses steps 110, 111, 344.
+  with Low = 2, High = 8, Value = 3, Next = 3.
+  (2 + 1) = 3.
+step 346: between(1, 8, 3).
+  because rule 5 uses steps 108, 109, 345.
+  with Low = 1, High = 8, Value = 3, Next = 2.
+  (1 + 1) = 2.
+step 347: between(0, 8, 3).
+  because rule 5 uses steps 71, 72, 346.
+  with Low = 0, High = 8, Value = 3, Next = 1.
+  (0 + 1) = 1.
+step 348: 5 is (8 - 3).
+  I checked these values.
+step 349: 3 >= 0.
+  I checked these values.
+step 350: 3 =< 12.
+  I checked these values.
+step 351: 3 is min(3, (12 - 3)).
+  I checked these values.
+step 352: 0 < 3.
+  I checked these values.
+step 353: 1 is (0 + 1).
+  I checked these values.
+step 354: 12 is (1 * (12 - 0)).
+  I checked these values.
+step 355: 12 is (12 // 1).
+  I checked these values.
+step 356: 1 < 3.
+  I checked these values.
+step 357: 2 is (1 + 1).
+  I checked these values.
+step 358: 132 is (12 * (12 - 1)).
+  I checked these values.
+step 359: 66 is (132 // 2).
+  I checked these values.
+step 360: 2 < 3.
+  I checked these values.
+step 361: 3 is (2 + 1).
+  I checked these values.
+step 362: 660 is (66 * (12 - 2)).
+  I checked these values.
+step 363: 220 is (660 // 3).
+  I checked these values.
+step 364: choose_step(12, 3, 3, 220, 220).
+  because rule 1.
+  with _N = 12, K = 3, Accumulator = 220.
+step 365: choose_step(12, 3, 2, 66, 220).
+  because rule 2 uses steps 360, 361, 362, 363, 364.
+  with N = 12, K = 3, I = 2, Accumulator = 66, C = 220, Next = 3, Numerator = 660, Updated = 220.
+  (2 + 1) = 3.
+  (12 - 2) = 10.
+  (66 * (12 - 2)) = 660.
+  (660 // 3) = 220.
+step 366: choose_step(12, 3, 1, 12, 220).
+  because rule 2 uses steps 356, 357, 358, 359, 365.
+  with N = 12, K = 3, I = 1, Accumulator = 12, C = 220, Next = 2, Numerator = 132, Updated = 66.
+  (1 + 1) = 2.
+  (12 - 1) = 11.
+  (12 * (12 - 1)) = 132.
+  (132 // 2) = 66.
+step 367: choose_step(12, 3, 0, 1, 220).
+  because rule 2 uses steps 352, 353, 354, 355, 366.
+  with N = 12, K = 3, I = 0, Accumulator = 1, C = 220, Next = 1, Numerator = 12, Updated = 12.
+  (0 + 1) = 1.
+  (12 - 0) = 12.
+  (1 * (12 - 0)) = 12.
+  (12 // 1) = 12.
+step 368: choose(12, 3, 220).
+  because rule 3 uses steps 349, 350, 351, 367.
+  with N = 12, K = 3, C = 220, Steps = 3.
+  (12 - 3) = 9.
+  min(3, (12 - 3)) = 3.
+step 369: 5 >= 0.
+  I checked these values.
+step 370: 5 =< 10.
+  I checked these values.
+step 371: 5 is min(5, (10 - 5)).
+  I checked these values.
+step 372: 0 < 5.
+  I checked these values.
+step 373: 1 is (0 + 1).
+  I checked these values.
+step 374: 10 is (1 * (10 - 0)).
+  I checked these values.
+step 375: 10 is (10 // 1).
+  I checked these values.
+step 376: 1 < 5.
+  I checked these values.
+step 377: 2 is (1 + 1).
+  I checked these values.
+step 378: 90 is (10 * (10 - 1)).
+  I checked these values.
+step 379: 45 is (90 // 2).
+  I checked these values.
+step 380: 2 < 5.
+  I checked these values.
+step 381: 3 is (2 + 1).
+  I checked these values.
+step 382: 360 is (45 * (10 - 2)).
+  I checked these values.
+step 383: 120 is (360 // 3).
+  I checked these values.
+step 384: 3 < 5.
+  I checked these values.
+step 385: 4 is (3 + 1).
+  I checked these values.
+step 386: 840 is (120 * (10 - 3)).
+  I checked these values.
+step 387: 210 is (840 // 4).
+  I checked these values.
+step 388: 4 < 5.
+  I checked these values.
+step 389: 5 is (4 + 1).
+  I checked these values.
+step 390: 1260 is (210 * (10 - 4)).
+  I checked these values.
+step 391: 252 is (1260 // 5).
+  I checked these values.
+step 392: choose_step(10, 5, 5, 252, 252).
+  because rule 1.
+  with _N = 10, K = 5, Accumulator = 252.
+step 393: choose_step(10, 5, 4, 210, 252).
+  because rule 2 uses steps 388, 389, 390, 391, 392.
+  with N = 10, K = 5, I = 4, Accumulator = 210, C = 252, Next = 5, Numerator = 1260, Updated = 252.
+  (4 + 1) = 5.
+  (10 - 4) = 6.
+  (210 * (10 - 4)) = 1260.
+  (1260 // 5) = 252.
+step 394: choose_step(10, 5, 3, 120, 252).
+  because rule 2 uses steps 384, 385, 386, 387, 393.
+  with N = 10, K = 5, I = 3, Accumulator = 120, C = 252, Next = 4, Numerator = 840, Updated = 210.
+  (3 + 1) = 4.
+  (10 - 3) = 7.
+  (120 * (10 - 3)) = 840.
+  (840 // 4) = 210.
+step 395: choose_step(10, 5, 2, 45, 252).
+  because rule 2 uses steps 380, 381, 382, 383, 394.
+  with N = 10, K = 5, I = 2, Accumulator = 45, C = 252, Next = 3, Numerator = 360, Updated = 120.
+  (2 + 1) = 3.
+  (10 - 2) = 8.
+  (45 * (10 - 2)) = 360.
+  (360 // 3) = 120.
+step 396: choose_step(10, 5, 1, 10, 252).
+  because rule 2 uses steps 376, 377, 378, 379, 395.
+  with N = 10, K = 5, I = 1, Accumulator = 10, C = 252, Next = 2, Numerator = 90, Updated = 45.
+  (1 + 1) = 2.
+  (10 - 1) = 9.
+  (10 * (10 - 1)) = 90.
+  (90 // 2) = 45.
+step 397: choose_step(10, 5, 0, 1, 252).
+  because rule 2 uses steps 372, 373, 374, 375, 396.
+  with N = 10, K = 5, I = 0, Accumulator = 1, C = 252, Next = 1, Numerator = 10, Updated = 10.
+  (0 + 1) = 1.
+  (10 - 0) = 10.
+  (1 * (10 - 0)) = 10.
+  (10 // 1) = 10.
+step 398: choose(10, 5, 252).
+  because rule 3 uses steps 369, 370, 371, 397.
+  with N = 10, K = 5, C = 252, Steps = 5.
+  (10 - 5) = 5.
+  min(5, (10 - 5)) = 5.
+step 399: 55440 is (220 * 252).
+  I checked these values.
+step 400: aggregate_all(sum(Product), (between(0, R, K), Other is (R - K), choose(N, K, A), choose(M, Other, B), Product is (A * B)), 319770).
+  I computed sum over 9 distinct matching tuples in the completed program. I used steps 48, 49, 54, 69, 70, 75, 76, 86, 106, 107, 122, 123, 153, 157, 158, 168, 169, 204, 208, 209, 213, 214, 229, 254, 255, 261, 262, 287, 291, 292, 306, 307, 311, 316, 317, 326, 327, 331, 341, 342, 347, 348, 368, 398, 399.
+step 401: vandermonde_sum(12, 10, 8, 319770).
+  because rule 6 uses steps 400.
+  with N = 12, M = 10, R = 8, Sum = 319770.
+step 402: vandermonde(12, 10, 8, 319770).
+  because rule 7 uses steps 1, 46, 401.
+  with N = 12, M = 10, R = 8, Sum = 319770, Total = 22.
+  (12 + 10) = 22.
+That explains step 402.
+
+% Check
+check passed: choose(0, 0, 1).
+
+check passed: choose(24, 12, 2704156).
+
+check passed: choose(100, 50, 100891344545564193334812497256).
+
+check passed: vandermonde(12, 10, 8, 319770).
+
+check passed: binomial_answer(row_12_sum, 4096).
+
+check passed: symmetric(100, 37).
+
+check passed: \+ (choose(5, 6, 0)).
+
+check passed: \+ (choose(5, -1, 0)).
