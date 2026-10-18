@@ -3,7 +3,7 @@
 ```text
 Document: eyelang-spec-0001
 Category: Language Specification
-Language version: 6.0.0
+Language version: 6.0.1
 Date: 2026-10-17
 ```
 
