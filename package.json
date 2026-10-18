@@ -1,6 +1,6 @@
 {
   "name": "eyeon",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A symbolic logic programming language implementing a subset of Prolog, with query explanations and executable checks.",
   "repository": {
     "type": "git",
