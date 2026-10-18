@@ -17,14 +17,21 @@ const gist = 'abc123def456abc123def456abc123deff';
 async function playground({ hash = '', draft, fetch: fetchOverride, token = null, clipboard = true } = {}) {
   const elements = new Map();
   const element = id => {
-    if (!elements.has(id)) elements.set(id, {
-      value: '', textContent: '', disabled: false, hidden: true, dataset: {}, options: [], style: {},
-      scrollTop: 0, scrollLeft: 0, clientHeight: 380,
-      handlers: {}, classList: { toggle() {}, remove() {} },
-      addEventListener(name, handler) { this.handlers[name] = handler; },
-      setAttribute() {}, removeAttribute() {}, focus() {}, select() {},
-      setSelectionRange(start, end) { this.selectionStart = start; this.selectionEnd = end; },
-    });
+    if (!elements.has(id)) {
+      const classes = new Set();
+      elements.set(id, {
+        value: '', textContent: '', disabled: false, hidden: true, dataset: {}, options: [], style: {},
+        scrollTop: 0, scrollLeft: 0, clientHeight: 380,
+        handlers: {}, classList: {
+          toggle(name, enabled = !classes.has(name)) { if (enabled) classes.add(name); else classes.delete(name); },
+          remove(name) { classes.delete(name); },
+          contains(name) { return classes.has(name); },
+        },
+        addEventListener(name, handler) { this.handlers[name] = handler; },
+        setAttribute() {}, removeAttribute() {}, focus() {}, select() {},
+        setSelectionRange(start, end) { this.selectionStart = start; this.selectionEnd = end; },
+      });
+    }
     return elements.get(id);
   };
   element('example-select').options = [{ value: '' }, ...exampleNames.map(value => ({ value }))];
@@ -118,14 +125,39 @@ test('run errors remain plain text and select the source line; editing still can
   assert.equal(app.element('output').textContent, error);
   assert.equal(app.element('program').selectionStart, 6);
   assert.equal(app.element('program').selectionEnd, source.length);
+  assert.equal(app.element('program').classList.contains('error'), true);
   await app.dispatch('copy-output');
   assert.equal(app.copied.at(-1), error);
   await app.dispatch('run');
+  assert.equal(app.element('program').classList.contains('error'), false);
   await app.edit(sample);
   assert.equal(app.workers[1].terminated, true);
   assert.equal(app.element('run').disabled, false);
   assert.equal(app.element('stop').disabled, true);
   assert.equal(app.element('program-colors').innerHTML, highlight(sample));
+});
+
+test('error-line coloring clears on edits and reset and requires a valid source line', async () => {
+  const source = 'p(a).\n?- X is Missing + 1.';
+  const app = await playground({ hash: '#program=' + encodeURIComponent(source) });
+  const editor = app.element('program');
+  const fail = async error => {
+    await app.dispatch('run');
+    app.workers.at(-1).onmessage({ data: { error } });
+  };
+  await fail('Line 2: Arithmetic input Missing is unbound.');
+  assert.equal(editor.classList.contains('error'), true);
+  await app.edit(sample);
+  assert.equal(editor.classList.contains('error'), false);
+  await fail('Line 1: Example error.');
+  assert.equal(editor.classList.contains('error'), true);
+  await app.dispatch('reset');
+  assert.equal(editor.classList.contains('error'), false);
+  for (const message of ['Worker could not run.', 'Line 0: Invalid line.', 'Line 99: Invalid line.']) {
+    await fail(message);
+    assert.equal(editor.classList.contains('error'), false);
+    assert.equal(app.element('output').textContent, message);
+  }
 });
 
 test('tutorial links prefill every lesson and run its exact program', async () => {

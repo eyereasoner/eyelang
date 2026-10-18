@@ -88,6 +88,7 @@ function showOutput(text, error = false) {
 }
 
 function clearOutput() {
+  editor.classList.remove('error');
   fullOutput = '';
   output.textContent = 'Your answers will appear here.';
   output.classList.remove('error');
@@ -279,7 +280,9 @@ function highlightError(message) {
   if (!match) return;
   const lines = editor.value.split('\n');
   const line = Number(match[1]) - 1;
+  if (line < 0 || line >= lines.length) return;
   const start = lines.slice(0, line).reduce((sum, text) => sum + text.length + 1, 0);
+  editor.classList.toggle('error', true);
   editor.focus();
   editor.setSelectionRange(start, start + (lines[line]?.length ?? 0));
 }
@@ -347,6 +350,7 @@ editor.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); runProgram(); }
 });
 editor.addEventListener('input', () => {
+  editor.classList.remove('error');
   scheduleColoring();
   clearShareLocation();
   stopRun();
