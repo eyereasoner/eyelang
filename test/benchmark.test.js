@@ -37,13 +37,14 @@ test('completed inference can render default and ARC blocks without changing the
   const records = infer(program, { validateChecks: true });
   const output = render(program, records);
   assert.equal(output[0], 'Value = 3.');
-  assert.match(output[1], /step \d+: result\(3\)\./);
-  assert.match(output[1], /with Input = 2, Value = 3\./);
+  assert.match(output[1], /step\(result\(3\), rule\(2\)/);
+  assert.match(output[1], /\['='\('Input', 2\), '='\('Value', 3\)\]/);
   assert.equal(output[2], 'check passed: result(3).');
   const [answer, reason, check] = render(program, records, { arc: true });
   assert.equal(answer, '% Answer\n?- result(Value).\nValue = 3.');
   assert.equal(reason, '% Reason\n' + output[1]);
-  assert.equal(check, '% Check\n' + output[2]);
+  assert.equal(check, '% Check\n' + output.slice(2).join('\n\n'));
+  assert.match(check, /verdict\(checked\)/);
   assert.deepEqual(render(program, records), output);
 });
 

@@ -68,14 +68,14 @@ test('large programs can color a small tail window without rendering their prefi
   assert.match(html, /syntax-comment/);
 });
 
-test('ARC coloring distinguishes headings, proof references, and Prolog from explanatory prose', () => {
-  const source = '% Reason\nHere is why. Each step is shown once.\nrule 1: mortal(Person) :- human(Person).\nstep 2: mortal(socrates).\n  because rule 1 uses steps 1.\n  with Person = socrates.\nThat explains step 2.\ncheck passed: mortal(socrates).';
+test('ARC coloring distinguishes headings, certificates, reports, and assertion labels', () => {
+  const source = "% Reason\ncertificate(eyelang, 1).\n% step 1\nstep(mortal(socrates), rule(2), ['='('Person', socrates)], [human(socrates)]).\n% Check\ncheck passed: mortal(socrates).\nverdict(checked).";
   const html = highlight(source, { arc: true });
   assert.equal(plain(html), source);
   assert.ok(html.includes('<span class="syntax-section">% Reason</span>'));
-  assert.ok(html.includes('<span class="syntax-label">rule 1:</span>'));
-  assert.ok(html.includes('<span class="syntax-label">step 2:</span>'));
+  assert.ok(html.includes('<span class="syntax-comment">% step 1</span>'));
+  assert.ok(html.includes('<span class="syntax-predicate">step</span>'));
   assert.ok(html.includes('<span class="syntax-label">check passed:</span>'));
-  assert.ok(html.includes('<span class="syntax-note">because rule 1 uses steps 1.</span>'));
-  assert.ok(html.includes('<span class="syntax-variable">Person</span>'));
+  assert.ok(html.includes('<span class="syntax-predicate">verdict</span>'));
+  assert.ok(html.includes('<span class="syntax-atom">checked</span>'));
 });

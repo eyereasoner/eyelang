@@ -8,39 +8,38 @@ Item = pear, Amount = 12.
 Item = plum, Amount = 10.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: line_total(Name, Total) :- item(Name, Quantity, Price), Total is (Quantity * Price).
-rule 2: invoice(Total) :- aggregate_all(sum(Amount), (line_total(Name, Amount)), Total).
-step 1: item(apple, 3, 2).
-  you told me this.
-step 2: 6 is (3 * 2).
-  I checked these values.
-step 3: line_total(apple, 6).
-  because rule 1 uses steps 1, 2.
-  with Name = apple, Quantity = 3, Price = 2, Total = 6.
-  (3 * 2) = 6.
-step 4: item(pear, 4, 3).
-  you told me this.
-step 5: 12 is (4 * 3).
-  I checked these values.
-step 6: line_total(pear, 12).
-  because rule 1 uses steps 4, 5.
-  with Name = pear, Quantity = 4, Price = 3, Total = 12.
-  (4 * 3) = 12.
-step 7: item(plum, 2, 5).
-  you told me this.
-step 8: 10 is (2 * 5).
-  I checked these values.
-step 9: line_total(plum, 10).
-  because rule 1 uses steps 7, 8.
-  with Name = plum, Quantity = 2, Price = 5, Total = 10.
-  (2 * 5) = 10.
-step 10: aggregate_all(sum(Amount), (line_total(Name, Amount)), 28).
-  I computed sum over 3 distinct matching tuples in the completed program. I used steps 3, 6, 9.
-step 11: invoice(28).
-  because rule 2 uses steps 10.
-  with Total = 28.
-That explains step 11.
+certificate(eyelang, 1).
+
+claim(query(1), [invoice(28)]).
+
+clause(1, item(apple, 3, 2), []).
+clause(2, item(pear, 4, 3), []).
+clause(3, item(plum, 2, 5), []).
+clause(4, line_total(var('Name'), var('Total')), [item(var('Name'), var('Quantity'), var('Price')), is(var('Total'), '*'(var('Quantity'), var('Price')))]).
+clause(5, invoice(var('Total')), [aggregate_all(sum(var('Amount')), [line_total(var('Name'), var('Amount'))], var('Total'))]).
+
+% step 1
+step(item(apple, 3, 2), fact(1), [], []).
+% step 2
+step(is(6, '*'(3, 2)), builtin, [], []).
+% step 3
+step(line_total(apple, 6), rule(4), ['='('Name', apple), '='('Quantity', 3), '='('Price', 2), '='('Total', 6)], [item(apple, 3, 2), is(6, '*'(3, 2))]).
+% step 4
+step(item(pear, 4, 3), fact(2), [], []).
+% step 5
+step(is(12, '*'(4, 3)), builtin, [], []).
+% step 6
+step(line_total(pear, 12), rule(4), ['='('Name', pear), '='('Quantity', 4), '='('Price', 3), '='('Total', 12)], [item(pear, 4, 3), is(12, '*'(4, 3))]).
+% step 7
+step(item(plum, 2, 5), fact(3), [], []).
+% step 8
+step(is(10, '*'(2, 5)), builtin, [], []).
+% step 9
+step(line_total(plum, 10), rule(4), ['='('Name', plum), '='('Quantity', 2), '='('Price', 5), '='('Total', 10)], [item(plum, 2, 5), is(10, '*'(2, 5))]).
+% step 10
+step(aggregate_all(sum(V0), [line_total(V1, V0)], 28), collected, [], [[line_total(apple, 6)], [line_total(pear, 12)], [line_total(plum, 10)]]).
+% step 11
+step(invoice(28), rule(5), ['='('Total', 28)], [aggregate_all(sum(V0), [line_total(V1, V0)], 28)]).
 
 % Check
 check passed: line_total(apple, 6).
@@ -52,3 +51,18 @@ check passed: line_total(plum, 10).
 check passed: invoice(28).
 
 check passed: aggregate_all(count, (line_total(Item, Amount)), 3).
+
+condition('C1', resolution, ok, 7).
+condition('C2', well_founded, ok, 11).
+condition('C3', justification, ok, 11).
+condition('C4', coverage, ok, 11).
+condition('C5', re_decision, ok, 4).
+condition('C6', boundary_consistency, ok, 1).
+condition('C7', relevance, ok, 12).
+obligation(collected, collection_completeness, aggregate_all(sum(var('V0')), [line_total(var('V1'), var('V0'))], 28)).
+steps(11).
+verified(7).
+recomputed(4).
+trusted(1).
+claims(1).
+verdict(checked_with_obligations).

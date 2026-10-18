@@ -80,8 +80,8 @@ test('integer ranges use ordinary recursive clauses with exact arithmetic', () =
   `), ['N = 9007199254740993.\nN = 9007199254740994.\nN = 9007199254740995.',
     'true.', 'false.', 'false.', 'true.', 'false.', 'Sum = 6.']);
   const output = run(source + '?- between(1,3,2). ?- why. :- assertion(between(1,3,2)).');
-  assert.match(output[1], /rule \d+: between/);
-  assert.match(output[1], /Next = 2/);
+  assert.match(output[1], /clause\(\d+, between/);
+  assert.match(output[1], /'='\('Next', 2\)/);
   assert.throws(() => run(source + '?- between(Low,3,N).'), /unbound/);
 });
 

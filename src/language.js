@@ -20,16 +20,6 @@ const binary = new Map([
   ['rem', [3, 'left']], ['mod', [3, 'left']], ['**', [4, 'none']], ['^', [4, 'right']],
 ]);
 
-function storeRuleText(text) {
-  Object.defineProperty(this, 'text', { value: text, writable: true, enumerable: true, configurable: true });
-}
-
-function renderRuleText() {
-  const text = [say(this.conclusion), this.premises.length ? ' :- ' : '', this.premises.map(say).join(', '), '.'].join('');
-  storeRuleText.call(this, text);
-  return text;
-}
-
 function* tokenize(source) {
   let position = 0;
   let line = 1;
@@ -124,7 +114,7 @@ export function parse(source) {
   }
   let anonymous = 0;
   let generated = 0;
-  const program = { facts: [], rules: [], questions: [], checks: [] };
+  const program = { facts: [], rules: [], questions: [], checks: [], clauses: [], tables: [] };
   const predicates = new Map();
   function ordinary(name, terms = []) {
     const id = relation(name, terms.length);
@@ -252,7 +242,7 @@ export function parse(source) {
     }
     return body;
   }
-  function addRule(conclusion, premises, text = null) {
+  function addRule(conclusion, premises) {
     if (conclusion.relation.startsWith('builtin:')) fail('A rule head must name an ordinary predicate.');
     // Range-restricted clauses can be materialized without call inputs. Other
     // clauses use tables so arithmetic and recursive list calls receive inputs.
@@ -275,18 +265,13 @@ export function parse(source) {
     }
     if (!variables(conclusion).every(name => bound.has(name))) forward = false;
     const rule = { conclusion, premises, backward: !forward };
-    // Format and cache rule text on first access.
-    if (text === null) Object.defineProperty(rule, 'text', {
-      get: renderRuleText, set: storeRuleText, enumerable: true, configurable: true,
-    });
-    else rule.text = text;
     program.rules.push(rule);
     return rule;
   }
-  function request(body, text, line) {
+  function request(body, line) {
     const names = [...new Set(body.flatMap(variables))].filter(name => !name.startsWith('$anonymous') && !name.startsWith('_'));
     const goal = internal(`query${++generated}`, names.map(variable => ({ variable })));
-    addRule(goal, body, text).line = line;
+    addRule(goal, body).line = line;
     return { goal, names, body };
   }
   while (tokenAt(position).type !== 'end') {
@@ -304,7 +289,7 @@ export function parse(source) {
       const body = goals();
       if (why) expect(')');
       expect('.');
-      program.questions.push({ ...request(body, body.map(say).join(', ') + '.', line), why, line });
+      program.questions.push({ ...request(body, line), why, line });
     } else if (take(':-')) {
       if (take('table')) {
         do {
@@ -314,6 +299,7 @@ export function parse(source) {
           const arity = tokenAt(position++);
           if (arity.type !== 'number' || typeof arity.value !== 'string' || BigInt(arity.value) < 0n) fail('A predicate arity must be a nonnegative integer.');
           tabled.add(relation(name.value, arity.value));
+          program.tables.push(relation(name.value, arity.value));
         } while (take(','));
         expect('.');
       } else if (take('assertion')) {
@@ -322,19 +308,27 @@ export function parse(source) {
         expect(')');
         expect('.');
         const text = body.map(say).join(', ');
-        program.checks.push({ ...request(body, text + '.', line), text, line });
+        program.checks.push({ ...request(body, line), text, line });
       } else fail('Supported directives are :- table name/arity. and :- assertion(Goal).');
     } else {
       const conclusion = asGoal(expression());
       if (take(':-')) {
         const premises = goals();
         expect('.');
-        addRule(conclusion, premises).line = line;
+        const rule = addRule(conclusion, premises);
+        rule.line = line;
+        program.clauses.push(rule);
       } else {
         expect('.');
         if (conclusion.relation.startsWith('builtin:')) fail('A fact must name an ordinary predicate.');
-        if (variables(conclusion).length) addRule(conclusion, []).line = line;
-        else program.facts.push(conclusion);
+        if (variables(conclusion).length) {
+          const rule = addRule(conclusion, []);
+          rule.line = line;
+          program.clauses.push(rule);
+        } else {
+          program.facts.push(conclusion);
+          program.clauses.push({ conclusion, premises: [] });
+        }
       }
     }
   }
@@ -401,14 +395,14 @@ function termVariables(value) {
   return [...value.list.flatMap(termVariables), ...termVariables(value.tail)];
 }
 
-function evaluate(expression, bindings, calculations = null) {
+function evaluate(expression, bindings) {
   const value = specialize(expression, bindings);
   if (numeric(value)) return value;
   if (value.variable) throw new Error(`Arithmetic input ${value.variable} is unbound; bind it before using is or a comparison.`);
   if (value.atom === 'pi') return finite(Math.PI);
   if (value.atom === 'e') return finite(Math.E);
   if (!value.functor) throw new Error(`Arithmetic needs a number; found ${sayTerm(value)}.`);
-  const args = value.args.map(arg => evaluate(arg, bindings, calculations));
+  const args = value.args.map(arg => evaluate(arg, bindings));
   const name = value.functor;
   const [a, b] = args.map(numberValue);
   const exact = args.every(arg => typeof arg === 'string');
@@ -422,10 +416,7 @@ function evaluate(expression, bindings, calculations = null) {
     else if (name === 'abs') result = a < 0 ? -a : a;
     else if (name === 'sign') result = BigInt(a < 0 ? -1 : a > 0 ? 1 : 0);
     else if (['floor', 'ceiling', 'round', 'truncate'].includes(name)) {
-      if (exact) {
-        calculations?.push(`${sayTerm(value)} = ${sayTerm(args[0])}.`);
-        return args[0];
-      }
+      if (exact) return args[0];
       const number = Number(a);
       const rounded = name === 'round' ? Math.sign(number) * Math.round(Math.abs(number))
         : name === 'floor' ? Math.floor(number) : name === 'ceiling' ? Math.ceil(number) : Math.trunc(number);
@@ -476,14 +467,13 @@ function evaluate(expression, bindings, calculations = null) {
     }
   } else throw new Error(`Unsupported arithmetic function: ${name}/${args.length}.`);
   const answer = typeof result === 'bigint' ? result.toString() : finite(result);
-  calculations?.push(`${sayTerm(value)} = ${sayTerm(answer)}.`);
   return answer;
 }
 
 function quoteAtom(value) {
   return /^[a-z][A-Za-z0-9_]*$/.test(value) ? value : `'${value.replaceAll('\\', '\\\\').replaceAll("'", "''")}'`;
 }
-function sayTerm(value) {
+function sayTerm(value, functional = false) {
   if (typeof value === 'string') return value;
   if (value.atom !== undefined) return quoteAtom(value.atom);
   if (value.real !== undefined) {
@@ -493,14 +483,14 @@ function sayTerm(value) {
   if (value.text !== undefined) return JSON.stringify(value.text);
   if (value.variable) return value.variable.startsWith('$') ? '_' : value.variable;
   if (value.functor) {
-    if (binary.has(value.functor) && value.args.length === 2) {
+    if (!functional && binary.has(value.functor) && value.args.length === 2) {
       return `(${sayTerm(value.args[0])} ${value.functor} ${sayTerm(value.args[1])})`;
     }
-    if (['-', '+', '\\'].includes(value.functor) && value.args.length === 1) return `${value.functor} (${sayTerm(value.args[0])})`;
-    return `${quoteAtom(value.functor)}(${value.args.map(sayTerm).join(', ')})`;
+    if (!functional && ['-', '+', '\\'].includes(value.functor) && value.args.length === 1) return `${value.functor} (${sayTerm(value.args[0])})`;
+    return `${quoteAtom(value.functor)}(${value.args.map(part => sayTerm(part, functional)).join(', ')})`;
   }
-  const items = value.list.map(sayTerm).join(', ');
-  return `[${items}${value.tail === undefined ? '' : ` | ${sayTerm(value.tail)}`}]`;
+  const items = value.list.map(part => sayTerm(part, functional)).join(', ');
+  return `[${items}${value.tail === undefined ? '' : ` | ${sayTerm(value.tail, functional)}`}]`;
 }
 export function say(goal) {
   if (goal.negated) return `\\+ (${say({ ...goal, negated: false })})`;
@@ -514,10 +504,10 @@ export function say(goal) {
   if (goal.relation.startsWith('builtin:')) {
     const name = goal.relation.slice(8);
     if (tests.has(name)) return `${sayTerm(goal.terms[0])} ${name} ${sayTerm(goal.terms[1])}`;
-    return `${name}${goal.terms.length ? `(${goal.terms.map(sayTerm).join(', ')})` : ''}`;
+    return `${name}${goal.terms.length ? `(${goal.terms.map(value => sayTerm(value)).join(', ')})` : ''}`;
   }
   const name = goal.relation.slice(goal.relation.startsWith('predicate:') ? 'predicate:'.length : 0, goal.relation.lastIndexOf('/'));
-  return `${quoteAtom(name)}${goal.terms.length ? `(${goal.terms.map(sayTerm).join(', ')})` : ''}`;
+  return `${quoteAtom(name)}${goal.terms.length ? `(${goal.terms.map(value => sayTerm(value)).join(', ')})` : ''}`;
 }
 const key = goal => JSON.stringify([goal.relation, ...goal.terms]);
 
@@ -572,16 +562,7 @@ function unify(left, right, bindings) {
 
 function callKey(goal) {
   const names = new Map();
-  function canonical(value) {
-    if (atomic(value)) return value;
-    if (value.variable) {
-      if (!names.has(value.variable)) names.set(value.variable, `$call${names.size}`);
-      return { variable: names.get(value.variable) };
-    }
-    if (value.functor) return { functor: value.functor, args: value.args.map(canonical) };
-    return list(value.list.map(canonical), value.tail === undefined ? undefined : canonical(value.tail));
-  }
-  return { relation: goal.relation, terms: goal.terms.map(canonical) };
+  return { relation: goal.relation, terms: goal.terms.map(value => rename(value, names, '$call')) };
 }
 
 function matchTerm(wanted, actual, bindings) {
@@ -631,6 +612,44 @@ function ground(value) {
 
 function substitute(goal, bindings) {
   return { relation: goal.relation, terms: goal.terms.map(t => specialize(t, bindings)) };
+}
+
+function checkBuiltin(premise, inputBindings = new Map()) {
+  if (!premise.relation.startsWith('builtin:') || premise.aggregate) throw new Error('Expected a pure builtin.');
+  const terms = premise.terms.map(value => specialize(value, inputBindings));
+  const name = premise.relation.slice(8);
+  const bindings = new Map(inputBindings);
+  let holds;
+  if (name === 'true') holds = true;
+  else if (name === 'false') holds = false;
+  else if (name === '=') {
+    if (premise.negated && !terms.every(ground)) throw new Error('Negated unification needs bound operands in this subset.');
+    holds = unify(terms[0], terms[1], bindings);
+  } else if (name === '=..' || textConversions.has(name)) {
+    if (premise.negated && !terms.every(ground)) throw new Error(`Negated ${name}/2 needs bound operands.`);
+    const target = terms[0].variable ? 0 : 1;
+    const result = name === '=..' ? target === 0 ? termFromParts(terms[1]) : termParts(terms[0]) : textCodes(name, terms);
+    holds = unify(premise.terms[target], result, bindings);
+  } else if (name === '\\=') holds = !unify(terms[0], terms[1], new Map(bindings));
+  else if (name === 'is') {
+    if (premise.negated && !ground(terms[0])) throw new Error('Negated is/2 needs a bound result in this subset.');
+    const result = evaluate(premise.terms[1], bindings);
+    holds = unify(premise.terms[0], result, bindings);
+  } else if (name === 'contains_text') {
+    if (!terms.every(value => value.text !== undefined)) throw new Error('contains_text/2 needs two bound strings.');
+    holds = terms[0].text.toLowerCase().includes(terms[1].text.toLowerCase());
+  } else if (name.startsWith('@')) {
+    if (!terms.every(ground) || !(terms.every(value => value.text !== undefined) || terms.every(value => value.atom !== undefined))) {
+      throw new Error('Term ordering in this subset needs two bound atoms or two bound strings.');
+    }
+    const [a, b] = terms.map(value => value.atom ?? value.text);
+    holds = name === '@<' ? a < b : name === '@=<' ? a <= b : name === '@>' ? a > b : a >= b;
+  } else if (tests.has(name)) {
+    const [a, b] = premise.terms.map(value => numberValue(evaluate(value, bindings)));
+    holds = name === '<' ? a < b : name === '=<' ? a <= b : name === '>' ? a > b
+      : name === '>=' ? a >= b : name === '=:=' ? a <= b && a >= b : !(a <= b && a >= b);
+  } else throw new Error(`Unknown builtin: ${name}.`);
+  return holds === Boolean(premise.negated) ? null : premise.negated ? inputBindings : bindings;
 }
 
 function absence(goal) {
@@ -839,63 +858,31 @@ export function infer(program, { validateChecks = false } = {}) {
     for (const rule of rules) {
       const bindings = new Map();
       if (rule.conclusion.terms.every((head, index) => unify(head, goal.terms[index], bindings))) {
-        enqueue({ resume: { rule, position: 0, partial: { bindings, premises: [], calculations: [], table: goal } } }, levels.get(rule));
+        enqueue({ resume: { rule, position: 0, partial: { bindings, premises: [], table: goal } } }, levels.get(rule));
       }
     }
   }
-  function resumeBuiltin(rule, position, partial, bindings, evidence, calculations) {
+  function resumeBuiltin(rule, position, partial, bindings, evidence) {
     enqueue({ resume: { rule, position: position + 1, partial: {
-      ...partial, bindings, calculations, premises: partial.premises.concat(evidence),
+      ...partial, bindings, premises: partial.premises.concat(evidence),
     } } }, levels.get(rule));
   }
-  function advanceBuiltin(rule, position, partial, premise, calculations) {
-    const terms = premise.terms.map(value => specialize(value, partial.bindings));
+  function advanceBuiltin(rule, position, partial, premise) {
     if (premise.aggregate) {
+      for (const term of premise.terms) specialize(term, partial.bindings);
       if (premise.negated) throw new Error('Define a helper predicate before negating an aggregate.');
       const sourceGoal = substitute(premise.aggregate.sourceGoal, partial.bindings);
       demand(sourceGoal);
-      enqueue({ aggregate: { rule, position, partial, premise, sourceGoal, calculations } }, levels.get(rule));
+      enqueue({ aggregate: { rule, position, partial, premise, sourceGoal } }, levels.get(rule));
       return;
     }
-    const name = premise.relation.slice(8);
-    const bindings = new Map(partial.bindings);
-    const evidence = { goal: { ...premise, terms }, rule: null, premises: [], comparison: true };
-    let holds;
-    if (name === 'true') holds = true;
-    else if (name === 'false') holds = false;
-    else if (name === '=') {
-      if (premise.negated && !terms.every(ground)) throw new Error('Negated unification needs bound operands in this subset.');
-      holds = unify(terms[0], terms[1], bindings);
-    } else if (name === '=..' || textConversions.has(name)) {
-      if (premise.negated && !terms.every(ground)) throw new Error(`Negated ${name}/2 needs bound operands.`);
-      const target = terms[0].variable ? 0 : 1;
-      const result = name === '=..' ? target === 0 ? termFromParts(terms[1]) : termParts(terms[0]) : textCodes(name, terms);
-      holds = unify(premise.terms[target], result, bindings);
-    } else if (name === '\\=') holds = !unify(terms[0], terms[1], new Map(bindings));
-    else if (name === 'is') {
-      if (premise.negated && !ground(terms[0])) throw new Error('Negated is/2 needs a bound result in this subset.');
-      const result = evaluate(premise.terms[1], bindings, calculations);
-      holds = unify(premise.terms[0], result, bindings);
-    } else if (name === 'contains_text') {
-      if (!terms.every(value => value.text !== undefined)) throw new Error('contains_text/2 needs two bound strings.');
-      holds = terms[0].text.toLowerCase().includes(terms[1].text.toLowerCase());
-    } else if (name.startsWith('@')) {
-      if (!terms.every(ground) || !(terms.every(value => value.text !== undefined) || terms.every(value => value.atom !== undefined))) {
-        throw new Error('Term ordering in this subset needs two bound atoms or two bound strings.');
-      }
-      const [a, b] = terms.map(value => value.atom ?? value.text);
-      holds = name === '@<' ? a < b : name === '@=<' ? a <= b : name === '@>' ? a > b : a >= b;
-    } else {
-      const [a, b] = premise.terms.map(value => numberValue(evaluate(value, bindings, calculations)));
-      holds = name === '<' ? a < b : name === '=<' ? a <= b : name === '>' ? a > b
-        : name === '>=' ? a >= b : name === '=:=' ? a <= b && a >= b : !(a <= b && a >= b);
-    }
-    if (holds === Boolean(premise.negated)) return;
-    const resultBindings = premise.negated ? partial.bindings : bindings;
-    evidence.goal = { ...premise, terms: premise.terms.map(value => specialize(value, resultBindings)) };
-    resumeBuiltin(rule, position, partial, resultBindings, evidence, calculations);
+    const resultBindings = checkBuiltin(premise, partial.bindings);
+    if (resultBindings === null) return;
+    const evidence = { goal: { ...premise, terms: premise.terms.map(value => specialize(value, resultBindings)) },
+      rule: null, premises: [], comparison: true };
+    resumeBuiltin(rule, position, partial, resultBindings, evidence);
   }
-  function finishAggregate({ rule, position, partial, premise, sourceGoal, calculations }) {
+  function finishAggregate({ rule, position, partial, premise, sourceGoal }) {
     const { operation, value } = premise.aggregate;
     const records = lookup(known, sourceGoal)
       .filter(record => match(sourceGoal, record.goal));
@@ -916,9 +903,8 @@ export function infer(program, { validateChecks = false } = {}) {
     const bindings = new Map(partial.bindings);
     if (!unify(premise.terms[0], result, bindings)) return;
     const evidence = { goal: { ...premise, terms: [result] }, rule: null,
-      premises: records.flatMap(record => record.premises), aggregate: { value: result,
-        detail: `I computed ${operation} over ${records.length} distinct matching tuples in the completed program.` } };
-    resumeBuiltin(rule, position, partial, bindings, evidence, calculations);
+      premises: records.flatMap(record => record.premises), bindings: partial.bindings, aggregate: { records } };
+    resumeBuiltin(rule, position, partial, bindings, evidence);
   }
   function advance(rule, position, partial) {
     try { return advanceStep(rule, position, partial); }
@@ -929,7 +915,6 @@ export function infer(program, { validateChecks = false } = {}) {
   }
   function advanceStep(rule, position, partial) {
     if (position === rule.premises.length) {
-      const calculations = partial.calculations;
       for (const name of rule.backward ? variables(rule.conclusion) : []) {
         if (!ground(specialize({ variable: name }, partial.bindings))) {
           throw new Error(`Give ${name} a value in the question or an earlier goal; an answer must be ground.`);
@@ -937,12 +922,12 @@ export function infer(program, { validateChecks = false } = {}) {
       }
       const conclusion = substitute(rule.conclusion, partial.bindings);
       if (partial.table && !match(partial.table, conclusion)) return;
-      add(conclusion, { rule, premises: partial.premises, calculations, bindings: partial.bindings });
+      add(conclusion, { rule, premises: partial.premises, bindings: partial.bindings });
       return;
     }
     const premise = rule.premises[position];
     if (premise.relation.startsWith('builtin:')) {
-      advanceBuiltin(rule, position, partial, premise, [...partial.calculations]);
+      advanceBuiltin(rule, position, partial, premise);
       return;
     }
     const goal = partial.bindings.size === 0 ? premise : substitute(premise, partial.bindings);
@@ -959,7 +944,7 @@ export function infer(program, { validateChecks = false } = {}) {
   }
   for (const fact of program.facts) add(fact, { rule: null, premises: [] });
   for (const question of program.questions) if (question.goal) demand(question.goal);
-  const initial = { bindings: new Map(), premises: [], calculations: [] };
+  const initial = { bindings: new Map(), premises: [] };
   for (const layer of layers) {
     for (const rule of layer) if (!rule.backward) advance(rule, 0, initial);
   }
@@ -1011,86 +996,461 @@ export function infer(program, { validateChecks = false } = {}) {
   return [...facts.values()];
 }
 
-function otherReason(record, steps) {
-  if (record.comparison) return 'I checked these values.';
-  if (record.absence) return 'I checked the completed program and found no matching fact.';
-  if (record.aggregate) {
-    const uses = record.premises.length ? ` I used steps ${record.premises.map(p => steps.get(p)).join(', ')}.` : '';
-    return record.aggregate.detail + uses;
+const compound = (functor, args) => ({ functor, args });
+const is = (term, name, arity) => term?.functor === name && term.args.length === arity;
+const items = term => term?.list && term.tail === undefined ? term.list : null;
+const integer = term => typeof term === 'string' && /^[1-9][0-9]*$/.test(term) && Number.isSafeInteger(Number(term));
+const withTerm = (record, term) => term ? Object.defineProperty(record, 'term', { value: term }) : record;
+const primitives = new Set(['true/0', 'false/0', 'contains_text/2',
+  ...[...tests, ...textConversions.keys()].map(name => `${name}/2`)]);
+
+function goalTerm(goal, bindings = new Map()) {
+  let term;
+  if (goal.aggregate) {
+    const { operation, value, body } = goal.aggregate;
+    term = compound('aggregate_all', [operation === 'count' ? atom('count') : compound(operation, [specialize(value, bindings)]),
+      list(body.map(part => goalTerm(part, bindings))), specialize(goal.terms[0], bindings)]);
+  } else {
+    const name = goal.relation.startsWith('builtin:') ? goal.relation.slice(8)
+      : goal.relation.slice('predicate:'.length, goal.relation.lastIndexOf('/'));
+    const args = goal.terms.map(term => specialize(term, bindings));
+    term = args.length ? compound(name, args) : atom(name);
   }
-  return 'you told me this.';
+  return goal.negated ? compound('\\+', [term]) : term;
 }
 
-function appliedBindings(record) {
-  return [...record.bindings].filter(([name]) => namedVariable.test(name))
-    .map(([name]) => `${name} = ${sayTerm(specialize({ variable: name }, record.bindings))}`).join(', ');
+function readGoal(term) {
+  if (is(term, '\\+', 1)) {
+    const goal = readGoal(term.args[0]);
+    if (goal.negated || goal.aggregate) throw new Error('Invalid negated proof goal.');
+    return { ...goal, negated: true };
+  }
+  if (is(term, 'aggregate_all', 3)) {
+    const [template, body, result] = term.args;
+    const operation = template.atom === 'count' ? 'count' : template.functor;
+    if (!items(body)?.length || !['count', 'sum', 'min', 'max'].includes(operation) ||
+        operation === 'count' && template.atom !== 'count' ||
+        operation !== 'count' && template.args?.length !== 1) throw new Error('Invalid aggregate proof goal.');
+    return { relation: 'builtin:aggregate', terms: [result], aggregate: {
+      operation, value: operation === 'count' ? null : template.args[0], body: body.list.map(readGoal),
+    } };
+  }
+  const name = term?.atom ?? term?.functor;
+  if (name === undefined) throw new Error('A proof goal must name a predicate or builtin.');
+  const terms = term.args ?? [];
+  return { relation: primitives.has(`${name}/${terms.length}`) ? `builtin:${name}` : `predicate:${name}/${terms.length}`, terms };
 }
 
-function explain(roots) {
-  // Iterative postorder visits each shared proof step once.
-  const seen = new Set();
-  const records = [];
-  const pending = roots.slice().reverse().map(record => ({ record, finish: false }));
+function rename(term, names, prefix) {
+  if (typeof term === 'string') return term;
+  if (term.variable) {
+    if (!names.has(term.variable)) names.set(term.variable, { variable: `${prefix}${names.size}` });
+    return names.get(term.variable);
+  }
+  if (term.functor) return compound(term.functor, term.args.map(part => rename(part, names, prefix)));
+  if (term.list) return { list: term.list.map(part => rename(part, names, prefix)),
+    ...(term.tail === undefined ? {} : { tail: rename(term.tail, names, prefix) }) };
+  return term;
+}
+
+function canonical(term) {
+  return proofText(rename(term, new Map(), 'V'));
+}
+
+const proofText = term => sayTerm(term, true);
+
+function template(term) {
+  if (typeof term === 'string') return term;
+  if (term.variable) return compound('var', [atom(term.variable)]);
+  if (term.functor) return compound(term.functor, term.args.map(template));
+  if (term.list) return term.tail === undefined ? list(term.list.map(template))
+    : compound('list', [list(term.list.map(template)), template(term.tail)]);
+  return term;
+}
+
+const clauseTerms = clause => [goalTerm(clause.conclusion), list(clause.premises.map(part => goalTerm(part)))];
+const line = term => `${canonical(term)}.`;
+const stepUses = step => step.by.atom === 'collected' ? step.uses.flatMap(tuple => items(tuple) ?? []) : step.uses;
+
+export function renderProof(program, facts, requests = program.questions) {
+  const claims = [];
+  const roots = [];
+  const frame = (record, bindings) => ({ record, bindings: record.rule ? record.bindings : bindings ?? record.bindings });
+  const term = ({ record, bindings }) => goalTerm(record.goal, bindings);
+  requests.forEach(request => {
+    if (!request.goal) return;
+    for (const record of facts) if (record.goal.relation === request.goal.relation) {
+      const premises = record.premises.map(premise => frame(premise, record.bindings));
+      claims.push(compound('claim', [compound('query', [String(program.questions.indexOf(request) + 1)]), list(premises.map(term))]));
+      roots.push(...premises);
+    }
+  });
+  const clauses = new Map(program.clauses.map((clause, index) => [clause, index + 1]));
+  const supplied = new Map(program.clauses.filter(clause => !clause.premises.length)
+    .map(clause => [canonical(goalTerm(clause.conclusion)), clauses.get(clause)]));
+  const steps = new Map();
+  const ordered = [];
+  const cited = new Set();
+  const pending = roots.slice().reverse();
   while (pending.length) {
-    const frame = pending.pop();
-    if (frame.finish) {
-      records.push(frame.record);
+    const current = pending.pop();
+    if (current.finish) { ordered.push(steps.get(current.id)); continue; }
+    const { record, bindings: context } = current;
+    const goal = term(current);
+    const id = canonical(goal);
+    if (steps.has(id)) continue;
+    let by;
+    let premises = record.premises.map(premise => frame(premise, context));
+    let uses = premises.map(term);
+    let bindings = [];
+    if (record.rule) {
+      const number = clauses.get(record.rule);
+      if (!number) throw new Error('A proof step must cite a source clause.');
+      by = compound(record.rule.premises.length ? 'rule' : 'fact', [String(number)]);
+      bindings = [...record.bindings].filter(([name]) => !name.startsWith('$call'))
+        .map(([name, value]) => compound('=', [atom(name), specialize(value, record.bindings)]));
+      cited.add(number);
+    } else if (record.absence) by = atom('absent');
+    else if (record.aggregate) {
+      by = atom('collected');
+      const tuples = record.aggregate.records.map(tuple => tuple.premises.map(premise => frame(premise, tuple.bindings)));
+      uses = tuples.map(tuple => list(tuple.map(term)));
+      premises = tuples.flat();
+    } else if (record.comparison) by = atom('builtin');
+    else {
+      const number = supplied.get(id);
+      if (!number) throw new Error('A supplied proof fact must occur in the source.');
+      by = compound('fact', [String(number)]);
+      cited.add(number);
+    }
+    steps.set(id, compound('step', [goal, by, list(bindings), list(uses)]));
+    pending.push({ finish: true, id });
+    for (let index = premises.length - 1; index >= 0; index--) pending.push(premises[index]);
+  }
+  const lines = ['certificate(eyelang, 1).', '', ...claims.map(line), ''];
+  for (const number of [...cited].sort((a, b) => a - b)) {
+    lines.push(line(compound('clause', [String(number), ...clauseTerms(program.clauses[number - 1]).map(template)])));
+  }
+  lines.push('');
+  for (const [index, step] of ordered.entries()) lines.push(`% step ${index + 1}`, line(step));
+  return lines.join('\n') + '\n';
+}
+
+// The checker follows recorded premises. It never invokes inference or searches source rules.
+export function checkProof(source, document, { allowTrusted = true } = {}) {
+  const failures = [];
+  const fail = (condition, detail, conclusion = null) => {
+    failures.push(withTerm({ condition, detail, ...(conclusion ? { conclusion: proofText(conclusion) } : {}) }, conclusion));
+  };
+  let program;
+  try { program = typeof source === 'string' ? parse(source) : source; }
+  catch (error) { fail('C1', `Invalid source program: ${error.message}`); }
+  program ??= { clauses: [], questions: [], checks: [] };
+  const claims = [];
+  const steps = new Map();
+  let headers = 0;
+  try {
+    const parsed = parse(String(document));
+    if (parsed.questions.length || parsed.checks.length || parsed.tables.length ||
+        parsed.rules.some(rule => rule.conclusion.relation.startsWith('internal:'))) {
+      fail('C3', 'Certificate documents may contain records only.');
+    }
+    for (const clause of parsed.clauses) {
+      const term = goalTerm(clause.conclusion);
+      if (clause.premises.length) { fail('C3', 'Certificate documents may contain records only.', term); continue; }
+      if (is(term, 'certificate', 2)) {
+        headers++;
+        if (term.args[0].atom !== 'eyelang' || term.args[1] !== '1') fail('C3', 'Unsupported certificate format.', term);
+      } else if (is(term, 'clause', 3)) {
+        const [number, head, body] = term.args;
+        const original = integer(number) && program.clauses[Number(number) - 1];
+        if (!original || sayTerm(list(clauseTerms(original).map(template))) !== sayTerm(list([head, body]))) {
+          fail('C1', 'Clause display differs from the source program.', term);
+        }
+      } else if (is(term, 'claim', 2)) {
+        if (!items(term.args[1])?.length) fail('C3', 'A claim needs a nonempty proper list of goals.', term);
+        else claims.push({ request: term.args[0], uses: term.args[1].list, term });
+      } else if (is(term, 'step', 4)) {
+        const [goal, by, bindings, uses] = term.args;
+        if (!items(bindings) || !items(uses)) { fail('C3', 'Step bindings and uses must be proper lists.', goal); continue; }
+        readGoal(goal);
+        const id = canonical(goal);
+        if (steps.has(id)) { fail('C3', 'Duplicate justification for a goal.', goal); continue; }
+        steps.set(id, { goal, by, bindings: bindings.list, uses: uses.list });
+      } else fail('C3', 'Unknown certificate record.', term);
+    }
+  } catch (error) { fail('C3', error.message); }
+  if (headers !== 1) fail('C3', 'A certificate needs exactly one certificate(eyelang, 1) header.');
+  if (!claims.length || !steps.size) fail('C4', 'A certificate needs successful claims and supporting steps; query failure is not certified.');
+  const cover = (goal, conclusion) => {
+    if (!steps.has(canonical(goal))) fail('C4', `Missing supporting step: ${sayTerm(goal)}.`, conclusion);
+  };
+  for (const claim of claims) for (const use of claim.uses) cover(use, claim.term);
+  let verified = 0;
+  let redecided = 0;
+  let confronted = 0;
+  const trusted = [];
+  const collections = [];
+  const absences = [];
+  for (const step of steps.values()) {
+    const { goal, by, bindings, uses } = step;
+    let decoded;
+    try { decoded = readGoal(goal); }
+    catch (error) { fail('C3', error.message, goal); continue; }
+    for (const use of stepUses(step)) cover(use, goal);
+    if (is(by, 'rule', 1) || is(by, 'fact', 1)) {
+      const number = by.args[0];
+      const clause = integer(number) && program.clauses[Number(number) - 1];
+      if (!clause) { fail('C1', 'Unknown source clause.', goal); continue; }
+      const names = new Map();
+      const [head, body] = clauseTerms(clause).map(term => rename(term, names, '$source'));
+      const env = new Map();
+      const seen = new Set();
+      let valid = !decoded.negated && !decoded.relation.startsWith('builtin:') && ground(goal) &&
+        (by.functor !== 'fact' || !clause.premises.length);
+      for (const binding of bindings) {
+        if (!is(binding, '=', 2) || binding.args[0].atom === undefined ||
+            !names.has(binding.args[0].atom) || seen.has(binding.args[0].atom)) { valid = false; break; }
+        seen.add(binding.args[0].atom);
+        if (!unify(names.get(binding.args[0].atom), binding.args[1], env)) valid = false;
+      }
+      if (!unify(head, goal, env) || !unify(body, list(uses), env) ||
+          canonical(specialize(list([head, body]), env)) !== canonical(list([goal, list(uses)]))) valid = false;
+      if (valid) verified++;
+      else fail('C1', `Step is not an instance of source clause ${number}.`, goal);
+    } else if (by.atom === 'builtin') {
+      let valid = !bindings.length && !uses.length && decoded.relation.startsWith('builtin:') && !decoded.aggregate;
+      if (valid) {
+        try {
+          const env = checkBuiltin(decoded);
+          valid = env !== null && canonical(specialize(goal, env)) === canonical(goal);
+        } catch { valid = false; }
+      }
+      if (valid) redecided++;
+      else fail('C5', 'Builtin result cannot be independently recomputed.', goal);
+    } else if (by.atom === 'absent' && decoded.negated && !decoded.relation.startsWith('builtin:')) {
+      if (bindings.length || uses.length || !ground(goal)) fail('C3', 'An absence needs a ground goal and no bindings or uses.', goal);
+      absences.push(step);
+      trusted.push(withTerm({ kind: 'absent', reason: 'theory_scoped', conclusion: proofText(goal) }, goal));
+    } else if (by.atom === 'collected' && decoded.aggregate && !decoded.negated) {
+      if (bindings.length || uses.some(tuple => !items(tuple))) fail('C3', 'A collection needs tuple lists and no bindings.', goal);
+      else {
+        try {
+          const tuples = collectionValues(decoded, uses);
+          const expected = aggregateValue(decoded.aggregate.operation, tuples.map(tuple => tuple.value));
+          if (expected === null || sayTerm(expected) !== sayTerm(decoded.terms[0])) throw new Error('Aggregate result disagrees with its tuples.');
+          redecided++;
+          collections.push({ step, decoded, tuples });
+        } catch (error) { fail('C5', error.message, goal); }
+      }
+      trusted.push(withTerm({ kind: 'collected', reason: 'collection_completeness', conclusion: proofText(goal) }, goal));
+    } else fail('C3', 'Unknown or inappropriate step justification.', goal);
+  }
+  if (!allowTrusted) for (const boundary of trusted) fail('C5', `Trusted boundary forbidden: ${boundary.kind}.`);
+  const evidence = evidenceIndex(program, steps);
+  for (const step of absences) {
+    confronted++;
+    if (evidenceMatches(step.goal.args[0], evidence).length) fail('C6', 'Absence is contradicted by available evidence.', step.goal);
+  }
+  for (const { step, decoded, tuples } of collections) {
+    confronted++;
+    const listed = new Set(tuples.map(tuple => tuple.key));
+    try {
+      for (const tuple of availableTuples(decoded, evidence)) if (!listed.has(tuple.key)) {
+        fail('C6', 'Collection omits a tuple supported by available evidence.', step.goal);
+        break;
+      }
+    } catch (error) { fail('C6', error.message, step.goal); }
+  }
+  const reached = new Set();
+  const pending = claims.flatMap(claim => claim.uses.map(canonical));
+  const claimIds = new Set();
+  for (const claim of claims) {
+    const { request, uses, term } = claim;
+    const index = request?.args?.[0];
+    const target = integer(index) && (is(request, 'query', 1) ? program.questions[Number(index) - 1]
+      : is(request, 'check', 1) ? program.checks[Number(index) - 1] : null);
+    const env = new Map();
+    const names = new Map();
+    const pattern = target?.body && rename(list(target.body.map(part => goalTerm(part))), names, '$question');
+    if (!pattern || !unify(pattern, list(uses), env) || canonical(specialize(pattern, env)) !== canonical(list(uses)) ||
+        !target.names.every(name => ground(specialize(names.get(name), env)))) {
+      fail('C7', 'Claim does not answer the cited query or assertion.', term);
+    }
+    const id = canonical(term);
+    if (claimIds.has(id)) fail('C3', 'Duplicate claim.', term);
+    claimIds.add(id);
+  }
+  while (pending.length) {
+    const id = pending.pop();
+    if (reached.has(id) || !steps.has(id)) continue;
+    reached.add(id);
+    for (const use of stepUses(steps.get(id))) pending.push(canonical(use));
+  }
+  for (const [id, step] of steps) if (!reached.has(id)) fail('C7', 'Step serves no claim.', step.goal);
+  checkWellFounded(steps, fail);
+  const uses = [...steps.values()].reduce((count, step) => count + stepUses(step).length, 0);
+  const conditions = [
+    ['C1', 'resolution', verified], ['C2', 'well_founded', steps.size], ['C3', 'justification', steps.size],
+    ['C4', 'coverage', claims.length + uses], ['C5', 're_decision', redecided],
+    ['C6', 'boundary_consistency', confronted], ['C7', 'relevance', claims.length + steps.size],
+  ].map(([id, name, covered]) => ({ id, name, covered, failed: failures.filter(failure => failure.condition === id).length }));
+  return { valid: !failures.length, steps: steps.size, claims: claims.length, verified, redecided,
+    uses, trusted, failures, conditions };
+}
+
+function collectionValues(goal, members) {
+  const { operation, value, body } = goal.aggregate;
+  const patterns = list(body.map(part => goalTerm(part)));
+  const names = [...new Set([...termVariables(patterns), ...(value ? termVariables(value) : [])])];
+  const tuples = [];
+  const seen = new Set();
+  for (const member of members) {
+    const env = new Map();
+    if (!unify(patterns, member, env) || canonical(specialize(patterns, env)) !== canonical(member)) {
+      throw new Error('Collected tuple does not instantiate its producer goals.');
+    }
+    const values = list(names.map(variable => specialize({ variable }, env)));
+    if (!ground(values)) throw new Error('Collected producer variables must be ground.');
+    const key = sayTerm(values);
+    if (seen.has(key)) throw new Error('Duplicate collected tuple.');
+    seen.add(key);
+    tuples.push({ key, value: operation === 'count' ? '1' : evaluate(value, env) });
+  }
+  return tuples;
+}
+
+function aggregateValue(operation, values) {
+  if (operation === 'count') return String(values.length);
+  if (operation === 'sum') return values.reduce((total, value) => evaluate(compound('+', [total, value]), new Map()), '0');
+  if (!values.length) return null;
+  return values.reduce((best, value) => evaluate(compound(operation, [best, value]), new Map()));
+}
+
+function evidenceIndex(program, steps) {
+  const evidence = new Map();
+  const add = term => {
+    const id = `${term.atom ?? term.functor}/${term.args?.length ?? 0}`;
+    if (!evidence.has(id)) evidence.set(id, new Map());
+    evidence.get(id).set(canonical(term), term);
+  };
+  for (const clause of program.clauses) if (!clause.premises.length) add(goalTerm(clause.conclusion));
+  for (const step of steps.values()) {
+    const goal = readGoal(step.goal);
+    if (!goal.negated && !goal.relation.startsWith('builtin:') && ground(step.goal)) add(step.goal);
+  }
+  return { goals: evidence, serial: 0 };
+}
+
+function evidenceMatches(pattern, evidence, bindings = new Map()) {
+  const id = `${pattern.atom ?? pattern.functor}/${pattern.args?.length ?? 0}`;
+  const results = [];
+  for (const candidate of evidence.goals.get(id)?.values() ?? []) {
+    const env = new Map(bindings);
+    const fresh = rename(candidate, new Map(), `$given${++evidence.serial}:`);
+    if (unify(pattern, fresh, env)) results.push(env);
+  }
+  return results;
+}
+
+function* availableTuples(goal, evidence) {
+  const { body } = goal.aggregate;
+  const pending = [{ index: 0, bindings: new Map() }];
+  while (pending.length) {
+    const { index, bindings } = pending.pop();
+    if (index === body.length) {
+      const member = list(body.map(part => goalTerm(part, bindings)));
+      const names = termVariables(member);
+      if (!names.length) yield* collectionValues(goal, [member]);
       continue;
     }
-    if (seen.has(frame.record)) continue;
-    seen.add(frame.record);
-    pending.push({ ...frame, finish: true });
-    for (let i = frame.record.premises.length - 1; i >= 0; i--) {
-      pending.push({ record: frame.record.premises[i], finish: false });
+    const part = body[index];
+    if (part.aggregate || part.negated) continue;
+    if (part.relation.startsWith('builtin:')) {
+      try {
+        const env = checkBuiltin(part, bindings);
+        if (env) pending.push({ index: index + 1, bindings: env });
+      } catch { /* Available evidence may leave builtin inputs unknown. */ }
+    } else {
+      for (const env of evidenceMatches(goalTerm(part, bindings), evidence, bindings)) pending.push({ index: index + 1, bindings: env });
     }
   }
-  const rules = new Map();
-  for (const record of records) if (record.rule && !rules.has(record.rule)) rules.set(record.rule, rules.size + 1);
-  const steps = new Map(records.map((record, index) => [record, index + 1]));
-  const chunks = [];
-  let lines = [];
-  function line(text) {
-    lines.push(text);
-    if (lines.length === 1024) { chunks.push(lines.join('\n')); lines = []; }
-  }
-  line('Here is why. Each step is shown once.');
-  for (const [rule, number] of rules) line(`rule ${number}: ${rule.text}`);
-  for (const record of records) {
-    line(`step ${steps.get(record)}: ${say(record.goal)}.`);
-    if (!record.rule) line(`  ${otherReason(record, steps)}`);
-    else {
-      const uses = record.premises.length ? ` uses steps ${record.premises.map(p => steps.get(p)).join(', ')}` : '';
-      line(`  because rule ${rules.get(record.rule)}${uses}.`);
-      const bindings = appliedBindings(record);
-      if (bindings) line(`  with ${bindings}.`);
-      for (const calculation of record.calculations ?? []) line(`  ${calculation}`);
+}
+
+function checkWellFounded(steps, fail) {
+  const visiting = new Set();
+  const visited = new Set();
+  for (const start of steps.keys()) {
+    if (visited.has(start)) continue;
+    visiting.add(start);
+    const stack = [{ id: start, uses: stepUses(steps.get(start)).map(canonical), index: 0 }];
+    while (stack.length) {
+      const top = stack[stack.length - 1];
+      if (top.index === top.uses.length) {
+        visiting.delete(top.id); visited.add(top.id); stack.pop(); continue;
+      }
+      const next = top.uses[top.index++];
+      if (visiting.has(next)) { fail('C2', 'Cyclic derivation.', steps.get(next).goal); continue; }
+      if (!steps.has(next) || visited.has(next)) continue;
+      visiting.add(next);
+      stack.push({ id: next, uses: stepUses(steps.get(next)).map(canonical), index: 0 });
     }
   }
-  line(`That explains ${roots.length === 1 ? 'step' : 'steps'} ${roots.map(record => steps.get(record)).join(', ')}.`);
-  if (lines.length) chunks.push(lines.join('\n'));
-  return chunks.join('\n');
+}
+
+export function checkReportTerms(report) {
+  const lines = report.conditions.map(condition => line(compound('condition', [atom(condition.id), atom(condition.name),
+    condition.failed ? compound('failed', [String(condition.failed)]) : atom('ok'), String(condition.covered)])));
+  for (const failure of report.failures) lines.push(line(compound('failure', [atom(failure.condition),
+    failure.term ? template(failure.term) : atom(failure.conclusion ?? 'proof_document'), atom(failure.detail)])));
+  for (const boundary of report.trusted) lines.push(line(compound('obligation', [atom(boundary.kind), atom(boundary.reason),
+    boundary.term ? template(boundary.term) : atom(boundary.conclusion)])));
+  for (const [name, count] of [['steps', report.steps], ['verified', report.verified], ['recomputed', report.redecided],
+    ['trusted', report.trusted.length], ['claims', report.claims]]) lines.push(`${name}(${count}).`);
+  lines.push(line(compound('verdict', [report.valid ? atom(report.trusted.length ? 'checked_with_obligations' : 'checked')
+    : compound('failed', [String(report.failures.length)])])));
+  return lines.join('\n') + '\n';
 }
 
 export function render(program, facts, { arc = false } = {}) {
   let previous = null;
-  const answers = program.questions.map(question => {
+  let firstReason = null;
+  const requests = new Set();
+  const answers = program.questions.map((question, index) => {
     if (question.previous) {
       if (previous === null) return 'Ask a query first, then ask ?- why.';
-      return previous.length ? explain(previous) : 'There is no successful answer to explain.';
+      if (!previous.found.length) return 'There is no successful answer to explain.';
+      requests.add(previous.question);
+      firstReason ??= index;
+      return null;
     }
     const found = facts.filter(record => match(question.goal, record.goal));
-    previous = found.flatMap(record => record.premises);
-    if (question.why) return previous.length ? explain(previous) : 'false.';
+    previous = { question, found };
+    if (question.why) {
+      if (!found.length) return 'false.';
+      requests.add(question);
+      firstReason ??= index;
+      return null;
+    }
     if (!found.length) return 'false.';
     if (!question.names.length) return 'true.';
     return found.map(record => question.names.map((name, index) => `${name} = ${sayTerm(record.goal.terms[index])}`).join(', ') + '.').join('\n');
   });
-  for (const assertion of program.checks) answers.push(`check passed: ${assertion.text}.`);
-  if (!arc) return answers;
-  const sections = [[], [], answers.slice(program.questions.length)];
+  const checks = program.checks.map(assertion => `check passed: ${assertion.text}.`);
+  if (requests.size) {
+    const proof = renderProof(program, facts, [...requests]);
+    const report = checkProof(program, proof);
+    if (!report.valid) throw new Error(`Cannot certify this result: ${report.failures[0].detail}`);
+    answers[firstReason] = proof.trimEnd();
+    checks.push(checkReportTerms(report).trimEnd());
+  }
+  if (!arc) return [...answers.filter(answer => answer !== null), ...checks];
+  const sections = [[], [], checks];
   program.questions.forEach((question, index) => {
-    const answer = question.why ? answers[index] : `?- ${question.body.map(say).join(', ')}.\n${answers[index]}`;
-    sections[question.why ? 1 : 0].push(answer);
+    const answer = answers[index];
+    if (answer === null) return;
+    if (question.why) sections[1].push(index === firstReason ? answer : `% ${answer}`);
+    else sections[0].push(`?- ${question.body.map(say).join(', ')}.\n${answer}`);
   });
   const empty = [
     'Add a query such as ?- mortal(Who).',

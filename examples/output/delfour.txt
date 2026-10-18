@@ -69,28 +69,32 @@ Who = [delfour, 'high-sugar'].
 true.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: is_a(Case, 'low-sugar-case') :- household(Case, Household), condition(Household, "Diabetes").
-rule 2: 'case-insight'(Case, Insight) :- envelope(Case, Envelope), insight(Envelope, Insight).
-rule 3: 'derived-need'([Case, Insight], 'low-sugar') :- is_a(Case, 'low-sugar-case'), 'case-insight'(Case, Insight).
-step 1: household(delfour, 'household-profile').
-  you told me this.
-step 2: condition('household-profile', "Diabetes").
-  you told me this.
-step 3: is_a(delfour, 'low-sugar-case').
-  because rule 1 uses steps 1, 2.
-  with Case = delfour, Household = 'household-profile'.
-step 4: envelope(delfour, 'shopping-envelope').
-  you told me this.
-step 5: insight('shopping-envelope', 'sugar-insight').
-  you told me this.
-step 6: 'case-insight'(delfour, 'sugar-insight').
-  because rule 2 uses steps 4, 5.
-  with Case = delfour, Envelope = 'shopping-envelope', Insight = 'sugar-insight'.
-step 7: 'derived-need'([delfour, 'sugar-insight'], 'low-sugar').
-  because rule 3 uses steps 3, 6.
-  with Case = delfour, Insight = 'sugar-insight'.
-That explains step 7.
+certificate(eyelang, 1).
+
+claim(query(3), ['derived-need'([delfour, 'sugar-insight'], 'low-sugar')]).
+
+clause(2, household(delfour, 'household-profile'), []).
+clause(3, condition('household-profile', "Diabetes"), []).
+clause(13, envelope(delfour, 'shopping-envelope'), []).
+clause(44, insight('shopping-envelope', 'sugar-insight'), []).
+clause(53, 'case-insight'(var('Case'), var('Insight')), [envelope(var('Case'), var('Envelope')), insight(var('Envelope'), var('Insight'))]).
+clause(55, is_a(var('Case'), 'low-sugar-case'), [household(var('Case'), var('Household')), condition(var('Household'), "Diabetes")]).
+clause(56, 'derived-need'([var('Case'), var('Insight')], 'low-sugar'), [is_a(var('Case'), 'low-sugar-case'), 'case-insight'(var('Case'), var('Insight'))]).
+
+% step 1
+step(household(delfour, 'household-profile'), fact(2), [], []).
+% step 2
+step(condition('household-profile', "Diabetes"), fact(3), [], []).
+% step 3
+step(is_a(delfour, 'low-sugar-case'), rule(55), ['='('Case', delfour), '='('Household', 'household-profile')], [household(delfour, 'household-profile'), condition('household-profile', "Diabetes")]).
+% step 4
+step(envelope(delfour, 'shopping-envelope'), fact(13), [], []).
+% step 5
+step(insight('shopping-envelope', 'sugar-insight'), fact(44), [], []).
+% step 6
+step('case-insight'(delfour, 'sugar-insight'), rule(53), ['='('Case', delfour), '='('Envelope', 'shopping-envelope'), '='('Insight', 'sugar-insight')], [envelope(delfour, 'shopping-envelope'), insight('shopping-envelope', 'sugar-insight')]).
+% step 7
+step('derived-need'([delfour, 'sugar-insight'], 'low-sugar'), rule(56), ['='('Case', delfour), '='('Insight', 'sugar-insight')], [is_a(delfour, 'low-sugar-case'), 'case-insight'(delfour, 'sugar-insight')]).
 
 % Check
 check passed: outcome(delfour, "Allowed").
@@ -102,3 +106,17 @@ check passed: 'alternative-name'(delfour, "Low-Sugar Tea Biscuits").
 check passed: aggregate_all(count, (is_a(Subject, 'passed-check')), 10).
 
 check passed: is_a(delfour, 'checked-case').
+
+condition('C1', resolution, ok, 7).
+condition('C2', well_founded, ok, 7).
+condition('C3', justification, ok, 7).
+condition('C4', coverage, ok, 7).
+condition('C5', re_decision, ok, 0).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 8).
+steps(7).
+verified(7).
+recomputed(0).
+trusted(0).
+claims(1).
+verdict(checked).

@@ -26,28 +26,29 @@ Animal = opus, Mode = walking.
 Animal = batsy, Mode = flying.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: wings(X, true) :- bat(X).
-rule 2: wings(X, false) :- mammal(X).
-rule 3: wing_status(X, both) :- wings(X, true), wings(X, false).
-rule 4: wings_safely(X, undecided) :- wing_status(X, both).
-step 1: bat(batsy).
-  you told me this.
-step 2: wings(batsy, true).
-  because rule 1 uses steps 1.
-  with X = batsy.
-step 3: mammal(batsy).
-  you told me this.
-step 4: wings(batsy, false).
-  because rule 2 uses steps 3.
-  with X = batsy.
-step 5: wing_status(batsy, both).
-  because rule 3 uses steps 2, 4.
-  with X = batsy.
-step 6: wings_safely(batsy, undecided).
-  because rule 4 uses steps 5.
-  with X = batsy.
-That explains step 6.
+certificate(eyelang, 1).
+
+claim(query(3), [wings_safely(batsy, undecided)]).
+
+clause(5, mammal(batsy), []).
+clause(6, bat(batsy), []).
+clause(13, wings(var('X'), false), [mammal(var('X'))]).
+clause(15, wings(var('X'), true), [bat(var('X'))]).
+clause(22, wing_status(var('X'), both), [wings(var('X'), true), wings(var('X'), false)]).
+clause(34, wings_safely(var('X'), undecided), [wing_status(var('X'), both)]).
+
+% step 1
+step(bat(batsy), fact(6), [], []).
+% step 2
+step(wings(batsy, true), rule(15), ['='('X', batsy)], [bat(batsy)]).
+% step 3
+step(mammal(batsy), fact(5), [], []).
+% step 4
+step(wings(batsy, false), rule(13), ['='('X', batsy)], [mammal(batsy)]).
+% step 5
+step(wing_status(batsy, both), rule(22), ['='('X', batsy)], [wings(batsy, true), wings(batsy, false)]).
+% step 6
+step(wings_safely(batsy, undecided), rule(34), ['='('X', batsy)], [wing_status(batsy, both)]).
 
 % Check
 check passed: flies_safely(tweety, undecided).
@@ -79,3 +80,17 @@ check passed: moves_by(opus, walking).
 check passed: \+ (flies_safely(tweety, true)).
 
 check passed: \+ (flies_safely(tweety, false)).
+
+condition('C1', resolution, ok, 6).
+condition('C2', well_founded, ok, 6).
+condition('C3', justification, ok, 6).
+condition('C4', coverage, ok, 6).
+condition('C5', re_decision, ok, 0).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 7).
+steps(6).
+verified(6).
+recomputed(0).
+trusted(0).
+claims(1).
+verdict(checked).

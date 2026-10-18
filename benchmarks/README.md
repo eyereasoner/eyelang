@@ -24,7 +24,8 @@ against totals calculated independently while generating the input.
 
 Times are median wall-clock milliseconds over the requested runs. Reading
 or generating the source and child-process startup occur before the timed
-phases. Rendering includes joining the complete ARC transcript; printing,
+phases. Rendering includes certificate generation, independent proof checking,
+and joining the complete ARC transcript; printing,
 copying, and saving that transcript are not measured. Each child uses the same
 completed inference records for rendering, without rerunning inference.
 
@@ -32,7 +33,7 @@ Memory is the operating system's cumulative resident-set high-water mark,
 reported in MiB. `Infer peak MiB` is sampled after inference, and
 `Full peak MiB` after rendering; the report takes the maximum across runs.
 These figures include the Node.js runtime, source, parsed program, inference
-tables, and retained evidence. The second includes rendered output as well.
+tables, and retained evidence. The second also includes certificate parsing/checking and rendered output.
 They are process measurements, not separate allocations for individual phases.
 The full peak may equal the inference peak if rendering does not exceed the
 previous high-water mark.

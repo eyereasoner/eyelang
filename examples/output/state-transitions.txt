@@ -9,163 +9,98 @@ N = 2, Amount = 85.
 N = 3, Amount = 65.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: balance(0, Amount) :- opening_balance(Amount).
-rule 2: balance(N, Amount) :- N > 0, event(N, deposit, Value), Before is (N - 1), balance(Before, Previous), Amount is (Previous + Value).
-rule 3: balance(N, Amount) :- N > 0, event(N, withdraw, Value), Before is (N - 1), balance(Before, Previous), Amount is (Previous - Value).
-step 1: 3 > 0.
-  I checked these values.
-step 2: event(3, withdraw, 20).
-  you told me this.
-step 3: 2 is (3 - 1).
-  I checked these values.
-step 4: 2 > 0.
-  I checked these values.
-step 5: event(2, withdraw, 40).
-  you told me this.
-step 6: 1 is (2 - 1).
-  I checked these values.
-step 7: 1 > 0.
-  I checked these values.
-step 8: event(1, deposit, 25).
-  you told me this.
-step 9: 0 is (1 - 1).
-  I checked these values.
-step 10: opening_balance(100).
-  you told me this.
-step 11: balance(0, 100).
-  because rule 1 uses steps 10.
-  with Amount = 100.
-step 12: 125 is (100 + 25).
-  I checked these values.
-step 13: balance(1, 125).
-  because rule 2 uses steps 7, 8, 9, 11, 12.
-  with N = 1, Amount = 125, Value = 25, Before = 0, Previous = 100.
-  (1 - 1) = 0.
-  (100 + 25) = 125.
-step 14: 85 is (125 - 40).
-  I checked these values.
-step 15: balance(2, 85).
-  because rule 3 uses steps 4, 5, 6, 13, 14.
-  with N = 2, Amount = 85, Value = 40, Before = 1, Previous = 125.
-  (2 - 1) = 1.
-  (125 - 40) = 85.
-step 16: 65 is (85 - 20).
-  I checked these values.
-step 17: balance(3, 65).
-  because rule 3 uses steps 1, 2, 3, 15, 16.
-  with N = 3, Amount = 65, Value = 20, Before = 2, Previous = 85.
-  (3 - 1) = 2.
-  (85 - 20) = 65.
-That explains step 17.
+certificate(eyelang, 1).
 
-Here is why. Each step is shown once.
-rule 1: between(Low, High, Low) :- Low =< High.
-rule 2: balance(0, Amount) :- opening_balance(Amount).
-rule 3: between(Low, High, Value) :- Low < High, Next is (Low + 1), between(Next, High, Value).
-rule 4: balance(N, Amount) :- N > 0, event(N, deposit, Value), Before is (N - 1), balance(Before, Previous), Amount is (Previous + Value).
-rule 5: balance(N, Amount) :- N > 0, event(N, withdraw, Value), Before is (N - 1), balance(Before, Previous), Amount is (Previous - Value).
-step 1: 0 =< 3.
-  I checked these values.
-step 2: between(0, 3, 0).
-  because rule 1 uses steps 1.
-  with Low = 0, High = 3.
-step 3: opening_balance(100).
-  you told me this.
-step 4: balance(0, 100).
-  because rule 2 uses steps 3.
-  with Amount = 100.
-step 5: 0 < 3.
-  I checked these values.
-step 6: 1 is (0 + 1).
-  I checked these values.
-step 7: 1 =< 3.
-  I checked these values.
-step 8: between(1, 3, 1).
-  because rule 1 uses steps 7.
-  with Low = 1, High = 3.
-step 9: between(0, 3, 1).
-  because rule 3 uses steps 5, 6, 8.
-  with Low = 0, High = 3, Value = 1, Next = 1.
-  (0 + 1) = 1.
-step 10: 1 > 0.
-  I checked these values.
-step 11: event(1, deposit, 25).
-  you told me this.
-step 12: 0 is (1 - 1).
-  I checked these values.
-step 13: 125 is (100 + 25).
-  I checked these values.
-step 14: balance(1, 125).
-  because rule 4 uses steps 10, 11, 12, 4, 13.
-  with N = 1, Amount = 125, Value = 25, Before = 0, Previous = 100.
-  (1 - 1) = 0.
-  (100 + 25) = 125.
-step 15: 1 < 3.
-  I checked these values.
-step 16: 2 is (1 + 1).
-  I checked these values.
-step 17: 2 =< 3.
-  I checked these values.
-step 18: between(2, 3, 2).
-  because rule 1 uses steps 17.
-  with Low = 2, High = 3.
-step 19: between(1, 3, 2).
-  because rule 3 uses steps 15, 16, 18.
-  with Low = 1, High = 3, Value = 2, Next = 2.
-  (1 + 1) = 2.
-step 20: between(0, 3, 2).
-  because rule 3 uses steps 5, 6, 19.
-  with Low = 0, High = 3, Value = 2, Next = 1.
-  (0 + 1) = 1.
-step 21: 2 > 0.
-  I checked these values.
-step 22: event(2, withdraw, 40).
-  you told me this.
-step 23: 1 is (2 - 1).
-  I checked these values.
-step 24: 85 is (125 - 40).
-  I checked these values.
-step 25: balance(2, 85).
-  because rule 5 uses steps 21, 22, 23, 14, 24.
-  with N = 2, Amount = 85, Value = 40, Before = 1, Previous = 125.
-  (2 - 1) = 1.
-  (125 - 40) = 85.
-step 26: 2 < 3.
-  I checked these values.
-step 27: 3 is (2 + 1).
-  I checked these values.
-step 28: 3 =< 3.
-  I checked these values.
-step 29: between(3, 3, 3).
-  because rule 1 uses steps 28.
-  with Low = 3, High = 3.
-step 30: between(2, 3, 3).
-  because rule 3 uses steps 26, 27, 29.
-  with Low = 2, High = 3, Value = 3, Next = 3.
-  (2 + 1) = 3.
-step 31: between(1, 3, 3).
-  because rule 3 uses steps 15, 16, 30.
-  with Low = 1, High = 3, Value = 3, Next = 2.
-  (1 + 1) = 2.
-step 32: between(0, 3, 3).
-  because rule 3 uses steps 5, 6, 31.
-  with Low = 0, High = 3, Value = 3, Next = 1.
-  (0 + 1) = 1.
-step 33: 3 > 0.
-  I checked these values.
-step 34: event(3, withdraw, 20).
-  you told me this.
-step 35: 2 is (3 - 1).
-  I checked these values.
-step 36: 65 is (85 - 20).
-  I checked these values.
-step 37: balance(3, 65).
-  because rule 5 uses steps 33, 34, 35, 25, 36.
-  with N = 3, Amount = 65, Value = 20, Before = 2, Previous = 85.
-  (3 - 1) = 2.
-  (85 - 20) = 65.
-That explains steps 2, 4, 9, 14, 20, 25, 32, 37.
+claim(query(1), [balance(3, 65)]).
+claim(query(3), [between(0, 3, 0), balance(0, 100)]).
+claim(query(3), [between(0, 3, 1), balance(1, 125)]).
+claim(query(3), [between(0, 3, 2), balance(2, 85)]).
+claim(query(3), [between(0, 3, 3), balance(3, 65)]).
+
+clause(1, between(var('Low'), var('High'), var('Low')), ['=<'(var('Low'), var('High'))]).
+clause(2, between(var('Low'), var('High'), var('Value')), ['<'(var('Low'), var('High')), is(var('Next'), '+'(var('Low'), 1)), between(var('Next'), var('High'), var('Value'))]).
+clause(3, opening_balance(100), []).
+clause(4, event(1, deposit, 25), []).
+clause(5, event(2, withdraw, 40), []).
+clause(6, event(3, withdraw, 20), []).
+clause(7, balance(0, var('Amount')), [opening_balance(var('Amount'))]).
+clause(8, balance(var('N'), var('Amount')), ['>'(var('N'), 0), event(var('N'), deposit, var('Value')), is(var('Before'), '-'(var('N'), 1)), balance(var('Before'), var('Previous')), is(var('Amount'), '+'(var('Previous'), var('Value')))]).
+clause(9, balance(var('N'), var('Amount')), ['>'(var('N'), 0), event(var('N'), withdraw, var('Value')), is(var('Before'), '-'(var('N'), 1)), balance(var('Before'), var('Previous')), is(var('Amount'), '-'(var('Previous'), var('Value')))]).
+
+% step 1
+step('>'(3, 0), builtin, [], []).
+% step 2
+step(event(3, withdraw, 20), fact(6), [], []).
+% step 3
+step(is(2, '-'(3, 1)), builtin, [], []).
+% step 4
+step('>'(2, 0), builtin, [], []).
+% step 5
+step(event(2, withdraw, 40), fact(5), [], []).
+% step 6
+step(is(1, '-'(2, 1)), builtin, [], []).
+% step 7
+step('>'(1, 0), builtin, [], []).
+% step 8
+step(event(1, deposit, 25), fact(4), [], []).
+% step 9
+step(is(0, '-'(1, 1)), builtin, [], []).
+% step 10
+step(opening_balance(100), fact(3), [], []).
+% step 11
+step(balance(0, 100), rule(7), ['='('Amount', 100)], [opening_balance(100)]).
+% step 12
+step(is(125, '+'(100, 25)), builtin, [], []).
+% step 13
+step(balance(1, 125), rule(8), ['='('N', 1), '='('Amount', 125), '='('Value', 25), '='('Before', 0), '='('Previous', 100)], ['>'(1, 0), event(1, deposit, 25), is(0, '-'(1, 1)), balance(0, 100), is(125, '+'(100, 25))]).
+% step 14
+step(is(85, '-'(125, 40)), builtin, [], []).
+% step 15
+step(balance(2, 85), rule(9), ['='('N', 2), '='('Amount', 85), '='('Value', 40), '='('Before', 1), '='('Previous', 125)], ['>'(2, 0), event(2, withdraw, 40), is(1, '-'(2, 1)), balance(1, 125), is(85, '-'(125, 40))]).
+% step 16
+step(is(65, '-'(85, 20)), builtin, [], []).
+% step 17
+step(balance(3, 65), rule(9), ['='('N', 3), '='('Amount', 65), '='('Value', 20), '='('Before', 2), '='('Previous', 85)], ['>'(3, 0), event(3, withdraw, 20), is(2, '-'(3, 1)), balance(2, 85), is(65, '-'(85, 20))]).
+% step 18
+step('=<'(0, 3), builtin, [], []).
+% step 19
+step(between(0, 3, 0), rule(1), ['='('Low', 0), '='('High', 3)], ['=<'(0, 3)]).
+% step 20
+step('<'(0, 3), builtin, [], []).
+% step 21
+step(is(1, '+'(0, 1)), builtin, [], []).
+% step 22
+step('=<'(1, 3), builtin, [], []).
+% step 23
+step(between(1, 3, 1), rule(1), ['='('Low', 1), '='('High', 3)], ['=<'(1, 3)]).
+% step 24
+step(between(0, 3, 1), rule(2), ['='('Low', 0), '='('High', 3), '='('Value', 1), '='('Next', 1)], ['<'(0, 3), is(1, '+'(0, 1)), between(1, 3, 1)]).
+% step 25
+step('<'(1, 3), builtin, [], []).
+% step 26
+step(is(2, '+'(1, 1)), builtin, [], []).
+% step 27
+step('=<'(2, 3), builtin, [], []).
+% step 28
+step(between(2, 3, 2), rule(1), ['='('Low', 2), '='('High', 3)], ['=<'(2, 3)]).
+% step 29
+step(between(1, 3, 2), rule(2), ['='('Low', 1), '='('High', 3), '='('Value', 2), '='('Next', 2)], ['<'(1, 3), is(2, '+'(1, 1)), between(2, 3, 2)]).
+% step 30
+step(between(0, 3, 2), rule(2), ['='('Low', 0), '='('High', 3), '='('Value', 2), '='('Next', 1)], ['<'(0, 3), is(1, '+'(0, 1)), between(1, 3, 2)]).
+% step 31
+step('<'(2, 3), builtin, [], []).
+% step 32
+step(is(3, '+'(2, 1)), builtin, [], []).
+% step 33
+step('=<'(3, 3), builtin, [], []).
+% step 34
+step(between(3, 3, 3), rule(1), ['='('Low', 3), '='('High', 3)], ['=<'(3, 3)]).
+% step 35
+step(between(2, 3, 3), rule(2), ['='('Low', 2), '='('High', 3), '='('Value', 3), '='('Next', 3)], ['<'(2, 3), is(3, '+'(2, 1)), between(3, 3, 3)]).
+% step 36
+step(between(1, 3, 3), rule(2), ['='('Low', 1), '='('High', 3), '='('Value', 3), '='('Next', 2)], ['<'(1, 3), is(2, '+'(1, 1)), between(2, 3, 3)]).
+% step 37
+step(between(0, 3, 3), rule(2), ['='('Low', 0), '='('High', 3), '='('Value', 3), '='('Next', 1)], ['<'(0, 3), is(1, '+'(0, 1)), between(1, 3, 3)]).
 
 % Check
 check passed: balance(0, 100).
@@ -177,3 +112,17 @@ check passed: balance(2, 85).
 check passed: balance(3, 65).
 
 check passed: aggregate_all(count, (balance(4, Amount)), 0).
+
+condition('C1', resolution, ok, 18).
+condition('C2', well_founded, ok, 37).
+condition('C3', justification, ok, 37).
+condition('C4', coverage, ok, 43).
+condition('C5', re_decision, ok, 19).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 42).
+steps(37).
+verified(18).
+recomputed(19).
+trusted(0).
+claims(5).
+verdict(checked).

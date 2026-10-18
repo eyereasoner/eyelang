@@ -38,17 +38,22 @@ visit(Place) :-
 The answer is `Where = park.`. The reason shows the actual rule application:
 
 ```text
-Here is why. Each step is shown once.
-rule 1: visit(Place) :- place(Place), open(Place).
-step 1: place(park).
-  you told me this.
-step 2: open(park).
-  you told me this.
-step 3: visit(park).
-  because rule 1 uses steps 1, 2.
-  with Place = park.
-That explains step 3.
+certificate(eyelang, 1).
+claim(query(1), [visit(park)]).
+clause(1, place(park), []).
+clause(2, open(park), []).
+clause(3, visit(var('Place')), [place(var('Place')), open(var('Place'))]).
+% step 1
+step(place(park), fact(1), [], []).
+% step 2
+step(open(park), fact(2), [], []).
+% step 3
+step(visit(park), rule(3), ['='('Place', park)], [place(park), open(park)]).
 ```
+
+`clause` records identify the source facts and rule. Each `step` records its
+conclusion, source clause, local bindings, and supporting goals. The Check
+section includes the verification report, ending in `verdict(checked).`
 
 `visit(park)` follows because both conditions hold. Remove `open(park).` and
 the assertion fails because the query has no successful answer. Remove the
@@ -338,10 +343,11 @@ predicate. The supplied index bounds this calculation; asking
 `fibonacci(N, Value)` with both variables unbound raises an
 error when `N > 1` needs its input.
 
-Every proof uses numbered rules and steps, with local bindings such as
-`N = 20`. Supporting steps appear before the steps that use them. A shared
-premise appears once, and later steps refer to its number. The same format
-applies to a single fact, a short derivation, or a deep chain. Each derived
+Every proof identifies source clauses and labels its steps, with local
+bindings such as `'='('N', 20)`. Supporting steps appear before the steps that
+use them. A shared premise appears once; later steps list its actual goal.
+The same certificate format applies to a single fact, a short derivation,
+or a deep chain. Each derived
 tuple retains one successful derivation; `why` does not enumerate every
 alternative proof of the same answer.
 
@@ -372,6 +378,52 @@ An assertion with variables checks that at least one matching solution exists.
 To verify that you have every expected answer, check individual results and an
 aggregate count, as in the route program. Checks use the same inference engine;
 known values, independent calculations, and identities make useful expectations.
+
+## 9. Check a proof independently
+
+Run the [Socrates example](https://eyereasoner.github.io/eyelang/playground/#example=socrates)
+in the playground or use the ordinary command:
+
+```sh
+node eyelang.js examples/socrates.pl
+```
+
+**Reason** contains the certificate requested by `?- why.`. **Check** contains
+its C1–C7 verification report after the assertions. The checker compares each
+recorded rule application with the source, checks supporting steps, rejects
+cycles, and recomputes builtins. It does not rerun source rules to find a
+missing derivation. Repeated `why` requests share one certificate and report.
+
+You can also check an extracted Reason certificate through the JavaScript API:
+
+```js
+import { checkProof } from './src/language.js';
+
+const report = checkProof(source, certificate);
+console.log(report.valid, report.trusted);
+const strict = checkProof(source, certificate, { allowTrusted: false });
+```
+
+`source` is the original program text; `certificate` is the text between the
+Reason and Check headings. Changing a recorded conclusion or supporting step
+can make checking fail. **Copy output** and **Save output** retain the full
+ARC transcript, including the certificate and its report.
+
+Negation may depend on the claim that no answer exists. An aggregate may
+depend on its recorded collection containing every answer. The checker
+verifies supplied steps and aggregate calculations, and detects contradictions
+in available evidence, but does not independently establish those completeness
+claims. It records them as obligations and reports
+`verdict(checked_with_obligations).`. Strict API checking rejects them.
+A proof without obligations ends with `verdict(checked).`.
+
+A certificate establishes its recorded successful answers relative to the
+supplied facts and rules. It does not establish the truth of those facts,
+that every answer was found, or that an unsuccessful query has no answer.
+Assertions run before certificate generation, but are not automatically
+certificate claims. The
+[specification](https://eyereasoner.github.io/eyelang/SPEC/#82-independent-checking)
+defines the format, check conditions, and trust limits.
 
 ## Build your own rulebook
 

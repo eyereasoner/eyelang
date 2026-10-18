@@ -18,6 +18,7 @@ expected results come from the current
 | §6: completed negation, stratification, arity and constant dependencies, bound negative tests | `negation.test.js`, `aggregation.test.js` |
 | §7: distinct completed producer tuples, empty aggregates, exact sums, extrema, outer bindings, local variables | `aggregation.test.js` |
 | §8: supplied facts, applied clauses, arithmetic, absence, aggregates, complete proof steps, explanation context | `explanations.test.js` |
+| §8.1–8.2, §10: certificate records, source citations, C1–C7, tampering, trust obligations, strict API checking, reports, unified ARC output | `../proof.test.js` (included in `npm test`) |
 | §9: existential checks, check order, source lines, checks do not assert facts | `explanations.test.js`, `cli.test.js` |
 | §10: files/stdin, help/version, errors, exit status, ARC grouping and query context, no partial transcript | `cli.test.js`, `explanations.test.js` |
 | §12: rejected syntax and operations outside the subset | `language.test.js`, `terms.test.js`, `arithmetic.test.js`, `negation.test.js` |

@@ -33,1205 +33,869 @@ Node = web_store.
 Node = mobile_app.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: subset([Head | Rest], [Head | Chosen]) :- subset(Rest, Chosen).
-rule 2: subset([_ | Rest], Chosen) :- subset(Rest, Chosen).
-rule 3: healthy(Node) :- node(Node, _), \+ (failed(Node)).
-rule 4: hardware_available(Node, _Plan) :- healthy(Node).
-rule 5: member(Head, [Head | _]).
-rule 6: hardware_available(Node, Plan) :- failed(Node), member(Node, Plan).
-rule 7: all_groups([], _Plan).
-rule 8: operating(Node, Plan) :- hardware_available(Node, Plan), node(Node, Groups), all_groups(Groups, Plan).
-rule 9: group_operating(Group, Plan) :- provider(Group, Node), operating(Node, Plan).
-rule 10: member(Value, [_ | Rest]) :- member(Value, Rest).
-rule 11: all_groups([Group | Rest], Plan) :- group_operating(Group, Plan), all_groups(Rest, Plan).
-rule 12: all_operating([], _Plan).
-rule 13: all_operating([Node | Rest], Plan) :- operating(Node, Plan), all_operating(Rest, Plan).
-rule 14: repair_cost([Node | Rest], Cost) :- repair_price(Node, Own), repair_cost(Rest, Tail), Cost is (Own + Tail).
-rule 15: feasible_repair(Plan, Cost) :- repair_candidates(Candidates), subset(Candidates, Plan), critical_services(Required), all_operating(Required, Plan), repair_cost(Plan, Cost).
-rule 16: best_repair(Plan, Cost) :- aggregate_all(min(Value), (feasible_repair(Candidate, Value)), Cost), feasible_repair(Plan, Cost).
-step 1: repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  you told me this.
-step 2: subset([], []).
-  you told me this.
-step 3: subset([bank_backup], [bank_backup]).
-  because rule 1 uses steps 2.
-  with Head = bank_backup, Rest = [], Chosen = [].
-step 4: subset([bank_primary, bank_backup], [bank_backup]).
-  because rule 2 uses steps 3.
-  with Rest = [bank_backup], Chosen = [bank_backup].
-step 5: subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_backup]).
-  because rule 1 uses steps 4.
-  with Head = catalog_replica, Rest = [bank_primary, bank_backup], Chosen = [bank_backup].
-step 6: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_backup]).
-  because rule 2 uses steps 5.
-  with Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [catalog_replica, bank_backup].
-step 7: critical_services([web_store, mobile_app]).
-  you told me this.
-step 8: node(web_store, [checkout]).
-  you told me this.
-step 9: \+ (failed(web_store)).
-  I checked the completed program and found no matching fact.
-step 10: healthy(web_store).
-  because rule 3 uses steps 8, 9.
-  with Node = web_store.
-step 11: hardware_available(web_store, [catalog_replica, bank_backup]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_replica, bank_backup].
-step 12: provider(checkout, checkout_api).
-  you told me this.
-step 13: node(checkout_api, [catalog, payment]).
-  you told me this.
-step 14: \+ (failed(checkout_api)).
-  I checked the completed program and found no matching fact.
-step 15: healthy(checkout_api).
-  because rule 3 uses steps 13, 14.
-  with Node = checkout_api.
-step 16: hardware_available(checkout_api, [catalog_replica, bank_backup]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_replica, bank_backup].
-step 17: provider(catalog, catalog_replica).
-  you told me this.
-step 18: failed(catalog_replica).
-  you told me this.
-step 19: member(catalog_replica, [catalog_replica, bank_backup]).
-  because rule 5.
-  with Head = catalog_replica.
-step 20: hardware_available(catalog_replica, [catalog_replica, bank_backup]).
-  because rule 6 uses steps 18, 19.
-  with Node = catalog_replica, Plan = [catalog_replica, bank_backup].
-step 21: node(catalog_replica, []).
-  you told me this.
-step 22: all_groups([], [catalog_replica, bank_backup]).
-  because rule 7.
-  with _Plan = [catalog_replica, bank_backup].
-step 23: operating(catalog_replica, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 20, 21, 22.
-  with Node = catalog_replica, Plan = [catalog_replica, bank_backup], Groups = [].
-step 24: group_operating(catalog, [catalog_replica, bank_backup]).
-  because rule 9 uses steps 17, 23.
-  with Group = catalog, Plan = [catalog_replica, bank_backup], Node = catalog_replica.
-step 25: provider(payment, payment_service).
-  you told me this.
-step 26: node(payment_service, [bank, risk]).
-  you told me this.
-step 27: \+ (failed(payment_service)).
-  I checked the completed program and found no matching fact.
-step 28: healthy(payment_service).
-  because rule 3 uses steps 26, 27.
-  with Node = payment_service.
-step 29: hardware_available(payment_service, [catalog_replica, bank_backup]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_replica, bank_backup].
-step 30: provider(bank, bank_backup).
-  you told me this.
-step 31: failed(bank_backup).
-  you told me this.
-step 32: member(bank_backup, [bank_backup]).
-  because rule 5.
-  with Head = bank_backup.
-step 33: member(bank_backup, [catalog_replica, bank_backup]).
-  because rule 10 uses steps 32.
-  with Value = bank_backup, Rest = [bank_backup].
-step 34: hardware_available(bank_backup, [catalog_replica, bank_backup]).
-  because rule 6 uses steps 31, 33.
-  with Node = bank_backup, Plan = [catalog_replica, bank_backup].
-step 35: node(bank_backup, []).
-  you told me this.
-step 36: operating(bank_backup, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 34, 35, 22.
-  with Node = bank_backup, Plan = [catalog_replica, bank_backup], Groups = [].
-step 37: group_operating(bank, [catalog_replica, bank_backup]).
-  because rule 9 uses steps 30, 36.
-  with Group = bank, Plan = [catalog_replica, bank_backup], Node = bank_backup.
-step 38: provider(risk, risk_engine).
-  you told me this.
-step 39: node(risk_engine, [risk_signal]).
-  you told me this.
-step 40: \+ (failed(risk_engine)).
-  I checked the completed program and found no matching fact.
-step 41: healthy(risk_engine).
-  because rule 3 uses steps 39, 40.
-  with Node = risk_engine.
-step 42: hardware_available(risk_engine, [catalog_replica, bank_backup]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_replica, bank_backup].
-step 43: provider(risk_signal, risk_cache).
-  you told me this.
-step 44: node(risk_cache, []).
-  you told me this.
-step 45: \+ (failed(risk_cache)).
-  I checked the completed program and found no matching fact.
-step 46: healthy(risk_cache).
-  because rule 3 uses steps 44, 45.
-  with Node = risk_cache.
-step 47: hardware_available(risk_cache, [catalog_replica, bank_backup]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_replica, bank_backup].
-step 48: operating(risk_cache, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 47, 44, 22.
-  with Node = risk_cache, Plan = [catalog_replica, bank_backup], Groups = [].
-step 49: group_operating(risk_signal, [catalog_replica, bank_backup]).
-  because rule 9 uses steps 43, 48.
-  with Group = risk_signal, Plan = [catalog_replica, bank_backup], Node = risk_cache.
-step 50: all_groups([risk_signal], [catalog_replica, bank_backup]).
-  because rule 11 uses steps 49, 22.
-  with Group = risk_signal, Rest = [], Plan = [catalog_replica, bank_backup].
-step 51: operating(risk_engine, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 42, 39, 50.
-  with Node = risk_engine, Plan = [catalog_replica, bank_backup], Groups = [risk_signal].
-step 52: group_operating(risk, [catalog_replica, bank_backup]).
-  because rule 9 uses steps 38, 51.
-  with Group = risk, Plan = [catalog_replica, bank_backup], Node = risk_engine.
-step 53: all_groups([risk], [catalog_replica, bank_backup]).
-  because rule 11 uses steps 52, 22.
-  with Group = risk, Rest = [], Plan = [catalog_replica, bank_backup].
-step 54: all_groups([bank, risk], [catalog_replica, bank_backup]).
-  because rule 11 uses steps 37, 53.
-  with Group = bank, Rest = [risk], Plan = [catalog_replica, bank_backup].
-step 55: operating(payment_service, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 29, 26, 54.
-  with Node = payment_service, Plan = [catalog_replica, bank_backup], Groups = [bank, risk].
-step 56: group_operating(payment, [catalog_replica, bank_backup]).
-  because rule 9 uses steps 25, 55.
-  with Group = payment, Plan = [catalog_replica, bank_backup], Node = payment_service.
-step 57: all_groups([payment], [catalog_replica, bank_backup]).
-  because rule 11 uses steps 56, 22.
-  with Group = payment, Rest = [], Plan = [catalog_replica, bank_backup].
-step 58: all_groups([catalog, payment], [catalog_replica, bank_backup]).
-  because rule 11 uses steps 24, 57.
-  with Group = catalog, Rest = [payment], Plan = [catalog_replica, bank_backup].
-step 59: operating(checkout_api, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 16, 13, 58.
-  with Node = checkout_api, Plan = [catalog_replica, bank_backup], Groups = [catalog, payment].
-step 60: group_operating(checkout, [catalog_replica, bank_backup]).
-  because rule 9 uses steps 12, 59.
-  with Group = checkout, Plan = [catalog_replica, bank_backup], Node = checkout_api.
-step 61: all_groups([checkout], [catalog_replica, bank_backup]).
-  because rule 11 uses steps 60, 22.
-  with Group = checkout, Rest = [], Plan = [catalog_replica, bank_backup].
-step 62: operating(web_store, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 11, 8, 61.
-  with Node = web_store, Plan = [catalog_replica, bank_backup], Groups = [checkout].
-step 63: node(mobile_app, [checkout]).
-  you told me this.
-step 64: \+ (failed(mobile_app)).
-  I checked the completed program and found no matching fact.
-step 65: healthy(mobile_app).
-  because rule 3 uses steps 63, 64.
-  with Node = mobile_app.
-step 66: hardware_available(mobile_app, [catalog_replica, bank_backup]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_replica, bank_backup].
-step 67: operating(mobile_app, [catalog_replica, bank_backup]).
-  because rule 8 uses steps 66, 63, 61.
-  with Node = mobile_app, Plan = [catalog_replica, bank_backup], Groups = [checkout].
-step 68: all_operating([], [catalog_replica, bank_backup]).
-  because rule 12.
-  with _Plan = [catalog_replica, bank_backup].
-step 69: all_operating([mobile_app], [catalog_replica, bank_backup]).
-  because rule 13 uses steps 67, 68.
-  with Node = mobile_app, Rest = [], Plan = [catalog_replica, bank_backup].
-step 70: all_operating([web_store, mobile_app], [catalog_replica, bank_backup]).
-  because rule 13 uses steps 62, 69.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_replica, bank_backup].
-step 71: repair_price(catalog_replica, 2).
-  you told me this.
-step 72: repair_price(bank_backup, 1).
-  you told me this.
-step 73: repair_cost([], 0).
-  you told me this.
-step 74: 1 is (1 + 0).
-  I checked these values.
-step 75: repair_cost([bank_backup], 1).
-  because rule 14 uses steps 72, 73, 74.
-  with Node = bank_backup, Rest = [], Cost = 1, Own = 1, Tail = 0.
-  (1 + 0) = 1.
-step 76: 3 is (2 + 1).
-  I checked these values.
-step 77: repair_cost([catalog_replica, bank_backup], 3).
-  because rule 14 uses steps 71, 75, 76.
-  with Node = catalog_replica, Rest = [bank_backup], Cost = 3, Own = 2, Tail = 1.
-  (2 + 1) = 3.
-step 78: feasible_repair([catalog_replica, bank_backup], 3).
-  because rule 15 uses steps 1, 6, 7, 70, 77.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_replica, bank_backup], Required = [web_store, mobile_app], Cost = 3.
-step 79: subset([catalog_replica, bank_primary, bank_backup], [bank_backup]).
-  because rule 2 uses steps 4.
-  with Rest = [bank_primary, bank_backup], Chosen = [bank_backup].
-step 80: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_backup]).
-  because rule 1 uses steps 79.
-  with Head = catalog_primary, Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [bank_backup].
-step 81: hardware_available(web_store, [catalog_primary, bank_backup]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_primary, bank_backup].
-step 82: hardware_available(checkout_api, [catalog_primary, bank_backup]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_primary, bank_backup].
-step 83: provider(catalog, catalog_primary).
-  you told me this.
-step 84: failed(catalog_primary).
-  you told me this.
-step 85: member(catalog_primary, [catalog_primary, bank_backup]).
-  because rule 5.
-  with Head = catalog_primary.
-step 86: hardware_available(catalog_primary, [catalog_primary, bank_backup]).
-  because rule 6 uses steps 84, 85.
-  with Node = catalog_primary, Plan = [catalog_primary, bank_backup].
-step 87: node(catalog_primary, []).
-  you told me this.
-step 88: all_groups([], [catalog_primary, bank_backup]).
-  because rule 7.
-  with _Plan = [catalog_primary, bank_backup].
-step 89: operating(catalog_primary, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 86, 87, 88.
-  with Node = catalog_primary, Plan = [catalog_primary, bank_backup], Groups = [].
-step 90: group_operating(catalog, [catalog_primary, bank_backup]).
-  because rule 9 uses steps 83, 89.
-  with Group = catalog, Plan = [catalog_primary, bank_backup], Node = catalog_primary.
-step 91: hardware_available(payment_service, [catalog_primary, bank_backup]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_primary, bank_backup].
-step 92: member(bank_backup, [catalog_primary, bank_backup]).
-  because rule 10 uses steps 32.
-  with Value = bank_backup, Rest = [bank_backup].
-step 93: hardware_available(bank_backup, [catalog_primary, bank_backup]).
-  because rule 6 uses steps 31, 92.
-  with Node = bank_backup, Plan = [catalog_primary, bank_backup].
-step 94: operating(bank_backup, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 93, 35, 88.
-  with Node = bank_backup, Plan = [catalog_primary, bank_backup], Groups = [].
-step 95: group_operating(bank, [catalog_primary, bank_backup]).
-  because rule 9 uses steps 30, 94.
-  with Group = bank, Plan = [catalog_primary, bank_backup], Node = bank_backup.
-step 96: hardware_available(risk_engine, [catalog_primary, bank_backup]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_primary, bank_backup].
-step 97: hardware_available(risk_cache, [catalog_primary, bank_backup]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_primary, bank_backup].
-step 98: operating(risk_cache, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 97, 44, 88.
-  with Node = risk_cache, Plan = [catalog_primary, bank_backup], Groups = [].
-step 99: group_operating(risk_signal, [catalog_primary, bank_backup]).
-  because rule 9 uses steps 43, 98.
-  with Group = risk_signal, Plan = [catalog_primary, bank_backup], Node = risk_cache.
-step 100: all_groups([risk_signal], [catalog_primary, bank_backup]).
-  because rule 11 uses steps 99, 88.
-  with Group = risk_signal, Rest = [], Plan = [catalog_primary, bank_backup].
-step 101: operating(risk_engine, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 96, 39, 100.
-  with Node = risk_engine, Plan = [catalog_primary, bank_backup], Groups = [risk_signal].
-step 102: group_operating(risk, [catalog_primary, bank_backup]).
-  because rule 9 uses steps 38, 101.
-  with Group = risk, Plan = [catalog_primary, bank_backup], Node = risk_engine.
-step 103: all_groups([risk], [catalog_primary, bank_backup]).
-  because rule 11 uses steps 102, 88.
-  with Group = risk, Rest = [], Plan = [catalog_primary, bank_backup].
-step 104: all_groups([bank, risk], [catalog_primary, bank_backup]).
-  because rule 11 uses steps 95, 103.
-  with Group = bank, Rest = [risk], Plan = [catalog_primary, bank_backup].
-step 105: operating(payment_service, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 91, 26, 104.
-  with Node = payment_service, Plan = [catalog_primary, bank_backup], Groups = [bank, risk].
-step 106: group_operating(payment, [catalog_primary, bank_backup]).
-  because rule 9 uses steps 25, 105.
-  with Group = payment, Plan = [catalog_primary, bank_backup], Node = payment_service.
-step 107: all_groups([payment], [catalog_primary, bank_backup]).
-  because rule 11 uses steps 106, 88.
-  with Group = payment, Rest = [], Plan = [catalog_primary, bank_backup].
-step 108: all_groups([catalog, payment], [catalog_primary, bank_backup]).
-  because rule 11 uses steps 90, 107.
-  with Group = catalog, Rest = [payment], Plan = [catalog_primary, bank_backup].
-step 109: operating(checkout_api, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 82, 13, 108.
-  with Node = checkout_api, Plan = [catalog_primary, bank_backup], Groups = [catalog, payment].
-step 110: group_operating(checkout, [catalog_primary, bank_backup]).
-  because rule 9 uses steps 12, 109.
-  with Group = checkout, Plan = [catalog_primary, bank_backup], Node = checkout_api.
-step 111: all_groups([checkout], [catalog_primary, bank_backup]).
-  because rule 11 uses steps 110, 88.
-  with Group = checkout, Rest = [], Plan = [catalog_primary, bank_backup].
-step 112: operating(web_store, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 81, 8, 111.
-  with Node = web_store, Plan = [catalog_primary, bank_backup], Groups = [checkout].
-step 113: hardware_available(mobile_app, [catalog_primary, bank_backup]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_primary, bank_backup].
-step 114: operating(mobile_app, [catalog_primary, bank_backup]).
-  because rule 8 uses steps 113, 63, 111.
-  with Node = mobile_app, Plan = [catalog_primary, bank_backup], Groups = [checkout].
-step 115: all_operating([], [catalog_primary, bank_backup]).
-  because rule 12.
-  with _Plan = [catalog_primary, bank_backup].
-step 116: all_operating([mobile_app], [catalog_primary, bank_backup]).
-  because rule 13 uses steps 114, 115.
-  with Node = mobile_app, Rest = [], Plan = [catalog_primary, bank_backup].
-step 117: all_operating([web_store, mobile_app], [catalog_primary, bank_backup]).
-  because rule 13 uses steps 112, 116.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_primary, bank_backup].
-step 118: repair_price(catalog_primary, 3).
-  you told me this.
-step 119: 4 is (3 + 1).
-  I checked these values.
-step 120: repair_cost([catalog_primary, bank_backup], 4).
-  because rule 14 uses steps 118, 75, 119.
-  with Node = catalog_primary, Rest = [bank_backup], Cost = 4, Own = 3, Tail = 1.
-  (3 + 1) = 4.
-step 121: feasible_repair([catalog_primary, bank_backup], 4).
-  because rule 15 uses steps 1, 80, 7, 117, 120.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_primary, bank_backup], Required = [web_store, mobile_app], Cost = 4.
-step 122: subset([bank_backup], []).
-  because rule 2 uses steps 2.
-  with Rest = [], Chosen = [].
-step 123: subset([bank_primary, bank_backup], [bank_primary]).
-  because rule 1 uses steps 122.
-  with Head = bank_primary, Rest = [bank_backup], Chosen = [].
-step 124: subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary]).
-  because rule 1 uses steps 123.
-  with Head = catalog_replica, Rest = [bank_primary, bank_backup], Chosen = [bank_primary].
-step 125: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary]).
-  because rule 2 uses steps 124.
-  with Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [catalog_replica, bank_primary].
-step 126: hardware_available(web_store, [catalog_replica, bank_primary]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_replica, bank_primary].
-step 127: hardware_available(checkout_api, [catalog_replica, bank_primary]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_replica, bank_primary].
-step 128: member(catalog_replica, [catalog_replica, bank_primary]).
-  because rule 5.
-  with Head = catalog_replica.
-step 129: hardware_available(catalog_replica, [catalog_replica, bank_primary]).
-  because rule 6 uses steps 18, 128.
-  with Node = catalog_replica, Plan = [catalog_replica, bank_primary].
-step 130: all_groups([], [catalog_replica, bank_primary]).
-  because rule 7.
-  with _Plan = [catalog_replica, bank_primary].
-step 131: operating(catalog_replica, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 129, 21, 130.
-  with Node = catalog_replica, Plan = [catalog_replica, bank_primary], Groups = [].
-step 132: group_operating(catalog, [catalog_replica, bank_primary]).
-  because rule 9 uses steps 17, 131.
-  with Group = catalog, Plan = [catalog_replica, bank_primary], Node = catalog_replica.
-step 133: hardware_available(payment_service, [catalog_replica, bank_primary]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_replica, bank_primary].
-step 134: provider(bank, bank_primary).
-  you told me this.
-step 135: failed(bank_primary).
-  you told me this.
-step 136: member(bank_primary, [bank_primary]).
-  because rule 5.
-  with Head = bank_primary.
-step 137: member(bank_primary, [catalog_replica, bank_primary]).
-  because rule 10 uses steps 136.
-  with Value = bank_primary, Rest = [bank_primary].
-step 138: hardware_available(bank_primary, [catalog_replica, bank_primary]).
-  because rule 6 uses steps 135, 137.
-  with Node = bank_primary, Plan = [catalog_replica, bank_primary].
-step 139: node(bank_primary, []).
-  you told me this.
-step 140: operating(bank_primary, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 138, 139, 130.
-  with Node = bank_primary, Plan = [catalog_replica, bank_primary], Groups = [].
-step 141: group_operating(bank, [catalog_replica, bank_primary]).
-  because rule 9 uses steps 134, 140.
-  with Group = bank, Plan = [catalog_replica, bank_primary], Node = bank_primary.
-step 142: hardware_available(risk_engine, [catalog_replica, bank_primary]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_replica, bank_primary].
-step 143: hardware_available(risk_cache, [catalog_replica, bank_primary]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_replica, bank_primary].
-step 144: operating(risk_cache, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 143, 44, 130.
-  with Node = risk_cache, Plan = [catalog_replica, bank_primary], Groups = [].
-step 145: group_operating(risk_signal, [catalog_replica, bank_primary]).
-  because rule 9 uses steps 43, 144.
-  with Group = risk_signal, Plan = [catalog_replica, bank_primary], Node = risk_cache.
-step 146: all_groups([risk_signal], [catalog_replica, bank_primary]).
-  because rule 11 uses steps 145, 130.
-  with Group = risk_signal, Rest = [], Plan = [catalog_replica, bank_primary].
-step 147: operating(risk_engine, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 142, 39, 146.
-  with Node = risk_engine, Plan = [catalog_replica, bank_primary], Groups = [risk_signal].
-step 148: group_operating(risk, [catalog_replica, bank_primary]).
-  because rule 9 uses steps 38, 147.
-  with Group = risk, Plan = [catalog_replica, bank_primary], Node = risk_engine.
-step 149: all_groups([risk], [catalog_replica, bank_primary]).
-  because rule 11 uses steps 148, 130.
-  with Group = risk, Rest = [], Plan = [catalog_replica, bank_primary].
-step 150: all_groups([bank, risk], [catalog_replica, bank_primary]).
-  because rule 11 uses steps 141, 149.
-  with Group = bank, Rest = [risk], Plan = [catalog_replica, bank_primary].
-step 151: operating(payment_service, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 133, 26, 150.
-  with Node = payment_service, Plan = [catalog_replica, bank_primary], Groups = [bank, risk].
-step 152: group_operating(payment, [catalog_replica, bank_primary]).
-  because rule 9 uses steps 25, 151.
-  with Group = payment, Plan = [catalog_replica, bank_primary], Node = payment_service.
-step 153: all_groups([payment], [catalog_replica, bank_primary]).
-  because rule 11 uses steps 152, 130.
-  with Group = payment, Rest = [], Plan = [catalog_replica, bank_primary].
-step 154: all_groups([catalog, payment], [catalog_replica, bank_primary]).
-  because rule 11 uses steps 132, 153.
-  with Group = catalog, Rest = [payment], Plan = [catalog_replica, bank_primary].
-step 155: operating(checkout_api, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 127, 13, 154.
-  with Node = checkout_api, Plan = [catalog_replica, bank_primary], Groups = [catalog, payment].
-step 156: group_operating(checkout, [catalog_replica, bank_primary]).
-  because rule 9 uses steps 12, 155.
-  with Group = checkout, Plan = [catalog_replica, bank_primary], Node = checkout_api.
-step 157: all_groups([checkout], [catalog_replica, bank_primary]).
-  because rule 11 uses steps 156, 130.
-  with Group = checkout, Rest = [], Plan = [catalog_replica, bank_primary].
-step 158: operating(web_store, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 126, 8, 157.
-  with Node = web_store, Plan = [catalog_replica, bank_primary], Groups = [checkout].
-step 159: hardware_available(mobile_app, [catalog_replica, bank_primary]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_replica, bank_primary].
-step 160: operating(mobile_app, [catalog_replica, bank_primary]).
-  because rule 8 uses steps 159, 63, 157.
-  with Node = mobile_app, Plan = [catalog_replica, bank_primary], Groups = [checkout].
-step 161: all_operating([], [catalog_replica, bank_primary]).
-  because rule 12.
-  with _Plan = [catalog_replica, bank_primary].
-step 162: all_operating([mobile_app], [catalog_replica, bank_primary]).
-  because rule 13 uses steps 160, 161.
-  with Node = mobile_app, Rest = [], Plan = [catalog_replica, bank_primary].
-step 163: all_operating([web_store, mobile_app], [catalog_replica, bank_primary]).
-  because rule 13 uses steps 158, 162.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_replica, bank_primary].
-step 164: repair_price(bank_primary, 4).
-  you told me this.
-step 165: 4 is (4 + 0).
-  I checked these values.
-step 166: repair_cost([bank_primary], 4).
-  because rule 14 uses steps 164, 73, 165.
-  with Node = bank_primary, Rest = [], Cost = 4, Own = 4, Tail = 0.
-  (4 + 0) = 4.
-step 167: 6 is (2 + 4).
-  I checked these values.
-step 168: repair_cost([catalog_replica, bank_primary], 6).
-  because rule 14 uses steps 71, 166, 167.
-  with Node = catalog_replica, Rest = [bank_primary], Cost = 6, Own = 2, Tail = 4.
-  (2 + 4) = 6.
-step 169: feasible_repair([catalog_replica, bank_primary], 6).
-  because rule 15 uses steps 1, 125, 7, 163, 168.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_replica, bank_primary], Required = [web_store, mobile_app], Cost = 6.
-step 170: subset([catalog_replica, bank_primary, bank_backup], [bank_primary]).
-  because rule 2 uses steps 123.
-  with Rest = [bank_primary, bank_backup], Chosen = [bank_primary].
-step 171: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_primary]).
-  because rule 1 uses steps 170.
-  with Head = catalog_primary, Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [bank_primary].
-step 172: hardware_available(web_store, [catalog_primary, bank_primary]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_primary, bank_primary].
-step 173: hardware_available(checkout_api, [catalog_primary, bank_primary]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_primary, bank_primary].
-step 174: member(catalog_primary, [catalog_primary, bank_primary]).
-  because rule 5.
-  with Head = catalog_primary.
-step 175: hardware_available(catalog_primary, [catalog_primary, bank_primary]).
-  because rule 6 uses steps 84, 174.
-  with Node = catalog_primary, Plan = [catalog_primary, bank_primary].
-step 176: all_groups([], [catalog_primary, bank_primary]).
-  because rule 7.
-  with _Plan = [catalog_primary, bank_primary].
-step 177: operating(catalog_primary, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 175, 87, 176.
-  with Node = catalog_primary, Plan = [catalog_primary, bank_primary], Groups = [].
-step 178: group_operating(catalog, [catalog_primary, bank_primary]).
-  because rule 9 uses steps 83, 177.
-  with Group = catalog, Plan = [catalog_primary, bank_primary], Node = catalog_primary.
-step 179: hardware_available(payment_service, [catalog_primary, bank_primary]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_primary, bank_primary].
-step 180: member(bank_primary, [catalog_primary, bank_primary]).
-  because rule 10 uses steps 136.
-  with Value = bank_primary, Rest = [bank_primary].
-step 181: hardware_available(bank_primary, [catalog_primary, bank_primary]).
-  because rule 6 uses steps 135, 180.
-  with Node = bank_primary, Plan = [catalog_primary, bank_primary].
-step 182: operating(bank_primary, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 181, 139, 176.
-  with Node = bank_primary, Plan = [catalog_primary, bank_primary], Groups = [].
-step 183: group_operating(bank, [catalog_primary, bank_primary]).
-  because rule 9 uses steps 134, 182.
-  with Group = bank, Plan = [catalog_primary, bank_primary], Node = bank_primary.
-step 184: hardware_available(risk_engine, [catalog_primary, bank_primary]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_primary, bank_primary].
-step 185: hardware_available(risk_cache, [catalog_primary, bank_primary]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_primary, bank_primary].
-step 186: operating(risk_cache, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 185, 44, 176.
-  with Node = risk_cache, Plan = [catalog_primary, bank_primary], Groups = [].
-step 187: group_operating(risk_signal, [catalog_primary, bank_primary]).
-  because rule 9 uses steps 43, 186.
-  with Group = risk_signal, Plan = [catalog_primary, bank_primary], Node = risk_cache.
-step 188: all_groups([risk_signal], [catalog_primary, bank_primary]).
-  because rule 11 uses steps 187, 176.
-  with Group = risk_signal, Rest = [], Plan = [catalog_primary, bank_primary].
-step 189: operating(risk_engine, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 184, 39, 188.
-  with Node = risk_engine, Plan = [catalog_primary, bank_primary], Groups = [risk_signal].
-step 190: group_operating(risk, [catalog_primary, bank_primary]).
-  because rule 9 uses steps 38, 189.
-  with Group = risk, Plan = [catalog_primary, bank_primary], Node = risk_engine.
-step 191: all_groups([risk], [catalog_primary, bank_primary]).
-  because rule 11 uses steps 190, 176.
-  with Group = risk, Rest = [], Plan = [catalog_primary, bank_primary].
-step 192: all_groups([bank, risk], [catalog_primary, bank_primary]).
-  because rule 11 uses steps 183, 191.
-  with Group = bank, Rest = [risk], Plan = [catalog_primary, bank_primary].
-step 193: operating(payment_service, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 179, 26, 192.
-  with Node = payment_service, Plan = [catalog_primary, bank_primary], Groups = [bank, risk].
-step 194: group_operating(payment, [catalog_primary, bank_primary]).
-  because rule 9 uses steps 25, 193.
-  with Group = payment, Plan = [catalog_primary, bank_primary], Node = payment_service.
-step 195: all_groups([payment], [catalog_primary, bank_primary]).
-  because rule 11 uses steps 194, 176.
-  with Group = payment, Rest = [], Plan = [catalog_primary, bank_primary].
-step 196: all_groups([catalog, payment], [catalog_primary, bank_primary]).
-  because rule 11 uses steps 178, 195.
-  with Group = catalog, Rest = [payment], Plan = [catalog_primary, bank_primary].
-step 197: operating(checkout_api, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 173, 13, 196.
-  with Node = checkout_api, Plan = [catalog_primary, bank_primary], Groups = [catalog, payment].
-step 198: group_operating(checkout, [catalog_primary, bank_primary]).
-  because rule 9 uses steps 12, 197.
-  with Group = checkout, Plan = [catalog_primary, bank_primary], Node = checkout_api.
-step 199: all_groups([checkout], [catalog_primary, bank_primary]).
-  because rule 11 uses steps 198, 176.
-  with Group = checkout, Rest = [], Plan = [catalog_primary, bank_primary].
-step 200: operating(web_store, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 172, 8, 199.
-  with Node = web_store, Plan = [catalog_primary, bank_primary], Groups = [checkout].
-step 201: hardware_available(mobile_app, [catalog_primary, bank_primary]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_primary, bank_primary].
-step 202: operating(mobile_app, [catalog_primary, bank_primary]).
-  because rule 8 uses steps 201, 63, 199.
-  with Node = mobile_app, Plan = [catalog_primary, bank_primary], Groups = [checkout].
-step 203: all_operating([], [catalog_primary, bank_primary]).
-  because rule 12.
-  with _Plan = [catalog_primary, bank_primary].
-step 204: all_operating([mobile_app], [catalog_primary, bank_primary]).
-  because rule 13 uses steps 202, 203.
-  with Node = mobile_app, Rest = [], Plan = [catalog_primary, bank_primary].
-step 205: all_operating([web_store, mobile_app], [catalog_primary, bank_primary]).
-  because rule 13 uses steps 200, 204.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_primary, bank_primary].
-step 206: 7 is (3 + 4).
-  I checked these values.
-step 207: repair_cost([catalog_primary, bank_primary], 7).
-  because rule 14 uses steps 118, 166, 206.
-  with Node = catalog_primary, Rest = [bank_primary], Cost = 7, Own = 3, Tail = 4.
-  (3 + 4) = 7.
-step 208: feasible_repair([catalog_primary, bank_primary], 7).
-  because rule 15 uses steps 1, 171, 7, 205, 207.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_primary, bank_primary], Required = [web_store, mobile_app], Cost = 7.
-step 209: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 1 uses steps 5.
-  with Head = catalog_primary, Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [catalog_replica, bank_backup].
-step 210: hardware_available(web_store, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 211: hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 212: member(catalog_primary, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 5.
-  with Head = catalog_primary.
-step 213: hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 6 uses steps 84, 212.
-  with Node = catalog_primary, Plan = [catalog_primary, catalog_replica, bank_backup].
-step 214: all_groups([], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 7.
-  with _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 215: operating(catalog_primary, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 213, 87, 214.
-  with Node = catalog_primary, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [].
-step 216: group_operating(catalog, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 9 uses steps 83, 215.
-  with Group = catalog, Plan = [catalog_primary, catalog_replica, bank_backup], Node = catalog_primary.
-step 217: hardware_available(payment_service, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 218: member(bank_backup, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 10 uses steps 33.
-  with Value = bank_backup, Rest = [catalog_replica, bank_backup].
-step 219: hardware_available(bank_backup, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 6 uses steps 31, 218.
-  with Node = bank_backup, Plan = [catalog_primary, catalog_replica, bank_backup].
-step 220: operating(bank_backup, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 219, 35, 214.
-  with Node = bank_backup, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [].
-step 221: group_operating(bank, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 9 uses steps 30, 220.
-  with Group = bank, Plan = [catalog_primary, catalog_replica, bank_backup], Node = bank_backup.
-step 222: hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 223: hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 224: operating(risk_cache, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 223, 44, 214.
-  with Node = risk_cache, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [].
-step 225: group_operating(risk_signal, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 9 uses steps 43, 224.
-  with Group = risk_signal, Plan = [catalog_primary, catalog_replica, bank_backup], Node = risk_cache.
-step 226: all_groups([risk_signal], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 11 uses steps 225, 214.
-  with Group = risk_signal, Rest = [], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 227: operating(risk_engine, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 222, 39, 226.
-  with Node = risk_engine, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [risk_signal].
-step 228: group_operating(risk, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 9 uses steps 38, 227.
-  with Group = risk, Plan = [catalog_primary, catalog_replica, bank_backup], Node = risk_engine.
-step 229: all_groups([risk], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 11 uses steps 228, 214.
-  with Group = risk, Rest = [], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 230: all_groups([bank, risk], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 11 uses steps 221, 229.
-  with Group = bank, Rest = [risk], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 231: operating(payment_service, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 217, 26, 230.
-  with Node = payment_service, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [bank, risk].
-step 232: group_operating(payment, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 9 uses steps 25, 231.
-  with Group = payment, Plan = [catalog_primary, catalog_replica, bank_backup], Node = payment_service.
-step 233: all_groups([payment], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 11 uses steps 232, 214.
-  with Group = payment, Rest = [], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 234: all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 11 uses steps 216, 233.
-  with Group = catalog, Rest = [payment], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 235: operating(checkout_api, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 211, 13, 234.
-  with Node = checkout_api, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [catalog, payment].
-step 236: group_operating(checkout, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 9 uses steps 12, 235.
-  with Group = checkout, Plan = [catalog_primary, catalog_replica, bank_backup], Node = checkout_api.
-step 237: all_groups([checkout], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 11 uses steps 236, 214.
-  with Group = checkout, Rest = [], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 238: operating(web_store, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 210, 8, 237.
-  with Node = web_store, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [checkout].
-step 239: hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 240: operating(mobile_app, [catalog_primary, catalog_replica, bank_backup]).
-  because rule 8 uses steps 239, 63, 237.
-  with Node = mobile_app, Plan = [catalog_primary, catalog_replica, bank_backup], Groups = [checkout].
-step 241: all_operating([], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 12.
-  with _Plan = [catalog_primary, catalog_replica, bank_backup].
-step 242: all_operating([mobile_app], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 13 uses steps 240, 241.
-  with Node = mobile_app, Rest = [], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 243: all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_backup]).
-  because rule 13 uses steps 238, 242.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_primary, catalog_replica, bank_backup].
-step 244: 6 is (3 + 3).
-  I checked these values.
-step 245: repair_cost([catalog_primary, catalog_replica, bank_backup], 6).
-  because rule 14 uses steps 118, 77, 244.
-  with Node = catalog_primary, Rest = [catalog_replica, bank_backup], Cost = 6, Own = 3, Tail = 3.
-  (3 + 3) = 6.
-step 246: feasible_repair([catalog_primary, catalog_replica, bank_backup], 6).
-  because rule 15 uses steps 1, 209, 7, 243, 245.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_primary, catalog_replica, bank_backup], Required = [web_store, mobile_app], Cost = 6.
-step 247: subset([bank_primary, bank_backup], [bank_primary, bank_backup]).
-  because rule 1 uses steps 3.
-  with Head = bank_primary, Rest = [bank_backup], Chosen = [bank_backup].
-step 248: subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary, bank_backup]).
-  because rule 1 uses steps 247.
-  with Head = catalog_replica, Rest = [bank_primary, bank_backup], Chosen = [bank_primary, bank_backup].
-step 249: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary, bank_backup]).
-  because rule 2 uses steps 248.
-  with Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [catalog_replica, bank_primary, bank_backup].
-step 250: hardware_available(web_store, [catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_replica, bank_primary, bank_backup].
-step 251: hardware_available(checkout_api, [catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_replica, bank_primary, bank_backup].
-step 252: member(catalog_replica, [catalog_replica, bank_primary, bank_backup]).
-  because rule 5.
-  with Head = catalog_replica.
-step 253: hardware_available(catalog_replica, [catalog_replica, bank_primary, bank_backup]).
-  because rule 6 uses steps 18, 252.
-  with Node = catalog_replica, Plan = [catalog_replica, bank_primary, bank_backup].
-step 254: all_groups([], [catalog_replica, bank_primary, bank_backup]).
-  because rule 7.
-  with _Plan = [catalog_replica, bank_primary, bank_backup].
-step 255: operating(catalog_replica, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 253, 21, 254.
-  with Node = catalog_replica, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [].
-step 256: group_operating(catalog, [catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 17, 255.
-  with Group = catalog, Plan = [catalog_replica, bank_primary, bank_backup], Node = catalog_replica.
-step 257: hardware_available(payment_service, [catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_replica, bank_primary, bank_backup].
-step 258: member(bank_primary, [bank_primary, bank_backup]).
-  because rule 5.
-  with Head = bank_primary.
-step 259: member(bank_primary, [catalog_replica, bank_primary, bank_backup]).
-  because rule 10 uses steps 258.
-  with Value = bank_primary, Rest = [bank_primary, bank_backup].
-step 260: hardware_available(bank_primary, [catalog_replica, bank_primary, bank_backup]).
-  because rule 6 uses steps 135, 259.
-  with Node = bank_primary, Plan = [catalog_replica, bank_primary, bank_backup].
-step 261: operating(bank_primary, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 260, 139, 254.
-  with Node = bank_primary, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [].
-step 262: group_operating(bank, [catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 134, 261.
-  with Group = bank, Plan = [catalog_replica, bank_primary, bank_backup], Node = bank_primary.
-step 263: hardware_available(risk_engine, [catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_replica, bank_primary, bank_backup].
-step 264: hardware_available(risk_cache, [catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_replica, bank_primary, bank_backup].
-step 265: operating(risk_cache, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 264, 44, 254.
-  with Node = risk_cache, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [].
-step 266: group_operating(risk_signal, [catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 43, 265.
-  with Group = risk_signal, Plan = [catalog_replica, bank_primary, bank_backup], Node = risk_cache.
-step 267: all_groups([risk_signal], [catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 266, 254.
-  with Group = risk_signal, Rest = [], Plan = [catalog_replica, bank_primary, bank_backup].
-step 268: operating(risk_engine, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 263, 39, 267.
-  with Node = risk_engine, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [risk_signal].
-step 269: group_operating(risk, [catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 38, 268.
-  with Group = risk, Plan = [catalog_replica, bank_primary, bank_backup], Node = risk_engine.
-step 270: all_groups([risk], [catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 269, 254.
-  with Group = risk, Rest = [], Plan = [catalog_replica, bank_primary, bank_backup].
-step 271: all_groups([bank, risk], [catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 262, 270.
-  with Group = bank, Rest = [risk], Plan = [catalog_replica, bank_primary, bank_backup].
-step 272: operating(payment_service, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 257, 26, 271.
-  with Node = payment_service, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [bank, risk].
-step 273: group_operating(payment, [catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 25, 272.
-  with Group = payment, Plan = [catalog_replica, bank_primary, bank_backup], Node = payment_service.
-step 274: all_groups([payment], [catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 273, 254.
-  with Group = payment, Rest = [], Plan = [catalog_replica, bank_primary, bank_backup].
-step 275: all_groups([catalog, payment], [catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 256, 274.
-  with Group = catalog, Rest = [payment], Plan = [catalog_replica, bank_primary, bank_backup].
-step 276: operating(checkout_api, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 251, 13, 275.
-  with Node = checkout_api, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [catalog, payment].
-step 277: group_operating(checkout, [catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 12, 276.
-  with Group = checkout, Plan = [catalog_replica, bank_primary, bank_backup], Node = checkout_api.
-step 278: all_groups([checkout], [catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 277, 254.
-  with Group = checkout, Rest = [], Plan = [catalog_replica, bank_primary, bank_backup].
-step 279: operating(web_store, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 250, 8, 278.
-  with Node = web_store, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [checkout].
-step 280: hardware_available(mobile_app, [catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_replica, bank_primary, bank_backup].
-step 281: operating(mobile_app, [catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 280, 63, 278.
-  with Node = mobile_app, Plan = [catalog_replica, bank_primary, bank_backup], Groups = [checkout].
-step 282: all_operating([], [catalog_replica, bank_primary, bank_backup]).
-  because rule 12.
-  with _Plan = [catalog_replica, bank_primary, bank_backup].
-step 283: all_operating([mobile_app], [catalog_replica, bank_primary, bank_backup]).
-  because rule 13 uses steps 281, 282.
-  with Node = mobile_app, Rest = [], Plan = [catalog_replica, bank_primary, bank_backup].
-step 284: all_operating([web_store, mobile_app], [catalog_replica, bank_primary, bank_backup]).
-  because rule 13 uses steps 279, 283.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_replica, bank_primary, bank_backup].
-step 285: 5 is (4 + 1).
-  I checked these values.
-step 286: repair_cost([bank_primary, bank_backup], 5).
-  because rule 14 uses steps 164, 75, 285.
-  with Node = bank_primary, Rest = [bank_backup], Cost = 5, Own = 4, Tail = 1.
-  (4 + 1) = 5.
-step 287: 7 is (2 + 5).
-  I checked these values.
-step 288: repair_cost([catalog_replica, bank_primary, bank_backup], 7).
-  because rule 14 uses steps 71, 286, 287.
-  with Node = catalog_replica, Rest = [bank_primary, bank_backup], Cost = 7, Own = 2, Tail = 5.
-  (2 + 5) = 7.
-step 289: feasible_repair([catalog_replica, bank_primary, bank_backup], 7).
-  because rule 15 uses steps 1, 249, 7, 284, 288.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_replica, bank_primary, bank_backup], Required = [web_store, mobile_app], Cost = 7.
-step 290: subset([catalog_replica, bank_primary, bank_backup], [bank_primary, bank_backup]).
-  because rule 2 uses steps 247.
-  with Rest = [bank_primary, bank_backup], Chosen = [bank_primary, bank_backup].
-step 291: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_primary, bank_backup]).
-  because rule 1 uses steps 290.
-  with Head = catalog_primary, Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [bank_primary, bank_backup].
-step 292: hardware_available(web_store, [catalog_primary, bank_primary, bank_backup]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_primary, bank_primary, bank_backup].
-step 293: hardware_available(checkout_api, [catalog_primary, bank_primary, bank_backup]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_primary, bank_primary, bank_backup].
-step 294: member(catalog_primary, [catalog_primary, bank_primary, bank_backup]).
-  because rule 5.
-  with Head = catalog_primary.
-step 295: hardware_available(catalog_primary, [catalog_primary, bank_primary, bank_backup]).
-  because rule 6 uses steps 84, 294.
-  with Node = catalog_primary, Plan = [catalog_primary, bank_primary, bank_backup].
-step 296: all_groups([], [catalog_primary, bank_primary, bank_backup]).
-  because rule 7.
-  with _Plan = [catalog_primary, bank_primary, bank_backup].
-step 297: operating(catalog_primary, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 295, 87, 296.
-  with Node = catalog_primary, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [].
-step 298: group_operating(catalog, [catalog_primary, bank_primary, bank_backup]).
-  because rule 9 uses steps 83, 297.
-  with Group = catalog, Plan = [catalog_primary, bank_primary, bank_backup], Node = catalog_primary.
-step 299: hardware_available(payment_service, [catalog_primary, bank_primary, bank_backup]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_primary, bank_primary, bank_backup].
-step 300: member(bank_primary, [catalog_primary, bank_primary, bank_backup]).
-  because rule 10 uses steps 258.
-  with Value = bank_primary, Rest = [bank_primary, bank_backup].
-step 301: hardware_available(bank_primary, [catalog_primary, bank_primary, bank_backup]).
-  because rule 6 uses steps 135, 300.
-  with Node = bank_primary, Plan = [catalog_primary, bank_primary, bank_backup].
-step 302: operating(bank_primary, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 301, 139, 296.
-  with Node = bank_primary, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [].
-step 303: group_operating(bank, [catalog_primary, bank_primary, bank_backup]).
-  because rule 9 uses steps 134, 302.
-  with Group = bank, Plan = [catalog_primary, bank_primary, bank_backup], Node = bank_primary.
-step 304: hardware_available(risk_engine, [catalog_primary, bank_primary, bank_backup]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_primary, bank_primary, bank_backup].
-step 305: hardware_available(risk_cache, [catalog_primary, bank_primary, bank_backup]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_primary, bank_primary, bank_backup].
-step 306: operating(risk_cache, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 305, 44, 296.
-  with Node = risk_cache, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [].
-step 307: group_operating(risk_signal, [catalog_primary, bank_primary, bank_backup]).
-  because rule 9 uses steps 43, 306.
-  with Group = risk_signal, Plan = [catalog_primary, bank_primary, bank_backup], Node = risk_cache.
-step 308: all_groups([risk_signal], [catalog_primary, bank_primary, bank_backup]).
-  because rule 11 uses steps 307, 296.
-  with Group = risk_signal, Rest = [], Plan = [catalog_primary, bank_primary, bank_backup].
-step 309: operating(risk_engine, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 304, 39, 308.
-  with Node = risk_engine, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [risk_signal].
-step 310: group_operating(risk, [catalog_primary, bank_primary, bank_backup]).
-  because rule 9 uses steps 38, 309.
-  with Group = risk, Plan = [catalog_primary, bank_primary, bank_backup], Node = risk_engine.
-step 311: all_groups([risk], [catalog_primary, bank_primary, bank_backup]).
-  because rule 11 uses steps 310, 296.
-  with Group = risk, Rest = [], Plan = [catalog_primary, bank_primary, bank_backup].
-step 312: all_groups([bank, risk], [catalog_primary, bank_primary, bank_backup]).
-  because rule 11 uses steps 303, 311.
-  with Group = bank, Rest = [risk], Plan = [catalog_primary, bank_primary, bank_backup].
-step 313: operating(payment_service, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 299, 26, 312.
-  with Node = payment_service, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [bank, risk].
-step 314: group_operating(payment, [catalog_primary, bank_primary, bank_backup]).
-  because rule 9 uses steps 25, 313.
-  with Group = payment, Plan = [catalog_primary, bank_primary, bank_backup], Node = payment_service.
-step 315: all_groups([payment], [catalog_primary, bank_primary, bank_backup]).
-  because rule 11 uses steps 314, 296.
-  with Group = payment, Rest = [], Plan = [catalog_primary, bank_primary, bank_backup].
-step 316: all_groups([catalog, payment], [catalog_primary, bank_primary, bank_backup]).
-  because rule 11 uses steps 298, 315.
-  with Group = catalog, Rest = [payment], Plan = [catalog_primary, bank_primary, bank_backup].
-step 317: operating(checkout_api, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 293, 13, 316.
-  with Node = checkout_api, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [catalog, payment].
-step 318: group_operating(checkout, [catalog_primary, bank_primary, bank_backup]).
-  because rule 9 uses steps 12, 317.
-  with Group = checkout, Plan = [catalog_primary, bank_primary, bank_backup], Node = checkout_api.
-step 319: all_groups([checkout], [catalog_primary, bank_primary, bank_backup]).
-  because rule 11 uses steps 318, 296.
-  with Group = checkout, Rest = [], Plan = [catalog_primary, bank_primary, bank_backup].
-step 320: operating(web_store, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 292, 8, 319.
-  with Node = web_store, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [checkout].
-step 321: hardware_available(mobile_app, [catalog_primary, bank_primary, bank_backup]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_primary, bank_primary, bank_backup].
-step 322: operating(mobile_app, [catalog_primary, bank_primary, bank_backup]).
-  because rule 8 uses steps 321, 63, 319.
-  with Node = mobile_app, Plan = [catalog_primary, bank_primary, bank_backup], Groups = [checkout].
-step 323: all_operating([], [catalog_primary, bank_primary, bank_backup]).
-  because rule 12.
-  with _Plan = [catalog_primary, bank_primary, bank_backup].
-step 324: all_operating([mobile_app], [catalog_primary, bank_primary, bank_backup]).
-  because rule 13 uses steps 322, 323.
-  with Node = mobile_app, Rest = [], Plan = [catalog_primary, bank_primary, bank_backup].
-step 325: all_operating([web_store, mobile_app], [catalog_primary, bank_primary, bank_backup]).
-  because rule 13 uses steps 320, 324.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_primary, bank_primary, bank_backup].
-step 326: 8 is (3 + 5).
-  I checked these values.
-step 327: repair_cost([catalog_primary, bank_primary, bank_backup], 8).
-  because rule 14 uses steps 118, 286, 326.
-  with Node = catalog_primary, Rest = [bank_primary, bank_backup], Cost = 8, Own = 3, Tail = 5.
-  (3 + 5) = 8.
-step 328: feasible_repair([catalog_primary, bank_primary, bank_backup], 8).
-  because rule 15 uses steps 1, 291, 7, 325, 327.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_primary, bank_primary, bank_backup], Required = [web_store, mobile_app], Cost = 8.
-step 329: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 1 uses steps 124.
-  with Head = catalog_primary, Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [catalog_replica, bank_primary].
-step 330: hardware_available(web_store, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 331: hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 332: member(catalog_primary, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 5.
-  with Head = catalog_primary.
-step 333: hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 6 uses steps 84, 332.
-  with Node = catalog_primary, Plan = [catalog_primary, catalog_replica, bank_primary].
-step 334: all_groups([], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 7.
-  with _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 335: operating(catalog_primary, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 333, 87, 334.
-  with Node = catalog_primary, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [].
-step 336: group_operating(catalog, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 9 uses steps 83, 335.
-  with Group = catalog, Plan = [catalog_primary, catalog_replica, bank_primary], Node = catalog_primary.
-step 337: hardware_available(payment_service, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 338: member(bank_primary, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 10 uses steps 137.
-  with Value = bank_primary, Rest = [catalog_replica, bank_primary].
-step 339: hardware_available(bank_primary, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 6 uses steps 135, 338.
-  with Node = bank_primary, Plan = [catalog_primary, catalog_replica, bank_primary].
-step 340: operating(bank_primary, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 339, 139, 334.
-  with Node = bank_primary, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [].
-step 341: group_operating(bank, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 9 uses steps 134, 340.
-  with Group = bank, Plan = [catalog_primary, catalog_replica, bank_primary], Node = bank_primary.
-step 342: hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 343: hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 344: operating(risk_cache, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 343, 44, 334.
-  with Node = risk_cache, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [].
-step 345: group_operating(risk_signal, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 9 uses steps 43, 344.
-  with Group = risk_signal, Plan = [catalog_primary, catalog_replica, bank_primary], Node = risk_cache.
-step 346: all_groups([risk_signal], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 11 uses steps 345, 334.
-  with Group = risk_signal, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 347: operating(risk_engine, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 342, 39, 346.
-  with Node = risk_engine, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [risk_signal].
-step 348: group_operating(risk, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 9 uses steps 38, 347.
-  with Group = risk, Plan = [catalog_primary, catalog_replica, bank_primary], Node = risk_engine.
-step 349: all_groups([risk], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 11 uses steps 348, 334.
-  with Group = risk, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 350: all_groups([bank, risk], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 11 uses steps 341, 349.
-  with Group = bank, Rest = [risk], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 351: operating(payment_service, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 337, 26, 350.
-  with Node = payment_service, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [bank, risk].
-step 352: group_operating(payment, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 9 uses steps 25, 351.
-  with Group = payment, Plan = [catalog_primary, catalog_replica, bank_primary], Node = payment_service.
-step 353: all_groups([payment], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 11 uses steps 352, 334.
-  with Group = payment, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 354: all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 11 uses steps 336, 353.
-  with Group = catalog, Rest = [payment], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 355: operating(checkout_api, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 331, 13, 354.
-  with Node = checkout_api, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [catalog, payment].
-step 356: group_operating(checkout, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 9 uses steps 12, 355.
-  with Group = checkout, Plan = [catalog_primary, catalog_replica, bank_primary], Node = checkout_api.
-step 357: all_groups([checkout], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 11 uses steps 356, 334.
-  with Group = checkout, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 358: operating(web_store, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 330, 8, 357.
-  with Node = web_store, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [checkout].
-step 359: hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 360: operating(mobile_app, [catalog_primary, catalog_replica, bank_primary]).
-  because rule 8 uses steps 359, 63, 357.
-  with Node = mobile_app, Plan = [catalog_primary, catalog_replica, bank_primary], Groups = [checkout].
-step 361: all_operating([], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 12.
-  with _Plan = [catalog_primary, catalog_replica, bank_primary].
-step 362: all_operating([mobile_app], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 13 uses steps 360, 361.
-  with Node = mobile_app, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 363: all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_primary]).
-  because rule 13 uses steps 358, 362.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_primary, catalog_replica, bank_primary].
-step 364: 9 is (3 + 6).
-  I checked these values.
-step 365: repair_cost([catalog_primary, catalog_replica, bank_primary], 9).
-  because rule 14 uses steps 118, 168, 364.
-  with Node = catalog_primary, Rest = [catalog_replica, bank_primary], Cost = 9, Own = 3, Tail = 6.
-  (3 + 6) = 9.
-step 366: feasible_repair([catalog_primary, catalog_replica, bank_primary], 9).
-  because rule 15 uses steps 1, 329, 7, 363, 365.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_primary, catalog_replica, bank_primary], Required = [web_store, mobile_app], Cost = 9.
-step 367: subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 1 uses steps 248.
-  with Head = catalog_primary, Rest = [catalog_replica, bank_primary, bank_backup], Chosen = [catalog_replica, bank_primary, bank_backup].
-step 368: hardware_available(web_store, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 10.
-  with Node = web_store, _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 369: hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 15.
-  with Node = checkout_api, _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 370: member(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 5.
-  with Head = catalog_primary.
-step 371: hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 6 uses steps 84, 370.
-  with Node = catalog_primary, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 372: all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 7.
-  with _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 373: operating(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 371, 87, 372.
-  with Node = catalog_primary, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [].
-step 374: group_operating(catalog, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 83, 373.
-  with Group = catalog, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Node = catalog_primary.
-step 375: hardware_available(payment_service, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 28.
-  with Node = payment_service, _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 376: member(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 10 uses steps 259.
-  with Value = bank_primary, Rest = [catalog_replica, bank_primary, bank_backup].
-step 377: hardware_available(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 6 uses steps 135, 376.
-  with Node = bank_primary, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 378: operating(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 377, 139, 372.
-  with Node = bank_primary, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [].
-step 379: group_operating(bank, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 134, 378.
-  with Group = bank, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Node = bank_primary.
-step 380: hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 41.
-  with Node = risk_engine, _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 381: hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 46.
-  with Node = risk_cache, _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 382: operating(risk_cache, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 381, 44, 372.
-  with Node = risk_cache, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [].
-step 383: group_operating(risk_signal, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 43, 382.
-  with Group = risk_signal, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Node = risk_cache.
-step 384: all_groups([risk_signal], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 383, 372.
-  with Group = risk_signal, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 385: operating(risk_engine, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 380, 39, 384.
-  with Node = risk_engine, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [risk_signal].
-step 386: group_operating(risk, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 38, 385.
-  with Group = risk, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Node = risk_engine.
-step 387: all_groups([risk], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 386, 372.
-  with Group = risk, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 388: all_groups([bank, risk], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 379, 387.
-  with Group = bank, Rest = [risk], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 389: operating(payment_service, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 375, 26, 388.
-  with Node = payment_service, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [bank, risk].
-step 390: group_operating(payment, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 25, 389.
-  with Group = payment, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Node = payment_service.
-step 391: all_groups([payment], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 390, 372.
-  with Group = payment, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 392: all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 374, 391.
-  with Group = catalog, Rest = [payment], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 393: operating(checkout_api, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 369, 13, 392.
-  with Node = checkout_api, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [catalog, payment].
-step 394: group_operating(checkout, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 9 uses steps 12, 393.
-  with Group = checkout, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Node = checkout_api.
-step 395: all_groups([checkout], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 11 uses steps 394, 372.
-  with Group = checkout, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 396: operating(web_store, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 368, 8, 395.
-  with Node = web_store, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [checkout].
-step 397: hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 4 uses steps 65.
-  with Node = mobile_app, _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 398: operating(mobile_app, [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 8 uses steps 397, 63, 395.
-  with Node = mobile_app, Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Groups = [checkout].
-step 399: all_operating([], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 12.
-  with _Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 400: all_operating([mobile_app], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 13 uses steps 398, 399.
-  with Node = mobile_app, Rest = [], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 401: all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_primary, bank_backup]).
-  because rule 13 uses steps 396, 400.
-  with Node = web_store, Rest = [mobile_app], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup].
-step 402: 10 is (3 + 7).
-  I checked these values.
-step 403: repair_cost([catalog_primary, catalog_replica, bank_primary, bank_backup], 10).
-  because rule 14 uses steps 118, 288, 402.
-  with Node = catalog_primary, Rest = [catalog_replica, bank_primary, bank_backup], Cost = 10, Own = 3, Tail = 7.
-  (3 + 7) = 10.
-step 404: feasible_repair([catalog_primary, catalog_replica, bank_primary, bank_backup], 10).
-  because rule 15 uses steps 1, 367, 7, 401, 403.
-  with Candidates = [catalog_primary, catalog_replica, bank_primary, bank_backup], Plan = [catalog_primary, catalog_replica, bank_primary, bank_backup], Required = [web_store, mobile_app], Cost = 10.
-step 405: aggregate_all(min(Value), (feasible_repair(Candidate, Value)), 3).
-  I computed min over 9 distinct matching tuples in the completed program. I used steps 78, 121, 169, 208, 246, 289, 328, 366, 404.
-step 406: best_repair([catalog_replica, bank_backup], 3).
-  because rule 16 uses steps 405, 78.
-  with Plan = [catalog_replica, bank_backup], Cost = 3.
-That explains step 406.
+certificate(eyelang, 1).
+
+claim(query(3), [best_repair([catalog_replica, bank_backup], 3)]).
+
+clause(1, node(catalog_primary, []), []).
+clause(2, node(catalog_replica, []), []).
+clause(3, node(bank_primary, []), []).
+clause(4, node(bank_backup, []), []).
+clause(5, node(risk_cache, []), []).
+clause(6, node(risk_engine, [risk_signal]), []).
+clause(7, node(payment_service, [bank, risk]), []).
+clause(8, node(checkout_api, [catalog, payment]), []).
+clause(9, node(web_store, [checkout]), []).
+clause(10, node(mobile_app, [checkout]), []).
+clause(11, provider(catalog, catalog_primary), []).
+clause(12, provider(catalog, catalog_replica), []).
+clause(13, provider(bank, bank_primary), []).
+clause(14, provider(bank, bank_backup), []).
+clause(15, provider(risk, risk_engine), []).
+clause(16, provider(risk_signal, risk_cache), []).
+clause(18, provider(payment, payment_service), []).
+clause(19, provider(checkout, checkout_api), []).
+clause(20, failed(catalog_primary), []).
+clause(21, failed(catalog_replica), []).
+clause(22, failed(bank_primary), []).
+clause(23, failed(bank_backup), []).
+clause(24, repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), []).
+clause(25, repair_price(catalog_primary, 3), []).
+clause(26, repair_price(catalog_replica, 2), []).
+clause(27, repair_price(bank_primary, 4), []).
+clause(28, repair_price(bank_backup, 1), []).
+clause(29, critical_services([web_store, mobile_app]), []).
+clause(32, member(var('Head'), list([var('Head')], var('$anonymous1'))), []).
+clause(33, member(var('Value'), list([var('$anonymous2')], var('Rest'))), [member(var('Value'), var('Rest'))]).
+clause(34, subset([], []), []).
+clause(35, subset(list([var('Head')], var('Rest')), list([var('Head')], var('Chosen'))), [subset(var('Rest'), var('Chosen'))]).
+clause(36, subset(list([var('$anonymous3')], var('Rest')), var('Chosen')), [subset(var('Rest'), var('Chosen'))]).
+clause(37, healthy(var('Node')), [node(var('Node'), var('$anonymous4')), '\\+'(failed(var('Node')))]).
+clause(38, hardware_available(var('Node'), var('_Plan')), [healthy(var('Node'))]).
+clause(39, hardware_available(var('Node'), var('Plan')), [failed(var('Node')), member(var('Node'), var('Plan'))]).
+clause(40, operating(var('Node'), var('Plan')), [hardware_available(var('Node'), var('Plan')), node(var('Node'), var('Groups')), all_groups(var('Groups'), var('Plan'))]).
+clause(41, all_groups([], var('_Plan')), []).
+clause(42, all_groups(list([var('Group')], var('Rest')), var('Plan')), [group_operating(var('Group'), var('Plan')), all_groups(var('Rest'), var('Plan'))]).
+clause(43, group_operating(var('Group'), var('Plan')), [provider(var('Group'), var('Node')), operating(var('Node'), var('Plan'))]).
+clause(44, all_operating([], var('_Plan')), []).
+clause(45, all_operating(list([var('Node')], var('Rest')), var('Plan')), [operating(var('Node'), var('Plan')), all_operating(var('Rest'), var('Plan'))]).
+clause(52, repair_cost([], 0), []).
+clause(53, repair_cost(list([var('Node')], var('Rest')), var('Cost')), [repair_price(var('Node'), var('Own')), repair_cost(var('Rest'), var('Tail')), is(var('Cost'), '+'(var('Own'), var('Tail')))]).
+clause(54, feasible_repair(var('Plan'), var('Cost')), [repair_candidates(var('Candidates')), subset(var('Candidates'), var('Plan')), critical_services(var('Required')), all_operating(var('Required'), var('Plan')), repair_cost(var('Plan'), var('Cost'))]).
+clause(55, best_repair(var('Plan'), var('Cost')), [aggregate_all(min(var('Value')), [feasible_repair(var('Candidate'), var('Value'))], var('Cost')), feasible_repair(var('Plan'), var('Cost'))]).
+
+% step 1
+step(repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), fact(24), [], []).
+% step 2
+step(subset([], []), fact(34), [], []).
+% step 3
+step(subset([bank_backup], [bank_backup]), rule(35), ['='('Head', bank_backup), '='('Rest', []), '='('Chosen', [])], [subset([], [])]).
+% step 4
+step(subset([bank_primary, bank_backup], [bank_backup]), rule(36), ['='('$anonymous3', bank_primary), '='('Rest', [bank_backup]), '='('Chosen', [bank_backup])], [subset([bank_backup], [bank_backup])]).
+% step 5
+step(subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_backup]), rule(35), ['='('Head', catalog_replica), '='('Rest', [bank_primary, bank_backup]), '='('Chosen', [bank_backup])], [subset([bank_primary, bank_backup], [bank_backup])]).
+% step 6
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_backup]), rule(36), ['='('$anonymous3', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [catalog_replica, bank_backup])], [subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_backup])]).
+% step 7
+step(critical_services([web_store, mobile_app]), fact(29), [], []).
+% step 8
+step(node(web_store, [checkout]), fact(9), [], []).
+% step 9
+step('\\+'(failed(web_store)), absent, [], []).
+% step 10
+step(healthy(web_store), rule(37), ['='('Node', web_store), '='('$anonymous4', [checkout])], [node(web_store, [checkout]), '\\+'(failed(web_store))]).
+% step 11
+step(hardware_available(web_store, [catalog_replica, bank_backup]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_replica, bank_backup])], [healthy(web_store)]).
+% step 12
+step(provider(checkout, checkout_api), fact(19), [], []).
+% step 13
+step(node(checkout_api, [catalog, payment]), fact(8), [], []).
+% step 14
+step('\\+'(failed(checkout_api)), absent, [], []).
+% step 15
+step(healthy(checkout_api), rule(37), ['='('Node', checkout_api), '='('$anonymous4', [catalog, payment])], [node(checkout_api, [catalog, payment]), '\\+'(failed(checkout_api))]).
+% step 16
+step(hardware_available(checkout_api, [catalog_replica, bank_backup]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_replica, bank_backup])], [healthy(checkout_api)]).
+% step 17
+step(provider(catalog, catalog_replica), fact(12), [], []).
+% step 18
+step(failed(catalog_replica), fact(21), [], []).
+% step 19
+step(member(catalog_replica, [catalog_replica, bank_backup]), fact(32), ['='('Head', catalog_replica), '='('$anonymous1', [bank_backup])], []).
+% step 20
+step(hardware_available(catalog_replica, [catalog_replica, bank_backup]), rule(39), ['='('Node', catalog_replica), '='('Plan', [catalog_replica, bank_backup])], [failed(catalog_replica), member(catalog_replica, [catalog_replica, bank_backup])]).
+% step 21
+step(node(catalog_replica, []), fact(2), [], []).
+% step 22
+step(all_groups([], [catalog_replica, bank_backup]), fact(41), ['='('_Plan', [catalog_replica, bank_backup])], []).
+% step 23
+step(operating(catalog_replica, [catalog_replica, bank_backup]), rule(40), ['='('Node', catalog_replica), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [])], [hardware_available(catalog_replica, [catalog_replica, bank_backup]), node(catalog_replica, []), all_groups([], [catalog_replica, bank_backup])]).
+% step 24
+step(group_operating(catalog, [catalog_replica, bank_backup]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_replica, bank_backup]), '='('Node', catalog_replica)], [provider(catalog, catalog_replica), operating(catalog_replica, [catalog_replica, bank_backup])]).
+% step 25
+step(provider(payment, payment_service), fact(18), [], []).
+% step 26
+step(node(payment_service, [bank, risk]), fact(7), [], []).
+% step 27
+step('\\+'(failed(payment_service)), absent, [], []).
+% step 28
+step(healthy(payment_service), rule(37), ['='('Node', payment_service), '='('$anonymous4', [bank, risk])], [node(payment_service, [bank, risk]), '\\+'(failed(payment_service))]).
+% step 29
+step(hardware_available(payment_service, [catalog_replica, bank_backup]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_replica, bank_backup])], [healthy(payment_service)]).
+% step 30
+step(provider(bank, bank_backup), fact(14), [], []).
+% step 31
+step(failed(bank_backup), fact(23), [], []).
+% step 32
+step(member(bank_backup, [bank_backup]), fact(32), ['='('Head', bank_backup), '='('$anonymous1', [])], []).
+% step 33
+step(member(bank_backup, [catalog_replica, bank_backup]), rule(33), ['='('Value', bank_backup), '='('$anonymous2', catalog_replica), '='('Rest', [bank_backup])], [member(bank_backup, [bank_backup])]).
+% step 34
+step(hardware_available(bank_backup, [catalog_replica, bank_backup]), rule(39), ['='('Node', bank_backup), '='('Plan', [catalog_replica, bank_backup])], [failed(bank_backup), member(bank_backup, [catalog_replica, bank_backup])]).
+% step 35
+step(node(bank_backup, []), fact(4), [], []).
+% step 36
+step(operating(bank_backup, [catalog_replica, bank_backup]), rule(40), ['='('Node', bank_backup), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [])], [hardware_available(bank_backup, [catalog_replica, bank_backup]), node(bank_backup, []), all_groups([], [catalog_replica, bank_backup])]).
+% step 37
+step(group_operating(bank, [catalog_replica, bank_backup]), rule(43), ['='('Group', bank), '='('Plan', [catalog_replica, bank_backup]), '='('Node', bank_backup)], [provider(bank, bank_backup), operating(bank_backup, [catalog_replica, bank_backup])]).
+% step 38
+step(provider(risk, risk_engine), fact(15), [], []).
+% step 39
+step(node(risk_engine, [risk_signal]), fact(6), [], []).
+% step 40
+step('\\+'(failed(risk_engine)), absent, [], []).
+% step 41
+step(healthy(risk_engine), rule(37), ['='('Node', risk_engine), '='('$anonymous4', [risk_signal])], [node(risk_engine, [risk_signal]), '\\+'(failed(risk_engine))]).
+% step 42
+step(hardware_available(risk_engine, [catalog_replica, bank_backup]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_replica, bank_backup])], [healthy(risk_engine)]).
+% step 43
+step(provider(risk_signal, risk_cache), fact(16), [], []).
+% step 44
+step(node(risk_cache, []), fact(5), [], []).
+% step 45
+step('\\+'(failed(risk_cache)), absent, [], []).
+% step 46
+step(healthy(risk_cache), rule(37), ['='('Node', risk_cache), '='('$anonymous4', [])], [node(risk_cache, []), '\\+'(failed(risk_cache))]).
+% step 47
+step(hardware_available(risk_cache, [catalog_replica, bank_backup]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_replica, bank_backup])], [healthy(risk_cache)]).
+% step 48
+step(operating(risk_cache, [catalog_replica, bank_backup]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_replica, bank_backup]), node(risk_cache, []), all_groups([], [catalog_replica, bank_backup])]).
+% step 49
+step(group_operating(risk_signal, [catalog_replica, bank_backup]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_replica, bank_backup]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_replica, bank_backup])]).
+% step 50
+step(all_groups([risk_signal], [catalog_replica, bank_backup]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_replica, bank_backup])], [group_operating(risk_signal, [catalog_replica, bank_backup]), all_groups([], [catalog_replica, bank_backup])]).
+% step 51
+step(operating(risk_engine, [catalog_replica, bank_backup]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_replica, bank_backup]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_replica, bank_backup])]).
+% step 52
+step(group_operating(risk, [catalog_replica, bank_backup]), rule(43), ['='('Group', risk), '='('Plan', [catalog_replica, bank_backup]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_replica, bank_backup])]).
+% step 53
+step(all_groups([risk], [catalog_replica, bank_backup]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_replica, bank_backup])], [group_operating(risk, [catalog_replica, bank_backup]), all_groups([], [catalog_replica, bank_backup])]).
+% step 54
+step(all_groups([bank, risk], [catalog_replica, bank_backup]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_replica, bank_backup])], [group_operating(bank, [catalog_replica, bank_backup]), all_groups([risk], [catalog_replica, bank_backup])]).
+% step 55
+step(operating(payment_service, [catalog_replica, bank_backup]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_replica, bank_backup]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_replica, bank_backup])]).
+% step 56
+step(group_operating(payment, [catalog_replica, bank_backup]), rule(43), ['='('Group', payment), '='('Plan', [catalog_replica, bank_backup]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_replica, bank_backup])]).
+% step 57
+step(all_groups([payment], [catalog_replica, bank_backup]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_replica, bank_backup])], [group_operating(payment, [catalog_replica, bank_backup]), all_groups([], [catalog_replica, bank_backup])]).
+% step 58
+step(all_groups([catalog, payment], [catalog_replica, bank_backup]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_replica, bank_backup])], [group_operating(catalog, [catalog_replica, bank_backup]), all_groups([payment], [catalog_replica, bank_backup])]).
+% step 59
+step(operating(checkout_api, [catalog_replica, bank_backup]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_replica, bank_backup]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_replica, bank_backup])]).
+% step 60
+step(group_operating(checkout, [catalog_replica, bank_backup]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_replica, bank_backup]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_replica, bank_backup])]).
+% step 61
+step(all_groups([checkout], [catalog_replica, bank_backup]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_replica, bank_backup])], [group_operating(checkout, [catalog_replica, bank_backup]), all_groups([], [catalog_replica, bank_backup])]).
+% step 62
+step(operating(web_store, [catalog_replica, bank_backup]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_replica, bank_backup]), node(web_store, [checkout]), all_groups([checkout], [catalog_replica, bank_backup])]).
+% step 63
+step(node(mobile_app, [checkout]), fact(10), [], []).
+% step 64
+step('\\+'(failed(mobile_app)), absent, [], []).
+% step 65
+step(healthy(mobile_app), rule(37), ['='('Node', mobile_app), '='('$anonymous4', [checkout])], [node(mobile_app, [checkout]), '\\+'(failed(mobile_app))]).
+% step 66
+step(hardware_available(mobile_app, [catalog_replica, bank_backup]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_replica, bank_backup])], [healthy(mobile_app)]).
+% step 67
+step(operating(mobile_app, [catalog_replica, bank_backup]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_replica, bank_backup]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_replica, bank_backup]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_replica, bank_backup])]).
+% step 68
+step(all_operating([], [catalog_replica, bank_backup]), fact(44), ['='('_Plan', [catalog_replica, bank_backup])], []).
+% step 69
+step(all_operating([mobile_app], [catalog_replica, bank_backup]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_replica, bank_backup])], [operating(mobile_app, [catalog_replica, bank_backup]), all_operating([], [catalog_replica, bank_backup])]).
+% step 70
+step(all_operating([web_store, mobile_app], [catalog_replica, bank_backup]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_replica, bank_backup])], [operating(web_store, [catalog_replica, bank_backup]), all_operating([mobile_app], [catalog_replica, bank_backup])]).
+% step 71
+step(repair_price(catalog_replica, 2), fact(26), [], []).
+% step 72
+step(repair_price(bank_backup, 1), fact(28), [], []).
+% step 73
+step(repair_cost([], 0), fact(52), [], []).
+% step 74
+step(is(1, '+'(1, 0)), builtin, [], []).
+% step 75
+step(repair_cost([bank_backup], 1), rule(53), ['='('Node', bank_backup), '='('Rest', []), '='('Cost', 1), '='('Own', 1), '='('Tail', 0)], [repair_price(bank_backup, 1), repair_cost([], 0), is(1, '+'(1, 0))]).
+% step 76
+step(is(3, '+'(2, 1)), builtin, [], []).
+% step 77
+step(repair_cost([catalog_replica, bank_backup], 3), rule(53), ['='('Node', catalog_replica), '='('Rest', [bank_backup]), '='('Cost', 3), '='('Own', 2), '='('Tail', 1)], [repair_price(catalog_replica, 2), repair_cost([bank_backup], 1), is(3, '+'(2, 1))]).
+% step 78
+step(feasible_repair([catalog_replica, bank_backup], 3), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_replica, bank_backup]), '='('Required', [web_store, mobile_app]), '='('Cost', 3)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_backup]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_replica, bank_backup]), repair_cost([catalog_replica, bank_backup], 3)]).
+% step 79
+step(subset([catalog_replica, bank_primary, bank_backup], [bank_backup]), rule(36), ['='('$anonymous3', catalog_replica), '='('Rest', [bank_primary, bank_backup]), '='('Chosen', [bank_backup])], [subset([bank_primary, bank_backup], [bank_backup])]).
+% step 80
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_backup]), rule(35), ['='('Head', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [bank_backup])], [subset([catalog_replica, bank_primary, bank_backup], [bank_backup])]).
+% step 81
+step(hardware_available(web_store, [catalog_primary, bank_backup]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_primary, bank_backup])], [healthy(web_store)]).
+% step 82
+step(hardware_available(checkout_api, [catalog_primary, bank_backup]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_primary, bank_backup])], [healthy(checkout_api)]).
+% step 83
+step(provider(catalog, catalog_primary), fact(11), [], []).
+% step 84
+step(failed(catalog_primary), fact(20), [], []).
+% step 85
+step(member(catalog_primary, [catalog_primary, bank_backup]), fact(32), ['='('Head', catalog_primary), '='('$anonymous1', [bank_backup])], []).
+% step 86
+step(hardware_available(catalog_primary, [catalog_primary, bank_backup]), rule(39), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, bank_backup])], [failed(catalog_primary), member(catalog_primary, [catalog_primary, bank_backup])]).
+% step 87
+step(node(catalog_primary, []), fact(1), [], []).
+% step 88
+step(all_groups([], [catalog_primary, bank_backup]), fact(41), ['='('_Plan', [catalog_primary, bank_backup])], []).
+% step 89
+step(operating(catalog_primary, [catalog_primary, bank_backup]), rule(40), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [])], [hardware_available(catalog_primary, [catalog_primary, bank_backup]), node(catalog_primary, []), all_groups([], [catalog_primary, bank_backup])]).
+% step 90
+step(group_operating(catalog, [catalog_primary, bank_backup]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_primary, bank_backup]), '='('Node', catalog_primary)], [provider(catalog, catalog_primary), operating(catalog_primary, [catalog_primary, bank_backup])]).
+% step 91
+step(hardware_available(payment_service, [catalog_primary, bank_backup]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_primary, bank_backup])], [healthy(payment_service)]).
+% step 92
+step(member(bank_backup, [catalog_primary, bank_backup]), rule(33), ['='('Value', bank_backup), '='('$anonymous2', catalog_primary), '='('Rest', [bank_backup])], [member(bank_backup, [bank_backup])]).
+% step 93
+step(hardware_available(bank_backup, [catalog_primary, bank_backup]), rule(39), ['='('Node', bank_backup), '='('Plan', [catalog_primary, bank_backup])], [failed(bank_backup), member(bank_backup, [catalog_primary, bank_backup])]).
+% step 94
+step(operating(bank_backup, [catalog_primary, bank_backup]), rule(40), ['='('Node', bank_backup), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [])], [hardware_available(bank_backup, [catalog_primary, bank_backup]), node(bank_backup, []), all_groups([], [catalog_primary, bank_backup])]).
+% step 95
+step(group_operating(bank, [catalog_primary, bank_backup]), rule(43), ['='('Group', bank), '='('Plan', [catalog_primary, bank_backup]), '='('Node', bank_backup)], [provider(bank, bank_backup), operating(bank_backup, [catalog_primary, bank_backup])]).
+% step 96
+step(hardware_available(risk_engine, [catalog_primary, bank_backup]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_primary, bank_backup])], [healthy(risk_engine)]).
+% step 97
+step(hardware_available(risk_cache, [catalog_primary, bank_backup]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_primary, bank_backup])], [healthy(risk_cache)]).
+% step 98
+step(operating(risk_cache, [catalog_primary, bank_backup]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_primary, bank_backup]), node(risk_cache, []), all_groups([], [catalog_primary, bank_backup])]).
+% step 99
+step(group_operating(risk_signal, [catalog_primary, bank_backup]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_primary, bank_backup]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_primary, bank_backup])]).
+% step 100
+step(all_groups([risk_signal], [catalog_primary, bank_backup]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_primary, bank_backup])], [group_operating(risk_signal, [catalog_primary, bank_backup]), all_groups([], [catalog_primary, bank_backup])]).
+% step 101
+step(operating(risk_engine, [catalog_primary, bank_backup]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_primary, bank_backup]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_primary, bank_backup])]).
+% step 102
+step(group_operating(risk, [catalog_primary, bank_backup]), rule(43), ['='('Group', risk), '='('Plan', [catalog_primary, bank_backup]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_primary, bank_backup])]).
+% step 103
+step(all_groups([risk], [catalog_primary, bank_backup]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_primary, bank_backup])], [group_operating(risk, [catalog_primary, bank_backup]), all_groups([], [catalog_primary, bank_backup])]).
+% step 104
+step(all_groups([bank, risk], [catalog_primary, bank_backup]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_primary, bank_backup])], [group_operating(bank, [catalog_primary, bank_backup]), all_groups([risk], [catalog_primary, bank_backup])]).
+% step 105
+step(operating(payment_service, [catalog_primary, bank_backup]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_primary, bank_backup]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_primary, bank_backup])]).
+% step 106
+step(group_operating(payment, [catalog_primary, bank_backup]), rule(43), ['='('Group', payment), '='('Plan', [catalog_primary, bank_backup]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_primary, bank_backup])]).
+% step 107
+step(all_groups([payment], [catalog_primary, bank_backup]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_primary, bank_backup])], [group_operating(payment, [catalog_primary, bank_backup]), all_groups([], [catalog_primary, bank_backup])]).
+% step 108
+step(all_groups([catalog, payment], [catalog_primary, bank_backup]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_primary, bank_backup])], [group_operating(catalog, [catalog_primary, bank_backup]), all_groups([payment], [catalog_primary, bank_backup])]).
+% step 109
+step(operating(checkout_api, [catalog_primary, bank_backup]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_primary, bank_backup]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_primary, bank_backup])]).
+% step 110
+step(group_operating(checkout, [catalog_primary, bank_backup]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_primary, bank_backup]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_primary, bank_backup])]).
+% step 111
+step(all_groups([checkout], [catalog_primary, bank_backup]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_primary, bank_backup])], [group_operating(checkout, [catalog_primary, bank_backup]), all_groups([], [catalog_primary, bank_backup])]).
+% step 112
+step(operating(web_store, [catalog_primary, bank_backup]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_primary, bank_backup]), node(web_store, [checkout]), all_groups([checkout], [catalog_primary, bank_backup])]).
+% step 113
+step(hardware_available(mobile_app, [catalog_primary, bank_backup]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_primary, bank_backup])], [healthy(mobile_app)]).
+% step 114
+step(operating(mobile_app, [catalog_primary, bank_backup]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_primary, bank_backup]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_primary, bank_backup])]).
+% step 115
+step(all_operating([], [catalog_primary, bank_backup]), fact(44), ['='('_Plan', [catalog_primary, bank_backup])], []).
+% step 116
+step(all_operating([mobile_app], [catalog_primary, bank_backup]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_primary, bank_backup])], [operating(mobile_app, [catalog_primary, bank_backup]), all_operating([], [catalog_primary, bank_backup])]).
+% step 117
+step(all_operating([web_store, mobile_app], [catalog_primary, bank_backup]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_primary, bank_backup])], [operating(web_store, [catalog_primary, bank_backup]), all_operating([mobile_app], [catalog_primary, bank_backup])]).
+% step 118
+step(repair_price(catalog_primary, 3), fact(25), [], []).
+% step 119
+step(is(4, '+'(3, 1)), builtin, [], []).
+% step 120
+step(repair_cost([catalog_primary, bank_backup], 4), rule(53), ['='('Node', catalog_primary), '='('Rest', [bank_backup]), '='('Cost', 4), '='('Own', 3), '='('Tail', 1)], [repair_price(catalog_primary, 3), repair_cost([bank_backup], 1), is(4, '+'(3, 1))]).
+% step 121
+step(feasible_repair([catalog_primary, bank_backup], 4), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_primary, bank_backup]), '='('Required', [web_store, mobile_app]), '='('Cost', 4)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_backup]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_primary, bank_backup]), repair_cost([catalog_primary, bank_backup], 4)]).
+% step 122
+step(subset([bank_backup], []), rule(36), ['='('$anonymous3', bank_backup), '='('Rest', []), '='('Chosen', [])], [subset([], [])]).
+% step 123
+step(subset([bank_primary, bank_backup], [bank_primary]), rule(35), ['='('Head', bank_primary), '='('Rest', [bank_backup]), '='('Chosen', [])], [subset([bank_backup], [])]).
+% step 124
+step(subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary]), rule(35), ['='('Head', catalog_replica), '='('Rest', [bank_primary, bank_backup]), '='('Chosen', [bank_primary])], [subset([bank_primary, bank_backup], [bank_primary])]).
+% step 125
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary]), rule(36), ['='('$anonymous3', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [catalog_replica, bank_primary])], [subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary])]).
+% step 126
+step(hardware_available(web_store, [catalog_replica, bank_primary]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_replica, bank_primary])], [healthy(web_store)]).
+% step 127
+step(hardware_available(checkout_api, [catalog_replica, bank_primary]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_replica, bank_primary])], [healthy(checkout_api)]).
+% step 128
+step(member(catalog_replica, [catalog_replica, bank_primary]), fact(32), ['='('Head', catalog_replica), '='('$anonymous1', [bank_primary])], []).
+% step 129
+step(hardware_available(catalog_replica, [catalog_replica, bank_primary]), rule(39), ['='('Node', catalog_replica), '='('Plan', [catalog_replica, bank_primary])], [failed(catalog_replica), member(catalog_replica, [catalog_replica, bank_primary])]).
+% step 130
+step(all_groups([], [catalog_replica, bank_primary]), fact(41), ['='('_Plan', [catalog_replica, bank_primary])], []).
+% step 131
+step(operating(catalog_replica, [catalog_replica, bank_primary]), rule(40), ['='('Node', catalog_replica), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [])], [hardware_available(catalog_replica, [catalog_replica, bank_primary]), node(catalog_replica, []), all_groups([], [catalog_replica, bank_primary])]).
+% step 132
+step(group_operating(catalog, [catalog_replica, bank_primary]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_replica, bank_primary]), '='('Node', catalog_replica)], [provider(catalog, catalog_replica), operating(catalog_replica, [catalog_replica, bank_primary])]).
+% step 133
+step(hardware_available(payment_service, [catalog_replica, bank_primary]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_replica, bank_primary])], [healthy(payment_service)]).
+% step 134
+step(provider(bank, bank_primary), fact(13), [], []).
+% step 135
+step(failed(bank_primary), fact(22), [], []).
+% step 136
+step(member(bank_primary, [bank_primary]), fact(32), ['='('Head', bank_primary), '='('$anonymous1', [])], []).
+% step 137
+step(member(bank_primary, [catalog_replica, bank_primary]), rule(33), ['='('Value', bank_primary), '='('$anonymous2', catalog_replica), '='('Rest', [bank_primary])], [member(bank_primary, [bank_primary])]).
+% step 138
+step(hardware_available(bank_primary, [catalog_replica, bank_primary]), rule(39), ['='('Node', bank_primary), '='('Plan', [catalog_replica, bank_primary])], [failed(bank_primary), member(bank_primary, [catalog_replica, bank_primary])]).
+% step 139
+step(node(bank_primary, []), fact(3), [], []).
+% step 140
+step(operating(bank_primary, [catalog_replica, bank_primary]), rule(40), ['='('Node', bank_primary), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [])], [hardware_available(bank_primary, [catalog_replica, bank_primary]), node(bank_primary, []), all_groups([], [catalog_replica, bank_primary])]).
+% step 141
+step(group_operating(bank, [catalog_replica, bank_primary]), rule(43), ['='('Group', bank), '='('Plan', [catalog_replica, bank_primary]), '='('Node', bank_primary)], [provider(bank, bank_primary), operating(bank_primary, [catalog_replica, bank_primary])]).
+% step 142
+step(hardware_available(risk_engine, [catalog_replica, bank_primary]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_replica, bank_primary])], [healthy(risk_engine)]).
+% step 143
+step(hardware_available(risk_cache, [catalog_replica, bank_primary]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_replica, bank_primary])], [healthy(risk_cache)]).
+% step 144
+step(operating(risk_cache, [catalog_replica, bank_primary]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_replica, bank_primary]), node(risk_cache, []), all_groups([], [catalog_replica, bank_primary])]).
+% step 145
+step(group_operating(risk_signal, [catalog_replica, bank_primary]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_replica, bank_primary]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_replica, bank_primary])]).
+% step 146
+step(all_groups([risk_signal], [catalog_replica, bank_primary]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary])], [group_operating(risk_signal, [catalog_replica, bank_primary]), all_groups([], [catalog_replica, bank_primary])]).
+% step 147
+step(operating(risk_engine, [catalog_replica, bank_primary]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_replica, bank_primary]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_replica, bank_primary])]).
+% step 148
+step(group_operating(risk, [catalog_replica, bank_primary]), rule(43), ['='('Group', risk), '='('Plan', [catalog_replica, bank_primary]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_replica, bank_primary])]).
+% step 149
+step(all_groups([risk], [catalog_replica, bank_primary]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary])], [group_operating(risk, [catalog_replica, bank_primary]), all_groups([], [catalog_replica, bank_primary])]).
+% step 150
+step(all_groups([bank, risk], [catalog_replica, bank_primary]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_replica, bank_primary])], [group_operating(bank, [catalog_replica, bank_primary]), all_groups([risk], [catalog_replica, bank_primary])]).
+% step 151
+step(operating(payment_service, [catalog_replica, bank_primary]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_replica, bank_primary]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_replica, bank_primary])]).
+% step 152
+step(group_operating(payment, [catalog_replica, bank_primary]), rule(43), ['='('Group', payment), '='('Plan', [catalog_replica, bank_primary]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_replica, bank_primary])]).
+% step 153
+step(all_groups([payment], [catalog_replica, bank_primary]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary])], [group_operating(payment, [catalog_replica, bank_primary]), all_groups([], [catalog_replica, bank_primary])]).
+% step 154
+step(all_groups([catalog, payment], [catalog_replica, bank_primary]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_replica, bank_primary])], [group_operating(catalog, [catalog_replica, bank_primary]), all_groups([payment], [catalog_replica, bank_primary])]).
+% step 155
+step(operating(checkout_api, [catalog_replica, bank_primary]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_replica, bank_primary]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_replica, bank_primary])]).
+% step 156
+step(group_operating(checkout, [catalog_replica, bank_primary]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_replica, bank_primary]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_replica, bank_primary])]).
+% step 157
+step(all_groups([checkout], [catalog_replica, bank_primary]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary])], [group_operating(checkout, [catalog_replica, bank_primary]), all_groups([], [catalog_replica, bank_primary])]).
+% step 158
+step(operating(web_store, [catalog_replica, bank_primary]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_replica, bank_primary]), node(web_store, [checkout]), all_groups([checkout], [catalog_replica, bank_primary])]).
+% step 159
+step(hardware_available(mobile_app, [catalog_replica, bank_primary]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_replica, bank_primary])], [healthy(mobile_app)]).
+% step 160
+step(operating(mobile_app, [catalog_replica, bank_primary]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_replica, bank_primary]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_replica, bank_primary]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_replica, bank_primary])]).
+% step 161
+step(all_operating([], [catalog_replica, bank_primary]), fact(44), ['='('_Plan', [catalog_replica, bank_primary])], []).
+% step 162
+step(all_operating([mobile_app], [catalog_replica, bank_primary]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary])], [operating(mobile_app, [catalog_replica, bank_primary]), all_operating([], [catalog_replica, bank_primary])]).
+% step 163
+step(all_operating([web_store, mobile_app], [catalog_replica, bank_primary]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_replica, bank_primary])], [operating(web_store, [catalog_replica, bank_primary]), all_operating([mobile_app], [catalog_replica, bank_primary])]).
+% step 164
+step(repair_price(bank_primary, 4), fact(27), [], []).
+% step 165
+step(is(4, '+'(4, 0)), builtin, [], []).
+% step 166
+step(repair_cost([bank_primary], 4), rule(53), ['='('Node', bank_primary), '='('Rest', []), '='('Cost', 4), '='('Own', 4), '='('Tail', 0)], [repair_price(bank_primary, 4), repair_cost([], 0), is(4, '+'(4, 0))]).
+% step 167
+step(is(6, '+'(2, 4)), builtin, [], []).
+% step 168
+step(repair_cost([catalog_replica, bank_primary], 6), rule(53), ['='('Node', catalog_replica), '='('Rest', [bank_primary]), '='('Cost', 6), '='('Own', 2), '='('Tail', 4)], [repair_price(catalog_replica, 2), repair_cost([bank_primary], 4), is(6, '+'(2, 4))]).
+% step 169
+step(feasible_repair([catalog_replica, bank_primary], 6), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_replica, bank_primary]), '='('Required', [web_store, mobile_app]), '='('Cost', 6)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_replica, bank_primary]), repair_cost([catalog_replica, bank_primary], 6)]).
+% step 170
+step(subset([catalog_replica, bank_primary, bank_backup], [bank_primary]), rule(36), ['='('$anonymous3', catalog_replica), '='('Rest', [bank_primary, bank_backup]), '='('Chosen', [bank_primary])], [subset([bank_primary, bank_backup], [bank_primary])]).
+% step 171
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_primary]), rule(35), ['='('Head', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [bank_primary])], [subset([catalog_replica, bank_primary, bank_backup], [bank_primary])]).
+% step 172
+step(hardware_available(web_store, [catalog_primary, bank_primary]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_primary, bank_primary])], [healthy(web_store)]).
+% step 173
+step(hardware_available(checkout_api, [catalog_primary, bank_primary]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_primary, bank_primary])], [healthy(checkout_api)]).
+% step 174
+step(member(catalog_primary, [catalog_primary, bank_primary]), fact(32), ['='('Head', catalog_primary), '='('$anonymous1', [bank_primary])], []).
+% step 175
+step(hardware_available(catalog_primary, [catalog_primary, bank_primary]), rule(39), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, bank_primary])], [failed(catalog_primary), member(catalog_primary, [catalog_primary, bank_primary])]).
+% step 176
+step(all_groups([], [catalog_primary, bank_primary]), fact(41), ['='('_Plan', [catalog_primary, bank_primary])], []).
+% step 177
+step(operating(catalog_primary, [catalog_primary, bank_primary]), rule(40), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [])], [hardware_available(catalog_primary, [catalog_primary, bank_primary]), node(catalog_primary, []), all_groups([], [catalog_primary, bank_primary])]).
+% step 178
+step(group_operating(catalog, [catalog_primary, bank_primary]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_primary, bank_primary]), '='('Node', catalog_primary)], [provider(catalog, catalog_primary), operating(catalog_primary, [catalog_primary, bank_primary])]).
+% step 179
+step(hardware_available(payment_service, [catalog_primary, bank_primary]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_primary, bank_primary])], [healthy(payment_service)]).
+% step 180
+step(member(bank_primary, [catalog_primary, bank_primary]), rule(33), ['='('Value', bank_primary), '='('$anonymous2', catalog_primary), '='('Rest', [bank_primary])], [member(bank_primary, [bank_primary])]).
+% step 181
+step(hardware_available(bank_primary, [catalog_primary, bank_primary]), rule(39), ['='('Node', bank_primary), '='('Plan', [catalog_primary, bank_primary])], [failed(bank_primary), member(bank_primary, [catalog_primary, bank_primary])]).
+% step 182
+step(operating(bank_primary, [catalog_primary, bank_primary]), rule(40), ['='('Node', bank_primary), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [])], [hardware_available(bank_primary, [catalog_primary, bank_primary]), node(bank_primary, []), all_groups([], [catalog_primary, bank_primary])]).
+% step 183
+step(group_operating(bank, [catalog_primary, bank_primary]), rule(43), ['='('Group', bank), '='('Plan', [catalog_primary, bank_primary]), '='('Node', bank_primary)], [provider(bank, bank_primary), operating(bank_primary, [catalog_primary, bank_primary])]).
+% step 184
+step(hardware_available(risk_engine, [catalog_primary, bank_primary]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_primary, bank_primary])], [healthy(risk_engine)]).
+% step 185
+step(hardware_available(risk_cache, [catalog_primary, bank_primary]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_primary, bank_primary])], [healthy(risk_cache)]).
+% step 186
+step(operating(risk_cache, [catalog_primary, bank_primary]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_primary, bank_primary]), node(risk_cache, []), all_groups([], [catalog_primary, bank_primary])]).
+% step 187
+step(group_operating(risk_signal, [catalog_primary, bank_primary]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_primary, bank_primary]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_primary, bank_primary])]).
+% step 188
+step(all_groups([risk_signal], [catalog_primary, bank_primary]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary])], [group_operating(risk_signal, [catalog_primary, bank_primary]), all_groups([], [catalog_primary, bank_primary])]).
+% step 189
+step(operating(risk_engine, [catalog_primary, bank_primary]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_primary, bank_primary]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_primary, bank_primary])]).
+% step 190
+step(group_operating(risk, [catalog_primary, bank_primary]), rule(43), ['='('Group', risk), '='('Plan', [catalog_primary, bank_primary]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_primary, bank_primary])]).
+% step 191
+step(all_groups([risk], [catalog_primary, bank_primary]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary])], [group_operating(risk, [catalog_primary, bank_primary]), all_groups([], [catalog_primary, bank_primary])]).
+% step 192
+step(all_groups([bank, risk], [catalog_primary, bank_primary]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_primary, bank_primary])], [group_operating(bank, [catalog_primary, bank_primary]), all_groups([risk], [catalog_primary, bank_primary])]).
+% step 193
+step(operating(payment_service, [catalog_primary, bank_primary]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_primary, bank_primary]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_primary, bank_primary])]).
+% step 194
+step(group_operating(payment, [catalog_primary, bank_primary]), rule(43), ['='('Group', payment), '='('Plan', [catalog_primary, bank_primary]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_primary, bank_primary])]).
+% step 195
+step(all_groups([payment], [catalog_primary, bank_primary]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary])], [group_operating(payment, [catalog_primary, bank_primary]), all_groups([], [catalog_primary, bank_primary])]).
+% step 196
+step(all_groups([catalog, payment], [catalog_primary, bank_primary]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_primary, bank_primary])], [group_operating(catalog, [catalog_primary, bank_primary]), all_groups([payment], [catalog_primary, bank_primary])]).
+% step 197
+step(operating(checkout_api, [catalog_primary, bank_primary]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_primary, bank_primary]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_primary, bank_primary])]).
+% step 198
+step(group_operating(checkout, [catalog_primary, bank_primary]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_primary, bank_primary]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_primary, bank_primary])]).
+% step 199
+step(all_groups([checkout], [catalog_primary, bank_primary]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary])], [group_operating(checkout, [catalog_primary, bank_primary]), all_groups([], [catalog_primary, bank_primary])]).
+% step 200
+step(operating(web_store, [catalog_primary, bank_primary]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_primary, bank_primary]), node(web_store, [checkout]), all_groups([checkout], [catalog_primary, bank_primary])]).
+% step 201
+step(hardware_available(mobile_app, [catalog_primary, bank_primary]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_primary, bank_primary])], [healthy(mobile_app)]).
+% step 202
+step(operating(mobile_app, [catalog_primary, bank_primary]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_primary, bank_primary]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_primary, bank_primary]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_primary, bank_primary])]).
+% step 203
+step(all_operating([], [catalog_primary, bank_primary]), fact(44), ['='('_Plan', [catalog_primary, bank_primary])], []).
+% step 204
+step(all_operating([mobile_app], [catalog_primary, bank_primary]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary])], [operating(mobile_app, [catalog_primary, bank_primary]), all_operating([], [catalog_primary, bank_primary])]).
+% step 205
+step(all_operating([web_store, mobile_app], [catalog_primary, bank_primary]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_primary, bank_primary])], [operating(web_store, [catalog_primary, bank_primary]), all_operating([mobile_app], [catalog_primary, bank_primary])]).
+% step 206
+step(is(7, '+'(3, 4)), builtin, [], []).
+% step 207
+step(repair_cost([catalog_primary, bank_primary], 7), rule(53), ['='('Node', catalog_primary), '='('Rest', [bank_primary]), '='('Cost', 7), '='('Own', 3), '='('Tail', 4)], [repair_price(catalog_primary, 3), repair_cost([bank_primary], 4), is(7, '+'(3, 4))]).
+% step 208
+step(feasible_repair([catalog_primary, bank_primary], 7), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_primary, bank_primary]), '='('Required', [web_store, mobile_app]), '='('Cost', 7)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_primary]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_primary, bank_primary]), repair_cost([catalog_primary, bank_primary], 7)]).
+% step 209
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_backup]), rule(35), ['='('Head', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [catalog_replica, bank_backup])], [subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_backup])]).
+% step 210
+step(hardware_available(web_store, [catalog_primary, catalog_replica, bank_backup]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_primary, catalog_replica, bank_backup])], [healthy(web_store)]).
+% step 211
+step(hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_backup]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_primary, catalog_replica, bank_backup])], [healthy(checkout_api)]).
+% step 212
+step(member(catalog_primary, [catalog_primary, catalog_replica, bank_backup]), fact(32), ['='('Head', catalog_primary), '='('$anonymous1', [catalog_replica, bank_backup])], []).
+% step 213
+step(hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_backup]), rule(39), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [failed(catalog_primary), member(catalog_primary, [catalog_primary, catalog_replica, bank_backup])]).
+% step 214
+step(all_groups([], [catalog_primary, catalog_replica, bank_backup]), fact(41), ['='('_Plan', [catalog_primary, catalog_replica, bank_backup])], []).
+% step 215
+step(operating(catalog_primary, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [])], [hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_backup]), node(catalog_primary, []), all_groups([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 216
+step(group_operating(catalog, [catalog_primary, catalog_replica, bank_backup]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Node', catalog_primary)], [provider(catalog, catalog_primary), operating(catalog_primary, [catalog_primary, catalog_replica, bank_backup])]).
+% step 217
+step(hardware_available(payment_service, [catalog_primary, catalog_replica, bank_backup]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_primary, catalog_replica, bank_backup])], [healthy(payment_service)]).
+% step 218
+step(member(bank_backup, [catalog_primary, catalog_replica, bank_backup]), rule(33), ['='('Value', bank_backup), '='('$anonymous2', catalog_primary), '='('Rest', [catalog_replica, bank_backup])], [member(bank_backup, [catalog_replica, bank_backup])]).
+% step 219
+step(hardware_available(bank_backup, [catalog_primary, catalog_replica, bank_backup]), rule(39), ['='('Node', bank_backup), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [failed(bank_backup), member(bank_backup, [catalog_primary, catalog_replica, bank_backup])]).
+% step 220
+step(operating(bank_backup, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', bank_backup), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [])], [hardware_available(bank_backup, [catalog_primary, catalog_replica, bank_backup]), node(bank_backup, []), all_groups([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 221
+step(group_operating(bank, [catalog_primary, catalog_replica, bank_backup]), rule(43), ['='('Group', bank), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Node', bank_backup)], [provider(bank, bank_backup), operating(bank_backup, [catalog_primary, catalog_replica, bank_backup])]).
+% step 222
+step(hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_backup]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_primary, catalog_replica, bank_backup])], [healthy(risk_engine)]).
+% step 223
+step(hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_backup]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_primary, catalog_replica, bank_backup])], [healthy(risk_cache)]).
+% step 224
+step(operating(risk_cache, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_backup]), node(risk_cache, []), all_groups([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 225
+step(group_operating(risk_signal, [catalog_primary, catalog_replica, bank_backup]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_primary, catalog_replica, bank_backup])]).
+% step 226
+step(all_groups([risk_signal], [catalog_primary, catalog_replica, bank_backup]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [group_operating(risk_signal, [catalog_primary, catalog_replica, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 227
+step(operating(risk_engine, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_backup]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_primary, catalog_replica, bank_backup])]).
+% step 228
+step(group_operating(risk, [catalog_primary, catalog_replica, bank_backup]), rule(43), ['='('Group', risk), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_primary, catalog_replica, bank_backup])]).
+% step 229
+step(all_groups([risk], [catalog_primary, catalog_replica, bank_backup]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [group_operating(risk, [catalog_primary, catalog_replica, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 230
+step(all_groups([bank, risk], [catalog_primary, catalog_replica, bank_backup]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [group_operating(bank, [catalog_primary, catalog_replica, bank_backup]), all_groups([risk], [catalog_primary, catalog_replica, bank_backup])]).
+% step 231
+step(operating(payment_service, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_primary, catalog_replica, bank_backup]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_primary, catalog_replica, bank_backup])]).
+% step 232
+step(group_operating(payment, [catalog_primary, catalog_replica, bank_backup]), rule(43), ['='('Group', payment), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_primary, catalog_replica, bank_backup])]).
+% step 233
+step(all_groups([payment], [catalog_primary, catalog_replica, bank_backup]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [group_operating(payment, [catalog_primary, catalog_replica, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 234
+step(all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_backup]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [group_operating(catalog, [catalog_primary, catalog_replica, bank_backup]), all_groups([payment], [catalog_primary, catalog_replica, bank_backup])]).
+% step 235
+step(operating(checkout_api, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_backup]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_backup])]).
+% step 236
+step(group_operating(checkout, [catalog_primary, catalog_replica, bank_backup]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_primary, catalog_replica, bank_backup])]).
+% step 237
+step(all_groups([checkout], [catalog_primary, catalog_replica, bank_backup]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [group_operating(checkout, [catalog_primary, catalog_replica, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 238
+step(operating(web_store, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_primary, catalog_replica, bank_backup]), node(web_store, [checkout]), all_groups([checkout], [catalog_primary, catalog_replica, bank_backup])]).
+% step 239
+step(hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_backup]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_primary, catalog_replica, bank_backup])], [healthy(mobile_app)]).
+% step 240
+step(operating(mobile_app, [catalog_primary, catalog_replica, bank_backup]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_backup]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_primary, catalog_replica, bank_backup])]).
+% step 241
+step(all_operating([], [catalog_primary, catalog_replica, bank_backup]), fact(44), ['='('_Plan', [catalog_primary, catalog_replica, bank_backup])], []).
+% step 242
+step(all_operating([mobile_app], [catalog_primary, catalog_replica, bank_backup]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [operating(mobile_app, [catalog_primary, catalog_replica, bank_backup]), all_operating([], [catalog_primary, catalog_replica, bank_backup])]).
+% step 243
+step(all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_backup]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_primary, catalog_replica, bank_backup])], [operating(web_store, [catalog_primary, catalog_replica, bank_backup]), all_operating([mobile_app], [catalog_primary, catalog_replica, bank_backup])]).
+% step 244
+step(is(6, '+'(3, 3)), builtin, [], []).
+% step 245
+step(repair_cost([catalog_primary, catalog_replica, bank_backup], 6), rule(53), ['='('Node', catalog_primary), '='('Rest', [catalog_replica, bank_backup]), '='('Cost', 6), '='('Own', 3), '='('Tail', 3)], [repair_price(catalog_primary, 3), repair_cost([catalog_replica, bank_backup], 3), is(6, '+'(3, 3))]).
+% step 246
+step(feasible_repair([catalog_primary, catalog_replica, bank_backup], 6), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_primary, catalog_replica, bank_backup]), '='('Required', [web_store, mobile_app]), '='('Cost', 6)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_backup]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_backup]), repair_cost([catalog_primary, catalog_replica, bank_backup], 6)]).
+% step 247
+step(subset([bank_primary, bank_backup], [bank_primary, bank_backup]), rule(35), ['='('Head', bank_primary), '='('Rest', [bank_backup]), '='('Chosen', [bank_backup])], [subset([bank_backup], [bank_backup])]).
+% step 248
+step(subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary, bank_backup]), rule(35), ['='('Head', catalog_replica), '='('Rest', [bank_primary, bank_backup]), '='('Chosen', [bank_primary, bank_backup])], [subset([bank_primary, bank_backup], [bank_primary, bank_backup])]).
+% step 249
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary, bank_backup]), rule(36), ['='('$anonymous3', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [catalog_replica, bank_primary, bank_backup])], [subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary, bank_backup])]).
+% step 250
+step(hardware_available(web_store, [catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_replica, bank_primary, bank_backup])], [healthy(web_store)]).
+% step 251
+step(hardware_available(checkout_api, [catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_replica, bank_primary, bank_backup])], [healthy(checkout_api)]).
+% step 252
+step(member(catalog_replica, [catalog_replica, bank_primary, bank_backup]), fact(32), ['='('Head', catalog_replica), '='('$anonymous1', [bank_primary, bank_backup])], []).
+% step 253
+step(hardware_available(catalog_replica, [catalog_replica, bank_primary, bank_backup]), rule(39), ['='('Node', catalog_replica), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [failed(catalog_replica), member(catalog_replica, [catalog_replica, bank_primary, bank_backup])]).
+% step 254
+step(all_groups([], [catalog_replica, bank_primary, bank_backup]), fact(41), ['='('_Plan', [catalog_replica, bank_primary, bank_backup])], []).
+% step 255
+step(operating(catalog_replica, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', catalog_replica), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(catalog_replica, [catalog_replica, bank_primary, bank_backup]), node(catalog_replica, []), all_groups([], [catalog_replica, bank_primary, bank_backup])]).
+% step 256
+step(group_operating(catalog, [catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Node', catalog_replica)], [provider(catalog, catalog_replica), operating(catalog_replica, [catalog_replica, bank_primary, bank_backup])]).
+% step 257
+step(hardware_available(payment_service, [catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_replica, bank_primary, bank_backup])], [healthy(payment_service)]).
+% step 258
+step(member(bank_primary, [bank_primary, bank_backup]), fact(32), ['='('Head', bank_primary), '='('$anonymous1', [bank_backup])], []).
+% step 259
+step(member(bank_primary, [catalog_replica, bank_primary, bank_backup]), rule(33), ['='('Value', bank_primary), '='('$anonymous2', catalog_replica), '='('Rest', [bank_primary, bank_backup])], [member(bank_primary, [bank_primary, bank_backup])]).
+% step 260
+step(hardware_available(bank_primary, [catalog_replica, bank_primary, bank_backup]), rule(39), ['='('Node', bank_primary), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [failed(bank_primary), member(bank_primary, [catalog_replica, bank_primary, bank_backup])]).
+% step 261
+step(operating(bank_primary, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', bank_primary), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(bank_primary, [catalog_replica, bank_primary, bank_backup]), node(bank_primary, []), all_groups([], [catalog_replica, bank_primary, bank_backup])]).
+% step 262
+step(group_operating(bank, [catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', bank), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Node', bank_primary)], [provider(bank, bank_primary), operating(bank_primary, [catalog_replica, bank_primary, bank_backup])]).
+% step 263
+step(hardware_available(risk_engine, [catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_replica, bank_primary, bank_backup])], [healthy(risk_engine)]).
+% step 264
+step(hardware_available(risk_cache, [catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_replica, bank_primary, bank_backup])], [healthy(risk_cache)]).
+% step 265
+step(operating(risk_cache, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_replica, bank_primary, bank_backup]), node(risk_cache, []), all_groups([], [catalog_replica, bank_primary, bank_backup])]).
+% step 266
+step(group_operating(risk_signal, [catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_replica, bank_primary, bank_backup])]).
+% step 267
+step(all_groups([risk_signal], [catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [group_operating(risk_signal, [catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_replica, bank_primary, bank_backup])]).
+% step 268
+step(operating(risk_engine, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_replica, bank_primary, bank_backup]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_replica, bank_primary, bank_backup])]).
+% step 269
+step(group_operating(risk, [catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', risk), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_replica, bank_primary, bank_backup])]).
+% step 270
+step(all_groups([risk], [catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [group_operating(risk, [catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_replica, bank_primary, bank_backup])]).
+% step 271
+step(all_groups([bank, risk], [catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [group_operating(bank, [catalog_replica, bank_primary, bank_backup]), all_groups([risk], [catalog_replica, bank_primary, bank_backup])]).
+% step 272
+step(operating(payment_service, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_replica, bank_primary, bank_backup]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_replica, bank_primary, bank_backup])]).
+% step 273
+step(group_operating(payment, [catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', payment), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_replica, bank_primary, bank_backup])]).
+% step 274
+step(all_groups([payment], [catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [group_operating(payment, [catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_replica, bank_primary, bank_backup])]).
+% step 275
+step(all_groups([catalog, payment], [catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [group_operating(catalog, [catalog_replica, bank_primary, bank_backup]), all_groups([payment], [catalog_replica, bank_primary, bank_backup])]).
+% step 276
+step(operating(checkout_api, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_replica, bank_primary, bank_backup]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_replica, bank_primary, bank_backup])]).
+% step 277
+step(group_operating(checkout, [catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_replica, bank_primary, bank_backup])]).
+% step 278
+step(all_groups([checkout], [catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [group_operating(checkout, [catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_replica, bank_primary, bank_backup])]).
+% step 279
+step(operating(web_store, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_replica, bank_primary, bank_backup]), node(web_store, [checkout]), all_groups([checkout], [catalog_replica, bank_primary, bank_backup])]).
+% step 280
+step(hardware_available(mobile_app, [catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_replica, bank_primary, bank_backup])], [healthy(mobile_app)]).
+% step 281
+step(operating(mobile_app, [catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_replica, bank_primary, bank_backup]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_replica, bank_primary, bank_backup])]).
+% step 282
+step(all_operating([], [catalog_replica, bank_primary, bank_backup]), fact(44), ['='('_Plan', [catalog_replica, bank_primary, bank_backup])], []).
+% step 283
+step(all_operating([mobile_app], [catalog_replica, bank_primary, bank_backup]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [operating(mobile_app, [catalog_replica, bank_primary, bank_backup]), all_operating([], [catalog_replica, bank_primary, bank_backup])]).
+% step 284
+step(all_operating([web_store, mobile_app], [catalog_replica, bank_primary, bank_backup]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_replica, bank_primary, bank_backup])], [operating(web_store, [catalog_replica, bank_primary, bank_backup]), all_operating([mobile_app], [catalog_replica, bank_primary, bank_backup])]).
+% step 285
+step(is(5, '+'(4, 1)), builtin, [], []).
+% step 286
+step(repair_cost([bank_primary, bank_backup], 5), rule(53), ['='('Node', bank_primary), '='('Rest', [bank_backup]), '='('Cost', 5), '='('Own', 4), '='('Tail', 1)], [repair_price(bank_primary, 4), repair_cost([bank_backup], 1), is(5, '+'(4, 1))]).
+% step 287
+step(is(7, '+'(2, 5)), builtin, [], []).
+% step 288
+step(repair_cost([catalog_replica, bank_primary, bank_backup], 7), rule(53), ['='('Node', catalog_replica), '='('Rest', [bank_primary, bank_backup]), '='('Cost', 7), '='('Own', 2), '='('Tail', 5)], [repair_price(catalog_replica, 2), repair_cost([bank_primary, bank_backup], 5), is(7, '+'(2, 5))]).
+% step 289
+step(feasible_repair([catalog_replica, bank_primary, bank_backup], 7), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_replica, bank_primary, bank_backup]), '='('Required', [web_store, mobile_app]), '='('Cost', 7)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary, bank_backup]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_replica, bank_primary, bank_backup]), repair_cost([catalog_replica, bank_primary, bank_backup], 7)]).
+% step 290
+step(subset([catalog_replica, bank_primary, bank_backup], [bank_primary, bank_backup]), rule(36), ['='('$anonymous3', catalog_replica), '='('Rest', [bank_primary, bank_backup]), '='('Chosen', [bank_primary, bank_backup])], [subset([bank_primary, bank_backup], [bank_primary, bank_backup])]).
+% step 291
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_primary, bank_backup]), rule(35), ['='('Head', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [bank_primary, bank_backup])], [subset([catalog_replica, bank_primary, bank_backup], [bank_primary, bank_backup])]).
+% step 292
+step(hardware_available(web_store, [catalog_primary, bank_primary, bank_backup]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_primary, bank_primary, bank_backup])], [healthy(web_store)]).
+% step 293
+step(hardware_available(checkout_api, [catalog_primary, bank_primary, bank_backup]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_primary, bank_primary, bank_backup])], [healthy(checkout_api)]).
+% step 294
+step(member(catalog_primary, [catalog_primary, bank_primary, bank_backup]), fact(32), ['='('Head', catalog_primary), '='('$anonymous1', [bank_primary, bank_backup])], []).
+% step 295
+step(hardware_available(catalog_primary, [catalog_primary, bank_primary, bank_backup]), rule(39), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [failed(catalog_primary), member(catalog_primary, [catalog_primary, bank_primary, bank_backup])]).
+% step 296
+step(all_groups([], [catalog_primary, bank_primary, bank_backup]), fact(41), ['='('_Plan', [catalog_primary, bank_primary, bank_backup])], []).
+% step 297
+step(operating(catalog_primary, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(catalog_primary, [catalog_primary, bank_primary, bank_backup]), node(catalog_primary, []), all_groups([], [catalog_primary, bank_primary, bank_backup])]).
+% step 298
+step(group_operating(catalog, [catalog_primary, bank_primary, bank_backup]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Node', catalog_primary)], [provider(catalog, catalog_primary), operating(catalog_primary, [catalog_primary, bank_primary, bank_backup])]).
+% step 299
+step(hardware_available(payment_service, [catalog_primary, bank_primary, bank_backup]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_primary, bank_primary, bank_backup])], [healthy(payment_service)]).
+% step 300
+step(member(bank_primary, [catalog_primary, bank_primary, bank_backup]), rule(33), ['='('Value', bank_primary), '='('$anonymous2', catalog_primary), '='('Rest', [bank_primary, bank_backup])], [member(bank_primary, [bank_primary, bank_backup])]).
+% step 301
+step(hardware_available(bank_primary, [catalog_primary, bank_primary, bank_backup]), rule(39), ['='('Node', bank_primary), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [failed(bank_primary), member(bank_primary, [catalog_primary, bank_primary, bank_backup])]).
+% step 302
+step(operating(bank_primary, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', bank_primary), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(bank_primary, [catalog_primary, bank_primary, bank_backup]), node(bank_primary, []), all_groups([], [catalog_primary, bank_primary, bank_backup])]).
+% step 303
+step(group_operating(bank, [catalog_primary, bank_primary, bank_backup]), rule(43), ['='('Group', bank), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Node', bank_primary)], [provider(bank, bank_primary), operating(bank_primary, [catalog_primary, bank_primary, bank_backup])]).
+% step 304
+step(hardware_available(risk_engine, [catalog_primary, bank_primary, bank_backup]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_primary, bank_primary, bank_backup])], [healthy(risk_engine)]).
+% step 305
+step(hardware_available(risk_cache, [catalog_primary, bank_primary, bank_backup]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_primary, bank_primary, bank_backup])], [healthy(risk_cache)]).
+% step 306
+step(operating(risk_cache, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_primary, bank_primary, bank_backup]), node(risk_cache, []), all_groups([], [catalog_primary, bank_primary, bank_backup])]).
+% step 307
+step(group_operating(risk_signal, [catalog_primary, bank_primary, bank_backup]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_primary, bank_primary, bank_backup])]).
+% step 308
+step(all_groups([risk_signal], [catalog_primary, bank_primary, bank_backup]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [group_operating(risk_signal, [catalog_primary, bank_primary, bank_backup]), all_groups([], [catalog_primary, bank_primary, bank_backup])]).
+% step 309
+step(operating(risk_engine, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_primary, bank_primary, bank_backup]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_primary, bank_primary, bank_backup])]).
+% step 310
+step(group_operating(risk, [catalog_primary, bank_primary, bank_backup]), rule(43), ['='('Group', risk), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_primary, bank_primary, bank_backup])]).
+% step 311
+step(all_groups([risk], [catalog_primary, bank_primary, bank_backup]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [group_operating(risk, [catalog_primary, bank_primary, bank_backup]), all_groups([], [catalog_primary, bank_primary, bank_backup])]).
+% step 312
+step(all_groups([bank, risk], [catalog_primary, bank_primary, bank_backup]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [group_operating(bank, [catalog_primary, bank_primary, bank_backup]), all_groups([risk], [catalog_primary, bank_primary, bank_backup])]).
+% step 313
+step(operating(payment_service, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_primary, bank_primary, bank_backup]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_primary, bank_primary, bank_backup])]).
+% step 314
+step(group_operating(payment, [catalog_primary, bank_primary, bank_backup]), rule(43), ['='('Group', payment), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_primary, bank_primary, bank_backup])]).
+% step 315
+step(all_groups([payment], [catalog_primary, bank_primary, bank_backup]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [group_operating(payment, [catalog_primary, bank_primary, bank_backup]), all_groups([], [catalog_primary, bank_primary, bank_backup])]).
+% step 316
+step(all_groups([catalog, payment], [catalog_primary, bank_primary, bank_backup]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [group_operating(catalog, [catalog_primary, bank_primary, bank_backup]), all_groups([payment], [catalog_primary, bank_primary, bank_backup])]).
+% step 317
+step(operating(checkout_api, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_primary, bank_primary, bank_backup]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_primary, bank_primary, bank_backup])]).
+% step 318
+step(group_operating(checkout, [catalog_primary, bank_primary, bank_backup]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_primary, bank_primary, bank_backup])]).
+% step 319
+step(all_groups([checkout], [catalog_primary, bank_primary, bank_backup]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [group_operating(checkout, [catalog_primary, bank_primary, bank_backup]), all_groups([], [catalog_primary, bank_primary, bank_backup])]).
+% step 320
+step(operating(web_store, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_primary, bank_primary, bank_backup]), node(web_store, [checkout]), all_groups([checkout], [catalog_primary, bank_primary, bank_backup])]).
+% step 321
+step(hardware_available(mobile_app, [catalog_primary, bank_primary, bank_backup]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_primary, bank_primary, bank_backup])], [healthy(mobile_app)]).
+% step 322
+step(operating(mobile_app, [catalog_primary, bank_primary, bank_backup]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_primary, bank_primary, bank_backup]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_primary, bank_primary, bank_backup])]).
+% step 323
+step(all_operating([], [catalog_primary, bank_primary, bank_backup]), fact(44), ['='('_Plan', [catalog_primary, bank_primary, bank_backup])], []).
+% step 324
+step(all_operating([mobile_app], [catalog_primary, bank_primary, bank_backup]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [operating(mobile_app, [catalog_primary, bank_primary, bank_backup]), all_operating([], [catalog_primary, bank_primary, bank_backup])]).
+% step 325
+step(all_operating([web_store, mobile_app], [catalog_primary, bank_primary, bank_backup]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_primary, bank_primary, bank_backup])], [operating(web_store, [catalog_primary, bank_primary, bank_backup]), all_operating([mobile_app], [catalog_primary, bank_primary, bank_backup])]).
+% step 326
+step(is(8, '+'(3, 5)), builtin, [], []).
+% step 327
+step(repair_cost([catalog_primary, bank_primary, bank_backup], 8), rule(53), ['='('Node', catalog_primary), '='('Rest', [bank_primary, bank_backup]), '='('Cost', 8), '='('Own', 3), '='('Tail', 5)], [repair_price(catalog_primary, 3), repair_cost([bank_primary, bank_backup], 5), is(8, '+'(3, 5))]).
+% step 328
+step(feasible_repair([catalog_primary, bank_primary, bank_backup], 8), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_primary, bank_primary, bank_backup]), '='('Required', [web_store, mobile_app]), '='('Cost', 8)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, bank_primary, bank_backup]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_primary, bank_primary, bank_backup]), repair_cost([catalog_primary, bank_primary, bank_backup], 8)]).
+% step 329
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_primary]), rule(35), ['='('Head', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [catalog_replica, bank_primary])], [subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary])]).
+% step 330
+step(hardware_available(web_store, [catalog_primary, catalog_replica, bank_primary]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_primary, catalog_replica, bank_primary])], [healthy(web_store)]).
+% step 331
+step(hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_primary]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_primary, catalog_replica, bank_primary])], [healthy(checkout_api)]).
+% step 332
+step(member(catalog_primary, [catalog_primary, catalog_replica, bank_primary]), fact(32), ['='('Head', catalog_primary), '='('$anonymous1', [catalog_replica, bank_primary])], []).
+% step 333
+step(hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_primary]), rule(39), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [failed(catalog_primary), member(catalog_primary, [catalog_primary, catalog_replica, bank_primary])]).
+% step 334
+step(all_groups([], [catalog_primary, catalog_replica, bank_primary]), fact(41), ['='('_Plan', [catalog_primary, catalog_replica, bank_primary])], []).
+% step 335
+step(operating(catalog_primary, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [])], [hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_primary]), node(catalog_primary, []), all_groups([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 336
+step(group_operating(catalog, [catalog_primary, catalog_replica, bank_primary]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Node', catalog_primary)], [provider(catalog, catalog_primary), operating(catalog_primary, [catalog_primary, catalog_replica, bank_primary])]).
+% step 337
+step(hardware_available(payment_service, [catalog_primary, catalog_replica, bank_primary]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_primary, catalog_replica, bank_primary])], [healthy(payment_service)]).
+% step 338
+step(member(bank_primary, [catalog_primary, catalog_replica, bank_primary]), rule(33), ['='('Value', bank_primary), '='('$anonymous2', catalog_primary), '='('Rest', [catalog_replica, bank_primary])], [member(bank_primary, [catalog_replica, bank_primary])]).
+% step 339
+step(hardware_available(bank_primary, [catalog_primary, catalog_replica, bank_primary]), rule(39), ['='('Node', bank_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [failed(bank_primary), member(bank_primary, [catalog_primary, catalog_replica, bank_primary])]).
+% step 340
+step(operating(bank_primary, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', bank_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [])], [hardware_available(bank_primary, [catalog_primary, catalog_replica, bank_primary]), node(bank_primary, []), all_groups([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 341
+step(group_operating(bank, [catalog_primary, catalog_replica, bank_primary]), rule(43), ['='('Group', bank), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Node', bank_primary)], [provider(bank, bank_primary), operating(bank_primary, [catalog_primary, catalog_replica, bank_primary])]).
+% step 342
+step(hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_primary]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_primary, catalog_replica, bank_primary])], [healthy(risk_engine)]).
+% step 343
+step(hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_primary]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_primary, catalog_replica, bank_primary])], [healthy(risk_cache)]).
+% step 344
+step(operating(risk_cache, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_primary]), node(risk_cache, []), all_groups([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 345
+step(group_operating(risk_signal, [catalog_primary, catalog_replica, bank_primary]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_primary, catalog_replica, bank_primary])]).
+% step 346
+step(all_groups([risk_signal], [catalog_primary, catalog_replica, bank_primary]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [group_operating(risk_signal, [catalog_primary, catalog_replica, bank_primary]), all_groups([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 347
+step(operating(risk_engine, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_primary]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_primary, catalog_replica, bank_primary])]).
+% step 348
+step(group_operating(risk, [catalog_primary, catalog_replica, bank_primary]), rule(43), ['='('Group', risk), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_primary, catalog_replica, bank_primary])]).
+% step 349
+step(all_groups([risk], [catalog_primary, catalog_replica, bank_primary]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [group_operating(risk, [catalog_primary, catalog_replica, bank_primary]), all_groups([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 350
+step(all_groups([bank, risk], [catalog_primary, catalog_replica, bank_primary]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [group_operating(bank, [catalog_primary, catalog_replica, bank_primary]), all_groups([risk], [catalog_primary, catalog_replica, bank_primary])]).
+% step 351
+step(operating(payment_service, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_primary, catalog_replica, bank_primary]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_primary, catalog_replica, bank_primary])]).
+% step 352
+step(group_operating(payment, [catalog_primary, catalog_replica, bank_primary]), rule(43), ['='('Group', payment), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_primary, catalog_replica, bank_primary])]).
+% step 353
+step(all_groups([payment], [catalog_primary, catalog_replica, bank_primary]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [group_operating(payment, [catalog_primary, catalog_replica, bank_primary]), all_groups([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 354
+step(all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_primary]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [group_operating(catalog, [catalog_primary, catalog_replica, bank_primary]), all_groups([payment], [catalog_primary, catalog_replica, bank_primary])]).
+% step 355
+step(operating(checkout_api, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_primary]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_primary])]).
+% step 356
+step(group_operating(checkout, [catalog_primary, catalog_replica, bank_primary]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_primary, catalog_replica, bank_primary])]).
+% step 357
+step(all_groups([checkout], [catalog_primary, catalog_replica, bank_primary]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [group_operating(checkout, [catalog_primary, catalog_replica, bank_primary]), all_groups([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 358
+step(operating(web_store, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_primary, catalog_replica, bank_primary]), node(web_store, [checkout]), all_groups([checkout], [catalog_primary, catalog_replica, bank_primary])]).
+% step 359
+step(hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_primary]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_primary, catalog_replica, bank_primary])], [healthy(mobile_app)]).
+% step 360
+step(operating(mobile_app, [catalog_primary, catalog_replica, bank_primary]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_primary]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_primary, catalog_replica, bank_primary])]).
+% step 361
+step(all_operating([], [catalog_primary, catalog_replica, bank_primary]), fact(44), ['='('_Plan', [catalog_primary, catalog_replica, bank_primary])], []).
+% step 362
+step(all_operating([mobile_app], [catalog_primary, catalog_replica, bank_primary]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [operating(mobile_app, [catalog_primary, catalog_replica, bank_primary]), all_operating([], [catalog_primary, catalog_replica, bank_primary])]).
+% step 363
+step(all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_primary]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_primary, catalog_replica, bank_primary])], [operating(web_store, [catalog_primary, catalog_replica, bank_primary]), all_operating([mobile_app], [catalog_primary, catalog_replica, bank_primary])]).
+% step 364
+step(is(9, '+'(3, 6)), builtin, [], []).
+% step 365
+step(repair_cost([catalog_primary, catalog_replica, bank_primary], 9), rule(53), ['='('Node', catalog_primary), '='('Rest', [catalog_replica, bank_primary]), '='('Cost', 9), '='('Own', 3), '='('Tail', 6)], [repair_price(catalog_primary, 3), repair_cost([catalog_replica, bank_primary], 6), is(9, '+'(3, 6))]).
+% step 366
+step(feasible_repair([catalog_primary, catalog_replica, bank_primary], 9), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_primary, catalog_replica, bank_primary]), '='('Required', [web_store, mobile_app]), '='('Cost', 9)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_primary]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_primary]), repair_cost([catalog_primary, catalog_replica, bank_primary], 9)]).
+% step 367
+step(subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(35), ['='('Head', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Chosen', [catalog_replica, bank_primary, bank_backup])], [subset([catalog_replica, bank_primary, bank_backup], [catalog_replica, bank_primary, bank_backup])]).
+% step 368
+step(hardware_available(web_store, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', web_store), '='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [healthy(web_store)]).
+% step 369
+step(hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', checkout_api), '='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [healthy(checkout_api)]).
+% step 370
+step(member(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), fact(32), ['='('Head', catalog_primary), '='('$anonymous1', [catalog_replica, bank_primary, bank_backup])], []).
+% step 371
+step(hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(39), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [failed(catalog_primary), member(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 372
+step(all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup]), fact(41), ['='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], []).
+% step 373
+step(operating(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', catalog_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(catalog_primary, []), all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 374
+step(group_operating(catalog, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', catalog), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Node', catalog_primary)], [provider(catalog, catalog_primary), operating(catalog_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 375
+step(hardware_available(payment_service, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', payment_service), '='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [healthy(payment_service)]).
+% step 376
+step(member(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(33), ['='('Value', bank_primary), '='('$anonymous2', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup])], [member(bank_primary, [catalog_replica, bank_primary, bank_backup])]).
+% step 377
+step(hardware_available(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(39), ['='('Node', bank_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [failed(bank_primary), member(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 378
+step(operating(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', bank_primary), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(bank_primary, []), all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 379
+step(group_operating(bank, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', bank), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Node', bank_primary)], [provider(bank, bank_primary), operating(bank_primary, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 380
+step(hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', risk_engine), '='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [healthy(risk_engine)]).
+% step 381
+step(hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', risk_cache), '='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [healthy(risk_cache)]).
+% step 382
+step(operating(risk_cache, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', risk_cache), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [])], [hardware_available(risk_cache, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(risk_cache, []), all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 383
+step(group_operating(risk_signal, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', risk_signal), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Node', risk_cache)], [provider(risk_signal, risk_cache), operating(risk_cache, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 384
+step(all_groups([risk_signal], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', risk_signal), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [group_operating(risk_signal, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 385
+step(operating(risk_engine, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', risk_engine), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [risk_signal])], [hardware_available(risk_engine, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(risk_engine, [risk_signal]), all_groups([risk_signal], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 386
+step(group_operating(risk, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', risk), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Node', risk_engine)], [provider(risk, risk_engine), operating(risk_engine, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 387
+step(all_groups([risk], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', risk), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [group_operating(risk, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 388
+step(all_groups([bank, risk], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', bank), '='('Rest', [risk]), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [group_operating(bank, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_groups([risk], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 389
+step(operating(payment_service, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', payment_service), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [bank, risk])], [hardware_available(payment_service, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(payment_service, [bank, risk]), all_groups([bank, risk], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 390
+step(group_operating(payment, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', payment), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Node', payment_service)], [provider(payment, payment_service), operating(payment_service, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 391
+step(all_groups([payment], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', payment), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [group_operating(payment, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 392
+step(all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', catalog), '='('Rest', [payment]), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [group_operating(catalog, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_groups([payment], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 393
+step(operating(checkout_api, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', checkout_api), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [catalog, payment])], [hardware_available(checkout_api, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(checkout_api, [catalog, payment]), all_groups([catalog, payment], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 394
+step(group_operating(checkout, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(43), ['='('Group', checkout), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Node', checkout_api)], [provider(checkout, checkout_api), operating(checkout_api, [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 395
+step(all_groups([checkout], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(42), ['='('Group', checkout), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [group_operating(checkout, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_groups([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 396
+step(operating(web_store, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', web_store), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(web_store, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(web_store, [checkout]), all_groups([checkout], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 397
+step(hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(38), ['='('Node', mobile_app), '='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [healthy(mobile_app)]).
+% step 398
+step(operating(mobile_app, [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(40), ['='('Node', mobile_app), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Groups', [checkout])], [hardware_available(mobile_app, [catalog_primary, catalog_replica, bank_primary, bank_backup]), node(mobile_app, [checkout]), all_groups([checkout], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 399
+step(all_operating([], [catalog_primary, catalog_replica, bank_primary, bank_backup]), fact(44), ['='('_Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], []).
+% step 400
+step(all_operating([mobile_app], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(45), ['='('Node', mobile_app), '='('Rest', []), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [operating(mobile_app, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_operating([], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 401
+step(all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_primary, bank_backup]), rule(45), ['='('Node', web_store), '='('Rest', [mobile_app]), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup])], [operating(web_store, [catalog_primary, catalog_replica, bank_primary, bank_backup]), all_operating([mobile_app], [catalog_primary, catalog_replica, bank_primary, bank_backup])]).
+% step 402
+step(is(10, '+'(3, 7)), builtin, [], []).
+% step 403
+step(repair_cost([catalog_primary, catalog_replica, bank_primary, bank_backup], 10), rule(53), ['='('Node', catalog_primary), '='('Rest', [catalog_replica, bank_primary, bank_backup]), '='('Cost', 10), '='('Own', 3), '='('Tail', 7)], [repair_price(catalog_primary, 3), repair_cost([catalog_replica, bank_primary, bank_backup], 7), is(10, '+'(3, 7))]).
+% step 404
+step(feasible_repair([catalog_primary, catalog_replica, bank_primary, bank_backup], 10), rule(54), ['='('Candidates', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Plan', [catalog_primary, catalog_replica, bank_primary, bank_backup]), '='('Required', [web_store, mobile_app]), '='('Cost', 10)], [repair_candidates([catalog_primary, catalog_replica, bank_primary, bank_backup]), subset([catalog_primary, catalog_replica, bank_primary, bank_backup], [catalog_primary, catalog_replica, bank_primary, bank_backup]), critical_services([web_store, mobile_app]), all_operating([web_store, mobile_app], [catalog_primary, catalog_replica, bank_primary, bank_backup]), repair_cost([catalog_primary, catalog_replica, bank_primary, bank_backup], 10)]).
+% step 405
+step(aggregate_all(min(V0), [feasible_repair(V1, V0)], 3), collected, [], [[feasible_repair([catalog_replica, bank_backup], 3)], [feasible_repair([catalog_primary, bank_backup], 4)], [feasible_repair([catalog_replica, bank_primary], 6)], [feasible_repair([catalog_primary, bank_primary], 7)], [feasible_repair([catalog_primary, catalog_replica, bank_backup], 6)], [feasible_repair([catalog_replica, bank_primary, bank_backup], 7)], [feasible_repair([catalog_primary, bank_primary, bank_backup], 8)], [feasible_repair([catalog_primary, catalog_replica, bank_primary], 9)], [feasible_repair([catalog_primary, catalog_replica, bank_primary, bank_backup], 10)]]).
+% step 406
+step(best_repair([catalog_replica, bank_backup], 3), rule(55), ['='('Plan', [catalog_replica, bank_backup]), '='('Cost', 3)], [aggregate_all(min(V0), [feasible_repair(V1, V0)], 3), feasible_repair([catalog_replica, bank_backup], 3)]).
 
 % Check
 check passed: best_repair([catalog_replica, bank_backup], 3).
@@ -1253,3 +917,24 @@ check passed: operating(payment_service, [bank_backup]).
 check passed: \+ (operating(checkout_api, [bank_backup])).
 
 check passed: aggregate_all(count, (feasible_repair(Plan, Cost)), 9).
+
+condition('C1', resolution, ok, 387).
+condition('C2', well_founded, ok, 406).
+condition('C3', justification, ok, 406).
+condition('C4', coverage, ok, 692).
+condition('C5', re_decision, ok, 13).
+condition('C6', boundary_consistency, ok, 7).
+condition('C7', relevance, ok, 407).
+obligation(absent, theory_scoped, '\\+'(failed(web_store))).
+obligation(absent, theory_scoped, '\\+'(failed(checkout_api))).
+obligation(absent, theory_scoped, '\\+'(failed(payment_service))).
+obligation(absent, theory_scoped, '\\+'(failed(risk_engine))).
+obligation(absent, theory_scoped, '\\+'(failed(risk_cache))).
+obligation(absent, theory_scoped, '\\+'(failed(mobile_app))).
+obligation(collected, collection_completeness, aggregate_all(min(var('V0')), [feasible_repair(var('V1'), var('V0'))], 3)).
+steps(406).
+verified(387).
+recomputed(13).
+trusted(7).
+claims(1).
+verdict(checked_with_obligations).

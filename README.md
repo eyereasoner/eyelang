@@ -16,7 +16,8 @@
 <!-- navigation:end -->
 
 A symbolic logic programming language implementing a subset of Prolog, with
-`.pl` programs, query explanations, and executable checks.
+`.pl` programs, query explanations, executable checks, and independently
+checked proof certificates.
 
 Start with the [hands-on tutorial](https://eyereasoner.github.io/eyelang/TUTORIAL/).
 
@@ -44,11 +45,16 @@ The answer is `Who = socrates.`. `why` explains the supporting facts and rules;
 the assertion checks the result. This is
 [ARC: Answer, Reason, Check](https://josd.github.io/arc/).
 
+The **Reason** section is a proof certificate. **Check** includes its
+independent verification report alongside the assertions. Negation and
+collection completeness remain explicit obligations. See the
+[proof specification](https://eyereasoner.github.io/eyelang/SPEC/#81-proof-certificates).
+
 ## Playground
 
 Open [the playground](https://eyereasoner.github.io/eyelang/playground/),
 choose an example, and press **Run program**. Edit, share, or save your program
-and its complete answers, reasons, and checks.
+and its complete answers, proof certificate, and checks.
 
 ## The subset of Prolog
 

@@ -3,54 +3,47 @@
 Who = ind.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: is_a(Entity, n1) :- is_a(Entity, n0).
-rule 2: is_a(Entity, n2) :- is_a(Entity, n1).
-rule 3: is_a(Entity, n3) :- is_a(Entity, n2).
-rule 4: is_a(Entity, n4) :- is_a(Entity, n3).
-rule 5: is_a(Entity, n5) :- is_a(Entity, n4).
-rule 6: is_a(Entity, n6) :- is_a(Entity, n5).
-rule 7: is_a(Entity, n7) :- is_a(Entity, n6).
-rule 8: is_a(Entity, n8) :- is_a(Entity, n7).
-rule 9: is_a(Entity, n9) :- is_a(Entity, n8).
-rule 10: is_a(Entity, n10) :- is_a(Entity, n9).
-rule 11: is_a(Entity, a2) :- is_a(Entity, n10).
-step 1: is_a(ind, n0).
-  you told me this.
-step 2: is_a(ind, n1).
-  because rule 1 uses steps 1.
-  with Entity = ind.
-step 3: is_a(ind, n2).
-  because rule 2 uses steps 2.
-  with Entity = ind.
-step 4: is_a(ind, n3).
-  because rule 3 uses steps 3.
-  with Entity = ind.
-step 5: is_a(ind, n4).
-  because rule 4 uses steps 4.
-  with Entity = ind.
-step 6: is_a(ind, n5).
-  because rule 5 uses steps 5.
-  with Entity = ind.
-step 7: is_a(ind, n6).
-  because rule 6 uses steps 6.
-  with Entity = ind.
-step 8: is_a(ind, n7).
-  because rule 7 uses steps 7.
-  with Entity = ind.
-step 9: is_a(ind, n8).
-  because rule 8 uses steps 8.
-  with Entity = ind.
-step 10: is_a(ind, n9).
-  because rule 9 uses steps 9.
-  with Entity = ind.
-step 11: is_a(ind, n10).
-  because rule 10 uses steps 10.
-  with Entity = ind.
-step 12: is_a(ind, a2).
-  because rule 11 uses steps 11.
-  with Entity = ind.
-That explains step 12.
+certificate(eyelang, 1).
+
+claim(query(1), [is_a(ind, a2)]).
+
+clause(1, is_a(ind, n0), []).
+clause(2, is_a(var('Entity'), a2), [is_a(var('Entity'), n10)]).
+clause(3, is_a(var('Entity'), n1), [is_a(var('Entity'), n0)]).
+clause(6, is_a(var('Entity'), n2), [is_a(var('Entity'), n1)]).
+clause(9, is_a(var('Entity'), n3), [is_a(var('Entity'), n2)]).
+clause(12, is_a(var('Entity'), n4), [is_a(var('Entity'), n3)]).
+clause(15, is_a(var('Entity'), n5), [is_a(var('Entity'), n4)]).
+clause(18, is_a(var('Entity'), n6), [is_a(var('Entity'), n5)]).
+clause(21, is_a(var('Entity'), n7), [is_a(var('Entity'), n6)]).
+clause(24, is_a(var('Entity'), n8), [is_a(var('Entity'), n7)]).
+clause(27, is_a(var('Entity'), n9), [is_a(var('Entity'), n8)]).
+clause(30, is_a(var('Entity'), n10), [is_a(var('Entity'), n9)]).
+
+% step 1
+step(is_a(ind, n0), fact(1), [], []).
+% step 2
+step(is_a(ind, n1), rule(3), ['='('Entity', ind)], [is_a(ind, n0)]).
+% step 3
+step(is_a(ind, n2), rule(6), ['='('Entity', ind)], [is_a(ind, n1)]).
+% step 4
+step(is_a(ind, n3), rule(9), ['='('Entity', ind)], [is_a(ind, n2)]).
+% step 5
+step(is_a(ind, n4), rule(12), ['='('Entity', ind)], [is_a(ind, n3)]).
+% step 6
+step(is_a(ind, n5), rule(15), ['='('Entity', ind)], [is_a(ind, n4)]).
+% step 7
+step(is_a(ind, n6), rule(18), ['='('Entity', ind)], [is_a(ind, n5)]).
+% step 8
+step(is_a(ind, n7), rule(21), ['='('Entity', ind)], [is_a(ind, n6)]).
+% step 9
+step(is_a(ind, n8), rule(24), ['='('Entity', ind)], [is_a(ind, n7)]).
+% step 10
+step(is_a(ind, n9), rule(27), ['='('Entity', ind)], [is_a(ind, n8)]).
+% step 11
+step(is_a(ind, n10), rule(30), ['='('Entity', ind)], [is_a(ind, n9)]).
+% step 12
+step(is_a(ind, a2), rule(2), ['='('Entity', ind)], [is_a(ind, n10)]).
 
 % Check
 check passed: is_a(ind, a2).
@@ -62,3 +55,17 @@ check passed: is_a(ind, i10).
 check passed: is_a(ind, j10).
 
 check passed: \+ (is_a(ind, n11)).
+
+condition('C1', resolution, ok, 12).
+condition('C2', well_founded, ok, 12).
+condition('C3', justification, ok, 12).
+condition('C4', coverage, ok, 12).
+condition('C5', re_decision, ok, 0).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 13).
+steps(12).
+verified(12).
+recomputed(0).
+trusted(0).
+claims(1).
+verdict(checked).

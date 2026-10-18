@@ -136,16 +136,16 @@ test('conversions bind forward and tabled clause outputs and contribute numbered
   `;
   const output = run(source);
   assert.equal(output[0], 'Text = "cat".');
-  assert.match(output[1], /rule \d+: decoded\(Text\)/);
-  assert.match(output[1], /step \d+: atom_codes\(cat, \[99, 97, 116\]\)/);
-  assert.match(output[1], /step \d+: string_codes\("cat", \[99, 97, 116\]\)/);
+  assert.match(output[1], /clause\(\d+, decoded/);
+  assert.match(output[1], /step\(atom_codes\(cat, \[99, 97, 116\]\)/);
+  assert.match(output[1], /step\(string_codes\("cat", \[99, 97, 116\]\)/);
   assert.equal(output[2], 'Name = record, Args = [cat].');
   assert.equal(output[3], 'Term = wrapped(42).');
   assert.equal(output.filter(block => block.startsWith('check passed:')).length, 3);
   const rules = parse(source).rules.filter(rule => rule.conclusion.relation.startsWith('predicate:'));
   assert.equal(rules.find(rule => rule.conclusion.relation === 'predicate:decoded/1').backward, false);
   assert.ok(infer(parse(source), { validateChecks: true }).length);
-  assert.match(run('?- Term =.. [point, 1, 2]. ?- why.')[1], /step \d+: point\(1, 2\) =\.\. \[point, 1, 2\]/);
+  assert.match(run('?- Term =.. [point, 1, 2]. ?- why.')[1], /step\('=\.\.'\(point\(1, 2\), \[point, 1, 2\]\)/);
 });
 
 test('negated conversions require bound operands and never introduce bindings', () => {

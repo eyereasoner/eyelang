@@ -30,26 +30,25 @@ What = 0.9999999999999999.
 What = [-2, -3, -1, 2].
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: result(division, [_Calc1, _Calc2, _Calc3, _Calc4]) :- inputs(division, [A, B]), _Calc1 is (A // B), _Calc2 is (A div B), _Calc3 is (A rem B), _Calc4 is (A mod B).
-step 1: inputs(division, [-7, 3]).
-  you told me this.
-step 2: -2 is (-7 // 3).
-  I checked these values.
-step 3: -3 is (-7 div 3).
-  I checked these values.
-step 4: -1 is (-7 rem 3).
-  I checked these values.
-step 5: 2 is (-7 mod 3).
-  I checked these values.
-step 6: result(division, [-2, -3, -1, 2]).
-  because rule 1 uses steps 1, 2, 3, 4, 5.
-  with A = -7, B = 3, _Calc1 = -2, _Calc2 = -3, _Calc3 = -1, _Calc4 = 2.
-  (-7 // 3) = -2.
-  (-7 div 3) = -3.
-  (-7 rem 3) = -1.
-  (-7 mod 3) = 2.
-That explains step 6.
+certificate(eyelang, 1).
+
+claim(query(10), [result(division, [-2, -3, -1, 2])]).
+
+clause(3, inputs(division, [-7, 3]), []).
+clause(11, result(division, [var('_Calc1'), var('_Calc2'), var('_Calc3'), var('_Calc4')]), [inputs(division, [var('A'), var('B')]), is(var('_Calc1'), '//'(var('A'), var('B'))), is(var('_Calc2'), div(var('A'), var('B'))), is(var('_Calc3'), rem(var('A'), var('B'))), is(var('_Calc4'), mod(var('A'), var('B')))]).
+
+% step 1
+step(inputs(division, [-7, 3]), fact(3), [], []).
+% step 2
+step(is(-2, '//'(-7, 3)), builtin, [], []).
+% step 3
+step(is(-3, div(-7, 3)), builtin, [], []).
+% step 4
+step(is(-1, rem(-7, 3)), builtin, [], []).
+% step 5
+step(is(2, mod(-7, 3)), builtin, [], []).
+% step 6
+step(result(division, [-2, -3, -1, 2]), rule(11), ['='('A', -7), '='('B', 3), '='('_Calc1', -2), '='('_Calc2', -3), '='('_Calc3', -1), '='('_Calc4', 2)], [inputs(division, [-7, 3]), is(-2, '//'(-7, 3)), is(-3, div(-7, 3)), is(-1, rem(-7, 3)), is(2, mod(-7, 3))]).
 
 % Check
 check passed: absolute(magnitude, 9007199254740993).
@@ -79,3 +78,17 @@ check passed: _Calc1 is e, _Calc1 < 3.
 check passed: circumference(circle, 18.84955592153876).
 
 check passed: _Calc1 is abs((tan(atan(1)) - 1)), _Calc1 =< 1e-12.
+
+condition('C1', resolution, ok, 2).
+condition('C2', well_founded, ok, 6).
+condition('C3', justification, ok, 6).
+condition('C4', coverage, ok, 6).
+condition('C5', re_decision, ok, 4).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 7).
+steps(6).
+verified(2).
+recomputed(4).
+trusted(0).
+claims(1).
+verdict(checked).

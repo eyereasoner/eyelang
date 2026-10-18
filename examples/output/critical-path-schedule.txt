@@ -21,356 +21,175 @@ Kind = critical_task, Value = architecture.
 Kind = critical_task, Value = requirements.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: earliest_start(Task, Start) :- task(Task, _, Predecessors), latest_finish(Predecessors, Start).
-rule 2: finish_time(Task, Finish) :- task(Task, Duration, _), earliest_start(Task, Start), Finish is (Start + Duration).
-rule 3: latest_finish([Predecessor | Rest], Latest) :- finish_time(Predecessor, Finish), latest_finish(Rest, Remaining), Latest is max(Finish, Remaining).
-rule 4: project_finish(Finish) :- aggregate_all(max(Time), (task(Task, _, _), finish_time(Task, Time)), Finish).
-rule 5: final_task(Task) :- project_finish(Finish), task(Task, _, _), finish_time(Task, Finish).
-rule 6: critical_chain(Task, Task).
-rule 7: critical_task(Task) :- final_task(Final), critical_chain(Final, Task).
-step 1: task(requirements, 2, []).
-  you told me this.
-step 2: latest_finish([], 0).
-  you told me this.
-step 3: earliest_start(requirements, 0).
-  because rule 1 uses steps 1, 2.
-  with Task = requirements, Start = 0, Predecessors = [].
-step 4: 2 is (0 + 2).
-  I checked these values.
-step 5: finish_time(requirements, 2).
-  because rule 2 uses steps 1, 3, 4.
-  with Task = requirements, Finish = 2, Duration = 2, Start = 0.
-  (0 + 2) = 2.
-step 6: task(architecture, 3, [requirements]).
-  you told me this.
-step 7: 2 is max(2, 0).
-  I checked these values.
-step 8: latest_finish([requirements], 2).
-  because rule 3 uses steps 5, 2, 7.
-  with Predecessor = requirements, Rest = [], Latest = 2, Finish = 2, Remaining = 0.
-  max(2, 0) = 2.
-step 9: earliest_start(architecture, 2).
-  because rule 1 uses steps 6, 8.
-  with Task = architecture, Start = 2, Predecessors = [requirements].
-step 10: 5 is (2 + 3).
-  I checked these values.
-step 11: finish_time(architecture, 5).
-  because rule 2 uses steps 6, 9, 10.
-  with Task = architecture, Finish = 5, Duration = 3, Start = 2.
-  (2 + 3) = 5.
-step 12: task(api_design, 2, [requirements]).
-  you told me this.
-step 13: earliest_start(api_design, 2).
-  because rule 1 uses steps 12, 8.
-  with Task = api_design, Start = 2, Predecessors = [requirements].
-step 14: 4 is (2 + 2).
-  I checked these values.
-step 15: finish_time(api_design, 4).
-  because rule 2 uses steps 12, 13, 14.
-  with Task = api_design, Finish = 4, Duration = 2, Start = 2.
-  (2 + 2) = 4.
-step 16: task(database, 4, [architecture]).
-  you told me this.
-step 17: 5 is max(5, 0).
-  I checked these values.
-step 18: latest_finish([architecture], 5).
-  because rule 3 uses steps 11, 2, 17.
-  with Predecessor = architecture, Rest = [], Latest = 5, Finish = 5, Remaining = 0.
-  max(5, 0) = 5.
-step 19: earliest_start(database, 5).
-  because rule 1 uses steps 16, 18.
-  with Task = database, Start = 5, Predecessors = [architecture].
-step 20: 9 is (5 + 4).
-  I checked these values.
-step 21: finish_time(database, 9).
-  because rule 2 uses steps 16, 19, 20.
-  with Task = database, Finish = 9, Duration = 4, Start = 5.
-  (5 + 4) = 9.
-step 22: task(backend, 6, [api_design, database]).
-  you told me this.
-step 23: 9 is max(9, 0).
-  I checked these values.
-step 24: latest_finish([database], 9).
-  because rule 3 uses steps 21, 2, 23.
-  with Predecessor = database, Rest = [], Latest = 9, Finish = 9, Remaining = 0.
-  max(9, 0) = 9.
-step 25: 9 is max(4, 9).
-  I checked these values.
-step 26: latest_finish([api_design, database], 9).
-  because rule 3 uses steps 15, 24, 25.
-  with Predecessor = api_design, Rest = [database], Latest = 9, Finish = 4, Remaining = 9.
-  max(4, 9) = 9.
-step 27: earliest_start(backend, 9).
-  because rule 1 uses steps 22, 26.
-  with Task = backend, Start = 9, Predecessors = [api_design, database].
-step 28: 15 is (9 + 6).
-  I checked these values.
-step 29: finish_time(backend, 15).
-  because rule 2 uses steps 22, 27, 28.
-  with Task = backend, Finish = 15, Duration = 6, Start = 9.
-  (9 + 6) = 15.
-step 30: task(frontend, 5, [api_design]).
-  you told me this.
-step 31: 4 is max(4, 0).
-  I checked these values.
-step 32: latest_finish([api_design], 4).
-  because rule 3 uses steps 15, 2, 31.
-  with Predecessor = api_design, Rest = [], Latest = 4, Finish = 4, Remaining = 0.
-  max(4, 0) = 4.
-step 33: earliest_start(frontend, 4).
-  because rule 1 uses steps 30, 32.
-  with Task = frontend, Start = 4, Predecessors = [api_design].
-step 34: 9 is (4 + 5).
-  I checked these values.
-step 35: finish_time(frontend, 9).
-  because rule 2 uses steps 30, 33, 34.
-  with Task = frontend, Finish = 9, Duration = 5, Start = 4.
-  (4 + 5) = 9.
-step 36: task(auth, 3, [architecture]).
-  you told me this.
-step 37: earliest_start(auth, 5).
-  because rule 1 uses steps 36, 18.
-  with Task = auth, Start = 5, Predecessors = [architecture].
-step 38: 8 is (5 + 3).
-  I checked these values.
-step 39: finish_time(auth, 8).
-  because rule 2 uses steps 36, 37, 38.
-  with Task = auth, Finish = 8, Duration = 3, Start = 5.
-  (5 + 3) = 8.
-step 40: task(integration, 4, [backend, frontend, auth]).
-  you told me this.
-step 41: 8 is max(8, 0).
-  I checked these values.
-step 42: latest_finish([auth], 8).
-  because rule 3 uses steps 39, 2, 41.
-  with Predecessor = auth, Rest = [], Latest = 8, Finish = 8, Remaining = 0.
-  max(8, 0) = 8.
-step 43: 9 is max(9, 8).
-  I checked these values.
-step 44: latest_finish([frontend, auth], 9).
-  because rule 3 uses steps 35, 42, 43.
-  with Predecessor = frontend, Rest = [auth], Latest = 9, Finish = 9, Remaining = 8.
-  max(9, 8) = 9.
-step 45: 15 is max(15, 9).
-  I checked these values.
-step 46: latest_finish([backend, frontend, auth], 15).
-  because rule 3 uses steps 29, 44, 45.
-  with Predecessor = backend, Rest = [frontend, auth], Latest = 15, Finish = 15, Remaining = 9.
-  max(15, 9) = 15.
-step 47: earliest_start(integration, 15).
-  because rule 1 uses steps 40, 46.
-  with Task = integration, Start = 15, Predecessors = [backend, frontend, auth].
-step 48: 19 is (15 + 4).
-  I checked these values.
-step 49: finish_time(integration, 19).
-  because rule 2 uses steps 40, 47, 48.
-  with Task = integration, Finish = 19, Duration = 4, Start = 15.
-  (15 + 4) = 19.
-step 50: task(security_review, 3, [integration]).
-  you told me this.
-step 51: 19 is max(19, 0).
-  I checked these values.
-step 52: latest_finish([integration], 19).
-  because rule 3 uses steps 49, 2, 51.
-  with Predecessor = integration, Rest = [], Latest = 19, Finish = 19, Remaining = 0.
-  max(19, 0) = 19.
-step 53: earliest_start(security_review, 19).
-  because rule 1 uses steps 50, 52.
-  with Task = security_review, Start = 19, Predecessors = [integration].
-step 54: 22 is (19 + 3).
-  I checked these values.
-step 55: finish_time(security_review, 22).
-  because rule 2 uses steps 50, 53, 54.
-  with Task = security_review, Finish = 22, Duration = 3, Start = 19.
-  (19 + 3) = 22.
-step 56: task(load_test, 2, [integration]).
-  you told me this.
-step 57: earliest_start(load_test, 19).
-  because rule 1 uses steps 56, 52.
-  with Task = load_test, Start = 19, Predecessors = [integration].
-step 58: 21 is (19 + 2).
-  I checked these values.
-step 59: finish_time(load_test, 21).
-  because rule 2 uses steps 56, 57, 58.
-  with Task = load_test, Finish = 21, Duration = 2, Start = 19.
-  (19 + 2) = 21.
-step 60: task(launch, 1, [security_review, load_test]).
-  you told me this.
-step 61: 21 is max(21, 0).
-  I checked these values.
-step 62: latest_finish([load_test], 21).
-  because rule 3 uses steps 59, 2, 61.
-  with Predecessor = load_test, Rest = [], Latest = 21, Finish = 21, Remaining = 0.
-  max(21, 0) = 21.
-step 63: 22 is max(22, 21).
-  I checked these values.
-step 64: latest_finish([security_review, load_test], 22).
-  because rule 3 uses steps 55, 62, 63.
-  with Predecessor = security_review, Rest = [load_test], Latest = 22, Finish = 22, Remaining = 21.
-  max(22, 21) = 22.
-step 65: earliest_start(launch, 22).
-  because rule 1 uses steps 60, 64.
-  with Task = launch, Start = 22, Predecessors = [security_review, load_test].
-step 66: 23 is (22 + 1).
-  I checked these values.
-step 67: finish_time(launch, 23).
-  because rule 2 uses steps 60, 65, 66.
-  with Task = launch, Finish = 23, Duration = 1, Start = 22.
-  (22 + 1) = 23.
-step 68: aggregate_all(max(Time), (task(Task, _, _), finish_time(Task, Time)), 23).
-  I computed max over 11 distinct matching tuples in the completed program. I used steps 1, 5, 6, 11, 12, 15, 16, 21, 22, 29, 30, 35, 36, 39, 40, 49, 50, 55, 56, 59, 60, 67.
-step 69: project_finish(23).
-  because rule 4 uses steps 68.
-  with Finish = 23.
-step 70: final_task(launch).
-  because rule 5 uses steps 69, 60, 67.
-  with Finish = 23, Task = launch.
-step 71: critical_chain(launch, launch).
-  because rule 6.
-  with Task = launch.
-step 72: critical_task(launch).
-  because rule 7 uses steps 70, 71.
-  with Final = launch, Task = launch.
-That explains step 72.
+certificate(eyelang, 1).
 
-Here is why. Each step is shown once.
-rule 1: earliest_start(Task, Start) :- task(Task, _, Predecessors), latest_finish(Predecessors, Start).
-rule 2: finish_time(Task, Finish) :- task(Task, Duration, _), earliest_start(Task, Start), Finish is (Start + Duration).
-rule 3: latest_finish([Predecessor | Rest], Latest) :- finish_time(Predecessor, Finish), latest_finish(Rest, Remaining), Latest is max(Finish, Remaining).
-step 1: task(integration, 4, [backend, frontend, auth]).
-  you told me this.
-step 2: task(backend, 6, [api_design, database]).
-  you told me this.
-step 3: task(api_design, 2, [requirements]).
-  you told me this.
-step 4: task(requirements, 2, []).
-  you told me this.
-step 5: latest_finish([], 0).
-  you told me this.
-step 6: earliest_start(requirements, 0).
-  because rule 1 uses steps 4, 5.
-  with Task = requirements, Start = 0, Predecessors = [].
-step 7: 2 is (0 + 2).
-  I checked these values.
-step 8: finish_time(requirements, 2).
-  because rule 2 uses steps 4, 6, 7.
-  with Task = requirements, Finish = 2, Duration = 2, Start = 0.
-  (0 + 2) = 2.
-step 9: 2 is max(2, 0).
-  I checked these values.
-step 10: latest_finish([requirements], 2).
-  because rule 3 uses steps 8, 5, 9.
-  with Predecessor = requirements, Rest = [], Latest = 2, Finish = 2, Remaining = 0.
-  max(2, 0) = 2.
-step 11: earliest_start(api_design, 2).
-  because rule 1 uses steps 3, 10.
-  with Task = api_design, Start = 2, Predecessors = [requirements].
-step 12: 4 is (2 + 2).
-  I checked these values.
-step 13: finish_time(api_design, 4).
-  because rule 2 uses steps 3, 11, 12.
-  with Task = api_design, Finish = 4, Duration = 2, Start = 2.
-  (2 + 2) = 4.
-step 14: task(database, 4, [architecture]).
-  you told me this.
-step 15: task(architecture, 3, [requirements]).
-  you told me this.
-step 16: earliest_start(architecture, 2).
-  because rule 1 uses steps 15, 10.
-  with Task = architecture, Start = 2, Predecessors = [requirements].
-step 17: 5 is (2 + 3).
-  I checked these values.
-step 18: finish_time(architecture, 5).
-  because rule 2 uses steps 15, 16, 17.
-  with Task = architecture, Finish = 5, Duration = 3, Start = 2.
-  (2 + 3) = 5.
-step 19: 5 is max(5, 0).
-  I checked these values.
-step 20: latest_finish([architecture], 5).
-  because rule 3 uses steps 18, 5, 19.
-  with Predecessor = architecture, Rest = [], Latest = 5, Finish = 5, Remaining = 0.
-  max(5, 0) = 5.
-step 21: earliest_start(database, 5).
-  because rule 1 uses steps 14, 20.
-  with Task = database, Start = 5, Predecessors = [architecture].
-step 22: 9 is (5 + 4).
-  I checked these values.
-step 23: finish_time(database, 9).
-  because rule 2 uses steps 14, 21, 22.
-  with Task = database, Finish = 9, Duration = 4, Start = 5.
-  (5 + 4) = 9.
-step 24: 9 is max(9, 0).
-  I checked these values.
-step 25: latest_finish([database], 9).
-  because rule 3 uses steps 23, 5, 24.
-  with Predecessor = database, Rest = [], Latest = 9, Finish = 9, Remaining = 0.
-  max(9, 0) = 9.
-step 26: 9 is max(4, 9).
-  I checked these values.
-step 27: latest_finish([api_design, database], 9).
-  because rule 3 uses steps 13, 25, 26.
-  with Predecessor = api_design, Rest = [database], Latest = 9, Finish = 4, Remaining = 9.
-  max(4, 9) = 9.
-step 28: earliest_start(backend, 9).
-  because rule 1 uses steps 2, 27.
-  with Task = backend, Start = 9, Predecessors = [api_design, database].
-step 29: 15 is (9 + 6).
-  I checked these values.
-step 30: finish_time(backend, 15).
-  because rule 2 uses steps 2, 28, 29.
-  with Task = backend, Finish = 15, Duration = 6, Start = 9.
-  (9 + 6) = 15.
-step 31: task(frontend, 5, [api_design]).
-  you told me this.
-step 32: 4 is max(4, 0).
-  I checked these values.
-step 33: latest_finish([api_design], 4).
-  because rule 3 uses steps 13, 5, 32.
-  with Predecessor = api_design, Rest = [], Latest = 4, Finish = 4, Remaining = 0.
-  max(4, 0) = 4.
-step 34: earliest_start(frontend, 4).
-  because rule 1 uses steps 31, 33.
-  with Task = frontend, Start = 4, Predecessors = [api_design].
-step 35: 9 is (4 + 5).
-  I checked these values.
-step 36: finish_time(frontend, 9).
-  because rule 2 uses steps 31, 34, 35.
-  with Task = frontend, Finish = 9, Duration = 5, Start = 4.
-  (4 + 5) = 9.
-step 37: task(auth, 3, [architecture]).
-  you told me this.
-step 38: earliest_start(auth, 5).
-  because rule 1 uses steps 37, 20.
-  with Task = auth, Start = 5, Predecessors = [architecture].
-step 39: 8 is (5 + 3).
-  I checked these values.
-step 40: finish_time(auth, 8).
-  because rule 2 uses steps 37, 38, 39.
-  with Task = auth, Finish = 8, Duration = 3, Start = 5.
-  (5 + 3) = 8.
-step 41: 8 is max(8, 0).
-  I checked these values.
-step 42: latest_finish([auth], 8).
-  because rule 3 uses steps 40, 5, 41.
-  with Predecessor = auth, Rest = [], Latest = 8, Finish = 8, Remaining = 0.
-  max(8, 0) = 8.
-step 43: 9 is max(9, 8).
-  I checked these values.
-step 44: latest_finish([frontend, auth], 9).
-  because rule 3 uses steps 36, 42, 43.
-  with Predecessor = frontend, Rest = [auth], Latest = 9, Finish = 9, Remaining = 8.
-  max(9, 8) = 9.
-step 45: 15 is max(15, 9).
-  I checked these values.
-step 46: latest_finish([backend, frontend, auth], 15).
-  because rule 3 uses steps 30, 44, 45.
-  with Predecessor = backend, Rest = [frontend, auth], Latest = 15, Finish = 15, Remaining = 9.
-  max(15, 9) = 15.
-step 47: earliest_start(integration, 15).
-  because rule 1 uses steps 1, 46.
-  with Task = integration, Start = 15, Predecessors = [backend, frontend, auth].
-That explains step 47.
+claim(query(2), [critical_task(launch)]).
+claim(query(3), [earliest_start(integration, 15)]).
+
+clause(1, task(requirements, 2, []), []).
+clause(2, task(architecture, 3, [requirements]), []).
+clause(3, task(api_design, 2, [requirements]), []).
+clause(4, task(database, 4, [architecture]), []).
+clause(5, task(backend, 6, [api_design, database]), []).
+clause(6, task(frontend, 5, [api_design]), []).
+clause(7, task(auth, 3, [architecture]), []).
+clause(8, task(integration, 4, [backend, frontend, auth]), []).
+clause(9, task(security_review, 3, [integration]), []).
+clause(10, task(load_test, 2, [integration]), []).
+clause(11, task(launch, 1, [security_review, load_test]), []).
+clause(15, earliest_start(var('Task'), var('Start')), [task(var('Task'), var('$anonymous4'), var('Predecessors')), latest_finish(var('Predecessors'), var('Start'))]).
+clause(16, latest_finish([], 0), []).
+clause(17, latest_finish(list([var('Predecessor')], var('Rest')), var('Latest')), [finish_time(var('Predecessor'), var('Finish')), latest_finish(var('Rest'), var('Remaining')), is(var('Latest'), max(var('Finish'), var('Remaining')))]).
+clause(18, finish_time(var('Task'), var('Finish')), [task(var('Task'), var('Duration'), var('$anonymous5')), earliest_start(var('Task'), var('Start')), is(var('Finish'), '+'(var('Start'), var('Duration')))]).
+clause(20, project_finish(var('Finish')), [aggregate_all(max(var('Time')), [task(var('Task'), var('$anonymous6'), var('$anonymous7')), finish_time(var('Task'), var('Time'))], var('Finish'))]).
+clause(21, final_task(var('Task')), [project_finish(var('Finish')), task(var('Task'), var('$anonymous8'), var('$anonymous9')), finish_time(var('Task'), var('Finish'))]).
+clause(22, critical_chain(var('Task'), var('Task')), []).
+clause(24, critical_task(var('Task')), [final_task(var('Final')), critical_chain(var('Final'), var('Task'))]).
+
+% step 1
+step(task(requirements, 2, []), fact(1), [], []).
+% step 2
+step(latest_finish([], 0), fact(16), [], []).
+% step 3
+step(earliest_start(requirements, 0), rule(15), ['='('Task', requirements), '='('Start', 0), '='('$anonymous4', 2), '='('Predecessors', [])], [task(requirements, 2, []), latest_finish([], 0)]).
+% step 4
+step(is(2, '+'(0, 2)), builtin, [], []).
+% step 5
+step(finish_time(requirements, 2), rule(18), ['='('Task', requirements), '='('Finish', 2), '='('Duration', 2), '='('$anonymous5', []), '='('Start', 0)], [task(requirements, 2, []), earliest_start(requirements, 0), is(2, '+'(0, 2))]).
+% step 6
+step(task(architecture, 3, [requirements]), fact(2), [], []).
+% step 7
+step(is(2, max(2, 0)), builtin, [], []).
+% step 8
+step(latest_finish([requirements], 2), rule(17), ['='('Predecessor', requirements), '='('Rest', []), '='('Latest', 2), '='('Finish', 2), '='('Remaining', 0)], [finish_time(requirements, 2), latest_finish([], 0), is(2, max(2, 0))]).
+% step 9
+step(earliest_start(architecture, 2), rule(15), ['='('Task', architecture), '='('Start', 2), '='('$anonymous4', 3), '='('Predecessors', [requirements])], [task(architecture, 3, [requirements]), latest_finish([requirements], 2)]).
+% step 10
+step(is(5, '+'(2, 3)), builtin, [], []).
+% step 11
+step(finish_time(architecture, 5), rule(18), ['='('Task', architecture), '='('Finish', 5), '='('Duration', 3), '='('$anonymous5', [requirements]), '='('Start', 2)], [task(architecture, 3, [requirements]), earliest_start(architecture, 2), is(5, '+'(2, 3))]).
+% step 12
+step(task(api_design, 2, [requirements]), fact(3), [], []).
+% step 13
+step(earliest_start(api_design, 2), rule(15), ['='('Task', api_design), '='('Start', 2), '='('$anonymous4', 2), '='('Predecessors', [requirements])], [task(api_design, 2, [requirements]), latest_finish([requirements], 2)]).
+% step 14
+step(is(4, '+'(2, 2)), builtin, [], []).
+% step 15
+step(finish_time(api_design, 4), rule(18), ['='('Task', api_design), '='('Finish', 4), '='('Duration', 2), '='('$anonymous5', [requirements]), '='('Start', 2)], [task(api_design, 2, [requirements]), earliest_start(api_design, 2), is(4, '+'(2, 2))]).
+% step 16
+step(task(database, 4, [architecture]), fact(4), [], []).
+% step 17
+step(is(5, max(5, 0)), builtin, [], []).
+% step 18
+step(latest_finish([architecture], 5), rule(17), ['='('Predecessor', architecture), '='('Rest', []), '='('Latest', 5), '='('Finish', 5), '='('Remaining', 0)], [finish_time(architecture, 5), latest_finish([], 0), is(5, max(5, 0))]).
+% step 19
+step(earliest_start(database, 5), rule(15), ['='('Task', database), '='('Start', 5), '='('$anonymous4', 4), '='('Predecessors', [architecture])], [task(database, 4, [architecture]), latest_finish([architecture], 5)]).
+% step 20
+step(is(9, '+'(5, 4)), builtin, [], []).
+% step 21
+step(finish_time(database, 9), rule(18), ['='('Task', database), '='('Finish', 9), '='('Duration', 4), '='('$anonymous5', [architecture]), '='('Start', 5)], [task(database, 4, [architecture]), earliest_start(database, 5), is(9, '+'(5, 4))]).
+% step 22
+step(task(backend, 6, [api_design, database]), fact(5), [], []).
+% step 23
+step(is(9, max(9, 0)), builtin, [], []).
+% step 24
+step(latest_finish([database], 9), rule(17), ['='('Predecessor', database), '='('Rest', []), '='('Latest', 9), '='('Finish', 9), '='('Remaining', 0)], [finish_time(database, 9), latest_finish([], 0), is(9, max(9, 0))]).
+% step 25
+step(is(9, max(4, 9)), builtin, [], []).
+% step 26
+step(latest_finish([api_design, database], 9), rule(17), ['='('Predecessor', api_design), '='('Rest', [database]), '='('Latest', 9), '='('Finish', 4), '='('Remaining', 9)], [finish_time(api_design, 4), latest_finish([database], 9), is(9, max(4, 9))]).
+% step 27
+step(earliest_start(backend, 9), rule(15), ['='('Task', backend), '='('Start', 9), '='('$anonymous4', 6), '='('Predecessors', [api_design, database])], [task(backend, 6, [api_design, database]), latest_finish([api_design, database], 9)]).
+% step 28
+step(is(15, '+'(9, 6)), builtin, [], []).
+% step 29
+step(finish_time(backend, 15), rule(18), ['='('Task', backend), '='('Finish', 15), '='('Duration', 6), '='('$anonymous5', [api_design, database]), '='('Start', 9)], [task(backend, 6, [api_design, database]), earliest_start(backend, 9), is(15, '+'(9, 6))]).
+% step 30
+step(task(frontend, 5, [api_design]), fact(6), [], []).
+% step 31
+step(is(4, max(4, 0)), builtin, [], []).
+% step 32
+step(latest_finish([api_design], 4), rule(17), ['='('Predecessor', api_design), '='('Rest', []), '='('Latest', 4), '='('Finish', 4), '='('Remaining', 0)], [finish_time(api_design, 4), latest_finish([], 0), is(4, max(4, 0))]).
+% step 33
+step(earliest_start(frontend, 4), rule(15), ['='('Task', frontend), '='('Start', 4), '='('$anonymous4', 5), '='('Predecessors', [api_design])], [task(frontend, 5, [api_design]), latest_finish([api_design], 4)]).
+% step 34
+step(is(9, '+'(4, 5)), builtin, [], []).
+% step 35
+step(finish_time(frontend, 9), rule(18), ['='('Task', frontend), '='('Finish', 9), '='('Duration', 5), '='('$anonymous5', [api_design]), '='('Start', 4)], [task(frontend, 5, [api_design]), earliest_start(frontend, 4), is(9, '+'(4, 5))]).
+% step 36
+step(task(auth, 3, [architecture]), fact(7), [], []).
+% step 37
+step(earliest_start(auth, 5), rule(15), ['='('Task', auth), '='('Start', 5), '='('$anonymous4', 3), '='('Predecessors', [architecture])], [task(auth, 3, [architecture]), latest_finish([architecture], 5)]).
+% step 38
+step(is(8, '+'(5, 3)), builtin, [], []).
+% step 39
+step(finish_time(auth, 8), rule(18), ['='('Task', auth), '='('Finish', 8), '='('Duration', 3), '='('$anonymous5', [architecture]), '='('Start', 5)], [task(auth, 3, [architecture]), earliest_start(auth, 5), is(8, '+'(5, 3))]).
+% step 40
+step(task(integration, 4, [backend, frontend, auth]), fact(8), [], []).
+% step 41
+step(is(8, max(8, 0)), builtin, [], []).
+% step 42
+step(latest_finish([auth], 8), rule(17), ['='('Predecessor', auth), '='('Rest', []), '='('Latest', 8), '='('Finish', 8), '='('Remaining', 0)], [finish_time(auth, 8), latest_finish([], 0), is(8, max(8, 0))]).
+% step 43
+step(is(9, max(9, 8)), builtin, [], []).
+% step 44
+step(latest_finish([frontend, auth], 9), rule(17), ['='('Predecessor', frontend), '='('Rest', [auth]), '='('Latest', 9), '='('Finish', 9), '='('Remaining', 8)], [finish_time(frontend, 9), latest_finish([auth], 8), is(9, max(9, 8))]).
+% step 45
+step(is(15, max(15, 9)), builtin, [], []).
+% step 46
+step(latest_finish([backend, frontend, auth], 15), rule(17), ['='('Predecessor', backend), '='('Rest', [frontend, auth]), '='('Latest', 15), '='('Finish', 15), '='('Remaining', 9)], [finish_time(backend, 15), latest_finish([frontend, auth], 9), is(15, max(15, 9))]).
+% step 47
+step(earliest_start(integration, 15), rule(15), ['='('Task', integration), '='('Start', 15), '='('$anonymous4', 4), '='('Predecessors', [backend, frontend, auth])], [task(integration, 4, [backend, frontend, auth]), latest_finish([backend, frontend, auth], 15)]).
+% step 48
+step(is(19, '+'(15, 4)), builtin, [], []).
+% step 49
+step(finish_time(integration, 19), rule(18), ['='('Task', integration), '='('Finish', 19), '='('Duration', 4), '='('$anonymous5', [backend, frontend, auth]), '='('Start', 15)], [task(integration, 4, [backend, frontend, auth]), earliest_start(integration, 15), is(19, '+'(15, 4))]).
+% step 50
+step(task(security_review, 3, [integration]), fact(9), [], []).
+% step 51
+step(is(19, max(19, 0)), builtin, [], []).
+% step 52
+step(latest_finish([integration], 19), rule(17), ['='('Predecessor', integration), '='('Rest', []), '='('Latest', 19), '='('Finish', 19), '='('Remaining', 0)], [finish_time(integration, 19), latest_finish([], 0), is(19, max(19, 0))]).
+% step 53
+step(earliest_start(security_review, 19), rule(15), ['='('Task', security_review), '='('Start', 19), '='('$anonymous4', 3), '='('Predecessors', [integration])], [task(security_review, 3, [integration]), latest_finish([integration], 19)]).
+% step 54
+step(is(22, '+'(19, 3)), builtin, [], []).
+% step 55
+step(finish_time(security_review, 22), rule(18), ['='('Task', security_review), '='('Finish', 22), '='('Duration', 3), '='('$anonymous5', [integration]), '='('Start', 19)], [task(security_review, 3, [integration]), earliest_start(security_review, 19), is(22, '+'(19, 3))]).
+% step 56
+step(task(load_test, 2, [integration]), fact(10), [], []).
+% step 57
+step(earliest_start(load_test, 19), rule(15), ['='('Task', load_test), '='('Start', 19), '='('$anonymous4', 2), '='('Predecessors', [integration])], [task(load_test, 2, [integration]), latest_finish([integration], 19)]).
+% step 58
+step(is(21, '+'(19, 2)), builtin, [], []).
+% step 59
+step(finish_time(load_test, 21), rule(18), ['='('Task', load_test), '='('Finish', 21), '='('Duration', 2), '='('$anonymous5', [integration]), '='('Start', 19)], [task(load_test, 2, [integration]), earliest_start(load_test, 19), is(21, '+'(19, 2))]).
+% step 60
+step(task(launch, 1, [security_review, load_test]), fact(11), [], []).
+% step 61
+step(is(21, max(21, 0)), builtin, [], []).
+% step 62
+step(latest_finish([load_test], 21), rule(17), ['='('Predecessor', load_test), '='('Rest', []), '='('Latest', 21), '='('Finish', 21), '='('Remaining', 0)], [finish_time(load_test, 21), latest_finish([], 0), is(21, max(21, 0))]).
+% step 63
+step(is(22, max(22, 21)), builtin, [], []).
+% step 64
+step(latest_finish([security_review, load_test], 22), rule(17), ['='('Predecessor', security_review), '='('Rest', [load_test]), '='('Latest', 22), '='('Finish', 22), '='('Remaining', 21)], [finish_time(security_review, 22), latest_finish([load_test], 21), is(22, max(22, 21))]).
+% step 65
+step(earliest_start(launch, 22), rule(15), ['='('Task', launch), '='('Start', 22), '='('$anonymous4', 1), '='('Predecessors', [security_review, load_test])], [task(launch, 1, [security_review, load_test]), latest_finish([security_review, load_test], 22)]).
+% step 66
+step(is(23, '+'(22, 1)), builtin, [], []).
+% step 67
+step(finish_time(launch, 23), rule(18), ['='('Task', launch), '='('Finish', 23), '='('Duration', 1), '='('$anonymous5', [security_review, load_test]), '='('Start', 22)], [task(launch, 1, [security_review, load_test]), earliest_start(launch, 22), is(23, '+'(22, 1))]).
+% step 68
+step(aggregate_all(max(V0), [task(V1, V2, V3), finish_time(V1, V0)], 23), collected, [], [[task(requirements, 2, []), finish_time(requirements, 2)], [task(architecture, 3, [requirements]), finish_time(architecture, 5)], [task(api_design, 2, [requirements]), finish_time(api_design, 4)], [task(database, 4, [architecture]), finish_time(database, 9)], [task(backend, 6, [api_design, database]), finish_time(backend, 15)], [task(frontend, 5, [api_design]), finish_time(frontend, 9)], [task(auth, 3, [architecture]), finish_time(auth, 8)], [task(integration, 4, [backend, frontend, auth]), finish_time(integration, 19)], [task(security_review, 3, [integration]), finish_time(security_review, 22)], [task(load_test, 2, [integration]), finish_time(load_test, 21)], [task(launch, 1, [security_review, load_test]), finish_time(launch, 23)]]).
+% step 69
+step(project_finish(23), rule(20), ['='('Finish', 23)], [aggregate_all(max(V0), [task(V1, V2, V3), finish_time(V1, V0)], 23)]).
+% step 70
+step(final_task(launch), rule(21), ['='('Finish', 23), '='('Task', launch), '='('$anonymous8', 1), '='('$anonymous9', [security_review, load_test])], [project_finish(23), task(launch, 1, [security_review, load_test]), finish_time(launch, 23)]).
+% step 71
+step(critical_chain(launch, launch), fact(22), ['='('Task', launch)], []).
+% step 72
+step(critical_task(launch), rule(24), ['='('Final', launch), '='('Task', launch)], [final_task(launch), critical_chain(launch, launch)]).
 
 % Check
 check passed: project_finish(23).
@@ -388,3 +207,18 @@ check passed: \+ (critical_task(frontend)).
 check passed: aggregate_all(count, (critical_task(Task)), 7).
 
 check passed: aggregate_all(count, (critical_path_answer(schedule, Schedule)), 11).
+
+condition('C1', resolution, ok, 49).
+condition('C2', well_founded, ok, 72).
+condition('C3', justification, ok, 72).
+condition('C4', coverage, ok, 118).
+condition('C5', re_decision, ok, 23).
+condition('C6', boundary_consistency, ok, 1).
+condition('C7', relevance, ok, 74).
+obligation(collected, collection_completeness, aggregate_all(max(var('V0')), [task(var('V1'), var('V2'), var('V3')), finish_time(var('V1'), var('V0'))], 23)).
+steps(72).
+verified(49).
+recomputed(23).
+trusted(1).
+claims(2).
+verdict(checked_with_obligations).

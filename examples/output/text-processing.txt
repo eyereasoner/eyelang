@@ -9,105 +9,74 @@ Name = sensor, Text = "café 😀".
 Codes = [99, 97, 102, 233, 32, 128512].
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: decimal_digits([], Value, Value).
-rule 2: decimal_digits([Code | Rest], Accumulator, Value) :- Code >= 48, Code =< 57, Next is (((Accumulator * 10) + Code) - 48), decimal_digits(Rest, Next, Value).
-rule 3: unsigned_decimal(Text, Value) :- string_codes(Text, [First | Rest]), decimal_digits([First | Rest], 0, Value).
-rule 4: append([], Right, Right).
-rule 5: append([Head | Tail], Right, [Head | Joined]) :- append(Tail, Right, Joined).
-rule 6: sensor_record(Name, Value) :- reading(Text), unsigned_decimal(Text, Value), atom_codes(sensor_, Prefix), string_codes(Text, Digits), append(Prefix, Digits, Codes), atom_codes(Name, Codes).
-step 1: reading("0042").
-  you told me this.
-step 2: string_codes("0042", [48, 48, 52, 50]).
-  I checked these values.
-step 3: 48 >= 48.
-  I checked these values.
-step 4: 48 =< 57.
-  I checked these values.
-step 5: 0 is (((0 * 10) + 48) - 48).
-  I checked these values.
-step 6: 48 >= 48.
-  I checked these values.
-step 7: 48 =< 57.
-  I checked these values.
-step 8: 0 is (((0 * 10) + 48) - 48).
-  I checked these values.
-step 9: 52 >= 48.
-  I checked these values.
-step 10: 52 =< 57.
-  I checked these values.
-step 11: 4 is (((0 * 10) + 52) - 48).
-  I checked these values.
-step 12: 50 >= 48.
-  I checked these values.
-step 13: 50 =< 57.
-  I checked these values.
-step 14: 42 is (((4 * 10) + 50) - 48).
-  I checked these values.
-step 15: decimal_digits([], 42, 42).
-  because rule 1.
-  with Value = 42.
-step 16: decimal_digits([50], 4, 42).
-  because rule 2 uses steps 12, 13, 14, 15.
-  with Code = 50, Rest = [], Accumulator = 4, Value = 42, Next = 42.
-  (4 * 10) = 40.
-  ((4 * 10) + 50) = 90.
-  (((4 * 10) + 50) - 48) = 42.
-step 17: decimal_digits([52, 50], 0, 42).
-  because rule 2 uses steps 9, 10, 11, 16.
-  with Code = 52, Rest = [50], Accumulator = 0, Value = 42, Next = 4.
-  (0 * 10) = 0.
-  ((0 * 10) + 52) = 52.
-  (((0 * 10) + 52) - 48) = 4.
-step 18: decimal_digits([48, 52, 50], 0, 42).
-  because rule 2 uses steps 6, 7, 8, 17.
-  with Code = 48, Rest = [52, 50], Accumulator = 0, Value = 42, Next = 0.
-  (0 * 10) = 0.
-  ((0 * 10) + 48) = 48.
-  (((0 * 10) + 48) - 48) = 0.
-step 19: decimal_digits([48, 48, 52, 50], 0, 42).
-  because rule 2 uses steps 3, 4, 5, 18.
-  with Code = 48, Rest = [48, 52, 50], Accumulator = 0, Value = 42, Next = 0.
-  (0 * 10) = 0.
-  ((0 * 10) + 48) = 48.
-  (((0 * 10) + 48) - 48) = 0.
-step 20: unsigned_decimal("0042", 42).
-  because rule 3 uses steps 2, 19.
-  with Text = "0042", Value = 42, First = 48, Rest = [48, 52, 50].
-step 21: atom_codes(sensor_, [115, 101, 110, 115, 111, 114, 95]).
-  I checked these values.
-step 22: string_codes("0042", [48, 48, 52, 50]).
-  I checked these values.
-step 23: append([], [48, 48, 52, 50], [48, 48, 52, 50]).
-  because rule 4.
-  with Right = [48, 48, 52, 50].
-step 24: append([95], [48, 48, 52, 50], [95, 48, 48, 52, 50]).
-  because rule 5 uses steps 23.
-  with Head = 95, Tail = [], Right = [48, 48, 52, 50], Joined = [48, 48, 52, 50].
-step 25: append([114, 95], [48, 48, 52, 50], [114, 95, 48, 48, 52, 50]).
-  because rule 5 uses steps 24.
-  with Head = 114, Tail = [95], Right = [48, 48, 52, 50], Joined = [95, 48, 48, 52, 50].
-step 26: append([111, 114, 95], [48, 48, 52, 50], [111, 114, 95, 48, 48, 52, 50]).
-  because rule 5 uses steps 25.
-  with Head = 111, Tail = [114, 95], Right = [48, 48, 52, 50], Joined = [114, 95, 48, 48, 52, 50].
-step 27: append([115, 111, 114, 95], [48, 48, 52, 50], [115, 111, 114, 95, 48, 48, 52, 50]).
-  because rule 5 uses steps 26.
-  with Head = 115, Tail = [111, 114, 95], Right = [48, 48, 52, 50], Joined = [111, 114, 95, 48, 48, 52, 50].
-step 28: append([110, 115, 111, 114, 95], [48, 48, 52, 50], [110, 115, 111, 114, 95, 48, 48, 52, 50]).
-  because rule 5 uses steps 27.
-  with Head = 110, Tail = [115, 111, 114, 95], Right = [48, 48, 52, 50], Joined = [115, 111, 114, 95, 48, 48, 52, 50].
-step 29: append([101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [101, 110, 115, 111, 114, 95, 48, 48, 52, 50]).
-  because rule 5 uses steps 28.
-  with Head = 101, Tail = [110, 115, 111, 114, 95], Right = [48, 48, 52, 50], Joined = [110, 115, 111, 114, 95, 48, 48, 52, 50].
-step 30: append([115, 101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]).
-  because rule 5 uses steps 29.
-  with Head = 115, Tail = [101, 110, 115, 111, 114, 95], Right = [48, 48, 52, 50], Joined = [101, 110, 115, 111, 114, 95, 48, 48, 52, 50].
-step 31: atom_codes(sensor_0042, [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]).
-  I checked these values.
-step 32: sensor_record(sensor_0042, 42).
-  because rule 6 uses steps 1, 20, 21, 22, 30, 31.
-  with Text = "0042", Value = 42, Prefix = [115, 101, 110, 115, 111, 114, 95], Digits = [48, 48, 52, 50], Codes = [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50], Name = sensor_0042.
-That explains step 32.
+certificate(eyelang, 1).
+
+claim(query(1), [sensor_record(sensor_0042, 42)]).
+
+clause(1, reading("0042"), []).
+clause(3, append([], var('Right'), var('Right')), []).
+clause(4, append(list([var('Head')], var('Tail')), var('Right'), list([var('Head')], var('Joined'))), [append(var('Tail'), var('Right'), var('Joined'))]).
+clause(5, decimal_digits([], var('Value'), var('Value')), []).
+clause(6, decimal_digits(list([var('Code')], var('Rest')), var('Accumulator'), var('Value')), ['>='(var('Code'), 48), '=<'(var('Code'), 57), is(var('Next'), '-'('+'('*'(var('Accumulator'), 10), var('Code')), 48)), decimal_digits(var('Rest'), var('Next'), var('Value'))]).
+clause(7, unsigned_decimal(var('Text'), var('Value')), [string_codes(var('Text'), list([var('First')], var('Rest'))), decimal_digits(list([var('First')], var('Rest')), 0, var('Value'))]).
+clause(8, sensor_record(var('Name'), var('Value')), [reading(var('Text')), unsigned_decimal(var('Text'), var('Value')), atom_codes(sensor_, var('Prefix')), string_codes(var('Text'), var('Digits')), append(var('Prefix'), var('Digits'), var('Codes')), atom_codes(var('Name'), var('Codes'))]).
+
+% step 1
+step(reading("0042"), fact(1), [], []).
+% step 2
+step(string_codes("0042", [48, 48, 52, 50]), builtin, [], []).
+% step 3
+step('>='(48, 48), builtin, [], []).
+% step 4
+step('=<'(48, 57), builtin, [], []).
+% step 5
+step(is(0, '-'('+'('*'(0, 10), 48), 48)), builtin, [], []).
+% step 6
+step('>='(52, 48), builtin, [], []).
+% step 7
+step('=<'(52, 57), builtin, [], []).
+% step 8
+step(is(4, '-'('+'('*'(0, 10), 52), 48)), builtin, [], []).
+% step 9
+step('>='(50, 48), builtin, [], []).
+% step 10
+step('=<'(50, 57), builtin, [], []).
+% step 11
+step(is(42, '-'('+'('*'(4, 10), 50), 48)), builtin, [], []).
+% step 12
+step(decimal_digits([], 42, 42), fact(5), ['='('Value', 42)], []).
+% step 13
+step(decimal_digits([50], 4, 42), rule(6), ['='('Code', 50), '='('Rest', []), '='('Accumulator', 4), '='('Value', 42), '='('Next', 42)], ['>='(50, 48), '=<'(50, 57), is(42, '-'('+'('*'(4, 10), 50), 48)), decimal_digits([], 42, 42)]).
+% step 14
+step(decimal_digits([52, 50], 0, 42), rule(6), ['='('Code', 52), '='('Rest', [50]), '='('Accumulator', 0), '='('Value', 42), '='('Next', 4)], ['>='(52, 48), '=<'(52, 57), is(4, '-'('+'('*'(0, 10), 52), 48)), decimal_digits([50], 4, 42)]).
+% step 15
+step(decimal_digits([48, 52, 50], 0, 42), rule(6), ['='('Code', 48), '='('Rest', [52, 50]), '='('Accumulator', 0), '='('Value', 42), '='('Next', 0)], ['>='(48, 48), '=<'(48, 57), is(0, '-'('+'('*'(0, 10), 48), 48)), decimal_digits([52, 50], 0, 42)]).
+% step 16
+step(decimal_digits([48, 48, 52, 50], 0, 42), rule(6), ['='('Code', 48), '='('Rest', [48, 52, 50]), '='('Accumulator', 0), '='('Value', 42), '='('Next', 0)], ['>='(48, 48), '=<'(48, 57), is(0, '-'('+'('*'(0, 10), 48), 48)), decimal_digits([48, 52, 50], 0, 42)]).
+% step 17
+step(unsigned_decimal("0042", 42), rule(7), ['='('Text', "0042"), '='('Value', 42), '='('First', 48), '='('Rest', [48, 52, 50])], [string_codes("0042", [48, 48, 52, 50]), decimal_digits([48, 48, 52, 50], 0, 42)]).
+% step 18
+step(atom_codes(sensor_, [115, 101, 110, 115, 111, 114, 95]), builtin, [], []).
+% step 19
+step(append([], [48, 48, 52, 50], [48, 48, 52, 50]), fact(3), ['='('Right', [48, 48, 52, 50])], []).
+% step 20
+step(append([95], [48, 48, 52, 50], [95, 48, 48, 52, 50]), rule(4), ['='('Head', 95), '='('Tail', []), '='('Right', [48, 48, 52, 50]), '='('Joined', [48, 48, 52, 50])], [append([], [48, 48, 52, 50], [48, 48, 52, 50])]).
+% step 21
+step(append([114, 95], [48, 48, 52, 50], [114, 95, 48, 48, 52, 50]), rule(4), ['='('Head', 114), '='('Tail', [95]), '='('Right', [48, 48, 52, 50]), '='('Joined', [95, 48, 48, 52, 50])], [append([95], [48, 48, 52, 50], [95, 48, 48, 52, 50])]).
+% step 22
+step(append([111, 114, 95], [48, 48, 52, 50], [111, 114, 95, 48, 48, 52, 50]), rule(4), ['='('Head', 111), '='('Tail', [114, 95]), '='('Right', [48, 48, 52, 50]), '='('Joined', [114, 95, 48, 48, 52, 50])], [append([114, 95], [48, 48, 52, 50], [114, 95, 48, 48, 52, 50])]).
+% step 23
+step(append([115, 111, 114, 95], [48, 48, 52, 50], [115, 111, 114, 95, 48, 48, 52, 50]), rule(4), ['='('Head', 115), '='('Tail', [111, 114, 95]), '='('Right', [48, 48, 52, 50]), '='('Joined', [111, 114, 95, 48, 48, 52, 50])], [append([111, 114, 95], [48, 48, 52, 50], [111, 114, 95, 48, 48, 52, 50])]).
+% step 24
+step(append([110, 115, 111, 114, 95], [48, 48, 52, 50], [110, 115, 111, 114, 95, 48, 48, 52, 50]), rule(4), ['='('Head', 110), '='('Tail', [115, 111, 114, 95]), '='('Right', [48, 48, 52, 50]), '='('Joined', [115, 111, 114, 95, 48, 48, 52, 50])], [append([115, 111, 114, 95], [48, 48, 52, 50], [115, 111, 114, 95, 48, 48, 52, 50])]).
+% step 25
+step(append([101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [101, 110, 115, 111, 114, 95, 48, 48, 52, 50]), rule(4), ['='('Head', 101), '='('Tail', [110, 115, 111, 114, 95]), '='('Right', [48, 48, 52, 50]), '='('Joined', [110, 115, 111, 114, 95, 48, 48, 52, 50])], [append([110, 115, 111, 114, 95], [48, 48, 52, 50], [110, 115, 111, 114, 95, 48, 48, 52, 50])]).
+% step 26
+step(append([115, 101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]), rule(4), ['='('Head', 115), '='('Tail', [101, 110, 115, 111, 114, 95]), '='('Right', [48, 48, 52, 50]), '='('Joined', [101, 110, 115, 111, 114, 95, 48, 48, 52, 50])], [append([101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [101, 110, 115, 111, 114, 95, 48, 48, 52, 50])]).
+% step 27
+step(atom_codes(sensor_0042, [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]), builtin, [], []).
+% step 28
+step(sensor_record(sensor_0042, 42), rule(8), ['='('Text', "0042"), '='('Value', 42), '='('Prefix', [115, 101, 110, 115, 111, 114, 95]), '='('Digits', [48, 48, 52, 50]), '='('Codes', [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]), '='('Name', sensor_0042)], [reading("0042"), unsigned_decimal("0042", 42), atom_codes(sensor_, [115, 101, 110, 115, 111, 114, 95]), string_codes("0042", [48, 48, 52, 50]), append([115, 101, 110, 115, 111, 114, 95], [48, 48, 52, 50], [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50]), atom_codes(sensor_0042, [115, 101, 110, 115, 111, 114, 95, 48, 48, 52, 50])]).
 
 % Check
 check passed: sensor_record(sensor_0042, 42).
@@ -129,3 +98,17 @@ check passed: \+ (unsigned_decimal("-42", -42)).
 check passed: atom_codes('', []).
 
 check passed: string_codes("", []).
+
+condition('C1', resolution, ok, 16).
+condition('C2', well_founded, ok, 28).
+condition('C3', justification, ok, 28).
+condition('C4', coverage, ok, 32).
+condition('C5', re_decision, ok, 12).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 29).
+steps(28).
+verified(16).
+recomputed(12).
+trusted(0).
+claims(1).
+verdict(checked).

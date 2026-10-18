@@ -20,11 +20,37 @@ test('the golden updater writes full ARC transcripts for every example, includin
   }
   assert.equal(updateExampleGoldens(directory), files.length);
   assert.deepEqual(readdirSync(join(directory, 'output')).sort(), files.map(name => name + '.txt'));
-  const expected = [
-    '% Answer\n?- p(X).\nX = a.',
-    '% Reason\nHere is why. Each step is shown once.\nstep 1: p(a).\n  you told me this.\nThat explains step 1.',
-    '% Check\ncheck passed: p(a).\n',
-  ].join('\n\n');
+  const expected = `% Answer
+?- p(X).
+X = a.
+
+% Reason
+certificate(eyelang, 1).
+
+claim(query(1), [p(a)]).
+
+clause(1, p(a), []).
+
+% step 1
+step(p(a), fact(1), [], []).
+
+% Check
+check passed: p(a).
+
+condition('C1', resolution, ok, 1).
+condition('C2', well_founded, ok, 1).
+condition('C3', justification, ok, 1).
+condition('C4', coverage, ok, 1).
+condition('C5', re_decision, ok, 0).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 2).
+steps(1).
+verified(1).
+recomputed(0).
+trusted(0).
+claims(1).
+verdict(checked).
+`;
   for (const name of files) assert.equal(readFileSync(join(directory, 'output', name + '.txt'), 'utf8'), expected);
 });
 

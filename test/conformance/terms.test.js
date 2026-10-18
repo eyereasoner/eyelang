@@ -58,7 +58,7 @@ test('term-test names are available for ordinary user-defined predicates', () =>
       :- assertion(${name}(accepted)).
     `);
     assert.equal(output[0], 'Value = accepted.');
-    assert.ok(output[1].includes(`step 1: ${name}(accepted).`));
+    assert.ok(output[1].includes(`step(${name}(accepted), fact(1), [], [])`));
     assert.equal(output[2], `check passed: ${name}(accepted).`);
   }
 });

@@ -7,80 +7,72 @@ Actuator = actuator1, Command = 39.27346198678276.
 Value = 45.
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: control1(actuator2, C) :- observation3(state3, P3), measurement4(output2, M4), target2(output2, T2), E is (T2 - M4), D is (P3 - M4), C1 is (5.8 * E), N is (7.3 / E), C2 is (N * D), C is (C1 + C2).
-rule 2: measurement10(I, M) :- measurement1(I, [M1, M2]), M1 < M2, M3 is (M2 - M1), M is sqrt(M3).
-rule 3: control1(actuator1, C) :- measurement10(input1, M1), measurement2(input2, true), measurement3(disturbance1, D1), C1 is (M1 * 19.6), C2 is (log(D1) / log(10)), C is (C1 - C2).
-step 1: observation3(state3, 22).
-  you told me this.
-step 2: measurement4(output2, 24).
-  you told me this.
-step 3: target2(output2, 29).
-  you told me this.
-step 4: 5 is (29 - 24).
-  I checked these values.
-step 5: -2 is (22 - 24).
-  I checked these values.
-step 6: 29.0 is (5.8 * 5).
-  I checked these values.
-step 7: 1.46 is (7.3 / 5).
-  I checked these values.
-step 8: -2.92 is (1.46 * -2).
-  I checked these values.
-step 9: 26.08 is (29.0 + -2.92).
-  I checked these values.
-step 10: control1(actuator2, 26.08).
-  because rule 1 uses steps 1, 2, 3, 4, 5, 6, 7, 8, 9.
-  with P3 = 22, M4 = 24, T2 = 29, E = 5, D = -2, C1 = 29.0, N = 1.46, C2 = -2.92, C = 26.08.
-  (29 - 24) = 5.
-  (22 - 24) = -2.
-  (5.8 * 5) = 29.0.
-  (7.3 / 5) = 1.46.
-  (1.46 * -2) = -2.92.
-  (29.0 + -2.92) = 26.08.
-step 11: measurement1(input1, [6, 11]).
-  you told me this.
-step 12: 6 < 11.
-  I checked these values.
-step 13: 5 is (11 - 6).
-  I checked these values.
-step 14: 2.23606797749979 is sqrt(5).
-  I checked these values.
-step 15: measurement10(input1, 2.23606797749979).
-  because rule 2 uses steps 11, 12, 13, 14.
-  with I = input1, M1 = 6, M2 = 11, M3 = 5, M = 2.23606797749979.
-  (11 - 6) = 5.
-  sqrt(5) = 2.23606797749979.
-step 16: measurement2(input2, true).
-  you told me this.
-step 17: measurement3(disturbance1, 35766).
-  you told me this.
-step 18: 43.82693235899588 is (2.23606797749979 * 19.6).
-  I checked these values.
-step 19: 4.553470372213121 is (log(35766) / log(10)).
-  I checked these values.
-step 20: 39.27346198678276 is (43.82693235899588 - 4.553470372213121).
-  I checked these values.
-step 21: control1(actuator1, 39.27346198678276).
-  because rule 3 uses steps 15, 16, 17, 18, 19, 20.
-  with M1 = 2.23606797749979, D1 = 35766, C1 = 43.82693235899588, C2 = 4.553470372213121, C = 39.27346198678276.
-  (2.23606797749979 * 19.6) = 43.82693235899588.
-  log(35766) = 10.48475300044798.
-  log(10) = 2.302585092994046.
-  (log(35766) / log(10)) = 4.553470372213121.
-  (43.82693235899588 - 4.553470372213121) = 39.27346198678276.
-That explains steps 10, 21.
+certificate(eyelang, 1).
 
-Here is why. Each step is shown once.
-rule 1: measurement10(I, M1) :- measurement1(I, [M1, M2]), M1 >= M2.
-step 1: measurement1(disturbance2, [45, 39]).
-  you told me this.
-step 2: 45 >= 39.
-  I checked these values.
-step 3: measurement10(disturbance2, 45).
-  because rule 1 uses steps 1, 2.
-  with I = disturbance2, M1 = 45, M2 = 39.
-That explains step 3.
+claim(query(1), [control1(actuator2, 26.08)]).
+claim(query(1), [control1(actuator1, 39.27346198678276)]).
+claim(query(3), [measurement10(disturbance2, 45)]).
+
+clause(1, measurement1(input1, [6, 11]), []).
+clause(2, measurement1(disturbance2, [45, 39]), []).
+clause(3, measurement2(input2, true), []).
+clause(5, measurement3(disturbance1, 35766), []).
+clause(6, measurement4(output2, 24), []).
+clause(9, observation3(state3, 22), []).
+clause(10, target2(output2, 29), []).
+clause(11, control1(actuator1, var('C')), [measurement10(input1, var('M1')), measurement2(input2, true), measurement3(disturbance1, var('D1')), is(var('C1'), '*'(var('M1'), 19.6)), is(var('C2'), '/'(log(var('D1')), log(10))), is(var('C'), '-'(var('C1'), var('C2')))]).
+clause(12, control1(actuator2, var('C')), [observation3(state3, var('P3')), measurement4(output2, var('M4')), target2(output2, var('T2')), is(var('E'), '-'(var('T2'), var('M4'))), is(var('D'), '-'(var('P3'), var('M4'))), is(var('C1'), '*'(5.8, var('E'))), is(var('N'), '/'(7.3, var('E'))), is(var('C2'), '*'(var('N'), var('D'))), is(var('C'), '+'(var('C1'), var('C2')))]).
+clause(13, measurement10(var('I'), var('M')), [measurement1(var('I'), [var('M1'), var('M2')]), '<'(var('M1'), var('M2')), is(var('M3'), '-'(var('M2'), var('M1'))), is(var('M'), sqrt(var('M3')))]).
+clause(14, measurement10(var('I'), var('M1')), [measurement1(var('I'), [var('M1'), var('M2')]), '>='(var('M1'), var('M2'))]).
+
+% step 1
+step(observation3(state3, 22), fact(9), [], []).
+% step 2
+step(measurement4(output2, 24), fact(6), [], []).
+% step 3
+step(target2(output2, 29), fact(10), [], []).
+% step 4
+step(is(5, '-'(29, 24)), builtin, [], []).
+% step 5
+step(is(-2, '-'(22, 24)), builtin, [], []).
+% step 6
+step(is(29.0, '*'(5.8, 5)), builtin, [], []).
+% step 7
+step(is(1.46, '/'(7.3, 5)), builtin, [], []).
+% step 8
+step(is(-2.92, '*'(1.46, -2)), builtin, [], []).
+% step 9
+step(is(26.08, '+'(29.0, -2.92)), builtin, [], []).
+% step 10
+step(control1(actuator2, 26.08), rule(12), ['='('P3', 22), '='('M4', 24), '='('T2', 29), '='('E', 5), '='('D', -2), '='('C1', 29.0), '='('N', 1.46), '='('C2', -2.92), '='('C', 26.08)], [observation3(state3, 22), measurement4(output2, 24), target2(output2, 29), is(5, '-'(29, 24)), is(-2, '-'(22, 24)), is(29.0, '*'(5.8, 5)), is(1.46, '/'(7.3, 5)), is(-2.92, '*'(1.46, -2)), is(26.08, '+'(29.0, -2.92))]).
+% step 11
+step(measurement1(input1, [6, 11]), fact(1), [], []).
+% step 12
+step('<'(6, 11), builtin, [], []).
+% step 13
+step(is(5, '-'(11, 6)), builtin, [], []).
+% step 14
+step(is(2.23606797749979, sqrt(5)), builtin, [], []).
+% step 15
+step(measurement10(input1, 2.23606797749979), rule(13), ['='('I', input1), '='('M1', 6), '='('M2', 11), '='('M3', 5), '='('M', 2.23606797749979)], [measurement1(input1, [6, 11]), '<'(6, 11), is(5, '-'(11, 6)), is(2.23606797749979, sqrt(5))]).
+% step 16
+step(measurement2(input2, true), fact(3), [], []).
+% step 17
+step(measurement3(disturbance1, 35766), fact(5), [], []).
+% step 18
+step(is(43.82693235899588, '*'(2.23606797749979, 19.6)), builtin, [], []).
+% step 19
+step(is(4.553470372213121, '/'(log(35766), log(10))), builtin, [], []).
+% step 20
+step(is(39.27346198678276, '-'(43.82693235899588, 4.553470372213121)), builtin, [], []).
+% step 21
+step(control1(actuator1, 39.27346198678276), rule(11), ['='('M1', 2.23606797749979), '='('D1', 35766), '='('C1', 43.82693235899588), '='('C2', 4.553470372213121), '='('C', 39.27346198678276)], [measurement10(input1, 2.23606797749979), measurement2(input2, true), measurement3(disturbance1, 35766), is(43.82693235899588, '*'(2.23606797749979, 19.6)), is(4.553470372213121, '/'(log(35766), log(10))), is(39.27346198678276, '-'(43.82693235899588, 4.553470372213121))]).
+% step 22
+step(measurement1(disturbance2, [45, 39]), fact(2), [], []).
+% step 23
+step('>='(45, 39), builtin, [], []).
+% step 24
+step(measurement10(disturbance2, 45), rule(14), ['='('I', disturbance2), '='('M1', 45), '='('M2', 39)], [measurement1(disturbance2, [45, 39]), '>='(45, 39)]).
 
 % Check
 check passed: control1(actuator1, C), abs((C - 39.27346198678276)) < 1e-10.
@@ -90,3 +82,17 @@ check passed: control1(actuator2, C), abs((C - 26.08)) < 1e-12.
 check passed: measurement10(disturbance2, 45).
 
 check passed: aggregate_all(count, (control1(Actuator, Command)), 2).
+
+condition('C1', resolution, ok, 11).
+condition('C2', well_founded, ok, 24).
+condition('C3', justification, ok, 24).
+condition('C4', coverage, ok, 24).
+condition('C5', re_decision, ok, 13).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 27).
+steps(24).
+verified(11).
+recomputed(13).
+trusted(0).
+claims(3).
+verdict(checked).

@@ -16,7 +16,7 @@ test('false is a builtin while fail is an ordinary user-defined predicate', () =
   assert.deepEqual(run(String.raw`?- false. ?- \+ false. ?- fail.`), ['false.', 'true.', 'false.']);
   const output = run('fail :- true. ?- fail. ?- why. :- assertion(fail).');
   assert.equal(output[0], 'true.');
-  assert.match(output[1], /rule 1: fail :- true\./);
+  assert.match(output[1], /clause\(1, fail, \[true\]\)/);
   assert.equal(output[2], 'check passed: fail.');
   assert.throws(() => parse('false.'), /A fact must name an ordinary predicate/);
   assert.throws(() => parse('false :- true.'), /A rule head must name an ordinary predicate/);
@@ -51,22 +51,18 @@ test('parser lookahead spans grouped goals while preserving later clauses and di
   const result = run(source);
   assert.equal(result[0], 'X = 2.');
   assert.equal(result[1], 'N = 2.');
-  assert.equal(result[2], result[3]);
-  assert.equal(result[4], 'check passed: value(2), value(3).');
+  assert.match(result[2], /^certificate\(eyelang, 1\)/);
+  assert.equal(result[3], 'check passed: value(2), value(3).');
   assert.throws(() => parse(`${source}\nbroken(\n`), /^Error: Line 11:/);
 });
 
-test('rule text remains readable, enumerable, and writable when formatted on demand', () => {
-  const program = parse('copy(X) :- source(X). source(a). ?- copy(X).');
-  const rule = program.rules[0];
-  assert.ok(Object.keys(rule).includes('text'));
-  assert.equal(rule.text, 'copy(X) :- source(X).');
-  assert.equal(rule.text, 'copy(X) :- source(X).');
-  rule.text = 'custom rule text';
-  assert.equal(rule.text, 'custom rule text');
-  const other = parse('p(X) :- q(X).').rules[0];
-  other.text = 'replacement before formatting';
-  assert.equal(other.text, 'replacement before formatting');
+test('source clause numbering excludes queries, assertions, and declarations', () => {
+  const program = parse('copy(X) :- source(X). source(a). ?- copy(X). :- assertion(copy(a)). :- table copy/1.');
+  assert.equal(program.clauses.length, 2);
+  assert.equal(program.clauses[0], program.rules[0]);
+  assert.equal(program.clauses[1].conclusion, program.facts[0]);
+  assert.equal(program.rules.length, 3);
+  assert.deepEqual(program.tables, ['predicate:copy/1']);
 });
 
 test('variables share one clause or query scope, and anonymous variables are fresh', () => {

@@ -50,12 +50,12 @@ export function highlight(text, { start = 0, end = text.length, arc = false } = 
       const newline = text.indexOf('\n', from);
       const lineEnd = newline < 0 ? text.length : newline;
       const line = text.slice(from, lineEnd);
-      if (/^(Here is why\.|That explains |because rule |you told me this\.|I (checked|computed|used) |No |Add a query |There is no |Ask a query )/.test(line)) {
+      if (/^(No |Add a query |There is no |Ask a query )/.test(line)) {
         paint('note', from, lineEnd);
         cursor = tokens.lastIndex = lineEnd;
         continue;
       }
-      const label = /^(rule \d+:|step \d+:|check passed:|with\b)/.exec(line);
+      const label = /^(check passed:)/.exec(line);
       if (label) {
         paint('label', from, from + label[0].length);
         cursor = tokens.lastIndex = from + label[0].length;

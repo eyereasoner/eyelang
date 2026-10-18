@@ -40,7 +40,8 @@ test('CLI reads UTF-8 .pl files and stdin identically, with standard ARC comment
   assert.equal(file.stderr,'');
   assert.match(file.stdout, /^% Answer\n\?- person\(X\)\.\nX = 'élodie'\./);
   assert.deepEqual([...file.stdout.matchAll(/^% (Answer|Reason|Check)$/gm)].map(match=>match[1]),['Answer','Reason','Check']);
-  assert.match(file.stdout,/you told me this/);
+  assert.match(file.stdout,/step\(person\('élodie'\), fact\(1\)/);
+  assert.match(file.stdout,/verdict\(checked\)/);
 });
 
 test('§10: CLI keeps each boolean answer with its query and explains empty ARC sections', () => {

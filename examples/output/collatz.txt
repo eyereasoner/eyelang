@@ -22,1370 +22,869 @@ N = 19, Values = [19, 58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5,
 N = 15, Values = [15, 46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
 
 % Reason
-Here is why. Each step is shown once.
-rule 1: in_range(Low, High, Low) :- Low =< High.
-rule 2: in_range(Low, High, N) :- Low < High, Next is (Low + 1), in_range(Next, High, N).
-rule 3: trajectory(N, [N | Rest]) :- N > 1, 0 =:= (N mod 2), Next is (N // 2), trajectory(Next, Rest).
-rule 4: trajectory(N, [N | Rest]) :- N > 1, 1 =:= (N mod 2), Next is ((3 * N) + 1), trajectory(Next, Rest).
-step 1: 1 =< 20.
-  I checked these values.
-step 2: in_range(1, 20, 1).
-  because rule 1 uses steps 1.
-  with Low = 1, High = 20.
-step 3: trajectory(1, [1]).
-  you told me this.
-step 4: 1 < 20.
-  I checked these values.
-step 5: 2 is (1 + 1).
-  I checked these values.
-step 6: 2 =< 20.
-  I checked these values.
-step 7: in_range(2, 20, 2).
-  because rule 1 uses steps 6.
-  with Low = 2, High = 20.
-step 8: in_range(1, 20, 2).
-  because rule 2 uses steps 4, 5, 7.
-  with Low = 1, High = 20, N = 2, Next = 2.
-  (1 + 1) = 2.
-step 9: 2 > 1.
-  I checked these values.
-step 10: 0 =:= (2 mod 2).
-  I checked these values.
-step 11: 1 is (2 // 2).
-  I checked these values.
-step 12: trajectory(2, [2, 1]).
-  because rule 3 uses steps 9, 10, 11, 3.
-  with N = 2, Next = 1, Rest = [1].
-  (2 mod 2) = 0.
-  (2 // 2) = 1.
-step 13: 2 < 20.
-  I checked these values.
-step 14: 3 is (2 + 1).
-  I checked these values.
-step 15: 3 < 20.
-  I checked these values.
-step 16: 4 is (3 + 1).
-  I checked these values.
-step 17: 4 =< 20.
-  I checked these values.
-step 18: in_range(4, 20, 4).
-  because rule 1 uses steps 17.
-  with Low = 4, High = 20.
-step 19: in_range(3, 20, 4).
-  because rule 2 uses steps 15, 16, 18.
-  with Low = 3, High = 20, N = 4, Next = 4.
-  (3 + 1) = 4.
-step 20: in_range(2, 20, 4).
-  because rule 2 uses steps 13, 14, 19.
-  with Low = 2, High = 20, N = 4, Next = 3.
-  (2 + 1) = 3.
-step 21: in_range(1, 20, 4).
-  because rule 2 uses steps 4, 5, 20.
-  with Low = 1, High = 20, N = 4, Next = 2.
-  (1 + 1) = 2.
-step 22: 4 > 1.
-  I checked these values.
-step 23: 0 =:= (4 mod 2).
-  I checked these values.
-step 24: 2 is (4 // 2).
-  I checked these values.
-step 25: trajectory(4, [4, 2, 1]).
-  because rule 3 uses steps 22, 23, 24, 12.
-  with N = 4, Next = 2, Rest = [2, 1].
-  (4 mod 2) = 0.
-  (4 // 2) = 2.
-step 26: 4 < 20.
-  I checked these values.
-step 27: 5 is (4 + 1).
-  I checked these values.
-step 28: 5 < 20.
-  I checked these values.
-step 29: 6 is (5 + 1).
-  I checked these values.
-step 30: 6 < 20.
-  I checked these values.
-step 31: 7 is (6 + 1).
-  I checked these values.
-step 32: 7 < 20.
-  I checked these values.
-step 33: 8 is (7 + 1).
-  I checked these values.
-step 34: 8 =< 20.
-  I checked these values.
-step 35: in_range(8, 20, 8).
-  because rule 1 uses steps 34.
-  with Low = 8, High = 20.
-step 36: in_range(7, 20, 8).
-  because rule 2 uses steps 32, 33, 35.
-  with Low = 7, High = 20, N = 8, Next = 8.
-  (7 + 1) = 8.
-step 37: in_range(6, 20, 8).
-  because rule 2 uses steps 30, 31, 36.
-  with Low = 6, High = 20, N = 8, Next = 7.
-  (6 + 1) = 7.
-step 38: in_range(5, 20, 8).
-  because rule 2 uses steps 28, 29, 37.
-  with Low = 5, High = 20, N = 8, Next = 6.
-  (5 + 1) = 6.
-step 39: in_range(4, 20, 8).
-  because rule 2 uses steps 26, 27, 38.
-  with Low = 4, High = 20, N = 8, Next = 5.
-  (4 + 1) = 5.
-step 40: in_range(3, 20, 8).
-  because rule 2 uses steps 15, 16, 39.
-  with Low = 3, High = 20, N = 8, Next = 4.
-  (3 + 1) = 4.
-step 41: in_range(2, 20, 8).
-  because rule 2 uses steps 13, 14, 40.
-  with Low = 2, High = 20, N = 8, Next = 3.
-  (2 + 1) = 3.
-step 42: in_range(1, 20, 8).
-  because rule 2 uses steps 4, 5, 41.
-  with Low = 1, High = 20, N = 8, Next = 2.
-  (1 + 1) = 2.
-step 43: 8 > 1.
-  I checked these values.
-step 44: 0 =:= (8 mod 2).
-  I checked these values.
-step 45: 4 is (8 // 2).
-  I checked these values.
-step 46: trajectory(8, [8, 4, 2, 1]).
-  because rule 3 uses steps 43, 44, 45, 25.
-  with N = 8, Next = 4, Rest = [4, 2, 1].
-  (8 mod 2) = 0.
-  (8 // 2) = 4.
-step 47: 5 =< 20.
-  I checked these values.
-step 48: in_range(5, 20, 5).
-  because rule 1 uses steps 47.
-  with Low = 5, High = 20.
-step 49: in_range(4, 20, 5).
-  because rule 2 uses steps 26, 27, 48.
-  with Low = 4, High = 20, N = 5, Next = 5.
-  (4 + 1) = 5.
-step 50: in_range(3, 20, 5).
-  because rule 2 uses steps 15, 16, 49.
-  with Low = 3, High = 20, N = 5, Next = 4.
-  (3 + 1) = 4.
-step 51: in_range(2, 20, 5).
-  because rule 2 uses steps 13, 14, 50.
-  with Low = 2, High = 20, N = 5, Next = 3.
-  (2 + 1) = 3.
-step 52: in_range(1, 20, 5).
-  because rule 2 uses steps 4, 5, 51.
-  with Low = 1, High = 20, N = 5, Next = 2.
-  (1 + 1) = 2.
-step 53: 5 > 1.
-  I checked these values.
-step 54: 1 =:= (5 mod 2).
-  I checked these values.
-step 55: 16 is ((3 * 5) + 1).
-  I checked these values.
-step 56: 16 > 1.
-  I checked these values.
-step 57: 0 =:= (16 mod 2).
-  I checked these values.
-step 58: 8 is (16 // 2).
-  I checked these values.
-step 59: trajectory(16, [16, 8, 4, 2, 1]).
-  because rule 3 uses steps 56, 57, 58, 46.
-  with N = 16, Next = 8, Rest = [8, 4, 2, 1].
-  (16 mod 2) = 0.
-  (16 // 2) = 8.
-step 60: trajectory(5, [5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 53, 54, 55, 59.
-  with N = 5, Next = 16, Rest = [16, 8, 4, 2, 1].
-  (5 mod 2) = 1.
-  (3 * 5) = 15.
-  ((3 * 5) + 1) = 16.
-step 61: 3 =< 20.
-  I checked these values.
-step 62: in_range(3, 20, 3).
-  because rule 1 uses steps 61.
-  with Low = 3, High = 20.
-step 63: in_range(2, 20, 3).
-  because rule 2 uses steps 13, 14, 62.
-  with Low = 2, High = 20, N = 3, Next = 3.
-  (2 + 1) = 3.
-step 64: in_range(1, 20, 3).
-  because rule 2 uses steps 4, 5, 63.
-  with Low = 1, High = 20, N = 3, Next = 2.
-  (1 + 1) = 2.
-step 65: 3 > 1.
-  I checked these values.
-step 66: 1 =:= (3 mod 2).
-  I checked these values.
-step 67: 10 is ((3 * 3) + 1).
-  I checked these values.
-step 68: 10 > 1.
-  I checked these values.
-step 69: 0 =:= (10 mod 2).
-  I checked these values.
-step 70: 5 is (10 // 2).
-  I checked these values.
-step 71: trajectory(10, [10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 68, 69, 70, 60.
-  with N = 10, Next = 5, Rest = [5, 16, 8, 4, 2, 1].
-  (10 mod 2) = 0.
-  (10 // 2) = 5.
-step 72: trajectory(3, [3, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 65, 66, 67, 71.
-  with N = 3, Next = 10, Rest = [10, 5, 16, 8, 4, 2, 1].
-  (3 mod 2) = 1.
-  (3 * 3) = 9.
-  ((3 * 3) + 1) = 10.
-step 73: 6 =< 20.
-  I checked these values.
-step 74: in_range(6, 20, 6).
-  because rule 1 uses steps 73.
-  with Low = 6, High = 20.
-step 75: in_range(5, 20, 6).
-  because rule 2 uses steps 28, 29, 74.
-  with Low = 5, High = 20, N = 6, Next = 6.
-  (5 + 1) = 6.
-step 76: in_range(4, 20, 6).
-  because rule 2 uses steps 26, 27, 75.
-  with Low = 4, High = 20, N = 6, Next = 5.
-  (4 + 1) = 5.
-step 77: in_range(3, 20, 6).
-  because rule 2 uses steps 15, 16, 76.
-  with Low = 3, High = 20, N = 6, Next = 4.
-  (3 + 1) = 4.
-step 78: in_range(2, 20, 6).
-  because rule 2 uses steps 13, 14, 77.
-  with Low = 2, High = 20, N = 6, Next = 3.
-  (2 + 1) = 3.
-step 79: in_range(1, 20, 6).
-  because rule 2 uses steps 4, 5, 78.
-  with Low = 1, High = 20, N = 6, Next = 2.
-  (1 + 1) = 2.
-step 80: 6 > 1.
-  I checked these values.
-step 81: 0 =:= (6 mod 2).
-  I checked these values.
-step 82: 3 is (6 // 2).
-  I checked these values.
-step 83: trajectory(6, [6, 3, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 80, 81, 82, 72.
-  with N = 6, Next = 3, Rest = [3, 10, 5, 16, 8, 4, 2, 1].
-  (6 mod 2) = 0.
-  (6 // 2) = 3.
-step 84: 8 < 20.
-  I checked these values.
-step 85: 9 is (8 + 1).
-  I checked these values.
-step 86: 9 < 20.
-  I checked these values.
-step 87: 10 is (9 + 1).
-  I checked these values.
-step 88: 10 =< 20.
-  I checked these values.
-step 89: in_range(10, 20, 10).
-  because rule 1 uses steps 88.
-  with Low = 10, High = 20.
-step 90: in_range(9, 20, 10).
-  because rule 2 uses steps 86, 87, 89.
-  with Low = 9, High = 20, N = 10, Next = 10.
-  (9 + 1) = 10.
-step 91: in_range(8, 20, 10).
-  because rule 2 uses steps 84, 85, 90.
-  with Low = 8, High = 20, N = 10, Next = 9.
-  (8 + 1) = 9.
-step 92: in_range(7, 20, 10).
-  because rule 2 uses steps 32, 33, 91.
-  with Low = 7, High = 20, N = 10, Next = 8.
-  (7 + 1) = 8.
-step 93: in_range(6, 20, 10).
-  because rule 2 uses steps 30, 31, 92.
-  with Low = 6, High = 20, N = 10, Next = 7.
-  (6 + 1) = 7.
-step 94: in_range(5, 20, 10).
-  because rule 2 uses steps 28, 29, 93.
-  with Low = 5, High = 20, N = 10, Next = 6.
-  (5 + 1) = 6.
-step 95: in_range(4, 20, 10).
-  because rule 2 uses steps 26, 27, 94.
-  with Low = 4, High = 20, N = 10, Next = 5.
-  (4 + 1) = 5.
-step 96: in_range(3, 20, 10).
-  because rule 2 uses steps 15, 16, 95.
-  with Low = 3, High = 20, N = 10, Next = 4.
-  (3 + 1) = 4.
-step 97: in_range(2, 20, 10).
-  because rule 2 uses steps 13, 14, 96.
-  with Low = 2, High = 20, N = 10, Next = 3.
-  (2 + 1) = 3.
-step 98: in_range(1, 20, 10).
-  because rule 2 uses steps 4, 5, 97.
-  with Low = 1, High = 20, N = 10, Next = 2.
-  (1 + 1) = 2.
-step 99: 10 < 20.
-  I checked these values.
-step 100: 11 is (10 + 1).
-  I checked these values.
-step 101: 11 < 20.
-  I checked these values.
-step 102: 12 is (11 + 1).
-  I checked these values.
-step 103: 12 =< 20.
-  I checked these values.
-step 104: in_range(12, 20, 12).
-  because rule 1 uses steps 103.
-  with Low = 12, High = 20.
-step 105: in_range(11, 20, 12).
-  because rule 2 uses steps 101, 102, 104.
-  with Low = 11, High = 20, N = 12, Next = 12.
-  (11 + 1) = 12.
-step 106: in_range(10, 20, 12).
-  because rule 2 uses steps 99, 100, 105.
-  with Low = 10, High = 20, N = 12, Next = 11.
-  (10 + 1) = 11.
-step 107: in_range(9, 20, 12).
-  because rule 2 uses steps 86, 87, 106.
-  with Low = 9, High = 20, N = 12, Next = 10.
-  (9 + 1) = 10.
-step 108: in_range(8, 20, 12).
-  because rule 2 uses steps 84, 85, 107.
-  with Low = 8, High = 20, N = 12, Next = 9.
-  (8 + 1) = 9.
-step 109: in_range(7, 20, 12).
-  because rule 2 uses steps 32, 33, 108.
-  with Low = 7, High = 20, N = 12, Next = 8.
-  (7 + 1) = 8.
-step 110: in_range(6, 20, 12).
-  because rule 2 uses steps 30, 31, 109.
-  with Low = 6, High = 20, N = 12, Next = 7.
-  (6 + 1) = 7.
-step 111: in_range(5, 20, 12).
-  because rule 2 uses steps 28, 29, 110.
-  with Low = 5, High = 20, N = 12, Next = 6.
-  (5 + 1) = 6.
-step 112: in_range(4, 20, 12).
-  because rule 2 uses steps 26, 27, 111.
-  with Low = 4, High = 20, N = 12, Next = 5.
-  (4 + 1) = 5.
-step 113: in_range(3, 20, 12).
-  because rule 2 uses steps 15, 16, 112.
-  with Low = 3, High = 20, N = 12, Next = 4.
-  (3 + 1) = 4.
-step 114: in_range(2, 20, 12).
-  because rule 2 uses steps 13, 14, 113.
-  with Low = 2, High = 20, N = 12, Next = 3.
-  (2 + 1) = 3.
-step 115: in_range(1, 20, 12).
-  because rule 2 uses steps 4, 5, 114.
-  with Low = 1, High = 20, N = 12, Next = 2.
-  (1 + 1) = 2.
-step 116: 12 > 1.
-  I checked these values.
-step 117: 0 =:= (12 mod 2).
-  I checked these values.
-step 118: 6 is (12 // 2).
-  I checked these values.
-step 119: trajectory(12, [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 116, 117, 118, 83.
-  with N = 12, Next = 6, Rest = [6, 3, 10, 5, 16, 8, 4, 2, 1].
-  (12 mod 2) = 0.
-  (12 // 2) = 6.
-step 120: 12 < 20.
-  I checked these values.
-step 121: 13 is (12 + 1).
-  I checked these values.
-step 122: 13 < 20.
-  I checked these values.
-step 123: 14 is (13 + 1).
-  I checked these values.
-step 124: 14 < 20.
-  I checked these values.
-step 125: 15 is (14 + 1).
-  I checked these values.
-step 126: 15 < 20.
-  I checked these values.
-step 127: 16 is (15 + 1).
-  I checked these values.
-step 128: 16 =< 20.
-  I checked these values.
-step 129: in_range(16, 20, 16).
-  because rule 1 uses steps 128.
-  with Low = 16, High = 20.
-step 130: in_range(15, 20, 16).
-  because rule 2 uses steps 126, 127, 129.
-  with Low = 15, High = 20, N = 16, Next = 16.
-  (15 + 1) = 16.
-step 131: in_range(14, 20, 16).
-  because rule 2 uses steps 124, 125, 130.
-  with Low = 14, High = 20, N = 16, Next = 15.
-  (14 + 1) = 15.
-step 132: in_range(13, 20, 16).
-  because rule 2 uses steps 122, 123, 131.
-  with Low = 13, High = 20, N = 16, Next = 14.
-  (13 + 1) = 14.
-step 133: in_range(12, 20, 16).
-  because rule 2 uses steps 120, 121, 132.
-  with Low = 12, High = 20, N = 16, Next = 13.
-  (12 + 1) = 13.
-step 134: in_range(11, 20, 16).
-  because rule 2 uses steps 101, 102, 133.
-  with Low = 11, High = 20, N = 16, Next = 12.
-  (11 + 1) = 12.
-step 135: in_range(10, 20, 16).
-  because rule 2 uses steps 99, 100, 134.
-  with Low = 10, High = 20, N = 16, Next = 11.
-  (10 + 1) = 11.
-step 136: in_range(9, 20, 16).
-  because rule 2 uses steps 86, 87, 135.
-  with Low = 9, High = 20, N = 16, Next = 10.
-  (9 + 1) = 10.
-step 137: in_range(8, 20, 16).
-  because rule 2 uses steps 84, 85, 136.
-  with Low = 8, High = 20, N = 16, Next = 9.
-  (8 + 1) = 9.
-step 138: in_range(7, 20, 16).
-  because rule 2 uses steps 32, 33, 137.
-  with Low = 7, High = 20, N = 16, Next = 8.
-  (7 + 1) = 8.
-step 139: in_range(6, 20, 16).
-  because rule 2 uses steps 30, 31, 138.
-  with Low = 6, High = 20, N = 16, Next = 7.
-  (6 + 1) = 7.
-step 140: in_range(5, 20, 16).
-  because rule 2 uses steps 28, 29, 139.
-  with Low = 5, High = 20, N = 16, Next = 6.
-  (5 + 1) = 6.
-step 141: in_range(4, 20, 16).
-  because rule 2 uses steps 26, 27, 140.
-  with Low = 4, High = 20, N = 16, Next = 5.
-  (4 + 1) = 5.
-step 142: in_range(3, 20, 16).
-  because rule 2 uses steps 15, 16, 141.
-  with Low = 3, High = 20, N = 16, Next = 4.
-  (3 + 1) = 4.
-step 143: in_range(2, 20, 16).
-  because rule 2 uses steps 13, 14, 142.
-  with Low = 2, High = 20, N = 16, Next = 3.
-  (2 + 1) = 3.
-step 144: in_range(1, 20, 16).
-  because rule 2 uses steps 4, 5, 143.
-  with Low = 1, High = 20, N = 16, Next = 2.
-  (1 + 1) = 2.
-step 145: 13 =< 20.
-  I checked these values.
-step 146: in_range(13, 20, 13).
-  because rule 1 uses steps 145.
-  with Low = 13, High = 20.
-step 147: in_range(12, 20, 13).
-  because rule 2 uses steps 120, 121, 146.
-  with Low = 12, High = 20, N = 13, Next = 13.
-  (12 + 1) = 13.
-step 148: in_range(11, 20, 13).
-  because rule 2 uses steps 101, 102, 147.
-  with Low = 11, High = 20, N = 13, Next = 12.
-  (11 + 1) = 12.
-step 149: in_range(10, 20, 13).
-  because rule 2 uses steps 99, 100, 148.
-  with Low = 10, High = 20, N = 13, Next = 11.
-  (10 + 1) = 11.
-step 150: in_range(9, 20, 13).
-  because rule 2 uses steps 86, 87, 149.
-  with Low = 9, High = 20, N = 13, Next = 10.
-  (9 + 1) = 10.
-step 151: in_range(8, 20, 13).
-  because rule 2 uses steps 84, 85, 150.
-  with Low = 8, High = 20, N = 13, Next = 9.
-  (8 + 1) = 9.
-step 152: in_range(7, 20, 13).
-  because rule 2 uses steps 32, 33, 151.
-  with Low = 7, High = 20, N = 13, Next = 8.
-  (7 + 1) = 8.
-step 153: in_range(6, 20, 13).
-  because rule 2 uses steps 30, 31, 152.
-  with Low = 6, High = 20, N = 13, Next = 7.
-  (6 + 1) = 7.
-step 154: in_range(5, 20, 13).
-  because rule 2 uses steps 28, 29, 153.
-  with Low = 5, High = 20, N = 13, Next = 6.
-  (5 + 1) = 6.
-step 155: in_range(4, 20, 13).
-  because rule 2 uses steps 26, 27, 154.
-  with Low = 4, High = 20, N = 13, Next = 5.
-  (4 + 1) = 5.
-step 156: in_range(3, 20, 13).
-  because rule 2 uses steps 15, 16, 155.
-  with Low = 3, High = 20, N = 13, Next = 4.
-  (3 + 1) = 4.
-step 157: in_range(2, 20, 13).
-  because rule 2 uses steps 13, 14, 156.
-  with Low = 2, High = 20, N = 13, Next = 3.
-  (2 + 1) = 3.
-step 158: in_range(1, 20, 13).
-  because rule 2 uses steps 4, 5, 157.
-  with Low = 1, High = 20, N = 13, Next = 2.
-  (1 + 1) = 2.
-step 159: 13 > 1.
-  I checked these values.
-step 160: 1 =:= (13 mod 2).
-  I checked these values.
-step 161: 40 is ((3 * 13) + 1).
-  I checked these values.
-step 162: 40 > 1.
-  I checked these values.
-step 163: 0 =:= (40 mod 2).
-  I checked these values.
-step 164: 20 is (40 // 2).
-  I checked these values.
-step 165: 20 > 1.
-  I checked these values.
-step 166: 0 =:= (20 mod 2).
-  I checked these values.
-step 167: 10 is (20 // 2).
-  I checked these values.
-step 168: trajectory(20, [20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 165, 166, 167, 71.
-  with N = 20, Next = 10, Rest = [10, 5, 16, 8, 4, 2, 1].
-  (20 mod 2) = 0.
-  (20 // 2) = 10.
-step 169: trajectory(40, [40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 162, 163, 164, 168.
-  with N = 40, Next = 20, Rest = [20, 10, 5, 16, 8, 4, 2, 1].
-  (40 mod 2) = 0.
-  (40 // 2) = 20.
-step 170: trajectory(13, [13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 159, 160, 161, 169.
-  with N = 13, Next = 40, Rest = [40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (13 mod 2) = 1.
-  (3 * 13) = 39.
-  ((3 * 13) + 1) = 40.
-step 171: 16 < 20.
-  I checked these values.
-step 172: 17 is (16 + 1).
-  I checked these values.
-step 173: 17 =< 20.
-  I checked these values.
-step 174: in_range(17, 20, 17).
-  because rule 1 uses steps 173.
-  with Low = 17, High = 20.
-step 175: in_range(16, 20, 17).
-  because rule 2 uses steps 171, 172, 174.
-  with Low = 16, High = 20, N = 17, Next = 17.
-  (16 + 1) = 17.
-step 176: in_range(15, 20, 17).
-  because rule 2 uses steps 126, 127, 175.
-  with Low = 15, High = 20, N = 17, Next = 16.
-  (15 + 1) = 16.
-step 177: in_range(14, 20, 17).
-  because rule 2 uses steps 124, 125, 176.
-  with Low = 14, High = 20, N = 17, Next = 15.
-  (14 + 1) = 15.
-step 178: in_range(13, 20, 17).
-  because rule 2 uses steps 122, 123, 177.
-  with Low = 13, High = 20, N = 17, Next = 14.
-  (13 + 1) = 14.
-step 179: in_range(12, 20, 17).
-  because rule 2 uses steps 120, 121, 178.
-  with Low = 12, High = 20, N = 17, Next = 13.
-  (12 + 1) = 13.
-step 180: in_range(11, 20, 17).
-  because rule 2 uses steps 101, 102, 179.
-  with Low = 11, High = 20, N = 17, Next = 12.
-  (11 + 1) = 12.
-step 181: in_range(10, 20, 17).
-  because rule 2 uses steps 99, 100, 180.
-  with Low = 10, High = 20, N = 17, Next = 11.
-  (10 + 1) = 11.
-step 182: in_range(9, 20, 17).
-  because rule 2 uses steps 86, 87, 181.
-  with Low = 9, High = 20, N = 17, Next = 10.
-  (9 + 1) = 10.
-step 183: in_range(8, 20, 17).
-  because rule 2 uses steps 84, 85, 182.
-  with Low = 8, High = 20, N = 17, Next = 9.
-  (8 + 1) = 9.
-step 184: in_range(7, 20, 17).
-  because rule 2 uses steps 32, 33, 183.
-  with Low = 7, High = 20, N = 17, Next = 8.
-  (7 + 1) = 8.
-step 185: in_range(6, 20, 17).
-  because rule 2 uses steps 30, 31, 184.
-  with Low = 6, High = 20, N = 17, Next = 7.
-  (6 + 1) = 7.
-step 186: in_range(5, 20, 17).
-  because rule 2 uses steps 28, 29, 185.
-  with Low = 5, High = 20, N = 17, Next = 6.
-  (5 + 1) = 6.
-step 187: in_range(4, 20, 17).
-  because rule 2 uses steps 26, 27, 186.
-  with Low = 4, High = 20, N = 17, Next = 5.
-  (4 + 1) = 5.
-step 188: in_range(3, 20, 17).
-  because rule 2 uses steps 15, 16, 187.
-  with Low = 3, High = 20, N = 17, Next = 4.
-  (3 + 1) = 4.
-step 189: in_range(2, 20, 17).
-  because rule 2 uses steps 13, 14, 188.
-  with Low = 2, High = 20, N = 17, Next = 3.
-  (2 + 1) = 3.
-step 190: in_range(1, 20, 17).
-  because rule 2 uses steps 4, 5, 189.
-  with Low = 1, High = 20, N = 17, Next = 2.
-  (1 + 1) = 2.
-step 191: 17 > 1.
-  I checked these values.
-step 192: 1 =:= (17 mod 2).
-  I checked these values.
-step 193: 52 is ((3 * 17) + 1).
-  I checked these values.
-step 194: 52 > 1.
-  I checked these values.
-step 195: 0 =:= (52 mod 2).
-  I checked these values.
-step 196: 26 is (52 // 2).
-  I checked these values.
-step 197: 26 > 1.
-  I checked these values.
-step 198: 0 =:= (26 mod 2).
-  I checked these values.
-step 199: 13 is (26 // 2).
-  I checked these values.
-step 200: trajectory(26, [26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 197, 198, 199, 170.
-  with N = 26, Next = 13, Rest = [13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (26 mod 2) = 0.
-  (26 // 2) = 13.
-step 201: trajectory(52, [52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 194, 195, 196, 200.
-  with N = 52, Next = 26, Rest = [26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (52 mod 2) = 0.
-  (52 // 2) = 26.
-step 202: trajectory(17, [17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 191, 192, 193, 201.
-  with N = 17, Next = 52, Rest = [52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (17 mod 2) = 1.
-  (3 * 17) = 51.
-  ((3 * 17) + 1) = 52.
-step 203: 11 =< 20.
-  I checked these values.
-step 204: in_range(11, 20, 11).
-  because rule 1 uses steps 203.
-  with Low = 11, High = 20.
-step 205: in_range(10, 20, 11).
-  because rule 2 uses steps 99, 100, 204.
-  with Low = 10, High = 20, N = 11, Next = 11.
-  (10 + 1) = 11.
-step 206: in_range(9, 20, 11).
-  because rule 2 uses steps 86, 87, 205.
-  with Low = 9, High = 20, N = 11, Next = 10.
-  (9 + 1) = 10.
-step 207: in_range(8, 20, 11).
-  because rule 2 uses steps 84, 85, 206.
-  with Low = 8, High = 20, N = 11, Next = 9.
-  (8 + 1) = 9.
-step 208: in_range(7, 20, 11).
-  because rule 2 uses steps 32, 33, 207.
-  with Low = 7, High = 20, N = 11, Next = 8.
-  (7 + 1) = 8.
-step 209: in_range(6, 20, 11).
-  because rule 2 uses steps 30, 31, 208.
-  with Low = 6, High = 20, N = 11, Next = 7.
-  (6 + 1) = 7.
-step 210: in_range(5, 20, 11).
-  because rule 2 uses steps 28, 29, 209.
-  with Low = 5, High = 20, N = 11, Next = 6.
-  (5 + 1) = 6.
-step 211: in_range(4, 20, 11).
-  because rule 2 uses steps 26, 27, 210.
-  with Low = 4, High = 20, N = 11, Next = 5.
-  (4 + 1) = 5.
-step 212: in_range(3, 20, 11).
-  because rule 2 uses steps 15, 16, 211.
-  with Low = 3, High = 20, N = 11, Next = 4.
-  (3 + 1) = 4.
-step 213: in_range(2, 20, 11).
-  because rule 2 uses steps 13, 14, 212.
-  with Low = 2, High = 20, N = 11, Next = 3.
-  (2 + 1) = 3.
-step 214: in_range(1, 20, 11).
-  because rule 2 uses steps 4, 5, 213.
-  with Low = 1, High = 20, N = 11, Next = 2.
-  (1 + 1) = 2.
-step 215: 11 > 1.
-  I checked these values.
-step 216: 1 =:= (11 mod 2).
-  I checked these values.
-step 217: 34 is ((3 * 11) + 1).
-  I checked these values.
-step 218: 34 > 1.
-  I checked these values.
-step 219: 0 =:= (34 mod 2).
-  I checked these values.
-step 220: 17 is (34 // 2).
-  I checked these values.
-step 221: trajectory(34, [34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 218, 219, 220, 202.
-  with N = 34, Next = 17, Rest = [17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (34 mod 2) = 0.
-  (34 // 2) = 17.
-step 222: trajectory(11, [11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 215, 216, 217, 221.
-  with N = 11, Next = 34, Rest = [34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (11 mod 2) = 1.
-  (3 * 11) = 33.
-  ((3 * 11) + 1) = 34.
-step 223: 7 =< 20.
-  I checked these values.
-step 224: in_range(7, 20, 7).
-  because rule 1 uses steps 223.
-  with Low = 7, High = 20.
-step 225: in_range(6, 20, 7).
-  because rule 2 uses steps 30, 31, 224.
-  with Low = 6, High = 20, N = 7, Next = 7.
-  (6 + 1) = 7.
-step 226: in_range(5, 20, 7).
-  because rule 2 uses steps 28, 29, 225.
-  with Low = 5, High = 20, N = 7, Next = 6.
-  (5 + 1) = 6.
-step 227: in_range(4, 20, 7).
-  because rule 2 uses steps 26, 27, 226.
-  with Low = 4, High = 20, N = 7, Next = 5.
-  (4 + 1) = 5.
-step 228: in_range(3, 20, 7).
-  because rule 2 uses steps 15, 16, 227.
-  with Low = 3, High = 20, N = 7, Next = 4.
-  (3 + 1) = 4.
-step 229: in_range(2, 20, 7).
-  because rule 2 uses steps 13, 14, 228.
-  with Low = 2, High = 20, N = 7, Next = 3.
-  (2 + 1) = 3.
-step 230: in_range(1, 20, 7).
-  because rule 2 uses steps 4, 5, 229.
-  with Low = 1, High = 20, N = 7, Next = 2.
-  (1 + 1) = 2.
-step 231: 7 > 1.
-  I checked these values.
-step 232: 1 =:= (7 mod 2).
-  I checked these values.
-step 233: 22 is ((3 * 7) + 1).
-  I checked these values.
-step 234: 22 > 1.
-  I checked these values.
-step 235: 0 =:= (22 mod 2).
-  I checked these values.
-step 236: 11 is (22 // 2).
-  I checked these values.
-step 237: trajectory(22, [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 234, 235, 236, 222.
-  with N = 22, Next = 11, Rest = [11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (22 mod 2) = 0.
-  (22 // 2) = 11.
-step 238: trajectory(7, [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 231, 232, 233, 237.
-  with N = 7, Next = 22, Rest = [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (7 mod 2) = 1.
-  (3 * 7) = 21.
-  ((3 * 7) + 1) = 22.
-step 239: 14 =< 20.
-  I checked these values.
-step 240: in_range(14, 20, 14).
-  because rule 1 uses steps 239.
-  with Low = 14, High = 20.
-step 241: in_range(13, 20, 14).
-  because rule 2 uses steps 122, 123, 240.
-  with Low = 13, High = 20, N = 14, Next = 14.
-  (13 + 1) = 14.
-step 242: in_range(12, 20, 14).
-  because rule 2 uses steps 120, 121, 241.
-  with Low = 12, High = 20, N = 14, Next = 13.
-  (12 + 1) = 13.
-step 243: in_range(11, 20, 14).
-  because rule 2 uses steps 101, 102, 242.
-  with Low = 11, High = 20, N = 14, Next = 12.
-  (11 + 1) = 12.
-step 244: in_range(10, 20, 14).
-  because rule 2 uses steps 99, 100, 243.
-  with Low = 10, High = 20, N = 14, Next = 11.
-  (10 + 1) = 11.
-step 245: in_range(9, 20, 14).
-  because rule 2 uses steps 86, 87, 244.
-  with Low = 9, High = 20, N = 14, Next = 10.
-  (9 + 1) = 10.
-step 246: in_range(8, 20, 14).
-  because rule 2 uses steps 84, 85, 245.
-  with Low = 8, High = 20, N = 14, Next = 9.
-  (8 + 1) = 9.
-step 247: in_range(7, 20, 14).
-  because rule 2 uses steps 32, 33, 246.
-  with Low = 7, High = 20, N = 14, Next = 8.
-  (7 + 1) = 8.
-step 248: in_range(6, 20, 14).
-  because rule 2 uses steps 30, 31, 247.
-  with Low = 6, High = 20, N = 14, Next = 7.
-  (6 + 1) = 7.
-step 249: in_range(5, 20, 14).
-  because rule 2 uses steps 28, 29, 248.
-  with Low = 5, High = 20, N = 14, Next = 6.
-  (5 + 1) = 6.
-step 250: in_range(4, 20, 14).
-  because rule 2 uses steps 26, 27, 249.
-  with Low = 4, High = 20, N = 14, Next = 5.
-  (4 + 1) = 5.
-step 251: in_range(3, 20, 14).
-  because rule 2 uses steps 15, 16, 250.
-  with Low = 3, High = 20, N = 14, Next = 4.
-  (3 + 1) = 4.
-step 252: in_range(2, 20, 14).
-  because rule 2 uses steps 13, 14, 251.
-  with Low = 2, High = 20, N = 14, Next = 3.
-  (2 + 1) = 3.
-step 253: in_range(1, 20, 14).
-  because rule 2 uses steps 4, 5, 252.
-  with Low = 1, High = 20, N = 14, Next = 2.
-  (1 + 1) = 2.
-step 254: 14 > 1.
-  I checked these values.
-step 255: 0 =:= (14 mod 2).
-  I checked these values.
-step 256: 7 is (14 // 2).
-  I checked these values.
-step 257: trajectory(14, [14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 254, 255, 256, 238.
-  with N = 14, Next = 7, Rest = [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (14 mod 2) = 0.
-  (14 // 2) = 7.
-step 258: 9 =< 20.
-  I checked these values.
-step 259: in_range(9, 20, 9).
-  because rule 1 uses steps 258.
-  with Low = 9, High = 20.
-step 260: in_range(8, 20, 9).
-  because rule 2 uses steps 84, 85, 259.
-  with Low = 8, High = 20, N = 9, Next = 9.
-  (8 + 1) = 9.
-step 261: in_range(7, 20, 9).
-  because rule 2 uses steps 32, 33, 260.
-  with Low = 7, High = 20, N = 9, Next = 8.
-  (7 + 1) = 8.
-step 262: in_range(6, 20, 9).
-  because rule 2 uses steps 30, 31, 261.
-  with Low = 6, High = 20, N = 9, Next = 7.
-  (6 + 1) = 7.
-step 263: in_range(5, 20, 9).
-  because rule 2 uses steps 28, 29, 262.
-  with Low = 5, High = 20, N = 9, Next = 6.
-  (5 + 1) = 6.
-step 264: in_range(4, 20, 9).
-  because rule 2 uses steps 26, 27, 263.
-  with Low = 4, High = 20, N = 9, Next = 5.
-  (4 + 1) = 5.
-step 265: in_range(3, 20, 9).
-  because rule 2 uses steps 15, 16, 264.
-  with Low = 3, High = 20, N = 9, Next = 4.
-  (3 + 1) = 4.
-step 266: in_range(2, 20, 9).
-  because rule 2 uses steps 13, 14, 265.
-  with Low = 2, High = 20, N = 9, Next = 3.
-  (2 + 1) = 3.
-step 267: in_range(1, 20, 9).
-  because rule 2 uses steps 4, 5, 266.
-  with Low = 1, High = 20, N = 9, Next = 2.
-  (1 + 1) = 2.
-step 268: 9 > 1.
-  I checked these values.
-step 269: 1 =:= (9 mod 2).
-  I checked these values.
-step 270: 28 is ((3 * 9) + 1).
-  I checked these values.
-step 271: 28 > 1.
-  I checked these values.
-step 272: 0 =:= (28 mod 2).
-  I checked these values.
-step 273: 14 is (28 // 2).
-  I checked these values.
-step 274: trajectory(28, [28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 271, 272, 273, 257.
-  with N = 28, Next = 14, Rest = [14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (28 mod 2) = 0.
-  (28 // 2) = 14.
-step 275: trajectory(9, [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 268, 269, 270, 274.
-  with N = 9, Next = 28, Rest = [28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (9 mod 2) = 1.
-  (3 * 9) = 27.
-  ((3 * 9) + 1) = 28.
-step 276: 17 < 20.
-  I checked these values.
-step 277: 18 is (17 + 1).
-  I checked these values.
-step 278: 18 =< 20.
-  I checked these values.
-step 279: in_range(18, 20, 18).
-  because rule 1 uses steps 278.
-  with Low = 18, High = 20.
-step 280: in_range(17, 20, 18).
-  because rule 2 uses steps 276, 277, 279.
-  with Low = 17, High = 20, N = 18, Next = 18.
-  (17 + 1) = 18.
-step 281: in_range(16, 20, 18).
-  because rule 2 uses steps 171, 172, 280.
-  with Low = 16, High = 20, N = 18, Next = 17.
-  (16 + 1) = 17.
-step 282: in_range(15, 20, 18).
-  because rule 2 uses steps 126, 127, 281.
-  with Low = 15, High = 20, N = 18, Next = 16.
-  (15 + 1) = 16.
-step 283: in_range(14, 20, 18).
-  because rule 2 uses steps 124, 125, 282.
-  with Low = 14, High = 20, N = 18, Next = 15.
-  (14 + 1) = 15.
-step 284: in_range(13, 20, 18).
-  because rule 2 uses steps 122, 123, 283.
-  with Low = 13, High = 20, N = 18, Next = 14.
-  (13 + 1) = 14.
-step 285: in_range(12, 20, 18).
-  because rule 2 uses steps 120, 121, 284.
-  with Low = 12, High = 20, N = 18, Next = 13.
-  (12 + 1) = 13.
-step 286: in_range(11, 20, 18).
-  because rule 2 uses steps 101, 102, 285.
-  with Low = 11, High = 20, N = 18, Next = 12.
-  (11 + 1) = 12.
-step 287: in_range(10, 20, 18).
-  because rule 2 uses steps 99, 100, 286.
-  with Low = 10, High = 20, N = 18, Next = 11.
-  (10 + 1) = 11.
-step 288: in_range(9, 20, 18).
-  because rule 2 uses steps 86, 87, 287.
-  with Low = 9, High = 20, N = 18, Next = 10.
-  (9 + 1) = 10.
-step 289: in_range(8, 20, 18).
-  because rule 2 uses steps 84, 85, 288.
-  with Low = 8, High = 20, N = 18, Next = 9.
-  (8 + 1) = 9.
-step 290: in_range(7, 20, 18).
-  because rule 2 uses steps 32, 33, 289.
-  with Low = 7, High = 20, N = 18, Next = 8.
-  (7 + 1) = 8.
-step 291: in_range(6, 20, 18).
-  because rule 2 uses steps 30, 31, 290.
-  with Low = 6, High = 20, N = 18, Next = 7.
-  (6 + 1) = 7.
-step 292: in_range(5, 20, 18).
-  because rule 2 uses steps 28, 29, 291.
-  with Low = 5, High = 20, N = 18, Next = 6.
-  (5 + 1) = 6.
-step 293: in_range(4, 20, 18).
-  because rule 2 uses steps 26, 27, 292.
-  with Low = 4, High = 20, N = 18, Next = 5.
-  (4 + 1) = 5.
-step 294: in_range(3, 20, 18).
-  because rule 2 uses steps 15, 16, 293.
-  with Low = 3, High = 20, N = 18, Next = 4.
-  (3 + 1) = 4.
-step 295: in_range(2, 20, 18).
-  because rule 2 uses steps 13, 14, 294.
-  with Low = 2, High = 20, N = 18, Next = 3.
-  (2 + 1) = 3.
-step 296: in_range(1, 20, 18).
-  because rule 2 uses steps 4, 5, 295.
-  with Low = 1, High = 20, N = 18, Next = 2.
-  (1 + 1) = 2.
-step 297: 18 > 1.
-  I checked these values.
-step 298: 0 =:= (18 mod 2).
-  I checked these values.
-step 299: 9 is (18 // 2).
-  I checked these values.
-step 300: trajectory(18, [18, 9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 297, 298, 299, 275.
-  with N = 18, Next = 9, Rest = [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (18 mod 2) = 0.
-  (18 // 2) = 9.
-step 301: 18 < 20.
-  I checked these values.
-step 302: 19 is (18 + 1).
-  I checked these values.
-step 303: 19 < 20.
-  I checked these values.
-step 304: 20 is (19 + 1).
-  I checked these values.
-step 305: 20 =< 20.
-  I checked these values.
-step 306: in_range(20, 20, 20).
-  because rule 1 uses steps 305.
-  with Low = 20, High = 20.
-step 307: in_range(19, 20, 20).
-  because rule 2 uses steps 303, 304, 306.
-  with Low = 19, High = 20, N = 20, Next = 20.
-  (19 + 1) = 20.
-step 308: in_range(18, 20, 20).
-  because rule 2 uses steps 301, 302, 307.
-  with Low = 18, High = 20, N = 20, Next = 19.
-  (18 + 1) = 19.
-step 309: in_range(17, 20, 20).
-  because rule 2 uses steps 276, 277, 308.
-  with Low = 17, High = 20, N = 20, Next = 18.
-  (17 + 1) = 18.
-step 310: in_range(16, 20, 20).
-  because rule 2 uses steps 171, 172, 309.
-  with Low = 16, High = 20, N = 20, Next = 17.
-  (16 + 1) = 17.
-step 311: in_range(15, 20, 20).
-  because rule 2 uses steps 126, 127, 310.
-  with Low = 15, High = 20, N = 20, Next = 16.
-  (15 + 1) = 16.
-step 312: in_range(14, 20, 20).
-  because rule 2 uses steps 124, 125, 311.
-  with Low = 14, High = 20, N = 20, Next = 15.
-  (14 + 1) = 15.
-step 313: in_range(13, 20, 20).
-  because rule 2 uses steps 122, 123, 312.
-  with Low = 13, High = 20, N = 20, Next = 14.
-  (13 + 1) = 14.
-step 314: in_range(12, 20, 20).
-  because rule 2 uses steps 120, 121, 313.
-  with Low = 12, High = 20, N = 20, Next = 13.
-  (12 + 1) = 13.
-step 315: in_range(11, 20, 20).
-  because rule 2 uses steps 101, 102, 314.
-  with Low = 11, High = 20, N = 20, Next = 12.
-  (11 + 1) = 12.
-step 316: in_range(10, 20, 20).
-  because rule 2 uses steps 99, 100, 315.
-  with Low = 10, High = 20, N = 20, Next = 11.
-  (10 + 1) = 11.
-step 317: in_range(9, 20, 20).
-  because rule 2 uses steps 86, 87, 316.
-  with Low = 9, High = 20, N = 20, Next = 10.
-  (9 + 1) = 10.
-step 318: in_range(8, 20, 20).
-  because rule 2 uses steps 84, 85, 317.
-  with Low = 8, High = 20, N = 20, Next = 9.
-  (8 + 1) = 9.
-step 319: in_range(7, 20, 20).
-  because rule 2 uses steps 32, 33, 318.
-  with Low = 7, High = 20, N = 20, Next = 8.
-  (7 + 1) = 8.
-step 320: in_range(6, 20, 20).
-  because rule 2 uses steps 30, 31, 319.
-  with Low = 6, High = 20, N = 20, Next = 7.
-  (6 + 1) = 7.
-step 321: in_range(5, 20, 20).
-  because rule 2 uses steps 28, 29, 320.
-  with Low = 5, High = 20, N = 20, Next = 6.
-  (5 + 1) = 6.
-step 322: in_range(4, 20, 20).
-  because rule 2 uses steps 26, 27, 321.
-  with Low = 4, High = 20, N = 20, Next = 5.
-  (4 + 1) = 5.
-step 323: in_range(3, 20, 20).
-  because rule 2 uses steps 15, 16, 322.
-  with Low = 3, High = 20, N = 20, Next = 4.
-  (3 + 1) = 4.
-step 324: in_range(2, 20, 20).
-  because rule 2 uses steps 13, 14, 323.
-  with Low = 2, High = 20, N = 20, Next = 3.
-  (2 + 1) = 3.
-step 325: in_range(1, 20, 20).
-  because rule 2 uses steps 4, 5, 324.
-  with Low = 1, High = 20, N = 20, Next = 2.
-  (1 + 1) = 2.
-step 326: 19 =< 20.
-  I checked these values.
-step 327: in_range(19, 20, 19).
-  because rule 1 uses steps 326.
-  with Low = 19, High = 20.
-step 328: in_range(18, 20, 19).
-  because rule 2 uses steps 301, 302, 327.
-  with Low = 18, High = 20, N = 19, Next = 19.
-  (18 + 1) = 19.
-step 329: in_range(17, 20, 19).
-  because rule 2 uses steps 276, 277, 328.
-  with Low = 17, High = 20, N = 19, Next = 18.
-  (17 + 1) = 18.
-step 330: in_range(16, 20, 19).
-  because rule 2 uses steps 171, 172, 329.
-  with Low = 16, High = 20, N = 19, Next = 17.
-  (16 + 1) = 17.
-step 331: in_range(15, 20, 19).
-  because rule 2 uses steps 126, 127, 330.
-  with Low = 15, High = 20, N = 19, Next = 16.
-  (15 + 1) = 16.
-step 332: in_range(14, 20, 19).
-  because rule 2 uses steps 124, 125, 331.
-  with Low = 14, High = 20, N = 19, Next = 15.
-  (14 + 1) = 15.
-step 333: in_range(13, 20, 19).
-  because rule 2 uses steps 122, 123, 332.
-  with Low = 13, High = 20, N = 19, Next = 14.
-  (13 + 1) = 14.
-step 334: in_range(12, 20, 19).
-  because rule 2 uses steps 120, 121, 333.
-  with Low = 12, High = 20, N = 19, Next = 13.
-  (12 + 1) = 13.
-step 335: in_range(11, 20, 19).
-  because rule 2 uses steps 101, 102, 334.
-  with Low = 11, High = 20, N = 19, Next = 12.
-  (11 + 1) = 12.
-step 336: in_range(10, 20, 19).
-  because rule 2 uses steps 99, 100, 335.
-  with Low = 10, High = 20, N = 19, Next = 11.
-  (10 + 1) = 11.
-step 337: in_range(9, 20, 19).
-  because rule 2 uses steps 86, 87, 336.
-  with Low = 9, High = 20, N = 19, Next = 10.
-  (9 + 1) = 10.
-step 338: in_range(8, 20, 19).
-  because rule 2 uses steps 84, 85, 337.
-  with Low = 8, High = 20, N = 19, Next = 9.
-  (8 + 1) = 9.
-step 339: in_range(7, 20, 19).
-  because rule 2 uses steps 32, 33, 338.
-  with Low = 7, High = 20, N = 19, Next = 8.
-  (7 + 1) = 8.
-step 340: in_range(6, 20, 19).
-  because rule 2 uses steps 30, 31, 339.
-  with Low = 6, High = 20, N = 19, Next = 7.
-  (6 + 1) = 7.
-step 341: in_range(5, 20, 19).
-  because rule 2 uses steps 28, 29, 340.
-  with Low = 5, High = 20, N = 19, Next = 6.
-  (5 + 1) = 6.
-step 342: in_range(4, 20, 19).
-  because rule 2 uses steps 26, 27, 341.
-  with Low = 4, High = 20, N = 19, Next = 5.
-  (4 + 1) = 5.
-step 343: in_range(3, 20, 19).
-  because rule 2 uses steps 15, 16, 342.
-  with Low = 3, High = 20, N = 19, Next = 4.
-  (3 + 1) = 4.
-step 344: in_range(2, 20, 19).
-  because rule 2 uses steps 13, 14, 343.
-  with Low = 2, High = 20, N = 19, Next = 3.
-  (2 + 1) = 3.
-step 345: in_range(1, 20, 19).
-  because rule 2 uses steps 4, 5, 344.
-  with Low = 1, High = 20, N = 19, Next = 2.
-  (1 + 1) = 2.
-step 346: 19 > 1.
-  I checked these values.
-step 347: 1 =:= (19 mod 2).
-  I checked these values.
-step 348: 58 is ((3 * 19) + 1).
-  I checked these values.
-step 349: 58 > 1.
-  I checked these values.
-step 350: 0 =:= (58 mod 2).
-  I checked these values.
-step 351: 29 is (58 // 2).
-  I checked these values.
-step 352: 29 > 1.
-  I checked these values.
-step 353: 1 =:= (29 mod 2).
-  I checked these values.
-step 354: 88 is ((3 * 29) + 1).
-  I checked these values.
-step 355: 88 > 1.
-  I checked these values.
-step 356: 0 =:= (88 mod 2).
-  I checked these values.
-step 357: 44 is (88 // 2).
-  I checked these values.
-step 358: 44 > 1.
-  I checked these values.
-step 359: 0 =:= (44 mod 2).
-  I checked these values.
-step 360: 22 is (44 // 2).
-  I checked these values.
-step 361: trajectory(44, [44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 358, 359, 360, 237.
-  with N = 44, Next = 22, Rest = [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (44 mod 2) = 0.
-  (44 // 2) = 22.
-step 362: trajectory(88, [88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 355, 356, 357, 361.
-  with N = 88, Next = 44, Rest = [44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (88 mod 2) = 0.
-  (88 // 2) = 44.
-step 363: trajectory(29, [29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 352, 353, 354, 362.
-  with N = 29, Next = 88, Rest = [88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (29 mod 2) = 1.
-  (3 * 29) = 87.
-  ((3 * 29) + 1) = 88.
-step 364: trajectory(58, [58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 349, 350, 351, 363.
-  with N = 58, Next = 29, Rest = [29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (58 mod 2) = 0.
-  (58 // 2) = 29.
-step 365: trajectory(19, [19, 58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 346, 347, 348, 364.
-  with N = 19, Next = 58, Rest = [58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (19 mod 2) = 1.
-  (3 * 19) = 57.
-  ((3 * 19) + 1) = 58.
-step 366: 15 =< 20.
-  I checked these values.
-step 367: in_range(15, 20, 15).
-  because rule 1 uses steps 366.
-  with Low = 15, High = 20.
-step 368: in_range(14, 20, 15).
-  because rule 2 uses steps 124, 125, 367.
-  with Low = 14, High = 20, N = 15, Next = 15.
-  (14 + 1) = 15.
-step 369: in_range(13, 20, 15).
-  because rule 2 uses steps 122, 123, 368.
-  with Low = 13, High = 20, N = 15, Next = 14.
-  (13 + 1) = 14.
-step 370: in_range(12, 20, 15).
-  because rule 2 uses steps 120, 121, 369.
-  with Low = 12, High = 20, N = 15, Next = 13.
-  (12 + 1) = 13.
-step 371: in_range(11, 20, 15).
-  because rule 2 uses steps 101, 102, 370.
-  with Low = 11, High = 20, N = 15, Next = 12.
-  (11 + 1) = 12.
-step 372: in_range(10, 20, 15).
-  because rule 2 uses steps 99, 100, 371.
-  with Low = 10, High = 20, N = 15, Next = 11.
-  (10 + 1) = 11.
-step 373: in_range(9, 20, 15).
-  because rule 2 uses steps 86, 87, 372.
-  with Low = 9, High = 20, N = 15, Next = 10.
-  (9 + 1) = 10.
-step 374: in_range(8, 20, 15).
-  because rule 2 uses steps 84, 85, 373.
-  with Low = 8, High = 20, N = 15, Next = 9.
-  (8 + 1) = 9.
-step 375: in_range(7, 20, 15).
-  because rule 2 uses steps 32, 33, 374.
-  with Low = 7, High = 20, N = 15, Next = 8.
-  (7 + 1) = 8.
-step 376: in_range(6, 20, 15).
-  because rule 2 uses steps 30, 31, 375.
-  with Low = 6, High = 20, N = 15, Next = 7.
-  (6 + 1) = 7.
-step 377: in_range(5, 20, 15).
-  because rule 2 uses steps 28, 29, 376.
-  with Low = 5, High = 20, N = 15, Next = 6.
-  (5 + 1) = 6.
-step 378: in_range(4, 20, 15).
-  because rule 2 uses steps 26, 27, 377.
-  with Low = 4, High = 20, N = 15, Next = 5.
-  (4 + 1) = 5.
-step 379: in_range(3, 20, 15).
-  because rule 2 uses steps 15, 16, 378.
-  with Low = 3, High = 20, N = 15, Next = 4.
-  (3 + 1) = 4.
-step 380: in_range(2, 20, 15).
-  because rule 2 uses steps 13, 14, 379.
-  with Low = 2, High = 20, N = 15, Next = 3.
-  (2 + 1) = 3.
-step 381: in_range(1, 20, 15).
-  because rule 2 uses steps 4, 5, 380.
-  with Low = 1, High = 20, N = 15, Next = 2.
-  (1 + 1) = 2.
-step 382: 15 > 1.
-  I checked these values.
-step 383: 1 =:= (15 mod 2).
-  I checked these values.
-step 384: 46 is ((3 * 15) + 1).
-  I checked these values.
-step 385: 46 > 1.
-  I checked these values.
-step 386: 0 =:= (46 mod 2).
-  I checked these values.
-step 387: 23 is (46 // 2).
-  I checked these values.
-step 388: 23 > 1.
-  I checked these values.
-step 389: 1 =:= (23 mod 2).
-  I checked these values.
-step 390: 70 is ((3 * 23) + 1).
-  I checked these values.
-step 391: 70 > 1.
-  I checked these values.
-step 392: 0 =:= (70 mod 2).
-  I checked these values.
-step 393: 35 is (70 // 2).
-  I checked these values.
-step 394: 35 > 1.
-  I checked these values.
-step 395: 1 =:= (35 mod 2).
-  I checked these values.
-step 396: 106 is ((3 * 35) + 1).
-  I checked these values.
-step 397: 106 > 1.
-  I checked these values.
-step 398: 0 =:= (106 mod 2).
-  I checked these values.
-step 399: 53 is (106 // 2).
-  I checked these values.
-step 400: 53 > 1.
-  I checked these values.
-step 401: 1 =:= (53 mod 2).
-  I checked these values.
-step 402: 160 is ((3 * 53) + 1).
-  I checked these values.
-step 403: 160 > 1.
-  I checked these values.
-step 404: 0 =:= (160 mod 2).
-  I checked these values.
-step 405: 80 is (160 // 2).
-  I checked these values.
-step 406: 80 > 1.
-  I checked these values.
-step 407: 0 =:= (80 mod 2).
-  I checked these values.
-step 408: 40 is (80 // 2).
-  I checked these values.
-step 409: trajectory(80, [80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 406, 407, 408, 169.
-  with N = 80, Next = 40, Rest = [40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (80 mod 2) = 0.
-  (80 // 2) = 40.
-step 410: trajectory(160, [160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 403, 404, 405, 409.
-  with N = 160, Next = 80, Rest = [80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (160 mod 2) = 0.
-  (160 // 2) = 80.
-step 411: trajectory(53, [53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 400, 401, 402, 410.
-  with N = 53, Next = 160, Rest = [160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (53 mod 2) = 1.
-  (3 * 53) = 159.
-  ((3 * 53) + 1) = 160.
-step 412: trajectory(106, [106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 397, 398, 399, 411.
-  with N = 106, Next = 53, Rest = [53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (106 mod 2) = 0.
-  (106 // 2) = 53.
-step 413: trajectory(35, [35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 394, 395, 396, 412.
-  with N = 35, Next = 106, Rest = [106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (35 mod 2) = 1.
-  (3 * 35) = 105.
-  ((3 * 35) + 1) = 106.
-step 414: trajectory(70, [70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 391, 392, 393, 413.
-  with N = 70, Next = 35, Rest = [35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (70 mod 2) = 0.
-  (70 // 2) = 35.
-step 415: trajectory(23, [23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 388, 389, 390, 414.
-  with N = 23, Next = 70, Rest = [70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (23 mod 2) = 1.
-  (3 * 23) = 69.
-  ((3 * 23) + 1) = 70.
-step 416: trajectory(46, [46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 3 uses steps 385, 386, 387, 415.
-  with N = 46, Next = 23, Rest = [23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (46 mod 2) = 0.
-  (46 // 2) = 23.
-step 417: trajectory(15, [15, 46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]).
-  because rule 4 uses steps 382, 383, 384, 416.
-  with N = 15, Next = 46, Rest = [46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1].
-  (15 mod 2) = 1.
-  (3 * 15) = 45.
-  ((3 * 15) + 1) = 46.
-That explains steps 2, 3, 8, 12, 21, 25, 42, 46, 52, 60, 64, 72, 79, 83, 98, 71, 115, 119, 144, 59, 158, 170, 190, 202, 214, 222, 230, 238, 253, 257, 267, 275, 296, 300, 325, 168, 345, 365, 381, 417.
+certificate(eyelang, 1).
+
+claim(query(1), [in_range(1, 20, 1), trajectory(1, [1])]).
+claim(query(1), [in_range(1, 20, 2), trajectory(2, [2, 1])]).
+claim(query(1), [in_range(1, 20, 4), trajectory(4, [4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 8), trajectory(8, [8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 5), trajectory(5, [5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 3), trajectory(3, [3, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 6), trajectory(6, [6, 3, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 10), trajectory(10, [10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 12), trajectory(12, [12, 6, 3, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 16), trajectory(16, [16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 13), trajectory(13, [13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 17), trajectory(17, [17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 11), trajectory(11, [11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 7), trajectory(7, [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 14), trajectory(14, [14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 9), trajectory(9, [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 18), trajectory(18, [18, 9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 20), trajectory(20, [20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 19), trajectory(19, [19, 58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+claim(query(1), [in_range(1, 20, 15), trajectory(15, [15, 46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+
+clause(1, trajectory(1, [1]), []).
+clause(2, trajectory(var('N'), list([var('N')], var('Rest'))), ['>'(var('N'), 1), '=:='(0, mod(var('N'), 2)), is(var('Next'), '//'(var('N'), 2)), trajectory(var('Next'), var('Rest'))]).
+clause(3, trajectory(var('N'), list([var('N')], var('Rest'))), ['>'(var('N'), 1), '=:='(1, mod(var('N'), 2)), is(var('Next'), '+'('*'(3, var('N')), 1)), trajectory(var('Next'), var('Rest'))]).
+clause(4, in_range(var('Low'), var('High'), var('Low')), ['=<'(var('Low'), var('High'))]).
+clause(5, in_range(var('Low'), var('High'), var('N')), ['<'(var('Low'), var('High')), is(var('Next'), '+'(var('Low'), 1)), in_range(var('Next'), var('High'), var('N'))]).
+
+% step 1
+step('=<'(1, 20), builtin, [], []).
+% step 2
+step(in_range(1, 20, 1), rule(4), ['='('Low', 1), '='('High', 20)], ['=<'(1, 20)]).
+% step 3
+step(trajectory(1, [1]), fact(1), [], []).
+% step 4
+step('<'(1, 20), builtin, [], []).
+% step 5
+step(is(2, '+'(1, 1)), builtin, [], []).
+% step 6
+step('=<'(2, 20), builtin, [], []).
+% step 7
+step(in_range(2, 20, 2), rule(4), ['='('Low', 2), '='('High', 20)], ['=<'(2, 20)]).
+% step 8
+step(in_range(1, 20, 2), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 2), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 2)]).
+% step 9
+step('>'(2, 1), builtin, [], []).
+% step 10
+step('=:='(0, mod(2, 2)), builtin, [], []).
+% step 11
+step(is(1, '//'(2, 2)), builtin, [], []).
+% step 12
+step(trajectory(2, [2, 1]), rule(2), ['='('N', 2), '='('Next', 1), '='('Rest', [1])], ['>'(2, 1), '=:='(0, mod(2, 2)), is(1, '//'(2, 2)), trajectory(1, [1])]).
+% step 13
+step('<'(2, 20), builtin, [], []).
+% step 14
+step(is(3, '+'(2, 1)), builtin, [], []).
+% step 15
+step('<'(3, 20), builtin, [], []).
+% step 16
+step(is(4, '+'(3, 1)), builtin, [], []).
+% step 17
+step('=<'(4, 20), builtin, [], []).
+% step 18
+step(in_range(4, 20, 4), rule(4), ['='('Low', 4), '='('High', 20)], ['=<'(4, 20)]).
+% step 19
+step(in_range(3, 20, 4), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 4), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 4)]).
+% step 20
+step(in_range(2, 20, 4), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 4), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 4)]).
+% step 21
+step(in_range(1, 20, 4), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 4), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 4)]).
+% step 22
+step('>'(4, 1), builtin, [], []).
+% step 23
+step('=:='(0, mod(4, 2)), builtin, [], []).
+% step 24
+step(is(2, '//'(4, 2)), builtin, [], []).
+% step 25
+step(trajectory(4, [4, 2, 1]), rule(2), ['='('N', 4), '='('Next', 2), '='('Rest', [2, 1])], ['>'(4, 1), '=:='(0, mod(4, 2)), is(2, '//'(4, 2)), trajectory(2, [2, 1])]).
+% step 26
+step('<'(4, 20), builtin, [], []).
+% step 27
+step(is(5, '+'(4, 1)), builtin, [], []).
+% step 28
+step('<'(5, 20), builtin, [], []).
+% step 29
+step(is(6, '+'(5, 1)), builtin, [], []).
+% step 30
+step('<'(6, 20), builtin, [], []).
+% step 31
+step(is(7, '+'(6, 1)), builtin, [], []).
+% step 32
+step('<'(7, 20), builtin, [], []).
+% step 33
+step(is(8, '+'(7, 1)), builtin, [], []).
+% step 34
+step('=<'(8, 20), builtin, [], []).
+% step 35
+step(in_range(8, 20, 8), rule(4), ['='('Low', 8), '='('High', 20)], ['=<'(8, 20)]).
+% step 36
+step(in_range(7, 20, 8), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 8), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 8)]).
+% step 37
+step(in_range(6, 20, 8), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 8), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 8)]).
+% step 38
+step(in_range(5, 20, 8), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 8), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 8)]).
+% step 39
+step(in_range(4, 20, 8), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 8), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 8)]).
+% step 40
+step(in_range(3, 20, 8), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 8), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 8)]).
+% step 41
+step(in_range(2, 20, 8), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 8), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 8)]).
+% step 42
+step(in_range(1, 20, 8), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 8), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 8)]).
+% step 43
+step('>'(8, 1), builtin, [], []).
+% step 44
+step('=:='(0, mod(8, 2)), builtin, [], []).
+% step 45
+step(is(4, '//'(8, 2)), builtin, [], []).
+% step 46
+step(trajectory(8, [8, 4, 2, 1]), rule(2), ['='('N', 8), '='('Next', 4), '='('Rest', [4, 2, 1])], ['>'(8, 1), '=:='(0, mod(8, 2)), is(4, '//'(8, 2)), trajectory(4, [4, 2, 1])]).
+% step 47
+step('=<'(5, 20), builtin, [], []).
+% step 48
+step(in_range(5, 20, 5), rule(4), ['='('Low', 5), '='('High', 20)], ['=<'(5, 20)]).
+% step 49
+step(in_range(4, 20, 5), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 5), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 5)]).
+% step 50
+step(in_range(3, 20, 5), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 5), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 5)]).
+% step 51
+step(in_range(2, 20, 5), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 5), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 5)]).
+% step 52
+step(in_range(1, 20, 5), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 5), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 5)]).
+% step 53
+step('>'(5, 1), builtin, [], []).
+% step 54
+step('=:='(1, mod(5, 2)), builtin, [], []).
+% step 55
+step(is(16, '+'('*'(3, 5), 1)), builtin, [], []).
+% step 56
+step('>'(16, 1), builtin, [], []).
+% step 57
+step('=:='(0, mod(16, 2)), builtin, [], []).
+% step 58
+step(is(8, '//'(16, 2)), builtin, [], []).
+% step 59
+step(trajectory(16, [16, 8, 4, 2, 1]), rule(2), ['='('N', 16), '='('Next', 8), '='('Rest', [8, 4, 2, 1])], ['>'(16, 1), '=:='(0, mod(16, 2)), is(8, '//'(16, 2)), trajectory(8, [8, 4, 2, 1])]).
+% step 60
+step(trajectory(5, [5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 5), '='('Next', 16), '='('Rest', [16, 8, 4, 2, 1])], ['>'(5, 1), '=:='(1, mod(5, 2)), is(16, '+'('*'(3, 5), 1)), trajectory(16, [16, 8, 4, 2, 1])]).
+% step 61
+step('=<'(3, 20), builtin, [], []).
+% step 62
+step(in_range(3, 20, 3), rule(4), ['='('Low', 3), '='('High', 20)], ['=<'(3, 20)]).
+% step 63
+step(in_range(2, 20, 3), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 3), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 3)]).
+% step 64
+step(in_range(1, 20, 3), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 3), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 3)]).
+% step 65
+step('>'(3, 1), builtin, [], []).
+% step 66
+step('=:='(1, mod(3, 2)), builtin, [], []).
+% step 67
+step(is(10, '+'('*'(3, 3), 1)), builtin, [], []).
+% step 68
+step('>'(10, 1), builtin, [], []).
+% step 69
+step('=:='(0, mod(10, 2)), builtin, [], []).
+% step 70
+step(is(5, '//'(10, 2)), builtin, [], []).
+% step 71
+step(trajectory(10, [10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 10), '='('Next', 5), '='('Rest', [5, 16, 8, 4, 2, 1])], ['>'(10, 1), '=:='(0, mod(10, 2)), is(5, '//'(10, 2)), trajectory(5, [5, 16, 8, 4, 2, 1])]).
+% step 72
+step(trajectory(3, [3, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 3), '='('Next', 10), '='('Rest', [10, 5, 16, 8, 4, 2, 1])], ['>'(3, 1), '=:='(1, mod(3, 2)), is(10, '+'('*'(3, 3), 1)), trajectory(10, [10, 5, 16, 8, 4, 2, 1])]).
+% step 73
+step('=<'(6, 20), builtin, [], []).
+% step 74
+step(in_range(6, 20, 6), rule(4), ['='('Low', 6), '='('High', 20)], ['=<'(6, 20)]).
+% step 75
+step(in_range(5, 20, 6), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 6), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 6)]).
+% step 76
+step(in_range(4, 20, 6), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 6), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 6)]).
+% step 77
+step(in_range(3, 20, 6), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 6), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 6)]).
+% step 78
+step(in_range(2, 20, 6), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 6), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 6)]).
+% step 79
+step(in_range(1, 20, 6), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 6), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 6)]).
+% step 80
+step('>'(6, 1), builtin, [], []).
+% step 81
+step('=:='(0, mod(6, 2)), builtin, [], []).
+% step 82
+step(is(3, '//'(6, 2)), builtin, [], []).
+% step 83
+step(trajectory(6, [6, 3, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 6), '='('Next', 3), '='('Rest', [3, 10, 5, 16, 8, 4, 2, 1])], ['>'(6, 1), '=:='(0, mod(6, 2)), is(3, '//'(6, 2)), trajectory(3, [3, 10, 5, 16, 8, 4, 2, 1])]).
+% step 84
+step('<'(8, 20), builtin, [], []).
+% step 85
+step(is(9, '+'(8, 1)), builtin, [], []).
+% step 86
+step('<'(9, 20), builtin, [], []).
+% step 87
+step(is(10, '+'(9, 1)), builtin, [], []).
+% step 88
+step('=<'(10, 20), builtin, [], []).
+% step 89
+step(in_range(10, 20, 10), rule(4), ['='('Low', 10), '='('High', 20)], ['=<'(10, 20)]).
+% step 90
+step(in_range(9, 20, 10), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 10), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 10)]).
+% step 91
+step(in_range(8, 20, 10), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 10), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 10)]).
+% step 92
+step(in_range(7, 20, 10), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 10), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 10)]).
+% step 93
+step(in_range(6, 20, 10), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 10), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 10)]).
+% step 94
+step(in_range(5, 20, 10), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 10), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 10)]).
+% step 95
+step(in_range(4, 20, 10), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 10), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 10)]).
+% step 96
+step(in_range(3, 20, 10), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 10), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 10)]).
+% step 97
+step(in_range(2, 20, 10), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 10), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 10)]).
+% step 98
+step(in_range(1, 20, 10), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 10), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 10)]).
+% step 99
+step('<'(10, 20), builtin, [], []).
+% step 100
+step(is(11, '+'(10, 1)), builtin, [], []).
+% step 101
+step('<'(11, 20), builtin, [], []).
+% step 102
+step(is(12, '+'(11, 1)), builtin, [], []).
+% step 103
+step('=<'(12, 20), builtin, [], []).
+% step 104
+step(in_range(12, 20, 12), rule(4), ['='('Low', 12), '='('High', 20)], ['=<'(12, 20)]).
+% step 105
+step(in_range(11, 20, 12), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 12), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 12)]).
+% step 106
+step(in_range(10, 20, 12), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 12), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 12)]).
+% step 107
+step(in_range(9, 20, 12), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 12), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 12)]).
+% step 108
+step(in_range(8, 20, 12), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 12), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 12)]).
+% step 109
+step(in_range(7, 20, 12), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 12), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 12)]).
+% step 110
+step(in_range(6, 20, 12), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 12), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 12)]).
+% step 111
+step(in_range(5, 20, 12), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 12), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 12)]).
+% step 112
+step(in_range(4, 20, 12), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 12), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 12)]).
+% step 113
+step(in_range(3, 20, 12), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 12), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 12)]).
+% step 114
+step(in_range(2, 20, 12), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 12), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 12)]).
+% step 115
+step(in_range(1, 20, 12), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 12), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 12)]).
+% step 116
+step('>'(12, 1), builtin, [], []).
+% step 117
+step('=:='(0, mod(12, 2)), builtin, [], []).
+% step 118
+step(is(6, '//'(12, 2)), builtin, [], []).
+% step 119
+step(trajectory(12, [12, 6, 3, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 12), '='('Next', 6), '='('Rest', [6, 3, 10, 5, 16, 8, 4, 2, 1])], ['>'(12, 1), '=:='(0, mod(12, 2)), is(6, '//'(12, 2)), trajectory(6, [6, 3, 10, 5, 16, 8, 4, 2, 1])]).
+% step 120
+step('<'(12, 20), builtin, [], []).
+% step 121
+step(is(13, '+'(12, 1)), builtin, [], []).
+% step 122
+step('<'(13, 20), builtin, [], []).
+% step 123
+step(is(14, '+'(13, 1)), builtin, [], []).
+% step 124
+step('<'(14, 20), builtin, [], []).
+% step 125
+step(is(15, '+'(14, 1)), builtin, [], []).
+% step 126
+step('<'(15, 20), builtin, [], []).
+% step 127
+step(is(16, '+'(15, 1)), builtin, [], []).
+% step 128
+step('=<'(16, 20), builtin, [], []).
+% step 129
+step(in_range(16, 20, 16), rule(4), ['='('Low', 16), '='('High', 20)], ['=<'(16, 20)]).
+% step 130
+step(in_range(15, 20, 16), rule(5), ['='('Low', 15), '='('High', 20), '='('N', 16), '='('Next', 16)], ['<'(15, 20), is(16, '+'(15, 1)), in_range(16, 20, 16)]).
+% step 131
+step(in_range(14, 20, 16), rule(5), ['='('Low', 14), '='('High', 20), '='('N', 16), '='('Next', 15)], ['<'(14, 20), is(15, '+'(14, 1)), in_range(15, 20, 16)]).
+% step 132
+step(in_range(13, 20, 16), rule(5), ['='('Low', 13), '='('High', 20), '='('N', 16), '='('Next', 14)], ['<'(13, 20), is(14, '+'(13, 1)), in_range(14, 20, 16)]).
+% step 133
+step(in_range(12, 20, 16), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 16), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 16)]).
+% step 134
+step(in_range(11, 20, 16), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 16), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 16)]).
+% step 135
+step(in_range(10, 20, 16), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 16), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 16)]).
+% step 136
+step(in_range(9, 20, 16), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 16), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 16)]).
+% step 137
+step(in_range(8, 20, 16), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 16), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 16)]).
+% step 138
+step(in_range(7, 20, 16), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 16), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 16)]).
+% step 139
+step(in_range(6, 20, 16), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 16), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 16)]).
+% step 140
+step(in_range(5, 20, 16), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 16), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 16)]).
+% step 141
+step(in_range(4, 20, 16), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 16), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 16)]).
+% step 142
+step(in_range(3, 20, 16), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 16), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 16)]).
+% step 143
+step(in_range(2, 20, 16), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 16), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 16)]).
+% step 144
+step(in_range(1, 20, 16), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 16), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 16)]).
+% step 145
+step('=<'(13, 20), builtin, [], []).
+% step 146
+step(in_range(13, 20, 13), rule(4), ['='('Low', 13), '='('High', 20)], ['=<'(13, 20)]).
+% step 147
+step(in_range(12, 20, 13), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 13), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 13)]).
+% step 148
+step(in_range(11, 20, 13), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 13), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 13)]).
+% step 149
+step(in_range(10, 20, 13), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 13), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 13)]).
+% step 150
+step(in_range(9, 20, 13), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 13), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 13)]).
+% step 151
+step(in_range(8, 20, 13), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 13), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 13)]).
+% step 152
+step(in_range(7, 20, 13), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 13), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 13)]).
+% step 153
+step(in_range(6, 20, 13), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 13), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 13)]).
+% step 154
+step(in_range(5, 20, 13), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 13), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 13)]).
+% step 155
+step(in_range(4, 20, 13), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 13), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 13)]).
+% step 156
+step(in_range(3, 20, 13), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 13), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 13)]).
+% step 157
+step(in_range(2, 20, 13), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 13), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 13)]).
+% step 158
+step(in_range(1, 20, 13), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 13), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 13)]).
+% step 159
+step('>'(13, 1), builtin, [], []).
+% step 160
+step('=:='(1, mod(13, 2)), builtin, [], []).
+% step 161
+step(is(40, '+'('*'(3, 13), 1)), builtin, [], []).
+% step 162
+step('>'(40, 1), builtin, [], []).
+% step 163
+step('=:='(0, mod(40, 2)), builtin, [], []).
+% step 164
+step(is(20, '//'(40, 2)), builtin, [], []).
+% step 165
+step('>'(20, 1), builtin, [], []).
+% step 166
+step('=:='(0, mod(20, 2)), builtin, [], []).
+% step 167
+step(is(10, '//'(20, 2)), builtin, [], []).
+% step 168
+step(trajectory(20, [20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 20), '='('Next', 10), '='('Rest', [10, 5, 16, 8, 4, 2, 1])], ['>'(20, 1), '=:='(0, mod(20, 2)), is(10, '//'(20, 2)), trajectory(10, [10, 5, 16, 8, 4, 2, 1])]).
+% step 169
+step(trajectory(40, [40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 40), '='('Next', 20), '='('Rest', [20, 10, 5, 16, 8, 4, 2, 1])], ['>'(40, 1), '=:='(0, mod(40, 2)), is(20, '//'(40, 2)), trajectory(20, [20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 170
+step(trajectory(13, [13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 13), '='('Next', 40), '='('Rest', [40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(13, 1), '=:='(1, mod(13, 2)), is(40, '+'('*'(3, 13), 1)), trajectory(40, [40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 171
+step('<'(16, 20), builtin, [], []).
+% step 172
+step(is(17, '+'(16, 1)), builtin, [], []).
+% step 173
+step('=<'(17, 20), builtin, [], []).
+% step 174
+step(in_range(17, 20, 17), rule(4), ['='('Low', 17), '='('High', 20)], ['=<'(17, 20)]).
+% step 175
+step(in_range(16, 20, 17), rule(5), ['='('Low', 16), '='('High', 20), '='('N', 17), '='('Next', 17)], ['<'(16, 20), is(17, '+'(16, 1)), in_range(17, 20, 17)]).
+% step 176
+step(in_range(15, 20, 17), rule(5), ['='('Low', 15), '='('High', 20), '='('N', 17), '='('Next', 16)], ['<'(15, 20), is(16, '+'(15, 1)), in_range(16, 20, 17)]).
+% step 177
+step(in_range(14, 20, 17), rule(5), ['='('Low', 14), '='('High', 20), '='('N', 17), '='('Next', 15)], ['<'(14, 20), is(15, '+'(14, 1)), in_range(15, 20, 17)]).
+% step 178
+step(in_range(13, 20, 17), rule(5), ['='('Low', 13), '='('High', 20), '='('N', 17), '='('Next', 14)], ['<'(13, 20), is(14, '+'(13, 1)), in_range(14, 20, 17)]).
+% step 179
+step(in_range(12, 20, 17), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 17), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 17)]).
+% step 180
+step(in_range(11, 20, 17), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 17), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 17)]).
+% step 181
+step(in_range(10, 20, 17), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 17), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 17)]).
+% step 182
+step(in_range(9, 20, 17), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 17), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 17)]).
+% step 183
+step(in_range(8, 20, 17), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 17), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 17)]).
+% step 184
+step(in_range(7, 20, 17), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 17), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 17)]).
+% step 185
+step(in_range(6, 20, 17), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 17), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 17)]).
+% step 186
+step(in_range(5, 20, 17), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 17), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 17)]).
+% step 187
+step(in_range(4, 20, 17), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 17), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 17)]).
+% step 188
+step(in_range(3, 20, 17), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 17), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 17)]).
+% step 189
+step(in_range(2, 20, 17), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 17), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 17)]).
+% step 190
+step(in_range(1, 20, 17), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 17), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 17)]).
+% step 191
+step('>'(17, 1), builtin, [], []).
+% step 192
+step('=:='(1, mod(17, 2)), builtin, [], []).
+% step 193
+step(is(52, '+'('*'(3, 17), 1)), builtin, [], []).
+% step 194
+step('>'(52, 1), builtin, [], []).
+% step 195
+step('=:='(0, mod(52, 2)), builtin, [], []).
+% step 196
+step(is(26, '//'(52, 2)), builtin, [], []).
+% step 197
+step('>'(26, 1), builtin, [], []).
+% step 198
+step('=:='(0, mod(26, 2)), builtin, [], []).
+% step 199
+step(is(13, '//'(26, 2)), builtin, [], []).
+% step 200
+step(trajectory(26, [26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 26), '='('Next', 13), '='('Rest', [13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(26, 1), '=:='(0, mod(26, 2)), is(13, '//'(26, 2)), trajectory(13, [13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 201
+step(trajectory(52, [52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 52), '='('Next', 26), '='('Rest', [26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(52, 1), '=:='(0, mod(52, 2)), is(26, '//'(52, 2)), trajectory(26, [26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 202
+step(trajectory(17, [17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 17), '='('Next', 52), '='('Rest', [52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(17, 1), '=:='(1, mod(17, 2)), is(52, '+'('*'(3, 17), 1)), trajectory(52, [52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 203
+step('=<'(11, 20), builtin, [], []).
+% step 204
+step(in_range(11, 20, 11), rule(4), ['='('Low', 11), '='('High', 20)], ['=<'(11, 20)]).
+% step 205
+step(in_range(10, 20, 11), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 11), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 11)]).
+% step 206
+step(in_range(9, 20, 11), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 11), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 11)]).
+% step 207
+step(in_range(8, 20, 11), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 11), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 11)]).
+% step 208
+step(in_range(7, 20, 11), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 11), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 11)]).
+% step 209
+step(in_range(6, 20, 11), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 11), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 11)]).
+% step 210
+step(in_range(5, 20, 11), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 11), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 11)]).
+% step 211
+step(in_range(4, 20, 11), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 11), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 11)]).
+% step 212
+step(in_range(3, 20, 11), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 11), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 11)]).
+% step 213
+step(in_range(2, 20, 11), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 11), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 11)]).
+% step 214
+step(in_range(1, 20, 11), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 11), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 11)]).
+% step 215
+step('>'(11, 1), builtin, [], []).
+% step 216
+step('=:='(1, mod(11, 2)), builtin, [], []).
+% step 217
+step(is(34, '+'('*'(3, 11), 1)), builtin, [], []).
+% step 218
+step('>'(34, 1), builtin, [], []).
+% step 219
+step('=:='(0, mod(34, 2)), builtin, [], []).
+% step 220
+step(is(17, '//'(34, 2)), builtin, [], []).
+% step 221
+step(trajectory(34, [34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 34), '='('Next', 17), '='('Rest', [17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(34, 1), '=:='(0, mod(34, 2)), is(17, '//'(34, 2)), trajectory(17, [17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 222
+step(trajectory(11, [11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 11), '='('Next', 34), '='('Rest', [34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(11, 1), '=:='(1, mod(11, 2)), is(34, '+'('*'(3, 11), 1)), trajectory(34, [34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 223
+step('=<'(7, 20), builtin, [], []).
+% step 224
+step(in_range(7, 20, 7), rule(4), ['='('Low', 7), '='('High', 20)], ['=<'(7, 20)]).
+% step 225
+step(in_range(6, 20, 7), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 7), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 7)]).
+% step 226
+step(in_range(5, 20, 7), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 7), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 7)]).
+% step 227
+step(in_range(4, 20, 7), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 7), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 7)]).
+% step 228
+step(in_range(3, 20, 7), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 7), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 7)]).
+% step 229
+step(in_range(2, 20, 7), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 7), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 7)]).
+% step 230
+step(in_range(1, 20, 7), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 7), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 7)]).
+% step 231
+step('>'(7, 1), builtin, [], []).
+% step 232
+step('=:='(1, mod(7, 2)), builtin, [], []).
+% step 233
+step(is(22, '+'('*'(3, 7), 1)), builtin, [], []).
+% step 234
+step('>'(22, 1), builtin, [], []).
+% step 235
+step('=:='(0, mod(22, 2)), builtin, [], []).
+% step 236
+step(is(11, '//'(22, 2)), builtin, [], []).
+% step 237
+step(trajectory(22, [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 22), '='('Next', 11), '='('Rest', [11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(22, 1), '=:='(0, mod(22, 2)), is(11, '//'(22, 2)), trajectory(11, [11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 238
+step(trajectory(7, [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 7), '='('Next', 22), '='('Rest', [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(7, 1), '=:='(1, mod(7, 2)), is(22, '+'('*'(3, 7), 1)), trajectory(22, [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 239
+step('=<'(14, 20), builtin, [], []).
+% step 240
+step(in_range(14, 20, 14), rule(4), ['='('Low', 14), '='('High', 20)], ['=<'(14, 20)]).
+% step 241
+step(in_range(13, 20, 14), rule(5), ['='('Low', 13), '='('High', 20), '='('N', 14), '='('Next', 14)], ['<'(13, 20), is(14, '+'(13, 1)), in_range(14, 20, 14)]).
+% step 242
+step(in_range(12, 20, 14), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 14), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 14)]).
+% step 243
+step(in_range(11, 20, 14), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 14), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 14)]).
+% step 244
+step(in_range(10, 20, 14), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 14), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 14)]).
+% step 245
+step(in_range(9, 20, 14), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 14), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 14)]).
+% step 246
+step(in_range(8, 20, 14), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 14), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 14)]).
+% step 247
+step(in_range(7, 20, 14), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 14), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 14)]).
+% step 248
+step(in_range(6, 20, 14), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 14), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 14)]).
+% step 249
+step(in_range(5, 20, 14), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 14), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 14)]).
+% step 250
+step(in_range(4, 20, 14), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 14), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 14)]).
+% step 251
+step(in_range(3, 20, 14), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 14), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 14)]).
+% step 252
+step(in_range(2, 20, 14), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 14), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 14)]).
+% step 253
+step(in_range(1, 20, 14), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 14), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 14)]).
+% step 254
+step('>'(14, 1), builtin, [], []).
+% step 255
+step('=:='(0, mod(14, 2)), builtin, [], []).
+% step 256
+step(is(7, '//'(14, 2)), builtin, [], []).
+% step 257
+step(trajectory(14, [14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 14), '='('Next', 7), '='('Rest', [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(14, 1), '=:='(0, mod(14, 2)), is(7, '//'(14, 2)), trajectory(7, [7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 258
+step('=<'(9, 20), builtin, [], []).
+% step 259
+step(in_range(9, 20, 9), rule(4), ['='('Low', 9), '='('High', 20)], ['=<'(9, 20)]).
+% step 260
+step(in_range(8, 20, 9), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 9), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 9)]).
+% step 261
+step(in_range(7, 20, 9), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 9), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 9)]).
+% step 262
+step(in_range(6, 20, 9), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 9), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 9)]).
+% step 263
+step(in_range(5, 20, 9), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 9), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 9)]).
+% step 264
+step(in_range(4, 20, 9), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 9), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 9)]).
+% step 265
+step(in_range(3, 20, 9), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 9), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 9)]).
+% step 266
+step(in_range(2, 20, 9), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 9), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 9)]).
+% step 267
+step(in_range(1, 20, 9), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 9), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 9)]).
+% step 268
+step('>'(9, 1), builtin, [], []).
+% step 269
+step('=:='(1, mod(9, 2)), builtin, [], []).
+% step 270
+step(is(28, '+'('*'(3, 9), 1)), builtin, [], []).
+% step 271
+step('>'(28, 1), builtin, [], []).
+% step 272
+step('=:='(0, mod(28, 2)), builtin, [], []).
+% step 273
+step(is(14, '//'(28, 2)), builtin, [], []).
+% step 274
+step(trajectory(28, [28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 28), '='('Next', 14), '='('Rest', [14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(28, 1), '=:='(0, mod(28, 2)), is(14, '//'(28, 2)), trajectory(14, [14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 275
+step(trajectory(9, [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 9), '='('Next', 28), '='('Rest', [28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(9, 1), '=:='(1, mod(9, 2)), is(28, '+'('*'(3, 9), 1)), trajectory(28, [28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 276
+step('<'(17, 20), builtin, [], []).
+% step 277
+step(is(18, '+'(17, 1)), builtin, [], []).
+% step 278
+step('=<'(18, 20), builtin, [], []).
+% step 279
+step(in_range(18, 20, 18), rule(4), ['='('Low', 18), '='('High', 20)], ['=<'(18, 20)]).
+% step 280
+step(in_range(17, 20, 18), rule(5), ['='('Low', 17), '='('High', 20), '='('N', 18), '='('Next', 18)], ['<'(17, 20), is(18, '+'(17, 1)), in_range(18, 20, 18)]).
+% step 281
+step(in_range(16, 20, 18), rule(5), ['='('Low', 16), '='('High', 20), '='('N', 18), '='('Next', 17)], ['<'(16, 20), is(17, '+'(16, 1)), in_range(17, 20, 18)]).
+% step 282
+step(in_range(15, 20, 18), rule(5), ['='('Low', 15), '='('High', 20), '='('N', 18), '='('Next', 16)], ['<'(15, 20), is(16, '+'(15, 1)), in_range(16, 20, 18)]).
+% step 283
+step(in_range(14, 20, 18), rule(5), ['='('Low', 14), '='('High', 20), '='('N', 18), '='('Next', 15)], ['<'(14, 20), is(15, '+'(14, 1)), in_range(15, 20, 18)]).
+% step 284
+step(in_range(13, 20, 18), rule(5), ['='('Low', 13), '='('High', 20), '='('N', 18), '='('Next', 14)], ['<'(13, 20), is(14, '+'(13, 1)), in_range(14, 20, 18)]).
+% step 285
+step(in_range(12, 20, 18), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 18), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 18)]).
+% step 286
+step(in_range(11, 20, 18), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 18), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 18)]).
+% step 287
+step(in_range(10, 20, 18), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 18), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 18)]).
+% step 288
+step(in_range(9, 20, 18), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 18), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 18)]).
+% step 289
+step(in_range(8, 20, 18), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 18), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 18)]).
+% step 290
+step(in_range(7, 20, 18), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 18), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 18)]).
+% step 291
+step(in_range(6, 20, 18), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 18), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 18)]).
+% step 292
+step(in_range(5, 20, 18), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 18), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 18)]).
+% step 293
+step(in_range(4, 20, 18), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 18), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 18)]).
+% step 294
+step(in_range(3, 20, 18), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 18), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 18)]).
+% step 295
+step(in_range(2, 20, 18), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 18), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 18)]).
+% step 296
+step(in_range(1, 20, 18), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 18), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 18)]).
+% step 297
+step('>'(18, 1), builtin, [], []).
+% step 298
+step('=:='(0, mod(18, 2)), builtin, [], []).
+% step 299
+step(is(9, '//'(18, 2)), builtin, [], []).
+% step 300
+step(trajectory(18, [18, 9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 18), '='('Next', 9), '='('Rest', [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(18, 1), '=:='(0, mod(18, 2)), is(9, '//'(18, 2)), trajectory(9, [9, 28, 14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 301
+step('<'(18, 20), builtin, [], []).
+% step 302
+step(is(19, '+'(18, 1)), builtin, [], []).
+% step 303
+step('<'(19, 20), builtin, [], []).
+% step 304
+step(is(20, '+'(19, 1)), builtin, [], []).
+% step 305
+step('=<'(20, 20), builtin, [], []).
+% step 306
+step(in_range(20, 20, 20), rule(4), ['='('Low', 20), '='('High', 20)], ['=<'(20, 20)]).
+% step 307
+step(in_range(19, 20, 20), rule(5), ['='('Low', 19), '='('High', 20), '='('N', 20), '='('Next', 20)], ['<'(19, 20), is(20, '+'(19, 1)), in_range(20, 20, 20)]).
+% step 308
+step(in_range(18, 20, 20), rule(5), ['='('Low', 18), '='('High', 20), '='('N', 20), '='('Next', 19)], ['<'(18, 20), is(19, '+'(18, 1)), in_range(19, 20, 20)]).
+% step 309
+step(in_range(17, 20, 20), rule(5), ['='('Low', 17), '='('High', 20), '='('N', 20), '='('Next', 18)], ['<'(17, 20), is(18, '+'(17, 1)), in_range(18, 20, 20)]).
+% step 310
+step(in_range(16, 20, 20), rule(5), ['='('Low', 16), '='('High', 20), '='('N', 20), '='('Next', 17)], ['<'(16, 20), is(17, '+'(16, 1)), in_range(17, 20, 20)]).
+% step 311
+step(in_range(15, 20, 20), rule(5), ['='('Low', 15), '='('High', 20), '='('N', 20), '='('Next', 16)], ['<'(15, 20), is(16, '+'(15, 1)), in_range(16, 20, 20)]).
+% step 312
+step(in_range(14, 20, 20), rule(5), ['='('Low', 14), '='('High', 20), '='('N', 20), '='('Next', 15)], ['<'(14, 20), is(15, '+'(14, 1)), in_range(15, 20, 20)]).
+% step 313
+step(in_range(13, 20, 20), rule(5), ['='('Low', 13), '='('High', 20), '='('N', 20), '='('Next', 14)], ['<'(13, 20), is(14, '+'(13, 1)), in_range(14, 20, 20)]).
+% step 314
+step(in_range(12, 20, 20), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 20), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 20)]).
+% step 315
+step(in_range(11, 20, 20), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 20), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 20)]).
+% step 316
+step(in_range(10, 20, 20), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 20), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 20)]).
+% step 317
+step(in_range(9, 20, 20), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 20), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 20)]).
+% step 318
+step(in_range(8, 20, 20), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 20), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 20)]).
+% step 319
+step(in_range(7, 20, 20), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 20), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 20)]).
+% step 320
+step(in_range(6, 20, 20), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 20), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 20)]).
+% step 321
+step(in_range(5, 20, 20), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 20), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 20)]).
+% step 322
+step(in_range(4, 20, 20), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 20), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 20)]).
+% step 323
+step(in_range(3, 20, 20), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 20), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 20)]).
+% step 324
+step(in_range(2, 20, 20), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 20), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 20)]).
+% step 325
+step(in_range(1, 20, 20), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 20), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 20)]).
+% step 326
+step('=<'(19, 20), builtin, [], []).
+% step 327
+step(in_range(19, 20, 19), rule(4), ['='('Low', 19), '='('High', 20)], ['=<'(19, 20)]).
+% step 328
+step(in_range(18, 20, 19), rule(5), ['='('Low', 18), '='('High', 20), '='('N', 19), '='('Next', 19)], ['<'(18, 20), is(19, '+'(18, 1)), in_range(19, 20, 19)]).
+% step 329
+step(in_range(17, 20, 19), rule(5), ['='('Low', 17), '='('High', 20), '='('N', 19), '='('Next', 18)], ['<'(17, 20), is(18, '+'(17, 1)), in_range(18, 20, 19)]).
+% step 330
+step(in_range(16, 20, 19), rule(5), ['='('Low', 16), '='('High', 20), '='('N', 19), '='('Next', 17)], ['<'(16, 20), is(17, '+'(16, 1)), in_range(17, 20, 19)]).
+% step 331
+step(in_range(15, 20, 19), rule(5), ['='('Low', 15), '='('High', 20), '='('N', 19), '='('Next', 16)], ['<'(15, 20), is(16, '+'(15, 1)), in_range(16, 20, 19)]).
+% step 332
+step(in_range(14, 20, 19), rule(5), ['='('Low', 14), '='('High', 20), '='('N', 19), '='('Next', 15)], ['<'(14, 20), is(15, '+'(14, 1)), in_range(15, 20, 19)]).
+% step 333
+step(in_range(13, 20, 19), rule(5), ['='('Low', 13), '='('High', 20), '='('N', 19), '='('Next', 14)], ['<'(13, 20), is(14, '+'(13, 1)), in_range(14, 20, 19)]).
+% step 334
+step(in_range(12, 20, 19), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 19), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 19)]).
+% step 335
+step(in_range(11, 20, 19), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 19), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 19)]).
+% step 336
+step(in_range(10, 20, 19), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 19), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 19)]).
+% step 337
+step(in_range(9, 20, 19), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 19), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 19)]).
+% step 338
+step(in_range(8, 20, 19), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 19), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 19)]).
+% step 339
+step(in_range(7, 20, 19), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 19), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 19)]).
+% step 340
+step(in_range(6, 20, 19), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 19), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 19)]).
+% step 341
+step(in_range(5, 20, 19), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 19), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 19)]).
+% step 342
+step(in_range(4, 20, 19), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 19), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 19)]).
+% step 343
+step(in_range(3, 20, 19), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 19), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 19)]).
+% step 344
+step(in_range(2, 20, 19), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 19), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 19)]).
+% step 345
+step(in_range(1, 20, 19), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 19), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 19)]).
+% step 346
+step('>'(19, 1), builtin, [], []).
+% step 347
+step('=:='(1, mod(19, 2)), builtin, [], []).
+% step 348
+step(is(58, '+'('*'(3, 19), 1)), builtin, [], []).
+% step 349
+step('>'(58, 1), builtin, [], []).
+% step 350
+step('=:='(0, mod(58, 2)), builtin, [], []).
+% step 351
+step(is(29, '//'(58, 2)), builtin, [], []).
+% step 352
+step('>'(29, 1), builtin, [], []).
+% step 353
+step('=:='(1, mod(29, 2)), builtin, [], []).
+% step 354
+step(is(88, '+'('*'(3, 29), 1)), builtin, [], []).
+% step 355
+step('>'(88, 1), builtin, [], []).
+% step 356
+step('=:='(0, mod(88, 2)), builtin, [], []).
+% step 357
+step(is(44, '//'(88, 2)), builtin, [], []).
+% step 358
+step('>'(44, 1), builtin, [], []).
+% step 359
+step('=:='(0, mod(44, 2)), builtin, [], []).
+% step 360
+step(is(22, '//'(44, 2)), builtin, [], []).
+% step 361
+step(trajectory(44, [44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 44), '='('Next', 22), '='('Rest', [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(44, 1), '=:='(0, mod(44, 2)), is(22, '//'(44, 2)), trajectory(22, [22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 362
+step(trajectory(88, [88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 88), '='('Next', 44), '='('Rest', [44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(88, 1), '=:='(0, mod(88, 2)), is(44, '//'(88, 2)), trajectory(44, [44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 363
+step(trajectory(29, [29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 29), '='('Next', 88), '='('Rest', [88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(29, 1), '=:='(1, mod(29, 2)), is(88, '+'('*'(3, 29), 1)), trajectory(88, [88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 364
+step(trajectory(58, [58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 58), '='('Next', 29), '='('Rest', [29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(58, 1), '=:='(0, mod(58, 2)), is(29, '//'(58, 2)), trajectory(29, [29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 365
+step(trajectory(19, [19, 58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 19), '='('Next', 58), '='('Rest', [58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(19, 1), '=:='(1, mod(19, 2)), is(58, '+'('*'(3, 19), 1)), trajectory(58, [58, 29, 88, 44, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 366
+step('=<'(15, 20), builtin, [], []).
+% step 367
+step(in_range(15, 20, 15), rule(4), ['='('Low', 15), '='('High', 20)], ['=<'(15, 20)]).
+% step 368
+step(in_range(14, 20, 15), rule(5), ['='('Low', 14), '='('High', 20), '='('N', 15), '='('Next', 15)], ['<'(14, 20), is(15, '+'(14, 1)), in_range(15, 20, 15)]).
+% step 369
+step(in_range(13, 20, 15), rule(5), ['='('Low', 13), '='('High', 20), '='('N', 15), '='('Next', 14)], ['<'(13, 20), is(14, '+'(13, 1)), in_range(14, 20, 15)]).
+% step 370
+step(in_range(12, 20, 15), rule(5), ['='('Low', 12), '='('High', 20), '='('N', 15), '='('Next', 13)], ['<'(12, 20), is(13, '+'(12, 1)), in_range(13, 20, 15)]).
+% step 371
+step(in_range(11, 20, 15), rule(5), ['='('Low', 11), '='('High', 20), '='('N', 15), '='('Next', 12)], ['<'(11, 20), is(12, '+'(11, 1)), in_range(12, 20, 15)]).
+% step 372
+step(in_range(10, 20, 15), rule(5), ['='('Low', 10), '='('High', 20), '='('N', 15), '='('Next', 11)], ['<'(10, 20), is(11, '+'(10, 1)), in_range(11, 20, 15)]).
+% step 373
+step(in_range(9, 20, 15), rule(5), ['='('Low', 9), '='('High', 20), '='('N', 15), '='('Next', 10)], ['<'(9, 20), is(10, '+'(9, 1)), in_range(10, 20, 15)]).
+% step 374
+step(in_range(8, 20, 15), rule(5), ['='('Low', 8), '='('High', 20), '='('N', 15), '='('Next', 9)], ['<'(8, 20), is(9, '+'(8, 1)), in_range(9, 20, 15)]).
+% step 375
+step(in_range(7, 20, 15), rule(5), ['='('Low', 7), '='('High', 20), '='('N', 15), '='('Next', 8)], ['<'(7, 20), is(8, '+'(7, 1)), in_range(8, 20, 15)]).
+% step 376
+step(in_range(6, 20, 15), rule(5), ['='('Low', 6), '='('High', 20), '='('N', 15), '='('Next', 7)], ['<'(6, 20), is(7, '+'(6, 1)), in_range(7, 20, 15)]).
+% step 377
+step(in_range(5, 20, 15), rule(5), ['='('Low', 5), '='('High', 20), '='('N', 15), '='('Next', 6)], ['<'(5, 20), is(6, '+'(5, 1)), in_range(6, 20, 15)]).
+% step 378
+step(in_range(4, 20, 15), rule(5), ['='('Low', 4), '='('High', 20), '='('N', 15), '='('Next', 5)], ['<'(4, 20), is(5, '+'(4, 1)), in_range(5, 20, 15)]).
+% step 379
+step(in_range(3, 20, 15), rule(5), ['='('Low', 3), '='('High', 20), '='('N', 15), '='('Next', 4)], ['<'(3, 20), is(4, '+'(3, 1)), in_range(4, 20, 15)]).
+% step 380
+step(in_range(2, 20, 15), rule(5), ['='('Low', 2), '='('High', 20), '='('N', 15), '='('Next', 3)], ['<'(2, 20), is(3, '+'(2, 1)), in_range(3, 20, 15)]).
+% step 381
+step(in_range(1, 20, 15), rule(5), ['='('Low', 1), '='('High', 20), '='('N', 15), '='('Next', 2)], ['<'(1, 20), is(2, '+'(1, 1)), in_range(2, 20, 15)]).
+% step 382
+step('>'(15, 1), builtin, [], []).
+% step 383
+step('=:='(1, mod(15, 2)), builtin, [], []).
+% step 384
+step(is(46, '+'('*'(3, 15), 1)), builtin, [], []).
+% step 385
+step('>'(46, 1), builtin, [], []).
+% step 386
+step('=:='(0, mod(46, 2)), builtin, [], []).
+% step 387
+step(is(23, '//'(46, 2)), builtin, [], []).
+% step 388
+step('>'(23, 1), builtin, [], []).
+% step 389
+step('=:='(1, mod(23, 2)), builtin, [], []).
+% step 390
+step(is(70, '+'('*'(3, 23), 1)), builtin, [], []).
+% step 391
+step('>'(70, 1), builtin, [], []).
+% step 392
+step('=:='(0, mod(70, 2)), builtin, [], []).
+% step 393
+step(is(35, '//'(70, 2)), builtin, [], []).
+% step 394
+step('>'(35, 1), builtin, [], []).
+% step 395
+step('=:='(1, mod(35, 2)), builtin, [], []).
+% step 396
+step(is(106, '+'('*'(3, 35), 1)), builtin, [], []).
+% step 397
+step('>'(106, 1), builtin, [], []).
+% step 398
+step('=:='(0, mod(106, 2)), builtin, [], []).
+% step 399
+step(is(53, '//'(106, 2)), builtin, [], []).
+% step 400
+step('>'(53, 1), builtin, [], []).
+% step 401
+step('=:='(1, mod(53, 2)), builtin, [], []).
+% step 402
+step(is(160, '+'('*'(3, 53), 1)), builtin, [], []).
+% step 403
+step('>'(160, 1), builtin, [], []).
+% step 404
+step('=:='(0, mod(160, 2)), builtin, [], []).
+% step 405
+step(is(80, '//'(160, 2)), builtin, [], []).
+% step 406
+step('>'(80, 1), builtin, [], []).
+% step 407
+step('=:='(0, mod(80, 2)), builtin, [], []).
+% step 408
+step(is(40, '//'(80, 2)), builtin, [], []).
+% step 409
+step(trajectory(80, [80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 80), '='('Next', 40), '='('Rest', [40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(80, 1), '=:='(0, mod(80, 2)), is(40, '//'(80, 2)), trajectory(40, [40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 410
+step(trajectory(160, [160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 160), '='('Next', 80), '='('Rest', [80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(160, 1), '=:='(0, mod(160, 2)), is(80, '//'(160, 2)), trajectory(80, [80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 411
+step(trajectory(53, [53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 53), '='('Next', 160), '='('Rest', [160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(53, 1), '=:='(1, mod(53, 2)), is(160, '+'('*'(3, 53), 1)), trajectory(160, [160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 412
+step(trajectory(106, [106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 106), '='('Next', 53), '='('Rest', [53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(106, 1), '=:='(0, mod(106, 2)), is(53, '//'(106, 2)), trajectory(53, [53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 413
+step(trajectory(35, [35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 35), '='('Next', 106), '='('Rest', [106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(35, 1), '=:='(1, mod(35, 2)), is(106, '+'('*'(3, 35), 1)), trajectory(106, [106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 414
+step(trajectory(70, [70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 70), '='('Next', 35), '='('Rest', [35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(70, 1), '=:='(0, mod(70, 2)), is(35, '//'(70, 2)), trajectory(35, [35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 415
+step(trajectory(23, [23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 23), '='('Next', 70), '='('Rest', [70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(23, 1), '=:='(1, mod(23, 2)), is(70, '+'('*'(3, 23), 1)), trajectory(70, [70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 416
+step(trajectory(46, [46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(2), ['='('N', 46), '='('Next', 23), '='('Rest', [23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(46, 1), '=:='(0, mod(46, 2)), is(23, '//'(46, 2)), trajectory(23, [23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
+% step 417
+step(trajectory(15, [15, 46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1]), rule(3), ['='('N', 15), '='('Next', 46), '='('Rest', [46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])], ['>'(15, 1), '=:='(1, mod(15, 2)), is(46, '+'('*'(3, 15), 1)), trajectory(46, [46, 23, 70, 35, 106, 53, 160, 80, 40, 20, 10, 5, 16, 8, 4, 2, 1])]).
 
 % Check
 check passed: trajectory(1, [1]).
@@ -1395,3 +894,17 @@ check passed: trajectory(6, [6, 3, 10, 5, 16, 8, 4, 2, 1]).
 check passed: trajectory(20, [20, 10, 5, 16, 8, 4, 2, 1]).
 
 check passed: aggregate_all(count, (in_range(1, 20, N), trajectory(N, Values)), 20).
+
+condition('C1', resolution, ok, 248).
+condition('C2', well_founded, ok, 417).
+condition('C3', justification, ok, 417).
+condition('C4', coverage, ok, 758).
+condition('C5', re_decision, ok, 169).
+condition('C6', boundary_consistency, ok, 0).
+condition('C7', relevance, ok, 437).
+steps(417).
+verified(248).
+recomputed(169).
+trusted(0).
+claims(20).
+verdict(checked).

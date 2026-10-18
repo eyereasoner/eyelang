@@ -24,6 +24,8 @@ Date: 2026-10-17
   - [6.2. Evaluation and negation](#62-evaluation-and-negation)
 - [7. Queries and aggregation](#7-queries-and-aggregation)
 - [8. Explanations](#8-explanations)
+  - [8.1. Proof certificates](#81-proof-certificates)
+  - [8.2. Independent checking](#82-independent-checking)
 - [9. Checks](#9-checks)
 - [10. Errors and command-line interface](#10-errors-and-command-line-interface)
 - [11. Implementation and examples](#11-implementation-and-examples)
@@ -428,19 +430,134 @@ Supplied facts, completed absence searches, computed tests, and aggregates MUST
 be identified separately. All successful explanations MUST use one numbered
 format: each rule is listed once, and each step is shown once before the steps
 that use it. This includes explanations of single supplied facts. Derived steps
-MUST identify their rule, supporting step numbers, and local variable bindings
-when present. Unit clauses have no supporting steps. Ordinary predicate steps
+MUST identify their source clause, actual supporting goals, and local variable
+bindings when present. Unit clauses have no supporting steps. Ordinary predicate steps
 MUST show actual ground terms, and arithmetic evidence MUST include concrete
 operands and results. Explanations MUST NOT silently omit steps or numeric digits.
-Explanations record one selected derivation; they are not independent proof
-certificates or guarantees that the search implementation is correct.
+Explanations MUST use the proof certificate format below. There is one
+certificate per run, shared across all requested successful explanations.
+It records one selected derivation per goal. Repeated follow-ups MUST NOT
+repeat claims or steps. The Reason section is the certificate; the Check
+section MUST include its verification report after the program's assertions.
+
+### 8.1. Proof certificates
+
+Certificate generation MUST record successful instances of queries selected
+by `why`, including explicit `why(Goal)` queries. A `why` follow-up MUST refer
+to the preceding query rather than introduce another claim. Generation MUST first complete inference and validate the
+program's assertions. Assertions are not automatically included as certificate
+claims. Without a requested successful explanation, no certificate or proof
+check report is emitted; the existing empty or unsuccessful explanation
+message applies. Non-certificate messages in Reason MUST be comments so that
+a successful certificate can be extracted and checked as Prolog data.
+
+A version 1 certificate MUST contain only Prolog data records:
+
+```prolog
+certificate(eyelang, 1).
+claim(query(1), [mortal(socrates)]).
+clause(1, human(socrates), []).
+clause(2, mortal(var('Person')), [human(var('Person'))]).
+% step 1
+step(human(socrates), fact(1), [], []).
+% step 2
+step(mortal(socrates), rule(2), ['='('Person', socrates)], [human(socrates)]).
+```
+
+There MUST be exactly one `certificate(eyelang, 1)` header. Each
+`claim(Request, Goals)` identifies a nonempty proper list of successful goals.
+`query(N)` refers to the Nth source query, counting explanation follow-ups;
+`check(N)` MAY identify the Nth source assertion in a manually supplied
+certificate. The claimed conjunction MUST preserve variable sharing in that
+request and ground its displayed variables. Claims MUST NOT represent `false.`
+query results or assert that every answer has been found.
+
+Source facts and clauses MUST be numbered together in source order, starting
+at 1. Queries, directives, and generated helper rules MUST NOT receive source
+clause numbers. Optional `clause(Number, Head, Body)` display records MUST
+agree with the source. `Body` is a list; source variables appear as
+`var('Name')`, and open list templates as `list(Items, Tail)`. These display
+records MUST NOT supply authority for checking.
+
+Each `step(Goal, By, Bindings, Uses)` supplies one justification for a goal.
+`Bindings` is a proper list of `'='('SourceVariable', Value)` pairs with
+distinct variable names. `Uses` is a proper list of recorded premises.
+Ordinary predicate steps MUST be ground. `fact(N)` cites a source unit clause;
+`rule(N)` cites a source clause and its body instance. `builtin` identifies a
+pure builtin whose result MUST be recomputed. `absent` identifies a ground
+negated ordinary goal and MUST have no bindings or uses.
+
+An aggregate goal is represented as data with its producer goals in a list,
+for example `aggregate_all(sum(V), [score(P, V)], 9)`. Its justification is
+`collected`, its bindings MUST be empty, and each member of `Uses` MUST be a
+list containing one successful instance of the producer conjunction. Those
+instances MUST have supporting steps and distinct producer-variable tuples.
+The checker MUST recompute the aggregate from the recorded tuples.
+Completeness of that collection remains a trust obligation.
+
+Generated steps MUST appear after their supporting steps, with sequential
+`% step N` labels. These labels aid reading and are not authority for checking.
+Certificate variables are local to a record and MAY be consistently renamed.
+Goal identity MUST preserve variable sharing while ignoring variable spelling.
+Arithmetic compounds MUST be written in explicit function notation, such as
+`'**'(-3.0, 2.0)`, to preserve their parsed structure. The certificate MUST
+retain full numeric values and the complete reachable derivation.
+
+### 8.2. Independent checking
+
+The checker MUST follow the recorded premises without invoking the inference
+engine, searching source rule bodies for missing proofs, or executing source
+assertions. It MAY share parsing, term operations, and pure builtin arithmetic
+with the reasoner; those facilities form part of its trusted implementation.
+Every generated certificate MUST pass checking before it is returned.
+
+Every report MUST identify all seven conditions, their coverage counts, and
+their failure counts:
+
+| Condition | Requirement |
+| --- | --- |
+| C1: resolution | Each cited step and its premises instantiate the original source clause under consistent bindings; display records agree with that source. |
+| C2: well-foundedness | The recorded dependency graph has no cycle. |
+| C3: justification | The certificate has the supported shape and justification kinds, with no duplicate steps or claims. |
+| C4: coverage | Each claim and each used premise has a recorded supporting step. |
+| C5: re-decision | Pure builtin results and aggregate calculations agree with independent recomputation over the recorded inputs. |
+| C6: boundary consistency | Absences and collections do not contradict source unit clauses or the evidence already in the certificate. |
+| C7: relevance | Every claim answers its cited source request, and every step serves a claim. |
+
+Negation of an ordinary predicate MUST remain an `absent` obligation: recorded
+positive evidence cannot establish that the complete program has no answer.
+Aggregate membership MUST be justified, but an omitted derivable tuple may be
+invisible without further inference. Collection completeness MUST therefore
+remain a `collected` obligation. C6 MUST detect direct contrary evidence and
+missing collection tuples supported by available positive evidence and pure
+builtin computation. It MUST NOT be described as proving completeness.
+
+Reports MUST use ordinary Prolog data records: `condition/4`, `failure/3`,
+`obligation/3`, counts, and `verdict/1`. Failure and obligation records SHOULD
+retain the goal as a structured term, with variables and open lists encoded
+as templates as in Section 8.1 so that the report remains ground data.
+A valid certificate without
+obligations yields `verdict(checked)`. A valid certificate with obligations
+yields `verdict(checked_with_obligations)`. Invalid certificates yield
+`verdict(failed(Count))`. Strict checking MUST reject all trust obligations.
+A report's `valid` field means that the recorded conditions passed under its
+listed obligations; callers MUST inspect those obligations or request strict
+checking when unconditional checking is required.
+
+Checking establishes derivability of the recorded claims relative to the
+supplied source and interpreted builtins, subject to any listed obligations.
+It MUST NOT claim that source facts are true, that all answers were found,
+that unsuccessful queries have no answers, or that the shared parser and
+builtin implementation are independently verified. Certificates are not
+cryptographic signatures or source-authenticity guarantees.
 
 ## 9. Checks
 
 `:- assertion(Goal).` MUST test the existence of a successful solution.
 A parenthesized conjunction MAY use local variables and calculations. Checks
-MUST run after the query results and explanations have been prepared, in source
-order, without changing explanation context. A successful check emits
+MUST run after query inference, in source order, without changing explanation
+context. Certificate generation and checking MUST finish before output is
+returned or printed. A successful check emits
 `check passed: Goal.`. The first failed check MUST stop the run and identify its
 source line with `Check failed: Goal.`. Runtime errors in assertions SHOULD
 identify the assertion's source line. Checks use the same inference engine;
@@ -455,7 +572,7 @@ node eyelang.js --help
 node eyelang.js --version
 ```
 
-The CLI MUST accept exactly one path or `-` for standard input. `-h`/`--help`
+The CLI MUST accept exactly one program path or `-` for standard input. `-h`/`--help`
 and `-v`/`--version` display usage and the package version respectively.
 The CLI requires Node.js 18 or later and no third-party packages.
 Successful queries, including `false.`, MUST exit zero. Errors MUST go to stderr
@@ -463,7 +580,8 @@ and produce a nonzero status. The CLI MUST prepare the complete transcript
 before printing it, so failed checks produce no partial successful transcript.
 
 The CLI and playground MUST group output under `% Answer`, `% Reason`, and
-`% Check`, in that order, retaining written order within each section. In
+`% Check`, in that order. Answers and assertion results retain source order;
+requested explanations share one certificate and one proof check report. In
 `% Answer`, each result block MUST be preceded by its query in `?- Goal.` form,
 including results with no displayed variables and unsuccessful queries. Query
 formatting MAY normalize whitespace and parentheses. Empty sections MUST
@@ -513,7 +631,8 @@ inputs.
 
 [src/language.js](https://github.com/eyereasoner/eyelang/blob/main/src/language.js)
 exports `parse`, `infer`, `render`, `say`, and `run` without Node-specific dependencies.
-`parse` returns facts, rules, questions, and checks; `infer` returns
+`parse` returns facts, rules, questions, checks, source-order `clauses`, and
+declared `tables`; `infer` returns
 materialized tuples and their evidence; `render(program, records, options)`
 formats completed inference as answer, explanation, and check blocks; `say`
 formats a goal. Callers of `render` MUST obtain records with
@@ -525,8 +644,29 @@ Reason, and Check. Both the CLI and browser worker use this module. The
 conformance tests with a section coverage map, behavior regressions, and
 browser-interface tests.
 
-`npm run benchmark` reports parsing, checked inference, and full output-rendering
-times separately, with process peak memory from isolated runs. The
+The same module exports `renderProof(program, records, requests)`,
+`checkProof(source, certificate, options)`, and `checkReportTerms(report)`.
+`renderProof` formats completed inference records for the supplied source
+query objects, defaulting to all queries; callers MUST check its output before
+presenting it as checked. `checkProof` accepts source text or a parsed program
+and returns `valid`, condition counts, failures, and explicit `trusted`
+obligations. `{ allowTrusted: false }` requests strict checking through this
+API. `checkReportTerms` formats a report as ground Prolog data. The checker
+shares the parser and pure term and builtin operations, but MUST NOT invoke
+inference. `render` and `run` automatically generate and check the Reason
+certificate and add the report to Check when `why` requests successful answers.
+Default output blocks contain each answer, one shared certificate at the first
+successful explanation, assertions, and the proof check report. Repeated
+successful explanation requests do not add duplicate blocks.
+
+The CLI and playground use the same ARC output without separate proof modes.
+Generation and checking in the playground MUST run in the cancellable worker.
+Copy/save MUST retain complete certificates and reports even when their
+previews are truncated.
+
+`npm run benchmark` reports parsing, checked inference, and full ARC rendering
+times separately. Rendering includes certificate generation and independent
+proof checking, with process peak memory from isolated runs. The
 [benchmark notes](https://github.com/eyereasoner/eyelang/tree/main/benchmarks)
 describe the workloads and measurement limits.
 
