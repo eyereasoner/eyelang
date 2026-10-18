@@ -12,7 +12,7 @@ Norm = 8.774964387392123.
 Similarity = 0.3654869423239036.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(4), [cosineSimilarity(pair1, 0.3654869423239036)]).
 

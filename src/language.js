@@ -1133,7 +1133,7 @@ export function renderProof(program, facts, requests = program.questions) {
     pending.push({ finish: true, id });
     for (let index = premises.length - 1; index >= 0; index--) pending.push(premises[index]);
   }
-  const lines = ['certificate(eyelang, 1).', '', ...claims.map(line), ''];
+  const lines = ['certificate(eyeon, 1).', '', ...claims.map(line), ''];
   for (const number of [...cited].sort((a, b) => a - b)) {
     lines.push(line(compound('clause', [String(number), ...clauseTerms(program.clauses[number - 1]).map(template)])));
   }
@@ -1166,7 +1166,7 @@ export function checkProof(source, document, { allowTrusted = true } = {}) {
       if (clause.premises.length) { fail('C3', 'Certificate documents may contain records only.', term); continue; }
       if (is(term, 'certificate', 2)) {
         headers++;
-        if (term.args[0].atom !== 'eyelang' || term.args[1] !== '1') fail('C3', 'Unsupported certificate format.', term);
+        if (term.args[0].atom !== 'eyeon' || term.args[1] !== '1') fail('C3', 'Unsupported certificate format.', term);
       } else if (is(term, 'clause', 3)) {
         const [number, head, body] = term.args;
         const original = integer(number) && program.clauses[Number(number) - 1];
@@ -1186,7 +1186,7 @@ export function checkProof(source, document, { allowTrusted = true } = {}) {
       } else fail('C3', 'Unknown certificate record.', term);
     }
   } catch (error) { fail('C3', error.message); }
-  if (headers !== 1) fail('C3', 'A certificate needs exactly one certificate(eyelang, 1) header.');
+  if (headers !== 1) fail('C3', 'A certificate needs exactly one certificate(eyeon, 1) header.');
   if (!claims.length || !steps.size) fail('C4', 'A certificate needs successful claims and supporting steps; query failure is not certified.');
   const cover = (goal, conclusion) => {
     if (!steps.has(canonical(goal))) fail('C4', `Missing supporting step: ${sayTerm(goal)}.`, conclusion);

@@ -1,21 +1,21 @@
 {
-  "name": "eyelang",
-  "version": "6.0.1",
+  "name": "eyeon",
+  "version": "0.0.1",
   "description": "A symbolic logic programming language implementing a subset of Prolog, with query explanations and executable checks.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eyereasoner/eyelang.git"
+    "url": "git+https://github.com/eyereasoner/eyeon.git"
   },
   "type": "module",
   "bin": {
-    "eyelang": "eyelang.js"
+    "eyeon": "eyeon.js"
   },
   "scripts": {
     "test": "node --test",
     "test:conformance": "node --test test/conformance",
     "examples:update": "node scripts/example-goldens.js",
     "benchmark": "node benchmarks/run.js",
-    "start": "node eyelang.js examples/socrates.pl",
+    "start": "node eyeon.js examples/socrates.pl",
     "version": "node scripts/sync-version.js"
   },
   "engines": {

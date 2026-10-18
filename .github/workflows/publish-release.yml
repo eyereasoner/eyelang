@@ -51,7 +51,7 @@ jobs:
       - name: Publish to npm
         run: npm publish
       - name: Archive the release tag
-        run: git archive --format=zip --prefix="eyelang-${RELEASE_TAG}/" --output=eyelang.zip "refs/tags/$RELEASE_TAG"
+        run: git archive --format=zip --prefix="eyeon-${RELEASE_TAG}/" --output=eyeon.zip "refs/tags/$RELEASE_TAG"
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
@@ -63,6 +63,6 @@ jobs:
           token: ${{ secrets.ZENODO_TOKEN }}
           version: ${{ env.RELEASE_TAG }}
           zenodo_json: .zenodo.json
-          archive: eyelang.zip
+          archive: eyeon.zip
           html_url: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}
           doi: ${{ vars.ZENODO_CONCEPT_DOI }}

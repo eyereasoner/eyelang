@@ -3,7 +3,7 @@
 Who = ind.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [is_a(ind, a2)]).
 

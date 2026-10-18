@@ -6,7 +6,7 @@ Rank = 3, Clause = c2, Score = 85, Severity = high, Why = short_notice(3, 14), F
 Rank = 1, Clause = c1, Score = 100, Severity = high, Why = no_removal_safeguards, Fix = add_notice_and_inform.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [report(4, c4, 70, moderate, export_prohibited, permit_export)]).
 claim(query(1), [report(2, c3, 97, high, sharing_without_consent, require_consent)]).

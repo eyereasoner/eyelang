@@ -17,7 +17,7 @@ false.
 Result = 2.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [is_a(milo, 'ready-player')]).
 claim(query(1), [is_a(rex, 'ready-player')]).

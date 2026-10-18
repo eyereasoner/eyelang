@@ -9,7 +9,7 @@ Action = read.
 Action = write.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [allowed(alice, read)]).
 claim(query(1), [allowed(alice, write)]).

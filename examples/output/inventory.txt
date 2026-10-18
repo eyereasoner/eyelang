@@ -8,7 +8,7 @@ Item = pear, Amount = 12.
 Item = plum, Amount = 10.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [invoice(28)]).
 

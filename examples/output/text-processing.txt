@@ -9,7 +9,7 @@ Name = sensor, Text = "café 😀".
 Codes = [99, 97, 102, 233, 32, 128512].
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [sensor_record(sensor_0042, 42)]).
 

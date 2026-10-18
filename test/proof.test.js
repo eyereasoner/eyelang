@@ -16,7 +16,7 @@ function prove(source, options) {
 
 const source = 'p(a). q(X) :- p(X). r(X) :- q(X). ?- r(X).';
 const certificate = () => prove(source).proof;
-const header = 'certificate(eyelang, 1).\n';
+const header = 'certificate(eyeon, 1).\n';
 const invalid = (program, proof, condition, options) => {
   const report = checkProof(program, proof, options);
   assert.equal(report.valid, false, proof);
@@ -79,7 +79,7 @@ test('malformed records, unknown justifications, directives and versions fail sh
     certificate().replace('rule(2)', 'magic'), certificate() + 'step(q(a),rule(2),[],[]).',
     header + 'step(q(a),rule(2),broken,[]).', header + 'step(q(a),rule(2),[],[]):-true.',
     certificate() + ':- table q/1.', certificate() + '?- r(X).', certificate() + ':- assertion(r(a)).',
-    certificate().replace('certificate(eyelang, 1)', 'certificate(eyelang, 99)'),
+    certificate().replace('certificate(eyeon, 1)', 'certificate(eyeon, 99)'),
     certificate() + header, certificate().replace(header, ''), 'unterminated(',
   ]) invalid(source, proof, 'C3');
 });
@@ -215,13 +215,13 @@ for (const name of ['aggregation', 'ackermann', 'text-processing', 'term-structu
 }
 
 test('the ordinary CLI puts one checked certificate in Reason and its report in Check', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'eyelang-proof-'));
+  const directory = mkdtempSync(join(tmpdir(), 'eyeon-proof-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const file = join(directory, 'program.pl');
   const program = source + ' ?- why. ?- why.';
   writeFileSync(file, program);
   const cli = (args, input) => {
-    const result = spawnSync(process.execPath, ['eyelang.js', ...args], { input, encoding: 'utf8', timeout: 10000 });
+    const result = spawnSync(process.execPath, ['eyeon.js', ...args], { input, encoding: 'utf8', timeout: 10000 });
     assert.ifError(result.error);
     return result;
   };

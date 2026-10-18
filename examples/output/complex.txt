@@ -36,7 +36,7 @@ What = 0.0.
 What = -2.3363408269090766.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(12), [imaginary('acos-result', -2.3363408269090766)]).
 

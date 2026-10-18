@@ -23,14 +23,14 @@ async function withServer(t) {
 test('the playground serves its page, browser modules, examples, and documentation', async t => {
   const get = await withServer(t);
   for (const [path, type, content] of [
-    ['/', 'text/html', '<title>eyelang playground</title>'],
+    ['/', 'text/html', '<title>eyeon playground</title>'],
     ['/src/playground.js', 'text/javascript', 'new Worker('],
     ['/src/playground-highlight.js', 'text/javascript', 'export function highlight('],
     ['/src/playground-worker.js', 'text/javascript', "import { run } from './language.js'"],
     ['/src/language.js', 'text/javascript', 'export function run('],
     ['/examples/socrates.pl', 'text/plain', 'human(socrates).'],
-    ['/SPEC.md', 'text/plain', '# eyelang Specification'],
-    ['/TUTORIAL.md', 'text/plain', 'eyelang tutorial'],
+    ['/SPEC.md', 'text/plain', '# eyeon Specification'],
+    ['/TUTORIAL.md', 'text/plain', 'eyeon tutorial'],
   ]) {
     const response = await get(path);
     assert.equal(response.status, 200, path);
@@ -55,7 +55,7 @@ test('the playground server handles missing assets, malformed URLs, and unsuppor
 
 test('the playground offers every bundled example and links to existing local assets', () => {
   const html = readFileSync(new URL('../playground.html', import.meta.url), 'utf8');
-  assert.match(html, /href="https:\/\/eyereasoner\.github\.io\/eyelang\/TUTORIAL\/">Tutorial/);
+  assert.match(html, /href="https:\/\/eyereasoner\.github\.io\/eyeon\/TUTORIAL\/">Tutorial/);
   const listed = [...html.matchAll(/<option value="([a-z0-9-]+)"/g)].map(match => `${match[1]}.pl`);
   const files = readdirSync(new URL('../examples/', import.meta.url)).filter(file => file.endsWith('.pl'));
   assert.deepEqual(listed.sort(), files.sort());

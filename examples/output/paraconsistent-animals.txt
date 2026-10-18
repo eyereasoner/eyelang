@@ -26,7 +26,7 @@ Animal = opus, Mode = walking.
 Animal = batsy, Mode = flying.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(3), [wings_safely(batsy, undecided)]).
 

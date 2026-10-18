@@ -14,7 +14,7 @@ false.
 Head = a, Tail = [b, c].
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [append([], [a, b], [a, b])]).
 claim(query(1), [append([a], [b], [a, b])]).

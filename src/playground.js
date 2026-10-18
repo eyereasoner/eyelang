@@ -7,7 +7,7 @@ const examples = byId('example-select');
 const output = byId('output');
 const editorStatus = byId('editor-status');
 const runStatus = byId('run-status');
-const draftKey = 'eyelang.playground.draft.v2';
+const draftKey = 'eyeon.playground.draft.v2';
 const previewLimit = 200000;
 const shareLimit = 1900;
 let worker = null;
@@ -261,7 +261,7 @@ async function createGistShare(reason = '') {
     const response = await fetch('https://api.github.com/gists', {
       method: 'POST',
       headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token.trim()}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: 'eyelang playground share', public: false, files: { 'program.pl': { content: source } } }),
+      body: JSON.stringify({ description: 'eyeon playground share', public: false, files: { 'program.pl': { content: source } } }),
     });
     if (!response.ok) throw new Error(`GitHub returned HTTP ${response.status}. Check the token's Gist permission and try again.`);
     const id = gistId((await response.json()).id || '');

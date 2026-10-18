@@ -9,7 +9,7 @@ Owner = dana, Count = 0.
 Owner = alice.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [dog_count(alice, 5)]).
 claim(query(1), [dog_count(bob, 2)]).

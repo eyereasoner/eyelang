@@ -13,7 +13,7 @@ Kind = customer_count, Count = 3.
 Kind = finding_count, Count = 7.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [finding(customer(c2), empty_email)]).
 claim(query(1), [finding(order(o3), invalid_amount(-5))]).

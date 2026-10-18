@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { updateExampleGoldens } from '../scripts/example-goldens.js';
 
 function fixture(t) {
-  const directory = mkdtempSync(join(tmpdir(), 'eyelang-goldens-'));
+  const directory = mkdtempSync(join(tmpdir(), 'eyeon-goldens-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   writeFileSync(join(directory, 'sample.pl'), 'p(a). ?- p(X). ?- why. :- assertion(p(a)).');
   return directory;
@@ -25,7 +25,7 @@ test('the golden updater writes full ARC transcripts for every example, includin
 X = a.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [p(a)]).
 

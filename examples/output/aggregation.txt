@@ -15,7 +15,7 @@ Result = 7.
 Result = 10.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(3), [aggregate_all(sum(V0), [score(V1, V0)], 24)]).
 

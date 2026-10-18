@@ -30,7 +30,7 @@ Who = case2.
 Who = case3.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(8), [output(case4, [1, blank])]).
 

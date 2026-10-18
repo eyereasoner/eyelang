@@ -7,7 +7,7 @@ Kind = chosen_interval, Value = interval(4, 4, 7, 4).
 Kind = chosen_interval, Value = interval(8, 8, 11, 4).
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [optimal_schedule([1, 4, 8], 13)]).
 

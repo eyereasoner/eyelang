@@ -12,7 +12,7 @@ Variance = 4.0.
 Stddev = 2.0.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(4), [populationStddev(scores, 2.0)]).
 

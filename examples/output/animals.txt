@@ -10,7 +10,7 @@ true.
 false.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(3), [is_a(milo, animal)]).
 

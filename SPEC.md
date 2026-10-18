@@ -1,9 +1,9 @@
-# eyelang Specification
+# eyeon Specification
 
 ```text
-Document: eyelang-spec-0001
+Document: eyeon-spec-0001
 Category: Language Specification
-Language version: 6.0.1
+Language version: 0.0.1
 Date: 2026-10-17
 ```
 
@@ -34,7 +34,7 @@ Date: 2026-10-17
 ## Status of This Memo
 
 This project specification is not an IETF RFC. It defines the subset of
-Prolog implemented by eyelang. It does not claim full ISO Prolog conformance
+Prolog implemented by eyeon. It does not claim full ISO Prolog conformance
 or compatibility with every Prolog program.
 
 ## 1. Conventions and conformance
@@ -145,7 +145,7 @@ ground; calls that leave output variables unresolved MUST raise an error.
 
 ## 5. Builtins and arithmetic
 
-eyelang provides **20 builtin predicates**, **39 arithmetic operations**, and
+eyeon provides **20 builtin predicates**, **39 arithmetic operations**, and
 **two arithmetic constants**. The operations comprise 18 unary/binary operator
 forms and 22 named functions; `xor/2` appears in both groups and is counted once.
 Special forms are listed separately below.
@@ -309,7 +309,7 @@ Its arithmetic inputs MUST be bound, as with any other clause using arithmetic.
 
 ### 6.1. Herbrand semantics
 
-eyelang MUST use
+eyeon MUST use
 [Herbrand semantics](https://logical.stanford.edu/intrologic/chapters/chapter_07.html)
 for ordinary predicates, with the interpreted builtins specified in Section 5.
 Ground terms denote themselves:
@@ -454,7 +454,7 @@ a successful certificate can be extracted and checked as Prolog data.
 A version 1 certificate MUST contain only Prolog data records:
 
 ```prolog
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 claim(query(1), [mortal(socrates)]).
 clause(1, human(socrates), []).
 clause(2, mortal(var('Person')), [human(var('Person'))]).
@@ -464,7 +464,7 @@ step(human(socrates), fact(1), [], []).
 step(mortal(socrates), rule(2), ['='('Person', socrates)], [human(socrates)]).
 ```
 
-There MUST be exactly one `certificate(eyelang, 1)` header. Each
+There MUST be exactly one `certificate(eyeon, 1)` header. Each
 `claim(Request, Goals)` identifies a nonempty proper list of successful goals.
 `query(N)` refers to the Nth source query, counting explanation follow-ups;
 `check(N)` MAY identify the Nth source assertion in a manually supplied
@@ -566,10 +566,10 @@ programs SHOULD use independent expected values or mathematical identities.
 ## 10. Errors and command-line interface
 
 ```sh
-node eyelang.js examples/socrates.pl
-node eyelang.js - < examples/socrates.pl
-node eyelang.js --help
-node eyelang.js --version
+node eyeon.js examples/socrates.pl
+node eyeon.js - < examples/socrates.pl
+node eyeon.js --help
+node eyeon.js --version
 ```
 
 The CLI MUST accept exactly one program path or `-` for standard input. `-h`/`--help`
@@ -592,17 +592,17 @@ explicitly. The earlier English-like syntax is not supported.
 
 ## 11. Implementation and examples
 
-The [tutorial](https://eyereasoner.github.io/eyelang/TUTORIAL/)
+The [tutorial](https://eyereasoner.github.io/eyeon/TUTORIAL/)
 introduces facts, rules, queries, explanations, checks, recursion, arithmetic,
 aggregation, structured terms, and demand-driven tabling through runnable
 programs.
 
-The [homepage](https://eyereasoner.github.io/eyelang/) gives a brief introduction
+The [homepage](https://eyereasoner.github.io/eyeon/) gives a brief introduction
 and a command-line example. The
-[playground](https://eyereasoner.github.io/eyelang/playground/) lists all
+[playground](https://eyereasoner.github.io/eyeon/playground/) lists all
 executable `.pl` examples. Each example demonstrates answers, explanations,
 and assertions, with a complete transcript in
-[examples/output/](https://github.com/eyereasoner/eyelang/tree/main/examples/output).
+[examples/output/](https://github.com/eyereasoner/eyeon/tree/main/examples/output).
 They include Socrates, positive cycles, routes and minimum
 costs, Gregorian Easter dates, exact arithmetic, symbolic Peano arithmetic,
 bounded Collatz trajectories, peasant multiplication and exponentiation,
@@ -629,7 +629,7 @@ These examples demonstrate
 behavior, not general performance or correctness guarantees for arbitrary
 inputs.
 
-[src/language.js](https://github.com/eyereasoner/eyelang/blob/main/src/language.js)
+[src/language.js](https://github.com/eyereasoner/eyeon/blob/main/src/language.js)
 exports `parse`, `infer`, `render`, `say`, and `run` without Node-specific dependencies.
 `parse` returns facts, rules, questions, checks, source-order `clauses`, and
 declared `tables`; `infer` returns
@@ -640,7 +640,7 @@ formats a goal. Callers of `render` MUST obtain records with
 `run(source, options)` performs parsing, checked inference, and rendering.
 Both `render` and `run` accept `{ arc: true }` to group the blocks as Answer,
 Reason, and Check. Both the CLI and browser worker use this module. The
-[test/](https://github.com/eyereasoner/eyelang/tree/main/test) directory contains
+[test/](https://github.com/eyereasoner/eyeon/tree/main/test) directory contains
 conformance tests with a section coverage map, behavior regressions, and
 browser-interface tests.
 
@@ -667,7 +667,7 @@ previews are truncated.
 `npm run benchmark` reports parsing, checked inference, and full ARC rendering
 times separately. Rendering includes certificate generation and independent
 proof checking, with process peak memory from isolated runs. The
-[benchmark notes](https://github.com/eyereasoner/eyelang/tree/main/benchmarks)
+[benchmark notes](https://github.com/eyereasoner/eyeon/tree/main/benchmarks)
 describe the workloads and measurement limits.
 
 ## 12. Limits and resource considerations

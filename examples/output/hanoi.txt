@@ -3,7 +3,7 @@
 Moves = [move(left, right), move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)].
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [moves(3, left, right, center, [move(left, right), move(left, center), move(right, center), move(left, right), move(center, left), move(center, right), move(left, right)])]).
 

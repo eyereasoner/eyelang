@@ -51,7 +51,7 @@ test('parser lookahead spans grouped goals while preserving later clauses and di
   const result = run(source);
   assert.equal(result[0], 'X = 2.');
   assert.equal(result[1], 'N = 2.');
-  assert.match(result[2], /^certificate\(eyelang, 1\)/);
+  assert.match(result[2], /^certificate\(eyeon, 1\)/);
   assert.equal(result[3], 'check passed: value(2), value(3).');
   assert.throws(() => parse(`${source}\nbroken(\n`), /^Error: Line 11:/);
 });

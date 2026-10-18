@@ -7,7 +7,7 @@ Actuator = actuator1, Command = 39.27346198678276.
 Value = 45.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [control1(actuator2, 26.08)]).
 claim(query(1), [control1(actuator1, 39.27346198678276)]).

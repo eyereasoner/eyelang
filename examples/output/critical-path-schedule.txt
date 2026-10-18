@@ -21,7 +21,7 @@ Kind = critical_task, Value = architecture.
 Kind = critical_task, Value = requirements.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [critical_task(launch)]).
 claim(query(3), [earliest_start(integration, 15)]).

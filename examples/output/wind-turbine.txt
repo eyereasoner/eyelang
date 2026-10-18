@@ -11,7 +11,7 @@ Turbine = t456, Reason = age_based_maintenance.
 false.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [needs_maintenance(t456, problem_based_maintenance)]).
 claim(query(1), [needs_maintenance(t789, problem_based_maintenance)]).

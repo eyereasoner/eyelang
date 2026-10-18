@@ -3,7 +3,7 @@
 Name = example, Value = 12.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [result(example, 12)]).
 

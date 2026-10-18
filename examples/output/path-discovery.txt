@@ -5,7 +5,7 @@ From = 'Ostend-Bruges International Airport', To = 'Václav Havel Airport Prague
 From = 'Ostend-Bruges International Airport', To = 'Václav Havel Airport Prague', Stopovers = 2, Route = 'Ostend-Bruges International Airport -> Liège Airport -> Palma De Mallorca Airport -> Václav Havel Airport Prague'.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [airroute('Ostend-Bruges International Airport', 'Václav Havel Airport Prague', 2, 'Ostend-Bruges International Airport -> Liège Airport -> Heraklion International Nikos Kazantzakis Airport -> Václav Havel Airport Prague')]).
 claim(query(1), [airroute('Ostend-Bruges International Airport', 'Václav Havel Airport Prague', 2, 'Ostend-Bruges International Airport -> Liège Airport -> Diagoras Airport -> Václav Havel Airport Prague')]).

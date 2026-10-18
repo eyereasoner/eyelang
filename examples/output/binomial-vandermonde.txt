@@ -7,7 +7,7 @@ Kind = row_12_sum, Value = 4096.
 Kind = vandermonde_12_10_8, Value = 319770.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [vandermonde(12, 10, 8, 319770)]).
 

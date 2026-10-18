@@ -14,7 +14,7 @@ Record = temperature(room, 21), Receipt = accepted_record(temperature, [room, 21
 Record = location(sensor, north, 3), Receipt = accepted_record(location, [sensor, north, 3]).
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [rejected(unexpected(on), unexpected, 1)]).
 claim(query(2), [rejected(location(sensor, north), location, 2)]).

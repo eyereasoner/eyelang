@@ -1,6 +1,6 @@
-# Working on eyelang
+# Working on eyeon
 
-eyelang is a symbolic logic programming language. Describe its
+eyeon is a symbolic logic programming language. Describe its
 implemented syntax, semantics, and limits without making claims about the age,
 background, or ability of its users. Distinguish demonstrated behavior from
 design goals. Keep explanations concrete, error messages specific, and
@@ -10,7 +10,7 @@ user-facing text direct.
 
 - `src/language.js`: shared parser, inference engine, arithmetic, explanations,
   and checks. Both the CLI and browser worker use this implementation.
-- `eyelang.js`: command-line entry point.
+- `eyeon.js`: command-line entry point.
 - `playground.html`, `src/playground.js`, and `src/playground-worker.js`:
   browser interface and computation worker.
 - `src/playground-server.js`: local static server.
@@ -33,9 +33,9 @@ Node.js 18 or later is required. The project uses ES modules and has no package
 dependencies or build step for running programs.
 
 ```sh
-node eyelang.js examples/socrates.pl
-node eyelang.js - < examples/socrates.pl
-node eyelang.js --version
+node eyeon.js examples/socrates.pl
+node eyeon.js - < examples/socrates.pl
+node eyeon.js --version
 node src/playground-server.js
 node --test test/language.test.js
 npm run test:conformance
@@ -75,11 +75,11 @@ it with Jekyll into `_site/`. These generated directories are ignored.
 - Link reader-facing documentation to GitHub Pages; keep implementation and
   example source links pointed at repository files. Preserve the same top
   navigation on the homepage, specification, tutorial, and playground:
-  eyelang, Repository, Playground, Tutorial, Specification.
+  eyeon, Repository, Playground, Tutorial, Specification.
   Website navigation belongs in `scripts/pages-layout.html`, outside the
   specification and tutorial content. The README's marked navigation block
   is for GitHub and is omitted when staging Pages.
-- Use the project name `eyelang`. Omit obsolete slogans and public provenance
+- Use the project name `eyeon`. Omit obsolete slogans and public provenance
   notes about sibling projects. Do not restore `DESIGN.md`; keep language design
   and semantics in `SPEC.md`.
 
@@ -102,7 +102,7 @@ Keep independent correctness and supporting-evidence checks alongside goldens.
 For playground changes, check the actual browser as well as automated tests.
 Preserve worker cancellation, usable error reporting, and complete output when
 copying or saving a truncated preview. For website changes, verify paths under
-`/eyelang/`, including `/playground/` and `/SPEC/`.
+`/eyeon/`, including `/playground/` and `/SPEC/`.
 
 Large taxonomies contain many rules, and Fibonacci 10000 and Ackermann can
 produce very large answers and explanations. Inspect focused sections and

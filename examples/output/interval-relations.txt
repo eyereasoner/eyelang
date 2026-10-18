@@ -102,7 +102,7 @@ I = j, Relation = equals, J = j.
 I = h, Relation = finished_by, J = j.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [relation(a, overlaps, d)]).
 

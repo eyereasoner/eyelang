@@ -11,10 +11,10 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const read = (directory, file) => readFile(join(directory, file), 'utf8');
 
 async function fixture(t) {
-  const directory = await mkdtemp(join(tmpdir(), 'eyelang-version-'));
+  const directory = await mkdtemp(join(tmpdir(), 'eyeon-version-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   for (const folder of ['src', 'scripts']) await mkdir(join(directory, folder));
-  for (const file of ['package.json', 'eyelang.js', 'src/language.js', 'scripts/sync-version.js', 'SPEC.md', 'playground.html']) {
+  for (const file of ['package.json', 'eyeon.js', 'src/language.js', 'scripts/sync-version.js', 'SPEC.md', 'playground.html']) {
     await cp(join(root, file), join(directory, file));
   }
   return directory;
@@ -25,16 +25,16 @@ async function assertVersions(directory) {
   assert.ok((await read(directory, 'SPEC.md')).includes(`Language version: ${version}\n`));
   assert.ok((await read(directory, 'playground.html')).includes(`<span id="version">v${version}</span>`));
   for (const flag of ['-v', '--version']) {
-    const result = spawnSync(process.execPath, [join(directory, 'eyelang.js'), flag], { cwd: tmpdir(), encoding: 'utf8' });
+    const result = spawnSync(process.execPath, [join(directory, 'eyeon.js'), flag], { cwd: tmpdir(), encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr || result.error?.message);
-    assert.equal(result.stdout, `eyelang ${version}\n`);
+    assert.equal(result.stdout, `eyeon ${version}\n`);
     assert.equal(result.stderr, '');
   }
 }
 
 test('the CLI, specification, and playground show the package version', async () => {
   await assertVersions(root);
-  const help = spawnSync(process.execPath, [join(root, 'eyelang.js'), '--help'], { encoding: 'utf8' });
+  const help = spawnSync(process.execPath, [join(root, 'eyeon.js'), '--help'], { encoding: 'utf8' });
   assert.equal(help.status, 0);
   assert.match(help.stdout, /-v, --version/);
 });

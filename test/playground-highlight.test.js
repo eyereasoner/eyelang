@@ -69,7 +69,7 @@ test('large programs can color a small tail window without rendering their prefi
 });
 
 test('ARC coloring distinguishes headings, certificates, reports, and assertion labels', () => {
-  const source = "% Reason\ncertificate(eyelang, 1).\n% step 1\nstep(mortal(socrates), rule(2), ['='('Person', socrates)], [human(socrates)]).\n% Check\ncheck passed: mortal(socrates).\nverdict(checked).";
+  const source = "% Reason\ncertificate(eyeon, 1).\n% step 1\nstep(mortal(socrates), rule(2), ['='('Person', socrates)], [human(socrates)]).\n% Check\ncheck passed: mortal(socrates).\nverdict(checked).";
   const html = highlight(source, { arc: true });
   assert.equal(plain(html), source);
   assert.ok(html.includes('<span class="syntax-section">% Reason</span>'));

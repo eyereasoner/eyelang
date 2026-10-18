@@ -6,7 +6,7 @@ Kind = total_weight, Value = 15.
 Kind = total_value, Value = 40.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [best_pack([atlas, battery, camera, medkit, sensor], 15, 40)]).
 

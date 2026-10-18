@@ -4,7 +4,7 @@ Who = cara.
 Who = ben.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [reaches(ben, ada)]).
 

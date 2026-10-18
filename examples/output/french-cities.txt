@@ -15,7 +15,7 @@ true.
 false.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [reaches(paris, nantes)]).
 claim(query(4), [reaches(paris, tours)]).

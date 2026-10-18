@@ -69,7 +69,7 @@ Who = [delfour, 'high-sugar'].
 true.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(3), ['derived-need'([delfour, 'sugar-insight'], 'low-sugar')]).
 

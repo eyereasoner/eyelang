@@ -17,7 +17,7 @@ Permutation = c123, Member = t13.
 Permutation = c132, Member = t23.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [left_coset(c123, c123)]).
 claim(query(2), [left_coset(c123, t13)]).

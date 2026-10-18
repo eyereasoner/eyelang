@@ -12,7 +12,7 @@ Name = apply_id, Reason = "the identity function's parameter type is unified wit
 Name = compose, Reason = "application unifies f with t1 -> t2 and g with t0 -> t1".
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [type_answer(compose, fun(fun(t1, t2), fun(fun(t0, t1), fun(t0, t2))))]).
 

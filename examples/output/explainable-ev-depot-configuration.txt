@@ -16,7 +16,7 @@ Site = depot_a, Product = legacy22, Change = choose_connector(ccs2).
 Site = depot_a, Product = rapid50, ExtraKw = 20.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [recommendation(depot_a, fleet22)]).
 claim(query(5), [power_upgrade(depot_a, rapid50, 20)]).

@@ -36,7 +36,7 @@ Ratio = 1.324717957244746.
 Ratio = 1.3247179572447458.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(5), [padovan(5, 2)]).
 

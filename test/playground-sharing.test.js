@@ -28,14 +28,14 @@ async function playground({ hash = '', draft, fetch: fetchOverride, token = null
     return elements.get(id);
   };
   element('example-select').options = [{ value: '' }, ...exampleNames.map(value => ({ value }))];
-  const storage = new Map(draft ? [['eyelang.playground.draft.v2', JSON.stringify(draft)]] : []);
+  const storage = new Map(draft ? [['eyeon.playground.draft.v2', JSON.stringify(draft)]] : []);
   const copied = [];
   const opened = [];
   const prompts = [];
   const requests = [];
   const runs = [];
   const workers = [];
-  const location = new URL(`https://example.org/eyelang/playground/${hash}`);
+  const location = new URL(`https://example.org/eyeon/playground/${hash}`);
   const context = {
     document: { getElementById: element, documentElement: { dataset: {} } },
     location, URL, URLSearchParams, AbortController, highlight,
@@ -136,7 +136,7 @@ test('tutorial links prefill every lesson and run its exact program', async () =
   assert.ok(links.length > 0);
   for (const [index, link] of links.entries()) {
     assert.equal(link.origin, 'https://eyereasoner.github.io');
-    assert.equal(link.pathname, '/eyelang/playground/');
+    assert.equal(link.pathname, '/eyeon/playground/');
     assert.equal(decodeURIComponent(link.hash.slice(9)), sources[index]);
     const app = await playground({ hash: link.hash, draft: { source: 'old draft' } });
     assert.equal(program(app), sources[index], `lesson ${index+1}`);
@@ -152,7 +152,7 @@ test('bundled examples use short references, including the largest taxonomy', as
   assert.ok(program(app).length > 1000000);
   assert.equal(app.runs.length, 0, 'shared examples wait for Run');
   await app.dispatch('share');
-  assert.equal(shared(app), 'https://example.org/eyelang/playground/#example=deep-taxonomy-10000');
+  assert.equal(shared(app), 'https://example.org/eyeon/playground/#example=deep-taxonomy-10000');
   assert.equal(app.prompts.length, 0);
   assert.equal(app.copied.at(-1), shared(app));
 });
@@ -176,7 +176,7 @@ test('edits share their actual text; undo and reset restore short example links'
 
 test('restored pristine drafts retain references; edited and legacy drafts embed text', async () => {
   const original = await playground({ hash: '#example=socrates' });
-  const draft = JSON.parse(original.storage.get('eyelang.playground.draft.v2'));
+  const draft = JSON.parse(original.storage.get('eyeon.playground.draft.v2'));
   const pristine = await playground({ draft });
   await pristine.dispatch('share');
   assert.ok(shared(pristine).endsWith('#example=socrates'));
@@ -202,7 +202,7 @@ test('URL references load without running and stop being references after editin
   assert.equal(program(app), sample);
   assert.equal(app.runs.length, 0);
   await app.dispatch('share');
-  assert.equal(shared(app), 'https://example.org/eyelang/playground/#url=' + encodeURIComponent(url));
+  assert.equal(shared(app), 'https://example.org/eyeon/playground/#url=' + encodeURIComponent(url));
   await app.edit(sample + '\n% edited');
   await app.dispatch('share');
   assert.ok(shared(app).includes('#program='));

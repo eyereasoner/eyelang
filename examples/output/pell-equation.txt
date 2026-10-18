@@ -7,7 +7,7 @@ Kind = solution_50, Value = solution(94741125149636933417873079920900017937, 669
 Kind = y_sum_1_to_8, Value = 568344.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [pell(8, 665857, 470832)]).
 

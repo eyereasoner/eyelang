@@ -18,7 +18,7 @@ What = 0.0004563070764101409.
 What = 0.029130643758023392.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(6), [posterior(['bacterial-pneumonia', case], 0.029130643758023392)]).
 

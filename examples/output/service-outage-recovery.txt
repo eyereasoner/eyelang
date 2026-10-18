@@ -33,7 +33,7 @@ Node = web_store.
 Node = mobile_app.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(3), [best_repair([catalog_replica, bank_backup], 3)]).
 

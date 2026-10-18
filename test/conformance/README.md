@@ -3,7 +3,7 @@
 Run `npm run test:conformance`, or `npm test` for all tests. The conformance
 suite uses Node.js with no dependencies or network services. Requirements and
 expected results come from the current
-[specification](https://eyereasoner.github.io/eyelang/SPEC/).
+[specification](https://eyereasoner.github.io/eyeon/SPEC/).
 
 | Specification requirements | Coverage |
 | --- | --- |

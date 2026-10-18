@@ -29,7 +29,7 @@ Program = countdown, Warning = possible_division_by_zero(divide).
 Program = guarded, Point = divide.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [abs_warning(countdown, possible_division_by_zero(divide))]).
 claim(query(4), [nonzero_divisor(guarded, divide)]).

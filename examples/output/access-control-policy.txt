@@ -8,7 +8,7 @@ Test = allOfTest.
 Test = noneOfTest.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [accepted('PolicyX')]).
 

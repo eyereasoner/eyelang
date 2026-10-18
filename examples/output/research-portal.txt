@@ -50,7 +50,7 @@ Item = [session, r8], Difference = [from, ['await-device-consent', research], to
 What = [[permit, research], [policy, "GDPR Art. 88a(3)(c)"]].
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(6), [assessment(['omnibus-proposal', r1], [[permit, research], [policy, "GDPR Art. 88a(3)(c)"]])]).
 

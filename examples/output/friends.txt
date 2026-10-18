@@ -9,7 +9,7 @@ Who = milo.
 What = luna.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(4), [is_a(milo, friend)]).
 

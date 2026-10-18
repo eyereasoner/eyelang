@@ -5,11 +5,11 @@ import { run } from './src/language.js';
 const args = process.argv.slice(2);
 if (args.length === 1 && ['-v', '--version'].includes(args[0])) {
   const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
-  console.log(`eyelang ${version}`);
+  console.log(`eyeon ${version}`);
 } else if (args.includes('--help') || args.includes('-h')) {
-  console.log('eyelang — a symbolic logic programming language\n\nRun a program: node eyelang.js examples/socrates.pl\nRead a program from input: node eyelang.js -\nShow the version: node eyelang.js -v, --version');
+  console.log('eyeon — a symbolic logic programming language\n\nRun a program: node eyeon.js examples/socrates.pl\nRead a program from input: node eyeon.js -\nShow the version: node eyeon.js -v, --version');
 } else if (args.length !== 1) {
-  console.error('Give me one program to read. Try: node eyelang.js examples/socrates.pl');
+  console.error('Give me one program to read. Try: node eyeon.js examples/socrates.pl');
   process.exitCode = 1;
 } else {
   try {

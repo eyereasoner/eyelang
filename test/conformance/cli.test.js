@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const cli = fileURLToPath(new URL('../../eyelang.js', import.meta.url));
+const cli = fileURLToPath(new URL('../../eyeon.js', import.meta.url));
 const { version } = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
 // SPEC §2 (whole-program parsing), §9 (checks), and §10 (CLI and transcripts).
@@ -20,8 +20,8 @@ for (const flag of ['-h','--help','-v','--version']) {
   test(`CLI ${flag} succeeds`, () => {
     const result=invoke([flag]);
     assert.equal(result.status,0);
-    if (['-v', '--version'].includes(flag)) assert.equal(result.stdout, `eyelang ${version}\n`);
-    else assert.match(result.stdout, /node eyelang\.js examples\/socrates\.pl/);
+    if (['-v', '--version'].includes(flag)) assert.equal(result.stdout, `eyeon ${version}\n`);
+    else assert.match(result.stdout, /node eyeon\.js examples\/socrates\.pl/);
     assert.equal(result.stderr,'');
   });
 }
@@ -30,7 +30,7 @@ for (const args of [[],['one.pl','two.pl']]) {
 }
 
 test('CLI reads UTF-8 .pl files and stdin identically, with standard ARC comments',t=>{
-  const directory=mkdtempSync(join(tmpdir(),'eyelang-prolog-'));
+  const directory=mkdtempSync(join(tmpdir(),'eyeon-prolog-'));
   t.after(()=>rmSync(directory,{recursive:true,force:true}));
   const path=join(directory,'café.pl');
   const source="person('élodie'). ?- person(X). ?- why. :- assertion(person('élodie')).";

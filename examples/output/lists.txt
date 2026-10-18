@@ -9,7 +9,7 @@ Squared = [1, 4, 9, 16].
 Total = 10.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [append([a, b], [c, d], [a, b, c, d])]).
 claim(query(3), [squares([1, 2, 3, 4], [1, 4, 9, 16])]).

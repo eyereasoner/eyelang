@@ -9,7 +9,7 @@ N = 2, Amount = 85.
 N = 3, Amount = 65.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [balance(3, 65)]).
 claim(query(3), [between(0, 3, 0), balance(0, 100)]).

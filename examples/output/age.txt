@@ -6,7 +6,7 @@ Who = 'pat-h'.
 true.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [is_a(test, 'passed-check')]).
 

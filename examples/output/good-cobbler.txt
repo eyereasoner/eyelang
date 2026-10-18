@@ -8,7 +8,7 @@ Person = joe, Trade = cobbler.
 Person = jane, Trade = carpenter.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(1), [good_at(joe, cobbler)]).
 claim(query(1), [good_at(jane, carpenter)]).

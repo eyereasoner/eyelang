@@ -37,7 +37,7 @@ User = alice, Trace = '4bf92f3577b34da6a3ce929d0e0e4736', Ip = '203.0.113.9'.
 Log = noise.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(3), [trace_alert(alice, '4bf92f3577b34da6a3ce929d0e0e4736', '203.0.113.9')]).
 

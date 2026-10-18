@@ -38,7 +38,7 @@ What = direct.
 What = "Gent → Brugge → Oostende".
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(12), [outcome(trip, "Gent → Brugge → Oostende")]).
 

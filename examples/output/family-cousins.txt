@@ -20,7 +20,7 @@ N = 3.
 Branch = c.
 
 % Reason
-certificate(eyelang, 1).
+certificate(eyeon, 1).
 
 claim(query(2), [cousin(heidi, judy)]).
 
