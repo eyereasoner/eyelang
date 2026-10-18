@@ -374,6 +374,10 @@ nonzero status. It prepares the full transcript before printing, so this failed
 run does not print a partial successful answer. Change the expected fee to 5
 and the check passes.
 
+In the playground, the error appears in the output and its source line is
+selected in red. Editing, resetting, or rerunning the program clears the red
+selection. System selection colors apply in forced-colors mode.
+
 An assertion with variables checks that at least one matching solution exists.
 To verify that you have every expected answer, check individual results and an
 aggregate count, as in the route program. Checks use the same inference engine;

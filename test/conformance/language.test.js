@@ -1,7 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { run } from '../../src/language.js';
+import { readFileSync } from 'node:fs';
+import { parse, run } from '../../src/language.js';
 import { assertAnswers } from './helpers.js';
+
+test('§5: every builtin listed in the specification rejects source redefinitions', () => {
+  const spec = readFileSync(new URL('../../SPEC.md', import.meta.url), 'utf8');
+  const table = spec.split('### 5.1. Builtin predicates and special forms')[1]
+    .split('For the two text conversions')[0];
+  const indicators = table.split('\n').filter(line => line.startsWith('| `'))
+    .flatMap(line => [...line.split('|')[1].matchAll(/`([^`]+\/[0-9]+)`/g)].map(match => match[1]));
+  const count = Number(/\*\*([0-9]+) builtin predicates\*\*/.exec(spec)[1]);
+  assert.equal(new Set(indicators).size, count);
+  for (const indicator of indicators) {
+    const slash = indicator.lastIndexOf('/');
+    const name = indicator.slice(0, slash).replaceAll('\\', '\\\\').replaceAll("'", "''");
+    const arity = Number(indicator.slice(slash + 1));
+    const head = `'${name}'${arity ? '(' + Array(arity).fill('a').join(', ') + ')' : ''}`;
+    assert.throws(() => parse(`${head}.`), /A fact must name an ordinary predicate/, indicator);
+    assert.throws(() => parse(`${head} :- true.`), /A rule head must name an ordinary predicate/, indicator);
+  }
+});
 
 test('§2: queries and checks use the complete program while query blocks retain source order', () => {
   assertAnswers(run(`

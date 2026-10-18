@@ -128,6 +128,9 @@ then run the command for the requested version bump:
 The script switches to `main`, pulls with `--ff-only`, bumps the version, stages
 all changes, commits, creates an annotated tag, and pushes the branch and tag.
 Review the working tree first because it stages every changed file. A push to
-`main` deploys GitHub Pages; a `v*` tag runs tests and creates the GitHub
-release using the tag message. Verify the workflows and published version
-after release.
+`main` deploys GitHub Pages; a `v*` tag runs tests, creates the GitHub release
+using the tag message, and publishes to npm. Zenodo archives published releases
+through its native GitHub integration, using `.zenodo.json` for metadata.
+Preserve the active Zenodo release webhook and avoid a parallel API uploader.
+Verify the workflows and published versions on npm, Zenodo, and Pages after
+release.

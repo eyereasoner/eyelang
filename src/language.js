@@ -13,7 +13,7 @@ const internal = (name, terms) => ({ relation: `internal:${name}/${terms.length}
 const builtin = (name, terms = []) => ({ relation: `builtin:${name}`, terms });
 const tests = new Set(['is', '=', '=..', '\\=', '<', '=<', '>', '>=', '=:=', '=\\=', '@<', '@=<', '@>', '@>=']);
 const textConversions = new Map([['atom_codes', 'atom'], ['string_codes', 'text']]);
-const primitives = new Set(['true/0', 'false/0', 'contains_text/2',
+const primitives = new Set(['true/0', 'false/0', 'contains_text/2', 'aggregate_all/3',
   ...[...tests, ...textConversions.keys()].map(name => `${name}/2`)]);
 const predicate = (name, terms = []) => primitives.has(`${name}/${terms.length}`)
   ? builtin(name, terms) : { relation: relation(name, terms.length), terms };

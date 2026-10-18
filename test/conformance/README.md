@@ -13,7 +13,7 @@ expected results come from the current
 | §3–4: compounds, lists, occurs check, unit clauses, ground outputs, explicit arithmetic, binding order | `terms.test.js`, `language.test.js` |
 | §3, §5: exact integers, finite reals, distinct numeric types, precedence, arithmetic functions, builtins, and errors | `arithmetic.test.js` |
 | §3, §5–6, §8–9: Unicode text conversion, term decomposition and construction, list cells, binding modes, errors, negation, proofs, and checks | `conversions.test.js` |
-| §5: ordinary predicate definitions, recursive integer ranges, and excluded identity operators | `terms.test.js`, `arithmetic.test.js` |
+| §5: reserved builtin indicators, ordinary predicate definitions, recursive integer ranges, and excluded identity operators | `language.test.js`, `terms.test.js`, `arithmetic.test.js` |
 | §6: set semantics, fixed points, clause order, table declarations, variant calls, recursion, run isolation | `inference.test.js`, `terms.test.js` |
 | §6: completed negation, stratification, arity and constant dependencies, bound negative tests | `negation.test.js`, `aggregation.test.js` |
 | §7: distinct completed producer tuples, empty aggregates, exact sums, extrema, outer bindings, local variables | `aggregation.test.js` |
@@ -41,8 +41,14 @@ goldens; review the diff before accepting changes. Ordinary tests never
 rewrite them.
 
 Playground serving and sharing, Pages paths, and version synchronization have
-separate integration tests in `test/`. Worker cancellation and copying/saving
-complete output from a truncated preview (§6, §12) also require an
+separate integration tests in `test/`. `test/documentation.test.js` executes
+the README example and every tutorial program against their stated results,
+including the intentional assertion failure, and checks the certificate
+displays and runnable range example in the specification. Playground error
+line selection and clearing after edits, reset, and rerun are covered by
+`test/playground-sharing.test.js`. Worker cancellation, error selection colors
+in light, dark, and forced-colors modes, and copying/saving complete output
+from a truncated preview (§6, §12) also require an
 actual-browser check when changing the playground.
 
 These finite tests check the stated cases; they do not establish completeness

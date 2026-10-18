@@ -4,7 +4,7 @@
 Document: eyeon-spec-0001
 Category: Language Specification
 Language version: 0.0.3
-Date: 2026-10-17
+Date: 2026-10-18
 ```
 
 ## Table of contents
@@ -663,6 +663,12 @@ The CLI and playground use the same ARC output without separate proof modes.
 Generation and checking in the playground MUST run in the cancellable worker.
 Copy/save MUST retain complete certificates and reports even when their
 previews are truncated.
+
+When an error identifies a valid source line, the playground MUST select that
+line in the editor. The error selection MUST be red in light and dark themes,
+and MUST clear when the program is edited, replaced, reset, or run again.
+Forced-colors mode MUST retain the system selection colors. Errors without a
+valid source line MUST still appear in the output without selecting a line.
 
 `npm run benchmark` reports parsing, checked inference, and full ARC rendering
 times separately. Rendering includes certificate generation and independent
