@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { access, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { access, lstat, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,19 +12,13 @@ test('the npm package preserves its publisher identity and installs a working CL
   const directory = await mkdtemp(join(tmpdir(), 'eyelang-package-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const env = { ...process.env, npm_config_cache: join(directory, 'cache') };
-  const npm = (args, cwd) => {
-    const result = spawnSync('npm', args, { cwd, env, encoding: 'utf8' });
-    assert.ifError(result.error);
-    assert.equal(result.status, 0, result.stderr || result.error?.message);
-    return result;
-  };
-
-  npm(['pack', '--ignore-scripts', '--pack-destination', directory], root);
-  const tarballs = (await readdir(directory)).filter(file => file.endsWith('.tgz'));
-  assert.equal(tarballs.length, 1);
-  const [filename] = tarballs;
-  npm(['install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', join(directory, filename)], directory);
+  const install = spawnSync('npm', [
+    'install', '--install-links', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--no-package-lock', root,
+  ], { cwd: directory, env, encoding: 'utf8' });
+  assert.ifError(install.error);
+  assert.equal(install.status, 0, install.stderr || install.error?.message);
   const installed = join(directory, 'node_modules', 'eyelang');
+  assert.equal((await lstat(installed)).isSymbolicLink(), false);
   const pkg = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'));
   assert.deepEqual(pkg.repository, {
     type: 'git',

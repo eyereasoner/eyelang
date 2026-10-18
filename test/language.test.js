@@ -88,6 +88,30 @@ test('queries see later clauses, while table declarations apply to the complete 
   assert.equal(say(infer(parse("p('red-fox', point(1, 2), [a,b])."))[0].goal), "p('red-fox', point(1, 2), [a, b])");
 });
 
+test('indexed subscriptions retain every matching answer when bound arguments share different buckets', () => {
+  const rows = Array.from({ length: 24 }, (_, index) => [index < 12 ? 'a' : 'b', index % 4, index]);
+  const inputs = [['a', 0], ['a', 1], ['a', 2], ['b', 0], ['b', 2], ['b', 3]];
+  for (const [args, format] of [
+    ['G,N,V', ([g,n,v]) => `${g},${n},${v}`],
+    ['V,G,N', ([g,n,v]) => `${v},${g},${n}`],
+    ['N,V,G', ([g,n,v]) => `${n},${v},${g}`],
+  ]) {
+    const source = `
+      ${rows.map(row => `row(${format(row)}).`).join('\n')}
+      ${inputs.map(([g,n]) => `input(${g},${n}).`).join('\n')}
+      :- table copied/3.
+      copied(${args}) :- row(${args}).
+      result(G,N,V) :- input(G,N), copied(${args}).
+      ?- result(G,N,V). ?- why.
+    `;
+    const actual = run(source);
+    const expected = rows.filter(([g,n]) => inputs.some(([wanted,number]) => g === wanted && n === number))
+      .map(([g,n,v]) => `G = ${g}, N = ${n}, V = ${v}.`).sort();
+    assert.deepEqual(actual[0].split('\n').sort(), expected);
+    assert.match(actual.at(-1), /verdict\(checked\)/);
+  }
+});
+
 test('arithmetic in ordinary arguments remains a compound term', () => {
   assert.deepEqual(run('stored(1+2). ?- stored(X). ?- stored(3). ?- X is 1+2, stored(X).'), ['X = (1 + 2).', 'false.', 'false.']);
 });

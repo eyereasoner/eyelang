@@ -808,12 +808,18 @@ export function infer(program, { validateChecks = false } = {}) {
     let values; let id;
     if (isGround) { values = entry.exact; id = key(goal); }
     else {
-      const position = goal.terms.findIndex(ground);
-      if (position === -1) {
+      let size = Infinity;
+      for (let position = 0; position < goal.terms.length; position++) {
+        if (!ground(goal.terms[position])) continue;
+        const candidates = entry.positions[position];
+        const candidateKey = termKey(goal.terms[position]);
+        const count = candidates.get(candidateKey)?.length ?? 0;
+        if (count < size) { values = candidates; id = candidateKey; size = count; }
+      }
+      if (!values) {
         if (subscription) entry.all.push(subscription);
         return entry.all;
       }
-      values = entry.positions[position]; id = termKey(goal.terms[position]);
     }
     let records = values.get(id);
     if (subscription) {
