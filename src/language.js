@@ -13,6 +13,10 @@ const internal = (name, terms) => ({ relation: `internal:${name}/${terms.length}
 const builtin = (name, terms = []) => ({ relation: `builtin:${name}`, terms });
 const tests = new Set(['is', '=', '=..', '\\=', '<', '=<', '>', '>=', '=:=', '=\\=', '@<', '@=<', '@>', '@>=']);
 const textConversions = new Map([['atom_codes', 'atom'], ['string_codes', 'text']]);
+const primitives = new Set(['true/0', 'false/0', 'contains_text/2',
+  ...[...tests, ...textConversions.keys()].map(name => `${name}/2`)]);
+const predicate = (name, terms = []) => primitives.has(`${name}/${terms.length}`)
+  ? builtin(name, terms) : { relation: relation(name, terms.length), terms };
 const binary = new Map([
   ['\\/', [1, 'left']], ['xor', [1, 'left']], ['/\\', [1, 'left']],
   ['<<', [1, 'left']], ['>>', [1, 'left']], ['+', [2, 'left']], ['-', [2, 'left']],
@@ -115,12 +119,6 @@ export function parse(source) {
   let anonymous = 0;
   let generated = 0;
   const program = { facts: [], rules: [], questions: [], checks: [], clauses: [], tables: [] };
-  const predicates = new Map();
-  function ordinary(name, terms = []) {
-    const id = relation(name, terms.length);
-    if (!predicates.has(id)) predicates.set(id, id);
-    return { relation: predicates.get(id), terms };
-  }
   const tabled = new Set();
   const peek = value => tokenAt(position).value === value && tokenAt(position).type !== 'string';
   const fail = message => { throw new Error(`Line ${tokenAt(position).line}: ${message}`); };
@@ -178,12 +176,9 @@ export function parse(source) {
     return left;
   }
   const asGoal = value => {
-    if (value.atom !== undefined) return ['true', 'false'].includes(value.atom) ? builtin(value.atom) : ordinary(value.atom);
+    if (value.atom !== undefined) return predicate(value.atom);
     if (!value.functor) fail('A goal must be an atom or a predicate with arguments.');
-    const { functor: name, args } = value;
-    if ((name === 'contains_text' || textConversions.has(name)) && args.length === 2) return builtin(name, args);
-    if (tests.has(name) && args.length === 2) return builtin(name, args);
-    return ordinary(name, args);
+    return predicate(value.functor, value.args);
   };
   function oneGoal() {
     if (take('\\+')) {
@@ -892,20 +887,9 @@ export function infer(program, { validateChecks = false } = {}) {
     const { operation, value } = premise.aggregate;
     const records = lookup(known, sourceGoal)
       .filter(record => match(sourceGoal, record.goal));
-    let result;
-    if (operation === 'count') result = BigInt(records.length).toString();
-    else {
-      if (!records.length && operation !== 'sum') return;
-      const values = records.map(record => {
-        const bindings = match(premise.aggregate.sourceGoal, record.goal);
-        return evaluate(value, bindings);
-      });
-      if (operation === 'sum') result = values.reduce((total, number) => evaluate({ functor: '+', args: [total, number] }, new Map()), '0');
-      else result = values.reduce((best, number) => {
-        const a = numberValue(best); const b = numberValue(number);
-        return operation === 'min' ? a <= b ? best : number : a >= b ? best : number;
-      });
-    }
+    const result = operation === 'count' ? String(records.length) : aggregateValue(operation,
+      records.map(record => evaluate(value, match(premise.aggregate.sourceGoal, record.goal))));
+    if (result === null) return;
     const bindings = new Map(partial.bindings);
     if (!unify(premise.terms[0], result, bindings)) return;
     const evidence = { goal: { ...premise, terms: [result] }, rule: null,
@@ -1007,8 +991,6 @@ const is = (term, name, arity) => term?.functor === name && term.args.length ===
 const items = term => term?.list && term.tail === undefined ? term.list : null;
 const integer = term => typeof term === 'string' && /^[1-9][0-9]*$/.test(term) && Number.isSafeInteger(Number(term));
 const withTerm = (record, term) => term ? Object.defineProperty(record, 'term', { value: term }) : record;
-const primitives = new Set(['true/0', 'false/0', 'contains_text/2',
-  ...[...tests, ...textConversions.keys()].map(name => `${name}/2`)]);
 
 function goalTerm(goal, bindings = new Map()) {
   let term;
@@ -1043,8 +1025,7 @@ function readGoal(term) {
   }
   const name = term?.atom ?? term?.functor;
   if (name === undefined) throw new Error('A proof goal must name a predicate or builtin.');
-  const terms = term.args ?? [];
-  return { relation: primitives.has(`${name}/${terms.length}`) ? `builtin:${name}` : `predicate:${name}/${terms.length}`, terms };
+  return predicate(name, term.args ?? []);
 }
 
 function rename(term, names, prefix) {
@@ -1179,10 +1160,10 @@ export function checkProof(source, document, { allowTrusted = true } = {}) {
       } else if (is(term, 'step', 4)) {
         const [goal, by, bindings, uses] = term.args;
         if (!items(bindings) || !items(uses)) { fail('C3', 'Step bindings and uses must be proper lists.', goal); continue; }
-        readGoal(goal);
+        const decoded = readGoal(goal);
         const id = canonical(goal);
         if (steps.has(id)) { fail('C3', 'Duplicate justification for a goal.', goal); continue; }
-        steps.set(id, { goal, by, bindings: bindings.list, uses: uses.list });
+        steps.set(id, { goal, decoded, by, bindings: bindings.list, uses: uses.list });
       } else fail('C3', 'Unknown certificate record.', term);
     }
   } catch (error) { fail('C3', error.message); }
@@ -1199,10 +1180,7 @@ export function checkProof(source, document, { allowTrusted = true } = {}) {
   const collections = [];
   const absences = [];
   for (const step of steps.values()) {
-    const { goal, by, bindings, uses } = step;
-    let decoded;
-    try { decoded = readGoal(goal); }
-    catch (error) { fail('C3', error.message, goal); continue; }
+    const { goal, decoded, by, bindings, uses } = step;
     for (const use of stepUses(step)) cover(use, goal);
     if (is(by, 'rule', 1) || is(by, 'fact', 1)) {
       const number = by.args[0];
@@ -1326,11 +1304,15 @@ function collectionValues(goal, members) {
   return tuples;
 }
 
+// Share arithmetic, while inference and the checker collect their own inputs.
 function aggregateValue(operation, values) {
   if (operation === 'count') return String(values.length);
   if (operation === 'sum') return values.reduce((total, value) => evaluate(compound('+', [total, value]), new Map()), '0');
   if (!values.length) return null;
-  return values.reduce((best, value) => evaluate(compound(operation, [best, value]), new Map()));
+  return values.reduce((best, value) => {
+    const a = numberValue(best); const b = numberValue(value);
+    return (operation === 'min' ? a <= b : a >= b) ? best : value;
+  });
 }
 
 function evidenceIndex(program, steps) {
@@ -1342,8 +1324,7 @@ function evidenceIndex(program, steps) {
   };
   for (const clause of program.clauses) if (!clause.premises.length) add(goalTerm(clause.conclusion));
   for (const step of steps.values()) {
-    const goal = readGoal(step.goal);
-    if (!goal.negated && !goal.relation.startsWith('builtin:') && ground(step.goal)) add(step.goal);
+    if (!step.decoded.negated && !step.decoded.relation.startsWith('builtin:') && ground(step.goal)) add(step.goal);
   }
   return { goals: evidence, serial: 0 };
 }

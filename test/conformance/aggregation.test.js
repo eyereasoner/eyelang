@@ -27,6 +27,21 @@ test('§7: empty extrema fail and real extrema retain the selected term type', (
   `), ['false.', 'N = 0.5.', 'N = 9007199254740993.', 'false.']);
 });
 
+test('numeric extrema preserve exact comparisons and the selected integer or real term', () => {
+  assertAnswers(run(`
+    integer_first(a,1). integer_first(b,1.0).
+    real_first(a,1.0). real_first(b,1).
+    large(a,9007199254740993). large(b,9007199254740992.0).
+    ?- aggregate_all(min(V), integer_first(K,V), N).
+    ?- aggregate_all(max(V), integer_first(K,V), N).
+    ?- aggregate_all(min(V), real_first(K,V), N).
+    ?- aggregate_all(max(V), real_first(K,V), N).
+    ?- aggregate_all(min(V), large(K,V), N).
+    ?- aggregate_all(max(V), large(K,V), N).
+  `), ['N = 1.', 'N = 1.', 'N = 1.0.', 'N = 1.0.',
+    'N = 9007199254740992.0.', 'N = 9007199254740993.']);
+});
+
 test('§7: producer variables are local while earlier bindings constrain each aggregate', () => {
   assertAnswers(run(`
     score(ada,7). score(ada,3). score(ben,10).

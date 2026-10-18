@@ -95,6 +95,15 @@ test('builtins are recomputed without consulting source definitions', () => {
   assert.equal(prove('?- atom_codes(A, [233, 128512]), string_codes(S, [97]).', { allowTrusted: false }).report.valid, true);
 });
 
+test('builtin names at other arities remain source predicates in programs and certificates', () => {
+  const program = `
+    true(a). false(b). is(c). atom_codes(d). string_codes(e). contains_text(f). '='(g). '=..'(h).
+    ?- true, \\+ false, true(a), false(b), is(c), atom_codes(d), string_codes(e), contains_text(f), '='(g), '=..'(h).
+  `;
+  assert.deepEqual(run(program), ['true.']);
+  assert.equal(prove(program, { allowTrusted: false }).report.valid, true);
+});
+
 test('certificate notation preserves negative operands, types and exact large integers', () => {
   for (const program of [
     'p(-3.0). q(S) :- p(X), S is X ** 2. ?- q(S).',
@@ -142,6 +151,16 @@ test('aggregates recompute recorded tuples while exposing completeness obligatio
   invalid(program, proof.replace('[[score(a, 2)], [score(b, 2)], [score(c, 5)]]', '[[score(a, 2)]]'), 'C5');
   invalid(program + ' score(d,1).', proof, 'C6');
   invalid(program, proof, 'C5', { allowTrusted: false });
+});
+
+test('each aggregate calculation is checked against its recorded numeric inputs', () => {
+  for (const [operation, expected] of [['count', 2], ['sum', 7], ['min', 2], ['max', 5]]) {
+    const template = operation === 'count' ? 'count' : `${operation}(V)`;
+    const program = `score(a,2). score(b,5). ?- aggregate_all(${template},score(P,V),N).`;
+    assert.deepEqual(run(program), [`N = ${expected}.`]);
+    const { proof } = prove(program);
+    invalid(program, proof.replaceAll(`], ${expected})`, `], ${expected + 1})`), 'C5');
+  }
 });
 
 test('aggregate boundary checks use joins, repeated variables, and bound arithmetic', () => {
