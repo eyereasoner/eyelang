@@ -3,7 +3,7 @@
 # eyeon
 
 [![npm version](https://img.shields.io/npm/v/eyeon.svg)](https://www.npmjs.com/package/eyeon)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23416492.svg)](https://doi.org/10.5281/zenodo.23416492)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.23456911-blue.svg)](https://doi.org/10.5281/zenodo.23456911)
 
 <br clear="left">
 

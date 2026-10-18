@@ -1,4 +1,4 @@
-name: Publish release to GitHub, npm, and Zenodo
+name: Publish release to GitHub and npm
 
 on:
   push:
@@ -36,33 +36,10 @@ jobs:
         run: npm test
       - name: Check package contents
         run: npm pack --dry-run
-      - name: Verify Zenodo token
-        env:
-          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
-        run: |
-          if [ -z "$ZENODO_TOKEN" ]; then
-            echo '::error::Set the ZENODO_TOKEN repository secret with deposit:write and deposit:actions scopes.'
-            exit 1
-          fi
+      # Zenodo's native GitHub integration archives each published release.
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --notes-from-tag
       - name: Publish to npm
         run: npm publish
-      - name: Archive the release tag
-        run: git archive --format=zip --prefix="eyeon-${RELEASE_TAG}/" --output=eyeon.zip "refs/tags/$RELEASE_TAG"
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-      - name: Install uploader dependency
-        run: python -m pip install requests
-      - name: Publish to Zenodo
-        uses: rseng/zenodo-release@a9c88701a0176df755015f8ca4cf8cc754162f27
-        with:
-          token: ${{ secrets.ZENODO_TOKEN }}
-          version: ${{ env.RELEASE_TAG }}
-          zenodo_json: .zenodo.json
-          archive: eyeon.zip
-          html_url: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.RELEASE_TAG }}
-          doi: ${{ vars.ZENODO_CONCEPT_DOI }}
