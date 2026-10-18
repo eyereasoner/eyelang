@@ -3,7 +3,7 @@
 ```text
 Document: eyeon-spec-0001
 Category: Language Specification
-Language version: 0.0.2
+Language version: 0.0.3
 Date: 2026-10-17
 ```
 
