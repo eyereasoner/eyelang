@@ -29,8 +29,9 @@ distinct terms. Reachability tests use an independent transitive-closure
 algorithm for both forward and tabled inference. Tests do not require a
 particular first proof when several derivations are valid.
 
-`npm test` also runs the behavior regressions in `test/language.test.js`, every
-bundled example, and taxonomy evidence checks through 10000 levels.
+`npm test` also runs the behavior regressions in `test/language.test.js` and
+the bundled-example checks in `test/examples.test.js`, including taxonomy
+evidence checks through 10000 levels.
 Example transcripts are compared with saved files in `examples/output/`,
 including their answers, numbered proofs, and checks. These goldens record
 the current answer order and selected derivation; they do not change the
@@ -40,13 +41,15 @@ the taxonomies also retain independent structural evidence tests through
 goldens; review the diff before accepting changes. Ordinary tests never
 rewrite them.
 
-Playground serving and sharing, Pages paths, and version synchronization have
-separate integration tests in `test/`. `test/documentation.test.js` executes
+Playground serving and sharing, documentation and Pages, and packaging and
+version synchronization are grouped in `test/playground.test.js`,
+`test/documentation.test.js`, and `test/release.test.js`, respectively.
+`test/documentation.test.js` executes
 the README example and every tutorial program against their stated results,
 including the intentional assertion failure, and checks the certificate
 displays and runnable range example in the specification. Playground error
 line selection and clearing after edits, reset, and rerun are covered by
-`test/playground-sharing.test.js`. Worker cancellation, error selection colors
+`test/playground.test.js`. Worker cancellation, error selection colors
 in light, dark, and forced-colors modes, and copying/saving complete output
 from a truncated preview also require an
 actual-browser check when changing the playground.

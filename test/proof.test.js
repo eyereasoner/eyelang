@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -237,21 +237,6 @@ test('check reports are executable data and retain structured failure and obliga
   assert.doesNotThrow(() => JSON.stringify(bad));
   assert.doesNotThrow(() => parse(checkReportTerms(checkProof('', "unterminated('"))));
 });
-
-for (const name of ['aggregation', 'ackermann', 'text-processing', 'term-structure', 'statistics-summary',
-  'vector-similarity', 'turing', 'type-inference', 'critical-path-schedule', 'weighted-interval-scheduling',
-  'battery-dispatch', 'abstract-interpretation', 'sbom-vulnerability-response', 'path-discovery', 'deep-taxonomy-10000']) {
-  test(`${name}: a complete certificate passes independent checking`, () => {
-    const program = readFileSync(new URL(`../examples/${name}.pl`, import.meta.url), 'utf8');
-    const { proof, report } = prove(program);
-    assert.equal(report.valid, true);
-    assert.equal(checkProof(program, proof).valid, true);
-    if (name === 'deep-taxonomy-10000') {
-      assert.equal(report.trusted.length, 0);
-      assert.ok(report.steps > 10000);
-    }
-  });
-}
 
 test('the ordinary CLI puts one checked certificate in Reason and its report in Check', t => {
   const directory = mkdtempSync(join(tmpdir(), 'eyeon-proof-'));
