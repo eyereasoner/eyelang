@@ -269,8 +269,8 @@ shown. Integer and real result types remain distinct terms.
 
 `pi` and `e` evaluate to the binary64 approximations
 `3.141592653589793` and `2.718281828459045`. Outside arithmetic evaluation they
-remain ordinary atoms. Transcendental functions use the JavaScript binary64
-Math operations; their last result bit MAY differ between runtimes.
+remain ordinary atoms. Transcendental functions return binary64 approximations;
+their last result bit MAY differ between implementations.
 
 `floor`, `ceiling`, `round`, and `truncate` MUST retain every digit of an
 integer input. `float_integer_part` and `float_fractional_part` convert integer
@@ -356,8 +356,8 @@ where the declaration appears. Declarations are optional for clauses already
 requiring inputs, and useful to prevent eager enumeration of recursive list
 constructors. All demand-driven calls MUST be tabled. Calls differing only in
 variable spelling MUST share evaluation, preserving repeated-variable
-constraints. Recursive consumers MUST suspend and resume as answers arrive;
-they MUST NOT recurse indefinitely through the JavaScript call stack.
+constraints. Recursive consumers MUST suspend and resume as answers arrive,
+without requiring an unbounded chain of nested calls.
 Tables MUST be local to each run.
 
 This execution model differs from conventional Prolog depth-first search:
@@ -574,16 +574,11 @@ programs SHOULD use independent expected values or mathematical identities.
 
 ## 10. Errors and command-line interface
 
-```sh
-node eyeon.js examples/socrates.pl
-node eyeon.js - < examples/socrates.pl
-node eyeon.js --help
-node eyeon.js --version
-```
+For installation and invocation instructions, see the
+[project introduction](https://eyereasoner.github.io/eyeon/).
 
 The CLI MUST accept exactly one program path or `-` for standard input. `-h`/`--help`
-and `-v`/`--version` display usage and the package version respectively.
-The CLI requires Node.js 18 or later and no third-party packages.
+and `-v`/`--version` display usage and the version respectively.
 Successful queries, including `false.`, MUST exit zero. Errors MUST go to stderr
 and produce a nonzero status. The CLI MUST prepare the complete transcript
 before printing it, so failed checks produce no partial successful transcript.
