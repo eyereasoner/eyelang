@@ -1,5 +1,11 @@
+% Generate the integer sequence starting with P(0)=0, P(1)=1, and P(2)=1,
+% then using P(n)=P(n-2)+P(n-3). This example uses that stated indexing of
+% the Padovan sequence and keeps even very large integer values exactly.
+%
+% Ratios of neighboring terms approach about 1.324718, called the plastic
+% constant. The ratio calculations use approximate real arithmetic.
+%
 % See https://en.wikipedia.org/wiki/Padovan_sequence
-
 
 :- table padovan/2, padovan/5, plastic_ratio/2.
 

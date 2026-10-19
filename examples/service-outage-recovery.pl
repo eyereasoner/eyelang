@@ -1,13 +1,13 @@
-% Service-outage recovery with redundant providers and a dependency cycle.
+% Find which functions fail when services are unavailable, then choose the
+% least-cost repair plan that restores both required business functions.
 %
-% Each node needs every group in its requirement list; each group needs at least
-% one operating provider. Healthy leaves and explicitly repaired failed leaves
-% seed a positive fixed point. The risk cache provides independent support for
-% the payment/risk feedback cycle. A cycle alone does not seed availability.
-%
-% Enumerate the sixteen repair subsets and minimize their supplied costs.
-% Both business functions must operate after a feasible repair. These are
-% illustrative availability and cost assumptions for this finite dependency model.
+% Each service needs every listed requirement; each requirement can have
+% alternative providers. Healthy or repaired services with no requirements
+% provide the starting evidence for availability. The independent risk cache
+% supports the payment/risk dependency cycle; a cycle cannot make itself
+% available without such evidence. The program checks all sixteen subsets of
+% the four repair choices using illustrative availability assumptions and
+% costs.
 
 :- table member/2, subset/2, hardware_available/2, operating/2,
          all_groups/2, group_operating/2, all_operating/2, repair_cost/2, impacted/2.

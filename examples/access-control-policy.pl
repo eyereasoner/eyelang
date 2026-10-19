@@ -1,5 +1,8 @@
-% Access control policy example
-
+% Check whether the sample request satisfies a policy with three kinds of
+% condition: all required attributes, at least one alternative attribute, and
+% none of the forbidden attributes. The queries show both the overall
+% decision and the result of each condition. Missing attributes are
+% determined from the facts in this program.
 
 policy(test1, 'PolicyX').
 has(test1, 'A').

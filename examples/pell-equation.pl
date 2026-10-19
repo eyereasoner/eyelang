@@ -1,8 +1,10 @@
-% Pell equation x^2 - 2y^2 = 1 by explicitly tabled recurrence.
+% Generate nonnegative integer pairs satisfying x^2 - 2*y^2 = 1, known as
+% Pell's equation. Starting from (1, 0), each step computes x_next = 3*x +
+% 4*y and y_next = 2*x + 3*y.
 %
-% Multiplication by 3 + 2*sqrt(2) generates successive positive solutions.
-% All arithmetic is exact, including the fiftieth solution. The checks evaluate
-% the Diophantine identity independently of the recurrence's update formulas.
+% Supply a nonnegative integer step number. Calculations remain exact through
+% the fiftieth solution shown here. Assertions substitute the results into
+% the original equation as a separate check on the recurrence.
 
 :- table pell/3, pell_holds/2, between/3.
 

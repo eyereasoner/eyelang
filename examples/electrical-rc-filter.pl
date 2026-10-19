@@ -1,6 +1,10 @@
-% Ideal unloaded first-order RC low-pass filter.
-% Resistance in ohms, capacitance in farads, time constant in seconds,
-% cutoff in hertz. Loading and component tolerances are outside this model.
+% Calculate the response time and cutoff frequency of a low-pass filter made
+% from a resistor (R) and capacitor (C). Its time constant is R*C seconds;
+% its cutoff frequency is 1/(2*pi*R*C) hertz.
+%
+% Supply positive resistance in ohms and capacitance in farads. The model
+% assumes ideal components and no load on the output; it omits component
+% tolerances.
 
 components(filter1, 10000.0, 0.000001).
 

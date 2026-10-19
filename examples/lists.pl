@@ -1,5 +1,9 @@
-% Define list operations with ordinary recursive clauses.
-% Supply finite lists; tabling keeps recursive constructors demand-driven.
+% Join two lists, square each number in a list, and add a list's numbers.
+% Each operation is defined by a case for the empty list and a recursive case
+% for the first item and remaining items. Supply finite input lists; table
+% declarations keep list-building rules from generating answers without a
+% call.
+
 :- table append/3, squares/2, sum/2.
 
 append([], Ys, Ys).

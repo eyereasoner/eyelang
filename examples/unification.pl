@@ -1,5 +1,9 @@
-% Open lists and repeated variables enforce structural relationships.
-% A supplied complete list bounds the possible prefix/suffix splits.
+% Use matching term structure and repeated variables to constrain answers.
+% The append rules split the complete list [a, b] into every prefix and
+% suffix, including empty lists. The pair(X, X) pattern requires both entries
+% to match, and [Head | Tail] separates a list's first item from the
+% remaining items.
+
 :- table append/3.
 
 append([], Ys, Ys).

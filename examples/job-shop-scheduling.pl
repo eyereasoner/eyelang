@@ -1,10 +1,11 @@
-% Bounded job-shop scheduling with two shared machines.
+% Schedule three jobs that each need a mill operation and a lathe operation.
+% Operations must follow each job's stated order, and a machine can handle
+% only one operation at a time.
 %
-% Three jobs each require one mill operation and one lathe operation, with fixed
-% within-job precedence constraints. Enumerate integer start times from 0 to 6,
-% reject machine overlaps, and retain every schedule with minimum makespan.
-% Intervals are half-open: one operation may start when another finishes.
-% Optimality here is over the stated finite start-time domain.
+% The program tries integer start times from 0 to 6 and returns every
+% feasible schedule with the earliest overall finish, also called the minimum
+% makespan. One operation may start exactly when another finishes. The result
+% is optimal within this finite set of start times.
 
 :- table between/3, nonoverlap/4.
 between(Low, High, Low) :- Low =< High.

@@ -1,7 +1,12 @@
-% Demo Expert System for Wind Turbine Maintenance
+% List maintenance reasons for four illustrative wind turbines. Separate
+% rules check elapsed time since maintenance, turbine age, reported issues,
+% and efficiency. A turbine can receive more than one reason.
+%
+% Age is in years, time since maintenance in months, and efficiency in
+% percent. The thresholds are supplied example rules. A problem-based reason
+% requires a nonempty issue list. The queries report all reasons and check a
+% turbine that triggers none.
 
-
-% Facts about specific turbines (id, age_yrs, last_maintenance_months, issues, efficiency)
 turbine(t123, 5, 8, [], 92).
 turbine(t456, 12, 15, [vibration], 78).
 turbine(t789, 8, 7, [noise], 85).

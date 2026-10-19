@@ -1,10 +1,12 @@
-% Complex roots of polynomials of degree 1 through 4, in descending coefficient
-% order. c(Real, Imaginary) represents a complex number. Supply bound numeric
-% coefficients with a nonzero leading coefficient. Root lists retain algebraic
-% multiplicity; their order is not a numerical sort order.
-% Cardano's cubic formula and quartic factorization use binary64 arithmetic.
-% Repeated or closely spaced roots can amplify rounding error. This is not an
-% exact symbolic solver. Other degrees and zero leading coefficients fail.
+% Find approximate complex roots of polynomials of degree one through four.
+% Supply coefficients in descending power order, using c(Real, Imaginary) for
+% each complex number and a nonzero leading coefficient.
+%
+% The formulas solve linear and quadratic equations, use Cardano's formula
+% for cubics, and factor quartics into quadratics. Root lists retain repeated
+% roots and are not numerically sorted. Calculations use approximate real
+% arithmetic; repeated or closely spaced roots can lose accuracy. Other
+% degrees and zero leading coefficients have no answer.
 
 polynomial(real_quartic, [c(1, 0), c(-10, 0), c(35, 0), c(-50, 0), c(24, 0)]).
 polynomial(complex_quartic, [c(1, 0), c(-9, -5), c(14, 33), c(24, -44), c(-26, 0)]).

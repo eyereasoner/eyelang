@@ -1,12 +1,11 @@
-% Is Pat older than 80 years?
-% Pat was born on 21 August 1944.
-% Compare on 12 October 2026. Change these facts to try another date.
-% Work backwards from the person and the number of years asked about.
-% A larger year difference is enough, even before this year's birthday.
-% With the same year difference, the birthday must have passed.
-% On the birthday itself, the person is exactly that old, not older.
+% Check whether Pat is strictly older than a given number of years on a
+% specified date. The sample birthday is 21 August 1944, and the comparison
+% date is 12 October 2026; the program does not read the current date.
+%
+% The rules compare the year, month, and day. On the birthday that reaches
+% the requested age, the person is exactly that age, so the strict test
+% fails. Supply valid calendar dates; this example does not validate them.
 
-% Prolog facts and rules.
 :- table 'is-older-than'/2.
 birthday('pat-h', [1944, 8, 21]).
 date(today, [2026, 10, 12]).

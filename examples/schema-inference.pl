@@ -1,4 +1,11 @@
-% Subclass and subproperty closure propagates types and relationships.
+% Infer additional classifications and relationships from a small schema.
+% Cats are mammals and mammals are animals, so Koko's cat classification also
+% implies both broader classifications.
+%
+% Likewise, a parent_of link implies related_to and connected_to links. The
+% domain and range rules classify the source and target of a parent_of link
+% as people. These are the schema rules explicitly implemented below.
+
 subclass(cat, mammal).
 subclass(mammal, animal).
 subproperty(parent_of, related_to).

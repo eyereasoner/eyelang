@@ -1,13 +1,12 @@
-% Weighted interval scheduling via explicitly tabled dynamic programming.
+% Choose a set of nonoverlapping intervals with the greatest total value. For
+% each interval, compare skipping it with taking it after the best earlier
+% compatible schedule. Previously calculated values are reused, and the
+% chosen intervals are reconstructed from those decisions.
 %
-% Intervals are ordered by finish time. best_to(I, Best) compares skipping I
-% with taking I and using the best prefix that finishes before I starts.
-% chosen_to/2 then walks the cached decisions to report an optimal schedule.
-% Taking an interval wins a tie, making reconstruction deterministic.
-%
-% Intervals are half-open [Start, Finish), so a finish equal to the next start
-% is compatible. IDs must be consecutive from 1 through last_interval/1;
-% finish times must be nondecreasing, and durations must be positive.
+% An interval may start exactly when another finishes. Inputs must have
+% positive durations, consecutive IDs starting at 1, and nondecreasing finish
+% times. Taking the current interval wins a tie, so the example returns one
+% optimal schedule rather than every equally good schedule.
 
 :- table best_to/2, alternatives/4, chosen_to/2, append/3, member/2.
 

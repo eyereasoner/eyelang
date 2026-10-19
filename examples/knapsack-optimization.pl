@@ -1,10 +1,11 @@
-% 0/1 knapsack optimization with recursive folds and a maximum aggregate.
+% Choose an expedition pack with the greatest total value while staying
+% within a weight limit. Each listed item can be included once or left out;
+% this is the 0/1 knapsack problem.
 %
-% subset/2 enumerates candidate expedition packs; total_weight/2 and total_value/2
-% score each pack.  feasible_pack/3 applies the capacity limit, and best_pack/3
-% returns the highest-value feasible choices together with their weights.
+% The rules enumerate item subsets, add their weights and values, reject
+% overweight packs, and retain all feasible packs with the highest value.
+% Weights and values are supplied scores in consistent, unspecified units.
 
-% Capacity and item table are separated from the optimization rule for easy tuning.
 :- table subset/2, total_weight/2, total_value/2.
 
 capacity(15).

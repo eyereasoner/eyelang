@@ -1,12 +1,11 @@
-% Audit values, references, required fields, and keys across a batch of records.
+% Find problems in a batch of customer and order records: missing or empty
+% email fields, conflicting email values, unknown customers, negative
+% amounts, duplicate order keys, and unsupported record shapes.
 %
-% Row IDs preserve the identity of observations even when their contents agree.
-% Generic term inspection checks record shapes, while ordinary relations check
-% customer references, nonnegative order amounts, required email fields, and
-% conflicting values. Missing means absent from this completed batch.
-%
-% This model checks that an email field is present and nonempty; it does not
-% attempt to validate the syntax of email addresses.
+% Row identifiers keep separate observations distinct even when their
+% contents match. Missing data means absent from this completed batch. The
+% email check requires a nonempty value; it does not validate email address
+% syntax.
 
 :- table length/2.
 

@@ -1,10 +1,12 @@
-% Population statistics for a small numeric sample.
+% Calculate the count, mean, population variance, and population standard
+% deviation of the sample [2, 4, 4, 4, 5, 5, 7, 9]. Its mean is 5, variance
+% is 4, and standard deviation is 2.
 %
-% The sample is the textbook data set [2,4,4,4,5,5,7,9], whose population
-% mean is 5, variance is 4, and standard deviation is 2.
+% The values are stored in one list, so repeated observations remain
+% separate. Population variance divides the sum of squared deviations by the
+% number of observations, rather than the sample-variance divisor of one
+% less.
 
-% The sample is one list fact, which lets recursive list folds demonstrate
-% aggregation without introducing a separate row relation.
 :- table sum/2, squared_error_sum/3, length/2.
 
 sample(scores, [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]).

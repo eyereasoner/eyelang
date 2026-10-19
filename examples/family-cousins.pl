@@ -1,5 +1,9 @@
-% Cousins occupy the same generation in distinct family branches.
-% Branch labels are supplied for this family and inherited by descendants.
+% Identify cousin pairs in a supplied family tree by comparing generation
+% numbers and inherited branch labels. In this model, people count as cousins
+% when they share a generation but belong to different labeled branches. This
+% is a classification for the given tree, rather than a general calculation
+% of cousin degree or generations removed.
+
 parent(adam, bob).
 parent(adam, carol).
 parent(bob, dave).

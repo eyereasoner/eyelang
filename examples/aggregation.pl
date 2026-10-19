@@ -1,7 +1,8 @@
-% Our three players have finished a game.
-% Repeating a clue does not give a player an extra score.
+% Summarize three players' scores using a count, sum, minimum, and maximum.
+% Repeating Luna's score fact does not count it twice. Milo and Luna still
+% contribute separately, even though their scores are equal, because they are
+% different players.
 
-% Prolog facts and rules.
 is_a(milo, player).
 is_a(luna, player).
 is_a(rex, player).

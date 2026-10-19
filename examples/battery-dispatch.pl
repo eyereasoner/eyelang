@@ -1,15 +1,12 @@
-% A discrete multi-period battery dispatch plan with a terminal energy reserve.
+% Choose when to charge or discharge a battery to minimize grid energy cost
+% while keeping enough energy in reserve at the end.
 %
-% Slots supply load and solar power in kW, duration in hours, and an illustrative
-% tariff in cents per kWh. State of charge is energy in kWh. A signed power action
-% is positive when charging and negative when discharging. Grid export is excluded.
-% This idealized model has unit efficiency and no degradation or ramping losses.
-% Optimality is over the supplied slots and the five integer power choices.
-%
-% The tabled dynamic program uses value(Cost) or infeasible as explicit results.
-% A minimum fold over all five actions keeps recursive evaluation positive;
-% it does not need recursion through aggregation or negation. Reconstruction
-% retains every action sequence attaining the minimum cost.
+% Each time slot supplies demand, solar power, duration, and a price. Power
+% is in kilowatts (kW), stored energy in kilowatt-hours (kWh), and prices in
+% cents per kWh. Positive battery power charges; negative power discharges.
+% The model excludes grid export and assumes no energy losses or battery
+% wear. It finds all cheapest plans among the supplied slots and five integer
+% power choices, reusing the cost calculated for each time-and-charge state.
 
 :- table best_cost/3, minimum_actions/4, candidate_cost/4, transition/4,
          step_values/6, optimal_from/4, member/2.

@@ -1,8 +1,13 @@
-% Illustrative one-season nitrogen budget, in kg N/ha.
-% A fixed fraction of total input is lost before crop uptake. The surplus-loss
-% index below is a defined comparison score, not a measured leaching flux.
-
+% Compare nitrogen available to a crop with its demand over one season. The
+% model adds soil and fertilizer inputs, subtracts a fixed loss fraction, and
+% calculates any remaining deficit or surplus.
+%
+% Quantities are kilograms of nitrogen per hectare. Available nitrogen within
+% 10 percent of demand is classified as balanced. The surplus-times-loss
+% index is a defined comparison score, rather than a measured leaching rate.
+%
 % field(Name, SoilN, FertilizerN, LossFraction, CropDemand).
+
 field(low_input, 40.0, 60.0, 0.15, 130.0).
 field(balanced_loam, 50.0, 90.0, 0.15, 130.0).
 field(high_input, 60.0, 180.0, 0.25, 160.0).

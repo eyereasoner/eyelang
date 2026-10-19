@@ -1,10 +1,12 @@
-% Dijkstra's algorithm over a finite list of directed edge(From, To, Weight)
-% terms with nonnegative weights. Costs retain exact integer arithmetic when
-% all weights are integers. A sorted frontier settles each reached node once.
-% One minimum-cost path is returned; equal-cost alternatives need not all be
-% returned. An unreachable goal has no answer. Start=Goal has cost zero.
-% Edge-list traversal and priority insertion replace collection and sorting
-% builtins. Negative weights reject the whole graph, including unused edges.
+% Find one shortest path through a finite directed graph using Dijkstra's
+% algorithm. Edges are edge(From, To, Weight) terms with nonnegative weights.
+%
+% The algorithm keeps candidate paths ordered by cost and settles each
+% reached node once. Integer weights give exact integer costs. Equal-cost
+% alternatives need not all be returned; an unreachable goal has no answer,
+% and a path from a node to itself costs zero. Any negative edge rejects the
+% graph. The sample network adds reverse edges to model two-way travel. Bind
+% both endpoints when calling the path predicates.
 
 network([edge(a, b, 4), edge(a, c, 2), edge(b, c, 1), edge(b, d, 5),
   edge(c, d, 8), edge(c, e, 10), edge(d, e, 2), edge(d, f, 6), edge(e, f, 3)]).

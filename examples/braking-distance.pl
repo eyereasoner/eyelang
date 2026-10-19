@@ -1,6 +1,11 @@
-% Illustrative constant-friction model on a level road, without air resistance.
-% Units: speed m/s, reaction time s, gravity m/s^2, distances m.
-% The result only compares the model's distance with the supplied gap.
+% Calculate a stopping distance as the distance traveled while reacting plus
+% the distance needed to brake. Compare it with the available gap in four
+% illustrative road scenarios.
+%
+% The model assumes a level road, constant tire-road friction, and no air
+% resistance. Speeds are in meters per second, reaction time in seconds,
+% gravity in m/s^2, and distances in meters. Each status describes whether
+% the gap is sufficient under these supplied assumptions.
 
 gravity(9.8).
 reaction_time(1.0).

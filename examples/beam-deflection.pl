@@ -1,6 +1,10 @@
-% Linear elastic cantilever with a point load at its free end.
-% Small deflection, uniform beam: delta = F*L^3/(3*E*I).
-% Units: force N, length m, Young's modulus Pa, second moment m^4, limit mm.
+% Estimate how far a beam bends when it is fixed at one end and a force is
+% applied at the free end. Compare that displacement with a stated limit.
+%
+% The formula delta = F*L^3/(3*E*I) assumes a uniform beam, elastic behavior,
+% and small deflections. F is force in newtons, L is length in meters, E is
+% Young's modulus in pascals, and I is the cross-section's second moment of
+% area in m^4. The reported displacement and limit are in millimeters.
 
 beam(demo, 1200.0, 2.5, 200000000000.0, 0.000008, 5.0).
 

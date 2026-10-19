@@ -1,9 +1,13 @@
-% Arithmetic: exact integers, division, rounding, bits, constants and real functions.
-% [quotient toward zero, quotient toward negative infinity, remainder, modulo]
-% [floor, ceiling, nearest (ties toward positive infinity), truncate, integer part, fractional part]
-% [intersection, union, xor, complement of first input, left shift, right shift]
+% Compare exact integer arithmetic with approximate real-number calculations.
+% The queries cover division, rounding, bit operations, minimum and maximum,
+% greatest common divisors, pi, e, and a trigonometric calculation.
+%
+% Division results are [quotient toward zero, quotient toward negative
+% infinity, remainder, modulo]. Rounding results are [floor, ceiling, nearest
+% integer, truncate, real integer part, real fractional part]; halfway cases
+% round away from zero. Bit results are [AND, OR, XOR, complement, left
+% shift, right shift].
 
-% Prolog facts and rules.
 :- table absolute/2.
 :- table result/2.
 :- table constants/2.

@@ -1,5 +1,8 @@
-% Count owned dogs before applying a licensing threshold.
-% The threshold here is part of the program: more than four dogs.
+% Count each listed owner's dogs and apply the example's licensing rule: an
+% owner needs a license when the count is greater than four. Alice has five
+% dogs, Carol has exactly four, and Dana has none. The threshold is supplied
+% by this program rather than taken from a jurisdiction's licensing rules.
+
 owns(alice, dog1).
 owns(alice, dog2).
 owns(alice, dog3).

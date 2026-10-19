@@ -1,5 +1,12 @@
-% Rank clause findings by score, retaining reasons and suggested mitigations.
-% This is a small illustrative policy model; scores are model parameters.
+% Score findings in six illustrative policy clauses, attach reasons and
+% suggested changes, and rank findings by the number of distinct higher
+% scores. The checks cover missing safeguards, short notice, sharing without
+% consent, and a prohibition on export.
+%
+% Scores, thresholds, and suggested changes are supplied model choices. The
+% output describes this rulebook's assessment rather than a determination of
+% legal compliance.
+
 permission(c1, remove_account).
 permission(c2, change_terms).
 permission(c3, share_data).

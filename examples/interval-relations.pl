@@ -1,4 +1,11 @@
-% Half-open intervals [Start, End), measured in integer minutes.
+% Describe how pairs of time intervals relate: before, meeting at an
+% endpoint, overlapping, containing one another, or sharing a start or
+% finish. The rules cover all thirteen of Allen's interval relations.
+%
+% Times are integer minutes. An interval [Start, End) includes its start and
+% excludes its end, so adjacent intervals can meet without overlapping. Some
+% intervals are supplied directly; others are calculated from a duration.
+
 interval(a, 600, 720).
 interval(b, 780, 900).
 interval(c, 720, 840).

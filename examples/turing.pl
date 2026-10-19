@@ -1,17 +1,13 @@
-% A Turing machine reads a tape, writes one symbol, and moves left or right.
-% This machine adds one to a binary number. blank means an empty tape cell.
-% A transition maps [machine, state, read] to [next-state, write, movement].
-% Change an input list, or add another case using the same machine.
-% The rules below run any machine described by this transition-table shape.
-% A configuration is [state, reversed-left-tape, current-symbol, right-tape].
-% [first | second] separates the first item from the rest of a list.
-% Write the symbol and move right, extending the tape with blank if needed.
-% Write the symbol and move left, extending the tape with blank if needed.
-% A stay instruction writes without moving the head.
-% On halt, turn the reversed left side around and join it to the rest.
-% The trailing blank is a tape cell, not a binary digit.
+% Simulate a Turing machine that adds one to a binary number. A transition
+% table tells the machine which symbol to write, which state to enter, and
+% whether to move left, move right, or stay in place.
+%
+% The machine scans to the end of the input and carries the added one back
+% through any trailing ones. Tape configurations store the current state,
+% reversed left portion, current symbol, and right portion. The atom blank
+% denotes an empty tape cell; a trailing blank in the output is not a binary
+% digit. Other transition tables can use the same simulation rules.
 
-% Prolog facts and rules.
 start('add-one', scan).
 transition(['add-one', scan, 0], [scan, 0, right]).
 transition(['add-one', scan, 1], [scan, 1, right]).

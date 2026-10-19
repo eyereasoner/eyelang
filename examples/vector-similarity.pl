@@ -1,13 +1,12 @@
-% Vector dot product, Euclidean norm, and cosine similarity.
+% Compare two numeric vectors by their dot product, lengths, and cosine
+% similarity. The dot product adds matching-coordinate products; a vector's
+% Euclidean length is the square root of the sum of its squared coordinates.
 %
-% Recursive list folds compute the dot product and squared-length sums.  The
-% public cosineSimilarity/2 report then combines those folds as
-% dot(A,B)/(norm(A)*norm(B)) for a named vector pair.
-%
-% The example keeps vectors as ordinary lists, so it doubles as a compact
-% demonstration of numeric recursion over list structure.
+% Cosine similarity divides the dot product by both lengths, measuring how
+% closely the vectors point in the same direction. Supply equal-length lists
+% for the dot product and nonzero lengths for cosine similarity. Recursive
+% list rules perform the calculations using approximate real arithmetic.
 
-% Two named vectors form the single cosine-similarity case.
 :- table dot/3, sum_squares/2, norm/2.
 
 vector(pair1, a, [1.0, 2.0, 3.0]).

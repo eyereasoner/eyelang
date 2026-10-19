@@ -1,7 +1,11 @@
-% Rules over a finite cycle of follows facts.
-% The second rule only extends a route when the next link leads to ada.
+% Trace links among Ada, Ben, and Cara in a three-person cycle. Every follows
+% fact gives a direct reaches fact. The second rule extends a known route by
+% one link only when that link ends at Ada.
+%
+% This deliberately restricted rule finds Ben's route through Cara to Ada. It
+% does not compute every path through the cycle; in particular, it does not
+% infer that Ada reaches Ada.
 
-% Prolog facts and rules.
 follows(ada, ben).
 follows(ben, cara).
 follows(cara, ada).

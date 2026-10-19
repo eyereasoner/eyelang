@@ -1,16 +1,15 @@
-% A private household need becomes a low-sugar shopping insight.
-% Each case keeps its own envelope, policy, signature, and checks.
-% Product names, sugar in grams per serving, and shelves.
-% The insight carries shopping guidance without the private condition.
-% A policy belongs to its envelope; permissions are never global.
-% Verification is supplied as trusted input. These rules do not compute HMAC.
-% Project the envelope's fields while keeping the case attached.
-% Timestamps share one UTC format, so their text order is also their time order.
-% Consider only products from the same shelf with strictly less sugar.
-% A candidate loses if another eligible candidate has even less sugar.
-% Continue with the shopping decision and supporting case information.
+% Model a shopping assistant that suggests a lower-sugar product while
+% keeping the household's private condition out of the shared shopping
+% guidance.
+%
+% The program checks the policy, purpose, timing, and supplied verification
+% information attached to the shopping case. It chooses an alternative from
+% the same product category with the least sugar per serving. Permissions are
+% specific to the case's data package. Signature verification is trusted
+% input; the rules do not calculate or verify an HMAC cryptographic
+% signature. Timestamps use the same UTC format so text comparisons preserve
+% time order.
 
-% Prolog facts and rules.
 'case-name'(delfour, "delfour").
 household(delfour, 'household-profile').
 condition('household-profile', "Diabetes").

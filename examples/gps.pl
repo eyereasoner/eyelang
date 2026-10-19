@@ -1,12 +1,12 @@
-% Which route should we take from Gent to Oostende?
-% One-way roads. Durations are seconds; the other values are sample scores.
-% Work backwards: one road, or a road followed by the rest of a route.
-% Name the two action lists direct and via-kortrijk.
-% Add duration and cost along an action list. Multiply belief and comfort.
-% A named route has the scores calculated from its actions.
-% In this two-route map, recommend the route that wins on all four scores.
+% Compare two supplied routes from Gent to Oostende using travel time, cost,
+% belief, and comfort scores. Road connections are one-way; time is in
+% seconds, and the remaining values are illustrative scores.
+%
+% The program adds time and cost along a route and multiplies its belief and
+% comfort factors. In this two-route example, the recommended route is
+% faster, cheaper, and higher on both other scores. The rules do not combine
+% competing criteria into a general route-optimization score.
 
-% Prolog facts and rules.
 :- table route/2.
 :- table duration/2.
 :- table cost/2.

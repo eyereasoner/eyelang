@@ -1,20 +1,13 @@
-% A complex number has a real part and an imaginary part.
-% Calculate asin(5.22) and acos(5.22). Change the real input to try another value.
-% The imaginary unit i is the square root of minus one.
-% This exponent is a rounded value of minus pi divided by two.
-% Four powers to work out.
-% Work out polar coordinates when another calculation asks for them.
-% For a base with radius r and angle t, raised to c + d i:
-% size = r to the power c, times exp of minus d times t.
-% phase = d times log of r, plus c times t.
-% Apply both inverse functions to the input declared at the top.
-% Measure the distances from minus one and plus one.
-% cosh(b) = (exp(b) + exp(-b)) / 2; sinh(b) = (exp(b) - exp(-b)) / 2.
-% Square the calculated square root and compare with the original base.
-% Euler's identity and the agreement of i^i with exp(-pi/2).
-% Use a looser tolerance for the rounded exponent declared at the top.
+% Calculate powers and inverse trigonometric functions of complex numbers,
+% which have a real part and an imaginary part. The sample input for inverse
+% sine and cosine is 5.22, outside their real-valued input range.
+%
+% The power rules use a magnitude and angle. The checks square the calculated
+% square root of -1, check Euler's identity, and compare i^i with exp(-pi/2).
+% The inverse-function formulas choose complex results and check them by
+% applying sine or cosine again. Real-number calculations are approximate;
+% the rounded input for -pi/2 uses a looser checking tolerance.
 
-% Prolog facts and rules.
 :- table radius/2.
 :- table angle/2.
 :- table 'log-radius'/2.

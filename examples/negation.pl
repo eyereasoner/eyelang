@@ -1,9 +1,12 @@
-% Three players want to join a game.
-% A player can join if the program does not show that they need rest.
-% This rule is checked before the not clue, even though it comes later.
-% You can also use "is not" for a kind.
+% Select players who can join a game because the completed program has no
+% evidence that they need rest. Luna is listed as tired, so the rest rule
+% excludes Luna; Milo and Rex remain eligible.
+%
+% The operator \+ tests for the absence of a matching answer after its
+% supporting rules have finished. Moving the rest rule later in the file does
+% not bypass it. A missing fact is treated as absent within this program,
+% rather than as a general statement about the world.
 
-% Prolog facts and rules.
 is_a(milo, player).
 is_a(luna, player).
 is_a(rex, player).

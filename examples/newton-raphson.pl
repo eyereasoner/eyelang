@@ -1,7 +1,14 @@
-% Newton-Raphson method
+% Approximate roots of x^2-2, log(x)-1, and sin(x) using Newton-Raphson
+% iteration. Each step replaces a trial value x by x-f(x)/f'(x), using the
+% function and derivative selected by its number.
+%
+% findRoot([Number, Start, Tolerance], Root) stops when abs(f(x)) is below
+% the tolerance. The supplied starts approach sqrt(2), e, and pi. Other
+% starts may fail or not converge; there is no iteration limit. Displayed
+% roots are rounded, and assertions check unrounded values.
+%
 % See https://en.wikipedia.org/wiki/Newton%27s_method
 
-% functions
 f(1, X, Y) :- Y is X*X - 2.
 f(2, X, Y) :- Y is log(X) - 1.
 f(3, X, Y) :- Y is sin(X).

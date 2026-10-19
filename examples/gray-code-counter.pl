@@ -1,6 +1,11 @@
-% Gray Code Counter
-% Code from the book "Clause and Effect" Chapter 8
-
+% Simulate a three-bit Gray-code counter, whose successive count states
+% differ in one bit. Logic-gate truth tables calculate the next state.
+%
+% Supply a list of clock inputs and an initial three-bit state. A clock input
+% of 1 loads the new state; 0 holds the current state. The result lists the
+% state after each input, including a full cycle back to [0, 0, 0].
+%
+% Code from "Clause and Effect", Chapter 8.
 
 :- table gcc/3, dff/4.
 

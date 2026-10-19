@@ -1,6 +1,10 @@
-% Build pick lists from order lines using aggregate_all(list(Term), Goal, List).
+% Build a pick list for each order by collecting item(Product, Quantity)
+% terms with aggregate_all(list(Term), Goal, List). A second report includes
+% only lines requesting at least ten units.
+%
 % Different line numbers keep identical items as separate list elements.
-% Repeating the same fact does not add an item. List order is unspecified.
+% Repeating the same line fact does not add another item. An order without
+% matching lines gets an empty list, []; list order is unspecified.
 
 order(alpha).
 order(beta).

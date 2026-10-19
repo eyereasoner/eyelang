@@ -1,6 +1,7 @@
-% In this program, anyone who likes a cat is a friend.
+% Infer that Milo is a friend from the facts that Milo likes Luna and Luna is
+% a cat. Here, "friend" has the program's specific meaning: someone who likes
+% a cat. No rule makes that relationship mutual.
 
-% Prolog facts and rules.
 likes(milo, luna).
 is_a(luna, cat).
 

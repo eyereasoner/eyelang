@@ -1,16 +1,15 @@
-% Bayes diagnosis: a toy model with illustrative probabilities, not real estimates.
-% Treat the listed diseases as alternatives and symptoms as independent given a disease.
-% Each pair means [disease, symptom]: P(symptom present given disease).
-% Present contributes p; observed absent contributes 1 - p.
-% A symptom left out of the evidence contributes no factor.
-% Multiply all evidence factors, with 1 for an empty list.
-% A disease's weight is its prior times the evidence likelihood for this case.
-% Build the score list in the same order as the case's disease list.
-% Walk the candidates; normalize each score by the total for its own case.
-% Collect the posteriors in order so their sum can be checked.
-% Reject probabilities outside [0, 1], even when they are unused by this case.
+% Update the probabilities of four possible conditions using observed
+% symptoms. This is an illustrative Bayesian model with invented
+% probabilities.
+%
+% The conditions are treated as alternatives, and symptoms are assumed
+% independent once a condition is fixed. A present symptom contributes its
+% listed probability; an observed absence contributes one minus that value.
+% Unobserved symptoms contribute no factor. Each condition's prior
+% probability is multiplied by these factors, then divided by the total
+% weight. The checks reject invalid probabilities and verify that the
+% resulting probabilities sum to one.
 
-% Prolog facts and rules.
 :- table factor/2.
 :- table likelihood/2.
 :- table score/2.

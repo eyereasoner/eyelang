@@ -1,10 +1,11 @@
-% Cosets and Lagrange's identity in the permutation group S3.
+% Explore S3, the group of six ways to rearrange three objects. A permutation
+% lists where 1, 2, and 3 go; product P*Q applies Q first and then P.
 %
-% Each permutation lists the images of 1, 2, and 3. Product P*Q applies Q first
-% and P second. The subgroup {e,t12} has order 2; its three left cosets partition
-% the six group elements. The checks exhaust this finite group and subgroup.
-% Left and right cosets also provide explicit evidence that this subgroup is
-% not normal. Coset representatives use the least atom name in each coset.
+% The subgroup containing the identity and the swap of 1 and 2 has two
+% members. Multiplying it on the left gives three disjoint two-member sets,
+% called left cosets. Their sizes illustrate Lagrange's identity: 6 = 2*3.
+% The program also finds a difference between left and right cosets, showing
+% that this subgroup is not normal. Checks cover this supplied finite group.
 
 :- table apply/3, compose/3.
 

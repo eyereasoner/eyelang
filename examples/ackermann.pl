@@ -1,11 +1,11 @@
-% Ackermann grows very quickly. Start with the questions below.
-% Inputs are nonnegative whole numbers; [m, n] asks for A(m, n).
-% A(m, n) = H(m, n + 3, 2) - 3, using the three-input helper below.
-% [level, count, base] builds successor, sum, product, power, then power towers.
-% Use exact exponentiation directly, instead of repeated multiplication.
-% Higher levels repeat the operation one level below them.
+% Calculate the Ackermann function, whose values grow rapidly even for small
+% inputs. Supply a pair [M, N] of nonnegative integers to ask for A(M, N).
+%
+% The helper takes [Level, Count, Base] and progresses from addition and
+% multiplication to powers and repeated powers. Integer results retain every
+% digit. The supplied queries include very large answers; increasing the
+% inputs can require much more time and memory.
 
-% Prolog facts and rules.
 :- table ackermann/2.
 
 ackermann([M, N], _Calc2) :-

@@ -1,5 +1,9 @@
-% A trajectory ends at 1; parity chooses the next recursive step.
-% This program checks the starting values 1 through 20.
+% Generate Collatz sequences for the starting integers 1 through 20. Halve an
+% even number; replace an odd number by three times that number plus one.
+% Each sequence ends when it reaches 1. The checks verify these starting
+% values, without establishing that every positive integer eventually reaches
+% 1.
+
 :- table trajectory/2, in_range/3.
 
 trajectory(1, [1]).

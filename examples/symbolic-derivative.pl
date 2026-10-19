@@ -1,8 +1,11 @@
-% Symbolic differentiation over explicit expression terms.
+% Differentiate expressions with respect to x using rules for constants,
+% variables, sums, products, powers, and logarithms. Expressions are
+% structured terms such as add(U, V) and mul(U, V), rather than text to be
+% parsed.
 %
-% Expressions are ordinary terms: `add/2`, `mul/2`, `pow/2`,
-% `log/1`, and so on.  The result is intentionally unsimplified so the rule that
-% produced each part remains visible.
+% Results remain unsimplified: for example, differentiating x*x keeps the two
+% product-rule terms 1*x and x*1 visible. The example constructs derivative
+% expressions; it does not evaluate them at a numeric input.
 
 :- table d/3.
 

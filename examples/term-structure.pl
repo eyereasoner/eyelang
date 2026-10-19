@@ -1,9 +1,11 @@
-% Validate data records by their functor and arity, then construct a result.
+% Check whether each record has an expected name and number of arguments,
+% then construct a receipt for accepted records. For example,
+% temperature(room, 21) matches the temperature schema, which expects two
+% arguments.
 %
-% =../2 exposes a term as [Functor | Arguments]. The same rule can inspect
-% different record shapes without a separate decomposition clause for each
-% functor. In the other direction it constructs a term from an atom name and
-% an argument list. It never calls that term as a goal.
+% The =../2 builtin decomposes a term into [Name | Arguments] or constructs a
+% term from such a list. Constructing a term treats it as data; it does not
+% execute it as a goal.
 
 :- table member/2, length/2.
 

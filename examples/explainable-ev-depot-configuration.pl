@@ -1,11 +1,12 @@
-% Explainable charger configuration for a small depot catalog.
+% Choose a compatible electric-vehicle charger from a small depot catalog.
+% The program compares site power, charge rate, connector, and electrical
+% supply, then recommends the lowest-cost compatible option.
 %
-% The same relational model answers what fits, why an option fails, and what
-% would need to change. A power-upgrade counterfactual rechecks all the other
-% requirements. It gives the minimum extra site power for that fixed charger.
-% Replacement suggestions identify requirements to recheck on the replacement;
-% they do not assert that the original hardware can be modified accordingly.
-% Catalog values and purchase costs in cents are illustrative supplied data.
+% It also lists each failed requirement and calculates the extra site power
+% needed for a fixed charger when all other requirements already match.
+% Replacement suggestions identify requirements to recheck; they do not show
+% that existing hardware can be modified. Power is in kilowatts, purchase
+% costs are in cents, and all catalog values are illustrative.
 
 site(depot_a, 60, 22, ccs2, three_phase).
 % charger(Name, ChargeKw, SiteRequirementKw, Connector, Supply, CostCents).

@@ -1,4 +1,8 @@
-% Match a structured description without treating "good" as a global property.
+% Extract a person's trade from a structured description such as [good,
+% cobbler]. Joe is good at cobbling and Jane at carpentry in the supplied
+% data. Keeping the trade in the description avoids treating "good" as a
+% property that applies to every activity the person undertakes.
+
 description(joe, [good, cobbler]).
 description(jane, [good, carpenter]).
 description(sam, [novice, cobbler]).

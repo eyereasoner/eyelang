@@ -1,4 +1,8 @@
-% Collection runs after line totals have been materialized.
+% Calculate an invoice from three items. Each item fact supplies its name,
+% quantity, and unit price. The rules multiply quantity by price for each
+% line, then sum the completed line totals. Prices use the same unspecified
+% unit; the sample invoice totals 28.
+
 item(apple, 3, 2).
 item(pear, 4, 3).
 item(plum, 2, 5).

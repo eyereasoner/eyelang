@@ -1,5 +1,10 @@
-% Exponential decay with a constant half-life and no replenishment.
-% Illustrative sample: initial activity in Bq, half-life and elapsed time in h.
+% Calculate how much of a sample's initial activity remains after a given
+% time when its activity halves at a constant interval. The sample starts at
+% 80 becquerels and reaches 20 after two half-lives.
+%
+% Initial activity is in becquerels (decays per second); half-life and
+% elapsed time are in hours. The model assumes no replenishment. The Decayed
+% result is the decrease in activity, not a count of decayed atoms.
 
 sample(demo, 80.0, 8.0, 16.0).
 

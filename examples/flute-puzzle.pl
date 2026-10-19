@@ -1,17 +1,15 @@
-% A logic puzzle involving jobs and musical instruments
+% Find who plays the flute by assigning distinct occupations and instruments
+% to Chris, Sandy, and Pat. The occupations are doctor, lawyer, and engineer;
+% the instruments are piano, violin, and flute.
 %
-% In conversation, Chris, Sandy and Pat discovered that they had distinct
-% occupations and played distinct musical instruments. Also
-%   1. Chris is married to the doctor.
-%   2. The lawyer plays the piano.
-%   3. Chris is not the engineer.
-%   4. Sandy is a patient of the violinist.
-% Who plays the flute?
+% Chris is married to the doctor, the lawyer plays the piano, Chris is not
+% the engineer, and Sandy is a patient of the violinist. The rules treat the
+% violinist as the doctor, require Chris to differ from the doctor, and
+% require Sandy to differ from the violinist. They test assignments against
+% these clues.
 %
-% Original code from https://www.cs.toronto.edu/~hector/PublicTCSlides.pdf
+% Original code: https://www.cs.toronto.edu/~hector/PublicTCSlides.pdf
 
-
-% people
 person(chris).
 person(sandy).
 person(pat).

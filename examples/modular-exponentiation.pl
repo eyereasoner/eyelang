@@ -1,6 +1,11 @@
-% Exact nonnegative integer powers modulo a positive integer.
-% Repeated squaring keeps the intermediate integers small. A Fermat congruence
-% alone is not a primality test: 561 = 3*11*17 passes for base 7.
+% Calculate the remainder when an integer power is divided by a positive
+% integer. Repeated squaring halves the exponent at each recursive step and
+% reduces intermediate results modulo the divisor. Supply a bound integer
+% base, a nonnegative integer exponent, and a positive integer modulus.
+%
+% The example also shows that 7^560 has remainder 1 modulo 561 even though
+% 561 = 3*11*17 is composite. Passing this Fermat congruence does not prove
+% that a number is prime.
 
 :- table pow_mod/4.
 pow_mod(_, 0, Modulus, Result) :-

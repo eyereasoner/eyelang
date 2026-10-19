@@ -1,9 +1,10 @@
-% Exact binomial coefficients and Vandermonde's identity.
+% Count how many ways K items can be chosen from N items, without regard to
+% order. The result is the binomial coefficient C(N,K).
 %
-% The multiplicative recurrence computes C(N,K). Each division is exact integer
-% division, so large coefficients retain every digit. The finite convolution
-% sum_i C(N,i) C(M,R-i) is checked against C(N+M,R).
-% Inputs N, M, K, and R are bound nonnegative integers; an out-of-range K fails.
+% The program also checks Vandermonde's identity: choosing R items from two
+% groups gives the same count whether the groups are combined first or the
+% counts for each possible split are added. Calculations use exact integers.
+% Supply bound nonnegative integers; a choice size K greater than N fails.
 
 :- table choose/3, choose_step/5, between/3, symmetric/2.
 

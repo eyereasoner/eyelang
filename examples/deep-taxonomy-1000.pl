@@ -1,8 +1,10 @@
-% Deep taxonomy: 1000 steps.
-% ind starts with the label n0. Each step adds the next n label
-% and two side labels, i and j. The last n label leads to a2.
+% Follow a chain of 1000 classification steps from n0 through n1000. The
+% individual ind starts with label n0 and acquires the next n label plus two
+% side labels, i and j, at each step. The final n label implies a2.
+%
+% The query asks which individual has label a2, and the explanation traces
+% the supporting chain. Longer versions produce larger proofs.
 
-% Prolog facts and rules.
 is_a(ind, n0).
 
 is_a(Entity, a2) :-

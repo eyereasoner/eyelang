@@ -1,6 +1,12 @@
-% Eight-point radix-2 FFT of real samples, with complex terms c(Real, Imag).
-% Forward convention: X[k] = sum_n x[n]*exp(-2*pi*i*k*n/8), no normalization.
-% Fixed binary64 twiddle factors; all complex operations are ordinary clauses.
+% Convert eight real samples into eight complex frequency components using a
+% fast Fourier transform (FFT). The radix-2 method repeatedly splits the
+% samples into even and odd positions, then combines their smaller
+% transforms.
+%
+% Complex numbers are c(Real, Imaginary) terms. The forward transform uses
+% exp(-2*pi*i*k*n/8) and does not divide the results by eight. Fixed
+% approximate rotation factors make each arithmetic step visible; displayed
+% components are rounded, while checks also use unrounded values.
 
 wave(ramp, [0, 1, 2, 3, 4, 5, 6, 7]).
 wave(alternating, [1, -1, 1, -1, 1, -1, 1, -1]).

@@ -1,9 +1,11 @@
-% Text processing through Unicode character codes.
+% Convert names and text to lists of Unicode character codes, then use
+% ordinary list rules to build a sensor name and read an unsigned decimal
+% number. The sample "0042" gives the name sensor_0042 and the integer 42.
 %
-% atom_codes/2 and string_codes/2 bridge names, text, and integer lists.
-% Ordinary clauses then join a prefix to a decimal field and parse the field
-% with exact arithmetic. No additional text or number-conversion builtins are
-% needed. Supplementary characters such as 😀 occupy one code point.
+% atom_codes/2 handles atoms, and string_codes/2 handles strings. Each
+% Unicode character, including an emoji such as U0001f600, contributes one
+% code point. Decimal parsing uses exact integer arithmetic and rejects empty
+% text, signs, and nondigit characters.
 
 :- table append/3, decimal_digits/3.
 

@@ -1,6 +1,12 @@
-% Conflicting observations are kept as data rather than repaired. Each property
-% is summarized locally as true only, false only or both, and only an
-% unconflicted summary is allowed to drive a decision.
+% Keep conflicting animal observations as separate facts. For each property,
+% the program distinguishes support for true, support for false, support for
+% both, and no evidence either way.
+%
+% Conflicting or missing evidence leads to an undecided result rather than an
+% arbitrary choice of truth value. Only an unconflicted result determines the
+% movement decision. The treatment of contradictions is implemented by these
+% ordinary rules.
+
 bird(tweety).
 penguin(tweety).
 bird(falco).

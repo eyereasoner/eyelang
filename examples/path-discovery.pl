@@ -1,11 +1,12 @@
-% Generic path discovery over the air-routes graph.
-% Add route_request(FromLabel, ToLabel, MaxStopOvers) facts to answer other routes.
-% MaxStopOvers is converted to a leg limit, and the recursive search keeps a
-% visited list so returned routes cannot revisit an airport.
+% Find airport routes with at most a supplied number of intermediate stops.
+% Add route_request(FromLabel, ToLabel, MaxStopOvers) facts to request other
+% endpoints or stop limits. A visited-airport list prevents repeated
+% airports.
 %
-% The complete graph contains 7,698 airports and 37,274 directed flights.
-% Airport labels and route text are atoms; character-code lists join labels
-% without adding a text-concatenation builtin.
+% The supplied dataset contains 7,698 airports and 37,274 directed flight
+% links. The sample searches from Ostend to Prague with at most two stops and
+% returns airport-name paths. These links describe the stored graph; the
+% program does not check current flight schedules or availability.
 
 :- table route_between/4, simple_path/6, member/2, reverse/2, reverse_into/3,
          append/3, route_text/2, route_codes/2.

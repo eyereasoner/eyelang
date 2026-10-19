@@ -1,9 +1,10 @@
-% Fibonacci starts with 0 and 1.
-% Work backwards from the number asked for. Reuse each answer once found.
-% Ask for a larger answer using the same rule.
-% F(10000) * F(9998) - F(9999)^2 = -1 because 9999 is odd.
+% Generate Fibonacci numbers: start with 0 and 1, then add the previous two
+% numbers to obtain the next. Supply a nonnegative integer index.
+%
+% Tabling reuses previously calculated answers. The queries include F(10000),
+% whose integer value is kept exactly, and the checks verify a relation
+% between three neighboring Fibonacci numbers known as Cassini's identity.
 
-% Prolog facts and rules.
 :- table fibonacci/2.
 fibonacci(0, 0).
 fibonacci(1, 1).

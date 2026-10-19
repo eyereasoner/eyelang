@@ -1,6 +1,11 @@
-% Ordinary least squares with an intercept, using sufficient statistics.
-% Points are point(X,Y) terms. regression/4 requires at least two points and
-% variation in both axes; R^2 is undefined here for a constant response.
+% Fit a straight line Y = Slope*X + Intercept to a list of point(X, Y)
+% values. Ordinary least squares chooses the line that minimizes the sum of
+% squared vertical errors. The program reports its slope, intercept, and R^2,
+% the fraction of variation in Y explained by the fitted line.
+%
+% This implementation requires at least two points and variation in both X
+% and Y. A constant response has no R^2 result here, so regression/4 fails
+% for that case.
 
 dataset(demo, [point(1, 2), point(2, 3), point(3, 5), point(4, 4)]).
 

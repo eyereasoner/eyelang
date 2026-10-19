@@ -1,8 +1,7 @@
-% Meet our cats.
-% A rule works for anyone it fits.
-% Our program says nothing about dogs yet.
+% Infer that Milo and Luna are animals from two cat facts and the rule that
+% every cat is an animal. The dog query has no supporting fact or rule, so it
+% fails; that failure does not establish that Milo is not a dog.
 
-% Prolog facts and rules.
 is_a(milo, cat).
 is_a(luna, cat).
 

@@ -1,6 +1,12 @@
-% Two-body coplanar Hohmann transfer between circular heliocentric orbits.
-% Radii in km, mu in km^3/s^2, impulsive delta-v in km/s, transfer time in days.
-% This model omits launch, capture, inclination changes, and other bodies.
+% Estimate the speed changes and travel time for a Hohmann transfer: an
+% elliptical path joining two circular orbits around the Sun in the same
+% plane. The sample uses Earth and Mars orbital radii.
+%
+% The calculation includes only the Sun's gravity and instantaneous speed
+% changes at departure and arrival. It omits launch, capture, changes of
+% orbital plane, and other bodies. Radii use kilometers, the gravitational
+% parameter mu uses km^3/s^2, speed changes use km/s, and travel time uses
+% days.
 
 transfer(earth_mars, 132712440018.0, 149597870.7, 227939200.0).
 

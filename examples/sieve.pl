@@ -1,7 +1,10 @@
-% The sieve of Eratosthenes: list the integers from 2, then repeatedly keep the
-% first and strike out its multiples from the rest.
-% The limit is 100 to keep the numbered explanation manageable. Every filtering
-% step retains its intermediate list as evidence.
+% Find primes up to 100 with the sieve of Eratosthenes. Start with the
+% integers from 2 through the limit, keep the first remaining number, and
+% remove its multiples before continuing.
+%
+% The supplied limit keeps the explanation manageable. Each filtering step
+% records its intermediate list so the result can be followed and checked.
+
 :- table primes/2, range/3, sift/2, remove/3.
 
 primes(Limit, Primes) :-

@@ -1,4 +1,9 @@
-% Enumerate paths in an acyclic weighted graph, then select minimum costs.
+% Calculate route costs in a directed graph with no cycles, then retain the
+% minimum cost for each reachable pair of nodes. Costs are sums of edge
+% weights. The queries compare all costs from a to d with the cheapest one.
+% This example enumerates paths before selecting a minimum; it is not
+% Dijkstra's algorithm.
+
 edge(a, b, 4).
 edge(a, c, 2).
 edge(c, b, 1).

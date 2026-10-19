@@ -1,14 +1,12 @@
-% Critical-path scheduling for a small project network.
+% Calculate when each project task can start and finish, given its duration
+% and the tasks that must finish first. Trace the critical tasks that
+% determine the project's earliest completion time.
 %
-% earliest_start/2 is the maximum finish time over all predecessors; finish_time/2
-% adds task duration. Critical tasks are reconstructed by following predecessors
-% that attain those maxima. Tabling lets the schedule, finish date, and path
-% queries share the same project-network subproblems.
-%
-% task/3 stores each predecessor list explicitly. A recursive maximum fold keeps
-% dependency evaluation positive; the project-wide aggregate runs afterwards.
-% The task network must be a finite directed acyclic graph with nonnegative
-% durations. Time units are arbitrary, and tasks have no resource constraints.
+% A task starts when its last predecessor finishes; tasks without
+% dependencies start at zero. Previously calculated times are reused. The
+% dependency graph must be finite and contain no cycles, and durations must
+% be nonnegative. Time units are arbitrary, and the model imposes no limits
+% on shared resources.
 
 :- table earliest_start/2, finish_time/2, latest_finish/2, member/2, critical_chain/2.
 

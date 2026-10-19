@@ -1,7 +1,11 @@
-% Hamming(7,4), even parity. Positions 1, 2, 4 hold parity bits.
-% Under the assumption of at most one flipped bit, a nonzero syndrome is its
-% position. Two or more errors can be miscorrected; this code does not detect
-% all double errors. Payload order: positions 3, 5, 6, 7.
+% Correct a single flipped bit in a seven-bit Hamming(7,4) code word and
+% extract its four data bits. Positions 1, 2, and 4 hold parity bits, which
+% check whether selected groups contain an even number of ones.
+%
+% The three check results form a number called the syndrome: zero means the
+% checks pass, and a nonzero value identifies the bit to flip when at most
+% one bit is wrong. Multiple errors can be miscorrected. The extracted data
+% comes from positions 3, 5, 6, and 7, in that order.
 
 received(packet1, [1, 0, 1, 1, 1, 1, 0]).
 bit(0).

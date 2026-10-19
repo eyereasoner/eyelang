@@ -1,11 +1,9 @@
-% Find routes through French cities.
-% Each connects fact is a one-way road: travel from left to right.
-% Work backwards from the route asked for: one road is enough.
-% Take one road, then follow a route from the next city.
-% There is also a route to Tours.
-% Roads only go in the direction written above.
+% Find which French cities can reach one another through the supplied road
+% network. A connects(From, To) fact permits travel only in the written
+% direction. A route can use one road or several roads in sequence. The
+% queries find starting cities that can reach Nantes and check routes from
+% Paris to Nantes and Tours, including a failed reverse-direction query.
 
-% Prolog facts and rules.
 :- table reaches/2.
 connects(paris, orleans).
 connects(paris, chartres).

@@ -1,14 +1,15 @@
-% Observability example: parse service logs, then correlate events that share
-% a trace id. The noisy health-check line deliberately remains unparsed.
+% Read structured service-log lines and link events with the same user, IP
+% address, and trace identifier. The sample raises an alert when a failed
+% login and a denied payment share those fields. A health-check line has a
+% different format and is reported as unparsed.
 %
-% The documented format has the fixed key order shown below, single spaces
-% between fields, and nonempty printable ASCII values. Levels, events, and
-% users contain ASCII letters, digits, or underscores. Timestamps and IPs are
-% opaque tokens. Version 00 traceparent fields contain 32, 16, and 2 lowercase
-% hexadecimal digits; this example does not implement every trace-context rule.
-%
-% Character-code lists and ordinary clauses perform the parse. Parsed fields
-% become ordinary terms; =../2 lets one rule expose their names and values.
+% The parser expects the displayed field order, single spaces, and nonempty
+% printable ASCII values. Levels, events, and users accept letters, digits,
+% or underscores. A traceparent field has version 00 and lowercase
+% hexadecimal trace, span, and flag fields of lengths 32, 16, and 2.
+% Timestamps and IP addresses are treated as text tokens, without validating
+% their format; the example implements only the stated part of the
+% trace-context format.
 
 :- table parse_log/2, literal/3, field/3, field_tail/3, word_codes/1,
          hex_segment/4, member/2, append/3.

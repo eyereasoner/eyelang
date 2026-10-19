@@ -1,9 +1,12 @@
-% Peasant multiplication and exponentiation, as in ancient Egyptian arithmetic:
-% halve one operand, double (or square) the other, and add (or multiply) in the
-% rows where the halved operand was odd. Only halving, doubling and addition
-% are needed for multiplication, and the integers stay exact however large
-% they grow. Exponentiation also uses squaring and multiplication.
-% Supply nonnegative integers.
+% Multiply integers by repeatedly halving one operand and doubling the other,
+% adding the doubled values from rows where the halved operand is odd. The
+% related exponentiation rule squares the base and halves the exponent,
+% multiplying the selected powers.
+%
+% Supply nonnegative integers. Results retain every integer digit, including
+% the large sample products and powers. The algorithms are often called
+% peasant or Egyptian multiplication and repeated-squaring exponentiation.
+
 :- table prod/2, pow/2.
 
 prod([0, _], 0).

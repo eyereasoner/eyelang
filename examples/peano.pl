@@ -1,5 +1,10 @@
-% Symbolic natural numbers: zero, s(zero), s(s(zero)), ...
-% Addition also works backward to enumerate ways of splitting a known sum.
+% Represent natural numbers as zero followed by nested successor terms: zero
+% is 0, s(zero) is 1, and s(s(zero)) is 2.
+%
+% Recursive rules define addition, multiplication, and factorial over this
+% representation. With a complete sum supplied, addition can also enumerate
+% the possible pairs of addends. The queries demonstrate both directions.
+
 :- table add/3, multiply/3, factorial/2.
 
 add(A, zero, A).

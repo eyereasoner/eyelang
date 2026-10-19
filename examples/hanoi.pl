@@ -1,4 +1,8 @@
-% Move three disks using a spare peg; recursion constructs the move list.
+% Solve the Towers of Hanoi puzzle for three disks. Move the stack between
+% two pegs using a spare peg, moving one disk at a time and never placing a
+% larger disk on a smaller one. Recursive rules construct the ordered list of
+% moves.
+
 :- table append/3, moves/5.
 
 append([], Ys, Ys).

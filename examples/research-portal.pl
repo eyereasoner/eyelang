@@ -1,41 +1,33 @@
-% A hospital research portal passes two independent gates: research policy and device consent.
-% Compare a modelled EU baseline with the original Digital Omnibus proposal,
-% COM(2025) 837 final, 19 November 2025, after its modelled provisions apply.
-% The proposal is a comparison scenario, not a statement of current law.
-% Local names represent ODRL/DPV concepts; one research agreement applies in both rulebooks.
-% Sources: https://www.w3.org/TR/odrl-model/ and https://w3id.org/dpv/2.3/dpv/
+% Compare research-portal sessions under two modeled rulebooks. A session
+% must pass both a research-policy gate and a separate device-consent gate.
+% The queries show decisions, unmet conditions, planned duties,
+% breach-response plans, and changes between the rulebooks.
+%
+% The comparison uses a modeled EU baseline and the original Digital Omnibus
+% proposal, COM(2025) 837 final of 19 November 2025, assuming its modeled
+% provisions apply. The proposal scenario does not state current law. Policy
+% terms use ODRL (Open Digital Rights Language) and DPV (Data Privacy
+% Vocabulary). Device-access consent does not supply consent for processing
+% health records.
+%
+% Inputs assume single operand values, valid YYYYMMDD dates, an acyclic
+% purpose hierarchy, and personal data on a natural person's device.
+% Necessity, own use, measurement aggregation, breach risk, and completed
+% months since a refusal are supplied assessments. National and
+% media-provider exceptions and transition dates are outside the model.
+% Notification deadlines are measured from awareness; the high-risk case
+% assumes no Article 34(3) exception. Duties and requests are plans, not
+% evidence of consent, fulfillment, or compliance. A device denial applies to
+% the planned tracker, not every possible way to provide the session. All
+% modeled breaches require documentation.
+%
+% Sources:
+% https://www.w3.org/TR/odrl-model/
+% https://w3id.org/dpv/2.3/dpv/
 % https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52025PC0837
 % https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng
 % https://eur-lex.europa.eu/eli/dir/2002/58/2009-12-19
-% Inputs have single operand values, valid YYYYMMDD dates, and an acyclic purpose taxonomy.
-% Device accesses involve personal data on a natural person's device; necessity,
-% measurement aggregation and own use are assessed inputs. National exceptions,
-% transition dates and media-provider exceptions are outside this model.
-% Consent to device access never supplies consent to process health records.
-% A device denial concerns this planned tracker; removing it may allow a different session.
-% Duties and notifications are plans: actual consent, fulfilment and compliance are not proved.
-% Refusals concern the same device purpose, with completed calendar months as input.
-% Breach risk is supplied. Deadlines run from awareness, without undue delay and where feasible;
-% no Article 34(3) exception applies to the high-risk case. All breaches must be documented.
-% The purpose taxonomy and consortium membership.
-% One ODRL agreement: research permission, marketing and US-transfer prohibitions.
-% Each constraint states [operand, operator, expected value].
-% A DPV process: [controller, requester, processing, data, purpose, basis, consent, measure, date].
-% Reflexive membership is generated for the parties and purposes in this program.
-% Rule matching: requester, mapped action and target must all match.
-% Walk the supplied constraint list to collect every failure in its declared order.
-% List membership and concatenation keep policy data separate from the evaluator.
-% Collect failed constraints across the fixed agreement's permission list.
-% Gate 1: prohibition takes precedence over permission.
-% Gate 2: the session states [device access, previous visitor choice].
-% Asking is only a next step; it never establishes that consent was obtained.
-% Combine the gates. Every assessment keeps its decision and cited basis together.
-% Deletion duties attach only to final permits, never to a pending consent request.
-% Breaches concern existing portal data and are independent of planned sessions.
-% Compare decisions and notification plans, ignoring changes of citation alone.
-% Classify results so checks can count complete sets.
 
-% Prolog facts and rules.
 :- table is_a/2.
 :- table controller/2.
 :- table requester/2.

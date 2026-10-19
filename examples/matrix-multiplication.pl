@@ -1,5 +1,9 @@
-% Exact 2x2 matrix multiplication. m(A,B,C,D) stores rows [A,B], [C,D].
-% A concrete counterexample shows that multiplication need not commute.
+% Multiply two 2-by-2 matrices using exact integer arithmetic. The term m(A,
+% B, C, D) stores the rows [A, B] and [C, D].
+%
+% The sample calculates A*B and B*A and shows that the results differ: matrix
+% multiplication can depend on order. Their difference, A*B - B*A, is called
+% the commutator.
 
 matrix(a, m(1, 2, 0, 1)).
 matrix(b, m(1, 0, 3, 1)).

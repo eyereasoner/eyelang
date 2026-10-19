@@ -1,15 +1,11 @@
-% Finite sign analysis across branches and a loop.
+% Find possible division by zero by tracking whether a value is negative,
+% zero, or positive, rather than tracking every possible integer.
 %
-% countdown computes abs(input), repeatedly subtracts one while positive, and
-% then divides by the result. guarded computes abs(input) and divides only in
-% its positive branch; its zero branch supplies a separate zero result.
-%
-% The analyzer tracks neg, zero, and pos instead of individual integers.
-% Decrementing an unknown positive integer may yield zero or pos. Positive
-% recursion merges the resulting states at loop heads until the finite domain
-% reaches a fixed point. Warnings mean zero is possible in this abstraction.
-% Only the operations and guards below are modeled; this is a small-language
-% analysis over mathematical integers, with no machine-integer overflow.
+% The countdown program repeatedly subtracts one before dividing; the guarded
+% program divides only when its value is positive. The analysis combines the
+% possible signs at each program point until no new signs appear. A warning
+% means zero is possible in this analysis. Only the listed operations and
+% conditions are modeled, using integers without machine overflow.
 
 program(countdown).
 program(guarded).

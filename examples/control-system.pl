@@ -1,11 +1,12 @@
-% Control systems: two actuator commands computed from measurements,
-% observations and a target. Actuator 1 combines a proportional part with a
-% feedforward compensation for a measured disturbance; actuator 2 is a
-% proportional, nonlinear differential (PND) feedback controller. A
-% measurement pair whose first value is below the second contributes the
-% square root of their difference, otherwise its first value.
+% Calculate commands for two actuators from sample measurements and a target.
+% The first command scales a measured input and subtracts compensation for a
+% measured disturbance. The second combines the difference from the target
+% with a nonlinear correction based on the previous observation.
+%
+% A measurement pair [A, B] contributes sqrt(B-A) when A < B, and A
+% otherwise. These are illustrative control formulas with supplied constants;
+% the second formula requires a nonzero difference from the target.
 
-% measurements
 measurement1(input1, [6, 11]).
 measurement1(disturbance2, [45, 39]).
 measurement2(input2, true).

@@ -1,6 +1,10 @@
-% The date of Easter Sunday, by the anonymous Gregorian algorithm (Meeus/Jones/
-% Butcher). Every step is integer arithmetic on the year; the result is a
-% [Month, Day] pair.
+% Calculate Easter Sunday in the Gregorian calendar for every year from 2021
+% through 2050. Each answer is a [Month, Day] pair.
+%
+% The calculation uses integer arithmetic and the Meeus/Jones/Butcher
+% algorithm for Gregorian Easter. The easter/2 predicate restricts answers to
+% the stated year range.
+
 :- table computus/2, in_range/3.
 
 computus(Year, [Month, Day]) :-

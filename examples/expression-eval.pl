@@ -1,4 +1,8 @@
-% A graph of expression nodes evaluated recursively, then used by a forward rule.
+% Evaluate an arithmetic expression stored as a graph of named nodes. Literal
+% nodes supply numbers; addition, subtraction, and multiplication nodes
+% combine the values of their children. The sample expression computes 2*3 +
+% (10-4), giving 12.
+
 literal(n2, 2).
 literal(n3, 3).
 literal(n10, 10).

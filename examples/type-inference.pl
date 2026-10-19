@@ -1,15 +1,14 @@
-% Infer result types in a tiny annotated lambda language.
+% Determine the result types of expressions in a small language with
+% functions, function calls, arithmetic, conditionals, and pairs. Function
+% parameters carry explicit type labels, and rules check that their uses
+% agree.
 %
-% The example is intentionally small and deterministic.  Lambda binders carry
-% explicit type labels or annotations, and ordinary logic unification checks
-% application, arithmetic, conditionals, and pairs.
-% The symbolic names t0, t1, and t2 stand for schematic type variables in the
-% displayed answers; concrete examples such as apply_id annotate the argument as
-% int so the application can be checked. These labels are atoms; this example
-% does not implement fresh type-variable inference or let-polymorphism.
+% The labels t0, t1, and t2 are ordinary atoms naming schematic types in the
+% examples. They are not fresh logic variables. This program checks the
+% stated annotations and lexical variable lookup; it does not implement
+% general type-variable inference or let-polymorphism, where one definition
+% can be used at several inferred types.
 
-% Tiny expression language: int_lit/1, bool_lit/1, var/1, lam/3, app/2,
-% add/2, if/3, pair/2, fst/1, and snd/1.
 :- table type_expr/3, lookup/3.
 
 program(id, lam(x, t0, var(x))).

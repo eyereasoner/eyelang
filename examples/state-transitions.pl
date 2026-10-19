@@ -1,5 +1,8 @@
-% An ordered event log defines a relation between successive account states.
-% Each event references its predecessor; no stored balance is mutated.
+% Calculate an account's balance after each event in an ordered log. Events
+% have consecutive numbers: the balance after event N uses the balance after
+% event N-1 and the event's deposit or withdrawal. Earlier states remain
+% available as facts; no stored balance is overwritten.
+
 :- table balance/2.
 :- table between/3.
 

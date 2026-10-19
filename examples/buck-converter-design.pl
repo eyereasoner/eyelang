@@ -1,8 +1,12 @@
-% Ideal buck converter in continuous conduction, ignoring capacitor ESR.
-% Check only the two ripple limits; these do not establish control stability.
-% Units: volts, amperes, hertz, henries, farads.
+% Calculate the current and voltage ripple in an ideal buck converter, which
+% reduces a DC supply voltage. Ripple is the variation between minimum and
+% maximum current or voltage during a switching cycle.
+%
+% The model requires the inductor current to stay positive and ignores the
+% capacitor's internal resistance. It compares the calculated ripple with two
+% limits; passing those limits does not establish control-system stability.
+% Inputs use volts, amperes, hertz, henries, and farads.
 
-% converter(Name, Vin, Vout, LoadA, SwitchHz, InductanceH, CapacitanceF).
 converter(demo, 24.0, 5.0, 2.0, 500000.0, 0.000022, 0.000047).
 limits(demo, 0.30, 0.05).
 
