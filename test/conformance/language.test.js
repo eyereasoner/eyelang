@@ -128,14 +128,14 @@ for (const [requirement, source] of [
   ['§3: block comments must close', '/* unfinished'],
   ['§3: escapes must be supported', String.raw`p("\q").`],
   ['§3: Unicode escapes must be valid', String.raw`p("\U00110000").`],
-  ['§12: disjunction is excluded', 'p(a); p(b).'],
-  ['§12: cut is excluded', 'p(a) :- !.'],
-  ['§12: if-then-else is excluded', 'p(a) :- q(a) -> r(a).'],
-  ['§12: DCGs are excluded', 'p --> q.'],
-  ['§12: modules are excluded', ':- module(example, []).'],
-  ['§12: imports are excluded', ':- use_module(library(lists)).'],
-  ['§12: custom operators are excluded', ':- op(500, xfx, likes).'],
-  ['§12: initialization is excluded', ':- initialization(main).'],
+  ['§10: disjunction is excluded', 'p(a); p(b).'],
+  ['§10: cut is excluded', 'p(a) :- !.'],
+  ['§10: if-then-else is excluded', 'p(a) :- q(a) -> r(a).'],
+  ['§10: DCGs are excluded', 'p --> q.'],
+  ['§10: modules are excluded', ':- module(example, []).'],
+  ['§10: imports are excluded', ':- use_module(library(lists)).'],
+  ['§10: custom operators are excluded', ':- op(500, xfx, likes).'],
+  ['§10: initialization is excluded', ':- initialization(main).'],
 ]) {
   test(requirement, () => assert.throws(() => run(source), /^Error: Line \d+:/));
 }

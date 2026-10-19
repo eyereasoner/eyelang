@@ -1,11 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { run } from '../../src/language.js';
+import { infer, parse, run } from '../../src/language.js';
 import { assertAnswers } from './helpers.js';
 
 // SPEC §6 (aggregation dependencies) and §7 (distinct completed producer tuples).
 
 const scores = 'score(ada,7). score(ben,7). score(cara,10). score(ben,7).';
+const bag = terms => terms.map(term => JSON.stringify(term)).sort();
+function queryValues(source) {
+  const program = parse(source);
+  const records = infer(program);
+  return program.questions.map(question => records.filter(record => record.goal.relation === question.goal.relation)
+    .map(record => Object.fromEntries(question.names.map((name, index) => [name, record.goal.terms[index]]))));
+}
 test('aggregates use distinct completed tuples, exact totals, and explicit output arguments', () => {
   assertAnswers(run(`${scores}
     ?- aggregate_all(count, score(X,V), N).
@@ -89,4 +96,88 @@ test('aggregate sums preserve exact large integers and support finite real value
 test('aggregate cycles and unavailable arithmetic inputs report errors', () => {
   assert.throws(() => run('p(N) :- aggregate_all(count,p(X),N). ?- p(N).'), /cycle through negation or aggregation/);
   assert.throws(() => run(':- table p/2. p(X,Y) :- Y is X+1. ?- aggregate_all(count,p(X,Y),N).'), /unbound/);
+});
+
+test('§7: list collection retains equal projections from distinct tuples but removes repeated derivations', () => {
+  const [answers] = queryValues(`${scores}
+    copied(P,V) :- score(P,V).
+    copied(P,V) :- score(P,V).
+    ?- aggregate_all(list(V), copied(P,V), Values).
+  `);
+  assert.equal(answers.length, 1);
+  assert.deepEqual(bag(answers[0].Values.list), bag(['7', '7', '10']));
+});
+
+test('§7: list collection preserves all ground term types and arithmetic syntax without evaluation', () => {
+  const [answers] = queryValues(`
+    value(a,1). value(b,1.0). value(c,"one"). value(d,one).
+    value(e,record(one,[2,3])). value(f,[one,[]]). value(g,[]).
+    ?- aggregate_all(list(V), value(Id,V), Values).
+  `);
+  assert.deepEqual(bag(answers[0].Values.list), bag([
+    '1', { real: 1 }, { text: 'one' }, { atom: 'one' },
+    { functor: 'record', args: [{ atom: 'one' }, { list: ['2', '3'] }] },
+    { list: [{ atom: 'one' }, { list: [] }] }, { list: [] },
+  ]));
+  assertAnswers(run(`
+    ?- aggregate_all(list(1+2), true, Values).
+    ?- aggregate_all(list(V), V is 1+2, Values).
+    ?- aggregate_all(list([Head|Tail]), (Head=a, Tail=[b,c]), Values).
+  `), ['Values = [(1 + 2)].', 'Values = [3].', 'Values = [[a, b, c]].']);
+});
+
+test('§7: empty list collections succeed and constant templates collect once per producer tuple', () => {
+  assertAnswers(run(`${scores}
+    ?- aggregate_all(list(V), missing(V), Values).
+    ?- aggregate_all(list(pair(X,Y)), missing(X), []).
+    ?- aggregate_all(list(yes), score(P,V), Values).
+    ?- aggregate_all(list([]), true, Values).
+    list(user_predicate).
+    ?- list(X).
+  `), ['Values = [].', 'true.', 'Values = [yes, yes, yes].', 'Values = [[]].', 'X = user_predicate.']);
+});
+
+test('§7: outer bindings constrain list producers while local variables do not escape', () => {
+  const [answers] = queryValues(`${scores}
+    ?- P=ben, aggregate_all(list(result(P,V)), score(P,V), Values), V=outside.
+  `);
+  assert.deepEqual(answers, [{ P: { atom: 'ben' }, Values: { list: [{ functor: 'result', args: [{ atom: 'ben' }, '7'] }] }, V: { atom: 'outside' } }]);
+});
+
+test('§7: result list patterns unify after collection and cannot filter the producer', () => {
+  assertAnswers(run(`
+    score(ada,7). score(ben,10).
+    ?- aggregate_all(list(V), score(ada,V), [X|Tail]).
+    ?- aggregate_all(list(V), score(P,V), [7]).
+    ?- aggregate_all(list(V), score(P,V), []).
+    ?- aggregate_all(list(V), score(P,V), not_a_list).
+    ?- aggregate_all(list(V), score(ada,V), [10]).
+  `), ['X = 7, Tail = [].', 'false.', 'false.', 'false.', 'false.']);
+});
+
+test('§6 and §7: list collection completes recursive producers and composes with grouped collections', () => {
+  const [reachable, grouped] = queryValues(`
+    :- table reach/2.
+    edge(a,b). edge(b,c). edge(c,a). blocked(c).
+    reach(X,Y) :- edge(X,Y).
+    reach(X,Y) :- reach(X,Z), edge(Z,Y).
+    group(a). group(empty).
+    bundle(G, Values) :- group(G), aggregate_all(list(V), edge(G,V), Values).
+    ?- aggregate_all(list(X), (reach(a,X), \\+ blocked(X)), Values).
+    ?- aggregate_all(list(row(G, Values)), bundle(G,Values), Rows).
+  `);
+  assert.deepEqual(bag(reachable[0].Values.list), bag([{ atom: 'a' }, { atom: 'b' }]));
+  assert.deepEqual(bag(grouped[0].Rows.list), bag([
+    { functor: 'row', args: [{ atom: 'a' }, { list: [{ atom: 'b' }] }] },
+    { functor: 'row', args: [{ atom: 'empty' }, { list: [] }] },
+  ]));
+});
+
+test('§7: list templates require ground instances and retain existing aggregate validation', () => {
+  assert.throws(() => run('?- aggregate_all(list(X), true, Values).'), /X.*ground/);
+  assert.throws(() => run('?- aggregate_all(list(pair(a,X)), true, Values).'), /X.*ground/);
+  assert.throws(() => run('?- aggregate_all(list(_), true, Values).'), /ground/);
+  assert.throws(() => run('?- aggregate_all(list(a,b), true, Values).'), /list\(Term\)/);
+  assert.throws(() => run(':- table p/2. p(X,Y) :- Y is X+1. ?- aggregate_all(list(Y), p(X,Y), Values).'), /unbound/);
+  assert.throws(() => run('p(L) :- aggregate_all(list(X), p(X), L). ?- p(L).'), /cycle through negation or aggregation/);
 });

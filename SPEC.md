@@ -3,7 +3,7 @@
 ```text
 Document: eyeon-spec-0001
 Category: Language Specification
-Language version: 0.0.4
+Language version: 0.0.5
 Date: 2026-10-18
 ```
 
@@ -28,8 +28,6 @@ Date: 2026-10-18
   - [8.2. Independent checking](#82-independent-checking)
 - [9. Checks](#9-checks)
 - [10. Errors and command-line interface](#10-errors-and-command-line-interface)
-- [11. Implementation and examples](#11-implementation-and-examples)
-- [12. Limits and resource considerations](#12-limits-and-resource-considerations)
 
 ## Status of This Memo
 
@@ -174,7 +172,7 @@ goal is reached. These predicates MUST NOT be redefined by facts or clauses.
 | `atom_codes/2` | `atom_codes(Atom, Codes)` relates an atom to its list of Unicode scalar values as integers. A bound atom produces codes; otherwise a bound proper list of codes produces an atom. |
 | `string_codes/2` | `string_codes(String, Codes)` provides the same conversion for strings, preserving their distinction from atoms. |
 | `=../2` | `Term =.. Parts` decomposes a nonvariable term into a list of its functor and arguments, or constructs a term from such a list. It does not evaluate or call the constructed term. |
-| `aggregate_all/3` | `aggregate_all(Template, Goal, Result)` computes `count`, `sum(Value)`, `min(Value)`, or `max(Value)` over completed, distinct producer tuples. See Section 7 for binding, scope, and empty-result rules. |
+| `aggregate_all/3` | `aggregate_all(Template, Goal, Result)` computes `count`, `sum(Value)`, `min(Value)`, `max(Value)`, or `list(Term)` over completed, distinct producer tuples. See Section 7 for binding, scope, and empty-result rules. |
 
 For the two text conversions, a bound first argument MUST have the specified
 text type. Its codes are unified with the second argument, which MAY contain
@@ -402,6 +400,7 @@ Conjunctions share bindings and process goals from left to right.
 ?- aggregate_all(sum(Value), score(Person, Value), Total).
 ?- aggregate_all(min(Value), score(Person, Value), Minimum).
 ?- aggregate_all(max(Value), score(Person, Value), Maximum).
+?- aggregate_all(list(result(Person, Value)), score(Person, Value), Results).
 ```
 
 `aggregate_all/3` MAY appear in a body, query, or assertion. Its goal MAY be a
@@ -416,6 +415,16 @@ Equal values from distinct subjects contribute separately. Empty counts and
 sums yield integer zero; empty minima and maxima fail. Counts and integer sums
 MUST be exact; sums and extrema also support finite real arithmetic. A producer
 that requires unavailable input bindings MUST report an error.
+
+`list(Term)` MUST collect one instance of `Term` per distinct producer tuple,
+without evaluating arithmetic expressions inside that term. Elements MAY be
+atoms, strings, numbers, compounds, or lists, but MUST be ground. Empty
+collections MUST yield `[]`. Equal projected terms from different producer
+tuples MUST remain repeated list elements; repeated facts or proof paths MUST
+NOT add elements. List order is unspecified. A supplied result or list pattern
+MUST unify with the computed list; it MUST NOT bind producer variables or
+filter the producer before collection. Unlike Prolog's `findall/3`, this
+operation does not collect nonground answers or repeated derivations.
 
 ## 8. Explanations
 
@@ -589,100 +598,3 @@ explain what was not requested. Section grouping MUST NOT change
 preceding-query explanation context. Malformed or unfinished statements MUST
 report a source line. Unsupported syntax and runtime operations MUST fail
 explicitly. The earlier English-like syntax is not supported.
-
-## 11. Implementation and examples
-
-The [tutorial](https://eyereasoner.github.io/eyeon/TUTORIAL/)
-introduces facts, rules, queries, explanations, checks, recursion, arithmetic,
-aggregation, structured terms, and demand-driven tabling through runnable
-programs.
-
-The [homepage](https://eyereasoner.github.io/eyeon/) gives a brief introduction
-and a command-line example. The
-[playground](https://eyereasoner.github.io/eyeon/playground/) lists all
-executable `.pl` examples. Each example demonstrates answers, explanations,
-and assertions, with a complete transcript in
-[examples/output/](https://github.com/eyereasoner/eyeon/tree/main/examples/output).
-They include Socrates, positive cycles, routes and minimum
-costs, Gregorian Easter dates, exact arithmetic, symbolic Peano arithmetic,
-bounded Collatz trajectories, peasant multiplication and exponentiation,
-probabilities, Fibonacci 10000, Ackermann, complex numbers, a Turing machine,
-recursive lists, prime sieving, unification, Hanoi, expression graphs,
-account state transitions, feedforward and nonlinear feedback control,
-interval relations, family branches, structured classifications, schema
-closure, role permissions, policy scenarios, dog-count thresholds, negation,
-aggregation, and taxonomies up to 10000 levels.
-Padovan numbers, Newton–Raphson roots, a Gray-code counter, turbine maintenance,
-inventory totals, access conditions, ranked policy findings, eight-queen
-solutions, an instrument puzzle, conflicting animal observations, population
-statistics, vector similarity, annotated expression types, symbolic
-differentiation, knapsack optimization, Unicode text processing, and generic
-term inspection and construction also have executable examples. Service-log
-correlation, record-quality audits, critical-path and weighted interval
-scheduling, and bounded path discovery across a full airport graph combine
-these facilities in application examples.
-Additional models cover component vulnerability response, charger configuration,
-bounded job-shop scheduling, recovery with redundant services, finite sign
-analysis across loops, and discrete battery dispatch. Pure-math examples cover
-Pell equations, Vandermonde's identity, and cosets of the permutation group S3.
-These examples demonstrate
-behavior, not general performance or correctness guarantees for arbitrary
-inputs.
-
-[src/language.js](https://github.com/eyereasoner/eyeon/blob/main/src/language.js)
-exports `parse`, `infer`, `render`, `say`, and `run` without Node-specific dependencies.
-`parse` returns facts, rules, questions, checks, source-order `clauses`, and
-declared `tables`; `infer` returns
-materialized tuples and their evidence; `render(program, records, options)`
-formats completed inference as answer, explanation, and check blocks; `say`
-formats a goal. Callers of `render` MUST obtain records with
-`infer(program, { validateChecks: true })` before displaying check successes.
-`run(source, options)` performs parsing, checked inference, and rendering.
-Both `render` and `run` accept `{ arc: true }` to group the blocks as Answer,
-Reason, and Check. Both the CLI and browser worker use this module. The
-[test/](https://github.com/eyereasoner/eyeon/tree/main/test) directory contains
-conformance tests with a section coverage map, behavior regressions, and
-browser-interface tests.
-
-The same module exports `renderProof(program, records, requests)`,
-`checkProof(source, certificate, options)`, and `checkReportTerms(report)`.
-`renderProof` formats completed inference records for the supplied source
-query objects, defaulting to all queries; callers MUST check its output before
-presenting it as checked. `checkProof` accepts source text or a parsed program
-and returns `valid`, condition counts, failures, and explicit `trusted`
-obligations. `{ allowTrusted: false }` requests strict checking through this
-API. `checkReportTerms` formats a report as ground Prolog data. The checker
-shares the parser and pure term and builtin operations, but MUST NOT invoke
-inference. `render` and `run` automatically generate and check the Reason
-certificate and add the report to Check when `why` requests successful answers.
-Default output blocks contain each answer, one shared certificate at the first
-successful explanation, assertions, and the proof check report. Repeated
-successful explanation requests do not add duplicate blocks.
-
-The CLI and playground use the same ARC output without separate proof modes.
-Generation and checking in the playground MUST run in the cancellable worker.
-Copy/save MUST retain complete certificates and reports even when their
-previews are truncated.
-
-When an error identifies a valid source line, the playground MUST select that
-line in the editor. The error selection MUST be red in light and dark themes,
-and MUST clear when the program is edited, replaced, reset, or run again.
-Forced-colors mode MUST retain the system selection colors. Errors without a
-valid source line MUST still appear in the output without selecting a line.
-
-`npm run benchmark` reports parsing, checked inference, and full ARC rendering
-times separately. Rendering includes certificate generation and independent
-proof checking, with process peak memory from isolated runs. The
-[benchmark notes](https://github.com/eyereasoner/eyeon/tree/main/benchmarks)
-describe the workloads and measurement limits.
-
-## 12. Limits and resource considerations
-
-This subset excludes cut, disjunction, if-then-else, arbitrary operator
-declarations, nonground answers, improper or cyclic lists, general meta-calls,
-DCGs, modules/imports, mutation, I/O predicates, and external calls.
-Only the builtins and special forms listed in Section 5 are provided.
-Library-like names do not imply additional predicates or complete libraries.
-Stored facts, tables, explanations, and arithmetic results can be large.
-The CLI defines no execution timeout; the playground uses a cancellable worker
-and a labeled output preview, with complete output available for copy/save.

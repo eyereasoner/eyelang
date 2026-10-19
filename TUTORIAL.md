@@ -233,6 +233,23 @@ arithmetic.
 These rules describe exactly two legs. They do not find an optimal route or
 enumerate journeys of arbitrary length.
 
+For a calculation with physical units, open the
+[RC filter example](https://eyereasoner.github.io/eyeon/playground/#example=electrical-rc-filter).
+It derives a 0.01 s time constant and a cutoff of about 15.9155 Hz from a
+10000 ohm resistor and a 1 microfarad capacitor, assuming an ideal unloaded
+filter. Its assertions check the time constant and the cutoff relation.
+The playground's STEM calculations also include an
+[eight-point FFT](https://eyereasoner.github.io/eyeon/playground/#example=fft8-numeric)
+and [Hamming error correction](https://eyereasoner.github.io/eyeon/playground/#example=hamming-code).
+Their complex-number operations and bit correction are ordinary clauses using
+the same arithmetic facilities.
+The [polynomial example](https://eyereasoner.github.io/eyeon/playground/#example=polynomial)
+computes complex roots through degree four and retains repeated roots in a list.
+It uses finite real arithmetic, so closely spaced roots can lose accuracy.
+The [Dijkstra example](https://eyereasoner.github.io/eyeon/playground/#example=dijkstra)
+maintains a sorted frontier for a finite graph with nonnegative edge weights.
+It returns one shortest path, including the path itself and its total cost.
+
 ## 5. Summarize distinct data
 
 An aggregate answers a question about a completed set of matching tuples:
@@ -265,6 +282,17 @@ The explanation identifies the completed aggregate and its supporting facts.
 An empty count or sum is zero; an empty minimum or maximum fails. The producer
 variables `Place` and `Fee` are local to each aggregate, so these questions
 display only `Count` or `Total`.
+
+Use `aggregate_all(list(Term), Goal, Items)` when you want the matching values
+themselves. With the facts above,
+`?- aggregate_all(list(Fee), entry_fee(Place, Fee), Fees).` returns a list
+containing `0`, `5`, `5`, and `12`, in an unspecified order. The two fives come
+from different places. An empty collection is `[]`. The template is copied as
+a ground term, so `list(details(Place, Fee))` collects structured records;
+arithmetic inside the template is not evaluated. To collect calculated values,
+bind them with `is/2` in the producer goal first.
+The [list collection example](https://eyereasoner.github.io/eyeon/playground/#example=list-collection)
+builds per-order pick lists, retaining identical items from different lines.
 
 ## 6. Keep structure in your data
 

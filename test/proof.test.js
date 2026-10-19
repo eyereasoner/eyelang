@@ -163,6 +163,26 @@ test('each aggregate calculation is checked against its recorded numeric inputs'
   }
 });
 
+test('list aggregate certificates preserve term values, multiplicity, and completeness obligations', () => {
+  const program = 'score(a,2). score(b,2). score(c,5). ?- aggregate_all(list(item(V)),score(P,V),Items).';
+  const { proof, report } = prove(program);
+  assert.equal(report.redecided, 1);
+  assert.deepEqual(report.trusted.map(item => item.reason), ['collection_completeness']);
+  invalid(program, proof.replaceAll('[item(2), item(2), item(5)]', '[item(2), item(5)]'), 'C5');
+  invalid(program, proof.replaceAll('[item(2), item(2), item(5)]', '[item(2), item(2), item(6)]'), 'C5');
+  invalid(program, proof.replace('[[score(a, 2)], [score(b, 2)], [score(c, 5)]]',
+    '[[score(a, 2)], [score(a, 2)], [score(c, 5)]]'), 'C5');
+  invalid(program, proof.replace('[[score(a, 2)], [score(b, 2)], [score(c, 5)]]',
+    '[[score(a, 2)], [score(c, 5)]]'), 'C5');
+  invalid(program + ' score(d,9).', proof, 'C6');
+  invalid(program, proof, 'C5', { allowTrusted: false });
+  for (const source of [
+    '?- aggregate_all(list(V),missing(V),Values).',
+    '?- aggregate_all(list(1+2),true,Values).',
+    '?- aggregate_all(list(V),(V=[a,b]),[X|Tail]).',
+  ]) assert.equal(prove(source).report.valid, true);
+});
+
 test('aggregate boundary checks use joins, repeated variables, and bound arithmetic', () => {
   const program = 'a(x,2). a(y,3). b(x). ?- aggregate_all(sum(W),(a(P,V),b(P),W is V*2),N).';
   const { proof } = prove(program);

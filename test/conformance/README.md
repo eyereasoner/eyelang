@@ -16,12 +16,12 @@ expected results come from the current
 | §5: reserved builtin indicators, ordinary predicate definitions, recursive integer ranges, and excluded identity operators | `language.test.js`, `terms.test.js`, `arithmetic.test.js` |
 | §6: set semantics, fixed points, clause order, table declarations, variant calls, recursion, run isolation | `inference.test.js`, `terms.test.js` |
 | §6: completed negation, stratification, arity and constant dependencies, bound negative tests | `negation.test.js`, `aggregation.test.js` |
-| §7: distinct completed producer tuples, empty aggregates, exact sums, extrema, outer bindings, local variables | `aggregation.test.js` |
+| §7: distinct completed producer tuples, empty aggregates, exact sums, extrema, ground list collection, outer bindings, local variables | `aggregation.test.js` |
 | §8: supplied facts, applied clauses, arithmetic, absence, aggregates, complete proof steps, explanation context | `explanations.test.js` |
 | §8.1–8.2, §10: certificate records, source citations, C1–C7, tampering, trust obligations, strict API checking, reports, unified ARC output | `../proof.test.js` (included in `npm test`) |
 | §9: existential checks, check order, source lines, checks do not assert facts | `explanations.test.js`, `cli.test.js` |
 | §10: files/stdin, help/version, errors, exit status, ARC grouping and query context, no partial transcript | `cli.test.js`, `explanations.test.js` |
-| §12: rejected syntax and operations outside the subset | `language.test.js`, `terms.test.js`, `arithmetic.test.js`, `negation.test.js` |
+| §2, §5, §10: rejected syntax and operations outside the subset | `language.test.js`, `terms.test.js`, `arithmetic.test.js`, `negation.test.js` |
 
 Expectations are written alongside small programs and name the behavior under
 test. Integer and real spellings are compared exactly: `1` and `1.0` are
@@ -30,7 +30,7 @@ algorithm for both forward and tabled inference. Tests do not require a
 particular first proof when several derivations are valid.
 
 `npm test` also runs the behavior regressions in `test/language.test.js`, every
-bundled example, and taxonomy evidence checks through 10000 levels (§11).
+bundled example, and taxonomy evidence checks through 10000 levels.
 Example transcripts are compared with saved files in `examples/output/`,
 including their answers, numbered proofs, and checks. These goldens record
 the current answer order and selected derivation; they do not change the
@@ -48,7 +48,7 @@ displays and runnable range example in the specification. Playground error
 line selection and clearing after edits, reset, and rerun are covered by
 `test/playground-sharing.test.js`. Worker cancellation, error selection colors
 in light, dark, and forced-colors modes, and copying/saving complete output
-from a truncated preview (§6, §12) also require an
+from a truncated preview also require an
 actual-browser check when changing the playground.
 
 These finite tests check the stated cases; they do not establish completeness

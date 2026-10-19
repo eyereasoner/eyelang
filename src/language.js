@@ -211,8 +211,8 @@ export function parse(source) {
       const result = expression();
       expect(')');
       const operation = template.atom === 'count' ? 'count' : template.functor;
-      if (!['count', 'sum', 'min', 'max'].includes(operation) || operation !== 'count' && template.args?.length !== 1) {
-        fail('Use aggregate_all(count, Goal, N), sum(Value), min(Value), or max(Value).');
+      if (!['count', 'sum', 'min', 'max', 'list'].includes(operation) || operation !== 'count' && template.args?.length !== 1) {
+        fail('Use aggregate_all(count, Goal, N), sum(Value), min(Value), max(Value), or list(Term).');
       }
       const value = operation === 'count' ? null : template.args[0];
       const names = [...new Set([...body.flatMap(variables), ...(value ? termVariables(value) : [])])];
@@ -888,7 +888,7 @@ export function infer(program, { validateChecks = false } = {}) {
     const records = lookup(known, sourceGoal)
       .filter(record => match(sourceGoal, record.goal));
     const result = operation === 'count' ? String(records.length) : aggregateValue(operation,
-      records.map(record => evaluate(value, match(premise.aggregate.sourceGoal, record.goal))));
+      records.map(record => aggregateElement(operation, value, match(premise.aggregate.sourceGoal, record.goal))));
     if (result === null) return;
     const bindings = new Map(partial.bindings);
     if (!unify(premise.terms[0], result, bindings)) return;
@@ -1016,7 +1016,7 @@ function readGoal(term) {
   if (is(term, 'aggregate_all', 3)) {
     const [template, body, result] = term.args;
     const operation = template.atom === 'count' ? 'count' : template.functor;
-    if (!items(body)?.length || !['count', 'sum', 'min', 'max'].includes(operation) ||
+    if (!items(body)?.length || !['count', 'sum', 'min', 'max', 'list'].includes(operation) ||
         operation === 'count' && template.atom !== 'count' ||
         operation !== 'count' && template.args?.length !== 1) throw new Error('Invalid aggregate proof goal.');
     return { relation: 'builtin:aggregate', terms: [result], aggregate: {
@@ -1299,14 +1299,19 @@ function collectionValues(goal, members) {
     const key = sayTerm(values);
     if (seen.has(key)) throw new Error('Duplicate collected tuple.');
     seen.add(key);
-    tuples.push({ key, value: operation === 'count' ? '1' : evaluate(value, env) });
+    tuples.push({ key, value: operation === 'count' ? '1' : aggregateElement(operation, value, env) });
   }
   return tuples;
 }
 
-// Share arithmetic, while inference and the checker collect their own inputs.
+function aggregateElement(operation, value, bindings) {
+  return operation === 'list' ? specialize(value, bindings) : evaluate(value, bindings);
+}
+
+// Share pure reductions, while inference and the checker collect their own inputs.
 function aggregateValue(operation, values) {
   if (operation === 'count') return String(values.length);
+  if (operation === 'list') return list(values);
   if (operation === 'sum') return values.reduce((total, value) => evaluate(compound('+', [total, value]), new Map()), '0');
   if (!values.length) return null;
   return values.reduce((best, value) => {

@@ -61,23 +61,25 @@ test('Pages serves playground dependencies under the project path and prepares r
     ['', 'https://eyereasoner.github.io/eyeon/SPEC/', '/eyeon/SPEC/'],
     ['TUTORIAL/', 'https://eyereasoner.github.io/eyeon/SPEC/', '/eyeon/SPEC/'],
     ['TUTORIAL/', 'https://eyereasoner.github.io/eyeon/playground/', '/eyeon/playground/', 'index.html'],
-    ['SPEC/', 'https://eyereasoner.github.io/eyeon/', '/eyeon/'],
-    ['SPEC/', 'https://eyereasoner.github.io/eyeon/TUTORIAL/', '/eyeon/TUTORIAL/'],
-    ['SPEC/', 'https://eyereasoner.github.io/eyeon/playground/', '/eyeon/playground/', 'index.html'],
   ]) {
     const url = new URL(target, `https://eyereasoner.github.io/eyeon/${document}`);
     assert.equal(url.pathname + url.hash, expected);
     const page = url.pathname.slice('/eyeon/'.length);
     assert.ok((await read(`${page}${file}`)).length > 0);
-    const content = document === 'SPEC/' ? spec : document === 'TUTORIAL/' ? tutorial : home;
+    const content = document === 'TUTORIAL/' ? tutorial : home;
     assert.ok(content.includes(`](${target})`));
-  }
-  for (const [label, path] of [['src/language.js', 'blob/main/src/language.js'], ['test/', 'tree/main/test']]) {
-    assert.ok(spec.includes(`[${label}](https://github.com/eyereasoner/eyeon/${path})`), label);
   }
   assert.equal(JSON.parse(await read('_config.yml')).baseurl, '/eyeon');
   const layout = await read('_layouts/default.html');
   assert.equal([...layout.matchAll(/<nav\b/g)].length, 1);
   assert.match(layout, /\{\{ content \}\}/);
-  assert.match(layout, /href="\{\{ '\/TUTORIAL\/' \| relative_url \}\}">Tutorial/);
+  for (const [label, path, file] of [
+    ['eyeon', '/', 'index.md'],
+    ['Playground', '/playground/', 'playground/index.html'],
+    ['Tutorial', '/TUTORIAL/', 'TUTORIAL/index.md'],
+    ['Specification', '/SPEC/', 'SPEC/index.md'],
+  ]) {
+    assert.ok(layout.includes(`href="{{ '${path}' | relative_url }}">${label}</a>`));
+    assert.ok((await read(file)).length > 0);
+  }
 });
